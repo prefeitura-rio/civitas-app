@@ -1,14 +1,39 @@
 import axios from 'axios';
-import { REACT_APP_API_KEY } from './config';
+import qs from "qs";
+import { getConfig } from "./config";
+
+const config = getConfig();
+
+const api = axios.create({
+  baseURL: config.apiUrl,
+});
+
+api.interceptors.request.use((config) => {
+  // Try to get token from session storage
+  const token = sessionStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      alert("Você está deslogado ou sua sessão expirou. Por favor, faça login novamente.")
+      logOut();
+      // TODO: Redirect to login or show message
+    }
+    return Promise.reject(error);
+  },
+);
 
 
 export async function getActiveCalls(id = 4) {
-  const url = `https://api.rg.dados.rio/api/v${id}/Calls/GetActiveCalls`;
-  const config = {
-    headers: { Authorization: `Bearer ${REACT_APP_API_KEY}` }
-  };
-  const response = await axios.get(url, config);
-  return (response.data);
+  // TODO (future): implement this
+  return [];
 };
 
 export async function getCarsPath(params) {
@@ -19,39 +44,36 @@ export async function getCarsPath(params) {
     "%20"
   )}`
 
-  const config = {
-    headers: { Authorization: `Bearer ${REACT_APP_API_KEY}` }
-  };
-  const response = await axios.get(url, config);
+  const response = await api.get(url);
   return (response.data);
 };
 
-// -----------------------------------------------------//
-
-// @Gabriel
 // Authentication
-export async function login(username, password) {
-  //TODO: ADD ENDPOINT TO ENV
-  const response = await fetch('Endpoint_aqui', {
-    method: 'POST',
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: JSON.stringify({ username, password })
-  });
-
-  const data = await response.json();
-  const { access_token } = data;
-  sessionStorage.setItem("token", access_token);
-
-const profile = {
-  username: data.username,
-}
-  return profile;
+export async function login(params) {
+  try {
+    const username = params.username;
+    const password = params.password;
+    const response = await api.post(
+      "/auth/token",
+      qs.stringify({
+        username,
+        password,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      },
+    );
+    const { access_token } = response.data;
+    sessionStorage.setItem("token", access_token);
+    alert("Logado com sucesso!")
+  } catch (error) {
+    console.error("Login failed:", error);
+    // TODO: Handle error, e.g., show a notification
+  }
 }
 
 export async function logOut() {
   sessionStorage.removeItem("token");
 }
-
-// -----------------------------------------------------//

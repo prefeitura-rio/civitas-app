@@ -4,12 +4,14 @@ import {
   CAMERAS_UNDER_APP_BAR,
   MAPAS_UNDER_APP_BAR,
   PROTOCOLOS_UNDER_APP_BAR,
-  CERCO_DIGITAL_UNDER_APP_BAR
+  CERCO_DIGITAL_UNDER_APP_BAR,
+  LOGIN_UNDER_APP_BAR,
 } from "../../redux/active/actions";
 import ProtocoloContainer from "../Protocolos/ProtocoloContainer";
 import CamerasContainer from "../Cameras/CamerasContainer";
 import MapasContainer from "../Mapas/MapasContainer";
 import CercoDigitalContainer from "../CercoDigital/CercoDigitalContainer";
+import LoginContainer from "../Login/LoginContainer";
 
 const UnderAppBar = forwardRef(({ activeUnderAppBar }, ref) => {
 
@@ -23,6 +25,8 @@ const UnderAppBar = forwardRef(({ activeUnderAppBar }, ref) => {
         return <ProtocoloContainer />;
       case CERCO_DIGITAL_UNDER_APP_BAR:
         return <CercoDigitalContainer />;
+      case LOGIN_UNDER_APP_BAR:
+        return <LoginContainer />;
       default:
         return <CercoDigitalContainer />;
     }

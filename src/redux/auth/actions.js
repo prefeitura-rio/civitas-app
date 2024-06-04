@@ -23,9 +23,10 @@ export const loginFail = () => {
   };
 };
 
-export const login = () => {
+export const login = (params) => {
     return {
       type: LOGIN,
+      params: params
     };
   };
 

@@ -4,6 +4,7 @@ export const CAMERAS_UNDER_APP_BAR = "CAMERAS_UNDER_APP_BAR";
 export const MAPAS_UNDER_APP_BAR = "MAPAS_UNDER_APP_BAR";
 export const PROTOCOLOS_UNDER_APP_BAR = "PROTOCOLOS_UNDER_APP_BAR";
 export const CERCO_DIGITAL_UNDER_APP_BAR = "CERCO_DIGITAL_UNDER_APP_BAR";
+export const LOGIN_UNDER_APP_BAR = "LOGIN_UNDER_APP_BAR";
 
 export const setActiveUnderAppBar = (activeUnderAppBar) => {
   return {
