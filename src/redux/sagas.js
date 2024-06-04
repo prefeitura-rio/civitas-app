@@ -47,10 +47,10 @@ export function* watchLoadCarsPath() {
 
 // AUTH
 
-function* workerLogin() {
+function* workerLogin(action) {
   try {
     yield put(loginRequest());
-    const data = yield call(login);
+    const data = yield call(login, action.params);
     yield put(loginSuccess(data));
   } catch (error) {
     console.log(error);
