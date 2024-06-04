@@ -75,10 +75,10 @@ const CercoDigital = ({ cars }) => {
 
     const nowBr = new Date(now.getTime() - 3 * 60 * 60 * 1000);
 
-    const oneHoursAgo = new Date(nowBr.getTime() - 1 * 60 * 60 * 1000);
+    const fiveDaysAgo = new Date(nowBr.getTime() - 5 * 24 * 60 * 60 * 1000);
 
     setPlaca("SQZ8B08");
-    setStartDate(formatDateTime(oneHoursAgo));
+    setStartDate(formatDateTime(fiveDaysAgo));
     setEndDate(formatDateTime(nowBr));
   }, []);
 
