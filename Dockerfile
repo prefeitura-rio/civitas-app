@@ -2,7 +2,7 @@ FROM node:20-alpine AS base
 
 FROM base as builder
 WORKDIR /app
-COPY package*.json .
+COPY package*.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
