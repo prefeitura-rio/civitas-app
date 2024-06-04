@@ -1,8 +1,8 @@
-import { SET_ACTIVE_UNDER_APP_BAR } from "./actions";
+import { LOGIN_UNDER_APP_BAR, SET_ACTIVE_UNDER_APP_BAR } from "./actions";
 import { HOME_UNDER_APP_BAR } from "./actions";
 
 const defaultState = {
-  activeUnderAppBar: HOME_UNDER_APP_BAR,
+  activeUnderAppBar: LOGIN_UNDER_APP_BAR,
 };
 
 export const activeReducer = (state = defaultState, action) => {
