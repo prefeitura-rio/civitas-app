@@ -166,13 +166,13 @@ const CercoDigital = ({ cars }) => {
                 type="datetime-local"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                style={{ border: 'none', padding: '10px', borderRadius: '20px' }}
+                style={{fontSize:"15px", border: 'none', padding: '10px', borderRadius: '20px' }}
               />
               <input
                 type="datetime-local"
                 value={endDate}
                 onChange={(event) => setEndDate(event.target.value)}
-                style={{ border: 'none', padding: '10px', borderRadius: '20px' }}
+                style={{ fontSize:"15px", border: 'none', padding: '10px', borderRadius: '20px' }}
               />
             </LocalizationProvider>
             {cars &&

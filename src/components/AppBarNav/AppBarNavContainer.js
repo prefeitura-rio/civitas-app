@@ -7,12 +7,14 @@ const AppBarNavContainer = (props) => {
   return (
     <AppBarNav
       setActiveUnderAppBar={props.setActiveUnderAppBar}
+      activeUnderAppBar={props.activeUnderAppBar}
     />
   )
 }
 
 const mapStateToProps = (state) => {
   return {
+    activeUnderAppBar: state.active.activeUnderAppBar
 
   };
 };
