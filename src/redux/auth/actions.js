@@ -6,7 +6,7 @@ export const LOG_OUT = "LOG_OUT";
 
 export const loginRequest = () => {
   return {
-    type: LOGIN_REQUEST,
+    type: LOGIN_REQUEST
   };
 }; 
 

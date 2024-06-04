@@ -144,11 +144,11 @@ const CercoDigital = ({ cars }) => {
         <Card elevation={0} sx={{ backgroundColor: "transparent", height: "50px", display: 'flex', alignItems: "center" }}>
           <Box display="flex" gap={1} justifyContent="flex-start">
             <TextField sx={{
-                          "& fieldset": { border: 'none'},
-                          backgroundColor: 'white' ,
-                          borderRadius: '20px',
-                          
-                        }} placeholder="Placa" size="small" value={placa} onChange={(e) => setPlaca(e.target.value)} />
+              "& fieldset": { border: 'none' },
+              backgroundColor: 'white',
+              borderRadius: '20px',
+
+            }} placeholder="Placa" size="small" value={placa} onChange={(e) => setPlaca(e.target.value)} />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               {/* <DatePicker
                 value={startDate}
@@ -166,24 +166,24 @@ const CercoDigital = ({ cars }) => {
                 type="datetime-local"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                style={{border:'none',padding:'10px',borderRadius: '20px'}}
+                style={{ border: 'none', padding: '10px', borderRadius: '20px' }}
               />
               <input
                 type="datetime-local"
                 value={endDate}
                 onChange={(event) => setEndDate(event.target.value)}
-                style={{border:'none',padding:'10px',borderRadius: '20px'}}
+                style={{ border: 'none', padding: '10px', borderRadius: '20px' }}
               />
             </LocalizationProvider>
             {cars &&
               <FormControl size="small" sx={{ minWidth: 150 }}>
                 <Select
-                 sx={{
-                  "& fieldset": { border: 'none'},
-                  backgroundColor: 'white' ,
-                  borderRadius: '20px',
-                  
-                }}
+                  sx={{
+                    "& fieldset": { border: 'none' },
+                    backgroundColor: 'white',
+                    borderRadius: '20px',
+
+                  }}
                   displayEmpty
                   value={selectedTrip}
                   onChange={(event) => setSelectedTrip(event.target.value)}
@@ -199,7 +199,11 @@ const CercoDigital = ({ cars }) => {
             }
           </Box>
           <Box display="flex" gap={1} justifyContent="flex-end" flexGrow={1}>
-            <Button variant="contained" sx={{backgroundColor:"grey", borderRadius:"20px"}} onClick={() => dispatch(loadCarsPath({ placa, startDate, endDate }))} >Fazer Pesquisa</Button>
+            <Button variant="contained" sx={{
+              backgroundColor: "grey", borderRadius: "20px", '&:hover': {
+                backgroundColor: '#23C1F1',
+              }
+            }} onClick={() => dispatch(loadCarsPath({ placa, startDate, endDate }))} >Fazer Pesquisa</Button>
           </Box>
         </Card>
       </Grid>
