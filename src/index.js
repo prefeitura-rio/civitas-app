@@ -8,7 +8,16 @@ import ReactDOM from 'react-dom/client';
 
 import { createTheme } from '@mui/material/styles';
 
-export const  theme = createTheme({
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
+
+export const theme = createTheme({
   components: {
     MuiCard: {
       styleOverrides: {
@@ -24,6 +33,9 @@ export const  theme = createTheme({
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <Provider store={store}>
-    <AppContainer />
+    {/* <ThemeProvider theme={darkTheme}> */}
+      <CssBaseline />
+      <AppContainer />
+    {/* </ThemeProvider> */}
   </Provider>
 );
