@@ -7,7 +7,7 @@ import Error from '../utils/Error';
 
 function App({loading,error}) {
   return (
-    <Container  style={{ maxWidth:"1800px" ,display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f5f5f5'}}>
+    <Container  maxWidth="auto" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: 'black'}}>
      {loading && <Loading loading={loading} />}
      {/* {error && <Error error={error} />} */}
       <AppBarNavContainer />

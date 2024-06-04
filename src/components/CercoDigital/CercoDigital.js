@@ -12,7 +12,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useDispatch } from 'react-redux';
 import { loadCarsPath } from '../../redux/cars/actions';
 
-const CercoDigital = ({cars}) => {
+const CercoDigital = ({ cars }) => {
 
   const [hoverInfo, setHoverInfo] = useState(null);
 
@@ -26,12 +26,12 @@ const CercoDigital = ({cars}) => {
 
   const getLineLayerData = () => {
     if (selectedTrip !== null) {
-      
-        return {
-          type: "FeatureCollection",
-          features: cars.polylineChunksGeojson[selectedTrip],
-        };
-      
+
+      return {
+        type: "FeatureCollection",
+        features: cars.polylineChunksGeojson[selectedTrip],
+      };
+
     } else {
       return {
         type: "FeatureCollection",
@@ -42,12 +42,12 @@ const CercoDigital = ({cars}) => {
 
   const getPointLayerData = () => {
     if (selectedTrip !== null) {
-        return {
-          type: "FeatureCollection",
-          features: cars.locationsChunksGeojson[selectedTrip]
-            .flat()
-            .map((chunk) => chunk.features)
-            .flat(),
+      return {
+        type: "FeatureCollection",
+        features: cars.locationsChunksGeojson[selectedTrip]
+          .flat()
+          .map((chunk) => chunk.features)
+          .flat(),
       }
     } else {
       return {
@@ -143,7 +143,12 @@ const CercoDigital = ({cars}) => {
       <Grid item xs={12}>
         <Card elevation={0} sx={{ backgroundColor: "transparent", height: "50px", display: 'flex', alignItems: "center" }}>
           <Box display="flex" gap={1} justifyContent="flex-start">
-            <TextField size="small" label="Placa" value={placa} onChange={(e) => setPlaca(e.target.value)} />
+            <TextField sx={{
+                          "& fieldset": { border: 'none'},
+                          backgroundColor: 'white' ,
+                          borderRadius: '20px',
+                          
+                        }} placeholder="Placa" size="small" value={placa} onChange={(e) => setPlaca(e.target.value)} />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               {/* <DatePicker
                 value={startDate}
@@ -161,20 +166,27 @@ const CercoDigital = ({cars}) => {
                 type="datetime-local"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
+                style={{border:'none',padding:'10px',borderRadius: '20px'}}
               />
               <input
                 type="datetime-local"
                 value={endDate}
                 onChange={(event) => setEndDate(event.target.value)}
+                style={{border:'none',padding:'10px',borderRadius: '20px'}}
               />
             </LocalizationProvider>
-            {cars && 
+            {cars &&
               <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Select Trip</InputLabel>
-                <Select 
-                 displayEmpty
-                 value={selectedTrip}
-                 onChange={(event) => setSelectedTrip(event.target.value)}
+                <Select
+                 sx={{
+                  "& fieldset": { border: 'none'},
+                  backgroundColor: 'white' ,
+                  borderRadius: '20px',
+                  
+                }}
+                  displayEmpty
+                  value={selectedTrip}
+                  onChange={(event) => setSelectedTrip(event.target.value)}
                 >
                   {cars.polylineChunksGeojson &&
                     cars.polylineChunksGeojson.map((_, index) => (
@@ -187,12 +199,12 @@ const CercoDigital = ({cars}) => {
             }
           </Box>
           <Box display="flex" gap={1} justifyContent="flex-end" flexGrow={1}>
-            <Button variant="contained" onClick={() => dispatch(loadCarsPath({ placa, startDate, endDate }))} >Fazer Pesquisa</Button>
+            <Button variant="contained" sx={{backgroundColor:"grey", borderRadius:"20px"}} onClick={() => dispatch(loadCarsPath({ placa, startDate, endDate }))} >Fazer Pesquisa</Button>
           </Box>
         </Card>
       </Grid>
       <Grid item xs={12}>
-        <Card sx={{ borderRadius: "20px", height: "460px" }}>
+        <Card height="20px" sx={{ borderRadius: "20px", height: "70vh" }}>
           <DeckGL
             ref={mapRef}
             initialViewState={viewport}

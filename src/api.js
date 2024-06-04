@@ -37,7 +37,7 @@ export async function getActiveCalls(id = 4) {
 };
 
 export async function getCarsPath(params) {
-  const url = `https://staging.api.civitas.dados.rio/cars/path?placa=${params.placa}&start_time=${encodeURIComponent(
+  const url = `${config.apiUrl}/cars/path?placa=${params.placa}&start_time=${encodeURIComponent(
     params.startDate
   ).replace("T", "%20")}&end_time=${encodeURIComponent(params.endDate).replace(
     "T",
