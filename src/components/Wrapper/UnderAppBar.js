@@ -28,7 +28,7 @@ const UnderAppBar = forwardRef(({ activeUnderAppBar }, ref) => {
       case LOGIN_UNDER_APP_BAR:
         return <LoginContainer />;
       default:
-        return <CercoDigitalContainer />;
+        return <LoginContainer />;
     }
   };
 
