@@ -62,9 +62,10 @@ const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
                 keepMounted
                 open={Boolean(anchorEl)}
                 onClose={() => setAnchorEl(null)} 
-                sx={{ marginTop: '10px' }}
+                sx={{ marginTop: '10px', borderRadius: '20px'  }}
+                PaperProps={{ style: { borderRadius: '20px' } }}
               >
-                <MenuItem >Bem vindo, {profile.username}!</MenuItem>
+                <Typography sx={{ padding: '6px 16px', fontWeight: 'bold' }}>Bem vindo, {profile.username}!</Typography> 
                 <Divider />
                 <MenuItem onClick={clearSession}>Sair</MenuItem>
               </Menu>

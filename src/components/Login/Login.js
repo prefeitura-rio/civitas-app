@@ -35,7 +35,6 @@ export default function Login({ loading, error, profile }) {
   return (
     <Container component="main" maxWidth="xs">
       {loading && <Loading loading={loading} />}
-      {error && <Error message={"Login ou senha inválido(s). Por favor, tente novamente!"} />}
       <CssBaseline />
       <div style={{
         marginTop: (8),

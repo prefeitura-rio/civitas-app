@@ -176,7 +176,7 @@ const CercoDigital = ({ cars }) => {
               />
             </LocalizationProvider>
             {cars &&
-              <FormControl size="small" sx={{ minWidth: 150 }}>
+              <FormControl size="small" sx={{ minWidth: 150}}>
                 <Select
                   sx={{
                     "& fieldset": { border: 'none' },
@@ -187,6 +187,7 @@ const CercoDigital = ({ cars }) => {
                   displayEmpty
                   value={selectedTrip}
                   onChange={(event) => setSelectedTrip(event.target.value)}
+                  MenuProps={{ style: { marginTop: '10px' } }} 
                 >
                   {cars.polylineChunksGeojson &&
                     cars.polylineChunksGeojson.map((_, index) => (
