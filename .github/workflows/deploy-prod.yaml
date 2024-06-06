@@ -18,6 +18,7 @@ jobs:
       - name: Build
         env:
           CI: false
+          REACT_APP_CIVITAS_API_URL: https://api.civitas.rio/
         run: |
           npm run build
       
