@@ -19,6 +19,7 @@ const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
     dispatch(logOut());
     sessionStorage.removeItem("token");
     setActiveUnderAppBar(LOGIN_UNDER_APP_BAR);
+    setAnchorEl(false)
   }
 
   return (
