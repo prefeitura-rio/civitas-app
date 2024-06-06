@@ -1,6 +1,8 @@
 import axios from 'axios';
 import qs from "qs";
 import { getConfig } from "./config";
+import Error from './utils/Error';
+import { logOut } from './redux/auth/actions';
 
 const config = getConfig();
 
@@ -22,14 +24,11 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      alert("Você está deslogado ou sua sessão expirou. Por favor, faça login novamente.")
-      logOut();
-      // TODO: Redirect to login or show message
+      // <Error message={"Você está deslogado ou sua sessão expirou. Por favor, faça login novamente."} />
     }
     return Promise.reject(error);
   },
 );
-
 
 export async function getActiveCalls(id = 4) {
   // TODO (future): implement this
@@ -50,7 +49,8 @@ export async function getCarsPath(params) {
 
 // Authentication
 export async function login(params) {
-  try {
+  // Não vai try/catch aqui pq o erro é tratado no sagas 
+  // try {
     const username = params.username;
     const password = params.password;
     const response = await api.post(
@@ -67,13 +67,14 @@ export async function login(params) {
     );
     const { access_token } = response.data;
     sessionStorage.setItem("token", access_token);
-    alert("Logado com sucesso!")
-  } catch (error) {
-    console.error("Login failed:", error);
+    // alert("Logado com sucesso!")
+  // } catch (error) {
+    // console.error("Login failed:", error);
     // TODO: Handle error, e.g., show a notification
-  }
+  // }
+  const user ={
+    username: username
+  } 
+  return user
 }
 
-export async function logOut() {
-  sessionStorage.removeItem("token");
-}

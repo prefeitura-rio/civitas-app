@@ -11,15 +11,18 @@ const AppContainer = (props) => {
   }, []);
 
   return <App
-  loading={props.loading}
-  error={props.error}
+    loading={props.loading}
+    error_message={props.error_message}
+    error_status={props.error_status}
   />;
 };
 
 const mapStateToProps = (state) => {
   return {
-    loading:state.cars.loading,
-    error:state.cars.error
+    loading: state.cars.loading,
+    // error:state.cars.error
+    error_message: state.error.message,
+    error_status: state.error.status
   };
 };
 

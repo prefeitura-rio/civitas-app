@@ -8,13 +8,15 @@ const AppBarNavContainer = (props) => {
     <AppBarNav
       setActiveUnderAppBar={props.setActiveUnderAppBar}
       activeUnderAppBar={props.activeUnderAppBar}
+      profile={props.profile}
     />
   )
 }
 
 const mapStateToProps = (state) => {
   return {
-    activeUnderAppBar: state.active.activeUnderAppBar
+    activeUnderAppBar: state.active.activeUnderAppBar,
+    profile:state.auth.profile
 
   };
 };

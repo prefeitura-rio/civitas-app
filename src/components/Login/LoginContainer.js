@@ -6,13 +6,17 @@ const LoginContainer = (props) => {
   return (
     <Login 
     loading={props.loading}
+    error={props.error}
+    profile={props.profile}
     />
   ) 
 }
 
 const mapStateToProps = (state) => {
   return {
-   loading:state.cars.loading
+   loading:state.auth.loading,
+   error:state.auth.error,
+   profile:state.auth.profile
   };
 };
 
