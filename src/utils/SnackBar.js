@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { ERASE_ERROR, eraseError } from '../redux/error/actions';
 
-export default function Error({ message }) {
+export default function SnackBar({ message, severity }) {
   const [open, setOpen] = useState(true);
   const dispatch = useDispatch();
   const handleClose = (event, reason) => {
@@ -30,7 +30,7 @@ export default function Error({ message }) {
       >
         <Alert
           onClose={handleClose}
-          severity="error"
+          severity={severity ? severity : "error"}
           variant="filled"
           sx={{ width: '100%' }}
         >

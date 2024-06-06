@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { AppBar, Toolbar, Button, Typography, Divider, Box, Avatar, Menu, MenuItem, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Button, Typography, Divider, Box, Avatar, Menu, MenuItem, IconButton, ListItemIcon } from '@mui/material';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import { CAMERAS_UNDER_APP_BAR, HOME_UNDER_APP_BAR, MAPAS_UNDER_APP_BAR, PROTOCOLOS_UNDER_APP_BAR, CERCO_DIGITAL_UNDER_APP_BAR, LOGIN_UNDER_APP_BAR } from '../../redux/active/actions';
 import civitas_icon from '../../assets/civitas_icon.png';
 import { useDispatch } from 'react-redux';
 import { logOut } from '../../redux/auth/actions';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -39,17 +40,17 @@ const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
               <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#23C1F1', marginRight: 1 }} />}
             <Typography>HOME</Typography>
           </Button>
-         {profile && 
-          <Button
-            style={activeUnderAppBar === CERCO_DIGITAL_UNDER_APP_BAR ? { backgroundColor: 'grey', borderRadius: '20px' } : {}}
-            color="inherit"
-            onClick={() => setActiveUnderAppBar(CERCO_DIGITAL_UNDER_APP_BAR)}
-            sx={{ paddingLeft: "15px", paddingRight: "15px" }}
-          >
-            {activeUnderAppBar === CERCO_DIGITAL_UNDER_APP_BAR &&
-              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#23C1F1', marginRight: 1 }} />}
-            <Typography>Cerco Digital</Typography>
-          </Button>
+          {profile &&
+            <Button
+              style={activeUnderAppBar === CERCO_DIGITAL_UNDER_APP_BAR ? { backgroundColor: 'grey', borderRadius: '20px' } : {}}
+              color="inherit"
+              onClick={() => setActiveUnderAppBar(CERCO_DIGITAL_UNDER_APP_BAR)}
+              sx={{ paddingLeft: "15px", paddingRight: "15px" }}
+            >
+              {activeUnderAppBar === CERCO_DIGITAL_UNDER_APP_BAR &&
+                <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#23C1F1', marginRight: 1 }} />}
+              <Typography>Cerco Digital</Typography>
+            </Button>
           }
           {profile ? (
             <div>
@@ -61,13 +62,18 @@ const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
                 anchorEl={anchorEl}
                 keepMounted
                 open={Boolean(anchorEl)}
-                onClose={() => setAnchorEl(null)} 
-                sx={{ marginTop: '10px', borderRadius: '20px'  }}
+                onClose={() => setAnchorEl(null)}
+                sx={{ marginTop: '10px', borderRadius: '20px' }}
                 PaperProps={{ style: { borderRadius: '20px' } }}
               >
-                <Typography sx={{ padding: '6px 16px', fontWeight: 'bold' }}>Bem vindo, {profile.username}!</Typography> 
+                <Typography sx={{ padding: '6px 16px', fontWeight: 'bold' }}>Bem vindo, {profile.username}!</Typography>
                 <Divider />
-                <MenuItem onClick={clearSession}>Sair</MenuItem>
+                <MenuItem onClick={clearSession}>
+                  <ListItemIcon>
+                    <ExitToAppIcon sx={{ color: "black" }} fontSize="small" />
+                  </ListItemIcon>
+                  Sair
+                </MenuItem>
               </Menu>
             </div>
           ) : (

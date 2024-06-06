@@ -3,7 +3,8 @@ import { ERASE_ERROR, SHOW_ERROR } from "./actions";
 const defaultState = {
   error: false,
   message: "",
-  status: ""
+  status: "",
+  severity: "error"
 };
 
 export const errorReducer = (state = defaultState, action) => {
@@ -13,14 +14,16 @@ export const errorReducer = (state = defaultState, action) => {
         ...state,
         error: true,
         message: action.payload.message,
-        status: action.payload.status
+        status: action.payload.status,
+        severity: action.payload.severity
       };
     case ERASE_ERROR:
       return {
         ...state,
         error: false,
         message: "",
-        status: ""
+        status: "",
+        severity: "error"
       };
 
   }
