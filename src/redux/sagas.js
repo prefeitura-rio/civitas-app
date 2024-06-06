@@ -43,7 +43,7 @@ function* workerLoadCarsPath(action) {
             yield put(showError({ message: "Solicitação inválida. Por favor, verifique os parâmetros da sua solicitação.", status: 400 }));
             break;
           case 401:
-            yield put(showError({ message: "Falha na autenticação. Por favor, verifique suas credenciais e tente novamente.", status: 401 }));
+            yield put(showError({ message: "Sua sessão expirou. Por favor, entre novamente.", status: 401 }));
             break;
           case 403:
             yield put(showError({ message: "Acesso proibido. Você não tem permissão para acessar este recurso.", status: 403 }));
@@ -83,13 +83,16 @@ function* workerLogin(action) {
       if (error.response) {
         switch (error.response.status) {
           case 401:
-            yield put(showError({ message: "Falha na autenticação. Por favor, verifique suas credenciais e tente novamente.", status: 401 }));
+            yield put(showError({ message: "Falha na autenticação. Por favor, verifique suas credenciais e tente novamente.", status: error.response.status }));
             break;
           case 403:
-            yield put(showError({ message: "Acesso proibido. Você não tem permissão para acessar este recurso.", status: 403 }));
+            yield put(showError({ message: "Acesso proibido. Você não tem permissão para acessar este recurso.", status: error.response.status }));
             break;
           case 500:
-            yield put(showError({ message: "Erro interno do servidor. Por favor, tente novamente mais tarde.", status: 500 }));
+            yield put(showError({ message: "Erro interno do servidor. Por favor, tente novamente mais tarde.", status: error.response.status }));
+            break;
+          case 400:
+            yield put(showError({ message: "Login ou senha inválido(s). Por favor, tente novamente!", status: error.response.status }));
             break;
           default:
             yield put(showError({ message: "Um erro desconhecido ocorreu. Por favor, tente novamente mais tarde.", status: error.response.status }));
