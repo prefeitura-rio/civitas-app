@@ -1,8 +1,11 @@
 import { Avatar, Box, Button, Checkbox, Container, CssBaseline, FormControlLabel, Grid, Link, TextField, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useDispatch } from 'react-redux';
 import { login } from '../../redux/auth/actions';
+import Loading from '../../utils/Loading';
+import Error from '../../utils/Error';
+import { CERCO_DIGITAL_UNDER_APP_BAR, HOME_UNDER_APP_BAR, setActiveUnderAppBar } from '../../redux/active/actions';
 
 function Copyright() {
   return (
@@ -18,13 +21,21 @@ function Copyright() {
 }
 
 
-export default function Login() {
+export default function Login({ loading, error, profile }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    if (profile?.username) {
+      dispatch(setActiveUnderAppBar(CERCO_DIGITAL_UNDER_APP_BAR))
+    }
+  }, [profile?.username])
+
   return (
     <Container component="main" maxWidth="xs">
+      {loading && <Loading loading={loading} />}
+      {error && <Error message={"Login ou senha inválido(s). Por favor, tente novamente!"} />}
       <CssBaseline />
       <div style={{
         marginTop: (8),
@@ -79,8 +90,8 @@ export default function Login() {
               borderRadius: '20px',
 
             }}
-             value={password} onChange={(e) => setPassword(e.target.value)} 
-            
+            value={password} onChange={(e) => setPassword(e.target.value)}
+
           />
 
           <Button
@@ -91,9 +102,13 @@ export default function Login() {
             sx={{
               backgroundColor: "#23C1F1", borderRadius: "20px", '&:hover': {
                 backgroundColor: '#23C1F1',
-              }
+              },
+              '&.Mui-disabled': { backgroundColor: 'gray' } // Adicionado aqui
             }}
-           onClick={() => dispatch(login({ username, password }))}
+            onClick={() => {
+              dispatch(login({ username, password }));
+            }}
+            disabled={!username || !password}
           >
             Sign In
           </Button>

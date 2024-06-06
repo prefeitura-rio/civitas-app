@@ -1,22 +1,42 @@
-import { Snackbar, IconButton } from '@mui/material';
+import { Alert, IconButton, Snackbar } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { ERASE_ERROR, eraseError } from '../redux/error/actions';
 
-const Error = ({error}) => {
-  const [erro, setErro] = useState(false);
+export default function Error({ message }) {
+  const [open, setOpen] = useState(true);
+  const dispatch = useDispatch();
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+    dispatch(eraseError());
+
+  };
+
   return (
-    <Snackbar
-      open={erro}
-      autoHideDuration={6000}
-      onClose={() => setErro(false)}
-      message="Aconteceu um erro!"
-      action={
-        <IconButton size="small" aria-label="close" color="inherit" onClick={() => setErro(false)}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      }
-    />
+    <div>
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        open={open}
+        autoHideDuration={4000}
+        onClose={handleClose}
+      >
+        <Alert
+          onClose={handleClose}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {message}
+        </Alert>
+      </Snackbar>
+    </div>
   );
 }
-
-export default Error

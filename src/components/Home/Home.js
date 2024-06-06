@@ -7,16 +7,16 @@ const Home = () => {
     <ThemeProvider theme={theme}>
       <Grid container spacing={3} style={{ marginTop: 50 }}>
         <Grid item xs={6}>
-          <Card sx={{ height: "230px" }}>Card 1</Card>
+          <Card sx={{ height: "230px" }}>Em construção</Card>
         </Grid>
         <Grid item xs={3}>
-          <Card sx={{ height: "230px" }}>Card 2</Card>
+          <Card sx={{ height: "230px" }}>Em construção</Card>
         </Grid>
         <Grid item xs={3}>
-          <Card sx={{ height: "230px" }}>Card 3</Card>
+          <Card sx={{ height: "230px" }}>Em construção</Card>
         </Grid>
         <Grid item xs={12}>
-          <Card sx={{ height: "230px" }} >Card 4</Card>
+          <Card sx={{ height: "230px" }} >Em construção</Card>
         </Grid>
       </Grid>
     </ThemeProvider>

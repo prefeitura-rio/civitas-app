@@ -1,8 +1,10 @@
 import { all, call, fork, put, takeEvery } from "redux-saga/effects";
 import { LOAD_ACTIVE_CALLS, requestActiveCalls, requestActiveCallsFailed, requestActiveCallsSuccess } from "./calls/actions";
-import { getActiveCalls, getCarsPath, logOut, login } from "../api";
+import { getActiveCalls, getCarsPath, login } from "../api";
 import { LOGIN, LOG_OUT, loginFail, loginRequest, loginSuccess } from "./auth/actions";
 import { LOAD_CARS_PATH, requestCarsPath, requestCarsPathFailed, requestCarsPathSuccess } from "./cars/actions";
+import Error from "../utils/Error";
+import { showError } from "./error/actions";
 
 
 // -----------------------------------------------------//
@@ -30,12 +32,35 @@ export function* watchLoadActiveCalls() {
 function* workerLoadCarsPath(action) {
   try {
     yield put(requestCarsPath());
-    console.log("action.params",action.params)
-    const data = yield call(getCarsPath,action.params);
+    const data = yield call(getCarsPath, action.params);
     yield put(requestCarsPathSuccess(data));
   } catch (error) {
-    console.error(error);
     yield put(requestCarsPathFailed());
+    if (error) {
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            yield put(showError({ message: "Solicitação inválida. Por favor, verifique os parâmetros da sua solicitação.", status: 400 }));
+            break;
+          case 401:
+            yield put(showError({ message: "Falha na autenticação. Por favor, verifique suas credenciais e tente novamente.", status: 401 }));
+            break;
+          case 403:
+            yield put(showError({ message: "Acesso proibido. Você não tem permissão para acessar este recurso.", status: 403 }));
+            break;
+          case 404:
+            yield put(showError({ message: "Recurso não encontrado. Por favor, verifique a URL da sua solicitação.", status: 404 }));
+            break;
+          case 500:
+            yield put(showError({ message: "Erro interno do servidor. Por favor, tente novamente mais tarde.", status: 500 }));
+            break;
+          default:
+            yield put(showError({ message: "Um erro desconhecido ocorreu. Por favor, tente novamente mais tarde.", status: error.response.status }));
+        }
+      } else {
+        yield put(showError({ message: "Um erro ocorreu ao tentar se conectar ao servidor. Por favor, verifique sua conexão de rede.", status: "" }));
+      }
+    }
   }
 }
 
@@ -53,8 +78,26 @@ function* workerLogin(action) {
     const data = yield call(login, action.params);
     yield put(loginSuccess(data));
   } catch (error) {
-    console.log(error);
     yield put(loginFail());
+    if (error) {
+      if (error.response) {
+        switch (error.response.status) {
+          case 401:
+            yield put(showError({ message: "Falha na autenticação. Por favor, verifique suas credenciais e tente novamente.", status: 401 }));
+            break;
+          case 403:
+            yield put(showError({ message: "Acesso proibido. Você não tem permissão para acessar este recurso.", status: 403 }));
+            break;
+          case 500:
+            yield put(showError({ message: "Erro interno do servidor. Por favor, tente novamente mais tarde.", status: 500 }));
+            break;
+          default:
+            yield put(showError({ message: "Um erro desconhecido ocorreu. Por favor, tente novamente mais tarde.", status: error.response.status }));
+        }
+      } else {
+        yield put(showError({ message: "Um erro ocorreu ao tentar se conectar ao servidor. Por favor, verifique sua conexão de rede.", status: "" }));
+      }
+    }
   }
 }
 
@@ -62,17 +105,6 @@ export function* watchLogin() {
   yield takeEvery(LOGIN, workerLogin);
 }
 
-function* workerLogOut() {
-  try {
-    yield call(logOut);
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-export function* watchLogOut() {
-  yield takeEvery(LOG_OUT, workerLogOut);
-}
 // -----------------------------------------------------//
 
 // ROOT SAGA
@@ -82,6 +114,5 @@ export function* rootSaga() {
    fork(watchLoadActiveCalls),
    fork(watchLoadCarsPath),
    fork(watchLogin),
-   fork(watchLogOut),
   ]);
 }

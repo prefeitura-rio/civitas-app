@@ -6,6 +6,7 @@ import {
   PROTOCOLOS_UNDER_APP_BAR,
   CERCO_DIGITAL_UNDER_APP_BAR,
   LOGIN_UNDER_APP_BAR,
+  HOME_UNDER_APP_BAR,
 } from "../../redux/active/actions";
 import ProtocoloContainer from "../Protocolos/ProtocoloContainer";
 import CamerasContainer from "../Cameras/CamerasContainer";
@@ -25,6 +26,8 @@ const UnderAppBar = forwardRef(({ activeUnderAppBar }, ref) => {
         return <ProtocoloContainer />;
       case CERCO_DIGITAL_UNDER_APP_BAR:
         return <CercoDigitalContainer />;
+      case HOME_UNDER_APP_BAR:
+        return <HomeContainer />;
       case LOGIN_UNDER_APP_BAR:
         return <LoginContainer />;
       default:
