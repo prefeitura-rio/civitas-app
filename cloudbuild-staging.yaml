@@ -14,7 +14,7 @@ steps:
     args: ["push", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"]
   # Kustomize: set the image in the kustomization.yaml file
   - name: "gcr.io/cloud-builders/gke-deploy"
-    dir: "k8s/prod"
+    dir: "k8s/staging"
     entrypoint: "kustomize"
     args:
       - "edit"
@@ -23,15 +23,15 @@ steps:
       - "gcr.io/project-id/civitas=gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
   # Kustomize: apply the kustomization.yaml file
   - name: "gcr.io/cloud-builders/gke-deploy"
-    dir: "k8s/prod"
+    dir: "k8s/staging"
     entrypoint: "kustomize"
-    args: ["build", ".", "-o", "prod.yaml"]
+    args: ["build", ".", "-o", "staging.yaml"]
   # Deploy the application to the GKE cluster
   - name: "gcr.io/cloud-builders/gke-deploy"
-    dir: "k8s/prod"
+    dir: "k8s/staging"
     args:
       - "run"
-      - "--filename=prod.yaml"
+      - "--filename=staging.yaml"
       - "--location=us-central1"
       - "--cluster=datario"
       - "--project=datario"
