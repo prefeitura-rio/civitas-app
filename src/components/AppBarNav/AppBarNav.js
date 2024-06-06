@@ -61,6 +61,7 @@ const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
                 anchorEl={anchorEl}
                 keepMounted
                 open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)} 
                 sx={{ marginTop: '10px' }}
               >
                 <MenuItem >Bem vindo, {profile.username}!</MenuItem>
