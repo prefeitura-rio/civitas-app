@@ -21,7 +21,11 @@ jobs:
           REACT_APP_CIVITAS_API_URL: https://api.civitas.rio/
         run: |
           npm run build
-      
+
+      - name: Create CNAME file
+        run: |
+          echo "app.civitas.rio" > build/CNAME
+
       - name: Push to gh-pages branch
         run: |
           git config user.name github-actions
