@@ -19,8 +19,10 @@ const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
   const clearSession = () => {
     dispatch(logOut());
     sessionStorage.removeItem("token");
+    sessionStorage.removeItem("profile");
     setActiveUnderAppBar(LOGIN_UNDER_APP_BAR);
     setAnchorEl(false)
+    setActiveUnderAppBar(LOGIN_UNDER_APP_BAR);
   }
 
   return (
