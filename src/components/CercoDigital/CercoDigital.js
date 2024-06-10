@@ -1,4 +1,4 @@
-import { Card, Grid, Button, ButtonGroup, Box, ThemeProvider, TextField, FormControl, InputLabel } from '@mui/material'
+import { Card, Grid, Button, ButtonGroup, Box, ThemeProvider, TextField, FormControl, InputLabel, Tooltip } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
 import { theme } from '../..'
 import Select from '@mui/material/Select';
@@ -182,24 +182,25 @@ const CercoDigital = ({ cars }) => {
             {cars &&
               <FormControl size="small" sx={{ minWidth: 150 }}>
                 <Select
-                  sx={{
-                    "& fieldset": { border: 'none' },
-                    backgroundColor: 'white',
-                    borderRadius: '20px',
-
-                  }}
-                  displayEmpty
-                  value={selectedTrip}
-                  onChange={(event) => setSelectedTrip(event.target.value)}
-                  MenuProps={{ style: { marginTop: '10px' } }}
-                >
-                  {cars.polylineChunksGeojson &&
-                    cars.polylineChunksGeojson.map((_, index) => (
-                      <MenuItem key={index} value={index}>
-                        Trip {index}
-                      </MenuItem>
-                    ))}
-                </Select>
+  sx={{
+    "& fieldset": { border: 'none' },
+    backgroundColor: 'white',
+    borderRadius: '20px',
+  }}
+  displayEmpty
+  value={selectedTrip}
+  onChange={(event) => setSelectedTrip(event.target.value)}
+  MenuProps={{ style: { marginTop: '10px' } }}
+>
+  {cars.polylineChunksGeojson &&
+    cars.polylineChunksGeojson.map((_, index) => (
+      <MenuItem key={index} value={index}>
+        <Tooltip title={`Bairro Inicial: ${cars.locationsChunksGeojson[index][0].features[0].properties.bairro_inicial} - Bairro Final: ${cars.locationsChunksGeojson[index][0].features[0].properties.bairro_final}`}>
+          {index}° viagem
+        </Tooltip>
+      </MenuItem>
+    ))}
+</Select>
               </FormControl>
             }
           </Box>
@@ -254,12 +255,12 @@ const CercoDigital = ({ cars }) => {
               </div>
             )}
           </DeckGL>
-          <Fab size="medium"  aria-label="zoom in" sx={{ color:"white", position: 'absolute', bottom: 77, right: 16 }} style={{backgroundColor: 'rgba(0, 0, 0, 0.9)'}} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom + 1 }))}>
-  <AddIcon />
-</Fab>
-<Fab size="medium" aria-label="zoom out" sx={{ color:"white",position: 'absolute', bottom: 16, right: 16 }} style={{backgroundColor: 'rgba(0, 0, 0, 0.9)'}} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom - 1 }))}>
-  <RemoveIcon />
-</Fab>
+          <Fab size="medium" aria-label="zoom in" sx={{ color: "white", position: 'absolute', bottom: 77, right: 16 }} style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom + 1 }))}>
+            <AddIcon />
+          </Fab>
+          <Fab size="medium" aria-label="zoom out" sx={{ color: "white", position: 'absolute', bottom: 16, right: 16 }} style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom - 1 }))}>
+            <RemoveIcon />
+          </Fab>
         </Card>
       </Grid>
     </Grid>
