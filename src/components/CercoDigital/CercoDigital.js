@@ -11,7 +11,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useDispatch } from 'react-redux';
 import { loadCarsPath } from '../../redux/cars/actions';
-
+import Fab from '@mui/material/Fab';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ZoomOutIcon from '@mui/icons-material/ZoomOut';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 const CercoDigital = ({ cars }) => {
 
   const [hoverInfo, setHoverInfo] = useState(null);
@@ -166,17 +170,17 @@ const CercoDigital = ({ cars }) => {
                 type="datetime-local"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                style={{fontSize:"15px", border: 'none', padding: '10px', borderRadius: '20px' }}
+                style={{ fontSize: "15px", border: 'none', padding: '10px', borderRadius: '20px' }}
               />
               <input
                 type="datetime-local"
                 value={endDate}
                 onChange={(event) => setEndDate(event.target.value)}
-                style={{ fontSize:"15px", border: 'none', padding: '10px', borderRadius: '20px' }}
+                style={{ fontSize: "15px", border: 'none', padding: '10px', borderRadius: '20px' }}
               />
             </LocalizationProvider>
             {cars &&
-              <FormControl size="small" sx={{ minWidth: 150}}>
+              <FormControl size="small" sx={{ minWidth: 150 }}>
                 <Select
                   sx={{
                     "& fieldset": { border: 'none' },
@@ -187,7 +191,7 @@ const CercoDigital = ({ cars }) => {
                   displayEmpty
                   value={selectedTrip}
                   onChange={(event) => setSelectedTrip(event.target.value)}
-                  MenuProps={{ style: { marginTop: '10px' } }} 
+                  MenuProps={{ style: { marginTop: '10px' } }}
                 >
                   {cars.polylineChunksGeojson &&
                     cars.polylineChunksGeojson.map((_, index) => (
@@ -209,19 +213,19 @@ const CercoDigital = ({ cars }) => {
         </Card>
       </Grid>
       <Grid item xs={12}>
-        <Card height="20px" sx={{ borderRadius: "20px", height: "70vh" }}>
+        <Card sx={{ borderRadius: "20px", height: "70vh", position: "relative" }}>
           <DeckGL
             ref={mapRef}
             initialViewState={viewport}
             controller={true}
-            onViewportChange={({ target }) => {
-              setViewport(target);
+            onViewStateChange={({ viewState }) => {
+              setViewport(viewState);
             }}
             layers={layers}
             style={{ position: "relative", height: "calc(100vh - 100px)" }} // Adjust map height
           >
             <Map
-              style={{ width: "100vw", height: "100%" }}
+              style={{ width: "100%", height: "100%" }}
               mapStyle="mapbox://styles/escritoriodedados/clgfevcvc009101p9ax017bah"
               mapboxAccessToken="pk.eyJ1IjoiZXNjcml0b3Jpb2RlZGFkb3MiLCJhIjoiY2t3bWdmcHpjMmJ2cTJucWJ4MGQ1Mm1kbiJ9.4hHJX-1pSevYoBbja7Pq4w"
             />
@@ -250,6 +254,12 @@ const CercoDigital = ({ cars }) => {
               </div>
             )}
           </DeckGL>
+          <Fab size="medium"  aria-label="zoom in" sx={{ color:"white", position: 'absolute', bottom: 77, right: 16 }} style={{backgroundColor: 'rgba(0, 0, 0, 0.9)'}} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom + 1 }))}>
+  <AddIcon />
+</Fab>
+<Fab size="medium" aria-label="zoom out" sx={{ color:"white",position: 'absolute', bottom: 16, right: 16 }} style={{backgroundColor: 'rgba(0, 0, 0, 0.9)'}} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom - 1 }))}>
+  <RemoveIcon />
+</Fab>
         </Card>
       </Grid>
     </Grid>
