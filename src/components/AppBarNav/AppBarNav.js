@@ -3,6 +3,8 @@ import { AppBar, Toolbar, Button, Typography, Divider, Box, Avatar, Menu, MenuIt
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import { CAMERAS_UNDER_APP_BAR, HOME_UNDER_APP_BAR, MAPAS_UNDER_APP_BAR, PROTOCOLOS_UNDER_APP_BAR, CERCO_DIGITAL_UNDER_APP_BAR, LOGIN_UNDER_APP_BAR } from '../../redux/active/actions';
 import civitas_icon from '../../assets/civitas_icon.png';
+import prefeitura_icon from '../../assets/prefeitura_icon.png';
+import logo_disque_denuncia from '../../assets/logo_disque_denuncia.png';
 import { useDispatch } from 'react-redux';
 import { logOut } from '../../redux/auth/actions';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
@@ -28,9 +30,11 @@ const AppBarNav = ({ setActiveUnderAppBar, activeUnderAppBar, profile }) => {
   return (
     <AppBar style={{ backgroundColor: 'black' }}>  {/* <AppBar position="static"> */}
       <Toolbar>
-        <img src={civitas_icon} alt="Logo" style={{ width: 'auto', height: '30px' }} />
-        <Divider orientation="vertical" style={{ marginLeft: 40, marginRight: 40, height: '33px', width: '6px', backgroundColor: '#23C1F1' }} />
-        <Typography variant="h6" style={{ color: 'white' }}>DISQUE DENÚNCIA</Typography>
+        <img src={prefeitura_icon} alt="Logo" style={{ width: 'auto', height: '30px', paddingRight:"20px" }} />
+        <img src={civitas_icon} alt="Logo" style={{ width: 'auto', height: '30px', paddingRight:"20px" }} />
+        <img src={logo_disque_denuncia} alt="Logo" style={{ width: 'auto', height: '30px' }} />
+        {/* <Divider orientation="vertical" style={{ marginLeft: 40, marginRight: 40, height: '33px', width: '6px', backgroundColor: '#23C1F1' }} />
+        <Typography variant="h6" style={{ color: 'white' }}>DISQUE DENÚNCIA</Typography> */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
           <Button
             style={activeUnderAppBar === HOME_UNDER_APP_BAR ? { backgroundColor: 'grey', borderRadius: '20px' } : {}}
