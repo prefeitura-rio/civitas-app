@@ -4,8 +4,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useDispatch } from 'react-redux';
 import { login } from '../../redux/auth/actions';
 import Loading from '../../utils/Loading';
-import Error from '../../utils/Error';
-import { CERCO_DIGITAL_UNDER_APP_BAR, HOME_UNDER_APP_BAR, setActiveUnderAppBar } from '../../redux/active/actions';
+import SnackBar from '../../utils/SnackBar';
+import { CERCO_DIGITAL_UNDER_APP_BAR, HOME_UNDER_APP_BAR, LOGIN_UNDER_APP_BAR, setActiveUnderAppBar } from '../../redux/active/actions';
+import { api } from '../../api';
 
 function Copyright() {
   return (
@@ -21,7 +22,7 @@ function Copyright() {
 }
 
 
-export default function Login({ loading, error, profile }) {
+export default function Login({ loading, error, profile, activeUnderAppBar }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const dispatch = useDispatch();
@@ -32,10 +33,42 @@ export default function Login({ loading, error, profile }) {
     }
   }, [profile?.username])
 
+  // async function checkTokenValidity() {
+  //   const checkInterval = 6000; //checka a cada 1min
+
+
+  //   setInterval(async () => {
+  //     const token = sessionStorage.getItem("token");
+
+  //   if (token && activeUnderAppBar != LOGIN_UNDER_APP_BAR) {
+  //       try {
+  //         const response = await api.post(
+  //           "/auth/token",
+  //           {},
+  //           {
+  //             headers: {
+  //               "Content-Type": "application/x-www-form-urlencoded",
+  //               "Authorization": `Bearer ${token}`
+  //             },
+  //           },
+  //         );
+
+  //         if (response.status !== 200) {
+  //           alert("Token expirou!");
+  //         }
+  //       } catch (error) {
+  //         console.error("Falha ao validar o token:", error);
+  //         alert("Token expirou!");
+  //       }
+  //   }
+  //   }, checkInterval);
+  // }
+
+  // checkTokenValidity();
+
   return (
     <Container component="main" maxWidth="xs">
       {loading && <Loading loading={loading} />}
-      {error && <Error message={"Login ou senha inválido(s). Por favor, tente novamente!"} />}
       <CssBaseline />
       <div style={{
         marginTop: (8),
