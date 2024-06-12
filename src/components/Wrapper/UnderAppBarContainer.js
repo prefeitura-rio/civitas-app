@@ -6,15 +6,13 @@ const UnderAppBarContainer = (props) => {
   return (
       <UnderAppBar
         activeUnderAppBar={props.activeUnderAppBar}
-        profile={props.profile}
       />
   );
 };
 
 const mapStateToProps = (state) => {
   return {
-    activeUnderAppBar: state.active.activeUnderAppBar,
-    profile: state.auth.profile,
+    activeUnderAppBar: state.active.activeUnderAppBar
   };
 };
 
