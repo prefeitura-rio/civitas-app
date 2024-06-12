@@ -1,11 +1,12 @@
 import axios from 'axios';
 import qs from "qs";
 import { getConfig } from "./config";
+import Error from './utils/Error';
+import { logOut } from './redux/auth/actions';
 
+const config = getConfig();
 
-export const config = getConfig();
-
-export const api = axios.create({
+const api = axios.create({
   baseURL: config.apiUrl,
 });
 
@@ -48,28 +49,32 @@ export async function getCarsPath(params) {
 
 // Authentication
 export async function login(params) {
-
-  const username = params.username;
-  const password = params.password;
-  const response = await api.post(
-    "/auth/token",
-    qs.stringify({
-      username,
-      password,
-    }),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+  // Não vai try/catch aqui pq o erro é tratado no sagas 
+  // try {
+    const username = params.username;
+    const password = params.password;
+    const response = await api.post(
+      "/auth/token",
+      qs.stringify({
+        username,
+        password,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       },
-    },
-  );
-  const { access_token } = response.data;
-  sessionStorage.setItem("token", access_token);
-  sessionStorage.setItem("profile", username);
-
-  const user = {
+    );
+    const { access_token } = response.data;
+    sessionStorage.setItem("token", access_token);
+    // alert("Logado com sucesso!")
+  // } catch (error) {
+    // console.error("Login failed:", error);
+    // TODO: Handle error, e.g., show a notification
+  // }
+  const user ={
     username: username
-  }
+  } 
   return user
 }
 

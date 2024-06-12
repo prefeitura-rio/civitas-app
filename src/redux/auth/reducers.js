@@ -1,8 +1,8 @@
 import { LOGIN_FAIL, LOGIN_REQUEST, LOGIN_SUCCESS, LOG_OUT } from "./actions";
 
 const defaultState = {
-  profile: sessionStorage.getItem("profile")
-    ? sessionStorage.getItem("profile")
+  profile: sessionStorage.getItem("gmc-user")
+    ? JSON.parse(sessionStorage.getItem("gmc-user"))
     : null,
   loading: false,
   error: false,
