@@ -1,11 +1,11 @@
-import { Card, Grid, Button, ButtonGroup, Box, ThemeProvider, TextField, FormControl, InputLabel } from '@mui/material'
+import { Card, Grid, Button, ButtonGroup, Box, ThemeProvider, TextField, FormControl, InputLabel, Grow, Slide } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
 import { theme } from '../..'
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import DeckGL from "@deck.gl/react";
 import { Map } from "react-map-gl";
-import { GeoJsonLayer, TextLayer } from "@deck.gl/layers";
+import { GeoJsonLayer, TextLayer, IconLayer } from "@deck.gl/layers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -18,9 +18,9 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Warning as WarningIcon } from '@mui/icons-material';
 import { Typography, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { parseISO, format } from 'date-fns';
+import icon_atlas from '../../assets/icon-atlas.png';
 const CercoDigital = ({ cars }) => {
-
-  const [hoverInfo, setHoverInfo] = useState(null);
 
   const mapRef = useRef();
 
@@ -30,140 +30,20 @@ const CercoDigital = ({ cars }) => {
     zoom: 10.3,
   });
 
-  // const getLineLayerData = () => {
-  //   if (selectedTrip !== null) {
-
-  //     return {
-  //       type: "FeatureCollection",
-  //       features: cars.polylineChunksGeojson[selectedTrip],
-  //     };
-
-  //   } else {
-  //     return {
-  //       type: "FeatureCollection",
-  //       features: cars.polylineChunksGeojson.flat(),
-  //     };
-  //   }
-  // };
-
-  const getPointLayerData = () => {
-    if (selectedTrip !== null) {
-      return {
-        type: "FeatureCollection",
-        features: cars.locationsChunksGeojson[selectedTrip]
-          .flat()
-          .map((chunk) => chunk.features)
-          .flat(),
-      }
-    } else {
-      return {
-        type: "FeatureCollection",
-        features: cars.locationsChunksGeojson
-          .flat()
-          .map((chunk) => chunk.features)
-          .flat(),
-      };
-    }
-  };
-
-
-  const RightSideComponent = () => {
-    return (
-      <Card sx={{
-        backgroundColor: "black",
-        height: "70vh",
-        position: "relative",
-        overflowY: "auto",
-        '&::-webkit-scrollbar': {
-          display: 'none'
-        }
-      }}>
-        <Typography
-          color="white"
-          variant="h6"
-          component="div"
-          sx={{
-            mb: 2,
-            pb: '16px',
-            position: 'sticky',
-            top: 0,
-            backgroundColor: 'black',
-            zIndex: 1
-          }}
-        >
-          Placa:
-          <Box
-            component="span"
-            sx={{
-              fontSize: 16,
-              backgroundColor: 'grey',
-              borderRadius: '20px',
-              p: 1,
-              ml: 1,
-              color: 'white'
-            }}
-          >
-            {placa}
-          </Box>
-        </Typography>
-        <List>
-
-          {cars?.polylineChunksGeojson?.map((item, index) => (
-            <ListItem key={index} sx={{ mb: 2, backgroundColor: '#1F1F1F', borderRadius: '10px', padding: 2 }}>
-              <ListItemIcon>
-                <Box sx={{
-                  width: 32, height: 32, backgroundColor: '#23C1F1', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  <Typography sx={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>{index}</Typography>
-                </Box>
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
-                    <Typography sx={{ color: 'white' }}>Localização</Typography>
-                    <Typography variant="body2" sx={{ color: 'white' }}>
-                      {item.location}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'white' }}>
-                      Direção: {item.direction}
-                    </Typography>
-                  </Box>
-                }
-              />
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flexStart', ml: 1 }}>
-                    <Typography sx={{ color: 'white' }}>Data</Typography>
-                    <Typography variant="body2" sx={{ color: 'white' }}>
-                      {item.date}
-                    </Typography>
-                  </Box>
-                }
-              />
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
-                    <Typography sx={{ color: 'white' }}>Hora</Typography>
-                    <Typography variant="body2" sx={{ color: 'white' }}>
-                      {item.time}
-                    </Typography>
-                  </Box>
-                }
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Card>
-    );
-  };
   const layers = [];
 
   const dispatch = useDispatch();
 
-  const [placa, setPlaca] = useState("");
+  const [data, setData] = useState({
+    locationsChunks: [],
+    polylineChunks: [],
+  });
+
+  const [hoverInfo, setHoverInfo] = useState(null);
+  const [selectedTrip, setSelectedTrip] = useState(null);
+  const [placa, setPlaca] = useState("SQZ8B08");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [selectedTrip, setSelectedTrip] = useState(null);
 
   useEffect(() => {
     // Set initial values
@@ -173,7 +53,6 @@ const CercoDigital = ({ cars }) => {
 
     const fiveDaysAgo = new Date(nowBr.getTime() - 5 * 24 * 60 * 60 * 1000);
 
-    setPlaca("SQZ8B08");
     setStartDate(formatDateTime(fiveDaysAgo));
     setEndDate(formatDateTime(nowBr));
   }, []);
@@ -182,67 +61,163 @@ const CercoDigital = ({ cars }) => {
     return date.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:mm
   };
 
-  // if (cars?.polylineChunksGeojson) {
-  //   layers.push(
-  //     new GeoJsonLayer({
-  //       id: "geojson-line-layer",
-  //       data: getLineLayerData(),
-  //       pickable: true,
-  //       stroked: true,
-  //       filled: true,
-  //       lineWidthScale: 2,
-  //       lineWidthMinPixels: 2,
-  //       getLineColor: [255, 255, 255, 255],
-  //       getRadius: 100,
-  //       getLineWidth: 5,
-  //       getElevation: 30,
-  //       onHover: setHoverInfo,
-  //     })
-  //   );
-  // }
-
-  if (cars?.locationsChunksGeojson) {
-    const pointLayerData = getPointLayerData();
-    layers.push(
-      new GeoJsonLayer({
-        id: "geojson-point-layer",
-        data: pointLayerData,
-        pickable: true,
-        stroked: false,
-        filled: true,
-        getFillColor: (d, { index }) => {
-          const features = pointLayerData.features;
-          if (index === 0) {
-            return [0, 255, 0, 200]; // Verde para o primeiro ponto
-          } else if (index === features.length - 1) {
-            return [255, 0, 0, 200]; // Vermelho para o último ponto
-          } else {
-            return [255, 165, 0, 200]; // Laranja para os demais pontos
-          }
-        },
-        getRadius: (d, { index }) => {
-          const features = pointLayerData.features;
-          if (index === 0 || index === features.length - 1) {
-            return 15; // 2x o tamanho dos demais pontos
-          } else {
-            return 10; // Tamanho normal para os demais pontos
-          }
-        },
-        pointRadiusMinPixels: 2,
-        pointRadiusScale: 40,
-        onHover: setHoverInfo,
-      }),
-      new TextLayer({
-        id: 'text-layer',
-        data: pointLayerData.features,
-        pickable: true,
-        getPosition: d => d.geometry.coordinates,
-        getText: d => String(d.properties.index),
-        getSize: 30,
-        getColor: [0,0,0],
-      })
-    );
+  const formatDateTimeInfo = (dateTime) => {
+    const date = parseISO(dateTime);
+    return {
+      date: format(date, 'dd/MM/yy'),
+      time: format(date, 'HH:mm'),
+    };
   }
+
+  const handleTripSelect = (event) => {
+    const selectedTripIndex = event.target.value;
+    setSelectedTrip(cars[selectedTripIndex]);
+  };
+
+  useEffect(() => {
+    if (selectedTrip) {
+      // Update data and layers based on the selected trip
+      const locations = selectedTrip.locations;
+      const polyline = selectedTrip.polyline;
+
+      setData({
+        locationsChunks: locations,
+        polylineChunks: polyline,
+      });
+    }
+  }, [selectedTrip]);
+
+  const getPointLayerData = () => {
+    return {
+      type: "FeatureCollection",
+      features: data.locationsChunks.flat().map((location) => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [location.longitude, location.latitude],
+        },
+        properties: {
+          datahora: location.datahora,
+          camera_numero: location.camera_numero,
+          bairro: location.bairro,
+          localidade: location.localidade,
+          index: location.index
+        },
+      })),
+    };
+  };
+
+
+  const RightSideComponent = () => {
+    return (
+      <Card sx={{
+        mt: -1,
+        backgroundColor: "black",
+        height: "70vh",
+        position: "relative",
+        overflowY: "auto",
+        '&::-webkit-scrollbar': {
+          display: 'none'
+        }
+      }}>
+
+        <List>
+          {data.locationsChunks.flat().map((item, index) => (
+            <ListItem key={index} sx={{ mb: 2, backgroundColor: '#1F1F1F', borderRadius: '20px', padding: 2 }}>
+              <ListItemIcon sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <Box sx={{
+                  width: 32, height: 32, backgroundColor: '#23C1F1', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Typography sx={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>{index + 1}</Typography>
+                </Box>
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Box sx={{ maxWidth: "150px", display: 'flex', flexDirection: 'column', ml: 0 }}>
+                    <Typography sx={{ color: '#707070', pb: 0.5, fontSize: "15px" }}>Localização</Typography>
+                    <Typography sx={{ pb: 0.5, lineHeight: "13px", fontWeight: "bold", fontSize: "12px", color: 'white' }}>
+                      {item.localidade}
+                    </Typography>
+                    <Typography sx={{ fontSize: "11px", color: 'white' }}>
+                      {/* Sentido: {item.direction} */}
+                      Sentido: {item.sentido}
+                    </Typography>
+                  </Box>
+                }
+              />
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', ml: 1 }}>
+                    <Typography sx={{ color: '#707070', fontSize: "15px" }}>Data</Typography>
+                    <Typography variant="body2" sx={{ color: 'white' }}>
+                      {formatDateTimeInfo(item.datahora).date}
+                    </Typography>
+                  </Box>
+                }
+              />
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
+                    <Typography sx={{ color: '#707070', fontSize: "15px" }}>Hora</Typography>
+                    <Typography variant="body2" sx={{ color: 'white' }}>
+                      {formatDateTimeInfo(item.datahora).time}
+
+                    </Typography>
+                  </Box>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
+
+      </Card>
+    );
+  };
+ 
+
+  const ICON_MAPPING = {
+    marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
+  };
+
+  const pointLayerData = getPointLayerData();
+  // TODO: Validar isso
+  // filtra pontos com mesma coordenada
+  // impede overlap de pontos no mapa
+  const uniquePoints = {};
+  pointLayerData.features = pointLayerData.features.filter((feature) => {
+    const key = feature.geometry.coordinates.join(',');
+    if (!uniquePoints[key]) {
+      uniquePoints[key] = true;
+      return true;
+    }
+    return false;
+  });
+
+  layers.push(
+    new IconLayer({
+      id: 'icon-layer',
+      data: pointLayerData.features,
+      pickable: true,
+      iconAtlas: icon_atlas,
+      iconMapping: ICON_MAPPING,
+      getIcon: d => 'marker',
+      getSize: d => 50,
+      // getColor: d => [35, 193, 241, 255],
+      getPosition: d => d.geometry.coordinates,
+      onHover: (info) => setHoverInfo(info),
+    }),
+    new TextLayer({
+      id: 'text-layer',
+      data: pointLayerData.features,
+      pickable: true,
+      getPosition: d => [d.geometry.coordinates],
+      getText: d => String(d.properties.index + 1),
+      getSize: 25,
+      getColor: [255, 255, 255, 255],
+      onHover: (info) => setHoverInfo(info),
+    })
+  );
+
 
   return (
     <Grid container spacing={2} style={{ marginTop: 50 }}>
@@ -256,18 +231,6 @@ const CercoDigital = ({ cars }) => {
 
             }} placeholder="Placa" size="small" value={placa} onChange={(e) => setPlaca(e.target.value)} />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              {/* <DatePicker
-                value={startDate}
-                onChange={(newValue) => setStartDate(newValue)}
-                renderInput={(params) => <TextField {...params} size="small" />}
-                sx={{ '& .MuiInputBase-root': { height: '40px' } }}
-              /> */}
-              {/* <DatePicker
-                value={endDate}
-                onChange={(newValue) => setEndDate(newValue)}
-                renderInput={(params) => <TextField {...params} size="small" />}
-                sx={{ '& .MuiInputBase-root': { height: '40px' } }}
-              /> */}
               <input
                 type="datetime-local"
                 value={startDate}
@@ -288,17 +251,15 @@ const CercoDigital = ({ cars }) => {
                     "& fieldset": { border: 'none' },
                     backgroundColor: 'white',
                     borderRadius: '20px',
-
                   }}
                   displayEmpty
-                  value={selectedTrip}
-                  onChange={(event) => setSelectedTrip(event.target.value)}
+                  onChange={handleTripSelect}
                   MenuProps={{ style: { marginTop: '10px' } }}
                 >
-                  {cars.polylineChunksGeojson &&
-                    cars.polylineChunksGeojson.map((_, index) => (
+                  {cars &&
+                    cars.map((_, index) => (
                       <MenuItem key={index} value={index}>
-                        Trip {index}
+                        {`Trip ${index + 1}`}
                       </MenuItem>
                     ))}
                 </Select>
@@ -314,7 +275,7 @@ const CercoDigital = ({ cars }) => {
           </Box>
         </Card>
       </Grid>
-      <Grid item xs={9}>
+      <Grid item xs={selectedTrip?9:12}>
         <Card sx={{ borderRadius: "20px", height: "70vh", position: "relative" }}>
           <DeckGL
             ref={mapRef}
@@ -346,12 +307,15 @@ const CercoDigital = ({ cars }) => {
                 }}
               >
                 <div>
-                  {Object.keys(hoverInfo.object.properties).map((key) => (
-                    <div key={key}>
-                      <strong>{key}: </strong>
-                      {hoverInfo.object.properties[key]}
-                    </div>
-                  ))}
+                  {Object.keys(hoverInfo.object.properties)
+                    .filter(key => key !== 'index')
+                    .map((key) => (
+                      <div key={key}>
+                        <strong>{key}: </strong>
+                        {hoverInfo.object.properties[key]}
+                      </div>
+                    ))
+                  }
                 </div>
               </div>
             )}
@@ -364,11 +328,13 @@ const CercoDigital = ({ cars }) => {
           </Fab>
         </Card>
       </Grid>
+      <Slide direction="up" in={selectedTrip} mountOnEnter unmountOnExit timeout={1000}>
       <Grid item xs={3}>
-        <Card sx={{ height: "70vh", position: "relative" }}>
+        <Card sx={{ backgroundColor: "black", height: "70vh", position: "relative" }}>
           <RightSideComponent />
         </Card>
       </Grid>
+      </Slide>
     </Grid>
   )
 }
