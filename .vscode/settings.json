@@ -1,0 +1,7 @@
+{
+  "conventionalCommits.scopes": [
+    "Config",
+    "Auth",
+    "CercoDigital",
+  ]
+}
