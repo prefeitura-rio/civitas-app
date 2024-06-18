@@ -221,7 +221,7 @@ const CercoDigital = ({ cars }) => {
           >
             <Map
               style={{ width: "100vw", height: "100%" }}
-              mapStyle="mapbox://styles/escritoriodedados/clgfevcvc009101p9ax017bah"
+              mapStyle="mapbox://styles/mapbox/streets-v12"
               mapboxAccessToken="pk.eyJ1IjoiZXNjcml0b3Jpb2RlZGFkb3MiLCJhIjoiY2t3bWdmcHpjMmJ2cTJucWJ4MGQ1Mm1kbiJ9.4hHJX-1pSevYoBbja7Pq4w"
             />
             {hoverInfo && hoverInfo.object && (
