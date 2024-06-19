@@ -1,5 +1,3 @@
-import qs from 'qs'
-
 import { api } from '@/lib/api'
 
 interface SignInRequest {
@@ -16,10 +14,10 @@ export interface SignInResponse {
 export async function signIn({ username, password }: SignInRequest) {
   const response = await api.post<SignInResponse>(
     '/auth/token',
-    qs.stringify({
+    {
       username,
       password,
-    } as SignInRequest),
+    } as SignInRequest,
     {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -27,12 +25,5 @@ export async function signIn({ username, password }: SignInRequest) {
     },
   )
 
-  const { access_token: accessToken } = response.data
-  sessionStorage.setItem('token', accessToken)
-  sessionStorage.setItem('profile', username)
-
-  const user = {
-    username,
-  }
-  return user
+  return response
 }
