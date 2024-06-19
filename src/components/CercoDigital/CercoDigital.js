@@ -1,28 +1,45 @@
-import { Card, Grid, Button, ButtonGroup, Box, ThemeProvider, TextField, FormControl, InputLabel, Grow, Slide } from '@mui/material'
-import React, { useEffect, useRef, useState } from 'react'
-import { theme } from '../..'
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
+import {
+  Card,
+  Grid,
+  Button,
+  ButtonGroup,
+  Box,
+  ThemeProvider,
+  TextField,
+  FormControl,
+  InputLabel,
+  Grow,
+  Slide,
+} from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
+import { theme } from "../..";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 import DeckGL from "@deck.gl/react";
-import { Map, } from "react-map-gl";
+import { Map } from "react-map-gl";
 import { GeoJsonLayer, TextLayer, IconLayer } from "@deck.gl/layers";
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { useDispatch } from 'react-redux';
-import { loadCarsPath } from '../../redux/cars/actions';
-import Fab from '@mui/material/Fab';
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import ZoomOutIcon from '@mui/icons-material/ZoomOut';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { Warning as WarningIcon } from '@mui/icons-material';
-import { Typography, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
-import { parseISO, format } from 'date-fns';
-import icon_atlas from '../../assets/icon-atlas.png';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { useDispatch } from "react-redux";
+import { loadCarsPath } from "../../redux/cars/actions";
+import Fab from "@mui/material/Fab";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import { Warning as WarningIcon } from "@mui/icons-material";
+import {
+  Typography,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import { parseISO, format } from "date-fns";
+import icon_atlas from "../../assets/icon-atlas.png";
 // import pin from '../../assets/pin.svg';
 const CercoDigital = ({ cars }) => {
-
   const mapRef = useRef();
 
   const [viewport, setViewport] = useState({
@@ -65,10 +82,10 @@ const CercoDigital = ({ cars }) => {
   const formatDateTimeInfo = (dateTime) => {
     const date = parseISO(dateTime);
     return {
-      date: format(date, 'dd/MM/yy'),
-      time: format(date, 'HH:mm'),
+      date: format(date, "dd/MM/yy"),
+      time: format(date, "HH:mm"),
     };
-  }
+  };
 
   const handleTripSelect = (event) => {
     const selectedTripIndex = event.target.value;
@@ -88,58 +105,79 @@ const CercoDigital = ({ cars }) => {
     }
   }, [selectedTrip]);
 
-  const getPointLayerData = () => {
-    return {
-      type: "FeatureCollection",
-      features: data.locationsChunks.flat().map((location) => ({
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [location.longitude, location.latitude],
-        },
-        properties: {
-          datahora: location.datahora,
-          camera_numero: location.camera_numero,
-          bairro: location.bairro,
-          localidade: location.localidade,
-          index: location.index
-        },
-      })),
-    };
-  };
-
-
   const RightSideComponent = () => {
     return (
-      <Card sx={{
-        mt: -1,
-        backgroundColor: "black",
-        height: "70vh",
-        position: "relative",
-        overflowY: "auto",
-        '&::-webkit-scrollbar': {
-          display: 'none'
-        }
-      }}>
-
+      <Card
+        sx={{
+          mt: -1,
+          backgroundColor: "black",
+          height: "70vh",
+          position: "relative",
+          overflowY: "auto",
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
+        }}
+      >
         <List>
           {data.locationsChunks.flat().map((item, index) => (
-            <ListItem key={index} sx={{ mb: 2, backgroundColor: '#1F1F1F', borderRadius: '20px', padding: 2 }}>
-              <ListItemIcon sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <Box sx={{
-                  width: 32, height: 32, backgroundColor: '#23C1F1', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  <Typography sx={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>{index + 1}</Typography>
+            <ListItem
+              key={index}
+              sx={{
+                mb: 2,
+                backgroundColor: "#1F1F1F",
+                borderRadius: "20px",
+                padding: 2,
+              }}
+            >
+              <ListItemIcon
+                sx={{ display: "flex", justifyContent: "flex-start" }}
+              >
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    backgroundColor: "#23C1F1",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography
+                    sx={{ color: "white", fontSize: 16, fontWeight: "bold" }}
+                  >
+                    {index + 1}
+                  </Typography>
                 </Box>
               </ListItemIcon>
               <ListItemText
                 primary={
-                  <Box sx={{ maxWidth: "150px", display: 'flex', flexDirection: 'column', ml: 0 }}>
-                    <Typography sx={{ color: '#707070', pb: 0.5, fontSize: "15px" }}>Localização</Typography>
-                    <Typography sx={{ pb: 0.5, lineHeight: "13px", fontWeight: "bold", fontSize: "12px", color: 'white' }}>
+                  <Box
+                    sx={{
+                      maxWidth: "150px",
+                      display: "flex",
+                      flexDirection: "column",
+                      ml: 0,
+                    }}
+                  >
+                    <Typography
+                      sx={{ color: "#707070", pb: 0.5, fontSize: "15px" }}
+                    >
+                      Localização
+                    </Typography>
+                    <Typography
+                      sx={{
+                        pb: 0.5,
+                        lineHeight: "13px",
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        color: "white",
+                      }}
+                    >
                       {item.localidade}
                     </Typography>
-                    <Typography sx={{ fontSize: "11px", color: 'white' }}>
+                    <Typography sx={{ fontSize: "11px", color: "white" }}>
                       {/* Sentido: {item.direction} */}
                       Sentido: {item.sentido}
                     </Typography>
@@ -148,9 +186,18 @@ const CercoDigital = ({ cars }) => {
               />
               <ListItemText
                 primary={
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', ml: 1 }}>
-                    <Typography sx={{ color: '#707070', fontSize: "15px" }}>Data</Typography>
-                    <Typography variant="body2" sx={{ color: 'white' }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                      ml: 1,
+                    }}
+                  >
+                    <Typography sx={{ color: "#707070", fontSize: "15px" }}>
+                      Data
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "white" }}>
                       {formatDateTimeInfo(item.datahora).date}
                     </Typography>
                   </Box>
@@ -158,11 +205,14 @@ const CercoDigital = ({ cars }) => {
               />
               <ListItemText
                 primary={
-                  <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
-                    <Typography sx={{ color: '#707070', fontSize: "15px" }}>Hora</Typography>
-                    <Typography variant="body2" sx={{ color: 'white' }}>
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", ml: 1 }}
+                  >
+                    <Typography sx={{ color: "#707070", fontSize: "15px" }}>
+                      Hora
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "white" }}>
                       {formatDateTimeInfo(item.datahora).time}
-
                     </Typography>
                   </Box>
                 }
@@ -170,23 +220,77 @@ const CercoDigital = ({ cars }) => {
             </ListItem>
           ))}
         </List>
-
       </Card>
     );
   };
 
+  // Function to calculate the bearing between two points
+  const calculateBearing = (start, end) => {
+    const startLat = start[1] * (Math.PI / 180);
+    const startLng = start[0] * (Math.PI / 180);
+    const endLat = end[1] * (Math.PI / 180);
+    const endLng = end[0] * (Math.PI / 180);
 
+    const dLng = endLng - startLng;
+    const x = Math.sin(dLng) * Math.cos(endLat);
+    const y =
+      Math.cos(startLat) * Math.sin(endLat) -
+      Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
+    const bearing = Math.atan2(x, y) * (180 / Math.PI);
+    const bearingDegrees = (bearing + 360) % 360; // Normalize to 0-360 degrees
+
+    return bearingDegrees - 180;
+  };
+
+  // Update getPointLayerData to include bearing and correct index
+  const getPointLayerData = () => {
+    const features = data.locationsChunks
+      .flat()
+      .map((location, index, array) => {
+        const nextLocation = array[index + 1]
+          ? [array[index + 1].longitude, array[index + 1].latitude]
+          : null;
+        const bearing = nextLocation
+          ? calculateBearing(
+              [location.longitude, location.latitude],
+              nextLocation
+            )
+          : 0;
+
+        return {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [location.longitude, location.latitude],
+          },
+          properties: {
+            datahora: location.datahora,
+            camera_numero: location.camera_numero,
+            bairro: location.bairro,
+            localidade: location.localidade,
+            index: index, // Set index based on position in array
+            bearing: bearing,
+          },
+        };
+      });
+
+    return {
+      type: "FeatureCollection",
+      features: features,
+    };
+  };
+
+  // Assuming icon_atlas has an arrow icon at the specified coordinates
   const ICON_MAPPING = {
-    marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
+    arrow: { x: 0, y: 0, width: 128, height: 128, mask: true },
   };
 
   let pointLayerData = getPointLayerData();
-  // TODO: Validar isso
-  // filtra pontos com mesma coordenada
-  // impede overlap de pontos no mapa
+
+  // Filter unique points as before
   const uniquePoints = {};
   pointLayerData.features = pointLayerData.features.filter((feature) => {
-    const key = feature.geometry.coordinates.join(',');
+    const key = feature.geometry.coordinates.join(",");
     if (!uniquePoints[key]) {
       uniquePoints[key] = true;
       return true;
@@ -194,70 +298,92 @@ const CercoDigital = ({ cars }) => {
     return false;
   });
 
-  console.log({pointLayerData})
+  console.log({ pointLayerData });
 
   layers.push(
     new IconLayer({
-      id: 'icon-layer',
+      id: "icon-layer",
       data: pointLayerData.features,
       pickable: true,
       iconAtlas: icon_atlas,
       iconMapping: ICON_MAPPING,
-      getIcon: d => 'marker',
-      getSize: d => 50,
-      // getColor: d => [35, 193, 241, 255],
-      getPosition: d => d.geometry.coordinates,
+      getIcon: (d) => "arrow",
+      getSize: (d) => 50,
+      getAngle: (d) => 360 - d.properties.bearing, // Rotate icon based on bearing
+      getPosition: (d) => d.geometry.coordinates,
       onHover: (info) => setHoverInfo(info),
     }),
     new TextLayer({
-      id: 'text-layer',
+      id: "text-layer",
       data: pointLayerData.features,
       pickable: true,
-      getPosition: d => d.geometry.coordinates,
-      getText: d => String(d.properties.index + 1),
+      getPosition: (d) => d.geometry.coordinates,
+      getText: (d) => String(d.properties.index + 1),
       getSize: 25,
       getColor: [255, 255, 255, 255],
       onHover: (info) => setHoverInfo(info),
     })
   );
 
-
   return (
     <Grid container spacing={2} style={{ marginTop: 50 }}>
       <Grid item xs={12}>
-        <Card elevation={0} sx={{ backgroundColor: "transparent", height: "50px", display: 'flex', alignItems: "center" }}>
+        <Card
+          elevation={0}
+          sx={{
+            backgroundColor: "transparent",
+            height: "50px",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           <Box display="flex" gap={1} justifyContent="flex-start">
-            <TextField sx={{
-              "& fieldset": { border: 'none' },
-              backgroundColor: 'white',
-              borderRadius: '20px',
-
-            }} placeholder="Placa" size="small" value={placa} onChange={(e) => setPlaca(e.target.value)} />
+            <TextField
+              sx={{
+                "& fieldset": { border: "none" },
+                backgroundColor: "white",
+                borderRadius: "20px",
+              }}
+              placeholder="Placa"
+              size="small"
+              value={placa}
+              onChange={(e) => setPlaca(e.target.value)}
+            />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <input
                 type="datetime-local"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                style={{ fontSize: "15px", border: 'none', padding: '10px', borderRadius: '20px' }}
+                style={{
+                  fontSize: "15px",
+                  border: "none",
+                  padding: "10px",
+                  borderRadius: "20px",
+                }}
               />
               <input
                 type="datetime-local"
                 value={endDate}
                 onChange={(event) => setEndDate(event.target.value)}
-                style={{ fontSize: "15px", border: 'none', padding: '10px', borderRadius: '20px' }}
+                style={{
+                  fontSize: "15px",
+                  border: "none",
+                  padding: "10px",
+                  borderRadius: "20px",
+                }}
               />
             </LocalizationProvider>
-            {cars &&
+            {cars && (
               <FormControl size="small" sx={{ minWidth: 150 }}>
                 <Select
                   sx={{
-                    "& fieldset": { border: 'none' },
-                    backgroundColor: 'white',
-                    borderRadius: '20px',
+                    "& fieldset": { border: "none" },
+                    backgroundColor: "white",
+                    borderRadius: "20px",
                   }}
                   displayEmpty
                   onChange={handleTripSelect}
-                  MenuProps={{ style: { marginTop: '10px' } }}
+                  MenuProps={{ style: { marginTop: "10px" } }}
                 >
                   {cars &&
                     cars.map((_, index) => (
@@ -267,19 +393,31 @@ const CercoDigital = ({ cars }) => {
                     ))}
                 </Select>
               </FormControl>
-            }
+            )}
           </Box>
           <Box display="flex" gap={1} justifyContent="flex-end" flexGrow={1}>
-            <Button variant="contained" sx={{
-              backgroundColor: "grey", borderRadius: "20px", '&:hover': {
-                backgroundColor: '#23C1F1',
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "grey",
+                borderRadius: "20px",
+                "&:hover": {
+                  backgroundColor: "#23C1F1",
+                },
+              }}
+              onClick={() =>
+                dispatch(loadCarsPath({ placa, startDate, endDate }))
               }
-            }} onClick={() => dispatch(loadCarsPath({ placa, startDate, endDate }))} >Fazer Pesquisa</Button>
+            >
+              Fazer Pesquisa
+            </Button>
           </Box>
         </Card>
       </Grid>
-      <Grid item xs={selectedTrip?9:12}>
-        <Card sx={{ borderRadius: "20px", height: "70vh", position: "relative" }}>
+      <Grid item xs={selectedTrip ? 9 : 12}>
+        <Card
+          sx={{ borderRadius: "20px", height: "70vh", position: "relative" }}
+        >
           <DeckGL
             ref={mapRef}
             initialViewState={viewport}
@@ -314,32 +452,77 @@ const CercoDigital = ({ cars }) => {
                     // .filter(key => key !== 'index')
                     .map((key) => (
                       <div key={key}>
-                        <strong>{key === 'index' ? 'índice' : key}: </strong>
-                        {key === 'index' ? Number(hoverInfo.object.properties[key]) + 1 : hoverInfo.object.properties[key]}
+                        <strong>{key === "index" ? "índice" : key}: </strong>
+                        {key === "index"
+                          ? Number(hoverInfo.object.properties[key]) + 1
+                          : hoverInfo.object.properties[key]}
                       </div>
-                    ))
-                  }
+                    ))}
                 </div>
               </div>
             )}
           </DeckGL>
-          <Fab size="medium" aria-label="zoom in" sx={{ color: "white", position: 'absolute', bottom: 77, right: 16 }} style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom + 1 }))}>
+          <Fab
+            size="medium"
+            aria-label="zoom in"
+            sx={{
+              color: "white",
+              position: "absolute",
+              bottom: 77,
+              right: 16,
+            }}
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.9)" }}
+            onClick={() =>
+              setViewport((prevState) => ({
+                ...prevState,
+                zoom: prevState.zoom + 1,
+              }))
+            }
+          >
             <AddIcon />
           </Fab>
-          <Fab size="medium" aria-label="zoom out" sx={{ color: "white", position: 'absolute', bottom: 16, right: 16 }} style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }} onClick={() => setViewport(prevState => ({ ...prevState, zoom: prevState.zoom - 1 }))}>
+          <Fab
+            size="medium"
+            aria-label="zoom out"
+            sx={{
+              color: "white",
+              position: "absolute",
+              bottom: 16,
+              right: 16,
+            }}
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.9)" }}
+            onClick={() =>
+              setViewport((prevState) => ({
+                ...prevState,
+                zoom: prevState.zoom - 1,
+              }))
+            }
+          >
             <RemoveIcon />
           </Fab>
         </Card>
       </Grid>
-      <Slide direction="up" in={selectedTrip} mountOnEnter unmountOnExit timeout={1000}>
-      <Grid item xs={3}>
-        <Card sx={{ backgroundColor: "black", height: "70vh", position: "relative" }}>
-          <RightSideComponent />
-        </Card>
-      </Grid>
+      <Slide
+        direction="up"
+        in={selectedTrip}
+        mountOnEnter
+        unmountOnExit
+        timeout={1000}
+      >
+        <Grid item xs={3}>
+          <Card
+            sx={{
+              backgroundColor: "black",
+              height: "70vh",
+              position: "relative",
+            }}
+          >
+            <RightSideComponent />
+          </Card>
+        </Grid>
       </Slide>
     </Grid>
-  )
-}
+  );
+};
 
-export default CercoDigital
+export default CercoDigital;
