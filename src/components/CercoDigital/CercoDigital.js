@@ -4,7 +4,7 @@ import { theme } from '../..'
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import DeckGL from "@deck.gl/react";
-import { Map } from "react-map-gl";
+import { Map, } from "react-map-gl";
 import { GeoJsonLayer, TextLayer, IconLayer } from "@deck.gl/layers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -20,6 +20,7 @@ import { Warning as WarningIcon } from '@mui/icons-material';
 import { Typography, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { parseISO, format } from 'date-fns';
 import icon_atlas from '../../assets/icon-atlas.png';
+import pin from '../../assets/pin.svg';
 const CercoDigital = ({ cars }) => {
 
   const mapRef = useRef();
@@ -173,13 +174,13 @@ const CercoDigital = ({ cars }) => {
       </Card>
     );
   };
- 
+
 
   const ICON_MAPPING = {
     marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
   };
 
-  const pointLayerData = getPointLayerData();
+  let pointLayerData = getPointLayerData();
   // TODO: Validar isso
   // filtra pontos com mesma coordenada
   // impede overlap de pontos no mapa
@@ -192,6 +193,8 @@ const CercoDigital = ({ cars }) => {
     }
     return false;
   });
+
+  console.log({pointLayerData})
 
   layers.push(
     new IconLayer({
@@ -210,7 +213,7 @@ const CercoDigital = ({ cars }) => {
       id: 'text-layer',
       data: pointLayerData.features,
       pickable: true,
-      getPosition: d => [d.geometry.coordinates],
+      getPosition: d => d.geometry.coordinates,
       getText: d => String(d.properties.index + 1),
       getSize: 25,
       getColor: [255, 255, 255, 255],
@@ -308,11 +311,11 @@ const CercoDigital = ({ cars }) => {
               >
                 <div>
                   {Object.keys(hoverInfo.object.properties)
-                    .filter(key => key !== 'index')
+                    // .filter(key => key !== 'index')
                     .map((key) => (
                       <div key={key}>
-                        <strong>{key}: </strong>
-                        {hoverInfo.object.properties[key]}
+                        <strong>{key === 'index' ? 'índice' : key}: </strong>
+                        {key === 'index' ? Number(hoverInfo.object.properties[key]) + 1 : hoverInfo.object.properties[key]}
                       </div>
                     ))
                   }
