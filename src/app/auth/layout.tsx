@@ -6,7 +6,6 @@ import { redirect } from 'next/navigation'
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
-import { Button } from '@/components/ui/button'
 import { isAuthenticated } from '@/utils/isAuthenticated'
 
 export default function AuthLayout({
@@ -19,28 +18,22 @@ export default function AuthLayout({
   }
   return (
     <div className="min-h-screen px-4 pt-4">
-      <div className="flex justify-between">
-        <div className="flex h-10 w-full items-center justify-start gap-8">
-          <Image
-            src={logoPrefeitura}
-            alt="Logo Prefeitura Rio"
-            className="h-[100%] w-auto"
-          />
-          <Image
-            src={logoCivitas}
-            alt="Logo Civitas"
-            className="h-[100%] w-auto"
-          />
-          <Image
-            src={logoDisqueDenuncia}
-            alt="Logo Disque Denúncia, telefone: 2253 1177"
-            className="h-[100%] w-auto"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button variant="ghost">Home</Button>
-          <Button variant="secondary">Login</Button>
-        </div>
+      <div className="flex h-10 w-full items-center justify-start gap-8">
+        <Image
+          src={logoPrefeitura}
+          alt="Logo Prefeitura Rio"
+          className="h-[100%] w-auto"
+        />
+        <Image
+          src={logoCivitas}
+          alt="Logo Civitas"
+          className="h-[100%] w-auto"
+        />
+        <Image
+          src={logoDisqueDenuncia}
+          alt="Logo Disque Denúncia, telefone: 2253 1177"
+          className="h-[100%] w-auto"
+        />
       </div>
       <div className="-mt-10 flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-4">
         {children}
