@@ -76,3 +76,12 @@
     color 500000s ease-in-out 0s;
   }
 }
+
+@layer components {
+  .page-content {
+    height: calc(100vh - 3.5rem);
+    width: 100%;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}

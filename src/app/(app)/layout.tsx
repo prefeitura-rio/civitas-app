@@ -33,13 +33,11 @@ export default function AppLayout({
         </div>
         <div className="flex gap-2">
           <Link href="/">
-            <Button variant="default">Home</Button>
+            <Button variant="secondary">Home</Button>
           </Link>
         </div>
       </div>
-      <div className="-mt-10 flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-4">
-        {children}
-      </div>
+      <div className="flex min-h-[calc(100vh-3.5rem)]">{children}</div>
     </div>
   )
 }
