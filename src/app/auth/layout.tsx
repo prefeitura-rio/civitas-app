@@ -1,26 +1,31 @@
+'use client'
 import Image from 'next/image'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
 import { Button } from '@/components/ui/button'
+import { isAuthenticated } from '@/utils/isAuthenticated'
 
 export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  if (isAuthenticated()) {
+    redirect('/')
+  }
   return (
     <div className="min-h-screen px-4 pt-4">
       <div className="flex justify-between">
-        <div className="relative flex h-10 w-full justify-start gap-4">
-          {/* <div className="relative h-10"> */}
+        <div className="flex h-10 w-full items-center justify-start gap-8">
           <Image
             src={logoPrefeitura}
             alt="Logo Prefeitura Rio"
             className="h-[100%] w-auto"
           />
-          {/* </div> */}
           <Image
             src={logoCivitas}
             alt="Logo Civitas"
@@ -37,9 +42,16 @@ export default function AuthLayout({
           <Button variant="secondary">Login</Button>
         </div>
       </div>
-      <div className="flex min-h-screen flex-col items-center justify-center px-4">
+      <div className="-mt-10 flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-4">
         {children}
       </div>
+      <span className="text-muted-foreground mb-4 block w-full text-center text-xs">
+        Copyright ©{' '}
+        <Link href="https://www.dados.rio/" className="underline">
+          Escritório de Dados do Rio de Janeiro
+        </Link>{' '}
+        2024.
+      </span>
     </div>
   )
 }
