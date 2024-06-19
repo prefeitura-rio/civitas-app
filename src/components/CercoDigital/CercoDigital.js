@@ -20,7 +20,7 @@ import { Warning as WarningIcon } from '@mui/icons-material';
 import { Typography, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { parseISO, format } from 'date-fns';
 import icon_atlas from '../../assets/icon-atlas.png';
-import pin from '../../assets/pin.svg';
+// import pin from '../../assets/pin.svg';
 const CercoDigital = ({ cars }) => {
 
   const mapRef = useRef();
