@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -16,44 +15,46 @@ export default function App() {
     redirect('/auth/sign-in')
   }
   return (
-    <div className="grid w-full grid-cols-4 gap-4">
-      <Link href="/cerco-digital" className="col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Cerco Digital</CardTitle>
-            <CardDescription>
-              Consulta e monitoramento de placas
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </Link>
+    <div className="page-content flex items-center justify-center">
+      <div className="grid grid-cols-4 gap-4">
+        <Link href="/cerco-digital" className="col-span-2">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Cerco Digital</CardTitle>
+              <CardDescription>
+                Consulta e monitoramento de placas
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
 
-      <Link href="/" className="col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle>🏗️ Em construção...</CardTitle>
-            <CardDescription>...</CardDescription>
-          </CardHeader>
-        </Card>
-      </Link>
+        <Link href="/" className="col-span-1">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>🏗️ Em construção...</CardTitle>
+              <CardDescription>...</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
 
-      <Link href="/" className="col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle>🏗️ Em construção...</CardTitle>
-            <CardDescription>...</CardDescription>
-          </CardHeader>
-        </Card>
-      </Link>
+        <Link href="/" className="col-span-1">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>🏗️ Em construção...</CardTitle>
+              <CardDescription>...</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
 
-      <Link href="/" className="col-span-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>🏗️ Em construção...</CardTitle>
-            <CardDescription>...</CardDescription>
-          </CardHeader>
-        </Card>
-      </Link>
+        <Link href="/" className="col-span-4">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>🏗️ Em construção...</CardTitle>
+              <CardDescription>...</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+      </div>
     </div>
   )
 }
