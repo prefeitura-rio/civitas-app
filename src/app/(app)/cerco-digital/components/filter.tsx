@@ -1,46 +1,37 @@
 'use client'
-import { format } from 'date-fns'
 import { Controller, useFormContext } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
-// import { DatePicker } from '@/components/ui/date-picker'
-// import { DateTimePicker } from '@/components/ui/date-time-picker/date-time-picker'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useCarPath } from '@/hooks/useCarPathContext'
+import { formatDateUTC } from '@/utils/formatDateUTC'
+import { handleToastErrorMessage } from '@/utils/handleToastErrorMessage'
 
 export const filterFormSchema = z.object({
   plateNumer: z.string().min(1, { message: 'Campo obrigatório' }),
-  dateStart: z.date(),
-  dateEnd: z.date(),
+  startTime: z.date(),
+  endTime: z.date(),
 })
 
 export type FilterForm = z.infer<typeof filterFormSchema>
 
 export function Filter() {
-  const { watch, control, register, handleSubmit } =
-    useFormContext<FilterForm>()
+  const { control, register, handleSubmit } = useFormContext<FilterForm>()
+  const { getCarPath } = useCarPath()
 
-  function onSubmit(props: FilterForm) {
-    // ...
-    console.log(props)
-  }
-
-  console.log({
-    1: watch('plateNumer'),
-    2: watch('dateStart'),
-    3: watch('dateEnd'),
-  })
-  if (watch('dateStart')) {
-    const newDate = new Date(watch('dateStart'))
-    const hours = newDate.getHours()
-    console.log({
-      dateStart: format(
-        new Date(watch('dateStart')).setHours(hours + 3),
-        "yyyy-MM-dd'T'HH:mm:ss",
-      ),
-    })
+  async function onSubmit(props: FilterForm) {
+    try {
+      await getCarPath({
+        placa: props.plateNumer,
+        startTime: formatDateUTC(props.startTime),
+        endTime: formatDateUTC(props.endTime),
+      })
+    } catch (error) {
+      handleToastErrorMessage(error)
+    }
   }
 
   return (
@@ -57,10 +48,10 @@ export function Filter() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="dateStart">Data de início do intervalo</Label>
+            <Label htmlFor="startTime">Data de início do intervalo</Label>
             <Controller
               control={control}
-              name="dateStart"
+              name="startTime"
               render={({ field }) => (
                 <DateTimePicker
                   granularity="minute"
@@ -71,10 +62,10 @@ export function Filter() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="dateEnd">Data de término do intervalo</Label>
+            <Label htmlFor="endTime">Data de término do intervalo</Label>
             <Controller
               control={control}
-              name="dateEnd"
+              name="endTime"
               render={({ field }) => (
                 <DateTimePicker
                   granularity="minute"
