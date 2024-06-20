@@ -2,33 +2,24 @@ import {
   Card,
   Grid,
   Button,
-  ButtonGroup,
   Box,
-  ThemeProvider,
   TextField,
   FormControl,
-  InputLabel,
-  Grow,
   Slide,
 } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
-import { theme } from "../..";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import DeckGL from "@deck.gl/react";
 import { Map } from "react-map-gl";
-import { GeoJsonLayer, TextLayer, IconLayer } from "@deck.gl/layers";
+import { TextLayer, IconLayer } from "@deck.gl/layers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useDispatch } from "react-redux";
 import { loadCarsPath } from "../../redux/cars/actions";
 import Fab from "@mui/material/Fab";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { Warning as WarningIcon } from "@mui/icons-material";
 import {
   Typography,
   List,
@@ -38,7 +29,8 @@ import {
 } from "@mui/material";
 import { parseISO, format } from "date-fns";
 import icon_atlas from "../../assets/icon-atlas.png";
-// import pin from '../../assets/pin.svg';
+import { formatLocation } from "../../utils/formaatLocation";
+
 const CercoDigital = ({ cars }) => {
   const mapRef = useRef();
 
@@ -59,7 +51,7 @@ const CercoDigital = ({ cars }) => {
 
   const [hoverInfo, setHoverInfo] = useState(null);
   const [selectedTrip, setSelectedTrip] = useState(null);
-  const [placa, setPlaca] = useState("SQZ8B08");
+  const [placa, setPlaca] = useState(null);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
@@ -74,6 +66,12 @@ const CercoDigital = ({ cars }) => {
     setStartDate(formatDateTime(fiveDaysAgo));
     setEndDate(formatDateTime(nowBr));
   }, []);
+
+  useEffect(() => {
+    if (cars && !selectedTrip) {
+      setSelectedTrip(cars[0])
+    }
+  }, [cars])
 
   const formatDateTime = (date) => {
     return date.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:mm
@@ -105,7 +103,7 @@ const CercoDigital = ({ cars }) => {
     }
   }, [selectedTrip]);
 
-  const RightSideComponent = () => {
+  const LeftSideComponent = () => {
     return (
       <Card
         sx={{
@@ -117,108 +115,117 @@ const CercoDigital = ({ cars }) => {
           "&::-webkit-scrollbar": {
             display: "none",
           },
+          // minWidth: '400px',
         }}
       >
         <List>
-          {data.locationsChunks.flat().map((item, index) => (
-            <ListItem
-              key={index}
-              sx={{
-                mb: 2,
-                backgroundColor: "#1F1F1F",
-                borderRadius: "20px",
-                padding: 2,
-              }}
-            >
-              <ListItemIcon
-                sx={{ display: "flex", justifyContent: "flex-start" }}
+          {data.locationsChunks.flat().map((item, index) => {
+            const {location, direction, lane} = formatLocation(item.localidade)
+
+            return (
+              <ListItem
+                key={index}
+                sx={{
+                  mb: 2,
+                  backgroundColor: "#1F1F1F",
+                  borderRadius: "20px",
+                  padding: 2,
+                }}
               >
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    backgroundColor: "#23C1F1",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                <ListItemIcon
+                  sx={{ display: "flex", justifyContent: "flex-start" }}
                 >
-                  <Typography
-                    sx={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-                  >
-                    {index + 1}
-                  </Typography>
-                </Box>
-              </ListItemIcon>
-              <ListItemText
-                primary={
                   <Box
                     sx={{
-                      maxWidth: "150px",
+                      width: 32,
+                      height: 32,
+                      backgroundColor: "#23C1F1",
+                      borderRadius: "50%",
                       display: "flex",
-                      flexDirection: "column",
-                      ml: 0,
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     <Typography
-                      sx={{ color: "#707070", pb: 0.5, fontSize: "15px" }}
+                      sx={{ color: "white", fontSize: 16, fontWeight: "bold" }}
                     >
-                      Localização
+                      {index + 1}
                     </Typography>
-                    <Typography
+                  </Box>
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Box
                       sx={{
-                        pb: 0.5,
-                        lineHeight: "13px",
-                        fontWeight: "bold",
-                        fontSize: "12px",
-                        color: "white",
+                        maxWidth: "150px",
+                        display: "flex",
+                        flexDirection: "column",
+                        ml: 0,
                       }}
                     >
-                      {item.localidade}
-                    </Typography>
-                    <Typography sx={{ fontSize: "11px", color: "white" }}>
-                      {/* Sentido: {item.direction} */}
-                      Sentido: {item.sentido}
-                    </Typography>
-                  </Box>
-                }
-              />
-              <ListItemText
-                primary={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-start",
-                      ml: 1,
-                    }}
-                  >
-                    <Typography sx={{ color: "#707070", fontSize: "15px" }}>
-                      Data
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: "white" }}>
-                      {formatDateTimeInfo(item.datahora).date}
-                    </Typography>
-                  </Box>
-                }
-              />
-              <ListItemText
-                primary={
-                  <Box
-                    sx={{ display: "flex", flexDirection: "column", ml: 1 }}
-                  >
-                    <Typography sx={{ color: "#707070", fontSize: "15px" }}>
-                      Hora
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: "white" }}>
-                      {formatDateTimeInfo(item.datahora).time}
-                    </Typography>
-                  </Box>
-                }
-              />
-            </ListItem>
-          ))}
+                      <Typography
+                        sx={{ color: "#707070", pb: 0.5, fontSize: "15px" }}
+                      >
+                        Localização
+                      </Typography>
+                      <Typography
+                        sx={{
+                          pb: 0.5,
+                          lineHeight: "13px",
+                          fontWeight: "bold",
+                          fontSize: "12px",
+                          color: "white",
+                        }}
+                      >
+                        {location}
+                      </Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#707070" }}>
+                        {/* Sentido: {item.direction} */}
+                        Sentido: {direction}
+                      </Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#707070" }}>
+                        {/* Sentido: {item.direction} */}
+                        Faixa: {lane}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <ListItemText
+                  primary={
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        ml: 1,
+                      }}
+                    >
+                      <Typography sx={{ color: "#707070", fontSize: "15px" }}>
+                        Data
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "white" }}>
+                        {formatDateTimeInfo(item.datahora).date}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <ListItemText
+                  primary={
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", ml: 1 }}
+                    >
+                      <Typography sx={{ color: "#707070", fontSize: "15px" }}>
+                        Hora
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "white" }}>
+                        {formatDateTimeInfo(item.datahora).time}
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </ListItem>
+            )
+          })}
         </List>
       </Card>
     );
@@ -382,13 +389,14 @@ const CercoDigital = ({ cars }) => {
                     borderRadius: "20px",
                   }}
                   displayEmpty
+                  defaultValue={0}
                   onChange={handleTripSelect}
                   MenuProps={{ style: { marginTop: "10px" } }}
                 >
                   {cars &&
                     cars.map((_, index) => (
                       <MenuItem key={index} value={index}>
-                        {`Trip ${index + 1}`}
+                        {`Viagem ${index + 1}`}
                       </MenuItem>
                     ))}
                 </Select>
@@ -405,7 +413,7 @@ const CercoDigital = ({ cars }) => {
                   backgroundColor: "#23C1F1",
                 },
               }}
-              onClick={() =>
+              onClick={() => 
                 dispatch(loadCarsPath({ placa, startDate, endDate }))
               }
             >
@@ -414,7 +422,27 @@ const CercoDigital = ({ cars }) => {
           </Box>
         </Card>
       </Grid>
-      <Grid item xs={selectedTrip ? 9 : 12}>
+      <Slide
+        direction="up"
+        in={selectedTrip}
+        mountOnEnter
+        // defaultValue={cars[1]}
+        unmountOnExit
+        timeout={1000}
+      >
+        <Grid item xs={4}>
+          <Card
+            sx={{
+              backgroundColor: "black",
+              height: "70vh",
+              position: "relative",
+            }}
+          >
+            <LeftSideComponent />
+          </Card>
+        </Grid>
+      </Slide>
+      <Grid item xs={selectedTrip ? 8 : 12}>
         <Card
           sx={{ borderRadius: "20px", height: "70vh", position: "relative" }}
         >
@@ -502,25 +530,6 @@ const CercoDigital = ({ cars }) => {
           </Fab>
         </Card>
       </Grid>
-      <Slide
-        direction="up"
-        in={selectedTrip}
-        mountOnEnter
-        unmountOnExit
-        timeout={1000}
-      >
-        <Grid item xs={3}>
-          <Card
-            sx={{
-              backgroundColor: "black",
-              height: "70vh",
-              position: "relative",
-            }}
-          >
-            <RightSideComponent />
-          </Card>
-        </Grid>
-      </Slide>
     </Grid>
   );
 };
