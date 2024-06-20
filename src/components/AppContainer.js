@@ -14,6 +14,7 @@ const AppContainer = (props) => {
     loading={props.loading}
     error_message={props.error_message}
     error_status={props.error_status}
+    error_severity={props.error_severity}
   />;
 };
 
@@ -22,7 +23,8 @@ const mapStateToProps = (state) => {
     loading: state.cars.loading,
     // error:state.cars.error
     error_message: state.error.message,
-    error_status: state.error.status
+    error_status: state.error.status,
+    error_severity: state.error.severity
   };
 };
 
