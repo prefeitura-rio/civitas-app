@@ -1,16 +1,22 @@
+'use client'
 import Image from 'next/image'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
 import { Button } from '@/components/ui/button'
+import { isAuthenticated } from '@/utils/isAuthenticated'
 
 export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  if (!isAuthenticated()) {
+    redirect('/auth/sign-in')
+  }
   return (
     <div className="min-h-screen px-4 pt-4">
       <div className="flex justify-between">

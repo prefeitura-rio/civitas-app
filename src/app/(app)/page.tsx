@@ -1,6 +1,4 @@
-'use client'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 
 import {
   Card,
@@ -8,12 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { isAuthenticated } from '@/utils/isAuthenticated'
 
 export default function App() {
-  if (!isAuthenticated()) {
-    redirect('/auth/sign-in')
-  }
   return (
     <div className="page-content flex items-center justify-center">
       <div className="grid grid-cols-4 gap-4">
