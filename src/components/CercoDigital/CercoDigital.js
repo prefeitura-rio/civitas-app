@@ -31,7 +31,7 @@ import { parseISO, format } from "date-fns";
 import icon_atlas from "../../assets/icon-atlas.png";
 import { formatLocation } from "../../utils/formaatLocation";
 
-const CercoDigital = ({ cars }) => {
+const CercoDigital = ({ cars, loading }) => {
   const mapRef = useRef();
 
   const [viewport, setViewport] = useState({
@@ -69,9 +69,19 @@ const CercoDigital = ({ cars }) => {
 
   useEffect(() => {
     if (cars && !selectedTrip) {
+      console.log('loaded first')
       setSelectedTrip(cars[0])
+      
     }
-  }, [cars])
+    if (cars && !loading) {
+      console.log("loaded new")
+      // selectedTrip(cars[0])
+      setData({
+        locationsChunks: cars[0].locations,
+        polylineChunks: cars[0].polyline,
+      });
+    }
+  }, [cars, loading])
 
   const formatDateTime = (date) => {
     return date.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:mm
@@ -305,8 +315,6 @@ const CercoDigital = ({ cars }) => {
     return false;
   });
 
-  console.log({ pointLayerData });
-
   layers.push(
     new IconLayer({
       id: "icon-layer",
@@ -426,8 +434,7 @@ const CercoDigital = ({ cars }) => {
         direction="up"
         in={selectedTrip}
         mountOnEnter
-        // defaultValue={cars[1]}
-        unmountOnExit
+        // unmountOnExit
         timeout={1000}
       >
         <Grid item xs={4}>
@@ -458,7 +465,7 @@ const CercoDigital = ({ cars }) => {
           >
             <Map
               style={{ width: "100%", height: "100%" }}
-              mapStyle="mapbox://styles/escritoriodedados/clvzlhsfw07gp01peebd0dufr"
+              mapStyle="mapbox://styles/mapbox/streets-v12"
               mapboxAccessToken="pk.eyJ1IjoiZXNjcml0b3Jpb2RlZGFkb3MiLCJhIjoiY2t3bWdmcHpjMmJ2cTJucWJ4MGQ1Mm1kbiJ9.4hHJX-1pSevYoBbja7Pq4w"
             />
             {hoverInfo && hoverInfo.object && (
