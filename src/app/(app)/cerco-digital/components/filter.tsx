@@ -25,7 +25,7 @@ export function Filter() {
     control,
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useFormContext<FilterForm>()
   const { getCarPath } = useCarPath()
 
@@ -47,7 +47,7 @@ export function Filter() {
         className="flex items-center justify-between"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="flex gap-2">
+        <fieldset className="flex gap-2" disabled={isSubmitting}>
           <div className="flex flex-col gap-1">
             <Label htmlFor="plateNumber">Número da placa</Label>
             <Input
@@ -70,6 +70,7 @@ export function Filter() {
                   onJsDateChange={field.onChange}
                 />
               )}
+              disabled={isSubmitting}
             />
             <InputError message={errors.startTime?.message} />
           </div>
@@ -85,13 +86,13 @@ export function Filter() {
                   onJsDateChange={field.onChange}
                 />
               )}
+              disabled={isSubmitting}
             />
             <InputError message={errors.endTime?.message} />
           </div>
-        </div>
-        <Button>
+        </fieldset>
+        <Button disabled={isSubmitting}>
           <Search />
-          {/* <span className="text-lg font-semibold">Pesquisar</span> */}
         </Button>
       </form>
     </div>

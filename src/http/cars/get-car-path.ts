@@ -6,17 +6,18 @@ export interface GetCarPathRequest {
   endTime: string
 }
 
-export interface Location {
+export interface Point {
   datahora: string
   camera_numero: string
   latitude: number
   longitude: number
   bairro: string
   localidade: string
+  seconds_to_next_point: number | null
 }
 
 export interface GetCarPathResponseItem {
-  locations: Location[][]
+  locations: Point[][]
   polyline: string | null
 }
 

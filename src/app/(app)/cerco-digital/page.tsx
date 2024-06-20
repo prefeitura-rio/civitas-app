@@ -17,9 +17,9 @@ export default function CercoDigital() {
       <FormProvider {...filterFormMethods}>
         <div className="page-content flex flex-col gap-8 pt-8">
           <Filter />
-          <div className="flex">
-            <Map />
+          <div className="flex gap-4">
             <SideList />
+            <Map />
           </div>
         </div>
       </FormProvider>
