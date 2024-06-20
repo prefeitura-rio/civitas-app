@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
@@ -13,8 +13,9 @@ export default function AuthLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const router = useRouter()
   if (isAuthenticated()) {
-    redirect('/')
+    router.push('/')
   }
   return (
     <div className="min-h-screen px-4 pt-4">
@@ -38,7 +39,7 @@ export default function AuthLayout({
       <div className="-mt-10 flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-4">
         {children}
       </div>
-      <span className="text-muted-foreground mb-4 block w-full text-center text-xs">
+      <span className="mb-4 block w-full text-center text-xs text-muted-foreground">
         Copyright ©{' '}
         <Link href="https://www.dados.rio/" className="underline">
           Escritório de Dados do Rio de Janeiro
