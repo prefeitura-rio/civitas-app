@@ -1,12 +1,13 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
 import { Button } from '@/components/ui/button'
+import { api } from '@/lib/api'
 import { isAuthenticated } from '@/utils/isAuthenticated'
 
 export default function AppLayout({
@@ -14,9 +15,23 @@ export default function AppLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const router = useRouter()
   if (!isAuthenticated()) {
-    redirect('/auth/sign-in')
+    router.push('/auth/sign-in')
   }
+
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      console.log(error)
+      if (error.response?.status === 401) {
+        sessionStorage.clear()
+        router.push('/auth/sign-in')
+      }
+      return Promise.reject(error)
+    },
+  )
+
   return (
     <div className="min-h-screen px-4 pt-4">
       <div className="flex justify-between">
