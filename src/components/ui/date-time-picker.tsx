@@ -137,7 +137,7 @@ function CalendarGrid({ state, ...props }: CalendarGridProps) {
         <tr className="flex">
           {weekDays.map((day, index) => (
             <th
-              className="text-muted-foreground w-9 rounded-md text-[0.8rem] font-normal"
+              className="w-9 rounded-md text-[0.8rem] font-normal text-muted-foreground"
               key={index}
             >
               {day}
@@ -190,7 +190,7 @@ function CalendarCell({ state, date }: CalendarCellProps) {
       {...cellProps}
       className={cn(
         cellProps.className,
-        '[&:has([aria-selected])]:bg-accent relative p-0 text-center text-sm focus-within:relative focus-within:z-20 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md',
+        'relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md',
       )}
     >
       <Button
@@ -231,7 +231,7 @@ function DateSegment({ segment, state }: DateSegmentProps) {
       {...segmentProps}
       ref={ref}
       className={cn(
-        'focus:bg-accent focus:text-accent-foreground focus:rounded-[2px] focus:outline-none',
+        'focus:rounded-[2px] focus:bg-accent focus:text-accent-foreground focus:outline-none',
         segment.type !== 'literal' && 'px-[1px]',
         segment.isPlaceholder && 'text-muted-foreground',
       )}
@@ -261,7 +261,7 @@ function DateField(props: AriaDatePickerProps<DateValue>) {
       {...fieldProps}
       ref={ref}
       className={cn(
-        'border-input ring-offset-background focus-visible:ring-ring inline-flex h-10 flex-1 items-center rounded-l-md bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        'inline-flex h-10 flex-1 items-center rounded-l-md border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         props.isDisabled && 'cursor-not-allowed opacity-50',
       )}
     >
@@ -291,7 +291,7 @@ function TimeField(props: AriaTimeFieldProps<TimeValue>) {
       {...fieldProps}
       ref={ref}
       className={cn(
-        'border-input ring-offset-background focus-within:ring-ring focus-visible:ring-ring inline-flex h-10 w-full flex-1 rounded-md border bg-transparent px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        'inline-flex h-10 w-full flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         props.isDisabled && 'cursor-not-allowed opacity-50',
       )}
     >
@@ -383,7 +383,7 @@ const DateTimePicker = React.forwardRef<
       ref={divRef}
       className={cn(
         groupProps.className,
-        'ring-offset-background focus-within:ring-ring flex items-center rounded-md border focus-within:ring-2 focus-within:ring-offset-2',
+        'flex items-center rounded-md border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
       )}
     >
       <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
@@ -416,7 +416,7 @@ const DateTimePicker = React.forwardRef<
       <div className={cn('-ml-2 mr-2 h-5 w-5', !showClearButton && 'hidden')}>
         <X
           className={cn(
-            'text-primary/30 h-5 w-5 cursor-pointer',
+            'h-5 w-5 cursor-pointer text-primary/30',
             !jsDatetime && 'hidden',
           )}
           onClick={() => setJsDatetime(null)}

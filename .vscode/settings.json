@@ -4,6 +4,7 @@
     "Auth",
     "CercoDigital",
     "Home",
-    "Utils"
+    "Utils",
+    "AppLayout"
   ]
 }
