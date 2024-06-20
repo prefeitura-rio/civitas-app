@@ -1,58 +1,50 @@
-import { format } from 'date-fns'
-import React, { useState } from 'react'
+import React from 'react'
 
-import { Card, CardDescription } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCarPath } from '@/hooks/useCarPathContext'
-import { formatLocation } from '@/utils/formatLocation'
+
+import { PointCard } from './side-list/PointCard'
+import { TripCard } from './side-list/TripCard'
 
 export function SideList() {
-  const { carPath } = useCarPath()
-
-  const [selectedTripIndex, setSelectedTripIndex] = useState(1)
-
-  const trip = carPath?.at(selectedTripIndex)
+  const { trips, selectedTripIndex } = useCarPath()
 
   return (
-    <div className="flex flex-col gap-4">
-      {trip &&
-        trip.locations.map((tripLocations) => {
-          return tripLocations.map((tripLocation, index) => {
-            const { location, direction, lane } = formatLocation(
-              tripLocation.localidade,
-            )
+    <Tabs defaultValue="trips" className="w-full max-w-sm">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="trips">Viagens</TabsTrigger>
+        <TabsTrigger value="route">Rota</TabsTrigger>
+      </TabsList>
+      {/* Trips */}
+      <TabsContent
+        value="trips"
+        className="flex max-h-[40rem] flex-col gap-4 overflow-y-scroll p-4"
+      >
+        {trips &&
+          trips.map((trip, index) => {
+            const startLocation = trip.points[0]
+            const endLocation = trip.points[trip.points.length - 1]
 
             return (
-              <Card className="flex min-w-80 gap-6 p-4">
-                <div className="flex items-center">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                    <span className="font-bold text-black">{index + 1}</span>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <CardDescription className="text-sm">
-                    Localização:
-                  </CardDescription>
-                  <div className="flex flex-col gap-1">
-                    <span className="block">{location}</span>
-                    <span className="block text-sm text-muted-foreground">
-                      Sentido: {direction}
-                    </span>
-                    <span className="block text-sm text-muted-foreground">
-                      Faixa: {lane}
-                    </span>
-                  </div>
-                  <CardDescription className="text-xs">
-                    Data:{' '}
-                    {format(
-                      new Date(tripLocation.datahora),
-                      'yyyy/MM/dd às HH:mm',
-                    )}
-                  </CardDescription>
-                </div>
-              </Card>
+              <TripCard
+                key={index}
+                index={index}
+                startLocation={startLocation}
+                endLocation={endLocation}
+              />
             )
-          })
-        })}
-    </div>
+          })}
+      </TabsContent>
+      {/* Points */}
+      <TabsContent
+        value="route"
+        className="flex max-h-[40rem] flex-col gap-4 overflow-y-scroll"
+      >
+        {trips?.at(selectedTripIndex) &&
+          trips?.at(selectedTripIndex)?.points.map((point, index) => {
+            return <PointCard key={index} {...point} index={index} />
+          })}
+      </TabsContent>
+    </Tabs>
   )
 }

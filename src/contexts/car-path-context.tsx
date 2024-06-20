@@ -1,15 +1,15 @@
 import { createContext, type ReactNode, useState } from 'react'
 
-import type {
-  GetCarPathRequest,
-  GetCarPathResponse,
-} from '@/http/cars/get-car-path'
+import type { GetCarPathRequest } from '@/http/cars/get-car-path'
 import { getCarPath as getCarPathApi } from '@/http/cars/get-car-path'
+import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
+import { tripsExample } from '@/utils/tripsExample'
 
 interface CarPathContextProps {
-  // ...
-  carPath: GetCarPathResponse | undefined
-  getCarPath: (props: GetCarPathRequest) => Promise<GetCarPathResponse>
+  trips: Trip[] | undefined
+  getCarPath: (props: GetCarPathRequest) => Promise<Trip[]>
+  selectedTripIndex: number
+  setSelectedTripIndex: (index: number) => void
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -21,7 +21,14 @@ interface CarPathContextProviderProps {
 export function CarPathContextProvider({
   children,
 }: CarPathContextProviderProps) {
-  const [carPath, setCarPath] = useState<GetCarPathResponse>()
+  const [trips, setTrips] = useState<Trip[]>(
+    formatCarPathResponse(tripsExample),
+  )
+  const [selectedTripIndex, setSelectedTripIndexState] = useState(0)
+
+  function setSelectedTripIndex(index: number) {
+    setSelectedTripIndexState(index)
+  }
 
   async function getCarPath({ placa, startTime, endTime }: GetCarPathRequest) {
     const response = await getCarPathApi({
@@ -30,15 +37,19 @@ export function CarPathContextProvider({
       endTime,
     })
 
-    setCarPath(response.data)
-    return response.data
+    const formattedTrips = formatCarPathResponse(response.data)
+
+    setTrips(formattedTrips)
+    return formattedTrips
   }
 
   return (
     <CarPathContext.Provider
       value={{
-        carPath,
+        trips,
         getCarPath,
+        selectedTripIndex,
+        setSelectedTripIndex,
       }}
     >
       {children}
