@@ -437,7 +437,7 @@ const CercoDigital = ({ cars, loading }) => {
         // unmountOnExit
         timeout={1000}
       >
-        <Grid item xs={4}>
+        <Grid item xs={3}>
           <Card
             sx={{
               backgroundColor: "black",
@@ -449,7 +449,7 @@ const CercoDigital = ({ cars, loading }) => {
           </Card>
         </Grid>
       </Slide>
-      <Grid item xs={selectedTrip ? 8 : 12}>
+      <Grid item xs={selectedTrip ? 9 : 12}>
         <Card
           sx={{ borderRadius: "20px", height: "70vh", position: "relative" }}
         >
@@ -483,16 +483,31 @@ const CercoDigital = ({ cars, loading }) => {
                 }}
               >
                 <div>
-                  {Object.keys(hoverInfo.object.properties)
-                    // .filter(key => key !== 'index')
-                    .map((key) => (
-                      <div key={key}>
-                        <strong>{key === "index" ? "índice" : key}: </strong>
-                        {key === "index"
-                          ? Number(hoverInfo.object.properties[key]) + 1
-                          : hoverInfo.object.properties[key]}
-                      </div>
-                    ))}
+                  <div>
+                    <strong>Data e hora: </strong>
+                    <span>{format(new Date(hoverInfo.object.properties.datahora), "dd/MM/yyyy 'às' HH:mm")}</span>
+                  </div>
+                  <div>
+                    <strong>Bairro: </strong>
+                    <span>{hoverInfo.object.properties.bairro}</span>
+                  </div>
+                  <div>
+                    <strong>Localidate: </strong>
+                    <span>{formatLocation(hoverInfo.object.properties.localidade).location
+                      }</span>
+                  </div>
+                  <div>
+                    <strong>Sentido: </strong>
+                    <span>{formatLocation(hoverInfo.object.properties.localidade).direction}</span>
+                  </div>
+                  <div>
+                    <strong>Faixa: </strong>
+                    <span>{formatLocation(hoverInfo.object.properties.localidade).lane}</span>
+                  </div>
+                  <div>
+                    <strong>Câmera nº: </strong>
+                    <span>{hoverInfo.object.properties.camera_numero}</span>
+                  </div>
                 </div>
               </div>
             )}
