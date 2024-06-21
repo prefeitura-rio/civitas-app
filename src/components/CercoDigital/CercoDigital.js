@@ -7,6 +7,7 @@ import {
   FormControl,
   Slide,
 } from "@mui/material";
+import { toast } from 'sonner'
 import React, { useEffect, useRef, useState } from "react";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -69,13 +70,10 @@ const CercoDigital = ({ cars, loading }) => {
 
   useEffect(() => {
     if (cars && !selectedTrip) {
-      console.log('loaded first')
       setSelectedTrip(cars[0])
       
     }
     if (cars && !loading) {
-      console.log("loaded new")
-      // selectedTrip(cars[0])
       setData({
         locationsChunks: cars[0].locations,
         polylineChunks: cars[0].polyline,
@@ -421,8 +419,12 @@ const CercoDigital = ({ cars, loading }) => {
                   backgroundColor: "#23C1F1",
                 },
               }}
-              onClick={() => 
-                dispatch(loadCarsPath({ placa, startDate, endDate }))
+              onClick={() => {
+                if (!placa || !startDate || !endDate) {
+                  toast.warning('Todos os campos devem ser preenchidos.')
+                } else {
+                  dispatch(loadCarsPath({ placa, startDate, endDate }))}
+                }
               }
             >
               Fazer Pesquisa
