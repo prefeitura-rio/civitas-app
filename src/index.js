@@ -5,7 +5,7 @@ import { Provider } from "react-redux";
 import store from "./redux/store";
 import AppContainer from "./components/AppContainer";
 import ReactDOM from 'react-dom/client';
-
+import{ Toaster } from 'sonner'
 import { createTheme } from '@mui/material/styles';
 
 import { ThemeProvider } from '@mui/material/styles';
@@ -36,6 +36,7 @@ root.render(
     {/* <ThemeProvider theme={darkTheme}> */}
       <CssBaseline />
       <AppContainer />
+      <Toaster />
     {/* </ThemeProvider> */}
   </Provider>
 );
