@@ -1,58 +1,27 @@
-import { MapViewState } from '@deck.gl/core'
+import { type PickingInfo } from '@deck.gl/core'
 import { IconLayer, LineLayer, TextLayer } from '@deck.gl/layers'
 import DeckGL from '@deck.gl/react'
 import { useState } from 'react'
 import ReactMalGL from 'react-map-gl'
 
+import iconAtlas from '@/assets/icon-atlas.png'
 import { config } from '@/config'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import type { Point } from '@/utils/formatCarPathResponse'
 
-type LineLayerDataType = {
-  index: number
-  from: [longitude: number, latidute: number]
-  to: [longitude: number, latidute: number]
-  startTime: string
-  endTime: string
-}
+import { IconTooltipCard } from './map/icon-tooltip-card'
+import { LineTooltipCard } from './map/line-tooltip-card'
 
 export function Map() {
   const { trips, viewport, setViewport, selectedTripIndex } = useCarPath()
+  const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
+    {} as PickingInfo<Point>,
+  )
+  const [lineHoverInfo, setLineHoverInfo] = useState<PickingInfo<Point>>(
+    {} as PickingInfo<Point>,
+  )
 
   const points = trips?.at(selectedTripIndex)?.points
-
-  // const lineLayerData: LineLayerDataType[] = [
-  //   {
-  //     index: 1,
-  //     from: [-43.3863970006, -22.9437190008],
-  //     startTime: '2024-06-12T08:42:56-03:00',
-  //     to: [-43.3761100006, -22.9544990008],
-  //     endTime: '2024-06-12T08:54:11-03:00',
-  //   },
-  //   {
-  //     index: 2,
-  //     from: [-43.3761100006, -22.9544990008],
-  //     to: [-43.37018172686272, -22.937457863536597],
-  //     startTime: '2024-06-12T08:54:11-03:00',
-  //     endTime: '2024-06-12T08:59:50-03:00',
-  //   },
-  //   {
-  //     index: 3,
-  //     from: [-43.37018172686272, -22.937457863536597],
-  //     to: [-43.3142030006, -22.8883510008],
-  //     startTime: '2024-06-12T08:59:50-03:00',
-  //     endTime: '2024-06-12T09:37:30-03:00',
-  //   },
-  //   {
-  //     index: 4,
-  //     from: [-43.3142030006, -22.8883510008],
-  //     to: [-43.3142030006, -22.8883510008],
-  //     startTime: '2024-06-12T09:37:30-03:00',
-  //     endTime: '2024-06-12T09:37:30-03:00',
-  //   },
-  // ]
-
-  console.log(points)
 
   const lineLayer = new LineLayer<Point>({
     id: 'line-layer',
@@ -86,45 +55,65 @@ export function Map() {
 
       return [result.red, result.green, result.blue]
     },
-    getWidth: 2,
-  })
-
-  const iconLayer = new IconLayer<LineLayerDataType>({
-    id: 'icon-layer',
-    data: points,
-    getPosition: (point) => {
-      console.log({ point })
-      return point.from
-    },
-    getColor: [0, 0, 0],
-    getSize: 40,
-    getIcon: (point) => 'marker',
+    getWidth: 3,
     pickable: true,
-    iconAtlas:
-      'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-    iconMapping:
-      'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.json',
+    onHover: (info) => setLineHoverInfo(info),
   })
 
-  const textLayer = new TextLayer<LineLayerDataType>({
-    id: 'text-layer',
+  const lineLayerTransparant = new LineLayer<Point>({
+    id: 'line-layer',
+    data: points,
+    getSourcePosition: (point) => point.from,
+    getTargetPosition: (point) => point.to || point.from,
+    getColor: [0, 0, 0, 0],
+    getWidth: 30,
+    pickable: true,
+    onHover: (info) => setLineHoverInfo(info),
+  })
+
+  // Assuming icon_atlas has an arrow icon at the specified coordinates
+  const ICON_MAPPING = {
+    arrow: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
+  }
+
+  const iconLayer = new IconLayer<Point>({
+    id: 'icon-layer',
     data: points,
     getPosition: (point) => point.from,
     getColor: [0, 0, 0],
-    getSize: 20,
+    getSize: 30,
+    getIcon: () => 'arrow',
+    iconAtlas: iconAtlas.src,
+    iconMapping: ICON_MAPPING,
+    pickable: true,
+    onHover: (info) => setIconHoverInfo(info),
+  })
+
+  const textLayer = new TextLayer<Point>({
+    id: 'text-layer',
+    data: points,
+    getPosition: (point) => point.from,
+    getColor: [255, 255, 255],
+    getSize: 15,
     getTextAnchor: 'middle',
     getText: (point) => String(point.index),
-    pickable: true,
     fontWeight: 10,
-    getPixelOffset: [0, -21],
+    getPixelOffset: [0, -16],
+    pickable: true,
+    onHover: (info) => setIconHoverInfo(info),
   })
 
   return (
     <DeckGL
       initialViewState={viewport}
-      style={{ position: 'relative', width: '100%', height: '100%' }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+      }}
       controller
-      layers={[lineLayer, iconLayer, textLayer]}
+      layers={[lineLayerTransparant, lineLayer, iconLayer, textLayer]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
     >
       <ReactMalGL
@@ -132,6 +121,8 @@ export function Map() {
         mapStyle="mapbox://styles/mapbox/streets-v12"
         // style={{ height: '!0px', width: '!0px' }}
       />
+      <IconTooltipCard {...iconHoverInfo} />
+      <LineTooltipCard {...lineHoverInfo} />
     </DeckGL>
   )
 }
