@@ -19,7 +19,7 @@ export function PointCard({
   const { setViewport, viewport } = useCarPath()
   return (
     <Card
-      className="hover:scale-102 flex min-w-80 gap-6 p-4 hover:cursor-pointer hover:bg-border"
+      className="flex min-w-80 gap-6 p-4 hover:scale-102 hover:cursor-pointer hover:bg-border"
       onClick={() => {
         setViewport({
           ...viewport,

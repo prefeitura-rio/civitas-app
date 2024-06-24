@@ -14,7 +14,7 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
   const { setSelectedTripIndex, setViewport, viewport, trips } = useCarPath()
   return (
     <Card
-      className="hover:scale-102 flex min-w-80 gap-6 p-4 hover:cursor-pointer hover:bg-border"
+      className="flex min-w-80 gap-6 p-4 hover:scale-102 hover:cursor-pointer hover:bg-border"
       onClick={() => {
         setSelectedTripIndex(index)
         setViewport({
