@@ -18,6 +18,12 @@ const config = {
       },
     },
     extend: {
+      scale: {
+        '101': '1.01',
+        '102': '1.02',
+        '103': '1.03',
+        '104': '1.04',
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

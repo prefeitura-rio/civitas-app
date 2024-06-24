@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 
 import { Card, CardDescription } from '@/components/ui/card'
+import { useCarPath } from '@/hooks/useCarPathContext'
 import type { Point } from '@/utils/formatCarPathResponse'
 
 interface PointCardProps extends Point {
@@ -12,10 +13,21 @@ export function PointCard({
   location,
   direction,
   lane,
-  date,
+  startTime,
+  from,
 }: PointCardProps) {
+  const { setViewport, viewport } = useCarPath()
   return (
-    <Card className="flex min-w-80 gap-6 p-4">
+    <Card
+      className="hover:scale-102 flex min-w-80 gap-6 p-4 hover:cursor-pointer hover:bg-border"
+      onClick={() => {
+        setViewport({
+          ...viewport,
+          longitude: from[0],
+          latitude: from[1],
+        })
+      }}
+    >
       <div className="flex items-center">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
           <span className="font-bold text-black">{index + 1}</span>
@@ -32,7 +44,7 @@ export function PointCard({
             Faixa: {lane}
           </span>
           <CardDescription className="text-xs">
-            Data: {format(new Date(date), "dd/MM/yyyy 'às' HH:mm")}
+            Data: {format(new Date(startTime), "dd/MM/yyyy 'às' HH:mm")}
           </CardDescription>
         </div>
       </div>
