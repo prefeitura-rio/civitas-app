@@ -3,10 +3,12 @@ import type { GetCarPathResponse } from '@/http/cars/get-car-path'
 import { formatLocation } from './formatLocation'
 
 export interface Point {
-  date: string
+  index: number
+  from: [longitude: number, latitude: number]
+  startTime: string
+  to?: [longitude: number, latitude: number]
+  endTime?: string
   cameraNumber: string
-  latitude: number
-  longitude: number
   district: string
   location: string
   direction: string
@@ -21,22 +23,27 @@ export interface Trip {
 export function formatCarPathResponse(response: GetCarPathResponse) {
   const trips: Trip[] = response.map((trips) => {
     const pointSet = new Set<Point>()
+    const points = trips.locations.flat()
     return {
-      points: trips.locations
-        .flat()
-        .map((point) => {
+      points: points
+        .map((point, index) => {
           const { location, direction, lane } = formatLocation(point.localidade)
           return {
-            date: point.datahora,
+            index: index + 1,
+            startTime: point.datahora,
             cameraNumber: point.camera_numero,
-            latitude: point.latitude,
-            longitude: point.longitude,
+            from: [point.longitude, point.latitude],
+            to: points.at(index + 1) && [
+              points[index + 1].longitude,
+              points[index + 1].latitude,
+            ],
+            endTime: points.at(index + 1)?.datahora,
             district: point.bairro,
             location,
             direction,
             lane,
             secondsToNextPoint: point.seconds_to_next_point,
-          }
+          } as Point
         })
         .filter((point) => {
           if (!pointSet.has(point)) {
