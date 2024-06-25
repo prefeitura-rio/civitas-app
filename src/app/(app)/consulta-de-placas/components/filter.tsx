@@ -1,6 +1,7 @@
 'use client'
 import { Search } from 'lucide-react'
 import { Controller, useFormContext } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -9,8 +10,8 @@ import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { useCarPath } from '@/hooks/useCarPathContext'
+import { genericErrorMessage, isValidationError } from '@/utils/error-handlers'
 import { formatDateUTC } from '@/utils/formatDateUTC'
-import { handleToastErrorMessage } from '@/utils/handleToastErrorMessage'
 
 export const filterFormSchema = z.object({
   plateNumer: z.string().min(1, { message: 'Campo obrigatório' }),
@@ -37,7 +38,7 @@ export function Filter() {
         endTime: formatDateUTC(props.endTime),
       })
     } catch (error) {
-      handleToastErrorMessage(error)
+      toast.error(genericErrorMessage)
     }
   }
 

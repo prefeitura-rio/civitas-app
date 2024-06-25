@@ -28,7 +28,6 @@ export async function getCarPath({
   startTime,
   endTime,
 }: GetCarPathRequest) {
-  console.log('DEBUG')
   const response = await api.get<GetCarPathResponse>('cars/path', {
     params: {
       placa,
