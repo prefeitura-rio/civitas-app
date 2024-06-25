@@ -10,7 +10,7 @@ import { Filter, type FilterForm, filterFormSchema } from './components/filter'
 import { Map } from './components/map'
 import { SideList } from './components/side-list'
 
-export default function CercoDigital() {
+export default function ConsultaDePlacas() {
   const filterFormMethods = useForm<FilterForm>({
     resolver: zodResolver(filterFormSchema),
   })

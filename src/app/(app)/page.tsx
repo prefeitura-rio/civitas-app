@@ -11,7 +11,7 @@ export default function App() {
   return (
     <div className="page-content flex items-center justify-center">
       <div className="grid grid-cols-4 gap-4">
-        <Link href="/cerco-digital" className="col-span-2">
+        <Link href="/consulta-de-placas" className="col-span-2">
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Consulta de Placas</CardTitle>
@@ -23,7 +23,7 @@ export default function App() {
           </Card>
         </Link>
 
-        <Link href="/" className="col-span-1">
+        <Link href="/monitoramento-de-placas" className="col-span-1">
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Monitoramento de Placas</CardTitle>

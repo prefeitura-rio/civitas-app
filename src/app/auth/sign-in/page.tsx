@@ -1,6 +1,5 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { isAxiosError } from 'axios'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { signIn } from '@/http/auth/sign-in'
+import { genericErrorMessage, isValidationError } from '@/utils/error-handlers'
 
 const signInFormSchema = z.object({
   username: z.string().min(1, { message: 'Campo obrigatório' }),
@@ -46,12 +46,10 @@ export default function SignInPage() {
 
       router.push('/')
     } catch (error) {
-      if (
-        isAxiosError(error) &&
-        error.response?.status === 400 &&
-        error.response?.data?.error === 'invalid_grant'
-      ) {
+      if (isValidationError(error)) {
         toast.error('Credenciais inválidas.')
+      } else {
+        toast.error(genericErrorMessage)
       }
     }
   }
@@ -93,7 +91,7 @@ export default function SignInPage() {
 
         <Link
           href="auth/forgot-password"
-          className="text-foreground block w-full text-center text-xs font-medium hover:underline"
+          className="block w-full text-center text-xs font-medium text-foreground hover:underline"
         >
           Esqueci minha senha
         </Link>
