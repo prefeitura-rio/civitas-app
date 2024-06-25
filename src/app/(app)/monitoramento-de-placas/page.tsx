@@ -1,34 +1,37 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
+import { DataTable } from '@/components/ui/data-table'
 import { Dialog, DialogTrigger } from '@/components/ui/dialog'
+import {
+  getMonitoredPlates,
+  type GetMonitoredPlatesResponse,
+} from '@/http/cars/get-monitored-plates'
+import { genericErrorMessage } from '@/utils/error-handlers'
 
-import { columns, type MonitoredPlate } from './components/columns'
+import { columns } from './components/columns'
 import { CreateMonitoredPlateDialog } from './components/create-monitored-plate-dialog'
-import { DataTable } from './components/data-table'
 
-async function getData(): Promise<MonitoredPlate[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: '728ed52f',
-      plate: 'SQZ8B08',
-      additional_info: '',
-    },
-    {
-      id: 's7f60a87',
-      plate: 'PWK1E22',
-      additional_info: '',
-    },
-    {
-      id: 'nuifwe983',
-      plate: 'LSY4C70',
-      additional_info: '',
-    },
-    // ...
-  ]
-}
+export default function MonitoramentoDePlacas() {
+  const [data, setData] = useState<GetMonitoredPlatesResponse>()
 
-export default async function MonitoramentoDePlacas() {
-  const data = await getData()
+  useEffect(() => {
+    async function getData() {
+      try {
+        const response = await getMonitoredPlates({})
+        setData(response.data)
+      } catch (error) {
+        toast.error(genericErrorMessage)
+        console.log({ error })
+        return null
+      }
+    }
+
+    getData()
+  }, [])
+
   return (
     <div className="page-content flex flex-col gap-8 pt-8">
       <div className="flex items-start justify-between">
@@ -42,7 +45,7 @@ export default async function MonitoramentoDePlacas() {
           <CreateMonitoredPlateDialog />
         </Dialog>
       </div>
-      <DataTable columns={columns} data={data} />
+      {data && <DataTable columns={columns} data={data.items} />}
     </div>
   )
 }
