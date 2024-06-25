@@ -5,24 +5,9 @@ import { PencilLine, Trash } from 'lucide-react'
 
 import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import type { MonitoredPlate } from '@/http/cars/get-monitored-plates'
 
 import { DeleteMonitoredPlateAlertDialog } from './delete-monitored-plate-alert-dialog'
-
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type MonitoredPlate = {
-  id: string
-  plate: string
-  additional_info: any
-}
-
-export type MonitoredPlateResponse = {
-  items: MonitoredPlate[]
-  total: number
-  page: number
-  size: number
-  pages: number
-}
 
 export const columns: ColumnDef<MonitoredPlate>[] = [
   {
@@ -33,7 +18,7 @@ export const columns: ColumnDef<MonitoredPlate>[] = [
     accessorKey: 'additional_info',
     header: 'Informações adicionais',
     cell: ({ row }) => {
-      return <div>{String(row.getValue('additional_info') || '')}</div>
+      return <div>{JSON.stringify(row.getValue('additional_info') || '')}</div>
     },
   },
   {
