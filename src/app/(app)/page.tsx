@@ -14,9 +14,10 @@ export default function App() {
         <Link href="/cerco-digital" className="col-span-2">
           <Card className="h-full">
             <CardHeader>
-              <CardTitle>Cerco Digital</CardTitle>
+              <CardTitle>Consulta de Placas</CardTitle>
               <CardDescription>
-                Consulta e monitoramento de placas
+                Pesquise por uma placa para encontrar rotas por onde ela foi
+                vista.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -25,8 +26,11 @@ export default function App() {
         <Link href="/" className="col-span-1">
           <Card className="h-full">
             <CardHeader>
-              <CardTitle>🏗️ Em construção...</CardTitle>
-              <CardDescription>...</CardDescription>
+              <CardTitle>Monitoramento de Placas</CardTitle>
+              <CardDescription>
+                Cadastre uma placa e receba uma notificação quando ela for
+                vista.
+              </CardDescription>
             </CardHeader>
           </Card>
         </Link>
