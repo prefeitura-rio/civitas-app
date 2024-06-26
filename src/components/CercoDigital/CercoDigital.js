@@ -72,6 +72,8 @@ const CercoDigital = ({ cars, loading }) => {
     if (cars && !selectedTrip) {
       if (cars.length > 0) {
         setSelectedTrip(cars[0])
+      } else {
+        setSelectedTrip(null)
       }
       
     }
@@ -81,6 +83,12 @@ const CercoDigital = ({ cars, loading }) => {
           locationsChunks: cars[0].locations,
           polylineChunks: cars[0].polyline,
         });
+      } else {
+        setData({
+          locationsChunks: [],
+          polylineChunks: [],
+        })
+        setSelectedTrip(null)
       }
     }
   }, [cars, loading])
@@ -442,6 +450,7 @@ const CercoDigital = ({ cars, loading }) => {
         mountOnEnter
         // unmountOnExit
         timeout={1000}
+        style={!selectedTrip ? {display: 'none'} : {}}
       >
         <Grid item xs={3}>
           <Card
