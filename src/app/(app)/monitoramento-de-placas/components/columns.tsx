@@ -33,7 +33,11 @@ export const columns: ColumnDef<MonitoredPlate>[] = [
             <PencilLine className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <UpdateMonitoredPlateDialog plate={row.original.plate} />
+        <UpdateMonitoredPlateDialog
+          plate={row.original.plate}
+          additionalInfo={row.original.additional_info}
+          notificationChannels={row.original.notification_channels}
+        />
       </Dialog>
     ),
   },

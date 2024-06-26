@@ -22,7 +22,7 @@ const newPlateFormSchema = z.object({
   plate: z.string().min(1, { message: 'Campo obrigatório' }),
   notificationChannels: z.array(
     z.object({
-      channel: z.string(),
+      channel: z.string().min(1, { message: 'Esse campo não pode ser vazio.' }),
     }),
   ),
 })
@@ -67,7 +67,7 @@ export function CreateMonitoredPlateDialog() {
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Adicionar nova placa</DialogTitle>
+        <DialogTitle>Adicionar mmnitoramento de placa</DialogTitle>
         <DialogDescription>
           Ao cadastrar essa placa, ela será monitorada pelo sistema de câmeras
           da cidade. Sempre que a placa for avistada, um alerta será emitido no
@@ -95,17 +95,24 @@ export function CreateMonitoredPlateDialog() {
             </div>
             <div className="flex flex-col gap-2">
               {fields.map((field, index) => (
-                <div className="flex items-center gap-2">
-                  <Input
-                    {...register(`notificationChannels.${index}.channel`)}
+                <div key={index}>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      {...register(`notificationChannels.${index}.channel`)}
+                    />
+                    <Button
+                      variant="destructive"
+                      className="h-8 w-8 p-0"
+                      onClick={() => remove(index)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <InputError
+                    message={
+                      errors.notificationChannels?.[index]?.channel?.message
+                    }
                   />
-                  <Button
-                    variant="destructive"
-                    className="h-8 w-8 p-0"
-                    onClick={() => remove(index)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
                 </div>
               ))}
             </div>
