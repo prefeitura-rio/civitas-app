@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table'
 import { PencilLine, Trash } from 'lucide-react'
+import dynamic from 'next/dynamic'
 
 import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
@@ -9,7 +10,16 @@ import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import type { MonitoredPlate } from '@/http/cars/get-monitored-plates'
 
 import { DeleteMonitoredPlateAlertDialog } from './delete-monitored-plate-alert-dialog'
-import { UpdateMonitoredPlateDialog } from './update-monitored-plate-dialog'
+
+const UpdateMonitoredPlateDialog = dynamic(
+  () =>
+    import('./update-monitored-plate-dialog').then(
+      (mod) => mod.UpdateMonitoredPlateDialog,
+    ),
+  {
+    ssr: false, // Disable server-side rendering
+  },
+)
 
 export const columns: ColumnDef<MonitoredPlate>[] = [
   {

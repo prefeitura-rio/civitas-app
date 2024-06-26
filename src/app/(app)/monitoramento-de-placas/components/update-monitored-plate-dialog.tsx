@@ -59,8 +59,6 @@ export function UpdateMonitoredPlateDialog({
     name: 'notificationChannels',
   })
 
-  console.log({ plate })
-
   function onSubmit(props: NewPlateForm) {
     const notificationChannels = props.notificationChannels.map(
       (item) => item.channel,

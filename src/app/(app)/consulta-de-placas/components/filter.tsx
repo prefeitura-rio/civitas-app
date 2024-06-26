@@ -9,8 +9,14 @@ import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
+import {
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { useCarPath } from '@/hooks/useCarPathContext'
-import { genericErrorMessage, isValidationError } from '@/utils/error-handlers'
+import { genericErrorMessage } from '@/utils/error-handlers'
 import { formatDateUTC } from '@/utils/formatDateUTC'
 
 export const filterFormSchema = z.object({
@@ -43,12 +49,19 @@ export function Filter() {
   }
 
   return (
-    <div>
+    <SheetContent className="flex flex-col gap-8">
+      <SheetHeader>
+        <SheetTitle>Consultar placa</SheetTitle>
+        <SheetDescription>
+          Pesquise por uma placa em uma janela de tempo para ver no mapa os
+          lugares por onde ela foi avistada e suas rotas aparentes.
+        </SheetDescription>
+      </SheetHeader>
       <form
-        className="flex items-center justify-between"
+        className="flex h-full flex-col justify-between"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <fieldset className="flex gap-2" disabled={isSubmitting}>
+        <fieldset className="flex flex-col gap-2" disabled={isSubmitting}>
           <div className="flex flex-col gap-1">
             <Label htmlFor="plateNumber">Número da placa</Label>
             <Input
@@ -92,10 +105,11 @@ export function Filter() {
             <InputError message={errors.endTime?.message} />
           </div>
         </fieldset>
-        <Button disabled={isSubmitting}>
+        <Button disabled={isSubmitting} className="flex gap-2">
           <Search />
+          Pesquisar
         </Button>
       </form>
-    </div>
+    </SheetContent>
   )
 }

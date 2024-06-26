@@ -24,9 +24,7 @@ interface CarPathContextProviderProps {
 export function CarPathContextProvider({
   children,
 }: CarPathContextProviderProps) {
-  const [trips, setTrips] = useState<Trip[]>(
-    formatCarPathResponse(tripsExample),
-  )
+  const [trips, setTrips] = useState<Trip[]>()
   const [selectedTripIndex, setSelectedTripIndexState] = useState(0)
   const [viewport, setViewportState] = useState<MapViewState>({
     longitude: -43.47,

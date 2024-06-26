@@ -7,9 +7,8 @@ import { IconTooltipInfo } from './icon-tooltip-info'
 
 export function LineTooltipCard({ x, y, object }: PickingInfo<Point>) {
   const diffInSeconds = object?.secondsToNextPoint || 0
-  console.log({ diffInSeconds })
   const diffInMinutes = diffInSeconds / 60
-  console.log({ diffInMinutes })
+
   return (
     <>
       {object && (
