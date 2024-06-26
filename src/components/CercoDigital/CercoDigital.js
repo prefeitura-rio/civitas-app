@@ -70,14 +70,18 @@ const CercoDigital = ({ cars, loading }) => {
 
   useEffect(() => {
     if (cars && !selectedTrip) {
-      setSelectedTrip(cars[0])
+      if (cars.lenght > 0) {
+        setSelectedTrip(cars[0])
+      }
       
     }
     if (cars && !loading) {
-      setData({
-        locationsChunks: cars[0].locations,
-        polylineChunks: cars[0].polyline,
-      });
+      if (cars.lenght > 0) {
+        setData({
+          locationsChunks: cars[0].locations,
+          polylineChunks: cars[0].polyline,
+        });
+      }
     }
   }, [cars, loading])
 
