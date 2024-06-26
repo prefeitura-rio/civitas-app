@@ -9,6 +9,7 @@ export type MonitoredPlate = {
   id: string
   plate: string
   additional_info: JSON
+  notification_channels: string[]
 }
 
 export interface GetMonitoredPlatesResponse {
