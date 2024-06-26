@@ -1,4 +1,5 @@
 'use client'
+import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -12,7 +13,17 @@ import {
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import { columns } from './components/columns'
-import { CreateMonitoredPlateDialog } from './components/create-monitored-plate-dialog'
+
+const CreateMonitoredPlateDialog = dynamic(
+  () =>
+    import('./components/create-monitored-plate-dialog').then(
+      (mod) => mod.CreateMonitoredPlateDialog,
+    ),
+  {
+    loading: () => <p>Loading...</p>,
+    ssr: false, // Disable server-side rendering
+  },
+)
 
 export default function MonitoramentoDePlacas() {
   const [data, setData] = useState<GetMonitoredPlatesResponse>()
@@ -24,7 +35,7 @@ export default function MonitoramentoDePlacas() {
         setData(response.data)
       } catch (error) {
         toast.error(genericErrorMessage)
-        console.log({ error })
+        console.error({ error })
         return null
       }
     }

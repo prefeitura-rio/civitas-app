@@ -60,8 +60,8 @@ export function Map() {
     onHover: (info) => setLineHoverInfo(info),
   })
 
-  const lineLayerTransparant = new LineLayer<Point>({
-    id: 'line-layer',
+  const lineLayerTransparent = new LineLayer<Point>({
+    id: 'line-layer-transparent',
     data: points,
     getSourcePosition: (point) => point.from,
     getTargetPosition: (point) => point.to || point.from,
@@ -113,7 +113,7 @@ export function Map() {
         overflow: 'hidden',
       }}
       controller
-      layers={[lineLayerTransparant, lineLayer, iconLayer, textLayer]}
+      layers={[lineLayerTransparent, lineLayer, iconLayer, textLayer]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
     >
       <ReactMalGL
