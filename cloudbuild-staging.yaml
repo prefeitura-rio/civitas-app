@@ -1,4 +1,11 @@
 steps:
+  # Create the .env file
+  - name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        echo "NEXT_PUBLIC_CIVITAS_API_URL=${_NEXT_PUBLIC_CIVITAS_API_URL}" > .env.production && echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}" >> .env.production
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA", "."]
