@@ -1,11 +1,4 @@
 steps:
-  # Create the .env file
-  - name: "gcr.io/cloud-builders/gcloud"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        echo "REACT_APP_CIVITAS_API_URL=${_REACT_APP_CIVITAS_API_URL}" > .env.production
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA", "."]

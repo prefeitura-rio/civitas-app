@@ -24,7 +24,7 @@ spec:
           image: gcr.io/project-id/civitas
           resources:
             requests:
-              cpu: 125m
+              cpu: 250m
               memory: 1Gi
             limits:
               cpu: 250m
@@ -32,7 +32,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 3000
             initialDelaySeconds: 5
             periodSeconds: 60
             timeoutSeconds: 5
@@ -41,7 +41,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 3000
             initialDelaySeconds: 5
             periodSeconds: 60
             timeoutSeconds: 5
@@ -60,9 +60,9 @@ metadata:
   namespace: civitas
 spec:
   ports:
-    - name: "80"
+    - name: "http"
       port: 80
-      targetPort: 80
+      targetPort: 3000
   selector:
     app: civitas-react-staging
 
