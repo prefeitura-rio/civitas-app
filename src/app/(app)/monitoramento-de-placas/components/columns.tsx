@@ -5,9 +5,11 @@ import { PencilLine, Trash } from 'lucide-react'
 
 import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import type { MonitoredPlate } from '@/http/cars/get-monitored-plates'
 
 import { DeleteMonitoredPlateAlertDialog } from './delete-monitored-plate-alert-dialog'
+import { UpdateMonitoredPlateDialog } from './update-monitored-plate-dialog'
 
 export const columns: ColumnDef<MonitoredPlate>[] = [
   {
@@ -24,10 +26,15 @@ export const columns: ColumnDef<MonitoredPlate>[] = [
   {
     id: 'edit',
     cell: ({ row }) => (
-      <Button variant="ghost" className="h-8 w-8 p-0">
-        <span className="sr-only">Editar linha</span>
-        <PencilLine className="h-4 w-4" />
-      </Button>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Editar linha</span>
+            <PencilLine className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+        <UpdateMonitoredPlateDialog plate={row.original.plate} />
+      </Dialog>
     ),
   },
   {

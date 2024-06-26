@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
-import { createMonitoredPlate } from '@/http/cars/create-monitored-plate'
+import { updateMonitoredPlate } from '@/http/cars/update-monitored-plate'
 
 const newPlateFormSchema = z.object({
   plate: z.string().min(1, { message: 'Campo obrigatório' }),
@@ -29,7 +29,16 @@ const newPlateFormSchema = z.object({
 
 type NewPlateForm = z.infer<typeof newPlateFormSchema>
 
-export function CreateMonitoredPlateDialog() {
+interface UpdateMonitoredPlateDialogProps {
+  plate: string
+  additionalInfo?: string
+  notificationChannels?: string[]
+}
+export function UpdateMonitoredPlateDialog({
+  plate,
+  additionalInfo,
+  notificationChannels,
+}: UpdateMonitoredPlateDialogProps) {
   const {
     register,
     handleSubmit,
@@ -38,6 +47,7 @@ export function CreateMonitoredPlateDialog() {
   } = useForm<NewPlateForm>({
     resolver: zodResolver(newPlateFormSchema),
     defaultValues: {
+      plate,
       notificationChannels: [{ channel: '' }],
     },
   })
@@ -46,12 +56,14 @@ export function CreateMonitoredPlateDialog() {
     name: 'notificationChannels',
   })
 
+  console.log({ plate })
+
   function onSubmit(props: NewPlateForm) {
     const notificationChannels = props.notificationChannels.map(
       (item) => item.channel,
     )
 
-    const response = createMonitoredPlate({
+    const response = updateMonitoredPlate({
       plate: props.plate,
       notificationChannels,
     })
@@ -80,7 +92,7 @@ export function CreateMonitoredPlateDialog() {
             <Label htmlFor="plate">Número da placa</Label>
             <InputError message={errors.plate?.message} />
           </div>
-          <Input id="plate" type="text" {...register('plate')} />
+          <Input id="plate" type="text" {...register('plate')} disabled />
           <div className="mt-4 flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Label>Canais de notificação</Label>
