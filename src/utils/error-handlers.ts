@@ -13,4 +13,4 @@ export function isNotFoundError(error: unknown) {
 }
 
 export const genericErrorMessage =
-  'Um erro inexperado ocorreu! Se o erro persistir, por favor, contate o administrador do sistema'
+  'Um erro inexperado ocorreu! Se o erro persistir, por favor, contate um administrador do sistema.'
