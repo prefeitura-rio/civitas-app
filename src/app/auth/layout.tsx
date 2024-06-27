@@ -1,22 +1,15 @@
-'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
-import { isAuthenticated } from '@/utils/isAuthenticated'
 
 export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const router = useRouter()
-  if (isAuthenticated()) {
-    router.push('/')
-  }
   return (
     <div className="min-h-screen px-4 pt-4">
       <div className="flex h-10 w-full items-center justify-start gap-8">
