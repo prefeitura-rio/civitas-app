@@ -31,9 +31,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.log(error)
-      console.log({ response: error.response })
-      console.log({ status: error.response.status })
       window.location.href = '/api/auth/sign-out'
     }
     return Promise.reject(error)

@@ -35,7 +35,7 @@ export async function signInAction(data: FormData) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     })
   } catch (err) {
-    console.log(err)
+    console.error(err)
     // if (err instanceof HTTPError) {
     //   const { message } = await err.response.json()
 
