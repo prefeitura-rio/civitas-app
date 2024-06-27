@@ -10,14 +10,15 @@ import {
 interface TooltipProps {
   children: ReactNode
   text: string
+  side?: 'left' | 'right' | 'bottom' | 'top'
 }
 
-export function Tooltip({ children, text }: TooltipProps) {
+export function Tooltip({ children, text, side }: TooltipProps) {
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={200} skipDelayDuration={100}>
       <RawTooltip>
         <TooltipTrigger>{children}</TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side={side}>
           <p>{text}</p>
         </TooltipContent>
       </RawTooltip>

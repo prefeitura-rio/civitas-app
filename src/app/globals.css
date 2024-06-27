@@ -81,7 +81,6 @@
   .page-content {
     height: calc(100vh - 6.5rem);
     width: 100%;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    padding: 1rem;
   }
 }
