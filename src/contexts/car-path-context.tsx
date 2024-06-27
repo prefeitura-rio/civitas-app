@@ -4,7 +4,7 @@ import { createContext, type ReactNode, useState } from 'react'
 import type { GetCarPathRequest } from '@/http/cars/get-car-path'
 import { getCarPath as getCarPathApi } from '@/http/cars/get-car-path'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
-import { tripsExample } from '@/utils/tripsExample'
+// import { tripsExample } from '@/utils/tripsExample'
 
 interface CarPathContextProps {
   trips: Trip[] | undefined

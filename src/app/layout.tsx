@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt">
+    <html lang="pt" suppressHydrationWarning>
       <body className={inter.className}>
         <Toaster duration={4000} />
         {children}
