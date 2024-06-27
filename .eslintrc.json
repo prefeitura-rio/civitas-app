@@ -1,5 +1,5 @@
 {
-  "extends": ["@rocketseat/eslint-config/next"],
+  "extends": ["plugin:@next/next/recommended", "@rocketseat/eslint-config/next"],
   "plugins": ["simple-import-sort"],
   "rules": {
     "simple-import-sort/imports": "error",

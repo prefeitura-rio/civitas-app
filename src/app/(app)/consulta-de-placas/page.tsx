@@ -20,7 +20,7 @@ export default function ConsultaDePlacas() {
   return (
     <CarPathContextProvider>
       <FormProvider {...filterFormMethods}>
-        <div className="page-content relative flex pt-8">
+        <div className="relative flex h-screen w-full pt-0">
           <Sheet>
             <SheetTrigger asChild className="absolute right-2 top-10 z-10">
               <Button variant="secondary" className="">
