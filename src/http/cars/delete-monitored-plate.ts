@@ -3,7 +3,7 @@ import { api } from '@/lib/api'
 interface DeleteMonitoredPlateResponse {
   id: string
   plate: string
-  additional_info: any
+  additional_info: JSON
 }
 
 export async function deleteMonitoredPlate(id: string) {
