@@ -1,9 +1,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
+import { isAuthenticated } from '@/auth/auth'
 import { Button } from '@/components/ui/button'
 
 export default function AppLayout({
@@ -11,6 +13,9 @@ export default function AppLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  if (!isAuthenticated()) {
+    redirect('/auth/sign-in')
+  }
   return (
     <div className="min-h-screen px-4 pt-4">
       <div className="flex justify-between">
