@@ -1,4 +1,4 @@
-import { Search, Siren } from 'lucide-react'
+import { Search } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -41,7 +41,7 @@ export default function AppLayout({
               </Button>
             </Tooltip>
           </li>
-          <li>
+          {/* <li>
             <Tooltip text="Monitoramento de placas" side="right">
               <Button variant="secondary" size="sm" asChild>
                 <Link href="/monitoramento-de-placas">
@@ -49,7 +49,7 @@ export default function AppLayout({
                 </Link>
               </Button>
             </Tooltip>
-          </li>
+          </li> */}
         </ul>
       </div>
       {children}

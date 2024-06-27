@@ -23,7 +23,7 @@ export default function App() {
           </Card>
         </Link>
 
-        <Link href="/monitoramento-de-placas" className="col-span-2">
+        {/* <Link href="/monitoramento-de-placas" className="col-span-2">
           <Card className="h-full hover:bg-border">
             <CardHeader>
               <CardTitle>Monitoramento de Placas</CardTitle>
@@ -33,7 +33,7 @@ export default function App() {
               </CardDescription>
             </CardHeader>
           </Card>
-        </Link>
+        </Link> */}
       </div>
     </div>
   )
