@@ -1,8 +1,7 @@
 import { format } from 'date-fns'
 import { ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 
-import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import type { Point } from '@/utils/formatCarPathResponse'
@@ -29,17 +28,38 @@ function getTimeDiff(a: Date, b: Date) {
 }
 
 export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
-  const { setSelectedTripIndex, setViewport, viewport, trips } = useCarPath()
-  const [openDetails, setOpenDetails] = useState(false)
-  const [expandTripCard, setExpandTripCard] = useState(false)
+  const {
+    setSelectedTripIndex,
+    setViewport,
+    viewport,
+    trips,
+    selectedTripIndex,
+  } = useCarPath()
+  // const [shouldExpand, setShouldExpand] = useState(true)
 
   const points = trips?.at(index)?.points || []
+  const isSelected = selectedTripIndex === index
 
-  function handleCardClick() {
-    setExpandTripCard(!expandTripCard)
+  // if (!isSelected && shouldExpand) {
+  // setShouldExpand(false)
+  // }
+
+  function handleTripClick() {
+    // setShouldExpand(!shouldExpand)
     setSelectedTripIndex(index)
     const longitude = points?.at(0)?.from[0]
     const latitude = points?.at(0)?.from[1]
+    setViewport({
+      ...viewport,
+      longitude: longitude || viewport.longitude,
+      latitude: latitude || viewport.latitude,
+    })
+  }
+
+  function handlePointClick(pointIndex: number) {
+    console.log(pointIndex)
+    const longitude = points?.at(pointIndex)?.from[0]
+    const latitude = points?.at(pointIndex)?.from[1]
     setViewport({
       ...viewport,
       longitude: longitude || viewport.longitude,
@@ -56,35 +76,37 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
 
   return (
     <div
-      className="space-y-4 bg-card p-4 hover:cursor-pointer"
-      onClick={handleCardClick}
+      className={twMerge(
+        'space-y-4 border-l-4 border-l-transparent p-4 tracking-tighter hover:cursor-pointer hover:bg-border',
+        isSelected ? 'border-l-4 border-l-primary' : '',
+      )}
+      onClick={(e) => {
+        e.stopPropagation()
+        handleTripClick()
+      }}
     >
       {/* First row: Date and Time */}
-      <div className="flex w-full items-center justify-between whitespace-nowrap">
-        <div className="flex gap-8">
-          <Tooltip text={format(startTime, 'dd/MM/yyyy')}>
-            <span className="w-20">{format(startTime, 'dd/MMM')}</span>
-          </Tooltip>
-
-          <div className="flex justify-center gap-2">
-            <span>{format(startTime, 'HH:mm')}</span>
-            <span className="text-muted-foreground">{' - '}</span>
-            <div className="relative">
-              <span>{format(endTime, 'HH:mm')}</span>
-              {dayInterval > 0 && (
-                <span className="absolute -right-5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-sm bg-card-foreground text-xs text-card">
-                  +{dayInterval}
-                </span>
-              )}
-            </div>
+      <div className={'flex font-bold'}>
+        <div className="inline-flex">
+          <div className="w-20">
+            <span className="">{format(startTime, 'dd/MMM')}</span>
+          </div>
+          <div className="">
+            <span className="relative whitespace-nowrap text-justify">{`${format(startTime, 'hh:mm aa')} - ${format(endTime, 'hh:mm aa')}`}</span>
+            {dayInterval > 0 && (
+              <span className="absolute -right-5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-sm bg-card-foreground text-xs text-card">
+                +{dayInterval}
+              </span>
+            )}
           </div>
         </div>
-
-        <span className="block w-24 text-end">{timeInterval}</span>
+        <div className="flex w-full justify-end">
+          <span className="whitespace-nowrap text-end">{timeInterval}</span>
+        </div>
       </div>
 
       {/* Second row: Districts */}
-      <div className="flex w-full items-center justify-center gap-2">
+      <div className="flex w-full items-center gap-2 pl-20 text-muted-foreground">
         <span>{toPascalCase(startLocation.district)}</span>
         {totalIndexes > 0 && (
           <>
@@ -103,38 +125,50 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
       </div>
 
       {/* Third row: Details */}
-      {expandTripCard && (
+      {/* <div className="pl-20">
         <Button
+          className="h-4 p-0"
           variant="link"
           onClick={(e) => {
             e.stopPropagation()
             setOpenDetails(!openDetails)
           }}
         >
-          Ver detalhes
+          Trajeto
         </Button>
-      )}
+      </div> */}
 
-      {openDetails && (
-        <div className="flex flex-col">
+      {/* {shouldExpand && ( */}
+      {isSelected && (
+        <div className="flex flex-col pl-20 text-sm">
           {points.length > 0 ? (
             points.map((point, index) => (
-              <div className="relative flex gap-2">
-                <span className="w-12 shrink-0">
-                  {format(new Date(point.startTime), 'HH:mm')}
+              <div
+                className="relative flex gap-2 rounded-md hover:bg-card"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handlePointClick(index)
+                }}
+              >
+                <span className="w-16 shrink-0">
+                  {format(new Date(point.startTime), 'hh:mm aa')}
                 </span>
                 {index < points.length - 1 && (
-                  <div className="absolute left-[3.8rem] top-0 mt-2 h-full w-0.5 bg-primary" />
+                  <div className="absolute left-[4.8rem] top-0 mt-2 h-full w-0.5 bg-primary" />
                 )}
                 <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
                 <div className="ml-1.5 flex w-full flex-col truncate">
-                  <span className="truncate">
-                    {toPascalCase(point.location)}
-                  </span>
-                  <span className="block truncate text-sm text-muted-foreground">
+                  <Tooltip text={toPascalCase(point.location)}>
+                    <div className="truncate">
+                      <span className="truncate">
+                        {toPascalCase(point.location)}
+                      </span>
+                    </div>
+                  </Tooltip>
+                  <span className="block truncate text-xs text-muted-foreground">
                     {toPascalCase(point.district)}
                   </span>
-                  <span className="block truncate text-sm text-muted-foreground">
+                  <span className="block truncate text-xs text-muted-foreground">
                     {toPascalCase('Sentido ' + point.direction)}
                   </span>
                 </div>
