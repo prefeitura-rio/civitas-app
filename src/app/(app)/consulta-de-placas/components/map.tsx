@@ -11,6 +11,7 @@ import type { Point } from '@/utils/formatCarPathResponse'
 
 import { IconTooltipCard } from './map/icon-tooltip-card'
 import { LineTooltipCard } from './map/line-tooltip-card'
+import { MapCaption } from './map/map-caption'
 
 export function Map() {
   const { trips, viewport, setViewport, selectedTripIndex } = useCarPath()
@@ -119,10 +120,10 @@ export function Map() {
       <ReactMalGL
         mapboxAccessToken={config.mapboxAccessToken}
         mapStyle="mapbox://styles/mapbox/streets-v12"
-        // style={{ height: '!0px', width: '!0px' }}
       />
       <IconTooltipCard {...iconHoverInfo} />
       <LineTooltipCard {...lineHoverInfo} />
+      <MapCaption />
     </DeckGL>
   )
 }
