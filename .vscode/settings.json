@@ -8,6 +8,7 @@
     "AppLayout",
     "Home",
     "MonitoramentoDePlacas",
-    "ConsultaDePlacas"
+    "ConsultaDePlacas",
+    "Generic"
   ]
 }

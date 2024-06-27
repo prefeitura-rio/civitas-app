@@ -6,7 +6,7 @@ import { useCarPath } from '@/hooks/useCarPathContext'
 import { TripCard } from './side-list/trip-card'
 
 export function SideList() {
-  const { trips, selectedTripIndex } = useCarPath()
+  const { trips } = useCarPath()
 
   console.log(trips)
 

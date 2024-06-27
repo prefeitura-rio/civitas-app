@@ -19,7 +19,8 @@ interface DatePickerProps {
   type?: 'date' | 'datetime-local'
 }
 
-export function DatePicker({ date, setDate, type = 'date' }: DatePickerProps) {
+// export function DatePicker({ date, setDate, type = 'date' }: DatePickerProps) {
+export function DatePicker({ date, setDate }: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
