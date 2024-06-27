@@ -20,7 +20,6 @@ const CreateMonitoredPlateDialog = dynamic(
       (mod) => mod.CreateMonitoredPlateDialog,
     ),
   {
-    loading: () => <p>Loading...</p>,
     ssr: false, // Disable server-side rendering
   },
 )

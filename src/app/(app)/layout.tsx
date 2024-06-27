@@ -1,6 +1,12 @@
+import { Crown, Search, Siren } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import logo from '@/assets/civitas-logotype-dark.png'
 import { isAuthenticated } from '@/auth/auth'
+import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 
 export default function AppLayout({
   children,
@@ -10,5 +16,43 @@ export default function AppLayout({
   if (!isAuthenticated()) {
     redirect('/auth/sign-in')
   }
-  return <div className="min-h-screen">{children}</div>
+
+  return (
+    <div className="flex min-h-screen">
+      <div className="flex h-screen flex-col items-center bg-card">
+        <div className="mb-8 h-12 w-12 p-2">
+          <Tooltip text="Início" side="right">
+            <Link href="/">
+              <Image
+                src={logo}
+                alt="Logo Prefeitura Rio"
+                className="h-[100%] w-auto"
+              />
+            </Link>
+          </Tooltip>
+        </div>
+        <ul className="space-y-2">
+          <li>
+            <Tooltip text="Consulta de placas" side="right">
+              <Link href="/consulta-de-placas">
+                <Button variant="secondary" size="sm">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </Link>
+            </Tooltip>
+          </li>
+          <li>
+            <Tooltip text="Monitoramento de placas" side="right">
+              <Link href="/monitoramento-de-placas">
+                <Button variant="secondary" size="sm">
+                  <Siren className="h-4 w-4" />
+                </Button>
+              </Link>
+            </Tooltip>
+          </li>
+        </ul>
+      </div>
+      {children}
+    </div>
+  )
 }

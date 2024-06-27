@@ -12,7 +12,7 @@ export default function App() {
     <div className="page-content flex items-center justify-center">
       <div className="grid grid-cols-4 gap-4">
         <Link href="/consulta-de-placas" className="col-span-2">
-          <Card className="h-full">
+          <Card className="h-full hover:bg-border">
             <CardHeader>
               <CardTitle>Consulta de Placas</CardTitle>
               <CardDescription>
@@ -23,32 +23,14 @@ export default function App() {
           </Card>
         </Link>
 
-        <Link href="/monitoramento-de-placas" className="col-span-1">
-          <Card className="h-full">
+        <Link href="/monitoramento-de-placas" className="col-span-2">
+          <Card className="h-full hover:bg-border">
             <CardHeader>
               <CardTitle>Monitoramento de Placas</CardTitle>
               <CardDescription>
                 Cadastre uma placa e receba uma notificação quando ela for
                 vista.
               </CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href="/" className="col-span-1">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>🏗️ Em construção...</CardTitle>
-              <CardDescription>...</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href="/" className="col-span-4">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>🏗️ Em construção...</CardTitle>
-              <CardDescription>...</CardDescription>
             </CardHeader>
           </Card>
         </Link>
