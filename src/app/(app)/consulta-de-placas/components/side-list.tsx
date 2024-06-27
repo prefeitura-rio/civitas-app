@@ -8,8 +8,6 @@ import { TripCard } from './side-list/trip-card'
 export function SideList() {
   const { trips } = useCarPath()
 
-  console.log(trips)
-
   return (
     <>
       {trips && (
