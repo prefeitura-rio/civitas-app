@@ -9,11 +9,11 @@ export interface GetProfileResponse {
   agency: string
   sector: string
   email: string
-  is_admin: string
+  is_admin: boolean
 }
 
 export async function getProfile() {
-  const response = await api.get<GetProfileResponse>('/profile')
+  const response = await api.get<GetProfileResponse>('/users/me')
 
   return response
 }

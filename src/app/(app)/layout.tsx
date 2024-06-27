@@ -1,4 +1,4 @@
-import { Crown, Search, Siren } from 'lucide-react'
+import { Search, Siren } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -34,20 +34,20 @@ export default function AppLayout({
         <ul className="space-y-2">
           <li>
             <Tooltip text="Consulta de placas" side="right">
-              <Link href="/consulta-de-placas">
-                <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" asChild>
+                <Link href="/consulta-de-placas">
                   <Search className="h-4 w-4" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </Tooltip>
           </li>
           <li>
             <Tooltip text="Monitoramento de placas" side="right">
-              <Link href="/monitoramento-de-placas">
-                <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" asChild>
+                <Link href="/monitoramento-de-placas">
                   <Siren className="h-4 w-4" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </Tooltip>
           </li>
         </ul>
