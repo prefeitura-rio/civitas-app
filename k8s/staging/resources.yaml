@@ -1,0 +1,96 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: civitas-react-staging
+  namespace: civitas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: civitas-react-staging
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: civitas-react-staging
+    spec:
+      containers:
+        - name: civitas
+          image: gcr.io/project-id/civitas
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: 250m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+      restartPolicy: Always
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: civitas-react-staging
+  name: civitas-react-staging
+  namespace: civitas
+spec:
+  ports:
+    - name: "http"
+      port: 80
+      targetPort: 3000
+  selector:
+    app: civitas-react-staging
+
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: civitas-react-staging
+  namespace: civitas
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - staging.app.civitas.rio
+      secretName: civitas-react-staging-tls
+  rules:
+    - host: staging.app.civitas.rio
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: civitas-react-staging
+                port:
+                  number: 80
