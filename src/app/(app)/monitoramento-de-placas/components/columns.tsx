@@ -21,51 +21,61 @@ const UpdateMonitoredPlateDialog = dynamic(
   },
 )
 
-export const columns: ColumnDef<MonitoredPlate>[] = [
-  {
-    accessorKey: 'plate',
-    header: 'Placa',
-  },
-  {
-    accessorKey: 'additional_info',
-    header: 'Informações adicionais',
-    cell: ({ row }) => {
-      return <div>{JSON.stringify(row.getValue('additional_info') || '')}</div>
+interface GetColumnsProps {
+  isAdmin: boolean
+}
+export function getColumns({ isAdmin }: GetColumnsProps) {
+  console.log(isAdmin)
+  const columns: ColumnDef<MonitoredPlate>[] = [
+    {
+      accessorKey: 'plate',
+      header: 'Placa',
     },
-  },
-  {
-    id: 'edit',
-    cell: ({ row }) => (
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Editar linha</span>
-            <PencilLine className="h-4 w-4" />
-          </Button>
-        </DialogTrigger>
-        <UpdateMonitoredPlateDialog
-          plate={row.original.plate}
-          additionalInfo={row.original.additional_info}
-          notificationChannels={row.original.notification_channels}
-        />
-      </Dialog>
-    ),
-  },
-  {
-    id: 'delete',
-    cell: ({ row }) => (
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Excluir linha</span>
-            <Trash className="h-4 w-4" />
-          </Button>
-        </AlertDialogTrigger>
-        <DeleteMonitoredPlateAlertDialog
-          id={row.original.id}
-          plate={row.original.plate}
-        />
-      </AlertDialog>
-    ),
-  },
-]
+    {
+      accessorKey: 'additional_info',
+      header: 'Informações adicionais',
+      cell: ({ row }) => {
+        return (
+          <div>{JSON.stringify(row.getValue('additional_info') || '')}</div>
+        )
+      },
+    },
+    {
+      id: 'edit',
+      cell: ({ row }) => (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0" disabled={!isAdmin}>
+              <span className="sr-only">Editar linha</span>
+              <PencilLine className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <UpdateMonitoredPlateDialog
+            plate={row.original.plate}
+            additionalInfo={row.original.additional_info}
+            notificationChannels={row.original.notification_channels}
+          />
+        </Dialog>
+      ),
+    },
+    {
+      id: 'delete',
+      cell: ({ row }) => (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0" disabled={!isAdmin}>
+              <span className="sr-only">Excluir linha</span>
+              <Trash className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <DeleteMonitoredPlateAlertDialog
+            id={row.original.id}
+            plate={row.original.plate}
+          />
+        </AlertDialog>
+      ),
+    },
+  ]
+
+  return columns
+}
