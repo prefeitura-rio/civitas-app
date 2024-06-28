@@ -24,7 +24,7 @@ export async function signInAction(data: FormData) {
 
   try {
     const {
-      data: { access_token: accessToken },
+      data: { access_token: accessToken, expires_in: expiresIn },
     } = await signIn({
       username,
       password,
@@ -32,7 +32,7 @@ export async function signInAction(data: FormData) {
 
     cookies().set('token', accessToken, {
       path: '/',
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: expiresIn,
     })
   } catch (err) {
     console.error(err)
