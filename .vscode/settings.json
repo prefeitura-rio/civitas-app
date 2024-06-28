@@ -1,0 +1,14 @@
+{
+  "conventionalCommits.scopes": [
+    "Config",
+    "Auth",
+    "CercoDigital",
+    "Home",
+    "Utils",
+    "AppLayout",
+    "Home",
+    "MonitoramentoDePlacas",
+    "ConsultaDePlacas",
+    "Generic"
+  ]
+}
