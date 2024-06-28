@@ -13,6 +13,7 @@ interface CarPathContextProps {
   setSelectedTripIndex: (index: number) => void
   viewport: MapViewState
   setViewport: (viewport: MapViewState) => void
+  isLoading: boolean
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -31,6 +32,7 @@ export function CarPathContextProvider({
     latitude: -22.92957,
     zoom: 10.1,
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   function setSelectedTripIndex(index: number) {
     setSelectedTripIndexState(index)
@@ -41,11 +43,13 @@ export function CarPathContextProvider({
   }
 
   async function getCarPath({ placa, startTime, endTime }: GetCarPathRequest) {
+    setIsLoading(true)
     const response = await getCarPathApi({
       placa,
       startTime,
       endTime,
     })
+    setIsLoading(false)
 
     const formattedTrips = formatCarPathResponse(response.data)
     setTrips(formattedTrips)
@@ -68,6 +72,7 @@ export function CarPathContextProvider({
         setSelectedTripIndex,
         viewport,
         setViewport,
+        isLoading,
       }}
     >
       {children}
