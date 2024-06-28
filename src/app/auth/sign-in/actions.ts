@@ -32,15 +32,10 @@ export async function signInAction(data: FormData) {
 
     cookies().set('token', accessToken, {
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24, // 1 day
     })
   } catch (err) {
     console.error(err)
-    // if (err instanceof HTTPError) {
-    //   const { message } = await err.response.json()
-
-    //   return { success: false, message, errors: null }
-    // }
 
     const errorMessage = isValidationError(err)
       ? 'Credenciais inválidas'

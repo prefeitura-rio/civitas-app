@@ -1,7 +1,6 @@
 'use client'
 import { AlertTriangle, Loader2 } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { redirect } from 'next/navigation'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -12,12 +11,10 @@ import { useFormState } from '@/hooks/use-form-state'
 import { signInAction } from './actions'
 
 export default function SignInForm() {
-  const router = useRouter()
-
   const [{ errors, message, success }, handleSubmit, isPending] = useFormState(
     signInAction,
     () => {
-      router.push('/')
+      redirect('/')
     },
   )
 
@@ -56,13 +53,6 @@ export default function SignInForm() {
       <Button className="w-full" type="submit" disabled={isPending}>
         {isPending ? <Loader2 className="size-4 animate-spin" /> : 'Login'}
       </Button>
-
-      <Link
-        href="auth/forgot-password"
-        className="block w-full text-center text-xs font-medium text-foreground hover:underline"
-      >
-        Esqueci minha senha
-      </Link>
     </form>
   )
 }
