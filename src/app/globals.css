@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 200 7% 8%;
+    --foreground: 180 9% 98%;
+
+    --card: 180 6% 10%;
+    --card-foreground: 180 9% 98%;
+
+    --popover: 180 6% 10%;
+    --popover-foreground: 180 9% 98%;
+
+    --primary: 194 88% 54%;
+    --primary-foreground: 240 9% 2%;
+
+    --secondary: 195 8% 19%;
+    --secondary-foreground: 180 9% 98%;
+
+    --muted: 191 7% 29%;
+    --muted-foreground: 195 8% 49%;
+
+    --accent: 194 71% 19%;
+    --accent-foreground: 180 9% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 192 8% 12%;
+    --input: 195 9% 18%;
+    --ring: 194 88% 40%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: theme('colors.border');
+      border-radius: 9999px;
+    }
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* Disable number input arrows */
+  /* Chrome, Safari, Edge, Opera */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  /* Mozila */
+  input[type='number'] {
+    -moz-appearance: textfield !important;
+  }
+
+  /* Disable autofill decoration */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    transition:
+    background-color 500000s ease-in-out 0s,
+    color 500000s ease-in-out 0s;
+  }
+}
+
+@layer components {
+  .page-content {
+    height: calc(100vh - 6.5rem);
+    width: 100%;
+    padding: 1rem;
+  }
+}
