@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { z } from 'zod'
 
 import { signIn } from '@/http/auth/sign-in'
-import { genericErrorMessage, isValidationError } from '@/utils/error-handlers'
+import { genericErrorMessage, isGrantError } from '@/utils/error-handlers'
 
 const signInSchema = z.object({
   username: z.string().min(1, { message: 'Campo obrigatório.' }),
@@ -37,7 +37,7 @@ export async function signInAction(data: FormData) {
   } catch (err) {
     console.error(err)
 
-    const errorMessage = isValidationError(err)
+    const errorMessage = isGrantError(err)
       ? 'Credenciais inválidas'
       : genericErrorMessage
 

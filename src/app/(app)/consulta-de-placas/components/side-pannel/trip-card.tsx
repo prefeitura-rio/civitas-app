@@ -35,17 +35,11 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
     trips,
     selectedTripIndex,
   } = useCarPath()
-  // const [shouldExpand, setShouldExpand] = useState(true)
 
   const points = trips?.at(index)?.points || []
   const isSelected = selectedTripIndex === index
 
-  // if (!isSelected && shouldExpand) {
-  // setShouldExpand(false)
-  // }
-
   function handleTripClick() {
-    // setShouldExpand(!shouldExpand)
     setSelectedTripIndex(index)
     const longitude = points?.at(0)?.from[0]
     const latitude = points?.at(0)?.from[1]
@@ -57,7 +51,6 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
   }
 
   function handlePointClick(pointIndex: number) {
-    console.log(pointIndex)
     const longitude = points?.at(pointIndex)?.from[0]
     const latitude = points?.at(pointIndex)?.from[1]
     setViewport({
@@ -70,7 +63,6 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
   const startTime = new Date(startLocation.startTime)
   const endTime = new Date(endLocation.startTime)
   const dayInterval = endTime.getDate() - startTime.getDate()
-  // const dayInterval = 1
   const timeInterval = getTimeDiff(startTime, endTime)
   const totalIndexes = endLocation.index - startLocation.index
 
@@ -125,20 +117,6 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
       </div>
 
       {/* Third row: Details */}
-      {/* <div className="pl-20">
-        <Button
-          className="h-4 p-0"
-          variant="link"
-          onClick={(e) => {
-            e.stopPropagation()
-            setOpenDetails(!openDetails)
-          }}
-        >
-          Trajeto
-        </Button>
-      </div> */}
-
-      {/* {shouldExpand && ( */}
       {isSelected && (
         <div className="flex flex-col pl-20 text-sm">
           {points.length > 0 ? (
