@@ -51,6 +51,16 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
     })
   }
 
+  function handlePointClick(pointIndex: number) {
+    const longitude = points?.at(pointIndex)?.from[0]
+    const latitude = points?.at(pointIndex)?.from[1]
+    setViewport({
+      ...viewport,
+      longitude: longitude || viewport.longitude,
+      latitude: latitude || viewport.latitude,
+    })
+  }
+
   const startTime = new Date(startLocation.startTime)
   const endTime = new Date(endLocation.startTime)
   const dayInterval = endTime.getDate() - startTime.getDate()

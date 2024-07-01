@@ -6,9 +6,9 @@ interface DeleteMonitoredPlateResponse {
   additional_info: JSON
 }
 
-export async function deleteMonitoredPlate(id: string) {
-  const response = await api.get<DeleteMonitoredPlateResponse>(
-    `cars/monitored/${id}`,
+export async function deleteMonitoredPlate(plate: string) {
+  const response = await api.delete<DeleteMonitoredPlateResponse>(
+    `cars/monitored/${plate}`,
   )
 
   return response
