@@ -10,20 +10,19 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { deleteMonitoredPlate } from '@/http/cars/delete-monitored-plate'
+import { getMonitoredPlates } from '@/http/cars/get-monitored-plates'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 interface DeleteMonitoredPlateAlertDialogProps {
-  id: string
   plate: string
 }
 
 export function DeleteMonitoredPlateAlertDialog({
-  id,
   plate,
 }: DeleteMonitoredPlateAlertDialogProps) {
   async function handleDeleteMonitoredPlate() {
     try {
-      const response = deleteMonitoredPlate(id)
+      const response = deleteMonitoredPlate(plate)
       toast.promise(response, {
         loading: `Removendo placa ${plate}...`,
         success: (data) => {
@@ -31,6 +30,8 @@ export function DeleteMonitoredPlateAlertDialog({
         },
         error: genericErrorMessage,
       })
+      await response
+      getMonitoredPlates({})
     } catch (error) {
       toast.error(genericErrorMessage)
     }

@@ -18,7 +18,7 @@ export function Tooltip({ children, text, side }: TooltipProps) {
     <TooltipProvider delayDuration={200} skipDelayDuration={100}>
       <RawTooltip>
         <TooltipTrigger>{children}</TooltipTrigger>
-        <TooltipContent side={side}>
+        <TooltipContent side={side} className="max-w-sm text-justify">
           <p>{text}</p>
         </TooltipContent>
       </RawTooltip>

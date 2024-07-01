@@ -5,6 +5,10 @@ interface GetMonitoredPlatesRequest {
   size?: number
 }
 
+export type AdditionalInfo = {
+  Operação?: string
+}
+
 export type MonitoredPlate = {
   id: string
   plate: string
