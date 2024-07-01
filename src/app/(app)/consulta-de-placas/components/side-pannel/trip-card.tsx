@@ -2,10 +2,11 @@ import { format } from 'date-fns'
 import { ChevronRight } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
-import { Tooltip } from '@/components/ui/tooltip'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import type { Point } from '@/utils/formatCarPathResponse'
 import { toPascalCase } from '@/utils/toPascalCase'
+
+import { PointCard } from './point-card'
 
 interface TripCardProps {
   index: number
@@ -116,41 +117,20 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
         )}
       </div>
 
-      {/* Third row: Details */}
+      {/* Point List */}
       {isSelected && (
         <div className="flex flex-col pl-20 text-sm">
           {points.length > 0 ? (
             points.map((point, index) => (
-              <div
-                className="relative flex gap-2 rounded-md hover:bg-card"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handlePointClick(index)
-                }}
-              >
-                <span className="w-16 shrink-0">
-                  {format(new Date(point.startTime), 'hh:mm aa')}
-                </span>
-                {index < points.length - 1 && (
-                  <div className="absolute left-[4.8rem] top-0 mt-2 h-full w-0.5 bg-primary" />
-                )}
-                <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
-                <div className="ml-1.5 flex w-full flex-col truncate">
-                  <Tooltip text={toPascalCase(point.location)}>
-                    <div className="truncate">
-                      <span className="truncate">
-                        {toPascalCase(point.location)}
-                      </span>
-                    </div>
-                  </Tooltip>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {toPascalCase(point.district)}
-                  </span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {toPascalCase('Sentido ' + point.direction)}
-                  </span>
-                </div>
-              </div>
+              <PointCard
+                key={index}
+                index={index}
+                location={point.location}
+                startTime={point.startTime}
+                from={point.from}
+                direction={point.direction}
+                district={point.district}
+              />
             ))
           ) : (
             <span>Nenhum resultado encontrado</span>
