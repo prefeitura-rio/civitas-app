@@ -1,6 +1,6 @@
 import { api } from '@/lib/api'
 
-interface CreateMonitoredPlateRequest {
+export interface CreateMonitoredPlateRequest {
   plate: string
   additionalInfo?: JSON
   notificationChannels?: string[]

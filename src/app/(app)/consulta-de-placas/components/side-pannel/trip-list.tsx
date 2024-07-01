@@ -8,7 +8,6 @@ import { TripCard } from './trip-card'
 
 export function TripList() {
   const { trips, isLoading } = useCarPath()
-  console.log(isLoading)
 
   return (
     <div className="mb-4 h-full overflow-y-scroll">
