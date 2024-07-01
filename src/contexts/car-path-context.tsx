@@ -8,6 +8,7 @@ import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
 
 interface CarPathContextProps {
   trips: Trip[] | undefined
+  selectedTrip: Trip | undefined
   getCarPath: (props: GetCarPathRequest) => Promise<Trip[]>
   selectedTripIndex: number
   setSelectedTripIndex: (index: number) => void
@@ -27,6 +28,7 @@ export function CarPathContextProvider({
 }: CarPathContextProviderProps) {
   const [trips, setTrips] = useState<Trip[]>()
   const [selectedTripIndex, setSelectedTripIndexState] = useState(0)
+  const [selectedTrip, setSelectedTrip] = useState<Trip>()
   const [viewport, setViewportState] = useState<MapViewState>({
     longitude: -43.47,
     latitude: -22.92957,
@@ -36,6 +38,7 @@ export function CarPathContextProvider({
 
   function setSelectedTripIndex(index: number) {
     setSelectedTripIndexState(index)
+    setSelectedTrip(trips?.at(index))
   }
 
   function setViewport(newViewport: MapViewState) {
@@ -53,6 +56,7 @@ export function CarPathContextProvider({
 
     const formattedTrips = formatCarPathResponse(response.data)
     setTrips(formattedTrips)
+    setSelectedTripIndex(0)
     setViewport({
       ...viewport,
       longitude:
@@ -67,6 +71,7 @@ export function CarPathContextProvider({
     <CarPathContext.Provider
       value={{
         trips,
+        selectedTrip,
         getCarPath,
         selectedTripIndex,
         setSelectedTripIndex,
