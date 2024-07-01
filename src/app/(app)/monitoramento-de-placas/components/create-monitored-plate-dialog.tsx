@@ -1,4 +1,5 @@
 'use client'
+import { useMutation } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
@@ -21,6 +22,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { createMonitoredPlate } from '@/http/cars/create-monitored-plate'
 import { getNotificationChannel } from '@/http/notification-channels/get-notification-channel'
 import { isApiError } from '@/lib/api'
+import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 export const newPlateFormSchema = z.object({
@@ -42,6 +44,7 @@ export function CreateMonitoredPlateDialog({
   operations,
 }: CreateMonitoredPlateDialogProps) {
   const [comboboxOptions, setComboboxOptions] = useState<string[]>(operations)
+
   const {
     handleSubmit,
     register,
@@ -50,12 +53,19 @@ export function CreateMonitoredPlateDialog({
     setValue,
   } = useFormContext<NewPlateForm>()
 
+  const { mutateAsync: createMonitoredPlateMutation } = useMutation({
+    mutationFn: createMonitoredPlate,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cars/monitored'] })
+    },
+  })
+
   async function onSubmit(props: NewPlateForm) {
     try {
       const channelsResponse = await getNotificationChannel({})
       const channel = channelsResponse.data.items.at(0)?.id || ''
 
-      const response = createMonitoredPlate({
+      const response = createMonitoredPlateMutation({
         plate: props.plate,
         additionalInfo: JSON.parse(`{"Operação":"${props.operation}"}`),
         notificationChannels: [channel],
