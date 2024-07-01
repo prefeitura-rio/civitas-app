@@ -1,10 +1,15 @@
 import { format } from 'date-fns'
 
-import { Card, CardDescription } from '@/components/ui/card'
+import { Tooltip } from '@/components/ui/tooltip'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import type { Point } from '@/utils/formatCarPathResponse'
+import { toPascalCase } from '@/utils/toPascalCase'
 
-interface PointCardProps extends Point {
+interface PointCardProps
+  extends Pick<
+    Point,
+    'location' | 'direction' | 'district' | 'startTime' | 'from'
+  > {
   index: number
 }
 
@@ -12,42 +17,52 @@ export function PointCard({
   index,
   location,
   direction,
-  lane,
+  district,
   startTime,
   from,
 }: PointCardProps) {
-  const { setViewport, viewport } = useCarPath()
+  const { setViewport, viewport, selectedTrip } = useCarPath()
+
+  const points = selectedTrip?.points || []
+
+  function handlePointClick() {
+    const longitude = from[0]
+    const latitude = from[1]
+    setViewport({
+      ...viewport,
+      longitude: longitude || viewport.longitude,
+      latitude: latitude || viewport.latitude,
+    })
+  }
+
   return (
-    <Card
-      className="flex min-w-80 gap-6 p-4 hover:scale-102 hover:cursor-pointer hover:bg-border"
-      onClick={() => {
-        setViewport({
-          ...viewport,
-          longitude: from[0],
-          latitude: from[1],
-        })
+    <div
+      className="relative flex gap-2 rounded-md hover:bg-card"
+      onClick={(e) => {
+        e.stopPropagation()
+        handlePointClick()
       }}
     >
-      <div className="flex items-center">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-          <span className="font-bold text-black">{index + 1}</span>
-        </div>
+      <span className="w-16 shrink-0">
+        {format(new Date(startTime), 'hh:mm aa')}
+      </span>
+      {index < points.length - 1 && (
+        <div className="absolute left-[4.8rem] top-0 mt-2 h-full w-0.5 bg-primary" />
+      )}
+      <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
+      <div className="ml-1.5 flex flex-col truncate">
+        <Tooltip text={toPascalCase(location)}>
+          <div className="truncate">
+            <span className="truncate">{toPascalCase(location)}</span>
+          </div>
+        </Tooltip>
+        <span className="block truncate text-xs text-muted-foreground">
+          {toPascalCase(district)}
+        </span>
+        <span className="block truncate text-xs text-muted-foreground">
+          {toPascalCase('Sentido ' + direction)}
+        </span>
       </div>
-      <div className="flex flex-col gap-2">
-        <CardDescription className="text-xs">Localização:</CardDescription>
-        <div className="flex flex-col gap-1">
-          <span className="block">{location}</span>
-          <span className="block text-sm text-muted-foreground">
-            Sentido: {direction}
-          </span>
-          <span className="block text-xs text-muted-foreground">
-            Faixa: {lane}
-          </span>
-          <CardDescription className="text-xs">
-            Data: {format(new Date(startTime), "dd/MM/yyyy 'às' HH:mm")}
-          </CardDescription>
-        </div>
-      </div>
-    </Card>
+    </div>
   )
 }
