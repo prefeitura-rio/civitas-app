@@ -33,6 +33,10 @@ export function PointCard({
     })
   }
 
+  console.log({ index })
+
+  console.log({ points })
+
   return (
     <div
       className="relative flex gap-2 rounded-md hover:bg-card"
