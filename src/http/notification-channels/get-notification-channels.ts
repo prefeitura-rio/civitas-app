@@ -1,9 +1,7 @@
 import { api } from '@/lib/api'
+import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
 
-export interface GetNotificationChannelRequest {
-  page?: number
-  size?: number
-}
+export interface GetNotificationChannelRequest extends PaginationRequest {}
 
 export type NotificationChannel = {
   id: string
@@ -13,15 +11,11 @@ export type NotificationChannel = {
   active: boolean
 }
 
-export interface GetNotificationChannelResponse {
+export interface GetNotificationChannelResponse extends PaginationResponse {
   items: NotificationChannel[]
-  total: number
-  page: number
-  size: number
-  pages: number
 }
 
-export async function getNotificationChannel({
+export async function getNotificationChannels({
   page,
   size,
 }: GetNotificationChannelRequest) {
