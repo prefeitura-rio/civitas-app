@@ -61,12 +61,7 @@ export function FilterForm() {
                 <Label htmlFor="plateNumber">Número da placa</Label>
                 <InputError message={errors.plateNumer?.message} />
               </div>
-              <Input
-                id="plateNumber"
-                // placeholder="LSY7A9D"
-                type="text"
-                {...register('plateNumer')}
-              />
+              <Input id="plateNumber" type="text" {...register('plateNumer')} />
             </div>
             <div className="flex flex-col gap-1">
               <div className="space-x-2">
