@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import {
@@ -10,20 +11,27 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { deleteMonitoredPlate } from '@/http/cars/delete-monitored-plate'
+import { getMonitoredPlates } from '@/http/cars/get-monitored-plates'
+import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 interface DeleteMonitoredPlateAlertDialogProps {
-  id: string
   plate: string
 }
 
 export function DeleteMonitoredPlateAlertDialog({
-  id,
   plate,
 }: DeleteMonitoredPlateAlertDialogProps) {
+  const { mutateAsync: deleteMonitoredPlateMutation } = useMutation({
+    mutationFn: deleteMonitoredPlate,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cars/monitored'] })
+    },
+  })
+
   async function handleDeleteMonitoredPlate() {
     try {
-      const response = deleteMonitoredPlate(id)
+      const response = deleteMonitoredPlateMutation(plate)
       toast.promise(response, {
         loading: `Removendo placa ${plate}...`,
         success: (data) => {
@@ -31,6 +39,8 @@ export function DeleteMonitoredPlateAlertDialog({
         },
         error: genericErrorMessage,
       })
+      await response
+      getMonitoredPlates({})
     } catch (error) {
       toast.error(genericErrorMessage)
     }

@@ -2,7 +2,7 @@ import type { GetCarPathResponse } from '@/http/cars/get-car-path'
 
 import { formatLocation } from './formatLocation'
 
-export interface Point {
+export type Point = {
   index: number
   from: [longitude: number, latitude: number]
   startTime: string
@@ -16,7 +16,7 @@ export interface Point {
   secondsToNextPoint: number | null
 }
 
-export interface Trip {
+export type Trip = {
   points: Point[]
 }
 
@@ -29,7 +29,7 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
         .map((point, index) => {
           const { location, direction, lane } = formatLocation(point.localidade)
           return {
-            index: index + 1,
+            index,
             startTime: point.datahora,
             cameraNumber: point.camera_numero,
             from: [point.longitude, point.latitude],

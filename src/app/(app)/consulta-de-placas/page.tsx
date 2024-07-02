@@ -8,8 +8,6 @@ import { FormProvider, useForm } from 'react-hook-form'
 
 import { CarPathContextProvider } from '@/contexts/car-path-context'
 
-// import { Map } from './components/map'
-// import { SidePanel } from './components/side-panel'
 import {
   type FilterForm,
   filterFormSchema,
