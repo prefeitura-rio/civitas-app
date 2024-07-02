@@ -8,10 +8,8 @@ import { toPascalCase } from '@/utils/toPascalCase'
 interface PointCardProps
   extends Pick<
     Point,
-    'location' | 'direction' | 'district' | 'startTime' | 'from'
-  > {
-  index: number
-}
+    'index' | 'location' | 'direction' | 'district' | 'startTime' | 'from'
+  > {}
 
 export function PointCard({
   index,
