@@ -21,6 +21,14 @@ export function IconTooltipCard({ x, y, object }: PickingInfo<Point>) {
           <IconTooltipInfo label="Bairro" value={object.district} />
           <IconTooltipInfo label="Localidade" value={object.location} />
           <IconTooltipInfo label="Sentido" value={object.direction} />
+          {object.secondsToNextPoint && (
+            <IconTooltipInfo
+              label="Intervalo até o próximo ponto"
+              value={
+                String((object.secondsToNextPoint / 60).toFixed(0)) + ' min'
+              }
+            />
+          )}
         </Card>
       )}
     </>

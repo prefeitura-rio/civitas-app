@@ -11,6 +11,7 @@ import type { Point } from '@/utils/formatCarPathResponse'
 
 import { IconTooltipCard } from './map/icon-tooltip-card'
 import { LineTooltipCard } from './map/line-tooltip-card'
+import { MapActions } from './map/map-actions'
 import { MapCaption } from './map/map-caption'
 
 export function Map() {
@@ -21,41 +22,46 @@ export function Map() {
   const [lineHoverInfo, setLineHoverInfo] = useState<PickingInfo<Point>>(
     {} as PickingInfo<Point>,
   )
+  const [isMapStyleSatellite, setIsMapStyleSatellite] = useState(false)
+  const [isLinesEnabled, setIsLinesEnabled] = useState(false)
+  const [isIconColorEnabled, setIsIconColorEnabled] = useState(false)
 
   const points = trips?.at(selectedTripIndex)?.points
+
+  function calculateColorInGradient(point: Point) {
+    const startTime = new Date(point.startTime)
+    const endTime = new Date(point.endTime || point.startTime)
+
+    const diff = (endTime.getTime() - startTime.getTime()) / 1000 / 60 // difference in minutes
+
+    const percent = diff / 60
+
+    const color1 = {
+      red: 97,
+      green: 175,
+      blue: 239,
+    }
+    const color2 = {
+      red: 238,
+      green: 38,
+      blue: 47,
+    }
+
+    const result = {
+      red: color1.red + percent * (color2.red - color1.red),
+      green: color1.green + percent * (color2.green - color1.green),
+      blue: color1.blue + percent * (color2.blue - color1.blue),
+    }
+
+    return [result.red, result.green, result.blue] as [number, number, number]
+  }
 
   const lineLayer = new LineLayer<Point>({
     id: 'line-layer',
     data: points,
     getSourcePosition: (point) => point.from,
     getTargetPosition: (point) => point.to || point.from,
-    getColor: (point) => {
-      const startTime = new Date(point.startTime)
-      const endTime = new Date(point.endTime || point.startTime)
-
-      const diff = (endTime.getTime() - startTime.getTime()) / 1000 / 60 // difference in minutes
-
-      const percent = diff / 60
-
-      const color1 = {
-        red: 97,
-        green: 175,
-        blue: 239,
-      }
-      const color2 = {
-        red: 238,
-        green: 38,
-        blue: 47,
-      }
-
-      const result = {
-        red: color1.red + percent * (color2.red - color1.red),
-        green: color1.green + percent * (color2.green - color1.green),
-        blue: color1.blue + percent * (color2.blue - color1.blue),
-      }
-
-      return [result.red, result.green, result.blue]
-    },
+    getColor: calculateColorInGradient,
     getWidth: 3,
     pickable: true,
     onHover: (info) => setLineHoverInfo(info),
@@ -77,11 +83,25 @@ export function Map() {
     arrow: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
   }
 
-  const iconLayer = new IconLayer<Point>({
-    id: 'icon-layer',
+  const blackIconLayer = new IconLayer<Point>({
+    id: 'black-icon-layer',
     data: points,
     getPosition: (point) => point.from,
     getColor: [0, 0, 0],
+    getSize: 30,
+    getIcon: () => 'arrow',
+    iconAtlas: iconAtlas.src,
+    iconMapping: ICON_MAPPING,
+    pickable: true,
+    onHover: (info) => setIconHoverInfo(info),
+  })
+
+  const coloredIconLayer = new IconLayer<Point>({
+    id: 'colored-icon-layer',
+    data: points,
+    getPosition: (point) => point.from,
+    getColor: (point) =>
+      point.to ? calculateColorInGradient(point) : [0, 0, 0],
     getSize: 30,
     getIcon: () => 'arrow',
     iconAtlas: iconAtlas.src,
@@ -97,7 +117,7 @@ export function Map() {
     getColor: [255, 255, 255],
     getSize: 15,
     getTextAnchor: 'middle',
-    getText: (point) => String(point.index),
+    getText: (point) => String(point.index + 1),
     fontWeight: 10,
     getPixelOffset: [0, -16],
     pickable: true,
@@ -114,16 +134,33 @@ export function Map() {
         overflow: 'hidden',
       }}
       controller
-      layers={[lineLayerTransparent, lineLayer, iconLayer, textLayer]}
+      layers={[
+        isLinesEnabled && lineLayer,
+        isLinesEnabled && lineLayerTransparent,
+        isIconColorEnabled ? coloredIconLayer : blackIconLayer,
+        textLayer,
+      ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
     >
       <ReactMalGL
         mapboxAccessToken={config.mapboxAccessToken}
-        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapStyle={
+          isMapStyleSatellite
+            ? 'mapbox://styles/mapbox/satellite-streets-v12'
+            : 'mapbox://styles/mapbox/streets-v12'
+        }
       />
       <IconTooltipCard {...iconHoverInfo} />
       <LineTooltipCard {...lineHoverInfo} />
-      <MapCaption />
+      {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
+      <MapActions
+        isMapStyleSatellite={isMapStyleSatellite}
+        setIsMapStyleSatellite={setIsMapStyleSatellite}
+        isLinesEnabled={isLinesEnabled}
+        setIsLinesEnabled={setIsLinesEnabled}
+        isIconColorEnabled={isIconColorEnabled}
+        setIsIconColorEnabled={setIsIconColorEnabled}
+      />
     </DeckGL>
   )
 }
