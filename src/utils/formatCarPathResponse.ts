@@ -29,6 +29,7 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
         .map((point, index) => {
           const { location, direction, lane } = formatLocation(point.localidade)
           return {
+            index,
             startTime: point.datahora,
             cameraNumber: point.camera_numero,
             from: [point.longitude, point.latitude],
