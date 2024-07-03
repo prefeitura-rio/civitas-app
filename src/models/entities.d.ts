@@ -8,6 +8,7 @@ export type MonitoredPlate = {
   id: string
   plate: string
   operation: Operation
+  notes: boolean
   active: boolean
   additionalInfo: JSON
   notificationChannels: string[]

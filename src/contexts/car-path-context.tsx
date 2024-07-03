@@ -1,9 +1,12 @@
 import type { MapViewState } from '@deck.gl/core'
 import { createContext, type ReactNode, useState } from 'react'
 
-import type { GetCarPathRequest } from '@/http/cars/get-car-path'
-import { getCarPath as getCarPathApi } from '@/http/cars/get-car-path'
+import {
+  getCarPath as getCarPathApi,
+  GetCarPathRequest,
+} from '@/http/cars/path/get-car-path'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
+import { tripsExample } from '@/utils/tripsExample'
 
 interface CarPathContextProps {
   trips: Trip[] | undefined
@@ -25,9 +28,13 @@ interface CarPathContextProviderProps {
 export function CarPathContextProvider({
   children,
 }: CarPathContextProviderProps) {
-  const [trips, setTrips] = useState<Trip[]>()
+  const [trips, setTrips] = useState<Trip[]>(
+    formatCarPathResponse(tripsExample),
+  )
   const [selectedTripIndex, setSelectedTripIndexState] = useState(0)
-  const [selectedTrip, setSelectedTrip] = useState<Trip>()
+  const [selectedTrip, setSelectedTrip] = useState<Trip | undefined>(
+    formatCarPathResponse(tripsExample)[0],
+  )
   const [viewport, setViewportState] = useState<MapViewState>({
     longitude: -43.47,
     latitude: -22.92957,

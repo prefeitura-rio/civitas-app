@@ -10,8 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { deleteMonitoredPlate } from '@/http/cars/delete-monitored-plate'
-import { getMonitoredPlates } from '@/http/cars/get-monitored-plates'
+import { deleteMonitoredPlate } from '@/http/cars/monitored/delete-monitored-plate'
+import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
 

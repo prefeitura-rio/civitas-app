@@ -8,7 +8,7 @@ interface UpdateMonitoredPlateRequest
       'plate' | 'active' | 'additionalInfo' | 'notificationChannels'
     >
   > {
-  operationId: Operation['id']
+  operationId?: Operation['id']
 }
 
 interface UpdateMonitoredPlateResponse {
