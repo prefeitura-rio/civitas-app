@@ -1,13 +1,12 @@
 'use client'
 import { useMutation } from '@tanstack/react-query'
-import { Info } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Controller, useFormContext } from 'react-hook-form'
+import { Info, Plus, Trash } from 'lucide-react'
+import { useState } from 'react'
+import { useFieldArray, useFormContext } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
-import { Combobox } from '@/components/ui/combobox-with-create'
 import {
   DialogContent,
   DialogDescription,
@@ -19,11 +18,13 @@ import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
-import { createMonitoredPlate } from '@/http/cars/create-monitored-plate'
-import { getNotificationChannel } from '@/http/notification-channels/get-notification-channel'
+import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
+import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
 import { isApiError } from '@/lib/api'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
+
+import { OperationCombobox } from './monitored-plate-dialogs/operation/operation-combobox'
 
 export const newPlateFormSchema = z.object({
   plate: z
@@ -32,18 +33,18 @@ export const newPlateFormSchema = z.object({
     .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido')
     .transform((item) => item.toUpperCase()),
   operation: z.string().min(1, { message: 'Campo obrigatório' }),
+  notificationChannels: z.array(
+    z.object({
+      channel: z.string().min(1, { message: 'Esse campo não pode ser vazio.' }),
+      id: z.string().min(1),
+    }),
+  ),
 })
 
 export type NewPlateForm = z.infer<typeof newPlateFormSchema>
 
-interface CreateMonitoredPlateDialogProps {
-  operations: string[]
-}
-
-export function CreateMonitoredPlateDialog({
-  operations,
-}: CreateMonitoredPlateDialogProps) {
-  const [comboboxOptions, setComboboxOptions] = useState<string[]>(operations)
+export function CreateMonitoredPlateDialog() {
+  const [operationId, setOperationId] = useState('')
 
   const {
     handleSubmit,
@@ -52,6 +53,11 @@ export function CreateMonitoredPlateDialog({
     control,
     setValue,
   } = useFormContext<NewPlateForm>()
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'notificationChannels',
+  })
 
   const { mutateAsync: createMonitoredPlateMutation } = useMutation({
     mutationFn: createMonitoredPlate,
@@ -62,12 +68,12 @@ export function CreateMonitoredPlateDialog({
 
   async function onSubmit(props: NewPlateForm) {
     try {
-      const channelsResponse = await getNotificationChannel({})
+      const channelsResponse = await getNotificationChannels({})
       const channel = channelsResponse.data.items.at(0)?.id || ''
 
       const response = createMonitoredPlateMutation({
         plate: props.plate,
-        additionalInfo: JSON.parse(`{"Operação":"${props.operation}"}`),
+        operationId,
         notificationChannels: [channel],
       })
 
@@ -89,10 +95,6 @@ export function CreateMonitoredPlateDialog({
     }
   }
 
-  useEffect(() => {
-    setComboboxOptions(operations)
-  }, [operations])
-
   return (
     <DialogContent
       onOpenAutoFocus={(e) => {
@@ -103,8 +105,8 @@ export function CreateMonitoredPlateDialog({
         <DialogTitle>Adicionar placa</DialogTitle>
         <DialogDescription>
           Cadastre a placa do veículo que precisa ser monitorada. Quando uma
-          câmera da cidade detectar essa placa, um alerta será enviado
-          automaticamente para o canal do Discord.
+          câmera da cidade detectá-la, um alerta será enviado automaticamente
+          para o canal do Discord especificado.
         </DialogDescription>
       </DialogHeader>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -126,33 +128,43 @@ export function CreateMonitoredPlateDialog({
           </div>
 
           <div className="flex flex-col gap-1">
-            <div className="flex gap-2">
-              <Label htmlFor="plate">Operação</Label>
-              <InputError message={errors.operation?.message} />
+            <OperationCombobox setOperationId={setOperationId} />
+            <div className="mt-4 flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <Label>Canais de notificação</Label>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className="h-8 w-8 p-0"
+                  onClick={() => append({ channel: '' })}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {fields.map((field, index) => (
+                  <div key={index}>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        {...register(`notificationChannels.${index}.channel`)}
+                      />
+                      <Button
+                        variant="destructive"
+                        className="h-8 w-8 p-0"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <InputError
+                      message={
+                        errors.notificationChannels?.[index]?.channel?.message
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-            <Controller
-              control={control}
-              name="operation"
-              render={({ field }) => (
-                <Combobox
-                  mode="single"
-                  options={comboboxOptions.map((item) => {
-                    return {
-                      value: item,
-                      label: item,
-                    }
-                  })}
-                  placeholder="Selecione uma operação ou crie uma nova..."
-                  selected={field.value} // string or array
-                  onChange={(newValue) =>
-                    setValue('operation', String(newValue))
-                  }
-                  onCreate={(value) => {
-                    setComboboxOptions([...comboboxOptions, value])
-                  }}
-                />
-              )}
-            />
           </div>
         </div>
         <DialogFooter className="flex justify-end">
