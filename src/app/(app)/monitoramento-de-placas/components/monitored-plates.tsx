@@ -68,7 +68,7 @@ export default function MonitoredPlates() {
   }
 
   return (
-    <div className="page-content flex flex-col gap-8 pt-8">
+    <div className="page-content flex flex-col gap-8">
       <FormProvider {...createMonitoredPlateFormMethods}>
         <div className="flex items-start justify-between">
           <h1 className="text-3xl font-semibold tracking-tight">

@@ -1,5 +1,11 @@
-import { OperationsTable } from './components/operations-table'
+import { OperationsContextProvider } from '@/contexts/operations-context'
+
+import PageContent from './components/page-content'
 
 export default function Operacoes() {
-  return <OperationsTable />
+  return (
+    <OperationsContextProvider>
+      <PageContent />
+    </OperationsContextProvider>
+  )
 }
