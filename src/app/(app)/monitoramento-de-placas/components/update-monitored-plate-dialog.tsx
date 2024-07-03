@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
-import { updateMonitoredPlate } from '@/http/cars/update-monitored-plate'
+import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
 
 const newPlateFormSchema = z.object({
   plate: z.string().min(1, { message: 'Campo obrigatório' }),
