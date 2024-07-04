@@ -7,8 +7,8 @@
     "Utils",
     "AppLayout",
     "Home",
-    "MonitoramentoDePlacas",
     "ConsultaDePlacas",
     "Operações",
+    "PlacasMonitoradas"
   ]
 }

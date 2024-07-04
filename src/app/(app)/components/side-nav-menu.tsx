@@ -32,9 +32,9 @@ export function SideNavMenu() {
             </Tooltip>
           </li>
           <li>
-            <Tooltip text="Monitoramento de placas" side="right">
+            <Tooltip text="Placas Monitoradas" side="right">
               <Button variant="secondary" size="sm" asChild>
-                <Link href="/monitoramento-de-placas">
+                <Link href="/placas-monitoradas">
                   <Siren className="h-4 w-4" />
                 </Link>
               </Button>
