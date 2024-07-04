@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
+import { SelectWithSearch } from '@/components/ui/select-with-search'
+// import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -25,6 +27,7 @@ import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
+import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
@@ -49,6 +52,7 @@ export function MonitoredPlateFormDialog({
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<MonitoredPlateForm>({
@@ -85,13 +89,20 @@ export function MonitoredPlateFormDialog({
     },
   })
 
-  const { data: operationResponse, isLoading: isLoadingMonitoredPlate } =
+  const { data: monitoredPlatesResponse, isLoading: isLoadingMonitoredPlates } =
     useQuery({
       queryKey: [`cars/monitored/${initialData?.id}`],
       queryFn: () =>
         initialData ? getMonitoredPlate({ plate: initialData?.id }) : null,
     })
 
+  const { data: operationsResponse } = useQuery({
+    queryKey: ['operations'],
+    queryFn: () => getOperations({ size: 100 }),
+  })
+
+  const operations = operationsResponse?.data.items || []
+  console.log({ operations })
   function handleOnOpenChange(open: boolean) {
     if (open) {
       onOpen()
@@ -134,26 +145,26 @@ export function MonitoredPlateFormDialog({
   }
 
   useEffect(() => {
-    if (initialData && isOpen && !isLoading && operationResponse) {
-      setValue('plate', operationResponse.data.plate)
-      setValue('active', operationResponse.data.active)
-      setValue('additionalInfo', operationResponse.data.additionalInfo)
-      setValue('notes', operationResponse.data.notes)
-      setValue('operation.id', operationResponse.data.operation.id)
-      setValue('operation.title', operationResponse.data.operation.title)
-      if (operationResponse.data.notificationChannels.length > 0) {
+    if (initialData && isOpen && !isLoading && monitoredPlatesResponse) {
+      setValue('plate', monitoredPlatesResponse.data.plate)
+      setValue('active', monitoredPlatesResponse.data.active)
+      setValue('additionalInfo', monitoredPlatesResponse.data.additionalInfo)
+      setValue('notes', monitoredPlatesResponse.data.notes)
+      setValue('operation.id', monitoredPlatesResponse.data.operation.id)
+      setValue('operation.title', monitoredPlatesResponse.data.operation.title)
+      if (monitoredPlatesResponse.data.notificationChannels.length > 0) {
         setValue('notificationChannels', [
-          operationResponse.data.notificationChannels[0],
-          ...operationResponse.data.notificationChannels,
+          monitoredPlatesResponse.data.notificationChannels[0],
+          ...monitoredPlatesResponse.data.notificationChannels,
         ])
       }
       setIsLoading(false)
     }
-  }, [isOpen, isLoading, operationResponse])
+  }, [isOpen, isLoading, monitoredPlatesResponse])
 
   useEffect(() => {
     if (
-      isLoadingMonitoredPlate ||
+      isLoadingMonitoredPlates ||
       isSubmitting ||
       isPendingCreate ||
       isPendingUpdate
@@ -162,7 +173,7 @@ export function MonitoredPlateFormDialog({
     } else {
       setIsLoading(false)
     }
-  }, [isSubmitting, isPendingCreate, isPendingUpdate, isLoadingMonitoredPlate])
+  }, [isSubmitting, isPendingCreate, isPendingUpdate, isLoadingMonitoredPlates])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
@@ -190,6 +201,58 @@ export function MonitoredPlateFormDialog({
               <InputError message={errors.notes?.message} />
             </div>
             <Textarea id="notes" {...register('notes')} disabled={isLoading} />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label>Operação</Label>
+              <InputError message={errors.operation?.title?.message} />
+            </div>
+            <Controller
+              control={control}
+              name="operation.title"
+              render={({ field }) => (
+                <SelectWithSearch
+                  onSelect={(item) => {
+                    setValue('operation.title', item.label)
+                    setValue('operation.id', item.value)
+                  }}
+                  options={operations.map((item) => {
+                    return {
+                      label: item.title,
+                      value: item.id,
+                    }
+                  })}
+                  value={field.value}
+                />
+              )}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label>Canal de notificação</Label>
+              <InputError message={errors.operation?.title?.message} />
+            </div>
+            <Controller
+              control={control}
+              name="operation.title"
+              render={({ field }) => (
+                <SelectWithSearch
+                  onSelect={(item) => {
+                    setValue('operation.title', item.label)
+                    setValue('operation.id', item.value)
+                  }}
+                  options={operations.map((item) => {
+                    return {
+                      label: item.title,
+                      value: item.id,
+                    }
+                  })}
+                  value={field.value}
+                />
+              )}
+            />
           </div>
 
           <div className="mt-4 flex w-full justify-end">
