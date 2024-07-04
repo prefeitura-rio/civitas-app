@@ -1,4 +1,4 @@
-import type { GetCarPathResponse } from '@/http/cars/get-car-path'
+import type { GetCarPathResponse } from '@/http/cars/path/get-car-path'
 
 import { formatLocation } from './formatLocation'
 
