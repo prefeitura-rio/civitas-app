@@ -6,7 +6,6 @@ import {
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
-import { tripsExample } from '@/utils/tripsExample'
 
 interface CarPathContextProps {
   trips: Trip[] | undefined
@@ -28,13 +27,9 @@ interface CarPathContextProviderProps {
 export function CarPathContextProvider({
   children,
 }: CarPathContextProviderProps) {
-  const [trips, setTrips] = useState<Trip[]>(
-    formatCarPathResponse(tripsExample),
-  )
+  const [trips, setTrips] = useState<Trip[]>()
   const [selectedTripIndex, setSelectedTripIndexState] = useState(0)
-  const [selectedTrip, setSelectedTrip] = useState<Trip | undefined>(
-    formatCarPathResponse(tripsExample)[0],
-  )
+  const [selectedTrip, setSelectedTrip] = useState<Trip>()
   const [viewport, setViewportState] = useState<MapViewState>({
     longitude: -43.47,
     latitude: -22.92957,
