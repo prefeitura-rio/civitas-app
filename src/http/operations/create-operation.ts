@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { Operation } from '@/models/operation'
+import type { Operation } from '@/models/entities'
 
 interface CreateOperationRequest {
   title: string
