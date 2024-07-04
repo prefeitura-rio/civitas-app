@@ -21,7 +21,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const page =
     z.coerce.number().parse(searchParams.get('page') ?? '1') || undefined
   const size =
-    z.coerce.number().parse(searchParams.get('size') ?? '50') || undefined
+    z.coerce.number().parse(searchParams.get('size') ?? '10') || undefined
 
   function handlePaginate(index: number) {
     router.replace(`placas-monitoradas?page=${index}`)

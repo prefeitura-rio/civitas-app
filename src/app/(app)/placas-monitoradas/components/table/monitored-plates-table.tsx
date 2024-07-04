@@ -1,14 +1,18 @@
 'use client'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { PencilLine, Trash } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
+import { Switch } from '@/components/ui/switch'
+import { Tooltip } from '@/components/ui/tooltip'
 import { useMonitoredPlatesSearchParams } from '@/hooks/params/use-monitored-plates-search-params'
 import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
 import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
+import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
+import { queryClient } from '@/lib/react-query'
 import type { MonitoredPlate } from '@/models/entities'
 
 export function MonitoredPlatesTable() {
@@ -27,6 +31,13 @@ export function MonitoredPlatesTable() {
       getMonitoredPlates({
         ...formattedSearchParams,
       }),
+  })
+
+  const { mutateAsync: updateMonitoredPlateMutation } = useMutation({
+    mutationFn: updateMonitoredPlate,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cars/monitored'] })
+    },
   })
 
   const data = response?.data
@@ -57,6 +68,27 @@ export function MonitoredPlatesTable() {
         } else {
           return <div />
         }
+      },
+    },
+    {
+      accessorKey: 'active',
+      header: 'Status',
+      cell: ({ row }) => {
+        return (
+          <Tooltip text={row.original.active ? 'Ativo' : 'Inativo'}>
+            <Switch
+              id="active"
+              size="sm"
+              checked={row.original.active}
+              onCheckedChange={() =>
+                updateMonitoredPlateMutation({
+                  plate: row.original.plate,
+                  active: !row.original.active,
+                })
+              }
+            />
+          </Tooltip>
+        )
       },
     },
     {
