@@ -31,7 +31,7 @@ import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-pla
 import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
 import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
 
 interface MonitoredPlateDialogProps {
   isOpen: boolean
@@ -75,13 +75,18 @@ export function MonitoredPlateFormDialog({
     isPending: isPendingCreate,
   } = useMutation({
     mutationFn: createMonitoredPlate,
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
       queryClient.invalidateQueries({
         queryKey: ['cars/monitored'],
       })
+      toast.success(`A placa ${data.plate} foi cadastrada com sucesso!`)
     },
-    onError: () => {
-      toast.error(genericErrorMessage)
+    onError: (error, variables) => {
+      if (isConflictError(error)) {
+        toast.error(`A placa ${variables.plate} já existe`)
+      } else {
+        toast.error(genericErrorMessage)
+      }
     },
   })
 
@@ -90,13 +95,18 @@ export function MonitoredPlateFormDialog({
     isPending: isPendingUpdate,
   } = useMutation({
     mutationFn: updateMonitoredPlate,
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
       queryClient.invalidateQueries({
         queryKey: ['cars/monitored'],
       })
+      toast.success(`A placa ${data.plate} foi atualizada com sucesso!`)
     },
-    onError: () => {
-      toast.error(genericErrorMessage)
+    onError: (error, variables) => {
+      if (isConflictError(error)) {
+        toast.error(`A placa ${variables.plate} já existe`)
+      } else {
+        toast.error(genericErrorMessage)
+      }
     },
   })
 
@@ -144,7 +154,7 @@ export function MonitoredPlateFormDialog({
         // additionalInfo: props.additionalInfo,
       })
     } else {
-      const response = createMonitoredPlateMutation({
+      await createMonitoredPlateMutation({
         plate: props.plate,
         active: true,
         operationId: props.operation.id,
@@ -152,14 +162,6 @@ export function MonitoredPlateFormDialog({
         notificationChannels,
         // additionalInfo: props.additionalInfo,
       })
-      toast.promise(response, {
-        loading: `Adicionando placa ${props?.plate}...`,
-        success: (data) => {
-          return `Placa ${data.data.plate} adicionada com sucesso!`
-        },
-        error: genericErrorMessage,
-      })
-      await response
     }
     handleOnOpenChange(false)
   }
