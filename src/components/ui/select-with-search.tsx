@@ -22,6 +22,7 @@ interface SelectWithSearchProps {
   options: ComboboxOption[]
   onSelect: (item: ComboboxOption) => void
   placeholder: string
+  disabled?: boolean
 }
 
 export function SelectWithSearch({
@@ -29,6 +30,7 @@ export function SelectWithSearch({
   options,
   onSelect,
   placeholder,
+  disabled = false,
 }: SelectWithSearchProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -38,6 +40,7 @@ export function SelectWithSearch({
         <Button
           variant="outline"
           role="combobox"
+          disabled={disabled}
           className={cn(
             'w-full justify-between',
             !value && 'text-muted-foreground',

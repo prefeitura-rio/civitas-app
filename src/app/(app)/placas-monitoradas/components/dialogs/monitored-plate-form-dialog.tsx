@@ -260,6 +260,7 @@ export function MonitoredPlateFormDialog({
                       value: item.id,
                     }
                   })}
+                  disabled={isLoading}
                   value={field.value}
                   placeholder="Selecione uma operação"
                   // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
@@ -287,8 +288,9 @@ export function MonitoredPlateFormDialog({
                       value: item.id,
                     }
                   })}
+                  disabled={isLoading}
                   placeholder="Selecione um canal"
-                  emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
+                  emptyIndicator={<p>Nenhum resultado encontrado.</p>}
                 />
               )}
             />
