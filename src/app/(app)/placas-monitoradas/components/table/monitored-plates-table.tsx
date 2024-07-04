@@ -48,7 +48,6 @@ export function MonitoredPlatesTable() {
       accessorKey: 'notificationChannels',
       header: 'Canais de notificação',
       cell: ({ row }) => {
-        console.log({ row })
         if (row.original.notificationChannels) {
           const concatenated = row.original.notificationChannels.reduce(
             (acc, cur) => (acc ? `${acc}, ${cur}` : cur),
@@ -75,7 +74,6 @@ export function MonitoredPlatesTable() {
               className="h-8 w-8 p-0"
               type="button"
               onClick={() => {
-                console.log({ id: row.original.id })
                 setDialogInitialData({ id: row.original.id })
                 formDialogDisclosure.onOpen()
               }}
@@ -88,7 +86,6 @@ export function MonitoredPlatesTable() {
               className="h-8 w-8 p-0"
               type="button"
               onClick={() => {
-                console.log({ id: row.original.id })
                 setOnDeleteMonitoredPlateProps({
                   plate: row.original.plate,
                 })
