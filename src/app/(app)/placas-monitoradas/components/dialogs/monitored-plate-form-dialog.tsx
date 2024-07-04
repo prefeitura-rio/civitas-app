@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
+import MultipleSelector from '@/components/ui/multiselect-with-search'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 // import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Spinner } from '@/components/ui/spinner'
@@ -27,6 +28,7 @@ import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
+import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
 import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
@@ -100,6 +102,10 @@ export function MonitoredPlateFormDialog({
     queryKey: ['operations'],
     queryFn: () => getOperations({ size: 100 }),
   })
+  const { data: NotificationChannelResponse } = useQuery({
+    queryKey: ['notification-channels'],
+    queryFn: () => getNotificationChannels({ size: 100 }),
+  })
 
   const operations = operationsResponse?.data.items || []
   console.log({ operations })
@@ -114,23 +120,26 @@ export function MonitoredPlateFormDialog({
   }
 
   async function onSubmit(props: MonitoredPlateForm) {
+    const notificationChannels = props.notificationChannels.map(
+      (item) => item.value,
+    )
     if (initialData?.id) {
       await updateMonitoredPlateMutation({
         plate: props.plate,
         active: props.active,
         notes: props.notes,
         operationId: props.operation.id,
+        notificationChannels,
         // additionalInfo: props.additionalInfo,
-        notificationChannels: props.notificationChannels,
       })
     } else {
       const response = createMonitoredPlateMutation({
         plate: props.plate,
-        operationId: props.operation.id,
-        notificationChannels: props.notificationChannels,
         active: true,
-        // additionalInfo: props.additionalInfo,
+        operationId: props.operation.id,
         notes: props.notes,
+        notificationChannels,
+        // additionalInfo: props.additionalInfo,
       })
       toast.promise(response, {
         loading: `Adicionando placa ${props?.plate}...`,
@@ -153,10 +162,10 @@ export function MonitoredPlateFormDialog({
       setValue('operation.id', monitoredPlatesResponse.data.operation.id)
       setValue('operation.title', monitoredPlatesResponse.data.operation.title)
       if (monitoredPlatesResponse.data.notificationChannels.length > 0) {
-        setValue('notificationChannels', [
-          monitoredPlatesResponse.data.notificationChannels[0],
-          ...monitoredPlatesResponse.data.notificationChannels,
-        ])
+        // setValue('notificationChannels', [
+        //   monitoredPlatesResponse.data.notificationChannels[0],
+        //   ...monitoredPlatesResponse.data.notificationChannels,
+        // ])
       }
       setIsLoading(false)
     }
@@ -236,20 +245,20 @@ export function MonitoredPlateFormDialog({
             </div>
             <Controller
               control={control}
-              name="operation.title"
+              name="notificationChannels"
               render={({ field }) => (
-                <SelectWithSearch
-                  onSelect={(item) => {
-                    setValue('operation.title', item.label)
-                    setValue('operation.id', item.value)
-                  }}
-                  options={operations.map((item) => {
+                <MultipleSelector
+                  {...field}
+                  defaultOptions={(
+                    NotificationChannelResponse?.data.items || []
+                  ).map((item) => {
                     return {
                       label: item.title,
                       value: item.id,
                     }
                   })}
-                  value={field.value}
+                  placeholder="Selecione um canal"
+                  emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
                 />
               )}
             />

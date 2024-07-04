@@ -1,6 +1,7 @@
 'use client'
 
 import { CheckIcon, ChevronsUpDown } from 'lucide-react'
+import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
 import type { ComboboxOption } from '@/models/utils'
@@ -27,8 +28,10 @@ export function SelectWithSearch({
   options,
   onSelect,
 }: SelectWithSearchProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
-    <Popover modal={true}>
+    <Popover modal={true} open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -54,9 +57,10 @@ export function SelectWithSearch({
                 <CommandItem
                   value={item.label}
                   key={item.label}
-                  onSelect={() =>
+                  onSelect={() => {
                     onSelect({ label: item.label, value: item.value })
-                  }
+                    setIsOpen(false)
+                  }}
                 >
                   {item.label}
                   <CheckIcon
