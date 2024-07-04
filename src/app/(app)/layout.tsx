@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 
 import { isAuthenticated } from '@/auth/auth'
+import { SidebarContextProvider } from '@/contexts/sidebar-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 
-import { SideNavMenu } from './components/side-nav-menu'
+import Sidebar from './components/sidebar'
 
 export default function AppLayout({
   children,
@@ -17,8 +18,11 @@ export default function AppLayout({
   return (
     <div className="flex min-h-screen">
       <CustomQueryClientProvider>
-        <SideNavMenu />
-        {children}
+        <SidebarContextProvider>
+          {/* <SideNavMenu /> */}
+          <Sidebar />
+          {children}
+        </SidebarContextProvider>
       </CustomQueryClientProvider>
     </div>
   )
