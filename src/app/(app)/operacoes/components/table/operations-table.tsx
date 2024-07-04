@@ -7,12 +7,19 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
 import { useOperationsSearchParams } from '@/hooks/params/use-operations-search-params'
-import { getOperations } from '@/http/operations/getOperations'
+import { useOperations } from '@/hooks/use-operations'
+import { getOperations } from '@/http/operations/get-operations'
 import type { Operation } from '@/models/entities'
 
 export function OperationsTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
     useOperationsSearchParams()
+  const {
+    formDialogDisclosure,
+    setDialogInitialData,
+    setOnDeleteOperationProps,
+    deleteAlertDisclosure,
+  } = useOperations()
 
   const { data: response, isLoading } = useQuery({
     queryKey,
@@ -27,11 +34,11 @@ export function OperationsTable() {
   const columns: ColumnDef<Operation>[] = [
     {
       accessorKey: 'title',
-      header: 'Placa',
+      header: 'Nome',
     },
     {
       accessorKey: 'description',
-      header: 'Operação',
+      header: 'Descrição',
     },
     {
       id: 'actions',
@@ -40,14 +47,33 @@ export function OperationsTable() {
           <p className="w-[4.5rem] text-center">Ações</p>
         </div>
       ),
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" className="h-8 w-8 p-0" type="button">
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              type="button"
+              onClick={() => {
+                setDialogInitialData({ id: row.original.id })
+                formDialogDisclosure.onOpen()
+              }}
+            >
               <span className="sr-only">Editar linha</span>
               <PencilLine className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" className="h-8 w-8 p-0" type="button">
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              type="button"
+              onClick={() => {
+                setOnDeleteOperationProps({
+                  id: row.original.id,
+                  title: row.original.title,
+                })
+                deleteAlertDisclosure.onOpen()
+              }}
+            >
               <span className="sr-only">Excluir linha</span>
               <Trash className="h-4 w-4" />
             </Button>
@@ -56,7 +82,7 @@ export function OperationsTable() {
       ),
     },
   ]
-  console.log({ data })
+
   return (
     <div className="page-content flex flex-col gap-8 pt-8">
       <DataTable

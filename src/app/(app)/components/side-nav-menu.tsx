@@ -1,4 +1,4 @@
-import { LogOut, Search, Siren } from 'lucide-react'
+import { LogOut, Search, Siren, TrafficCone } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -36,6 +36,15 @@ export function SideNavMenu() {
               <Button variant="secondary" size="sm" asChild>
                 <Link href="/monitoramento-de-placas">
                   <Siren className="h-4 w-4" />
+                </Link>
+              </Button>
+            </Tooltip>
+          </li>
+          <li>
+            <Tooltip text="Operações" side="right">
+              <Button variant="secondary" size="sm" asChild>
+                <Link href="/operacoes">
+                  <TrafficCone className="h-4 w-4" />
                 </Link>
               </Button>
             </Tooltip>
