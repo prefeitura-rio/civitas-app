@@ -71,10 +71,11 @@ export function OperationFormDialog({
   const { mutateAsync: updateOperationMutation, isPending: isPendingUpdate } =
     useMutation({
       mutationFn: updateOperation,
-      onSuccess: () => {
+      onSuccess: ({ data }) => {
         queryClient.invalidateQueries({
           queryKey: ['operations'],
         })
+        toast.success(`Operação ${data.title} foi criada com sucesso.`)
       },
       onError: () => {
         toast.error(genericErrorMessage)
@@ -104,18 +105,10 @@ export function OperationFormDialog({
         description: props.description,
       })
     } else {
-      const response = createOperationMutation({
+      await createOperationMutation({
         title: props.title,
         description: props.description,
       })
-      toast.promise(response, {
-        loading: `Criando operação ${props?.title}...`,
-        success: (data) => {
-          return `Operação ${data.data.title} criada com sucesso!`
-        },
-        error: genericErrorMessage,
-      })
-      await response
     }
     handleOnOpenChange(false)
   }
