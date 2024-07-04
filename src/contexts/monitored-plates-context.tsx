@@ -43,8 +43,8 @@ export const monitoredPlateFormSchema = z.object({
   additionalInfo: z.unknown(),
   notificationChannels: z
     .object({
-      label: z.string().min(1),
-      value: z.string().min(1),
+      label: z.string().min(1, { message: 'Campo obrigatório' }),
+      value: z.string().min(1, { message: 'Campo obrigatório' }),
     })
     .array()
     .min(1, { message: 'Pelo menos um canal deve ser selecionado' }),
