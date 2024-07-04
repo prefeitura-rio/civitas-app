@@ -23,10 +23,10 @@ export default function Home() {
           </Card>
         </Link>
 
-        {/* <Link href="/monitoramento-de-placas" className="col-span-2">
+        <Link href="/placas-monitoradas" className="col-span-2">
           <Card className="h-full hover:bg-border">
             <CardHeader>
-              <CardTitle>Monitoramento de Placas</CardTitle>
+              <CardTitle>Placas Monitoradas</CardTitle>
               <CardDescription>
                 Cadastre uma placa e receba uma notificação quando ela for
                 vista.
