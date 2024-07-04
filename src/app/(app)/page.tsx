@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
-export default function App() {
+export default function Home() {
   return (
     <div className="page-content flex items-center justify-center">
       <div className="grid grid-cols-4 gap-4">
@@ -33,7 +33,18 @@ export default function App() {
               </CardDescription>
             </CardHeader>
           </Card>
-        </Link> */}
+        </Link>
+
+        <Link href="/placas-monitoradas" className="col-span-2">
+          <Card className="h-full hover:bg-border">
+            <CardHeader>
+              <CardTitle>Operações</CardTitle>
+              <CardDescription>
+                Cadastre uma operação para ser vinculada a uma placa monitorada.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
     </div>
   )
