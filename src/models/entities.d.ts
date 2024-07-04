@@ -4,6 +4,14 @@ export type Operation = {
   description: string
 }
 
+export type NotificationChannel = {
+  id: string
+  title: string
+  channelType: string
+  parameters: JSON
+  active: boolean
+}
+
 export type MonitoredPlate = {
   id: string
   plate: string
@@ -11,9 +19,27 @@ export type MonitoredPlate = {
   notes: string
   active: boolean
   additionalInfo: JSON
-  notificationChannels: string[]
+  notificationChannels: NotificationChannel[]
+}
+
+export type BackendMonitoredPlate = {
+  id: string
+  plate: string
+  operation: Operation
+  notes: string
+  active: boolean
+  additional_info: JSON
+  notification_channels: string[]
 }
 
 export type AdditionalInfo = {
   Operação?: string
+}
+
+export type BackendNotificationChannel = {
+  id: string
+  title: string
+  channel_type: string
+  parameters: JSON
+  active: boolean
 }
