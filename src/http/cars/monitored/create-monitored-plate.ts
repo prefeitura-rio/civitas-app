@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { MonitoredPlate, Operation } from '@/models/operation'
+import type { MonitoredPlate, Operation } from '@/models/entities'
 
 export interface CreateMonitoredPlateRequest
   extends Pick<MonitoredPlate, 'plate' | 'notificationChannels'>,

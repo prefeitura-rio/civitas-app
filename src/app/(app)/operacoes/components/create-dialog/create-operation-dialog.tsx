@@ -1,8 +1,8 @@
+'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -10,31 +10,29 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  type CreateOperationForm,
+  createOperationFormSchema,
+} from '@/contexts/operations-context'
+import { useOperations } from '@/hooks/use-operations'
 import { createOperation } from '@/http/operations/create-operation'
 import { queryClient } from '@/lib/react-query'
+import { genericErrorMessage } from '@/utils/error-handlers'
 
-const operationFormSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-})
-
-type OperationForm = z.infer<typeof operationFormSchema>
-
-export function OperationDialog() {
-  const [open, setOpen] = useState(false)
+export function CreateOperationDialog() {
+  const { createDialogDisclosure } = useOperations()
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<OperationForm>({
-    resolver: zodResolver(operationFormSchema),
+  } = useForm<CreateOperationForm>({
+    resolver: zodResolver(createOperationFormSchema),
   })
 
   const { mutateAsync: createOperationMutation } = useMutation({
@@ -42,36 +40,25 @@ export function OperationDialog() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations'] })
     },
+    onError: () => {
+      toast.error(genericErrorMessage)
+    },
   })
 
-  function onSubmit(props: OperationForm) {
-    createOperationMutation({
+  async function onSubmit(props: CreateOperationForm) {
+    await createOperationMutation({
       title: props.title,
       description: props.description,
     })
-    onClose()
-  }
-
-  function onClose() {
-    setOpen(false)
     reset()
-  }
-
-  function handleOnOpenChange(isOpen: boolean) {
-    if (isOpen) {
-      setOpen(true)
-    } else {
-      onClose()
-    }
+    createDialogDisclosure.onClose()
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOnOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="link" type="button" className="h-1 p-0 text-xs">
-          Criar operação
-        </Button>
-      </DialogTrigger>
+    <Dialog
+      open={createDialogDisclosure.isOpen}
+      onOpenChange={createDialogDisclosure.onOpenChange}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Criar Operação</DialogTitle>
