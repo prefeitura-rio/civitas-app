@@ -18,3 +18,7 @@ export const genericErrorMessage =
 export function isValidationError(error: unknown) {
   return isApiError(error) && error.response?.status === 422
 }
+
+export function isConflictError(error: unknown) {
+  return isApiError(error) && error.response?.status === 409
+}
