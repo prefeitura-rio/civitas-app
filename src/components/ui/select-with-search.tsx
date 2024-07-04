@@ -21,12 +21,14 @@ interface SelectWithSearchProps {
   value: string
   options: ComboboxOption[]
   onSelect: (item: ComboboxOption) => void
+  placeholder: string
 }
 
 export function SelectWithSearch({
   value,
   options,
   onSelect,
+  placeholder,
 }: SelectWithSearchProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -43,14 +45,14 @@ export function SelectWithSearch({
         >
           {value
             ? options.find((item) => item.label === value)?.label
-            : 'Select language'}
+            : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[29rem] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." className="h-9" />
-          <CommandEmpty>No framework found.</CommandEmpty>
+          <CommandInput placeholder="Pesquise" className="h-9" />
+          <CommandEmpty>{}</CommandEmpty>
           <CommandGroup>
             <CommandList>
               {options.map((item) => (

@@ -14,9 +14,9 @@ import type { MonitoredPlate } from '@/models/entities'
 interface MonitoredPlatesContextProps {
   formDialogDisclosure: UseDisclosureReturn
   deleteAlertDisclosure: UseDisclosureReturn
-  dialogInitialData: Pick<MonitoredPlate, 'id'> | null
+  dialogInitialData: Pick<MonitoredPlate, 'plate'> | null
   setDialogInitialData: Dispatch<
-    SetStateAction<Pick<MonitoredPlate, 'id'> | null>
+    SetStateAction<Pick<MonitoredPlate, 'plate'> | null>
   >
   onDeleteMonitoredPlateProps: Pick<MonitoredPlate, 'plate'> | null
   setOnDeleteMonitoredPlateProps: Dispatch<
@@ -43,11 +43,11 @@ export const monitoredPlateFormSchema = z.object({
   additionalInfo: z.unknown(),
   notificationChannels: z
     .object({
-      label: z.string(),
-      value: z.string(),
+      label: z.string().min(1),
+      value: z.string().min(1),
     })
     .array()
-    .nonempty({ message: 'Pelo menos um canal deve ser selecionado' }),
+    .min(1, { message: 'Pelo menos um canal deve ser selecionado' }),
 })
 
 export type MonitoredPlateForm = z.infer<typeof monitoredPlateFormSchema>
@@ -59,7 +59,7 @@ export function MonitoredPlatesContextProvider({
   const deleteAlertDisclosure = useDisclosure()
   const [dialogInitialData, setDialogInitialData] = useState<Pick<
     MonitoredPlate,
-    'id'
+    'plate'
   > | null>(null)
   const [onDeleteMonitoredPlateProps, setOnDeleteMonitoredPlateProps] =
     useState<Pick<MonitoredPlate, 'plate'> | null>(null)

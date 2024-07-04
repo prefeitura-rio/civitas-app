@@ -1,10 +1,15 @@
 import { api } from '@/lib/api'
-import type { MonitoredPlate, Operation } from '@/models/entities'
+import type {
+  BackendMonitoredPlate,
+  MonitoredPlate,
+  Operation,
+} from '@/models/entities'
 
 export interface CreateMonitoredPlateRequest
-  extends Pick<MonitoredPlate, 'plate' | 'notificationChannels'>,
+  extends Pick<MonitoredPlate, 'plate'>,
     Partial<Pick<MonitoredPlate, 'additionalInfo' | 'active' | 'notes'>> {
   operationId: Operation['id']
+  notificationChannels: string[]
 }
 
 export function createMonitoredPlate({
@@ -15,7 +20,7 @@ export function createMonitoredPlate({
   additionalInfo,
   notificationChannels,
 }: CreateMonitoredPlateRequest) {
-  const response = api.post<MonitoredPlate>('/cars/monitored', {
+  const response = api.post<BackendMonitoredPlate>('/cars/monitored', {
     plate,
     operation_id: operationId,
     notes,
