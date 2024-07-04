@@ -35,7 +35,7 @@ export default function Home() {
           </Card>
         </Link>
 
-        <Link href="/placas-monitoradas" className="col-span-2">
+        <Link href="/operacoes" className="col-span-2">
           <Card className="h-full hover:bg-border">
             <CardHeader>
               <CardTitle>Operações</CardTitle>
