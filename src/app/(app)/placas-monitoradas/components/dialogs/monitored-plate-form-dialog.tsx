@@ -17,8 +17,8 @@ import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import MultipleSelector from '@/components/ui/multiselect-with-search'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
-// import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Spinner } from '@/components/ui/spinner'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import {
   type MonitoredPlateForm,
@@ -55,10 +55,19 @@ export function MonitoredPlateFormDialog({
     handleSubmit,
     setValue,
     control,
+    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<MonitoredPlateForm>({
     resolver: zodResolver(monitoredPlateFormSchema),
+    defaultValues: {
+      active: true,
+      notes: '',
+      operation: {
+        id: '',
+        title: '',
+      },
+    },
   })
 
   const {
@@ -194,6 +203,13 @@ export function MonitoredPlateFormDialog({
     }
   }, [isSubmitting, isPendingCreate, isPendingUpdate, isLoadingMonitoredPlates])
 
+  console.table(errors)
+  console.log({
+    operationTitle: watch('operation.title'),
+    operationId: watch('operation.id'),
+    operation: watch('operation'),
+    channels: watch('notificationChannels'),
+  })
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
@@ -253,7 +269,7 @@ export function MonitoredPlateFormDialog({
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
               <Label>Canal de notificação</Label>
-              <InputError message={errors.operation?.title?.message} />
+              <InputError message={errors.notificationChannels?.message} />
             </div>
             <Controller
               control={control}
@@ -275,6 +291,25 @@ export function MonitoredPlateFormDialog({
               )}
             />
           </div>
+
+          <Controller
+            control={control}
+            name="active"
+            render={({ field }) => {
+              return (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="mapStyle"
+                    size="sm"
+                    checked={field.value}
+                    onCheckedChange={(checked) => setValue('active', checked)}
+                  />
+                  {/* <span>Status: </span> */}
+                  <span>{field.value ? 'Ativo' : 'Inativo'}</span>
+                </div>
+              )
+            }}
+          />
 
           <div className="mt-4 flex w-full justify-end">
             <Button type="submit" disabled={isLoading}>
