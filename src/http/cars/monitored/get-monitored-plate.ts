@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { MonitoredPlate } from '@/models/operation'
+import type { MonitoredPlate } from '@/models/entities'
 
 interface GetMonitoredPlateRequest {
   plate: string

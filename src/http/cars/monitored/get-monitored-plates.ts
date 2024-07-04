@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { MonitoredPlate } from '@/models/operation'
+import type { MonitoredPlate } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
 
 interface GetMonitoredPlatesRequest extends PaginationRequest {}
