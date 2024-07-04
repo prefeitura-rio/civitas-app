@@ -2,9 +2,12 @@ import { api } from '@/lib/api'
 import type { MonitoredPlate, Operation } from '@/models/entities'
 
 interface UpdateMonitoredPlateRequest
-  extends Partial<Omit<MonitoredPlate, 'id' | 'operation'>> {
+  extends Partial<
+    Omit<MonitoredPlate, 'id' | 'operation' | 'notificationChannels'>
+  > {
   plate: MonitoredPlate['plate']
   operationId?: Operation['id']
+  notificationChannels?: string[]
 }
 
 export function updateMonitoredPlate({

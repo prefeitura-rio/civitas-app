@@ -1,18 +1,23 @@
 import { api } from '@/lib/api'
-import type { MonitoredPlate } from '@/models/entities'
+import type { BackendMonitoredPlate, MonitoredPlate } from '@/models/entities'
 
 interface GetMonitoredPlateRequest {
   plate: string
 }
 
-export type GetMonitoredPlatesResponse = MonitoredPlate
+export async function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
+  const originalResponse = await api.get<BackendMonitoredPlate>(
+    `cars/monitored/${plate}`,
+  )
 
-export function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
-  const response = api.get<GetMonitoredPlatesResponse>('cars/monitored', {
-    params: {
-      plate,
-    },
-  })
+  const response = {
+    ...originalResponse,
+    data: {
+      ...originalResponse.data,
+      additionalInfo: originalResponse.data.additional_info,
+      notificationChannels: originalResponse.data.notification_channels,
+    } as MonitoredPlate,
+  }
 
   return response
 }

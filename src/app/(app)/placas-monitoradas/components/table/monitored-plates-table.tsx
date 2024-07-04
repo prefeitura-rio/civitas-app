@@ -48,7 +48,6 @@ export function MonitoredPlatesTable() {
       accessorKey: 'notificationChannels',
       header: 'Canais de notificação',
       cell: ({ row }) => {
-        console.log({ row })
         if (row.original.notificationChannels) {
           const concatenated = row.original.notificationChannels.reduce(
             (acc, cur) => (acc ? `${acc}, ${cur.title}` : cur.title),
@@ -75,7 +74,7 @@ export function MonitoredPlatesTable() {
               className="h-8 w-8 p-0"
               type="button"
               onClick={() => {
-                setDialogInitialData({ id: row.original.id })
+                setDialogInitialData({ plate: row.original.plate })
                 formDialogDisclosure.onOpen()
               }}
             >
