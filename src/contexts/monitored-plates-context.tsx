@@ -42,7 +42,10 @@ export const monitoredPlateFormSchema = z.object({
   notes: z.string(),
   additionalInfo: z.unknown(),
   notificationChannels: z
-    .string()
+    .object({
+      label: z.string(),
+      value: z.string(),
+    })
     .array()
     .nonempty({ message: 'Pelo menos um canal deve ser selecionado' }),
 })

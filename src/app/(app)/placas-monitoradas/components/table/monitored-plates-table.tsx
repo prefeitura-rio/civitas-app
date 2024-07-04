@@ -48,9 +48,10 @@ export function MonitoredPlatesTable() {
       accessorKey: 'notificationChannels',
       header: 'Canais de notificação',
       cell: ({ row }) => {
+        console.log({ row })
         if (row.original.notificationChannels) {
           const concatenated = row.original.notificationChannels.reduce(
-            (acc, cur) => (acc ? `${acc}, ${cur}` : cur),
+            (acc, cur) => (acc ? `${acc}, ${cur.title}` : cur.title),
             '',
           )
           return <span>{concatenated}</span>
