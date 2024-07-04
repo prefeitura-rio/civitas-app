@@ -93,9 +93,9 @@ export function MonitoredPlateFormDialog({
 
   const { data: monitoredPlatesResponse, isLoading: isLoadingMonitoredPlates } =
     useQuery({
-      queryKey: [`cars/monitored/${initialData?.id}`],
+      queryKey: [`cars/monitored/${initialData?.plate}`],
       queryFn: () =>
-        initialData ? getMonitoredPlate({ plate: initialData?.id }) : null,
+        initialData ? getMonitoredPlate({ plate: initialData?.plate }) : null,
     })
 
   const { data: operationsResponse } = useQuery({
@@ -108,7 +108,6 @@ export function MonitoredPlateFormDialog({
   })
 
   const operations = operationsResponse?.data.items || []
-  console.log({ operations })
   function handleOnOpenChange(open: boolean) {
     if (open) {
       onOpen()
@@ -116,6 +115,9 @@ export function MonitoredPlateFormDialog({
       onClose()
       reset()
       setInitialData(null)
+      setValue('notificationChannels', [])
+      setValue('operation.id', '')
+      setValue('operation.title', '')
     }
   }
 
@@ -123,7 +125,7 @@ export function MonitoredPlateFormDialog({
     const notificationChannels = props.notificationChannels.map(
       (item) => item.value,
     )
-    if (initialData?.id) {
+    if (initialData?.plate) {
       await updateMonitoredPlateMutation({
         plate: props.plate,
         active: props.active,
@@ -159,13 +161,21 @@ export function MonitoredPlateFormDialog({
       setValue('active', monitoredPlatesResponse.data.active)
       setValue('additionalInfo', monitoredPlatesResponse.data.additionalInfo)
       setValue('notes', monitoredPlatesResponse.data.notes)
-      setValue('operation.id', monitoredPlatesResponse.data.operation.id)
-      setValue('operation.title', monitoredPlatesResponse.data.operation.title)
+      console.log({ id: monitoredPlatesResponse.data })
+      setValue('operation.id', monitoredPlatesResponse.data.operation.id || '')
+      setValue(
+        'operation.title',
+        monitoredPlatesResponse.data.operation.title || '',
+      )
       if (monitoredPlatesResponse.data.notificationChannels.length > 0) {
-        // setValue('notificationChannels', [
-        //   monitoredPlatesResponse.data.notificationChannels[0],
-        //   ...monitoredPlatesResponse.data.notificationChannels,
-        // ])
+        const channelOptions =
+          monitoredPlatesResponse.data.notificationChannels.map((item) => {
+            return {
+              label: item.title,
+              value: item.id,
+            }
+          })
+        setValue('notificationChannels', channelOptions)
       }
       setIsLoading(false)
     }
@@ -190,7 +200,7 @@ export function MonitoredPlateFormDialog({
         <DialogHeader>
           <DialogTitle>Criar Operação</DialogTitle>
         </DialogHeader>
-        <form className="flex flex-col gap-2" onSubmit={handleSubmit(onSubmit)}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
               <Label htmlFor="plate">Placa</Label>
@@ -233,6 +243,8 @@ export function MonitoredPlateFormDialog({
                     }
                   })}
                   value={field.value}
+                  placeholder="Selecione uma operação"
+                  // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
                 />
               )}
             />

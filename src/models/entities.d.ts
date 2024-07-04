@@ -29,7 +29,7 @@ export type BackendMonitoredPlate = {
   notes: string
   active: boolean
   additional_info: JSON
-  notification_channels: string[]
+  notification_channels: NotificationChannel[]
 }
 
 export type AdditionalInfo = {
