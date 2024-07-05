@@ -10,7 +10,7 @@ export function SideNavMenu() {
   return (
     <div className="flex h-screen flex-col items-center bg-card py-2">
       <div className="mb-8 h-12 w-12 p-2">
-        <Tooltip text="Início" side="right">
+        <Tooltip text="Início" side="right" asChild>
           <Link href="/">
             <Image
               src={logo}
@@ -23,7 +23,7 @@ export function SideNavMenu() {
       <ul className="flex h-full flex-col justify-between">
         <div className="space-y-2">
           <li>
-            <Tooltip text="Consulta de placas" side="right">
+            <Tooltip text="Consulta de placas" side="right" asChild>
               <Button variant="secondary" size="sm" asChild>
                 <Link href="/consulta-de-placas">
                   <Search className="h-4 w-4" />
@@ -32,7 +32,7 @@ export function SideNavMenu() {
             </Tooltip>
           </li>
           <li>
-            <Tooltip text="Placas Monitoradas" side="right">
+            <Tooltip text="Placas Monitoradas" side="right" asChild>
               <Button variant="secondary" size="sm" asChild>
                 <Link href="/placas-monitoradas">
                   <Siren className="h-4 w-4" />
@@ -41,7 +41,7 @@ export function SideNavMenu() {
             </Tooltip>
           </li>
           <li>
-            <Tooltip text="Operações" side="right">
+            <Tooltip text="Operações" side="right" asChild>
               <Button variant="secondary" size="sm" asChild>
                 <Link href="/operacoes">
                   <TrafficCone className="h-4 w-4" />
@@ -51,7 +51,7 @@ export function SideNavMenu() {
           </li>
         </div>
         <li className="mb-2">
-          <Tooltip text="Sair" side="right">
+          <Tooltip text="Sair" side="right" asChild>
             <Button variant="secondary" size="sm" asChild>
               <a href="/api/auth/sign-out">
                 <LogOut className="h-4 w-4" />
