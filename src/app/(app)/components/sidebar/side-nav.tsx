@@ -61,7 +61,10 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                   <AccordionTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="group relative flex justify-between px-4 py-2 text-sm tracking-tight duration-200 hover:bg-muted hover:no-underline"
+                      className={cn(
+                        'group relative flex items-center justify-between text-sm tracking-tight duration-200 hover:bg-muted hover:no-underline',
+                      )}
+                      size="sm"
                     >
                       <item.icon className={cn('h-4 w-4', item.color)} />
                       <div
@@ -100,6 +103,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                           onClick={() => {
                             if (setOpen) setOpen(false)
                           }}
+                          size="sm"
                         >
                           <Link
                             href={child.href}
@@ -127,37 +131,41 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
               </AccordionItem>
             </Accordion>
           ) : (
-            <Tooltip
-              asChild
-              key={item.title}
-              text={item.title}
-              side="right"
-              disabled={isOpen}
-            >
-              <Button
-                variant="ghost"
-                className={cn(
-                  'group relative flex justify-start',
-                  path === item.href && 'bg-muted hover:bg-muted',
-                )}
-                onClick={() => {
-                  if (setOpen) setOpen(false)
-                }}
+            // Essa div evita um bug de offset do tooltip
+            <div>
+              <Tooltip
                 asChild
+                key={item.title}
+                text={item.title}
+                side="right"
+                disabled={isOpen}
               >
-                <Link href={item.href}>
-                  <item.icon className={cn('h-4 w-4', item.color)} />
-                  <span
-                    className={cn(
-                      'absolute left-10 text-sm tracking-tight duration-200',
-                      !isOpen && className,
-                    )}
-                  >
-                    {item.title}
-                  </span>
-                </Link>
-              </Button>
-            </Tooltip>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'group relative flex justify-start',
+                    path === item.href && 'bg-muted hover:bg-muted',
+                  )}
+                  onClick={() => {
+                    if (setOpen) setOpen(false)
+                  }}
+                  asChild
+                  size="sm"
+                >
+                  <Link href={item.href}>
+                    <item.icon className={cn('h-4 w-4', item.color)} />
+                    <span
+                      className={cn(
+                        'absolute left-10 text-sm tracking-tight duration-200',
+                        !isOpen && className,
+                      )}
+                    >
+                      {item.title}
+                    </span>
+                  </Link>
+                </Button>
+              </Tooltip>
+            </div>
           ),
         )}
       </div>
@@ -169,6 +177,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
           }}
           variant="ghost"
           className={'group relative flex justify-start'}
+          size="sm"
         >
           <LogOut className="h-4 w-4 text-muted-foreground" />
           <span
