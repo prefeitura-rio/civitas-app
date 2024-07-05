@@ -4,7 +4,7 @@ import { isAuthenticated } from '@/auth/auth'
 import { SidebarContextProvider } from '@/contexts/sidebar-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 
-import Sidebar from './components/sidebar'
+import { Sidebar } from './components/sidebar/sidebar'
 
 export default function AppLayout({
   children,
@@ -19,7 +19,6 @@ export default function AppLayout({
     <div className="flex min-h-screen">
       <CustomQueryClientProvider>
         <SidebarContextProvider>
-          {/* <SideNavMenu /> */}
           <Sidebar />
           {children}
         </SidebarContextProvider>
