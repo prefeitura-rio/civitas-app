@@ -172,7 +172,6 @@ export function MonitoredPlateFormDialog({
       setValue('active', monitoredPlatesResponse.data.active)
       setValue('additionalInfo', monitoredPlatesResponse.data.additionalInfo)
       setValue('notes', monitoredPlatesResponse.data.notes)
-      console.log({ id: monitoredPlatesResponse.data })
       setValue('operation.id', monitoredPlatesResponse.data.operation.id || '')
       setValue(
         'operation.title',
@@ -260,6 +259,7 @@ export function MonitoredPlateFormDialog({
                       value: item.id,
                     }
                   })}
+                  disabled={isLoading}
                   value={field.value}
                   placeholder="Selecione uma operação"
                   // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
@@ -287,8 +287,9 @@ export function MonitoredPlateFormDialog({
                       value: item.id,
                     }
                   })}
+                  disabled={isLoading}
                   placeholder="Selecione um canal"
-                  emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
+                  emptyIndicator={<p>Nenhum resultado encontrado.</p>}
                 />
               )}
             />
