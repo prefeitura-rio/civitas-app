@@ -172,7 +172,6 @@ export function MonitoredPlateFormDialog({
       setValue('active', monitoredPlatesResponse.data.active)
       setValue('additionalInfo', monitoredPlatesResponse.data.additionalInfo)
       setValue('notes', monitoredPlatesResponse.data.notes)
-      console.log({ id: monitoredPlatesResponse.data })
       setValue('operation.id', monitoredPlatesResponse.data.operation.id || '')
       setValue(
         'operation.title',
