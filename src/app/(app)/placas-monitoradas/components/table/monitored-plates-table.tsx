@@ -75,7 +75,7 @@ export function MonitoredPlatesTable() {
       header: 'Status',
       cell: ({ row }) => {
         return (
-          <Tooltip text={row.original.active ? 'Ativo' : 'Inativo'}>
+          <Tooltip text={row.original.active ? 'Ativo' : 'Inativo'} asChild>
             <Switch
               id="active"
               size="sm"
