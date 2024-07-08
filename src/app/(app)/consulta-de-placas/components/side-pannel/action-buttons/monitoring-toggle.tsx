@@ -9,11 +9,13 @@ import { Toggle } from '@/components/ui/toggle'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useDisclosure } from '@/hooks/use-disclosure'
 import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
+import { useRole } from '@/hooks/use-role'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
 import { isApiError } from '@/lib/api'
 import { queryClient } from '@/lib/react-query'
+import { notAllowed } from '@/utils/template-messages'
 
 import type { FilterForm } from '../filter-form'
 import { DisableMonitoringAlertDialog } from './disable-monitoring-alert-dialog'
@@ -25,6 +27,7 @@ export function MonitoringToggle() {
   const { setDialogInitialData } = useMonitoredPlates()
   const [monitored, setMonitored] = useState(false)
   const { lastSearchParams, isLoading: isLoadingGetCarPath } = useCarPath()
+  const { isAdmin } = useRole()
 
   const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
     queryKey: [`cars/monitored/${lastSearchParams?.placa}`],
@@ -50,7 +53,10 @@ export function MonitoringToggle() {
     mutationFn: updateMonitoredPlate,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [`cars/monitored/${getValues('plateNumer')}`],
+        queryKey: [
+          `cars/monitored/${getValues('plateNumer')}`,
+          'cars/monitored',
+        ],
       })
     },
   })
@@ -84,14 +90,22 @@ export function MonitoringToggle() {
       {lastSearchParams && (
         <div>
           <Tooltip
-            text="group Monitorar placa"
-            className="cursor-default"
-            disabled={isLoadingGetCarPath || isLoadingMonitoredPlate}
+            text={
+              monitored ? 'Desativar monitoramento' : 'Ativar monitoramento'
+            }
+            disabled={
+              isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
+            }
+            disabledText={
+              isLoadingGetCarPath || isLoadingMonitoredPlate ? '' : notAllowed
+            }
           >
             <Toggle
               pressed={monitored}
               onPressedChange={handleSetMonitored}
-              disabled={isLoadingGetCarPath || isLoadingMonitoredPlate}
+              disabled={
+                isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
+              }
               className="cursor-default"
             >
               <Siren className="h-4 w-4" />
