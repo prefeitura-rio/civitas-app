@@ -37,12 +37,14 @@ interface MonitoredPlateDialogProps {
   isOpen: boolean
   onClose: () => void
   onOpen: () => void
+  shouldFetchData?: boolean
 }
 
 export function MonitoredPlateFormDialog({
   isOpen,
   onClose,
   onOpen,
+  shouldFetchData = true,
 }: MonitoredPlateDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const {
@@ -114,7 +116,9 @@ export function MonitoredPlateFormDialog({
     useQuery({
       queryKey: [`cars/monitored/${initialData?.plate}`],
       queryFn: () =>
-        initialData ? getMonitoredPlate({ plate: initialData?.plate }) : null,
+        initialData && shouldFetchData
+          ? getMonitoredPlate({ plate: initialData.plate })
+          : null,
     })
 
   const { data: operationsResponse } = useQuery({
@@ -167,7 +171,13 @@ export function MonitoredPlateFormDialog({
   }
 
   useEffect(() => {
-    if (initialData && isOpen && !isLoading && monitoredPlatesResponse) {
+    if (
+      initialData &&
+      isOpen &&
+      !isLoading &&
+      monitoredPlatesResponse &&
+      shouldFetchData
+    ) {
       setValue('plate', monitoredPlatesResponse.data.plate)
       setValue('active', monitoredPlatesResponse.data.active)
       setValue('additionalInfo', monitoredPlatesResponse.data.additionalInfo)
@@ -188,6 +198,10 @@ export function MonitoredPlateFormDialog({
         setValue('notificationChannels', channelOptions)
       }
       setIsLoading(false)
+    }
+
+    if (initialData && isOpen && !shouldFetchData) {
+      setValue('plate', initialData.plate)
     }
   }, [isOpen, isLoading, monitoredPlatesResponse])
 
@@ -215,7 +229,7 @@ export function MonitoredPlateFormDialog({
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Criar Operação</DialogTitle>
+          <DialogTitle>Monitorar nova placa</DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
