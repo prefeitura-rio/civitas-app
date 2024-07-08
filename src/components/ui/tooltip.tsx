@@ -16,7 +16,7 @@ interface TooltipProps {
   className?: string
   asChild?: boolean
   hideContent?: boolean
-  disabledText: string
+  disabledText?: string
 }
 
 export function Tooltip({
