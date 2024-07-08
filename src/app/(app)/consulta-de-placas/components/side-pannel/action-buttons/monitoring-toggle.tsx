@@ -1,5 +1,5 @@
 'use client'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Siren } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useFormContext } from 'react-hook-form'
@@ -11,13 +11,15 @@ import { useDisclosure } from '@/hooks/use-disclosure'
 import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
+import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
 import { isApiError } from '@/lib/api'
+import { queryClient } from '@/lib/react-query'
 
 import type { FilterForm } from '../filter-form'
 import { DisableMonitoringAlertDialog } from './disable-monitoring-alert-dialog'
 
 export function MonitoringToggle() {
-  const { isOpen, onClose, onOpen } = useDisclosure()
+  const monitoredPlateFormDialog = useDisclosure()
   const disableMonitoringAlertDisclosure = useDisclosure()
   const { getValues } = useFormContext<FilterForm>()
   const { setDialogInitialData } = useMonitoredPlates()
@@ -44,15 +46,25 @@ export function MonitoringToggle() {
     },
   })
 
+  const { mutateAsync: updateMonitoredPlateMutation } = useMutation({
+    mutationFn: updateMonitoredPlate,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`cars/monitored/${getValues('plateNumer')}`],
+      })
+    },
+  })
+
   function handleSetMonitored(shouldMonitor: boolean) {
     const plate = getValues('plateNumer')
 
     if (shouldMonitor) {
       if (response && response.data) {
         setMonitored(true)
+        updateMonitoredPlateMutation({ plate, active: true })
       } else {
         setDialogInitialData({ plate })
-        onOpen()
+        monitoredPlateFormDialog.onOpen()
       }
     } else {
       disableMonitoringAlertDisclosure.onOpen()
@@ -71,19 +83,24 @@ export function MonitoringToggle() {
     <>
       {lastSearchParams && (
         <div>
-          <Tooltip text="Monitorar placa" asChild>
+          <Tooltip
+            text="group Monitorar placa"
+            className="cursor-default"
+            disabled={isLoadingGetCarPath || isLoadingMonitoredPlate}
+          >
             <Toggle
               pressed={monitored}
               onPressedChange={handleSetMonitored}
               disabled={isLoadingGetCarPath || isLoadingMonitoredPlate}
+              className="cursor-default"
             >
               <Siren className="h-4 w-4" />
             </Toggle>
           </Tooltip>
           <MonitoredPlateFormDialog
-            isOpen={isOpen}
-            onClose={onClose}
-            onOpen={onOpen}
+            isOpen={monitoredPlateFormDialog.isOpen}
+            onClose={monitoredPlateFormDialog.onClose}
+            onOpen={monitoredPlateFormDialog.onOpen}
           />
           <DisableMonitoringAlertDialog
             isOpen={disableMonitoringAlertDisclosure.isOpen}

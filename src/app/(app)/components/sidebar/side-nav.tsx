@@ -56,7 +56,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                   asChild
                   text={item.title}
                   side="right"
-                  disabled={isOpen}
+                  hideContent={isOpen}
                 >
                   <AccordionTrigger asChild>
                     <Button
@@ -91,7 +91,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                         asChild
                         side="right"
                         text={child.title}
-                        disabled={isOpen}
+                        hideContent={isOpen}
                       >
                         <Button
                           asChild
@@ -138,7 +138,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                 key={item.title}
                 text={item.title}
                 side="right"
-                disabled={isOpen}
+                hideContent={isOpen}
               >
                 <Button
                   variant="ghost"
@@ -169,7 +169,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
           ),
         )}
       </div>
-      <Tooltip asChild text={'Sair'} side="right" disabled={isOpen}>
+      <Tooltip asChild text={'Sair'} side="right" hideContent={isOpen}>
         <Button
           onClick={() => {
             if (setOpen) setOpen(false)
