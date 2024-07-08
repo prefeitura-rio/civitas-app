@@ -84,4 +84,8 @@
     padding: 1rem;
     padding-top: 2rem;
   }
+
+  .A4 {
+    @apply m-auto flex h-[29cm] w-[21cm] flex-col gap-4 border-border bg-white px-[1.5cm] py-[1cm];
+  }
 }
