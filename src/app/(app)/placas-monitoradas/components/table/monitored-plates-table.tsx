@@ -11,10 +11,12 @@ import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMonitoredPlatesSearchParams } from '@/hooks/params/use-monitored-plates-search-params'
 import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
+import { useRole } from '@/hooks/use-role'
 import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
 import { queryClient } from '@/lib/react-query'
 import type { MonitoredPlate } from '@/models/entities'
+import { notAllowed } from '@/utils/template-messages'
 
 export function MonitoredPlatesTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
@@ -26,14 +28,16 @@ export function MonitoredPlatesTable() {
     deleteAlertDisclosure,
   } = useMonitoredPlates()
   const [plate, setPlate] = useState<string>()
+  const { isAdmin, isLoading: isRoleLoading } = useRole()
 
-  const { data: response, isLoading } = useQuery({
-    queryKey,
-    queryFn: () =>
-      getMonitoredPlates({
-        ...formattedSearchParams,
-      }),
-  })
+  const { data: MonitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
+    useQuery({
+      queryKey,
+      queryFn: () =>
+        getMonitoredPlates({
+          ...formattedSearchParams,
+        }),
+    })
 
   const {
     mutateAsync: updateMonitoredPlateMutation,
@@ -45,7 +49,7 @@ export function MonitoredPlatesTable() {
     },
   })
 
-  const data = response?.data
+  const data = MonitoredPlatesResponse?.data
 
   const columns: ColumnDef<MonitoredPlate>[] = [
     {
@@ -80,12 +84,20 @@ export function MonitoredPlatesTable() {
       header: 'Status',
       cell: ({ row }) => {
         return (
-          <Tooltip text={row.original.active ? 'Ativo' : 'Inativo'}>
+          <Tooltip
+            text={row.original.active ? 'Ativo' : 'Inativo'}
+            disabled={
+              (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
+            }
+            disabledText={notAllowed}
+          >
             <Switch
               id="active"
               size="sm"
               checked={row.original.active}
-              disabled={IsUpdatingLoading && plate === row.original.plate}
+              disabled={
+                (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
+              }
               className="disabled:cursor-default"
               onCheckedChange={() => {
                 setPlate(row.original.plate)
@@ -109,32 +121,51 @@ export function MonitoredPlatesTable() {
       cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              type="button"
-              onClick={() => {
-                setDialogInitialData({ plate: row.original.plate })
-                formDialogDisclosure.onOpen()
-              }}
+            <Tooltip
+              disabled={!isAdmin}
+              disabledText={notAllowed}
+              text="Editar"
             >
-              <span className="sr-only">Editar linha</span>
-              <PencilLine className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              type="button"
-              onClick={() => {
-                setOnDeleteMonitoredPlateProps({
-                  plate: row.original.plate,
-                })
-                deleteAlertDisclosure.onOpen()
-              }}
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                type="button"
+                onClick={() => {
+                  setDialogInitialData({ plate: row.original.plate })
+                  formDialogDisclosure.onOpen()
+                }}
+                disabled={!isAdmin}
+              >
+                <span className="sr-only">Editar linha</span>
+                <PencilLine className="h-4 w-4" />
+              </Button>
+            </Tooltip>
+            <Tooltip
+              text={row.original.active ? 'Ativo' : 'Inativo'}
+              disabled={
+                (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
+              }
+              disabledText={notAllowed}
             >
-              <span className="sr-only">Excluir linha</span>
-              <Trash className="h-4 w-4" />
-            </Button>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                type="button"
+                onClick={() => {
+                  setOnDeleteMonitoredPlateProps({
+                    plate: row.original.plate,
+                  })
+                  deleteAlertDisclosure.onOpen()
+                }}
+                disabled={
+                  (IsUpdatingLoading && plate === row.original.plate) ||
+                  !isAdmin
+                }
+              >
+                <span className="sr-only">Excluir linha</span>
+                <Trash className="h-4 w-4" />
+              </Button>
+            </Tooltip>
           </div>
         </div>
       ),
@@ -146,7 +177,7 @@ export function MonitoredPlatesTable() {
       <DataTable
         columns={columns}
         data={data?.items || []}
-        isLoading={isLoading}
+        isLoading={isMonitoredPlatesLoading || isRoleLoading}
       />
       {data && (
         <Pagination
