@@ -7,13 +7,13 @@ export const navItems: NavItem[] = [
     title: 'Início',
     icon: Home,
     href: '/',
-    color: 'text-muted-foreground',
+    color: 'text-primary',
   },
   {
     title: 'Cerco Digital',
     icon: Radar,
     href: '/consulta-de-placas',
-    color: 'text-muted-foreground',
+    color: 'text-primary',
     isChidren: true,
     children: [
       {
