@@ -10,12 +10,13 @@ import { cn } from '@/lib/utils'
 
 interface TooltipProps {
   children: ReactNode
-  text: string
+  text?: string
   side?: 'left' | 'right' | 'bottom' | 'top'
   disabled?: boolean
   className?: string
   asChild?: boolean
   hideContent?: boolean
+  disabledText: string
 }
 
 export function Tooltip({
@@ -26,6 +27,7 @@ export function Tooltip({
   className = '',
   asChild = false,
   hideContent = false,
+  disabledText,
 }: TooltipProps) {
   return (
     <TooltipProvider delayDuration={200} skipDelayDuration={0}>
@@ -39,7 +41,7 @@ export function Tooltip({
             className={cn('max-w-sm text-justify', className)}
             sideOffset={10}
           >
-            <p>{text}</p>
+            <p>{disabled && disabledText ? disabledText : text}</p>
           </TooltipContent>
         )}
       </RawTooltip>
