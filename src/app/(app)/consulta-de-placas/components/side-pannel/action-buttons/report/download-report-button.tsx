@@ -13,7 +13,7 @@ export default function DownloadReportButton() {
   const { trips, isLoading } = useCarPath()
   return (
     <Dialog>
-      <Tooltip asChild text="Imprimir relatório">
+      <Tooltip asChild text="Imprimir relatório" disabled={isLoading}>
         <DialogTrigger asChild>
           <Button variant="outline" disabled={isLoading}>
             <Printer className="h-4 w-4" />

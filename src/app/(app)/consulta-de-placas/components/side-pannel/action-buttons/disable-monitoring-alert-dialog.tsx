@@ -25,7 +25,7 @@ export function DisableMonitoringAlertDialog({
   plate,
 }: DisableMonitoringAlertDialogProps) {
   const { mutateAsync: updateMonitoredPlateMutation } = useMutation({
-    mutationFn: () => updateMonitoredPlate({ plate }),
+    mutationFn: () => updateMonitoredPlate({ plate, active: false }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`cars/monitored/${plate}`] })
     },
