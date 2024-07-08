@@ -2,6 +2,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { PencilLine, Trash } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
@@ -24,6 +25,7 @@ export function MonitoredPlatesTable() {
     setOnDeleteMonitoredPlateProps,
     deleteAlertDisclosure,
   } = useMonitoredPlates()
+  const [plate, setPlate] = useState<string>()
 
   const { data: response, isLoading } = useQuery({
     queryKey,
@@ -33,7 +35,10 @@ export function MonitoredPlatesTable() {
       }),
   })
 
-  const { mutateAsync: updateMonitoredPlateMutation } = useMutation({
+  const {
+    mutateAsync: updateMonitoredPlateMutation,
+    isPending: IsUpdatingLoading,
+  } = useMutation({
     mutationFn: updateMonitoredPlate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cars/monitored'] })
@@ -75,17 +80,20 @@ export function MonitoredPlatesTable() {
       header: 'Status',
       cell: ({ row }) => {
         return (
-          <Tooltip text={row.original.active ? 'Ativo' : 'Inativo'} asChild>
+          <Tooltip text={row.original.active ? 'Ativo' : 'Inativo'}>
             <Switch
               id="active"
               size="sm"
               checked={row.original.active}
-              onCheckedChange={() =>
+              disabled={IsUpdatingLoading && plate === row.original.plate}
+              className="disabled:cursor-default"
+              onCheckedChange={() => {
+                setPlate(row.original.plate)
                 updateMonitoredPlateMutation({
                   plate: row.original.plate,
                   active: !row.original.active,
                 })
-              }
+              }}
             />
           </Tooltip>
         )
