@@ -9,7 +9,7 @@ import { Pagination } from '@/components/ui/pagination'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useOperationsSearchParams } from '@/hooks/params/use-operations-search-params'
 import { useOperations } from '@/hooks/use-operations'
-import { useRole } from '@/hooks/use-role'
+import { useProfile } from '@/hooks/use-profile'
 import { getOperations } from '@/http/operations/get-operations'
 import type { Operation } from '@/models/entities'
 import { notAllowed } from '@/utils/template-messages'
@@ -23,7 +23,7 @@ export function OperationsTable() {
     setOnDeleteOperationProps,
     deleteAlertDisclosure,
   } = useOperations()
-  const { isAdmin } = useRole()
+  const { isAdmin } = useProfile()
 
   const { data: response, isLoading } = useQuery({
     queryKey,

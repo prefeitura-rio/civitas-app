@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import React, { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useProfile } from '@/hooks/use-profile'
 import { useSidebar } from '@/hooks/use-sidebar'
 import { cn } from '@/lib/utils'
 
@@ -16,12 +18,15 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const { isOpen, toggle } = useSidebar()
   const [status, setStatus] = useState(false)
+  const { profile } = useProfile()
 
   const handleToggle = () => {
     setStatus(true)
     toggle()
     setTimeout(() => setStatus(false), 500)
   }
+
+  console.log({ profile })
 
   return (
     <nav
@@ -44,6 +49,17 @@ export function Sidebar({ className }: SidebarProps) {
         )}
       </Button>
       <div className="h-full space-y-1 px-2 py-4 pt-10">
+        <div className="flex justify-center py-4">
+          {profile ? (
+            isOpen ? (
+              <span>{profile.username}</span>
+            ) : (
+              <span>{profile.username[0].toUpperCase()}</span>
+            )
+          ) : (
+            <Skeleton className="my-1 h-4 w-full" />
+          )}
+        </div>
         <SideNav
           className="w-0 text-background opacity-0 transition-all duration-300"
           items={navItems}

@@ -67,6 +67,7 @@ export function CarPathContextProvider({
 
     const formattedTrips = formatCarPathResponse(response.data)
     setTrips(formattedTrips)
+    setSelectedTrip(formattedTrips[0])
     setSelectedTripIndex(0)
     setSelectedTrip(formattedTrips?.at(0))
     setViewport({

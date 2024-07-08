@@ -9,7 +9,7 @@ import { Toggle } from '@/components/ui/toggle'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useDisclosure } from '@/hooks/use-disclosure'
 import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
-import { useRole } from '@/hooks/use-role'
+import { useProfile } from '@/hooks/use-profile'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
@@ -27,7 +27,7 @@ export function MonitoringToggle() {
   const { setDialogInitialData } = useMonitoredPlates()
   const [monitored, setMonitored] = useState(false)
   const { lastSearchParams, isLoading: isLoadingGetCarPath } = useCarPath()
-  const { isAdmin } = useRole()
+  const { isAdmin } = useProfile()
 
   const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
     queryKey: [`cars/monitored/${lastSearchParams?.placa}`],
@@ -115,6 +115,7 @@ export function MonitoringToggle() {
             isOpen={monitoredPlateFormDialog.isOpen}
             onClose={monitoredPlateFormDialog.onClose}
             onOpen={monitoredPlateFormDialog.onOpen}
+            shouldFetchData={false}
           />
           <DisableMonitoringAlertDialog
             isOpen={disableMonitoringAlertDisclosure.isOpen}
