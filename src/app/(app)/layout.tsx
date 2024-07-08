@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { isAuthenticated } from '@/auth/auth'
+import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-context'
 import { SidebarContextProvider } from '@/contexts/sidebar-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 
@@ -19,8 +20,10 @@ export default function AppLayout({
     <div className="flex min-h-screen">
       <CustomQueryClientProvider>
         <SidebarContextProvider>
-          <Sidebar />
-          {children}
+          <MonitoredPlatesContextProvider>
+            <Sidebar />
+            {children}
+          </MonitoredPlatesContextProvider>
         </SidebarContextProvider>
       </CustomQueryClientProvider>
     </div>
