@@ -2,12 +2,12 @@
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useOperations } from '@/hooks/use-operations'
-import { useRole } from '@/hooks/use-role'
+import { useProfile } from '@/hooks/use-profile'
 import { notAllowed } from '@/utils/template-messages'
 
 export function OperationsHeader() {
   const { formDialogDisclosure } = useOperations()
-  const { isAdmin } = useRole()
+  const { isAdmin } = useProfile()
 
   return (
     <div className="flex w-full justify-between">

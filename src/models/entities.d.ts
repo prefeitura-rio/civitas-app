@@ -12,6 +12,14 @@ export type NotificationChannel = {
   active: boolean
 }
 
+export type BackendNotificationChannel = {
+  id: string
+  title: string
+  channel_type: string
+  parameters: JSON
+  active: boolean
+}
+
 export type MonitoredPlate = {
   id: string
   plate: string
@@ -36,10 +44,26 @@ export type AdditionalInfo = {
   Operação?: string
 }
 
-export type BackendNotificationChannel = {
+export type BackendProfile = {
   id: string
-  title: string
-  channel_type: string
-  parameters: JSON
-  active: boolean
+  username: string
+  full_name: string
+  cpf: string
+  registration: string
+  agency: string
+  sector: string
+  email: string
+  is_admin: boolean
+}
+
+export type Profile = {
+  id: string
+  username: string
+  fullName: string
+  cpf: string
+  registration: string
+  agency: string
+  sector: string
+  email: string
+  isAdmin: boolean
 }

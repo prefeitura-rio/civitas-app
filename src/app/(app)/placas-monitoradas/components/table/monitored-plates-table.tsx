@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMonitoredPlatesSearchParams } from '@/hooks/params/use-monitored-plates-search-params'
 import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
-import { useRole } from '@/hooks/use-role'
+import { useProfile } from '@/hooks/use-profile'
 import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
 import { queryClient } from '@/lib/react-query'
@@ -28,7 +28,7 @@ export function MonitoredPlatesTable() {
     deleteAlertDisclosure,
   } = useMonitoredPlates()
   const [plate, setPlate] = useState<string>()
-  const { isAdmin, isLoading: isRoleLoading } = useRole()
+  const { isAdmin, isLoading: isRoleLoading } = useProfile()
 
   const { data: MonitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
     useQuery({
