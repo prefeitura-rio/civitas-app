@@ -173,7 +173,7 @@ export function MonitoredPlatesTable() {
   ]
 
   return (
-    <div className="page-content flex flex-col gap-8 pt-8">
+    <div className="flex flex-col gap-8">
       <DataTable
         columns={columns}
         data={data?.items || []}

@@ -39,7 +39,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
   }, [isOpen])
 
   return (
-    <div className="flex h-full flex-col justify-between">
+    <div className="flex h-[calc(100%-4rem)] flex-col justify-between">
       <div className="space-y-2">
         {items.map((item) =>
           item.isChidren ? (
