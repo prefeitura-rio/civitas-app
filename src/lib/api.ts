@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { getCookie } from 'cookies-next'
+import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
 import { config } from '@/config'
@@ -32,7 +32,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      window.location.href = '/api/auth/sign-out'
+      deleteCookie('token')
+      window.location.href = '/auth/sign-in'
     }
     return Promise.reject(error)
   },
