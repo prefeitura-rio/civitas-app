@@ -32,7 +32,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // window.location.href = '/api/auth/sign-out'
+      window.location.href = '/api/auth/sign-out'
     }
     return Promise.reject(error)
   },

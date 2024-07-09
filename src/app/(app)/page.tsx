@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/card'
 
 export default function Home() {
-export default function Home() {
   return (
     <div className="page-content flex items-center justify-center">
       <div className="grid grid-cols-4 gap-4">
@@ -24,7 +23,7 @@ export default function Home() {
           </Card>
         </Link>
 
-        {/* <Link href="/placas-monitoradas" className="col-span-2">
+        <Link href="/placas-monitoradas" className="col-span-2">
           <Card className="h-full hover:bg-border">
             <CardHeader>
               <CardTitle>Placas Monitoradas</CardTitle>
@@ -46,7 +45,7 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
           </Card>
-        </Link> */}
+        </Link>
       </div>
     </div>
   )
