@@ -67,3 +67,21 @@ export type Profile = {
   email: string
   isAdmin: boolean
 }
+
+export type BackendAgentLocation = {
+  name: string
+  contact_info: string
+  operation: string
+  latitude: number
+  longitude: number
+  last_update: string
+}
+
+export type AgentLocation = {
+  name: string
+  contactInfo: string
+  operation: string
+  latitude: number
+  longitude: number
+  lastUpdate: string
+}

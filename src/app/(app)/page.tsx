@@ -45,6 +45,17 @@ export default function Home() {
             </CardHeader>
           </Card>
         </Link>
+
+        <Link href="/viaturas" className="col-span-2">
+          <Card className="h-full hover:bg-border">
+            <CardHeader>
+              <CardTitle>Viaturas</CardTitle>
+              <CardDescription>
+                Acompanhe a localização de viaturas.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
     </div>
   )

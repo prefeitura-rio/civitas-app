@@ -1,4 +1,12 @@
-import { Home, Radar, Search, Siren, TrafficCone } from 'lucide-react'
+import {
+  Car,
+  Home,
+  MapPinned,
+  Radar,
+  Search,
+  Siren,
+  TrafficCone,
+} from 'lucide-react'
 
 import type { NavItem } from '@/models/utils'
 
@@ -33,6 +41,21 @@ export const navItems: NavItem[] = [
         icon: TrafficCone,
         color: 'text-muted-foreground',
         href: '/operacoes',
+      },
+    ],
+  },
+  {
+    title: 'Monitoramento',
+    href: '/viaturas',
+    icon: MapPinned,
+    color: 'text-primary',
+    isChidren: true,
+    children: [
+      {
+        title: 'Viaturas',
+        icon: Car,
+        color: 'text-muted-foreground',
+        href: '/viaturas',
       },
     ],
   },
