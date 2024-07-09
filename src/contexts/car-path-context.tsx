@@ -1,8 +1,10 @@
-import type { MapViewState } from '@deck.gl/core'
+import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import { createContext, type ReactNode, useState } from 'react'
 
-import type { GetCarPathRequest } from '@/http/cars/get-car-path'
-import { getCarPath as getCarPathApi } from '@/http/cars/get-car-path'
+import {
+  getCarPath as getCarPathApi,
+  GetCarPathRequest,
+} from '@/http/cars/path/get-car-path'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
 
 interface CarPathContextProps {
@@ -14,6 +16,7 @@ interface CarPathContextProps {
   viewport: MapViewState
   setViewport: (viewport: MapViewState) => void
   isLoading: boolean
+  lastSearchParams: GetCarPathRequest | undefined
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -34,6 +37,7 @@ export function CarPathContextProvider({
     zoom: 10.1,
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [lastSearchParams, setLastSearchParams] = useState<GetCarPathRequest>()
 
   function setSelectedTripIndex(index: number) {
     setSelectedTripIndexState(index)
@@ -44,11 +48,21 @@ export function CarPathContextProvider({
   }
 
   function setViewport(newViewport: MapViewState) {
-    setViewportState(newViewport)
+    setViewportState({
+      ...newViewport,
+      transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
+      transitionDuration: 'auto',
+    })
+    // setViewportState(newViewport)
   }
 
   async function getCarPath({ placa, startTime, endTime }: GetCarPathRequest) {
     setIsLoading(true)
+    setLastSearchParams({
+      placa,
+      startTime,
+      endTime,
+    })
     const response = await getCarPathApi({
       placa,
       startTime,
@@ -58,8 +72,8 @@ export function CarPathContextProvider({
 
     const formattedTrips = formatCarPathResponse(response.data)
     setTrips(formattedTrips)
-    setSelectedTripIndex(0)
-    setSelectedTrip(formattedTrips?.at(0))
+    setSelectedTrip(formattedTrips[0])
+    setSelectedTripIndexState(0)
     setViewport({
       ...viewport,
       longitude:
@@ -81,6 +95,7 @@ export function CarPathContextProvider({
         viewport,
         setViewport,
         isLoading,
+        lastSearchParams,
       }}
     >
       {children}

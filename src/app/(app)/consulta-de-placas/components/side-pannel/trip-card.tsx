@@ -33,19 +33,20 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
     setSelectedTripIndex,
     setViewport,
     viewport,
-    trips,
     selectedTripIndex,
+    selectedTrip,
+    trips,
   } = useCarPath()
 
-  const points = trips?.at(index)?.points || []
+  const points = selectedTrip?.points || []
   const isSelected = selectedTripIndex === index
 
   console.log({ pointstrip: points })
 
   function handleTripClick() {
     setSelectedTripIndex(index)
-    const longitude = points?.at(0)?.from[0]
-    const latitude = points?.at(0)?.from[1]
+    const longitude = trips?.at(index)?.points?.at(0)?.from[0]
+    const latitude = trips?.at(index)?.points?.at(0)?.from[1]
     setViewport({
       ...viewport,
       longitude: longitude || viewport.longitude,
