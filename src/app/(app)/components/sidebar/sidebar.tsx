@@ -26,8 +26,6 @@ export function Sidebar({ className }: SidebarProps) {
     setTimeout(() => setStatus(false), 500)
   }
 
-  console.log({ profile })
-
   return (
     <nav
       className={cn(

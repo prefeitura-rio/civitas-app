@@ -1,4 +1,4 @@
-import type { MapViewState } from '@deck.gl/core'
+import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import { createContext, type ReactNode, useState } from 'react'
 
 import {
@@ -45,7 +45,12 @@ export function CarPathContextProvider({
   }
 
   function setViewport(newViewport: MapViewState) {
-    setViewportState(newViewport)
+    setViewportState({
+      ...newViewport,
+      transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
+      transitionDuration: 'auto',
+    })
+    // setViewportState(newViewport)
   }
 
   async function getCarPath({ placa, startTime, endTime }: GetCarPathRequest) {
@@ -65,7 +70,7 @@ export function CarPathContextProvider({
     const formattedTrips = formatCarPathResponse(response.data)
     setTrips(formattedTrips)
     setSelectedTrip(formattedTrips[0])
-    setSelectedTripIndex(0)
+    setSelectedTripIndexState(0)
     setViewport({
       ...viewport,
       longitude:
