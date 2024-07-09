@@ -57,7 +57,6 @@ export function MonitoredPlateFormDialog({
     handleSubmit,
     setValue,
     control,
-    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<MonitoredPlateForm>({
@@ -218,13 +217,6 @@ export function MonitoredPlateFormDialog({
     }
   }, [isSubmitting, isPendingCreate, isPendingUpdate, isLoadingMonitoredPlates])
 
-  console.table(errors)
-  console.log({
-    operationTitle: watch('operation.title'),
-    operationId: watch('operation.id'),
-    operation: watch('operation'),
-    channels: watch('notificationChannels'),
-  })
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>

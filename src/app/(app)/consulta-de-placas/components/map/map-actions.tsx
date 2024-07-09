@@ -23,6 +23,7 @@ export function MapActions({
   setIsIconColorEnabled,
 }: MapActionsProps) {
   const { selectedTrip } = useCarPath()
+
   return (
     <Card className="absolute right-2 top-2 flex flex-col gap-2 whitespace-nowrap bg-card p-2 tracking-tighter">
       <div className="flex items-center justify-between gap-2">
