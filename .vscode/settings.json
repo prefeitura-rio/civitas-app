@@ -7,8 +7,9 @@
     "Utils",
     "AppLayout",
     "Home",
-    "MonitoramentoDePlacas",
     "ConsultaDePlacas",
-    "Generic"
+    "Operações",
+    "PlacasMonitoradas",
+    "Sidebar"
   ]
 }

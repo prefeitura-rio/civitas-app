@@ -31,7 +31,7 @@ export default function SignInForm() {
       )}
 
       <div className="space-y-1">
-        <Label htmlFor="username">E-mail</Label>
+        <Label htmlFor="username">Usuário</Label>
         <Input name="username" type="text" id="username" />
         {errors?.username && (
           <span className="ml-2 text-xs text-rose-600">
