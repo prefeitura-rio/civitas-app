@@ -23,7 +23,7 @@ export default function Home() {
           </Card>
         </Link>
 
-        <Link href="/placas-monitoradas" className="col-span-2">
+        {/* <Link href="/placas-monitoradas" className="col-span-2">
           <Card className="h-full hover:bg-border">
             <CardHeader>
               <CardTitle>Placas Monitoradas</CardTitle>
@@ -44,7 +44,7 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
           </Card>
-        </Link>
+        </Link> */}
       </div>
     </div>
   )

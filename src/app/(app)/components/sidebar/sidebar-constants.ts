@@ -1,4 +1,4 @@
-import { Home, Radar, Search, Siren, TrafficCone } from 'lucide-react'
+import { Home, Radar, Search } from 'lucide-react'
 
 import type { NavItem } from '@/models/utils'
 
@@ -22,18 +22,18 @@ export const navItems: NavItem[] = [
         color: 'text-muted-foreground',
         href: '/consulta-de-placas',
       },
-      {
-        title: 'Placas monitoradas',
-        icon: Siren,
-        color: 'text-muted-foreground',
-        href: '/placas-monitoradas',
-      },
-      {
-        title: 'Operações',
-        icon: TrafficCone,
-        color: 'text-muted-foreground',
-        href: '/operacoes',
-      },
+      // {
+      //   title: 'Placas monitoradas',
+      //   icon: Siren,
+      //   color: 'text-muted-foreground',
+      //   href: '/placas-monitoradas',
+      // },
+      // {
+      //   title: 'Operações',
+      //   icon: TrafficCone,
+      //   color: 'text-muted-foreground',
+      //   href: '/operacoes',
+      // },
     ],
   },
 ]
