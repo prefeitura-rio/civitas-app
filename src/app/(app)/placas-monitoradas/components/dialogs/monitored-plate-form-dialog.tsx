@@ -233,7 +233,7 @@ export function MonitoredPlateFormDialog({
               id="plate"
               {...register('plate')}
               type="text"
-              disabled={isLoading}
+              disabled={isLoading || !!initialData}
             />
           </div>
 

@@ -74,7 +74,7 @@ export function ReportHeader() {
         </Text>
       </View>
       <View style={styles.headerRowSecond}>
-        <Text style={styles.subTitle}>Nº 0008/2024</Text>
+        <Text style={styles.subTitle}>{new Date().getTime()}</Text>
       </View>
     </View>
   )

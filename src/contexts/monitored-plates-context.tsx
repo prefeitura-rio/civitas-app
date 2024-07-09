@@ -33,7 +33,11 @@ interface MonitoredPlatesContextProviderProps {
 }
 
 export const monitoredPlateFormSchema = z.object({
-  plate: z.string().min(1, { message: 'Campo obrigatório' }),
+  plate: z
+    .string()
+    .min(1, { message: 'Campo obrigatório' })
+    .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido')
+    .transform((item) => item.toUpperCase()),
   operation: z.object({
     id: z.string().min(1, { message: 'Campo obrigatório' }),
     title: z.string().min(1, { message: 'Campo obrigatório' }),

@@ -27,7 +27,6 @@ export default function Home() {
           <Card className="h-full hover:bg-border">
             <CardHeader>
               <CardTitle>Placas Monitoradas</CardTitle>
-              <CardTitle>Placas Monitoradas</CardTitle>
               <CardDescription>
                 Cadastre uma placa e receba uma notificação quando ela for
                 vista.
