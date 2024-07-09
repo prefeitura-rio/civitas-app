@@ -41,7 +41,10 @@ export function CarPathContextProvider({
 
   function setSelectedTripIndex(index: number) {
     setSelectedTripIndexState(index)
-    setSelectedTrip(trips?.at(index))
+    console.log({ selectedTripInside: trips?.at(index) })
+    if (trips) {
+      setSelectedTrip(trips?.at(index))
+    }
   }
 
   function setViewport(newViewport: MapViewState) {

@@ -41,6 +41,8 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
   const points = selectedTrip?.points || []
   const isSelected = selectedTripIndex === index
 
+  console.log({ pointstrip: points })
+
   function handleTripClick() {
     setSelectedTripIndex(index)
     const longitude = trips?.at(index)?.points?.at(0)?.from[0]
@@ -115,7 +117,7 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
             points.map((point, index) => (
               <PointCard
                 key={index}
-                index={index}
+                index={point.index}
                 location={point.location}
                 startTime={point.startTime}
                 from={point.from}
