@@ -111,7 +111,7 @@ export function MonitoredPlateFormDialog({
     },
   })
 
-  const { data: monitoredPlatesResponse, isLoading: isLoadingMonitoredPlates } =
+  const { data: monitoredPlateResponse, isLoading: isLoadingMonitoredPlate } =
     useQuery({
       queryKey: [`cars/monitored/${initialData?.plate}`],
       queryFn: () =>
@@ -174,21 +174,21 @@ export function MonitoredPlateFormDialog({
       initialData &&
       isOpen &&
       !isLoading &&
-      monitoredPlatesResponse &&
+      monitoredPlateResponse &&
       shouldFetchData
     ) {
-      setValue('plate', monitoredPlatesResponse.data.plate)
-      setValue('active', monitoredPlatesResponse.data.active)
-      setValue('additionalInfo', monitoredPlatesResponse.data.additionalInfo)
-      setValue('notes', monitoredPlatesResponse.data.notes)
-      setValue('operation.id', monitoredPlatesResponse.data.operation.id || '')
+      setValue('plate', monitoredPlateResponse.data.plate)
+      setValue('active', monitoredPlateResponse.data.active)
+      setValue('additionalInfo', monitoredPlateResponse.data.additionalInfo)
+      setValue('notes', monitoredPlateResponse.data.notes)
+      setValue('operation.id', monitoredPlateResponse.data.operation.id || '')
       setValue(
         'operation.title',
-        monitoredPlatesResponse.data.operation.title || '',
+        monitoredPlateResponse.data.operation.title || '',
       )
-      if (monitoredPlatesResponse.data.notificationChannels.length > 0) {
+      if (monitoredPlateResponse.data.notificationChannels.length > 0) {
         const channelOptions =
-          monitoredPlatesResponse.data.notificationChannels.map((item) => {
+          monitoredPlateResponse.data.notificationChannels.map((item) => {
             return {
               label: item.title,
               value: item.id,
@@ -202,11 +202,11 @@ export function MonitoredPlateFormDialog({
     if (initialData && isOpen && !shouldFetchData) {
       setValue('plate', initialData.plate)
     }
-  }, [isOpen, isLoading, monitoredPlatesResponse])
+  }, [isOpen, isLoading, monitoredPlateResponse])
 
   useEffect(() => {
     if (
-      isLoadingMonitoredPlates ||
+      isLoadingMonitoredPlate ||
       isSubmitting ||
       isPendingCreate ||
       isPendingUpdate
@@ -215,7 +215,7 @@ export function MonitoredPlateFormDialog({
     } else {
       setIsLoading(false)
     }
-  }, [isSubmitting, isPendingCreate, isPendingUpdate, isLoadingMonitoredPlates])
+  }, [isSubmitting, isPendingCreate, isPendingUpdate, isLoadingMonitoredPlate])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
