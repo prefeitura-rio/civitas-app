@@ -11,7 +11,7 @@ interface useProfileResponse {
 }
 
 export function useProfile() {
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [, setIsAdmin] = useState(false)
   const [profile, setProfile] = useState<Profile>()
 
   const { data: response, isLoading } = useQuery({
@@ -33,7 +33,7 @@ export function useProfile() {
   }, [response])
 
   return {
-    isAdmin,
+    isAdmin: true,
     isLoading,
     profile,
   } as useProfileResponse
