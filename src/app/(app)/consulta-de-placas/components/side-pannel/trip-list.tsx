@@ -30,15 +30,14 @@ export function TripList() {
               const endLocation = trip.points[trip.points.length - 1]
 
               return (
-                <>
+                <div key={index}>
                   <TripCard
-                    key={index}
                     index={index}
                     startLocation={startLocation}
                     endLocation={endLocation}
                   />
                   <Separator className="bg-muted" />
-                </>
+                </div>
               )
             })}
           </div>
