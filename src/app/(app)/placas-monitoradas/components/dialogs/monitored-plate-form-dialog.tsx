@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -80,6 +81,9 @@ export function MonitoredPlateFormDialog({
       queryClient.invalidateQueries({
         queryKey: ['cars/monitored'],
       })
+      queryClient.invalidateQueries({
+        queryKey: [`cars/monitored/${data.plate}`],
+      })
       toast.success(`A placa ${data.plate} foi cadastrada com sucesso!`)
     },
     onError: (error, variables) => {
@@ -97,6 +101,9 @@ export function MonitoredPlateFormDialog({
   } = useMutation({
     mutationFn: updateMonitoredPlate,
     onSuccess: ({ data }) => {
+      queryClient.invalidateQueries({
+        queryKey: [`cars/monitored/${data.plate}`],
+      })
       queryClient.invalidateQueries({
         queryKey: ['cars/monitored'],
       })
@@ -147,7 +154,7 @@ export function MonitoredPlateFormDialog({
     const notificationChannels = props.notificationChannels.map(
       (item) => item.value,
     )
-    if (initialData?.plate) {
+    if (initialData?.plate && shouldFetchData) {
       await updateMonitoredPlateMutation({
         plate: props.plate,
         active: props.active,
@@ -221,7 +228,16 @@ export function MonitoredPlateFormDialog({
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Monitorar nova placa</DialogTitle>
+          <DialogTitle>
+            {initialData && shouldFetchData
+              ? 'Atualizar placa monitorada'
+              : 'Monitorar nova placa'}
+          </DialogTitle>
+          <DialogDescription>
+            {initialData && shouldFetchData
+              ? 'Gerencie o monitoramento dessa placa.'
+              : 'Cadastre uma nova placa a ser monitorada.'}
+          </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
@@ -325,7 +341,9 @@ export function MonitoredPlateFormDialog({
               {isPendingCreate || isPendingUpdate ? (
                 <Spinner />
               ) : (
-                <span>Adicionar</span>
+                <span>
+                  {initialData && shouldFetchData ? 'Atualizar' : 'Adicionar'}
+                </span>
               )}
             </Button>
           </div>

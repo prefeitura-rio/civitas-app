@@ -1,8 +1,7 @@
 'use client'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Siren } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useFormContext } from 'react-hook-form'
 
 import { MonitoredPlateFormDialog } from '@/app/(app)/placas-monitoradas/components/dialogs/monitored-plate-form-dialog'
 import { Toggle } from '@/components/ui/toggle'
@@ -12,18 +11,14 @@ import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
 import { useProfile } from '@/hooks/use-profile'
 import { useCarPath } from '@/hooks/useCarPathContext'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
-import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
 import { isApiError } from '@/lib/api'
-import { queryClient } from '@/lib/react-query'
 import { notAllowed } from '@/utils/template-messages'
 
-import type { FilterForm } from '../filter-form'
 import { DisableMonitoringAlertDialog } from './disable-monitoring-alert-dialog'
 
 export function MonitoringToggle() {
   const monitoredPlateFormDialog = useDisclosure()
   const disableMonitoringAlertDisclosure = useDisclosure()
-  const { getValues } = useFormContext<FilterForm>()
   const { setDialogInitialData } = useMonitoredPlates()
   const [monitored, setMonitored] = useState(false)
   const { lastSearchParams, isLoading: isLoadingGetCarPath } = useCarPath()
@@ -31,10 +26,24 @@ export function MonitoringToggle() {
 
   const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
     queryKey: [`cars/monitored/${lastSearchParams?.placa}`],
-    queryFn: () =>
-      lastSearchParams
-        ? getMonitoredPlate({ plate: lastSearchParams?.placa })
-        : null,
+    queryFn: () => {
+      if (lastSearchParams) {
+        try {
+          return getMonitoredPlate({ plate: lastSearchParams?.placa })
+        } catch (error) {
+          console.log({ error })
+          if (
+            isApiError(error) &&
+            error.response?.data.detail === 'Plate not found'
+          ) {
+            return null
+          }
+
+          throw error
+        }
+      }
+      return null
+    },
     retry(failureCount, error) {
       if (
         isApiError(error) &&
@@ -49,50 +58,30 @@ export function MonitoringToggle() {
     },
   })
 
-  const { mutateAsync: updateMonitoredPlateMutation } = useMutation({
-    mutationFn: updateMonitoredPlate,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [
-          `cars/monitored/${getValues('plateNumer')}`,
-          'cars/monitored',
-        ],
-      })
-    },
-  })
-
-  function handleSetMonitored(shouldMonitor: boolean) {
-    const plate = getValues('plateNumer')
-
-    if (shouldMonitor) {
-      if (response && response.data) {
-        setMonitored(true)
-        updateMonitoredPlateMutation({ plate, active: true })
-      } else {
-        setDialogInitialData({ plate })
-        monitoredPlateFormDialog.onOpen()
-      }
-    } else {
-      disableMonitoringAlertDisclosure.onOpen()
+  function handleSetMonitored() {
+    if (lastSearchParams) {
+      setDialogInitialData({ plate: lastSearchParams?.placa })
     }
+
+    monitoredPlateFormDialog.onOpen()
   }
 
   useEffect(() => {
-    if (response) {
-      setMonitored(response.data.active)
-    } else {
-      setMonitored(false)
+    if (!isLoadingMonitoredPlate) {
+      if (response) {
+        setMonitored(response.data.active)
+      } else {
+        setMonitored(false)
+      }
     }
-  }, [response])
+  }, [response, isLoadingMonitoredPlate])
 
   return (
     <>
       {lastSearchParams && (
         <div>
           <Tooltip
-            text={
-              monitored ? 'Desativar monitoramento' : 'Ativar monitoramento'
-            }
+            text="Gerenciar monitoramento"
             disabled={
               isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
             }
@@ -115,7 +104,7 @@ export function MonitoringToggle() {
             isOpen={monitoredPlateFormDialog.isOpen}
             onClose={monitoredPlateFormDialog.onClose}
             onOpen={monitoredPlateFormDialog.onOpen}
-            shouldFetchData={false}
+            shouldFetchData={!!response?.data}
           />
           <DisableMonitoringAlertDialog
             isOpen={disableMonitoringAlertDisclosure.isOpen}

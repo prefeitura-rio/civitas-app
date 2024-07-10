@@ -64,8 +64,6 @@ export function MonitoredPlatesFilter() {
     setIsLoading(false)
   }
 
-  console.log(errors)
-
   return (
     <form
       className="flex items-center space-x-2"

@@ -38,7 +38,6 @@ export function CarPathContextProvider({
 
   function setSelectedTripIndex(index: number) {
     setSelectedTripIndexState(index)
-    console.log({ selectedTripInside: trips?.at(index) })
     if (trips) {
       setSelectedTrip(trips?.at(index))
     }
