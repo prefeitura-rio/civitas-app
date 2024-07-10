@@ -6,6 +6,7 @@ import {
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
+import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 interface CarPathContextProps {
   trips: Trip[] | undefined
@@ -31,11 +32,7 @@ export function CarPathContextProvider({
   const [trips, setTrips] = useState<Trip[]>()
   const [selectedTripIndex, setSelectedTripIndexState] = useState(0)
   const [selectedTrip, setSelectedTrip] = useState<Trip>()
-  const [viewport, setViewportState] = useState<MapViewState>({
-    longitude: -43.47,
-    latitude: -22.92957,
-    zoom: 10.1,
-  })
+  const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
   const [isLoading, setIsLoading] = useState(false)
   const [lastSearchParams, setLastSearchParams] = useState<GetCarPathRequest>()
 
