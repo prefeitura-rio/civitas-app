@@ -25,25 +25,9 @@ export function MonitoringToggle() {
   const { isAdmin } = useProfile()
 
   const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
-    queryKey: [`cars/monitored/${lastSearchParams?.placa}`],
-    queryFn: () => {
-      if (lastSearchParams) {
-        try {
-          return getMonitoredPlate({ plate: lastSearchParams?.placa })
-        } catch (error) {
-          console.log({ error })
-          if (
-            isApiError(error) &&
-            error.response?.data.detail === 'Plate not found'
-          ) {
-            return null
-          }
-
-          throw error
-        }
-      }
-      return null
-    },
+    queryKey: ['cars', 'monitored', lastSearchParams?.placa],
+    queryFn: () => getMonitoredPlate({ plate: lastSearchParams?.placa || '' }),
+    enabled: !!lastSearchParams,
     retry(failureCount, error) {
       if (
         isApiError(error) &&
