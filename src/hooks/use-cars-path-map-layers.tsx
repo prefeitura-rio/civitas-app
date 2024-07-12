@@ -23,6 +23,7 @@ export function useCarsPathMapLayers() {
     cameras,
     selectedCamera,
     setSelectedCamera,
+    addressMarkerPosition,
   } = useCarPath()
 
   const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
@@ -38,6 +39,7 @@ export function useCarsPathMapLayers() {
   const [isLinesEnabled, setIsLinesEnabled] = useState(false)
   const [isIconColorEnabled, setIsIconColorEnabled] = useState(false)
   const [isCamerasEnabled, setIsCamerasEnabled] = useState(false)
+  const [isAddressMarkerEnabled, setIsAddressMarkerEnabled] = useState(false)
 
   const points = trips?.at(selectedTripIndex)?.points
 
@@ -149,6 +151,26 @@ export function useCarsPathMapLayers() {
     onHover: (info) => setIconHoverInfo(info),
   })
 
+  const addressMarkerLayer = new IconLayer({
+    id: 'address-marker-layer',
+    data: [
+      {
+        coordinates: [addressMarkerPosition[0], addressMarkerPosition[1]],
+      },
+    ],
+    getPosition: (point) => {
+      console.log(point)
+      return point.coordinates
+    },
+    pickable: true,
+    getColor: [245, 158, 11, 255],
+    getSize: 40,
+    getIcon: () => 'arrow',
+    iconAtlas:
+      'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+    iconMapping: ICON_MAPPING,
+  })
+
   const cameraLayer = new GeoJsonLayer({
     id: 'cameras',
     data: camerasLayerData,
@@ -185,6 +207,7 @@ export function useCarsPathMapLayers() {
       blackIconLayer,
       coloredIconLayer,
       textLayer,
+      addressMarkerLayer,
     },
     mapStates: {
       iconHoverInfo,
@@ -198,6 +221,8 @@ export function useCarsPathMapLayers() {
       setIsIconColorEnabled,
       isCamerasEnabled,
       setIsCamerasEnabled,
+      isAddressMarkerEnabled,
+      setIsAddressMarkerEnabled,
     },
   }
 }

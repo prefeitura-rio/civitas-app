@@ -88,4 +88,10 @@
   .A4 {
     @apply m-auto flex h-[29cm] w-[21cm] flex-col gap-4 border-border bg-white px-[1.5cm] py-[1cm];
   }
+
+  .absolute-x-centered {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+  }
 }
