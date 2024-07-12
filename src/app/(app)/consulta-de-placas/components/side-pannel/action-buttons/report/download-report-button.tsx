@@ -5,7 +5,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 
 import { ReportDocument } from './components/report-document'
 

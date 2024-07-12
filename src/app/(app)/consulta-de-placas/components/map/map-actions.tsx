@@ -3,7 +3,7 @@ import { type Dispatch, type SetStateAction } from 'react'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 
 interface MapActionsProps {
   isMapStyleSatellite: boolean
@@ -12,6 +12,8 @@ interface MapActionsProps {
   setIsLinesEnabled: Dispatch<SetStateAction<boolean>>
   isIconColorEnabled: boolean
   setIsIconColorEnabled: Dispatch<SetStateAction<boolean>>
+  isCamerasEnabled: boolean
+  setIsCamerasEnabled: Dispatch<SetStateAction<boolean>>
 }
 
 export function MapActions({
@@ -21,6 +23,8 @@ export function MapActions({
   setIsLinesEnabled,
   isIconColorEnabled,
   setIsIconColorEnabled,
+  isCamerasEnabled,
+  setIsCamerasEnabled,
 }: MapActionsProps) {
   const { selectedTrip } = useCarPath()
 
@@ -37,6 +41,19 @@ export function MapActions({
           Satélite
         </Label>
       </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <Switch
+          id="mapStyle"
+          size="sm"
+          checked={isCamerasEnabled}
+          onCheckedChange={setIsCamerasEnabled}
+        />
+        <Label htmlFor="mapStyle" className="text-xs">
+          Câmeras
+        </Label>
+      </div>
+
       {selectedTrip && (
         <>
           <div className="flex items-center justify-between gap-2">

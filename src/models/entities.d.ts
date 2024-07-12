@@ -67,3 +67,21 @@ export type Profile = {
   email: string
   isAdmin: boolean
 }
+
+export type BackendCameraCor = {
+  CameraCode: string
+  CameraName: string
+  CameraZone: string
+  Latitude: string
+  Longitude: string
+  Streamming: string
+}
+
+export type CameraCor = {
+  code: string
+  location: string
+  zone: string
+  latitude: number
+  longitude: number
+  streamingUrl: string
+}

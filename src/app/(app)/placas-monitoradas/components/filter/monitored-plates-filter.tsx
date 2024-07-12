@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Spinner } from '@/components/ui/spinner'
-import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
+import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { isNotFoundError } from '@/utils/error-handlers'
 
@@ -63,8 +63,6 @@ export function MonitoredPlatesFilter() {
     }
     setIsLoading(false)
   }
-
-  console.log(errors)
 
   return (
     <form

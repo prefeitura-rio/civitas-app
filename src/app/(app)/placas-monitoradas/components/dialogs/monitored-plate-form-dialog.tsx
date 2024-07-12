@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -24,7 +25,7 @@ import {
   type MonitoredPlateForm,
   monitoredPlateFormSchema,
 } from '@/contexts/monitored-plates-context'
-import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
+import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
@@ -78,7 +79,10 @@ export function MonitoredPlateFormDialog({
     mutationFn: createMonitoredPlate,
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({
-        queryKey: ['cars/monitored'],
+        queryKey: ['cars', 'monitored'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['cars', 'monitored', data.plate],
       })
       toast.success(`A placa ${data.plate} foi cadastrada com sucesso!`)
     },
@@ -98,7 +102,10 @@ export function MonitoredPlateFormDialog({
     mutationFn: updateMonitoredPlate,
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({
-        queryKey: ['cars/monitored'],
+        queryKey: ['cars', 'monitored', data.plate],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['cars', 'monitored'],
       })
       toast.success(`A placa ${data.plate} foi atualizada com sucesso!`)
     },
@@ -113,11 +120,9 @@ export function MonitoredPlateFormDialog({
 
   const { data: monitoredPlateResponse, isLoading: isLoadingMonitoredPlate } =
     useQuery({
-      queryKey: [`cars/monitored/${initialData?.plate}`],
-      queryFn: () =>
-        initialData && shouldFetchData
-          ? getMonitoredPlate({ plate: initialData.plate })
-          : null,
+      queryKey: ['cars', 'monitored', initialData?.plate],
+      queryFn: () => getMonitoredPlate({ plate: initialData?.plate || '' }),
+      enabled: !!initialData && shouldFetchData,
     })
 
   const { data: operationsResponse } = useQuery({
@@ -147,7 +152,7 @@ export function MonitoredPlateFormDialog({
     const notificationChannels = props.notificationChannels.map(
       (item) => item.value,
     )
-    if (initialData?.plate) {
+    if (initialData?.plate && shouldFetchData) {
       await updateMonitoredPlateMutation({
         plate: props.plate,
         active: props.active,
@@ -221,7 +226,16 @@ export function MonitoredPlateFormDialog({
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Monitorar nova placa</DialogTitle>
+          <DialogTitle>
+            {initialData && shouldFetchData
+              ? 'Atualizar placa monitorada'
+              : 'Monitorar nova placa'}
+          </DialogTitle>
+          <DialogDescription>
+            {initialData && shouldFetchData
+              ? 'Gerencie o monitoramento dessa placa.'
+              : 'Cadastre uma nova placa a ser monitorada.'}
+          </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
@@ -325,7 +339,9 @@ export function MonitoredPlateFormDialog({
               {isPendingCreate || isPendingUpdate ? (
                 <Spinner />
               ) : (
-                <span>Adicionar</span>
+                <span>
+                  {initialData && shouldFetchData ? 'Atualizar' : 'Adicionar'}
+                </span>
               )}
             </Button>
           </div>

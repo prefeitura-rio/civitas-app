@@ -2,7 +2,7 @@ import { format } from 'date-fns'
 import { ChevronRight } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import type { Point } from '@/utils/formatCarPathResponse'
 import { toPascalCase } from '@/utils/toPascalCase'
 
@@ -40,8 +40,6 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
 
   const points = selectedTrip?.points || []
   const isSelected = selectedTripIndex === index
-
-  console.log({ pointstrip: points })
 
   function handleTripClick() {
     setSelectedTripIndex(index)
