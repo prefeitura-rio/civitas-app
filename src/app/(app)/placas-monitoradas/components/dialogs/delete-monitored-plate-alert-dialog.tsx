@@ -33,9 +33,9 @@ export function DeleteMonitoredPlateAlertDialog({
   const { mutateAsync: deleteMonitoredPlateMutation } = useMutation({
     mutationFn: deleteMonitoredPlate,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cars/monitored'] })
+      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
       queryClient.invalidateQueries({
-        queryKey: [`cars/monitored/${onDeleteMonitoredPlateProps?.plate}`],
+        queryKey: ['cars', 'monitored', onDeleteMonitoredPlateProps?.plate],
       })
     },
   })

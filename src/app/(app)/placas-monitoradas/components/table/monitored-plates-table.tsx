@@ -45,7 +45,7 @@ export function MonitoredPlatesTable() {
   } = useMutation({
     mutationFn: updateMonitoredPlate,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cars/monitored'] })
+      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
     },
   })
 

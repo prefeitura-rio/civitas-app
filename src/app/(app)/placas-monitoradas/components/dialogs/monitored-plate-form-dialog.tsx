@@ -79,10 +79,10 @@ export function MonitoredPlateFormDialog({
     mutationFn: createMonitoredPlate,
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({
-        queryKey: ['cars/monitored'],
+        queryKey: ['cars', 'monitored'],
       })
       queryClient.invalidateQueries({
-        queryKey: [`cars/monitored/${data.plate}`],
+        queryKey: ['cars', 'monitored', data.plate],
       })
       toast.success(`A placa ${data.plate} foi cadastrada com sucesso!`)
     },
@@ -102,10 +102,10 @@ export function MonitoredPlateFormDialog({
     mutationFn: updateMonitoredPlate,
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({
-        queryKey: [`cars/monitored/${data.plate}`],
+        queryKey: ['cars', 'monitored', data.plate],
       })
       queryClient.invalidateQueries({
-        queryKey: ['cars/monitored'],
+        queryKey: ['cars', 'monitored'],
       })
       toast.success(`A placa ${data.plate} foi atualizada com sucesso!`)
     },
@@ -120,11 +120,9 @@ export function MonitoredPlateFormDialog({
 
   const { data: monitoredPlateResponse, isLoading: isLoadingMonitoredPlate } =
     useQuery({
-      queryKey: [`cars/monitored/${initialData?.plate}`],
-      queryFn: () =>
-        initialData && shouldFetchData
-          ? getMonitoredPlate({ plate: initialData.plate })
-          : null,
+      queryKey: ['cars', 'monitored', initialData?.plate],
+      queryFn: () => getMonitoredPlate({ plate: initialData?.plate || '' }),
+      enabled: !!initialData && shouldFetchData,
     })
 
   const { data: operationsResponse } = useQuery({

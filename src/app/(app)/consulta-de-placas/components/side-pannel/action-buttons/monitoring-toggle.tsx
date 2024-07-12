@@ -27,7 +27,6 @@ export function MonitoringToggle() {
   const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
     queryKey: ['cars', 'monitored', lastSearchParams?.placa],
     queryFn: () => getMonitoredPlate({ plate: lastSearchParams?.placa || '' }),
-    enabled: !!lastSearchParams,
     retry(failureCount, error) {
       if (
         isApiError(error) &&
