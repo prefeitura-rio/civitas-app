@@ -10,7 +10,7 @@ import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import { genericErrorMessage } from '@/utils/error-handlers'
 import { formatDateUTC } from '@/utils/formatDateUTC'
 

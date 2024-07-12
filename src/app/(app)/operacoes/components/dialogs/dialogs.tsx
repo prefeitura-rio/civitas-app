@@ -1,5 +1,5 @@
 'use client'
-import { useOperations } from '@/hooks/use-operations'
+import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 
 import { DeleteOperationAlertDialog } from './delete-operation-alert-dialog'
 import { OperationFormDialog } from './operation-form-dialog'

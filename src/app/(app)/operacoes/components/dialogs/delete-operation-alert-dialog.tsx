@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useOperations } from '@/hooks/use-operations'
+import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 import { deleteOperation } from '@/http/operations/delete-operation'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'

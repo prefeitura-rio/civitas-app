@@ -1,7 +1,12 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
-type MonitoredPlatesQueryKey = ['cars/monitored', page?: number, size?: number]
+type MonitoredPlatesQueryKey = [
+  'cars',
+  'monitored',
+  page?: number,
+  size?: number,
+]
 
 export interface FormattedSearchParams {
   page?: number
@@ -34,6 +39,6 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       page,
       size,
     },
-    queryKey: ['cars/monitored', page, size],
+    queryKey: ['cars', 'monitored', page, size],
   }
 }

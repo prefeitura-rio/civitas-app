@@ -1,8 +1,8 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useOperations } from '@/hooks/use-operations'
-import { useProfile } from '@/hooks/use-profile'
+import { useOperations } from '@/hooks/use-contexts/use-operations-context'
+import { useProfile } from '@/hooks/use-queries/use-profile'
 import { notAllowed } from '@/utils/template-messages'
 
 export function OperationsHeader() {

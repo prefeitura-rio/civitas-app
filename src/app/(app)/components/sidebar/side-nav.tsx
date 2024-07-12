@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useSidebar } from '@/hooks/use-sidebar'
+import { useSidebar } from '@/hooks/use-contexts/use-sidebar-context'
 import { cn } from '@/lib/utils'
 import type { NavItem } from '@/models/utils'
 import { logout } from '@/utils/logout'
@@ -85,9 +85,8 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                 <AccordionContent className="mt-2 space-y-2 pb-1">
                   {item.children?.map((child) => (
                     // Essa div evita um bug de offset do tooltip
-                    <div>
+                    <div key={child.title}>
                       <Tooltip
-                        key={child.title}
                         asChild
                         side="right"
                         text={child.title}
@@ -132,10 +131,9 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
             </Accordion>
           ) : (
             // Essa div evita um bug de offset do tooltip
-            <div>
+            <div key={item.title}>
               <Tooltip
                 asChild
-                key={item.title}
                 text={item.title}
                 side="right"
                 hideContent={isOpen}

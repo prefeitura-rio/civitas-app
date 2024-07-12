@@ -9,9 +9,9 @@ import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
 import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useMonitoredPlatesSearchParams } from '@/hooks/params/use-monitored-plates-search-params'
-import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
-import { useProfile } from '@/hooks/use-profile'
+import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
+import { useMonitoredPlatesSearchParams } from '@/hooks/use-params/use-monitored-plates-search-params'
+import { useProfile } from '@/hooks/use-queries/use-profile'
 import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
 import { queryClient } from '@/lib/react-query'
@@ -45,7 +45,7 @@ export function MonitoredPlatesTable() {
   } = useMutation({
     mutationFn: updateMonitoredPlate,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cars/monitored'] })
+      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
     },
   })
 

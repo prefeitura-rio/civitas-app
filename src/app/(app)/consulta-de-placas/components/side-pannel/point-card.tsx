@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import type { Point } from '@/utils/formatCarPathResponse'
 import { toPascalCase } from '@/utils/toPascalCase'
 
@@ -32,10 +32,6 @@ export function PointCard({
       latitude: latitude || viewport.latitude,
     })
   }
-
-  console.log({ index })
-
-  console.log({ points })
 
   return (
     <div
