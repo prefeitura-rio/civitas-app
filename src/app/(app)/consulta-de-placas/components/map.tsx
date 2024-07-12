@@ -1,131 +1,62 @@
-import { type PickingInfo } from '@deck.gl/core'
-import { IconLayer, LineLayer, TextLayer } from '@deck.gl/layers'
 import DeckGL from '@deck.gl/react'
-import { useState } from 'react'
 import ReactMalGL from 'react-map-gl'
 
-import iconAtlas from '@/assets/icon-atlas.png'
 import { config } from '@/config'
+import { useCarsPathMapLayers } from '@/hooks/use-cars-path-map-layers'
 import { useCarPath } from '@/hooks/useCarPathContext'
-import type { Point } from '@/utils/formatCarPathResponse'
 
+import { CameraInfoPopupCard } from './camera-info-popup'
 import { IconTooltipCard } from './map/icon-tooltip-card'
 import { LineTooltipCard } from './map/line-tooltip-card'
 import { MapActions } from './map/map-actions'
 import { MapCaption } from './map/map-caption'
+import { CameraFullInfoPopup } from './side-pannel/camera-full-info-popup'
 
 export function Map() {
-  const { trips, viewport, setViewport, selectedTripIndex } = useCarPath()
-  const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
-    {} as PickingInfo<Point>,
-  )
-  const [lineHoverInfo, setLineHoverInfo] = useState<PickingInfo<Point>>(
-    {} as PickingInfo<Point>,
-  )
-  const [isMapStyleSatellite, setIsMapStyleSatellite] = useState(false)
-  const [isLinesEnabled, setIsLinesEnabled] = useState(false)
-  const [isIconColorEnabled, setIsIconColorEnabled] = useState(false)
+  const {
+    viewport,
+    setViewport,
+    setHightlightedObject,
+    hightlightedObject,
+    deckRef,
+    mapRef,
+  } = useCarPath()
+  const {
+    layers: {
+      blackIconLayer,
+      cameraLayer,
+      coloredIconLayer,
+      lineLayer,
+      lineLayerTransparent,
+      textLayer,
+    },
+    mapStates: {
+      cameraHoverInfo,
+      iconHoverInfo,
+      isCamerasEnabled,
+      isIconColorEnabled,
+      isLinesEnabled,
+      isMapStyleSatellite,
+      lineHoverInfo,
+      setIsCamerasEnabled,
+      setIsIconColorEnabled,
+      setIsLinesEnabled,
+      setIsMapStyleSatellite,
+    },
+  } = useCarsPathMapLayers()
 
-  const points = trips?.at(selectedTripIndex)?.points
-
-  function calculateColorInGradient(point: Point) {
-    const startTime = new Date(point.startTime)
-    const endTime = new Date(point.endTime || point.startTime)
-
-    const diff = (endTime.getTime() - startTime.getTime()) / 1000 / 60 // difference in minutes
-
-    const percent = diff / 60
-
-    const color1 = {
-      red: 97,
-      green: 175,
-      blue: 239,
-    }
-    const color2 = {
-      red: 238,
-      green: 38,
-      blue: 47,
-    }
-
-    const result = {
-      red: color1.red + percent * (color2.red - color1.red),
-      green: color1.green + percent * (color2.green - color1.green),
-      blue: color1.blue + percent * (color2.blue - color1.blue),
-    }
-
-    return [result.red, result.green, result.blue] as [number, number, number]
-  }
-
-  const lineLayer = new LineLayer<Point>({
-    id: 'line-layer',
-    data: points,
-    getSourcePosition: (point) => point.from,
-    getTargetPosition: (point) => point.to || point.from,
-    getColor: calculateColorInGradient,
-    getWidth: 3,
-    pickable: true,
-    onHover: (info) => setLineHoverInfo(info),
-  })
-
-  const lineLayerTransparent = new LineLayer<Point>({
-    id: 'line-layer-transparent',
-    data: points,
-    getSourcePosition: (point) => point.from,
-    getTargetPosition: (point) => point.to || point.from,
-    getColor: [0, 0, 0, 0],
-    getWidth: 30,
-    pickable: true,
-    onHover: (info) => setLineHoverInfo(info),
-  })
-
-  // Assuming icon_atlas has an arrow icon at the specified coordinates
-  const ICON_MAPPING = {
-    arrow: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
-  }
-
-  const blackIconLayer = new IconLayer<Point>({
-    id: 'black-icon-layer',
-    data: points,
-    getPosition: (point) => point.from,
-    getColor: [0, 0, 0],
-    getSize: 30,
-    getIcon: () => 'arrow',
-    iconAtlas: iconAtlas.src,
-    iconMapping: ICON_MAPPING,
-    pickable: true,
-    onHover: (info) => setIconHoverInfo(info),
-  })
-
-  const coloredIconLayer = new IconLayer<Point>({
-    id: 'colored-icon-layer',
-    data: points,
-    getPosition: (point) => point.from,
-    getColor: (point) =>
-      point.to ? calculateColorInGradient(point) : [0, 0, 0],
-    getSize: 30,
-    getIcon: () => 'arrow',
-    iconAtlas: iconAtlas.src,
-    iconMapping: ICON_MAPPING,
-    pickable: true,
-    onHover: (info) => setIconHoverInfo(info),
-  })
-
-  const textLayer = new TextLayer<Point>({
-    id: 'text-layer',
-    data: points,
-    getPosition: (point) => point.from,
-    getColor: [255, 255, 255],
-    getSize: 15,
-    getTextAnchor: 'middle',
-    getText: (point) => String(point.index + 1),
-    fontWeight: 10,
-    getPixelOffset: [0, -16],
-    pickable: true,
-    onHover: (info) => setIconHoverInfo(info),
-  })
+  // const a = mapRef.current?.getContainer()
+  // const x = deckRef.current?.pickObjects({
+  //   x: 120,
+  //   y: 120,
+  //   width: a?.clientWidth,
+  //   height: a?.clientHeight,
+  // })
+  // console.log({ x })
 
   return (
     <DeckGL
+      ref={deckRef}
       initialViewState={viewport}
       style={{
         position: 'relative',
@@ -135,14 +66,24 @@ export function Map() {
       }}
       controller
       layers={[
+        isCamerasEnabled && cameraLayer,
         isLinesEnabled && lineLayer,
         isLinesEnabled && lineLayerTransparent,
         isIconColorEnabled ? coloredIconLayer : blackIconLayer,
         textLayer,
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
+      onHover={({ object }) => {
+        if (object?.properties?.streamingUrl) {
+          setHightlightedObject(object)
+        }
+      }}
+      getCursor={({ isDragging }) =>
+        isDragging ? 'grabbing' : hightlightedObject ? 'pointer' : 'grab'
+      }
     >
       <ReactMalGL
+        ref={mapRef}
         mapboxAccessToken={config.mapboxAccessToken}
         mapStyle={
           isMapStyleSatellite
@@ -152,6 +93,8 @@ export function Map() {
       />
       <IconTooltipCard {...iconHoverInfo} />
       <LineTooltipCard {...lineHoverInfo} />
+      <CameraInfoPopupCard {...cameraHoverInfo} />
+      <CameraFullInfoPopup />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
       <MapActions
         isMapStyleSatellite={isMapStyleSatellite}
@@ -160,6 +103,8 @@ export function Map() {
         setIsLinesEnabled={setIsLinesEnabled}
         isIconColorEnabled={isIconColorEnabled}
         setIsIconColorEnabled={setIsIconColorEnabled}
+        isCamerasEnabled={isCamerasEnabled}
+        setIsCamerasEnabled={setIsCamerasEnabled}
       />
     </DeckGL>
   )
