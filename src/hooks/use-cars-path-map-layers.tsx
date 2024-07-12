@@ -7,7 +7,7 @@ import iconAtlas from '@/assets/icon-atlas.png'
 import type { CameraCor } from '@/models/entities'
 import type { Point } from '@/utils/formatCarPathResponse'
 
-import { useCarPath } from './useCarPathContext'
+import { useCarPath } from './use-contexts/use-car-path-context'
 
 export interface InfoPopupProps {
   x: number

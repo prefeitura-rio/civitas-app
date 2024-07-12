@@ -21,7 +21,7 @@ import {
   type OperationForm,
   operationFormSchema,
 } from '@/contexts/operations-context'
-import { useOperations } from '@/hooks/use-operations'
+import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 import { createOperation } from '@/http/operations/create-operation'
 import { getOperation } from '@/http/operations/get-operation'
 import { updateOperation } from '@/http/operations/update-operation'

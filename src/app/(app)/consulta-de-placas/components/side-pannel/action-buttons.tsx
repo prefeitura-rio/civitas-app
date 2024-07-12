@@ -1,4 +1,4 @@
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 
 import { MonitoringToggle } from './action-buttons/monitoring-toggle'
 import DownloadReportButton from './action-buttons/report/download-report-button'

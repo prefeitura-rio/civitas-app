@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import { cn } from '@/lib/utils'
 import { toPascalCase } from '@/utils/toPascalCase'
 

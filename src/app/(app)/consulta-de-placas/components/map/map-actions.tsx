@@ -3,7 +3,7 @@ import { type Dispatch, type SetStateAction } from 'react'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 
 interface MapActionsProps {
   isMapStyleSatellite: boolean

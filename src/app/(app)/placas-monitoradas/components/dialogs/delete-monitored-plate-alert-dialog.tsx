@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
+import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
 import { deleteMonitoredPlate } from '@/http/cars/monitored/delete-monitored-plate'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
