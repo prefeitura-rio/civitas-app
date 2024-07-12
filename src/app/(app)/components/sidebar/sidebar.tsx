@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useProfile } from '@/hooks/use-profile'
-import { useSidebar } from '@/hooks/use-sidebar'
+import { useSidebar } from '@/hooks/use-contexts/use-sidebar-context'
+import { useProfile } from '@/hooks/use-queries/use-profile'
 import { cn } from '@/lib/utils'
 
 import { SideNav } from './side-nav'

@@ -25,7 +25,7 @@ import {
   type MonitoredPlateForm,
   monitoredPlateFormSchema,
 } from '@/contexts/monitored-plates-context'
-import { useMonitoredPlates } from '@/hooks/use-monitored-plates'
+import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'

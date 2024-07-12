@@ -3,13 +3,14 @@ import ReactMalGL from 'react-map-gl'
 
 import { config } from '@/config'
 import { useCarsPathMapLayers } from '@/hooks/use-cars-path-map-layers'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 
 import { CameraInfoPopupCard } from './camera-info-popup'
 import { IconTooltipCard } from './map/icon-tooltip-card'
 import { LineTooltipCard } from './map/line-tooltip-card'
 import { MapActions } from './map/map-actions'
 import { MapCaption } from './map/map-caption'
+import { SearchBox } from './map/search-box'
 import { CameraFullInfoPopup } from './side-pannel/camera-full-info-popup'
 
 export function Map() {
@@ -106,6 +107,7 @@ export function Map() {
         isCamerasEnabled={isCamerasEnabled}
         setIsCamerasEnabled={setIsCamerasEnabled}
       />
+      <SearchBox />
     </DeckGL>
   )
 }

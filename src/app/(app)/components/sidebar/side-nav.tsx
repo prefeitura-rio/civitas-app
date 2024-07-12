@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useSidebar } from '@/hooks/use-sidebar'
+import { useSidebar } from '@/hooks/use-contexts/use-sidebar-context'
 import { cn } from '@/lib/utils'
 import type { NavItem } from '@/models/utils'
 import { logout } from '@/utils/logout'

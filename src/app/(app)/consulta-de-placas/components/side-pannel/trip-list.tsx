@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react'
 import React from 'react'
 
 import { Separator } from '@/components/ui/separator'
-import { useCarPath } from '@/hooks/useCarPathContext'
+import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 
 import { TripCard } from './trip-card'
 
