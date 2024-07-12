@@ -30,6 +30,7 @@ export function Map() {
       lineLayer,
       lineLayerTransparent,
       textLayer,
+      addressMarkerLayer,
     },
     mapStates: {
       cameraHoverInfo,
@@ -43,6 +44,8 @@ export function Map() {
       setIsIconColorEnabled,
       setIsLinesEnabled,
       setIsMapStyleSatellite,
+      isAddressMarkerEnabled,
+      setIsAddressMarkerEnabled,
     },
   } = useCarsPathMapLayers()
 
@@ -67,11 +70,12 @@ export function Map() {
       }}
       controller
       layers={[
-        isCamerasEnabled && cameraLayer,
         isLinesEnabled && lineLayer,
         isLinesEnabled && lineLayerTransparent,
+        isCamerasEnabled && cameraLayer,
         isIconColorEnabled ? coloredIconLayer : blackIconLayer,
         textLayer,
+        isAddressMarkerEnabled && addressMarkerLayer,
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
       onHover={({ object }) => {
@@ -97,6 +101,10 @@ export function Map() {
       <CameraInfoPopupCard {...cameraHoverInfo} />
       <CameraFullInfoPopup />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
+      <SearchBox
+        isAddressmarkerEnabled={isAddressMarkerEnabled}
+        setIsAddressmarkerEnabled={setIsAddressMarkerEnabled}
+      />
       <MapActions
         isMapStyleSatellite={isMapStyleSatellite}
         setIsMapStyleSatellite={setIsMapStyleSatellite}
@@ -107,7 +115,6 @@ export function Map() {
         isCamerasEnabled={isCamerasEnabled}
         setIsCamerasEnabled={setIsCamerasEnabled}
       />
-      <SearchBox />
     </DeckGL>
   )
 }

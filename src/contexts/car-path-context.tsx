@@ -44,6 +44,10 @@ interface CarPathContextProps {
   setSelectedCamera: Dispatch<SetStateAction<SelectedCamera | null>>
   deckRef: RefObject<DeckGLRef>
   mapRef: RefObject<MapRef>
+  addressMarkerPosition: [longitude: number, latitude: number]
+  setAddressmMarkerPositionState: Dispatch<
+    SetStateAction<[longitude: number, latitude: number]>
+  >
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -61,6 +65,9 @@ export function CarPathContextProvider({
   const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
   const [isLoading, setIsLoading] = useState(false)
   const [lastSearchParams, setLastSearchParams] = useState<GetCarPathRequest>()
+  const [addressMarkerPosition, setAddressmMarkerPositionState] = useState<
+    [longitude: number, latitude: number]
+  >([0, 0])
 
   const [cameras, setCameras] = useState<CameraCor[]>([])
   const [hightlightedObject, setHightlightedObject] = useState<Feature | null>(
@@ -145,6 +152,8 @@ export function CarPathContextProvider({
         setSelectedCamera,
         deckRef,
         mapRef,
+        addressMarkerPosition,
+        setAddressmMarkerPositionState,
       }}
     >
       {children}
