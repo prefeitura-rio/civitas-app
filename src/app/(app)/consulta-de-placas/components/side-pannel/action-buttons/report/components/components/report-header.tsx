@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
 })
 
 export function ReportHeader() {
+  const now = new Date()
+  const code = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${now.getDate()}.${now.getHours()}${now.getMinutes()}${now.getSeconds()}${now.getMilliseconds()}`
+
   return (
     <View style={styles.header}>
       <View style={styles.headerRow}>
@@ -74,7 +77,7 @@ export function ReportHeader() {
         </Text>
       </View>
       <View style={styles.headerRowSecond}>
-        <Text style={styles.subTitle}>{new Date().getTime()}</Text>
+        <Text style={styles.subTitle}>{`ID: ${code}`}</Text>
       </View>
     </View>
   )
