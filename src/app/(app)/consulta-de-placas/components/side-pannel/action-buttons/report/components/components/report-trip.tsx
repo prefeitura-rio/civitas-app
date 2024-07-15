@@ -49,7 +49,7 @@ export function ReportTrip({ trip, index, plate }: ReportTripProps) {
               fontSize: 14,
               textAlign: 'center',
             }}
-          >{`Dia ${formatDate(date, 'dd/MM/yyyy')}`}</Text>
+          >{`Viagem ${index + 1} - Dia ${formatDate(date, 'dd/MM/yyyy')}`}</Text>
         </View>
         <View style={{ flexDirection: 'column', gap: 2 }}>
           <MapView points={trip.points} />
