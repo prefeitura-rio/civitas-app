@@ -10,7 +10,9 @@ import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import { ReportDocument } from './components/report-document'
 
 export default function DownloadReportButton() {
-  const { trips, isLoading } = useCarPath()
+  const { trips, isLoading, lastSearchParams } = useCarPath()
+  if (!lastSearchParams) return null
+
   return (
     <Dialog>
       <Tooltip asChild text="Imprimir relatório" disabled={isLoading}>
@@ -22,7 +24,7 @@ export default function DownloadReportButton() {
       </Tooltip>
       <DialogContent className="h-[80%] max-w-7xl">
         <PDFViewer style={{ width: '100%', height: '100%' }}>
-          <ReportDocument trips={trips || []} />
+          <ReportDocument trips={trips || []} searchParams={lastSearchParams} />
         </PDFViewer>
       </DialogContent>
     </Dialog>
