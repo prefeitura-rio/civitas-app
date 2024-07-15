@@ -49,15 +49,6 @@ export function Map() {
     },
   } = useCarsPathMapLayers()
 
-  // const a = mapRef.current?.getContainer()
-  // const x = deckRef.current?.pickObjects({
-  //   x: 120,
-  //   y: 120,
-  //   width: a?.clientWidth,
-  //   height: a?.clientHeight,
-  // })
-  // console.log({ x })
-
   return (
     <DeckGL
       ref={deckRef}

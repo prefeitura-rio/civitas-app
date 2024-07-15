@@ -44,5 +44,5 @@ export function MapView({ points }: MapViewProps) {
 
   const mapboxUrl = `https://api.mapbox.com/styles/v1/${mapStyle}/static/${markers}/${viewport}/${mapWidth}x${mapHeight}?${points.length > 1 ? 'padding=50&' : ''}access_token=${accessToken}`
 
-  return <Image src={mapboxUrl} style={{ paddingVertical: 20 }} />
+  return <Image src={mapboxUrl} />
 }
