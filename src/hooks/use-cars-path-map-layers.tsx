@@ -159,7 +159,6 @@ export function useCarsPathMapLayers() {
       },
     ],
     getPosition: (point) => {
-      console.log(point)
       return point.coordinates
     },
     pickable: true,

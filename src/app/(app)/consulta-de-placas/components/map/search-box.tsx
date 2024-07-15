@@ -48,10 +48,8 @@ export function SearchBox({
     const getData = async (query: string) => {
       try {
         const response = await getPlaces(query)
-        console.log(response.data)
         const places = response.data.features
         setSuggestions(places)
-        console.log(places)
       } catch (error) {
         console.error(error)
         setSuggestions([])
@@ -80,7 +78,7 @@ export function SearchBox({
             {...register('address')}
             placeholder="Pequise um endereço"
             className={cn(
-              'pl-8 focus-visible:ring-0 focus-visible:ring-offset-0',
+              'pl-8 pr-8 focus-visible:ring-0 focus-visible:ring-offset-0',
               suggestions.length > 0 ? 'rounded-b-none' : '',
             )}
             autoComplete="off"
@@ -111,7 +109,6 @@ export function SearchBox({
                 onMouseDown={() => {
                   setValue('address', item.properties?.full_address)
                   const coordinates = item.properties?.coordinates
-                  console.log({ coordinates })
                   const lon = Number(coordinates?.longitude)
                   const lat = Number(coordinates?.latitude)
                   setViewport({

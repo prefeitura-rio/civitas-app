@@ -4,13 +4,13 @@ import { MonitoringToggle } from './action-buttons/monitoring-toggle'
 import DownloadReportButton from './action-buttons/report/download-report-button'
 
 export function ActionButtons() {
-  const { trips, isLoading, lastSearchParams } = useCarPath()
+  const { isLoading, lastSearchParams } = useCarPath()
 
-  const shouldShowDownloadReportButton =
-    trips && trips?.length > 0 && !isLoading
+  const shouldShowDownloadReportButton = lastSearchParams && !isLoading
   const shouldShowMonitoringToggle = lastSearchParams && !isLoading
   const shouldShowActionsSection =
     shouldShowDownloadReportButton || shouldShowMonitoringToggle
+
   return (
     <>
       {shouldShowActionsSection && (
