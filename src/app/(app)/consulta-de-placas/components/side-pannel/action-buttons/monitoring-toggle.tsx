@@ -71,17 +71,20 @@ export function MonitoringToggle() {
             disabledText={
               isLoadingGetCarPath || isLoadingMonitoredPlate ? '' : notAllowed
             }
+            asChild
           >
-            <Toggle
-              pressed={monitored}
-              onPressedChange={handleSetMonitored}
-              disabled={
-                isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
-              }
-              className="cursor-default"
-            >
-              <Siren className="h-4 w-4" />
-            </Toggle>
+            <div>
+              <Toggle
+                pressed={monitored}
+                onPressedChange={handleSetMonitored}
+                disabled={
+                  isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
+                }
+                className="cursor-default"
+              >
+                <Siren className="h-4 w-4" />
+              </Toggle>
+            </div>
           </Tooltip>
           <MonitoredPlateFormDialog
             isOpen={monitoredPlateFormDialog.isOpen}
