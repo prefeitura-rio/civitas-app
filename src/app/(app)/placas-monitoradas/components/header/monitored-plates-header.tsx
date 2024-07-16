@@ -19,6 +19,7 @@ export function MonitoredPlatesHeader() {
         hideContent={isAdmin}
         disabled={!isAdmin}
         disabledText={notAllowed}
+        asChild
       >
         <Button onClick={formDialogDisclosure.onOpen} disabled={!isAdmin}>
           Adicionar
