@@ -55,7 +55,6 @@ export function MonitoredPlatesFilter() {
   }, [])
 
   function handleClearFilters() {
-    console.log('clear')
     reset()
     setValue('active', 'all')
     router.replace(pathName)
@@ -72,7 +71,6 @@ export function MonitoredPlatesFilter() {
     if (props.active && props.active !== 'all')
       params.set('active', props.active)
 
-    console.log({ params: params.toString() })
     router.replace(`${pathName}?${params.toString()}`)
   }
 

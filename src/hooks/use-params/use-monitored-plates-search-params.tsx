@@ -38,12 +38,10 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     searchParams.get('notificationChannelTitle') || undefined
 
   const pActive = searchParams.get('active')
-  console.log(pActive === null)
   const active = pActive === null ? undefined : pActive === 'true'
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
-  console.log({ active, pActive })
 
   function handlePaginate(index: number) {
     const params = new URLSearchParams(searchParams.toString())
