@@ -30,8 +30,20 @@ const SidePanel = dynamic(
 )
 
 export default function ConsultaDePlacas() {
+  const today = new Date()
+  const from = new Date()
+  from.setDate(today.getDate() - 7)
+  from.setHours(0)
+  from.setMinutes(0)
+
   const filterFormMethods = useForm<FilterForm>({
     resolver: zodResolver(filterFormSchema),
+    defaultValues: {
+      date: {
+        from,
+        to: today,
+      },
+    },
   })
   return (
     <CarPathContextProvider>
