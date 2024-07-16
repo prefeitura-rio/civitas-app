@@ -98,9 +98,8 @@ export function FilterForm() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <Label htmlFor="endTime">Data:</Label>
-                      {/* <InputError message={errors.date?.to?.message} /> */}
-                      {/* <InputError message={errors.date?.from?.message} /> */}
                       <InputError
+                        className="whitespace-nowrap"
                         message={
                           errors.date?.message ||
                           errors.date?.from?.message ||
