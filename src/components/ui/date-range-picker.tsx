@@ -79,6 +79,7 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={initialMonth}
             selected={date}
+            toDate={new Date()}
             onSelect={(value) => {
               if (value?.from && !value?.to) {
                 setDate({
@@ -143,6 +144,7 @@ export function DatePickerWithRange({
               </div>
               <TimePicker
                 value={value?.to}
+                disableFuture
                 defaultValue={defaultValue?.to}
                 onChangeHourValue={(val) => {
                   if (date?.to) {

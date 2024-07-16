@@ -20,6 +20,7 @@ interface TimePickerProps {
   defaultValue?: Date | null
   onChangeHourValue: (value: string) => void
   onChangeMinuteValue: (value: string) => void
+  disableFuture?: boolean
 }
 
 export function TimePicker({
@@ -27,7 +28,22 @@ export function TimePicker({
   defaultValue,
   onChangeHourValue,
   onChangeMinuteValue,
+  disableFuture = false,
 }: TimePickerProps) {
+  const today = new Date()
+
+  function shouldDisableHour(item: string) {
+    if (!disableFuture) return false
+    if (Number(item) > today.getHours()) return true
+    if (item === '0' && today.getHours() === 23) return true
+  }
+
+  function shouldDisableMinute(item: string) {
+    if (!disableFuture) return false
+    if (Number(item) > today.getMinutes()) return true
+    if (item === '0' && today.getMinutes() === 59) return true
+  }
+
   return (
     <div className="flex items-center justify-center gap-1">
       <div className="flex flex-col items-center">
@@ -42,7 +58,11 @@ export function TimePicker({
           </SelectTrigger>
           <SelectContent className="h-72 w-16 min-w-0">
             {hours.map((item) => (
-              <SelectItem className="w-16 min-w-0" value={item}>
+              <SelectItem
+                className="w-16 min-w-0"
+                value={item}
+                disabled={shouldDisableHour(item)}
+              >
                 {item}
               </SelectItem>
             ))}
@@ -60,9 +80,15 @@ export function TimePicker({
           <SelectTrigger className="h-9 w-16">
             <SelectValue placeholder="--" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-16 min-w-0">
             {minutes.map((item) => (
-              <SelectItem value={item}>{item}</SelectItem>
+              <SelectItem
+                className="w-16 min-w-0"
+                value={item}
+                disabled={shouldDisableMinute(item)}
+              >
+                {item}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
