@@ -55,7 +55,7 @@ export function FilterForm() {
     try {
       await getCarPath({
         placa: props.plate,
-        startTime: format(props.date.from, "yyyy-MM-dd'T'HH:mm:59.999"),
+        startTime: format(props.date.from, "yyyy-MM-dd'T'HH:mm"),
         endTime: format(props.date.to, "yyyy-MM-dd'T'HH:mm:ss"),
       })
     } catch (error) {
