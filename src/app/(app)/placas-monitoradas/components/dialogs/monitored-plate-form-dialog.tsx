@@ -247,6 +247,7 @@ export function MonitoredPlateFormDialog({
               id="plate"
               {...register('plate')}
               type="text"
+              onChange={(e) => setValue('plate', e.target.value.toUpperCase())}
               disabled={isLoading || !!initialData}
             />
           </div>

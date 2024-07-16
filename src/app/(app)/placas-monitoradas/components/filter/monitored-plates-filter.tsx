@@ -20,22 +20,21 @@ const filterFormSchema = z.object({
   plate: z
     .string()
     .min(1, { message: '' })
-    .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido')
-    .transform((item) => item.toUpperCase()),
+    .toUpperCase()
+    .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido'),
 })
 
 type FilterForm = z.infer<typeof filterFormSchema>
 
 export function MonitoredPlatesFilter() {
   const searchParams = useSearchParams()
-  // const router = useRouter()
-  // const pathName = usePathname()
   const { formDialogDisclosure, setDialogInitialData } = useMonitoredPlates()
   const [isLoading, setIsLoading] = useState(false)
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FilterForm>({
     resolver: zodResolver(filterFormSchema),
@@ -76,6 +75,7 @@ export function MonitoredPlatesFilter() {
         type="text"
         placeholder="Pesquisar placa"
         {...register('plate')}
+        onChange={(e) => setValue('plate', e.target.value.toUpperCase())}
       />
       <InputError message={errors.plate?.message} />
       <Button size="sm" variant="outline" type="submit">

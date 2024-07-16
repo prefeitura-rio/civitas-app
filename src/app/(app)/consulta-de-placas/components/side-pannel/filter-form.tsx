@@ -15,7 +15,11 @@ import { genericErrorMessage } from '@/utils/error-handlers'
 import { formatDateUTC } from '@/utils/formatDateUTC'
 
 export const filterFormSchema = z.object({
-  plateNumer: z.string().min(1, { message: 'Campo obrigatório' }),
+  plateNumer: z
+    .string()
+    .min(1, { message: '' })
+    .toUpperCase()
+    .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido'),
   startTime: z.date({ message: 'Campo obrigatório' }),
   endTime: z.date({ message: 'Campo obrigatório' }),
 })
@@ -27,6 +31,7 @@ export function FilterForm() {
     control,
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useFormContext<FilterForm>()
   const { getCarPath } = useCarPath()
@@ -61,7 +66,14 @@ export function FilterForm() {
                 <Label htmlFor="plateNumber">Número da placa</Label>
                 <InputError message={errors.plateNumer?.message} />
               </div>
-              <Input id="plateNumber" type="text" {...register('plateNumer')} />
+              <Input
+                id="plateNumber"
+                type="text"
+                {...register('plateNumer')}
+                onChange={(e) =>
+                  setValue('plateNumer', e.target.value.toUpperCase())
+                }
+              />
             </div>
             <div className="flex flex-col gap-1">
               <div className="space-x-2">
