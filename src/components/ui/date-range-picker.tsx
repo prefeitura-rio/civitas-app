@@ -108,7 +108,6 @@ export function DatePickerWithRange({
                   if (date?.from) {
                     const newDate = new Date(date?.from)
                     newDate?.setHours(Number(val))
-                    console.log({ newDate })
                     setDate({
                       ...date,
                       from: newDate,
@@ -123,7 +122,6 @@ export function DatePickerWithRange({
                   if (date?.from) {
                     const newDate = new Date(date?.from)
                     newDate?.setMinutes(Number(val))
-                    console.log({ newDate })
                     setDate({
                       ...date,
                       from: newDate,
@@ -150,7 +148,6 @@ export function DatePickerWithRange({
                   if (date?.to) {
                     const newDate = new Date(date?.to)
                     newDate?.setHours(Number(val))
-                    console.log({ newDate })
                     setDate({
                       ...date,
                       to: newDate,
@@ -165,7 +162,6 @@ export function DatePickerWithRange({
                   if (date?.to) {
                     const newDate = new Date(date?.to)
                     newDate?.setMinutes(Number(val))
-                    console.log({ newDate })
                     setDate({
                       ...date,
                       to: newDate,

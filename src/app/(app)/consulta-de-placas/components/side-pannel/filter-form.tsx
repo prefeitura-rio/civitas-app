@@ -111,7 +111,6 @@ export function FilterForm() {
                     <DatePickerWithRange
                       placeholder="Selecione uma data"
                       onChangeValue={(e) => {
-                        console.log(e)
                         field.onChange(e)
                         if (e) {
                           if (e.from) setValue('date.from', e.from)
