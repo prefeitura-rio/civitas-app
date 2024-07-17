@@ -87,10 +87,6 @@ export function SearchByPlateFilterForm() {
           plate: props.plate,
           startTime: dateToString(props.date.from),
           endTime: dateToString(props.date.to),
-          minLat: -90,
-          maxLat: 90,
-          minLon: -180,
-          maxLon: 180,
         })
       } else {
         await getCarPath({
