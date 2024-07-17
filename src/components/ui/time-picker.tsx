@@ -31,7 +31,7 @@ export function TimePicker({
   disableFuture = false,
 }: TimePickerProps) {
   const today = new Date()
-  const todayAtMidnight = today
+  const todayAtMidnight = new Date()
   todayAtMidnight?.setHours(0)
   todayAtMidnight?.setMinutes(0)
   todayAtMidnight?.setSeconds(0)
@@ -39,7 +39,6 @@ export function TimePicker({
   const isValueToday = (value?.getTime() || 0) >= todayAtMidnight?.getTime()
 
   function shouldDisableHour(item: string) {
-    console.log(isValueToday)
     if (!disableFuture || !isValueToday) return false
     if (Number(item) > today.getHours()) return true
     if (item === '0' && today.getHours() === 23) return true
