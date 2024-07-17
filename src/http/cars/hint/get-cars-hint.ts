@@ -4,10 +4,10 @@ export interface GetCarHintRequest {
   plate: string
   startTime: string
   endTime: string
-  minLat: number
-  maxLat: number
-  minLon: number
-  maxLon: number
+  minLat?: number
+  maxLat?: number
+  minLon?: number
+  maxLon?: number
 }
 
 export function getCarHint(props: GetCarHintRequest) {
@@ -16,10 +16,10 @@ export function getCarHint(props: GetCarHintRequest) {
       placa: props.plate,
       start_time: props.startTime,
       end_time: props.endTime,
-      latitude_min: props.minLat,
-      latitude_max: props.maxLat,
-      longitude_min: props.minLon,
-      longitude_max: props.maxLon,
+      latitude_min: props?.minLat,
+      latitude_max: props?.maxLat,
+      longitude_min: props?.minLon,
+      longitude_max: props?.maxLon,
     },
   })
   return response

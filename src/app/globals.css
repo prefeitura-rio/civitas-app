@@ -130,6 +130,10 @@
   }
 
   .code-highlight {
-    @apply rounded-md bg-secondary px-2 font-bold text-primary
+    @apply rounded bg-secondary px-1.5 py-0.5 font-bold text-primary
+  }
+
+  .selectable-item {
+    @apply rounded-sm px-2 py-1.5 text-sm flex items-center hover:bg-secondary border border-secondary
   }
 }
