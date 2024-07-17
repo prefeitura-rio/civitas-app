@@ -1,4 +1,5 @@
 'use client'
+import { format } from 'date-fns'
 import { Search } from 'lucide-react'
 import { Controller, useFormContext } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -6,18 +7,35 @@ import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DateTimePicker } from '@/components/ui/date-time-picker'
+import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import { genericErrorMessage } from '@/utils/error-handlers'
-import { formatDateUTC } from '@/utils/formatDateUTC'
 
 export const filterFormSchema = z.object({
-  plateNumer: z.string().min(1, { message: 'Campo obrigatório' }),
-  startTime: z.date({ message: 'Campo obrigatório' }),
-  endTime: z.date({ message: 'Campo obrigatório' }),
+  plate: z
+    .string()
+    .min(1, { message: 'Campo obrigatório' })
+    .toUpperCase()
+    .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido'),
+  date: z
+    .object(
+      {
+        from: z.date({ message: 'Campo obrigatório' }),
+        to: z.date({ message: 'Selecione uma data de término' }),
+      },
+      { message: 'Campo obrigatório' },
+    )
+    .superRefine((val, ctx) => {
+      if (val.to > new Date()) {
+        ctx.addIssue({
+          code: 'invalid_date',
+          message: 'A data de término deve ser menor ou igual à data atual',
+        })
+      }
+    }),
 })
 
 export type FilterForm = z.infer<typeof filterFormSchema>
@@ -27,6 +45,8 @@ export function FilterForm() {
     control,
     register,
     handleSubmit,
+    setValue,
+    resetField,
     formState: { errors, isSubmitting },
   } = useFormContext<FilterForm>()
   const { getCarPath } = useCarPath()
@@ -34,9 +54,9 @@ export function FilterForm() {
   async function onSubmit(props: FilterForm) {
     try {
       await getCarPath({
-        placa: props.plateNumer,
-        startTime: formatDateUTC(props.startTime),
-        endTime: formatDateUTC(props.endTime),
+        placa: props.plate,
+        startTime: format(props.date.from, "yyyy-MM-dd'T'HH:mm"),
+        endTime: format(props.date.to, "yyyy-MM-dd'T'HH:mm:ss"),
       })
     } catch (error) {
       toast.error(genericErrorMessage)
@@ -55,50 +75,58 @@ export function FilterForm() {
           </div>
         </CardHeader>
         <CardContent>
-          <fieldset className="flex flex-col gap-1" disabled={isSubmitting}>
-            <div className="flex flex-col gap-1">
-              <div className="space-x-2">
-                <Label htmlFor="plateNumber">Número da placa</Label>
-                <InputError message={errors.plateNumer?.message} />
+          <fieldset className="space-y-2" disabled={isSubmitting}>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="plateNumber">Placa:</Label>
+                <InputError message={errors.plate?.message} />
               </div>
-              <Input id="plateNumber" type="text" {...register('plateNumer')} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <div className="space-x-2">
-                <Label htmlFor="startTime">Data de início do intervalo</Label>
-                <InputError message={errors.startTime?.message} />
-              </div>
-              <Controller
-                control={control}
-                name="startTime"
-                render={({ field }) => (
-                  <DateTimePicker
-                    granularity="minute"
-                    jsDate={field.value}
-                    onJsDateChange={field.onChange}
-                  />
-                )}
-                disabled={isSubmitting}
+              <Input
+                id="plateNumber"
+                type="text"
+                {...register('plate')}
+                onChange={(e) =>
+                  setValue('plate', e.target.value.toUpperCase())
+                }
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <div className="space-x-2">
-                <Label htmlFor="endTime">Data de término do intervalo</Label>
-                <InputError message={errors.endTime?.message} />
-              </div>
-              <Controller
-                control={control}
-                name="endTime"
-                render={({ field }) => (
-                  <DateTimePicker
-                    granularity="minute"
-                    jsDate={field.value}
-                    onJsDateChange={field.onChange}
-                  />
-                )}
-                disabled={isSubmitting}
-              />
-            </div>
+            <Controller
+              control={control}
+              name="date"
+              render={({ field }) => {
+                return (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="endTime">Data:</Label>
+                      <InputError
+                        className="whitespace-nowrap"
+                        message={
+                          errors.date?.message ||
+                          errors.date?.from?.message ||
+                          errors.date?.to?.message
+                        }
+                      />
+                    </div>
+                    <DatePickerWithRange
+                      placeholder="Selecione uma data"
+                      onChangeValue={(e) => {
+                        field.onChange(e)
+                        if (e) {
+                          if (e.from) setValue('date.from', e.from)
+                          if (e.to) setValue('date.to', e.to)
+                        } else {
+                          resetField('date.from')
+                          resetField('date.to')
+                        }
+                      }}
+                      value={field.value}
+                      defaultValue={field.value}
+                      defaultMonth={new Date().getMonth() - 1}
+                    />
+                  </div>
+                )
+              }}
+            />
           </fieldset>
         </CardContent>
       </form>

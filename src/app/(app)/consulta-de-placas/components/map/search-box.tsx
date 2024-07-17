@@ -102,9 +102,10 @@ export function SearchBox({
             !openSuggestions || suggestions.length === 0 ? 'hidden' : '',
           )}
         >
-          {suggestions.map((item) => {
+          {suggestions.map((item, index) => {
             return (
               <div
+                key={index}
                 className="rounded-lg p-2 hover:cursor-default hover:bg-accent"
                 onMouseDown={() => {
                   setValue('address', item.properties?.full_address)
