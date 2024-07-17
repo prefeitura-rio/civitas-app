@@ -31,15 +31,22 @@ export function TimePicker({
   disableFuture = false,
 }: TimePickerProps) {
   const today = new Date()
+  const todayAtMidnight = today
+  todayAtMidnight?.setHours(0)
+  todayAtMidnight?.setMinutes(0)
+  todayAtMidnight?.setSeconds(0)
+  todayAtMidnight?.setMilliseconds(0)
+  const isValueToday = (value?.getTime() || 0) >= todayAtMidnight?.getTime()
 
   function shouldDisableHour(item: string) {
-    if (!disableFuture) return false
+    console.log(isValueToday)
+    if (!disableFuture || !isValueToday) return false
     if (Number(item) > today.getHours()) return true
     if (item === '0' && today.getHours() === 23) return true
   }
 
   function shouldDisableMinute(item: string) {
-    if (!disableFuture) return false
+    if (!disableFuture || !isValueToday) return false
     if (Number(item) > today.getMinutes()) return true
     if (item === '0' && today.getMinutes() === 59) return true
   }
