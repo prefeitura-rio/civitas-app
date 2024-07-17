@@ -15,6 +15,10 @@ import type { MapRef } from 'react-map-gl'
 
 import { getCamerasCor } from '@/http/cameras-cor/get-cameras-cor'
 import {
+  getCarHint as getCarHintApi,
+  type GetCarHintRequest,
+} from '@/http/cars/hint/get-cars-hint'
+import {
   getCarPath as getCarPathApi,
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
@@ -48,6 +52,8 @@ interface CarPathContextProps {
   setAddressmMarkerPositionState: Dispatch<
     SetStateAction<[longitude: number, latitude: number]>
   >
+  getCarHint: (props: GetCarHintRequest) => Promise<string[]>
+  possiblePlates: string[] | undefined
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -77,11 +83,13 @@ export function CarPathContextProvider({
     null,
   )
 
+  const [possiblePlates, setPossiblePlates] = useState<string[]>()
+
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
 
   useQuery({
-    queryKey: ['agent/locations'],
+    queryKey: ['cameras-cor'],
     queryFn: async () => {
       const response = await getCamerasCor()
       setCameras(response.data)
@@ -107,6 +115,7 @@ export function CarPathContextProvider({
 
   async function getCarPath({ placa, startTime, endTime }: GetCarPathRequest) {
     setIsLoading(true)
+    setPossiblePlates(undefined)
     setLastSearchParams({
       placa,
       startTime,
@@ -133,6 +142,21 @@ export function CarPathContextProvider({
     return formattedTrips
   }
 
+  async function getCarHint(props: GetCarHintRequest) {
+    setIsLoading(true)
+    setTrips(undefined)
+    setLastSearchParams({
+      placa: props.plate,
+      startTime: props.startTime,
+      endTime: props.endTime,
+    })
+    const response = await getCarHintApi(props)
+    setIsLoading(false)
+    setPossiblePlates(response.data)
+
+    return response.data
+  }
+
   return (
     <CarPathContext.Provider
       value={{
@@ -154,6 +178,8 @@ export function CarPathContextProvider({
         mapRef,
         addressMarkerPosition,
         setAddressmMarkerPositionState,
+        getCarHint,
+        possiblePlates,
       }}
     >
       {children}

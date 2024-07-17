@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/spinner'
 import type { InfoPopupProps } from '@/hooks/use-cars-path-map-layers'
 import { cn } from '@/lib/utils'
 
-import { IconTooltipInfo } from './map/icon-tooltip-info'
+import { IconTooltipInfo } from '../icon-tooltip-info'
 
 export function CameraInfoPopupCard({ x, y, object }: InfoPopupProps) {
   const [isLoading, setIsLoading] = useState(true)
