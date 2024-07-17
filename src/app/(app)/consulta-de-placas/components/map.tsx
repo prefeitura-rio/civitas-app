@@ -10,7 +10,7 @@ import { IconTooltipCard } from './map/icon-tooltip-card'
 import { LineTooltipCard } from './map/line-tooltip-card'
 import { MapActions } from './map/map-actions'
 import { MapCaption } from './map/map-caption'
-import { SearchBox } from './map/search-box'
+import { SearchBox } from './search-box'
 import { CameraFullInfoPopup } from './side-pannel/camera-full-info-popup'
 
 export function Map() {
@@ -92,10 +92,12 @@ export function Map() {
       <CameraInfoPopupCard {...cameraHoverInfo} />
       <CameraFullInfoPopup />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
-      <SearchBox
-        isAddressmarkerEnabled={isAddressMarkerEnabled}
-        setIsAddressmarkerEnabled={setIsAddressMarkerEnabled}
-      />
+      <div className="absolute-x-centered top-2 z-50 w-64">
+        <SearchBox
+          isAddressmarkerEnabled={isAddressMarkerEnabled}
+          setIsAddressmarkerEnabled={setIsAddressMarkerEnabled}
+        />
+      </div>
       <MapActions
         isMapStyleSatellite={isMapStyleSatellite}
         setIsMapStyleSatellite={setIsMapStyleSatellite}

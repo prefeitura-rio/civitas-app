@@ -17,6 +17,7 @@ interface TooltipProps {
   asChild?: boolean
   hideContent?: boolean
   disabledText?: string
+  render?: JSX.Element
 }
 
 export function Tooltip({
@@ -28,11 +29,12 @@ export function Tooltip({
   asChild = false,
   hideContent = false,
   disabledText,
+  render,
 }: TooltipProps) {
   return (
     <TooltipProvider delayDuration={200} skipDelayDuration={0}>
       <RawTooltip>
-        <TooltipTrigger asChild={asChild} disabled={disabled}>
+        <TooltipTrigger asChild={asChild} disabled={disabled} type="button">
           {children}
         </TooltipTrigger>
         {!hideContent && (
@@ -41,7 +43,7 @@ export function Tooltip({
             className={cn('max-w-sm text-justify', className)}
             sideOffset={10}
           >
-            <p>{disabled && disabledText ? disabledText : text}</p>
+            {render || <p>{disabled && disabledText ? disabledText : text}</p>}
           </TooltipContent>
         )}
       </RawTooltip>
