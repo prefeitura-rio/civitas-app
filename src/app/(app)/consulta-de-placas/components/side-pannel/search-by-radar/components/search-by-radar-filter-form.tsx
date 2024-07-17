@@ -1,28 +1,22 @@
 import { useMutation } from '@tanstack/react-query'
 import { SatelliteDish, Search } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { CardTitle } from '@/components/ui/card'
 import { useCarsPathMapLayers } from '@/hooks/use-cars-path-map-layers'
 import { getCarHint } from '@/http/cars/hint/get-cars-hint'
 
-import type { FilterForm } from './search-by-plate-filter-form'
-
 export function SearchByRadarFilterForm() {
   const {
     mapStates: { bbox },
   } = useCarsPathMapLayers()
 
-  const { data: response, mutateAsync: getCarHintMutation } = useMutation({
+  const { mutateAsync: getCarHintMutation } = useMutation({
     mutationFn: getCarHint,
   })
 
-  console.log(bbox)
-
   return (
-    <div className="flex flex-col">
+    <div className="flex w-full flex-col">
       <form className="flex h-full flex-col">
         <div className="flex items-center justify-between py-2">
           <CardTitle className="flex items-center gap-2">

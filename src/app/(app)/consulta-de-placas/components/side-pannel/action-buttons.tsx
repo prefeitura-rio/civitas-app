@@ -15,10 +15,7 @@ export function ActionButtons() {
     <>
       {shouldShowActionsSection && (
         <div className="flex flex-col">
-          <span className="text-center text-sm text-muted-foreground">
-            Ações
-          </span>
-          <div className="mx-6 mb-2 flex gap-2 rounded-xl border p-2">
+          <div className="box-border flex gap-2 rounded border p-1">
             {shouldShowDownloadReportButton && <DownloadReportButton />}
             {shouldShowMonitoringToggle && <MonitoringToggle />}
           </div>

@@ -9,22 +9,22 @@ export function PlateWildcardsHelperInfo() {
       <CardContent className="text-start">
         <p>
           Você pode utilizar este campo para pesquisar por uma placa específica
-          ou por parte de uma placa utilizando os seguintes{' '}
-          <span className="font-bold text-primary">wildcards</span>:
+          ou por parte de uma placa utilizando um{' '}
+          <span className="font-bold text-primary">caracter coringa</span>:
         </p>
-        <ul className="list-decoration my-2">
+        <ul className="my-2">
           <li>
             <span className="code-highlight">*</span>: Substitui qualquer
             sequência de caracteres (inclusive nenhum caractere).
           </li>
-          <ul>
+          {/* <ul>
             <li>
               Exemplo: <span className="code-highlight">ABC*123</span>{' '}
               encontrará todas as placas que começam com "ABC" e terminam com
               "123".
             </li>
-          </ul>
-          <li>
+          </ul> */}
+          {/* <li>
             <span className="code-highlight">?</span>: Substitui um único
             caractere.
           </li>
@@ -34,7 +34,7 @@ export function PlateWildcardsHelperInfo() {
               todas as placas que começam com "AB", seguidas de qualquer
               caractere único, e terminam com "123".
             </li>
-          </ul>
+          </ul> */}
         </ul>
         <h4>Exemplos de Pesquisa:</h4>
         <ul className="list-decoration my-2">
@@ -51,9 +51,9 @@ export function PlateWildcardsHelperInfo() {
             placas que terminam com "1234".
           </li>
           <li>
-            <span className="code-highlight">AB?1234</span>: Encontrará todas as
-            placas que começam com "AB", seguidas de qualquer caractere único, e
-            terminam com "1234".
+            <span className="code-highlight">ABC*1234</span>: Encontrará todas
+            as placas que começam com "ABC", seguidas de quaisquer caracteres
+            (inclusive nenhum caracter), e terminam com "1234".
           </li>
         </ul>
       </CardContent>

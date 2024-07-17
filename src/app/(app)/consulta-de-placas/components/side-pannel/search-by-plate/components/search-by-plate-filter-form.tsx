@@ -14,6 +14,7 @@ import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { dateToString } from '@/utils/date-to-string'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import { PlateWildcardsHelperInfo } from './plate-wildcards-helper-info'
@@ -23,7 +24,17 @@ export const filterFormSchema = z.object({
     .string()
     .min(1, { message: 'Campo obrigatório' })
     .toUpperCase()
-    .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido'),
+    .refine(
+      (val) => {
+        // If the value contains a wildcard character, it's valid
+        if (val.includes('*')) {
+          return true
+        }
+        // Otherwise, it must match the regex pattern
+        return /^[A-Z]{3}\d[A-Z\d]\d{2}$/.test(val)
+      },
+      { message: 'Formato inválido' },
+    ),
   date: z
     .object(
       {
@@ -45,6 +56,7 @@ export const filterFormSchema = z.object({
 export type FilterForm = z.infer<typeof filterFormSchema>
 
 export function SearchByPlateFilterForm() {
+  const { getCarPath, getCarHint } = useCarPath()
   const today = new Date()
   const from = new Date()
   from.setDate(today.getDate() - 7)
@@ -67,15 +79,26 @@ export function SearchByPlateFilterForm() {
       },
     },
   })
-  const { getCarPath } = useCarPath()
 
   async function onSubmit(props: FilterForm) {
     try {
-      await getCarPath({
-        placa: props.plate,
-        startTime: format(props.date.from, "yyyy-MM-dd'T'HH:mm"),
-        endTime: format(props.date.to, "yyyy-MM-dd'T'HH:mm:ss"),
-      })
+      if (props.plate.includes('*')) {
+        await getCarHint({
+          plate: props.plate,
+          startTime: dateToString(props.date.from),
+          endTime: dateToString(props.date.to),
+          minLat: -90,
+          maxLat: 90,
+          minLon: -180,
+          maxLon: 180,
+        })
+      } else {
+        await getCarPath({
+          placa: props.plate,
+          startTime: format(props.date.from, "yyyy-MM-dd'T'HH:mm"),
+          endTime: format(props.date.to, "yyyy-MM-dd'T'HH:mm:ss"),
+        })
+      }
     } catch (error) {
       toast.error(genericErrorMessage)
     }
