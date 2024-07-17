@@ -90,23 +90,27 @@ export function MonitoredPlatesTable() {
               (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
             }
             disabledText={notAllowed}
+            asChild
           >
-            <Switch
-              id="active"
-              size="sm"
-              checked={row.original.active}
-              disabled={
-                (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
-              }
-              className="disabled:cursor-default"
-              onCheckedChange={() => {
-                setPlate(row.original.plate)
-                updateMonitoredPlateMutation({
-                  plate: row.original.plate,
-                  active: !row.original.active,
-                })
-              }}
-            />
+            <div>
+              <Switch
+                id="active"
+                size="sm"
+                checked={row.original.active}
+                disabled={
+                  (IsUpdatingLoading && plate === row.original.plate) ||
+                  !isAdmin
+                }
+                className="disabled:cursor-default"
+                onCheckedChange={() => {
+                  setPlate(row.original.plate)
+                  updateMonitoredPlateMutation({
+                    plate: row.original.plate,
+                    active: !row.original.active,
+                  })
+                }}
+              />
+            </div>
           </Tooltip>
         )
       },
@@ -125,6 +129,7 @@ export function MonitoredPlatesTable() {
               disabled={!isAdmin}
               disabledText={notAllowed}
               text="Editar"
+              asChild
             >
               <Button
                 variant="ghost"
@@ -146,6 +151,7 @@ export function MonitoredPlatesTable() {
                 (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
               }
               disabledText={notAllowed}
+              asChild
             >
               <Button
                 variant="ghost"

@@ -16,6 +16,7 @@ export function OperationsHeader() {
         disabledText={notAllowed}
         disabled={!isAdmin}
         hideContent={isAdmin}
+        asChild
       >
         <Button disabled={!isAdmin} onClick={formDialogDisclosure.onOpen}>
           Adicionar

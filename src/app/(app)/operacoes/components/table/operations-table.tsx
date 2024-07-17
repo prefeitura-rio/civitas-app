@@ -58,6 +58,7 @@ export function OperationsTable() {
               text="Editar"
               disabledText={notAllowed}
               disabled={!isAdmin}
+              asChild
             >
               <Button
                 variant="ghost"
@@ -77,6 +78,7 @@ export function OperationsTable() {
               text="Editar"
               disabledText={notAllowed}
               disabled={!isAdmin}
+              asChild
             >
               <Button
                 variant="ghost"

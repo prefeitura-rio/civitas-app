@@ -94,4 +94,12 @@
     left: 50%;
     transform: translate(-50%);
   }
+
+  .absolute-y-centered {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
 }

@@ -1,86 +1,170 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
+import { FilterX, Search } from 'lucide-react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { InputError } from '@/components/ui/input-error'
-import { Spinner } from '@/components/ui/spinner'
-import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
-import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
-import { isNotFoundError } from '@/utils/error-handlers'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tooltip } from '@/components/ui/tooltip'
+
+const activeOptions = ['all', 'true', 'false']
 
 const filterFormSchema = z.object({
-  plate: z
-    .string()
-    .min(1, { message: '' })
-    .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido')
-    .transform((item) => item.toUpperCase()),
+  plateContains: z.string().toUpperCase().optional(),
+  operationTitle: z.string().optional(),
+  notificationChannelTitle: z.string().optional(),
+  active: z.enum([activeOptions[0], ...activeOptions]),
 })
 
 type FilterForm = z.infer<typeof filterFormSchema>
 
 export function MonitoredPlatesFilter() {
   const searchParams = useSearchParams()
-  // const router = useRouter()
-  // const pathName = usePathname()
-  const { formDialogDisclosure, setDialogInitialData } = useMonitoredPlates()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const pathName = usePathname()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FilterForm>({
-    resolver: zodResolver(filterFormSchema),
-  })
+  const { register, handleSubmit, setValue, reset, control } =
+    useForm<FilterForm>({
+      resolver: zodResolver(filterFormSchema),
+      defaultValues: {
+        active: 'all',
+      },
+    })
 
-  const { mutateAsync: getMonitoredPlateMutation } = useMutation({
-    mutationFn: getMonitoredPlate,
-  })
+  useEffect(() => {
+    const pActive = searchParams.get('active')
+    const pPlate = searchParams.get('plateContains')
+    const pOperation = searchParams.get('operationTitle')
+    const pChannel = searchParams.get('notificationChannelTitle')
+
+    if (pActive) setValue('active', pActive)
+    if (pPlate) setValue('plateContains', pPlate)
+    if (pOperation) setValue('operationTitle', pOperation)
+    if (pChannel) setValue('notificationChannelTitle', pChannel)
+  }, [])
+
+  function handleClearFilters() {
+    reset()
+    setValue('active', 'all')
+    router.replace(pathName)
+  }
 
   async function onSubmit(props: FilterForm) {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('plate', props.plate)
-    // router.push(`${pathName}?${params.toString()}`)
+    const params = new URLSearchParams()
 
-    setIsLoading(true)
-    try {
-      await getMonitoredPlateMutation({ plate: props.plate })
+    if (props.plateContains) params.set('plateContains', props.plateContains)
+    if (props.operationTitle) params.set('operationTitle', props.operationTitle)
+    if (props.notificationChannelTitle)
+      params.set('notificationChannelTitle', props.notificationChannelTitle)
 
-      setDialogInitialData({ plate: props.plate })
-      formDialogDisclosure.onOpen()
-    } catch (error) {
-      if (isNotFoundError(error)) {
-        toast.warning('Placa não encontrada!')
-      }
-    }
-    setIsLoading(false)
+    if (props.active && props.active !== 'all')
+      params.set('active', props.active)
+
+    router.replace(`${pathName}?${params.toString()}`)
   }
 
   return (
     <form
-      className="flex items-center space-x-2"
+      className="flex items-end space-x-2"
       onSubmit={handleSubmit(onSubmit)}
     >
-      {/* <Label htmlFor="plate">Placa</Label> */}
-      <Input
-        className="h-9 w-40"
-        id="plate"
-        type="text"
-        placeholder="Pesquisar placa"
-        {...register('plate')}
+      <div className="">
+        <Label
+          htmlFor="plateContains"
+          className="text-xs text-muted-foreground"
+        >
+          Placa
+        </Label>
+        <Input
+          className="h-9 w-40"
+          id="plateContains"
+          type="text"
+          // placeholder="Placa"
+          {...register('plateContains')}
+          onChange={(e) =>
+            setValue('plateContains', e.target.value.toUpperCase())
+          }
+        />
+      </div>
+      <div className="">
+        <Label
+          htmlFor="operationTitle"
+          className="text-xs text-muted-foreground"
+        >
+          Operação
+        </Label>
+        <Input
+          className="h-9 w-40"
+          id="operationTitle"
+          type="text"
+          // placeholder="Operação"
+          {...register('operationTitle')}
+        />
+      </div>
+      <div>
+        <Label
+          htmlFor="notificationChannelTitle"
+          className="text-xs text-muted-foreground"
+        >
+          Cana de notificação
+        </Label>
+        <Input
+          className="h-9 w-40"
+          id="notificationChannelTitle"
+          type="text"
+          {...register('notificationChannelTitle')}
+        />
+      </div>
+      <Controller
+        control={control}
+        name="active"
+        render={({ field }) => (
+          <div>
+            <Label className="text-xs text-muted-foreground">Status</Label>
+            <Select
+              onValueChange={field.onChange}
+              defaultValue="all"
+              value={field.value}
+            >
+              <SelectTrigger className="h-9 w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="true">Ativo</SelectItem>
+                <SelectItem value="false">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       />
-      <InputError message={errors.plate?.message} />
-      <Button size="sm" variant="outline" type="submit">
-        {isLoading ? <Spinner /> : <Search className="h-4 w-4" />}
+
+      <Button size="sm" variant="outline" type="submit" className="space-x-1">
+        <Search className="h-4 w-4" />
+        <span>Filtrar</span>
       </Button>
+      <Tooltip text="Limpar filtro" asChild>
+        <Button
+          size="sm"
+          variant="secondary"
+          type="button"
+          onClick={handleClearFilters}
+        >
+          <FilterX className="h-4 w-4" />
+          <span className="sr-only">Limpar filtro</span>
+        </Button>
+      </Tooltip>
     </form>
   )
 }
