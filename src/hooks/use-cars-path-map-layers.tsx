@@ -24,6 +24,7 @@ export function useCarsPathMapLayers() {
     selectedCamera,
     setSelectedCamera,
     addressMarkerPosition,
+    mapRef,
   } = useCarPath()
 
   const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
@@ -198,6 +199,8 @@ export function useCarsPathMapLayers() {
     },
   })
 
+  const bbox = mapRef.current?.getBounds()
+
   return {
     layers: {
       lineLayer,
@@ -222,6 +225,7 @@ export function useCarsPathMapLayers() {
       setIsCamerasEnabled,
       isAddressMarkerEnabled,
       setIsAddressMarkerEnabled,
+      bbox,
     },
   }
 }

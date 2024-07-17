@@ -75,14 +75,32 @@
     background-color 500000s ease-in-out 0s,
     color 500000s ease-in-out 0s;
   }
+
+  /* Typography */
+  h1 {
+    @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl
+  }
+
+  h2 {
+    @apply scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0
+  }
+
+  h3 {
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight
+  }
+
+  h4 {
+    @apply scroll-m-20 text-xl font-semibold tracking-tight
+  }
+
+  p {
+    @apply [&:not(:first-child)]:mt-2
+  }
 }
 
 @layer components {
   .page-content {
-    height: calc(100vh - 6.5rem);
-    width: 100%;
-    padding: 1rem;
-    padding-top: 2rem;
+    @apply h-screen p-4 pt-8 w-full overflow-y-scroll;
   }
 
   .A4 {
@@ -96,10 +114,22 @@
   }
 
   .absolute-y-centered {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    margin-top: auto;
-    margin-bottom: auto;
+    @apply absolute top-0 bottom-0 mt-auto mb-auto;
+  }
+
+  .list-decoration {
+    @apply list-inside list-disc;
+
+    ul {
+      @apply list-inside list-disc ml-6;
+    }
+
+    ul ul {
+      @apply list-inside list-disc ml-12;
+    }
+  }
+
+  .code-highlight {
+    @apply rounded-md bg-secondary px-2 font-bold text-primary
   }
 }
