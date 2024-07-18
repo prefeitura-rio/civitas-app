@@ -1,15 +1,16 @@
-import React from 'react'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
-import { ActionButtons } from './side-pannel/action-buttons'
-import { FilterForm } from './side-pannel/filter-form'
-import { TripList } from './side-pannel/trip-list'
+import { SearchByPlate } from './side-pannel/search-by-plate/search-by-plate'
+import { SearchByRadar } from './side-pannel/search-by-radar/search-by-radar'
 
 export function SidePanel() {
+  const {
+    mapStates: { isRadarsEnabled },
+  } = useMapLayers()
+
   return (
-    <div className="flex h-screen w-full max-w-md flex-col px-2">
-      <FilterForm />
-      <ActionButtons />
-      <TripList />
+    <div className="flex h-screen w-full max-w-md flex-col px-4 py-2">
+      {isRadarsEnabled ? <SearchByRadar /> : <SearchByPlate />}
     </div>
   )
 }

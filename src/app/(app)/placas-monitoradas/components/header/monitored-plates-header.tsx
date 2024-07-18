@@ -12,9 +12,7 @@ export function MonitoredPlatesHeader() {
 
   return (
     <div className="flex w-full justify-between">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Placas Monitoradas
-      </h1>
+      <h2>Placas Monitoradas</h2>
       <Tooltip
         hideContent={isAdmin}
         disabled={!isAdmin}

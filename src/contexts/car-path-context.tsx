@@ -1,7 +1,6 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import type { DeckGLRef } from '@deck.gl/react'
 import { useQuery } from '@tanstack/react-query'
-import type { Feature } from 'geojson'
 import {
   createContext,
   type Dispatch,
@@ -15,10 +14,15 @@ import type { MapRef } from 'react-map-gl'
 
 import { getCamerasCor } from '@/http/cameras-cor/get-cameras-cor'
 import {
+  getCarHint as getCarHintApi,
+  type GetCarHintRequest,
+} from '@/http/cars/hint/get-cars-hint'
+import {
   getCarPath as getCarPathApi,
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
-import type { CameraCor } from '@/models/entities'
+import { getRadars } from '@/http/radars/get-radars'
+import type { CameraCor, Radar } from '@/models/entities'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -38,8 +42,6 @@ interface CarPathContextProps {
   isLoading: boolean
   lastSearchParams: GetCarPathRequest | undefined
   cameras: CameraCor[]
-  hightlightedObject: Feature | null
-  setHightlightedObject: Dispatch<SetStateAction<Feature | null>>
   selectedCamera: SelectedCamera | null
   setSelectedCamera: Dispatch<SetStateAction<SelectedCamera | null>>
   deckRef: RefObject<DeckGLRef>
@@ -48,6 +50,11 @@ interface CarPathContextProps {
   setAddressmMarkerPositionState: Dispatch<
     SetStateAction<[longitude: number, latitude: number]>
   >
+  getCarHint: (props: GetCarHintRequest) => Promise<string[]>
+  possiblePlates: string[] | undefined
+  radars: Radar[]
+  selectedRadar: Radar | null
+  setSelectedRadar: Dispatch<SetStateAction<Radar | null>>
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -70,21 +77,32 @@ export function CarPathContextProvider({
   >([0, 0])
 
   const [cameras, setCameras] = useState<CameraCor[]>([])
-  const [hightlightedObject, setHightlightedObject] = useState<Feature | null>(
-    null,
-  )
   const [selectedCamera, setSelectedCamera] = useState<SelectedCamera | null>(
     null,
   )
+
+  const [radars, setRadars] = useState<Radar[]>([])
+  const [selectedRadar, setSelectedRadar] = useState<Radar | null>(null)
+
+  const [possiblePlates, setPossiblePlates] = useState<string[]>()
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
 
   useQuery({
-    queryKey: ['agent/locations'],
+    queryKey: ['cameras-cor'],
     queryFn: async () => {
       const response = await getCamerasCor()
       setCameras(response.data)
+      return response.data
+    },
+  })
+
+  useQuery({
+    queryKey: ['radars'],
+    queryFn: async () => {
+      const response = await getRadars()
+      setRadars(response.data)
       return response.data
     },
   })
@@ -107,6 +125,7 @@ export function CarPathContextProvider({
 
   async function getCarPath({ placa, startTime, endTime }: GetCarPathRequest) {
     setIsLoading(true)
+    setPossiblePlates(undefined)
     setLastSearchParams({
       placa,
       startTime,
@@ -133,6 +152,21 @@ export function CarPathContextProvider({
     return formattedTrips
   }
 
+  async function getCarHint(props: GetCarHintRequest) {
+    setIsLoading(true)
+    setTrips(undefined)
+    setLastSearchParams({
+      placa: props.plate,
+      startTime: props.startTime,
+      endTime: props.endTime,
+    })
+    const response = await getCarHintApi(props)
+    setIsLoading(false)
+    setPossiblePlates(response.data)
+
+    return response.data
+  }
+
   return (
     <CarPathContext.Provider
       value={{
@@ -146,14 +180,17 @@ export function CarPathContextProvider({
         isLoading,
         lastSearchParams,
         cameras,
-        hightlightedObject,
-        setHightlightedObject,
         selectedCamera,
         setSelectedCamera,
         deckRef,
         mapRef,
         addressMarkerPosition,
         setAddressmMarkerPositionState,
+        getCarHint,
+        possiblePlates,
+        radars,
+        selectedRadar,
+        setSelectedRadar,
       }}
     >
       {children}

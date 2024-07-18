@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 import { Card } from '@/components/ui/card'
 import type { Point } from '@/utils/formatCarPathResponse'
 
-import { IconTooltipInfo } from './icon-tooltip-info'
+import { TooltipInfoItem } from './tooltip-info-item'
 
 export function IconTooltipCard({ x, y, object }: PickingInfo<Point>) {
   return (
@@ -14,15 +14,15 @@ export function IconTooltipCard({ x, y, object }: PickingInfo<Point>) {
           style={{ left: x, top: y, zIndex: 1 }}
           className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
         >
-          <IconTooltipInfo
+          <TooltipInfoItem
             label="Data"
             value={format(new Date(object?.startTime), "dd/MM/yyyy 'às' HH:mm")}
           />
-          <IconTooltipInfo label="Bairro" value={object.district} />
-          <IconTooltipInfo label="Localidade" value={object.location} />
-          <IconTooltipInfo label="Sentido" value={object.direction} />
+          <TooltipInfoItem label="Bairro" value={object.district} />
+          <TooltipInfoItem label="Localidade" value={object.location} />
+          <TooltipInfoItem label="Sentido" value={object.direction} />
           {object.secondsToNextPoint && (
-            <IconTooltipInfo
+            <TooltipInfoItem
               label="Intervalo até o próximo ponto"
               value={
                 String((object.secondsToNextPoint / 60).toFixed(0)) + ' min'
