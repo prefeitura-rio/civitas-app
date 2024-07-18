@@ -1,7 +1,6 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import type { DeckGLRef } from '@deck.gl/react'
 import { useQuery } from '@tanstack/react-query'
-import type { Feature } from 'geojson'
 import {
   createContext,
   type Dispatch,
@@ -43,8 +42,6 @@ interface CarPathContextProps {
   isLoading: boolean
   lastSearchParams: GetCarPathRequest | undefined
   cameras: CameraCor[]
-  hightlightedObject: Feature | null
-  setHightlightedObject: Dispatch<SetStateAction<Feature | null>>
   selectedCamera: SelectedCamera | null
   setSelectedCamera: Dispatch<SetStateAction<SelectedCamera | null>>
   deckRef: RefObject<DeckGLRef>
@@ -58,6 +55,8 @@ interface CarPathContextProps {
   radars: Radar[]
   selectedRadar: Radar | null
   setSelectedRadar: Dispatch<SetStateAction<Radar | null>>
+  hoveredObject: Partial<Radar & CameraCor> | null
+  setHoveredObject: Dispatch<Partial<Radar & CameraCor> | null>
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -80,9 +79,6 @@ export function CarPathContextProvider({
   >([0, 0])
 
   const [cameras, setCameras] = useState<CameraCor[]>([])
-  const [hightlightedObject, setHightlightedObject] = useState<Feature | null>(
-    null,
-  )
   const [selectedCamera, setSelectedCamera] = useState<SelectedCamera | null>(
     null,
   )
@@ -94,6 +90,10 @@ export function CarPathContextProvider({
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
+
+  const [hoveredObject, setHoveredObject] = useState<Partial<
+    CameraCor & Radar
+  > | null>(null)
 
   useQuery({
     queryKey: ['cameras-cor'],
@@ -186,8 +186,6 @@ export function CarPathContextProvider({
         isLoading,
         lastSearchParams,
         cameras,
-        hightlightedObject,
-        setHightlightedObject,
         selectedCamera,
         setSelectedCamera,
         deckRef,
@@ -199,6 +197,8 @@ export function CarPathContextProvider({
         radars,
         selectedRadar,
         setSelectedRadar,
+        hoveredObject,
+        setHoveredObject,
       }}
     >
       {children}
