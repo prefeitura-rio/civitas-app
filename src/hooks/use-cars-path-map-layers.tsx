@@ -4,7 +4,8 @@ import type { Feature, FeatureCollection } from 'geojson'
 import { useState } from 'react'
 
 import iconAtlas from '@/assets/icon-atlas.png'
-import type { CameraCor } from '@/models/entities'
+import securityCamera from '@/assets/security-camera.png'
+import type { CameraCor, Radar } from '@/models/entities'
 import type { Point } from '@/utils/formatCarPathResponse'
 
 import { useCarPath } from './use-contexts/use-car-path-context'
@@ -25,6 +26,7 @@ export function useCarsPathMapLayers() {
     setSelectedCamera,
     addressMarkerPosition,
     mapRef,
+    radars,
   } = useCarPath()
 
   const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
@@ -36,15 +38,19 @@ export function useCarsPathMapLayers() {
   const [cameraHoverInfo, setCameraHoverInfo] = useState<InfoPopupProps>(
     {} as InfoPopupProps,
   )
+  const [radarHoverInfo, setRadarHoverInfo] = useState<PickingInfo<Radar>>(
+    {} as PickingInfo<Radar>,
+  )
   const [isMapStyleSatellite, setIsMapStyleSatellite] = useState(false)
   const [isLinesEnabled, setIsLinesEnabled] = useState(false)
   const [isIconColorEnabled, setIsIconColorEnabled] = useState(false)
   const [isCamerasEnabled, setIsCamerasEnabled] = useState(false)
   const [isAddressMarkerEnabled, setIsAddressMarkerEnabled] = useState(false)
+  const [isRadarsEnabled, setIsRadarsEnabled] = useState(false)
 
   const points = trips?.at(selectedTripIndex)?.points
 
-  const camerasLayerData = {
+  const cameraLayerData = {
     type: 'FeatureCollection',
     features: cameras.map((item, index) => {
       return {
@@ -173,7 +179,7 @@ export function useCarsPathMapLayers() {
 
   const cameraLayer = new GeoJsonLayer({
     id: 'cameras',
-    data: camerasLayerData,
+    data: cameraLayerData,
     pickable: true,
     stroked: false,
     filled: true,
@@ -199,6 +205,23 @@ export function useCarsPathMapLayers() {
     },
   })
 
+  const radarLayer = new IconLayer<Radar>({
+    id: 'radars',
+    data: radars,
+    getPosition: (radar) => [radar.longitude, radar.latitude],
+    getSize: 30,
+    getIcon: () => ({
+      url: securityCamera.src,
+      width: 24,
+      height: 24,
+      mask: false,
+      anchorX: 12,
+      anchorY: 12,
+    }),
+    pickable: true,
+    onHover: (info) => setRadarHoverInfo(info),
+  })
+
   const bbox = mapRef.current?.getBounds()
 
   return {
@@ -210,6 +233,7 @@ export function useCarsPathMapLayers() {
       coloredIconLayer,
       textLayer,
       addressMarkerLayer,
+      radarLayer,
     },
     mapStates: {
       iconHoverInfo,
@@ -226,6 +250,9 @@ export function useCarsPathMapLayers() {
       isAddressMarkerEnabled,
       setIsAddressMarkerEnabled,
       bbox,
+      isRadarsEnabled,
+      setIsRadarsEnabled,
+      radarHoverInfo,
     },
   }
 }

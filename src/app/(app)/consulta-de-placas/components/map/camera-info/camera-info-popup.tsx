@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/spinner'
 import type { InfoPopupProps } from '@/hooks/use-cars-path-map-layers'
 import { cn } from '@/lib/utils'
 
-import { IconTooltipInfo } from '../icon-tooltip-info'
+import { TooltipInfoItem } from '../tooltip-info-item'
 
 export function CameraInfoPopupCard({ x, y, object }: InfoPopupProps) {
   const [isLoading, setIsLoading] = useState(true)
@@ -31,9 +31,9 @@ export function CameraInfoPopupCard({ x, y, object }: InfoPopupProps) {
       )}
     >
       <span className="text-xs text-muted-foreground">Clique para fixar</span>
-      <IconTooltipInfo label="Código" value={object?.code} />
-      <IconTooltipInfo label="Localização" value={object?.location} />
-      <IconTooltipInfo label="Zona" value={object?.zone} />
+      <TooltipInfoItem label="Código" value={object?.code} />
+      <TooltipInfoItem label="Localização" value={object?.location} />
+      <TooltipInfoItem label="Zona" value={object?.zone} />
       <div className="flex aspect-video w-full items-center justify-center">
         <img
           src={object?.streamingUrl}

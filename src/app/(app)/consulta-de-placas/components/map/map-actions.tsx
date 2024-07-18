@@ -14,6 +14,8 @@ interface MapActionsProps {
   setIsIconColorEnabled: Dispatch<SetStateAction<boolean>>
   isCamerasEnabled: boolean
   setIsCamerasEnabled: Dispatch<SetStateAction<boolean>>
+  isRadarsEnabled: boolean
+  setIsRadarsEnabled: Dispatch<SetStateAction<boolean>>
 }
 
 export function MapActions({
@@ -25,6 +27,8 @@ export function MapActions({
   setIsIconColorEnabled,
   isCamerasEnabled,
   setIsCamerasEnabled,
+  isRadarsEnabled,
+  setIsRadarsEnabled,
 }: MapActionsProps) {
   const { selectedTrip } = useCarPath()
 
@@ -51,6 +55,18 @@ export function MapActions({
         />
         <Label htmlFor="mapStyle" className="text-xs">
           Câmeras
+        </Label>
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <Switch
+          id="mapStyle"
+          size="sm"
+          checked={isRadarsEnabled}
+          onCheckedChange={setIsRadarsEnabled}
+        />
+        <Label htmlFor="mapStyle" className="text-xs">
+          Radars
         </Label>
       </div>
 
