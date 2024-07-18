@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { SatelliteDish, Search } from 'lucide-react'
+import { Download, SatelliteDish } from 'lucide-react'
 import { FormProvider, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { CardTitle } from '@/components/ui/card'
+import { Tooltip } from '@/components/ui/tooltip'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
 import { exportToCSV } from '@/utils/csv'
@@ -67,17 +68,19 @@ export function SearchByRadar() {
       <form className="h-full w-full" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex h-[3.25rem] items-center justify-between py-2">
           <CardTitle className="flex items-center gap-2">
-            Consultar radar
+            Consultar Radar
             <SatelliteDish className="h-8 w-8" />
           </CardTitle>
           {selectedRadar && (
-            <Button
-              type="submit"
-              className="flex h-9 w-9 gap-2 p-2"
-              onClick={handleSubmit(onSubmit)}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
+            <Tooltip asChild text="Baixar relatório">
+              <Button
+                type="submit"
+                className="flex h-9 w-9 gap-2 p-2"
+                onClick={handleSubmit(onSubmit)}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </Tooltip>
           )}
         </div>
         <RadarList />
