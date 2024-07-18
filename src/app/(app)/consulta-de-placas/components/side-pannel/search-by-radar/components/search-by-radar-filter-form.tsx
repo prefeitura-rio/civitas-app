@@ -41,23 +41,23 @@ export function SearchByRadarFilterForm() {
       </Breadcrumb>
 
       <div className="space-y-4">
-        <div className="space-y-1">
-          <div className="flex gap-2">
-            <Label htmlFor="plateHint">Data de início:</Label>
-            <InputError message={errors.plateHint?.message} />
-          </div>
-          <Controller
-            control={control}
-            name="startTime"
-            render={({ field }) => (
+        <Controller
+          control={control}
+          name="startTime"
+          render={({ field }) => (
+            <div className="space-y-1">
+              <div className="flex gap-2">
+                <Label htmlFor="plateHint">Data de início:</Label>
+                <InputError message={errors.startTime?.message} />
+              </div>
               <DatePicker
                 date={field.value}
                 setDate={field.onChange}
                 type="datetime-local"
               />
-            )}
-          />
-        </div>
+            </div>
+          )}
+        />
 
         <Controller
           control={control}
