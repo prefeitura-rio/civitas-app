@@ -85,3 +85,25 @@ export type CameraCor = {
   longitude: number
   streamingUrl: string
 }
+
+export type BackendRadar = {
+  codcet: string
+  camera_numero: string
+  latitude: number
+  longitude: number
+  locequip: string
+  bairro: string
+  logradouro: string
+  sentido: string
+}
+
+export type Radar = {
+  codcet: string
+  cameraNumero: string
+  latitude: number
+  longitude: number
+  locequip: string
+  bairro: string
+  logradouro: string
+  sentido: string
+}
