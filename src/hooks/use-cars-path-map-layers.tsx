@@ -1,10 +1,10 @@
 import type { PickingInfo } from '@deck.gl/core'
-import { GeoJsonLayer, IconLayer, LineLayer, TextLayer } from '@deck.gl/layers'
-import type { Feature, FeatureCollection } from 'geojson'
+import { IconLayer, LineLayer, TextLayer } from '@deck.gl/layers'
 import { useState } from 'react'
 
+import cctvOrange from '@/assets/cctv-orange.svg'
 import iconAtlas from '@/assets/icon-atlas.png'
-import securityCamera from '@/assets/security-camera.png'
+import videoCamera from '@/assets/video-camera.svg'
 import type { CameraCor, Radar } from '@/models/entities'
 import type { Point } from '@/utils/formatCarPathResponse'
 
@@ -20,13 +20,13 @@ export function useCarsPathMapLayers() {
   const {
     trips,
     selectedTripIndex,
-    setHightlightedObject,
     cameras,
     selectedCamera,
     setSelectedCamera,
     addressMarkerPosition,
     mapRef,
     radars,
+    setSelectedRadar,
   } = useCarPath()
 
   const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
@@ -35,9 +35,9 @@ export function useCarsPathMapLayers() {
   const [lineHoverInfo, setLineHoverInfo] = useState<PickingInfo<Point>>(
     {} as PickingInfo<Point>,
   )
-  const [cameraHoverInfo, setCameraHoverInfo] = useState<InfoPopupProps>(
-    {} as InfoPopupProps,
-  )
+  const [cameraHoverInfo, setCameraHoverInfo] = useState<
+    PickingInfo<CameraCor>
+  >({} as PickingInfo<CameraCor>)
   const [radarHoverInfo, setRadarHoverInfo] = useState<PickingInfo<Radar>>(
     {} as PickingInfo<Radar>,
   )
@@ -47,28 +47,7 @@ export function useCarsPathMapLayers() {
   const [isCamerasEnabled, setIsCamerasEnabled] = useState(false)
   const [isAddressMarkerEnabled, setIsAddressMarkerEnabled] = useState(false)
   const [isRadarsEnabled, setIsRadarsEnabled] = useState(false)
-
   const points = trips?.at(selectedTripIndex)?.points
-
-  const cameraLayerData = {
-    type: 'FeatureCollection',
-    features: cameras.map((item, index) => {
-      return {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [item.longitude, item.latitude, 0],
-        },
-        properties: {
-          index,
-          code: item.code,
-          location: item.location,
-          zone: item.zone,
-          streamingUrl: item.streamingUrl,
-        },
-      } as Feature
-    }),
-  } as FeatureCollection
 
   // Assuming icon_atlas has an arrow icon at the specified coordinates
   const ICON_MAPPING = {
@@ -104,6 +83,7 @@ export function useCarsPathMapLayers() {
     getWidth: 3,
     pickable: true,
     onHover: (info) => setLineHoverInfo(info),
+    visible: isLinesEnabled,
   })
 
   const lineLayerTransparent = new LineLayer<Point>({
@@ -115,6 +95,7 @@ export function useCarsPathMapLayers() {
     getWidth: 30,
     pickable: true,
     onHover: (info) => setLineHoverInfo(info),
+    visible: isLinesEnabled,
   })
 
   const blackIconLayer = new IconLayer<Point>({
@@ -128,6 +109,7 @@ export function useCarsPathMapLayers() {
     iconMapping: ICON_MAPPING,
     pickable: true,
     onHover: (info) => setIconHoverInfo(info),
+    visible: !isIconColorEnabled,
   })
 
   const coloredIconLayer = new IconLayer<Point>({
@@ -142,6 +124,7 @@ export function useCarsPathMapLayers() {
     iconMapping: ICON_MAPPING,
     pickable: true,
     onHover: (info) => setIconHoverInfo(info),
+    visible: isIconColorEnabled,
   })
 
   const textLayer = new TextLayer<Point>({
@@ -175,51 +158,51 @@ export function useCarsPathMapLayers() {
     iconAtlas:
       'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
     iconMapping: ICON_MAPPING,
+    visible: isAddressMarkerEnabled,
   })
 
-  const cameraLayer = new GeoJsonLayer({
+  const cameraLayer = new IconLayer<CameraCor>({
     id: 'cameras',
-    data: cameraLayerData,
+    data: cameras,
     pickable: true,
-    stroked: false,
-    filled: true,
-    pointRadiusMinPixels: 6,
-    getIconSize: 20,
-    getFillColor: (info) =>
-      selectedCamera && info.properties.code === selectedCamera?.code
-        ? [245, 158, 11, 255] // orange-500
-        : [7, 76, 128, 250], // CIVITAS dark-blue
+    getSize: 24,
     autoHighlight: true,
-    // highlightColor: [33, 175, 219, 255], // Primary (Turquoise)
-    highlightColor: [245, 158, 11, 255], // orange-500
-    onHover: (info) => {
-      setCameraHoverInfo({
-        x: info.x,
-        y: info.y,
-        object: info.object?.properties,
-      })
-      setHightlightedObject(info.object)
-    },
-    onClick: (info) => {
-      setSelectedCamera(info.object?.properties)
-    },
+    highlightColor: [17, 111, 183, 255], // lighted-CIVITAS-dark-blue
+    visible: isCamerasEnabled,
+    getIcon: () => ({
+      url: videoCamera.src,
+      width: 48,
+      height: 48,
+      mask: false,
+    }),
+    getPosition: (camera) => [camera.longitude, camera.latitude],
+    getColor: (camera) =>
+      selectedCamera && camera.code === selectedCamera?.code
+        ? [17, 111, 183, 255] // lighted-CIVITAS-dark-blue
+        : [7, 76, 128, 250], // CIVITAS dark-blue
+    onHover: (info) => setCameraHoverInfo(info),
+    onClick: (info) => setSelectedCamera(info.object),
   })
 
   const radarLayer = new IconLayer<Radar>({
     id: 'radars',
     data: radars,
     getPosition: (radar) => [radar.longitude, radar.latitude],
-    getSize: 30,
+    getSize: 24,
     getIcon: () => ({
-      url: securityCamera.src,
-      width: 24,
-      height: 24,
+      url: cctvOrange.src,
+      width: 48,
+      height: 48,
       mask: false,
-      anchorX: 12,
-      anchorY: 12,
     }),
     pickable: true,
+    onClick: (radar) => setSelectedRadar(radar.object),
     onHover: (info) => setRadarHoverInfo(info),
+    // highlightColor: [194, 65, 12, 255], // orange-700
+    highlightColor: [249, 115, 22, 255], // orange-500
+    autoHighlight: true,
+    visible: isRadarsEnabled,
+    // highlightedObjectIndex: hoveredObject.s,
   })
 
   const bbox = mapRef.current?.getBounds()
@@ -239,6 +222,7 @@ export function useCarsPathMapLayers() {
       iconHoverInfo,
       lineHoverInfo,
       cameraHoverInfo,
+      setCameraHoverInfo,
       isMapStyleSatellite,
       setIsMapStyleSatellite,
       isLinesEnabled,
@@ -253,6 +237,7 @@ export function useCarsPathMapLayers() {
       isRadarsEnabled,
       setIsRadarsEnabled,
       radarHoverInfo,
+      setRadarHoverInfo,
     },
   }
 }

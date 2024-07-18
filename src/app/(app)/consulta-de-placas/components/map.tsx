@@ -15,14 +15,8 @@ import { RadarTooltipCard } from './map/radar-tooltip-card'
 import { SearchBox } from './search-box'
 
 export function Map() {
-  const {
-    viewport,
-    setViewport,
-    setHightlightedObject,
-    hightlightedObject,
-    deckRef,
-    mapRef,
-  } = useCarPath()
+  const { viewport, setViewport, deckRef, mapRef, setHoveredObject } =
+    useCarPath()
   const {
     layers: {
       blackIconLayer,
@@ -61,27 +55,32 @@ export function Map() {
       style={{
         position: 'relative',
         width: '100%',
-        height: '100%',
+        height: '100vh',
         overflow: 'hidden',
       }}
       controller
       layers={[
-        isLinesEnabled && lineLayer,
-        isLinesEnabled && lineLayerTransparent,
-        isCamerasEnabled && cameraLayer,
-        isRadarsEnabled && radarLayer,
-        isIconColorEnabled ? coloredIconLayer : blackIconLayer,
+        lineLayer,
+        lineLayerTransparent,
+        cameraLayer,
+        radarLayer,
+        coloredIconLayer,
+        blackIconLayer,
         textLayer,
-        isAddressMarkerEnabled && addressMarkerLayer,
+        addressMarkerLayer,
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
       onHover={({ object }) => {
-        if (object?.properties?.streamingUrl) {
-          setHightlightedObject(object)
+        if (object?.streamingUrl) {
+          setHoveredObject(object)
+        } else if (object?.cameraNumero) {
+          setHoveredObject(object)
+        } else {
+          setHoveredObject(null)
         }
       }}
       getCursor={({ isDragging }) =>
-        isDragging ? 'grabbing' : hightlightedObject ? 'pointer' : 'grab'
+        isDragging ? 'grabbing' : cameraHoverInfo ? 'pointer' : 'grab'
       }
     >
       <ReactMalGL

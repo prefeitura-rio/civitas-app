@@ -6,7 +6,6 @@ export async function getRadars() {
 
   const data = response.data.map((item) => {
     return {
-      ...item,
       bairro: item.bairro,
       cameraNumero: item.camera_numero,
       codcet: item.codcet,
