@@ -22,7 +22,8 @@ import {
   getCarPath as getCarPathApi,
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
-import type { CameraCor } from '@/models/entities'
+import { getRadars } from '@/http/radars/get-radars'
+import type { CameraCor, Radar } from '@/models/entities'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -54,6 +55,9 @@ interface CarPathContextProps {
   >
   getCarHint: (props: GetCarHintRequest) => Promise<string[]>
   possiblePlates: string[] | undefined
+  radars: Radar[]
+  selectedRadar: Radar | null
+  setSelectedRadar: Dispatch<SetStateAction<Radar | null>>
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -83,6 +87,9 @@ export function CarPathContextProvider({
     null,
   )
 
+  const [radars, setRadars] = useState<Radar[]>([])
+  const [selectedRadar, setSelectedRadar] = useState<Radar | null>(null)
+
   const [possiblePlates, setPossiblePlates] = useState<string[]>()
 
   const deckRef = useRef<DeckGLRef>(null)
@@ -93,6 +100,15 @@ export function CarPathContextProvider({
     queryFn: async () => {
       const response = await getCamerasCor()
       setCameras(response.data)
+      return response.data
+    },
+  })
+
+  useQuery({
+    queryKey: ['radars'],
+    queryFn: async () => {
+      const response = await getRadars()
+      setRadars(response.data)
       return response.data
     },
   })
@@ -180,6 +196,9 @@ export function CarPathContextProvider({
         setAddressmMarkerPositionState,
         getCarHint,
         possiblePlates,
+        radars,
+        selectedRadar,
+        setSelectedRadar,
       }}
     >
       {children}

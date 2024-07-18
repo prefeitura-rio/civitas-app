@@ -11,6 +11,7 @@ import { IconTooltipCard } from './map/icon-tooltip-card'
 import { LineTooltipCard } from './map/line-tooltip-card'
 import { MapActions } from './map/map-actions'
 import { MapCaption } from './map/map-caption'
+import { RadarTooltipCard } from './map/radar-tooltip-card'
 import { SearchBox } from './search-box'
 
 export function Map() {
@@ -31,6 +32,7 @@ export function Map() {
       lineLayerTransparent,
       textLayer,
       addressMarkerLayer,
+      radarLayer,
     },
     mapStates: {
       cameraHoverInfo,
@@ -46,6 +48,9 @@ export function Map() {
       setIsMapStyleSatellite,
       isAddressMarkerEnabled,
       setIsAddressMarkerEnabled,
+      isRadarsEnabled,
+      setIsRadarsEnabled,
+      radarHoverInfo,
     },
   } = useCarsPathMapLayers()
 
@@ -64,6 +69,7 @@ export function Map() {
         isLinesEnabled && lineLayer,
         isLinesEnabled && lineLayerTransparent,
         isCamerasEnabled && cameraLayer,
+        isRadarsEnabled && radarLayer,
         isIconColorEnabled ? coloredIconLayer : blackIconLayer,
         textLayer,
         isAddressMarkerEnabled && addressMarkerLayer,
@@ -90,6 +96,7 @@ export function Map() {
       <IconTooltipCard {...iconHoverInfo} />
       <LineTooltipCard {...lineHoverInfo} />
       <CameraInfoPopupCard {...cameraHoverInfo} />
+      <RadarTooltipCard {...radarHoverInfo} />
       <CameraFullInfoPopup />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">
@@ -107,6 +114,8 @@ export function Map() {
         setIsIconColorEnabled={setIsIconColorEnabled}
         isCamerasEnabled={isCamerasEnabled}
         setIsCamerasEnabled={setIsCamerasEnabled}
+        isRadarsEnabled={isRadarsEnabled}
+        setIsRadarsEnabled={setIsRadarsEnabled}
       />
     </DeckGL>
   )
