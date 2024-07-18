@@ -1,14 +1,23 @@
 import type { PickingInfo } from '@deck.gl/core'
 import { IconLayer, LineLayer, TextLayer } from '@deck.gl/layers'
-import { useState } from 'react'
+import {
+  createContext,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+  useState,
+} from 'react'
 
 import cctvOrange from '@/assets/cctv-orange.svg'
+import cctvOrangeFilled from '@/assets/cctv-orange-filled.svg'
 import iconAtlas from '@/assets/icon-atlas.png'
+import mapPinRed from '@/assets/map-pin-red.svg'
 import videoCamera from '@/assets/video-camera.svg'
+import videoCameraFilled from '@/assets/video-camera-filled.svg'
 import type { CameraCor, Radar } from '@/models/entities'
 import type { Point } from '@/utils/formatCarPathResponse'
 
-import { useCarPath } from './use-contexts/use-car-path-context'
+import { useCarPath } from '../hooks/use-contexts/use-car-path-context'
 
 export interface InfoPopupProps {
   x: number
@@ -16,7 +25,52 @@ export interface InfoPopupProps {
   object: Pick<CameraCor, 'code' | 'location' | 'zone' | 'streamingUrl'>
 }
 
-export function useCarsPathMapLayers() {
+type Coordinates = [long: number, lat: number]
+
+interface MapLayersContextProps {
+  layers: {
+    lineLayer: LineLayer<Point, object>
+    lineLayerTransparent: LineLayer<Point, object>
+    cameraLayer: IconLayer<CameraCor, object>
+    selectedCameraLayer: IconLayer<CameraCor, object>
+    blackIconLayer: IconLayer<Point, object>
+    coloredIconLayer: IconLayer<Point, object>
+    textLayer: TextLayer<Point, object>
+    addressMarkerLayer: IconLayer<Coordinates, object>
+    radarLayer: IconLayer<Radar, object>
+    selectedRadarLayer: IconLayer<Radar, object>
+  }
+  mapStates: {
+    iconHoverInfo: PickingInfo<Point>
+    lineHoverInfo: PickingInfo<Point>
+    cameraHoverInfo: PickingInfo<CameraCor>
+    isMapStyleSatellite: boolean
+    setIsMapStyleSatellite: Dispatch<SetStateAction<boolean>>
+    isLinesEnabled: boolean
+    setIsLinesEnabled: Dispatch<SetStateAction<boolean>>
+    isIconColorEnabled: boolean
+    setIsIconColorEnabled: Dispatch<SetStateAction<boolean>>
+    isCamerasEnabled: boolean
+    setIsCamerasEnabled: Dispatch<SetStateAction<boolean>>
+    isAddressMarkerEnabled: boolean
+    setIsAddressMarkerEnabled: Dispatch<SetStateAction<boolean>>
+    bbox: mapboxgl.LngLatBounds | undefined
+    isRadarsEnabled: boolean
+    setIsRadarsEnabled: Dispatch<SetStateAction<boolean>>
+    radarHoverInfo: PickingInfo<Radar>
+    setRadarHoverInfo: Dispatch<SetStateAction<PickingInfo<Radar>>>
+  }
+}
+
+export const MapLayersContext = createContext({} as MapLayersContextProps)
+
+interface MapLayersContextProviderProps {
+  children: ReactNode
+}
+
+export function MapLayersContextProvider({
+  children,
+}: MapLayersContextProviderProps) {
   const {
     trips,
     selectedTripIndex,
@@ -27,6 +81,7 @@ export function useCarsPathMapLayers() {
     mapRef,
     radars,
     setSelectedRadar,
+    selectedRadar,
   } = useCarPath()
 
   const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
@@ -154,10 +209,12 @@ export function useCarsPathMapLayers() {
     pickable: true,
     getColor: [245, 158, 11, 255],
     getSize: 40,
-    getIcon: () => 'arrow',
-    iconAtlas:
-      'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-    iconMapping: ICON_MAPPING,
+    getIcon: () => ({
+      url: mapPinRed.src,
+      width: 48,
+      height: 48,
+      mask: false,
+    }),
     visible: isAddressMarkerEnabled,
   })
 
@@ -167,7 +224,7 @@ export function useCarsPathMapLayers() {
     pickable: true,
     getSize: 24,
     autoHighlight: true,
-    highlightColor: [17, 111, 183, 255], // lighted-CIVITAS-dark-blue
+    highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
     visible: isCamerasEnabled,
     getIcon: () => ({
       url: videoCamera.src,
@@ -176,12 +233,11 @@ export function useCarsPathMapLayers() {
       mask: false,
     }),
     getPosition: (camera) => [camera.longitude, camera.latitude],
-    getColor: (camera) =>
-      selectedCamera && camera.code === selectedCamera?.code
-        ? [17, 111, 183, 255] // lighted-CIVITAS-dark-blue
-        : [7, 76, 128, 250], // CIVITAS dark-blue
     onHover: (info) => setCameraHoverInfo(info),
-    onClick: (info) => setSelectedCamera(info.object),
+    onClick: (info) => {
+      setSelectedCamera(info.object)
+      cameraLayer.setNeedsUpdate()
+    },
   })
 
   const radarLayer = new IconLayer<Radar>({
@@ -197,47 +253,91 @@ export function useCarsPathMapLayers() {
     }),
     pickable: true,
     onClick: (radar) => setSelectedRadar(radar.object),
-    onHover: (info) => setRadarHoverInfo(info),
-    // highlightColor: [194, 65, 12, 255], // orange-700
+    onHover: (info) => {
+      setRadarHoverInfo(info)
+    },
     highlightColor: [249, 115, 22, 255], // orange-500
     autoHighlight: true,
     visible: isRadarsEnabled,
-    // highlightedObjectIndex: hoveredObject.s,
+    highlightedObjectIndex: radarHoverInfo.object
+      ? radarHoverInfo.index
+      : undefined,
+  })
+
+  const selectedRadarLayer = new IconLayer<Radar>({
+    id: 'selected-radar',
+    data: [selectedRadar],
+    getPosition: (info) => [info.longitude, info.latitude],
+    getSize: 24,
+    getIcon: () => ({
+      url: cctvOrangeFilled.src,
+      width: 48,
+      height: 48,
+      mask: false,
+    }),
+    onHover: (info) => {
+      setRadarHoverInfo(info)
+    },
+    visible: isRadarsEnabled && !!selectedRadar,
+  })
+
+  const selectedCameraLayer = new IconLayer<CameraCor>({
+    id: 'selected-camera',
+    data: [selectedCamera],
+    getPosition: (info) => [info.longitude, info.latitude],
+    getSize: 24,
+    getIcon: () => ({
+      url: videoCameraFilled.src,
+      width: 48,
+      height: 48,
+      mask: false,
+    }),
+    onHover: (info) => {
+      setCameraHoverInfo(info)
+    },
+    visible: isCamerasEnabled && !!selectedCamera,
   })
 
   const bbox = mapRef.current?.getBounds()
 
-  return {
-    layers: {
-      lineLayer,
-      lineLayerTransparent,
-      cameraLayer,
-      blackIconLayer,
-      coloredIconLayer,
-      textLayer,
-      addressMarkerLayer,
-      radarLayer,
-    },
-    mapStates: {
-      iconHoverInfo,
-      lineHoverInfo,
-      cameraHoverInfo,
-      setCameraHoverInfo,
-      isMapStyleSatellite,
-      setIsMapStyleSatellite,
-      isLinesEnabled,
-      setIsLinesEnabled,
-      isIconColorEnabled,
-      setIsIconColorEnabled,
-      isCamerasEnabled,
-      setIsCamerasEnabled,
-      isAddressMarkerEnabled,
-      setIsAddressMarkerEnabled,
-      bbox,
-      isRadarsEnabled,
-      setIsRadarsEnabled,
-      radarHoverInfo,
-      setRadarHoverInfo,
-    },
-  }
+  return (
+    <MapLayersContext.Provider
+      value={{
+        layers: {
+          lineLayer,
+          lineLayerTransparent,
+          cameraLayer,
+          blackIconLayer,
+          coloredIconLayer,
+          textLayer,
+          addressMarkerLayer,
+          radarLayer,
+          selectedRadarLayer,
+          selectedCameraLayer,
+        },
+        mapStates: {
+          iconHoverInfo,
+          lineHoverInfo,
+          cameraHoverInfo,
+          isMapStyleSatellite,
+          setIsMapStyleSatellite,
+          isLinesEnabled,
+          setIsLinesEnabled,
+          isIconColorEnabled,
+          setIsIconColorEnabled,
+          isCamerasEnabled,
+          setIsCamerasEnabled,
+          isAddressMarkerEnabled,
+          setIsAddressMarkerEnabled,
+          bbox,
+          isRadarsEnabled,
+          setIsRadarsEnabled,
+          radarHoverInfo,
+          setRadarHoverInfo,
+        },
+      }}
+    >
+      {children}
+    </MapLayersContext.Provider>
+  )
 }

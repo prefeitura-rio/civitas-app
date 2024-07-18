@@ -1,36 +1,25 @@
-import { type Dispatch, type SetStateAction } from 'react'
-
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
-interface MapActionsProps {
-  isMapStyleSatellite: boolean
-  setIsMapStyleSatellite: Dispatch<SetStateAction<boolean>>
-  isLinesEnabled: boolean
-  setIsLinesEnabled: Dispatch<SetStateAction<boolean>>
-  isIconColorEnabled: boolean
-  setIsIconColorEnabled: Dispatch<SetStateAction<boolean>>
-  isCamerasEnabled: boolean
-  setIsCamerasEnabled: Dispatch<SetStateAction<boolean>>
-  isRadarsEnabled: boolean
-  setIsRadarsEnabled: Dispatch<SetStateAction<boolean>>
-}
-
-export function MapActions({
-  isMapStyleSatellite,
-  setIsMapStyleSatellite,
-  isLinesEnabled,
-  setIsLinesEnabled,
-  isIconColorEnabled,
-  setIsIconColorEnabled,
-  isCamerasEnabled,
-  setIsCamerasEnabled,
-  isRadarsEnabled,
-  setIsRadarsEnabled,
-}: MapActionsProps) {
+export function MapActions() {
   const { selectedTrip } = useCarPath()
+  const {
+    mapStates: {
+      isCamerasEnabled,
+      isIconColorEnabled,
+      isLinesEnabled,
+      isMapStyleSatellite,
+      isRadarsEnabled,
+      setIsCamerasEnabled,
+      setIsIconColorEnabled,
+      setIsLinesEnabled,
+      setIsMapStyleSatellite,
+      setIsRadarsEnabled,
+    },
+  } = useMapLayers()
 
   return (
     <Card className="absolute right-2 top-2 flex flex-col gap-2 whitespace-nowrap bg-card p-2 tracking-tighter">

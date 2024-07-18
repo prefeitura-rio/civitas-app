@@ -1,26 +1,48 @@
-import type { PickingInfo } from '@deck.gl/core'
-
 import { Card } from '@/components/ui/card'
-import type { Radar } from '@/models/entities'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
 import { TooltipInfoItem } from './tooltip-info-item'
 
-export function RadarTooltipCard({ object, x, y }: PickingInfo<Radar>) {
+export function RadarTooltipCard() {
+  const {
+    mapStates: { radarHoverInfo },
+  } = useMapLayers()
+  console.log({ radarHoverInfo })
   return (
     <>
-      {object && (
-        <Card
-          style={{ left: x, top: y, zIndex: 1 }}
-          className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
-        >
-          <TooltipInfoItem label="Código CET-Rio" value={object.codcet} />
-          <TooltipInfoItem label="Número Câmera" value={object.cameraNumero} />
-          <TooltipInfoItem label="locequip" value={object.locequip} />
-          <TooltipInfoItem label="Bairro" value={object.bairro} />
-          <TooltipInfoItem label="Logradouro" value={object.logradouro} />
-          <TooltipInfoItem label="Sentido" value={object.sentido} />
-        </Card>
-      )}
+      {radarHoverInfo &&
+        radarHoverInfo.object &&
+        (radarHoverInfo.x !== 0 || radarHoverInfo.y !== 0) && (
+          <Card
+            style={{ left: radarHoverInfo.x, top: radarHoverInfo.y, zIndex: 1 }}
+            className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
+          >
+            <TooltipInfoItem
+              label="Código CET-Rio"
+              value={radarHoverInfo.object.codcet}
+            />
+            <TooltipInfoItem
+              label="Número Câmera"
+              value={radarHoverInfo.object.cameraNumero}
+            />
+            <TooltipInfoItem
+              label="locequip"
+              value={radarHoverInfo.object.locequip}
+            />
+            <TooltipInfoItem
+              label="Bairro"
+              value={radarHoverInfo.object.bairro}
+            />
+            <TooltipInfoItem
+              label="Logradouro"
+              value={radarHoverInfo.object.logradouro}
+            />
+            <TooltipInfoItem
+              label="Sentido"
+              value={radarHoverInfo.object.sentido}
+            />
+          </Card>
+        )}
     </>
   )
 }

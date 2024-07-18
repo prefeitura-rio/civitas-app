@@ -2,8 +2,8 @@ import DeckGL from '@deck.gl/react'
 import ReactMalGL from 'react-map-gl'
 
 import { config } from '@/config'
-import { useCarsPathMapLayers } from '@/hooks/use-cars-path-map-layers'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
 import { CameraFullInfoPopup } from './map/camera-info/camera-full-info-popup'
 import { CameraInfoPopupCard } from './map/camera-info/camera-info-popup'
@@ -15,8 +15,7 @@ import { RadarTooltipCard } from './map/radar-tooltip-card'
 import { SearchBox } from './search-box'
 
 export function Map() {
-  const { viewport, setViewport, deckRef, mapRef, setHoveredObject } =
-    useCarPath()
+  const { viewport, setViewport, deckRef, mapRef } = useCarPath()
   const {
     layers: {
       blackIconLayer,
@@ -27,26 +26,20 @@ export function Map() {
       textLayer,
       addressMarkerLayer,
       radarLayer,
+      selectedRadarLayer,
+      selectedCameraLayer,
     },
     mapStates: {
       cameraHoverInfo,
       iconHoverInfo,
-      isCamerasEnabled,
       isIconColorEnabled,
       isLinesEnabled,
       isMapStyleSatellite,
       lineHoverInfo,
-      setIsCamerasEnabled,
-      setIsIconColorEnabled,
-      setIsLinesEnabled,
-      setIsMapStyleSatellite,
       isAddressMarkerEnabled,
       setIsAddressMarkerEnabled,
-      isRadarsEnabled,
-      setIsRadarsEnabled,
-      radarHoverInfo,
     },
-  } = useCarsPathMapLayers()
+  } = useMapLayers()
 
   return (
     <DeckGL
@@ -63,22 +56,15 @@ export function Map() {
         lineLayer,
         lineLayerTransparent,
         cameraLayer,
+        selectedCameraLayer,
         radarLayer,
+        selectedRadarLayer,
         coloredIconLayer,
         blackIconLayer,
         textLayer,
         addressMarkerLayer,
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
-      onHover={({ object }) => {
-        if (object?.streamingUrl) {
-          setHoveredObject(object)
-        } else if (object?.cameraNumero) {
-          setHoveredObject(object)
-        } else {
-          setHoveredObject(null)
-        }
-      }}
       getCursor={({ isDragging }) =>
         isDragging ? 'grabbing' : cameraHoverInfo ? 'pointer' : 'grab'
       }
@@ -95,7 +81,7 @@ export function Map() {
       <IconTooltipCard {...iconHoverInfo} />
       <LineTooltipCard {...lineHoverInfo} />
       <CameraInfoPopupCard {...cameraHoverInfo} />
-      <RadarTooltipCard {...radarHoverInfo} />
+      <RadarTooltipCard />
       <CameraFullInfoPopup />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">
@@ -104,18 +90,7 @@ export function Map() {
           setIsAddressmarkerEnabled={setIsAddressMarkerEnabled}
         />
       </div>
-      <MapActions
-        isMapStyleSatellite={isMapStyleSatellite}
-        setIsMapStyleSatellite={setIsMapStyleSatellite}
-        isLinesEnabled={isLinesEnabled}
-        setIsLinesEnabled={setIsLinesEnabled}
-        isIconColorEnabled={isIconColorEnabled}
-        setIsIconColorEnabled={setIsIconColorEnabled}
-        isCamerasEnabled={isCamerasEnabled}
-        setIsCamerasEnabled={setIsCamerasEnabled}
-        isRadarsEnabled={isRadarsEnabled}
-        setIsRadarsEnabled={setIsRadarsEnabled}
-      />
+      <MapActions />
     </DeckGL>
   )
 }

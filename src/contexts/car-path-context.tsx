@@ -55,8 +55,6 @@ interface CarPathContextProps {
   radars: Radar[]
   selectedRadar: Radar | null
   setSelectedRadar: Dispatch<SetStateAction<Radar | null>>
-  hoveredObject: Partial<Radar & CameraCor> | null
-  setHoveredObject: Dispatch<Partial<Radar & CameraCor> | null>
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -90,10 +88,6 @@ export function CarPathContextProvider({
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
-
-  const [hoveredObject, setHoveredObject] = useState<Partial<
-    CameraCor & Radar
-  > | null>(null)
 
   useQuery({
     queryKey: ['cameras-cor'],
@@ -197,8 +191,6 @@ export function CarPathContextProvider({
         radars,
         selectedRadar,
         setSelectedRadar,
-        hoveredObject,
-        setHoveredObject,
       }}
     >
       {children}
