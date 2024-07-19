@@ -7,7 +7,7 @@ export function RadarTooltipCard() {
   const {
     mapStates: { radarHoverInfo },
   } = useMapLayers()
-  console.log({ radarHoverInfo })
+
   return (
     <>
       {radarHoverInfo &&

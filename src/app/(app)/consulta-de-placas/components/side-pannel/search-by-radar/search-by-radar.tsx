@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
+import { formatDate } from 'date-fns'
 import { Cctv, Download } from 'lucide-react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -36,18 +37,30 @@ export function SearchByRadar() {
 
   const { mutateAsync: getCarsByRadarMutation } = useMutation({
     mutationFn: getCarsByRadar,
-    onSuccess: (data) => {
-      const cars =
-        data.data.length > 0
-          ? data.data.map((item) => ({
-              Placa: item,
-            }))
-          : [
-              {
-                Placa: '',
-              },
-            ]
-      exportToCSV('data.csv', cars)
+    onSuccess: (data, variables) => {
+      const rows: {
+        Placa: string
+        Horário: string
+      }[] = []
+      data.data.forEach((carPath) => {
+        const plate = carPath.plate
+
+        carPath.timestamps.forEach((timestamp) => {
+          rows.push({
+            Placa: plate,
+            Horário: formatDate(timestamp, "dd/MM/yyyy 'às' HH:mm"),
+          })
+        })
+      })
+
+      if (data.data.length === 0) {
+        rows.push({
+          Placa: '',
+          Horário: '',
+        })
+      }
+      console.log({ rows })
+      exportToCSV(`radar_${variables.radar}`, rows)
     },
     onError: () => {
       toast.error(genericErrorMessage)
