@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next lint --fix && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix"
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.0.20",
