@@ -2,26 +2,20 @@ import DeckGL from '@deck.gl/react'
 import ReactMalGL from 'react-map-gl'
 
 import { config } from '@/config'
-import { useCarsPathMapLayers } from '@/hooks/use-cars-path-map-layers'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
-import { CameraInfoPopupCard } from './camera-info-popup'
+import { CameraFullInfoPopup } from './map/camera-info/camera-full-info-popup'
+import { CameraInfoPopupCard } from './map/camera-info/camera-info-popup'
 import { IconTooltipCard } from './map/icon-tooltip-card'
 import { LineTooltipCard } from './map/line-tooltip-card'
 import { MapActions } from './map/map-actions'
 import { MapCaption } from './map/map-caption'
-import { SearchBox } from './map/search-box'
-import { CameraFullInfoPopup } from './side-pannel/camera-full-info-popup'
+import { RadarTooltipCard } from './map/radar-tooltip-card'
+import { SearchBox } from './search-box'
 
 export function Map() {
-  const {
-    viewport,
-    setViewport,
-    setHightlightedObject,
-    hightlightedObject,
-    deckRef,
-    mapRef,
-  } = useCarPath()
+  const { viewport, setViewport, deckRef, mapRef } = useCarPath()
   const {
     layers: {
       blackIconLayer,
@@ -31,23 +25,21 @@ export function Map() {
       lineLayerTransparent,
       textLayer,
       addressMarkerLayer,
+      radarLayer,
+      selectedRadarLayer,
+      selectedCameraLayer,
     },
     mapStates: {
       cameraHoverInfo,
       iconHoverInfo,
-      isCamerasEnabled,
       isIconColorEnabled,
       isLinesEnabled,
       isMapStyleSatellite,
       lineHoverInfo,
-      setIsCamerasEnabled,
-      setIsIconColorEnabled,
-      setIsLinesEnabled,
-      setIsMapStyleSatellite,
       isAddressMarkerEnabled,
       setIsAddressMarkerEnabled,
     },
-  } = useCarsPathMapLayers()
+  } = useMapLayers()
 
   return (
     <DeckGL
@@ -56,26 +48,25 @@ export function Map() {
       style={{
         position: 'relative',
         width: '100%',
-        height: '100%',
+        height: '100vh',
         overflow: 'hidden',
       }}
       controller
       layers={[
-        isLinesEnabled && lineLayer,
-        isLinesEnabled && lineLayerTransparent,
-        isCamerasEnabled && cameraLayer,
-        isIconColorEnabled ? coloredIconLayer : blackIconLayer,
+        lineLayer,
+        lineLayerTransparent,
+        cameraLayer,
+        selectedCameraLayer,
+        radarLayer,
+        selectedRadarLayer,
+        coloredIconLayer,
+        blackIconLayer,
         textLayer,
-        isAddressMarkerEnabled && addressMarkerLayer,
+        addressMarkerLayer,
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
-      onHover={({ object }) => {
-        if (object?.properties?.streamingUrl) {
-          setHightlightedObject(object)
-        }
-      }}
       getCursor={({ isDragging }) =>
-        isDragging ? 'grabbing' : hightlightedObject ? 'pointer' : 'grab'
+        isDragging ? 'grabbing' : cameraHoverInfo ? 'pointer' : 'grab'
       }
     >
       <ReactMalGL
@@ -90,22 +81,16 @@ export function Map() {
       <IconTooltipCard {...iconHoverInfo} />
       <LineTooltipCard {...lineHoverInfo} />
       <CameraInfoPopupCard {...cameraHoverInfo} />
+      <RadarTooltipCard />
       <CameraFullInfoPopup />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
-      <SearchBox
-        isAddressmarkerEnabled={isAddressMarkerEnabled}
-        setIsAddressmarkerEnabled={setIsAddressMarkerEnabled}
-      />
-      <MapActions
-        isMapStyleSatellite={isMapStyleSatellite}
-        setIsMapStyleSatellite={setIsMapStyleSatellite}
-        isLinesEnabled={isLinesEnabled}
-        setIsLinesEnabled={setIsLinesEnabled}
-        isIconColorEnabled={isIconColorEnabled}
-        setIsIconColorEnabled={setIsIconColorEnabled}
-        isCamerasEnabled={isCamerasEnabled}
-        setIsCamerasEnabled={setIsCamerasEnabled}
-      />
+      <div className="absolute-x-centered top-2 z-50 w-64">
+        <SearchBox
+          isAddressmarkerEnabled={isAddressMarkerEnabled}
+          setIsAddressmarkerEnabled={setIsAddressMarkerEnabled}
+        />
+      </div>
+      <MapActions />
     </DeckGL>
   )
 }

@@ -63,8 +63,7 @@ export function SearchBox({
   return (
     <Card
       className={cn(
-        'absolute-x-centered top-2 z-50 w-64',
-        suggestions.length > 0 ? 'rounded-b-none' : '',
+        suggestions.length === 0 || !openSuggestions ? '' : 'rounded-b-none',
       )}
     >
       <form
@@ -79,7 +78,9 @@ export function SearchBox({
             placeholder="Pequise um endereço"
             className={cn(
               'pl-8 pr-8 focus-visible:ring-0 focus-visible:ring-offset-0',
-              suggestions.length > 0 ? 'rounded-b-none' : '',
+              suggestions.length === 0 || !openSuggestions
+                ? ''
+                : 'rounded-b-none',
             )}
             autoComplete="off"
           />

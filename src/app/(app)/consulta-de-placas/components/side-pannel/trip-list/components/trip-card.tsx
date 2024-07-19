@@ -75,7 +75,7 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
           <div className="w-20">
             <span className="">{format(startTime, 'dd/MMM')}</span>
           </div>
-          <div className="">
+          <div className="relative">
             <span className="relative whitespace-nowrap text-justify">{`${format(startTime, 'hh:mm aa')} - ${format(endTime, 'hh:mm aa')}`}</span>
             {dayInterval > 0 && (
               <span className="absolute -right-5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-sm bg-card-foreground text-xs text-card">

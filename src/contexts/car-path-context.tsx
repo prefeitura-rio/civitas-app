@@ -1,7 +1,6 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import type { DeckGLRef } from '@deck.gl/react'
 import { useQuery } from '@tanstack/react-query'
-import type { Feature } from 'geojson'
 import {
   createContext,
   type Dispatch,
@@ -15,10 +14,15 @@ import type { MapRef } from 'react-map-gl'
 
 import { getCamerasCor } from '@/http/cameras-cor/get-cameras-cor'
 import {
+  getCarHint as getCarHintApi,
+  type GetCarHintRequest,
+} from '@/http/cars/hint/get-cars-hint'
+import {
   getCarPath as getCarPathApi,
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
-import type { CameraCor } from '@/models/entities'
+import { getRadars } from '@/http/radars/get-radars'
+import type { CameraCor, Radar } from '@/models/entities'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -28,18 +32,16 @@ interface SelectedCamera
 }
 
 interface CarPathContextProps {
-  trips: Trip[] | undefined
-  selectedTrip: Trip | undefined
+  trips: Trip[] | null
+  selectedTrip: Trip | null
   getCarPath: (props: GetCarPathRequest) => Promise<Trip[]>
   selectedTripIndex: number
   setSelectedTripIndex: (index: number) => void
   viewport: MapViewState
   setViewport: (viewport: MapViewState) => void
   isLoading: boolean
-  lastSearchParams: GetCarPathRequest | undefined
+  lastSearchParams: GetCarPathRequest | null
   cameras: CameraCor[]
-  hightlightedObject: Feature | null
-  setHightlightedObject: Dispatch<SetStateAction<Feature | null>>
   selectedCamera: SelectedCamera | null
   setSelectedCamera: Dispatch<SetStateAction<SelectedCamera | null>>
   deckRef: RefObject<DeckGLRef>
@@ -48,6 +50,12 @@ interface CarPathContextProps {
   setAddressmMarkerPositionState: Dispatch<
     SetStateAction<[longitude: number, latitude: number]>
   >
+  getCarHint: (props: GetCarHintRequest) => Promise<string[]>
+  possiblePlates: string[] | null
+  radars: Radar[]
+  selectedRadar: Radar | null
+  setSelectedRadar: Dispatch<SetStateAction<Radar | null>>
+  clearSearch: () => void
 }
 
 export const CarPathContext = createContext({} as CarPathContextProps)
@@ -59,29 +67,32 @@ interface CarPathContextProviderProps {
 export function CarPathContextProvider({
   children,
 }: CarPathContextProviderProps) {
-  const [trips, setTrips] = useState<Trip[]>()
+  const [trips, setTrips] = useState<Trip[] | null>(null)
   const [selectedTripIndex, setSelectedTripIndexState] = useState(0)
-  const [selectedTrip, setSelectedTrip] = useState<Trip>()
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null)
   const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
   const [isLoading, setIsLoading] = useState(false)
-  const [lastSearchParams, setLastSearchParams] = useState<GetCarPathRequest>()
+  const [lastSearchParams, setLastSearchParams] =
+    useState<GetCarPathRequest | null>(null)
   const [addressMarkerPosition, setAddressmMarkerPositionState] = useState<
     [longitude: number, latitude: number]
   >([0, 0])
 
   const [cameras, setCameras] = useState<CameraCor[]>([])
-  const [hightlightedObject, setHightlightedObject] = useState<Feature | null>(
-    null,
-  )
   const [selectedCamera, setSelectedCamera] = useState<SelectedCamera | null>(
     null,
   )
+
+  const [radars, setRadars] = useState<Radar[]>([])
+  const [selectedRadar, setSelectedRadar] = useState<Radar | null>(null)
+
+  const [possiblePlates, setPossiblePlates] = useState<string[] | null>(null)
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
 
   useQuery({
-    queryKey: ['agent/locations'],
+    queryKey: ['cameras-cor'],
     queryFn: async () => {
       const response = await getCamerasCor()
       setCameras(response.data)
@@ -89,11 +100,25 @@ export function CarPathContextProvider({
     },
   })
 
+  useQuery({
+    queryKey: ['radars'],
+    queryFn: async () => {
+      const response = await getRadars()
+      setRadars(response.data)
+      return response.data
+    },
+  })
+
   function setSelectedTripIndex(index: number) {
     setSelectedTripIndexState(index)
     if (trips) {
-      setSelectedTrip(trips?.at(index))
+      setSelectedTrip(trips?.at(index) || null)
     }
+  }
+
+  function clearSearch() {
+    setPossiblePlates(null)
+    setTrips(null)
   }
 
   function setViewport(newViewport: MapViewState) {
@@ -107,6 +132,7 @@ export function CarPathContextProvider({
 
   async function getCarPath({ placa, startTime, endTime }: GetCarPathRequest) {
     setIsLoading(true)
+    setPossiblePlates(null)
     setLastSearchParams({
       placa,
       startTime,
@@ -133,6 +159,21 @@ export function CarPathContextProvider({
     return formattedTrips
   }
 
+  async function getCarHint(props: GetCarHintRequest) {
+    setIsLoading(true)
+    setTrips(null)
+    setLastSearchParams({
+      placa: props.plate,
+      startTime: props.startTime,
+      endTime: props.endTime,
+    })
+    const response = await getCarHintApi(props)
+    setPossiblePlates(response.data)
+    setIsLoading(false)
+
+    return response.data
+  }
+
   return (
     <CarPathContext.Provider
       value={{
@@ -146,14 +187,18 @@ export function CarPathContextProvider({
         isLoading,
         lastSearchParams,
         cameras,
-        hightlightedObject,
-        setHightlightedObject,
         selectedCamera,
         setSelectedCamera,
         deckRef,
         mapRef,
         addressMarkerPosition,
         setAddressmMarkerPositionState,
+        getCarHint,
+        possiblePlates,
+        radars,
+        selectedRadar,
+        setSelectedRadar,
+        clearSearch,
       }}
     >
       {children}
