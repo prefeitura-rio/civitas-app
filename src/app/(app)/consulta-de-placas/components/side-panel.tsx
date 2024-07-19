@@ -1,3 +1,4 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
 import { SearchByPlate } from './side-pannel/search-by-plate/search-by-plate'
@@ -5,12 +6,31 @@ import { SearchByRadar } from './side-pannel/search-by-radar/search-by-radar'
 
 export function SidePanel() {
   const {
-    mapStates: { isRadarsEnabled },
+    mapStates: { isRadarsEnabled, setIsRadarsEnabled },
   } = useMapLayers()
 
   return (
     <div className="flex h-screen w-full max-w-md flex-col px-4 py-2">
-      {isRadarsEnabled ? <SearchByRadar /> : <SearchByPlate />}
+      <Tabs
+        onValueChange={(e) => {
+          if (e === 'radar' && !isRadarsEnabled) {
+            setIsRadarsEnabled(true)
+          }
+        }}
+        className="h-[calc(100%-3rem)]"
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="plate">Busca por placa</TabsTrigger>
+          <TabsTrigger value="radar">Busca por radar</TabsTrigger>
+        </TabsList>
+        <TabsContent value="plate" className="">
+          <SearchByPlate />
+        </TabsContent>
+        <TabsContent value="radar" className="h-full">
+          <SearchByRadar />
+        </TabsContent>
+      </Tabs>
+      {/* {isRadarsEnabled ? <SearchByRadar /> : <SearchByPlate />} */}
     </div>
   )
 }
