@@ -18,12 +18,13 @@ export function SidePanel() {
           }
         }}
         className="h-[calc(100%-3rem)]"
+        defaultValue="plate"
       >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="plate">Busca por placa</TabsTrigger>
           <TabsTrigger value="radar">Busca por radar</TabsTrigger>
         </TabsList>
-        <TabsContent value="plate" className="">
+        <TabsContent value="plate" className="h-full">
           <SearchByPlate />
         </TabsContent>
         <TabsContent value="radar" className="h-full">
