@@ -56,7 +56,7 @@ export const filterFormSchema = z.object({
 export type FilterForm = z.infer<typeof filterFormSchema>
 
 export function SearchByPlateFilterForm() {
-  const { getCarPath, getCarHint } = useCarPath()
+  const { getCarPath, getCarHint, isLoading } = useCarPath()
   const today = new Date()
   const from = new Date()
   from.setDate(today.getDate() - 7)
@@ -108,11 +108,14 @@ export function SearchByPlateFilterForm() {
             Consultar placa
             <CarFront className="h-8 w-8" />
           </CardTitle>
-          <Button disabled={isSubmitting} className="flex h-9 w-9 gap-2 p-2">
+          <Button
+            disabled={isSubmitting || isLoading}
+            className="flex h-9 w-9 gap-2 p-2"
+          >
             <Search className="h-4 w-4" />
           </Button>
         </div>
-        <fieldset className="space-y-2" disabled={isSubmitting}>
+        <fieldset className="space-y-2" disabled={isSubmitting || isLoading}>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Label>Placa:</Label>

@@ -6,14 +6,14 @@ export async function getRadars() {
 
   const data = response.data.map((item) => {
     return {
-      bairro: item.bairro,
-      cameraNumero: item.camera_numero,
-      codcet: item.codcet,
+      district: item.bairro,
+      cameraNumber: item.camera_numero,
+      cetRioCode: item.codcet,
       latitude: item.latitude,
       longitude: item.longitude,
-      locequip: item.locequip,
-      logradouro: item.logradouro,
-      sentido: item.sentido,
+      location: item.locequip,
+      streetName: item.logradouro,
+      direction: item.sentido,
     } as Radar
   })
   return {

@@ -34,7 +34,7 @@ export function RadarList() {
             <Card
               className={cn(
                 'p-2 hover:cursor-pointer hover:bg-secondary',
-                props.cameraNumero === radarHoverInfo.object?.cameraNumero
+                props.cameraNumber === radarHoverInfo.object?.cameraNumber
                   ? 'bg-secondary'
                   : '',
               )}
@@ -55,15 +55,15 @@ export function RadarList() {
                 })
               }}
             >
-              <TooltipInfoItem label="Código CET-Rio" value={props.codcet} />
               <TooltipInfoItem
-                label="Número Câmera"
-                value={props.cameraNumero}
+                label="Código CET-Rio"
+                value={props.cetRioCode}
               />
-              <TooltipInfoItem label="locequip" value={props.locequip} />
-              <TooltipInfoItem label="Bairro" value={props.bairro} />
-              <TooltipInfoItem label="Logradouro" value={props.logradouro} />
-              <TooltipInfoItem label="Sentido" value={props.sentido} />
+              <TooltipInfoItem label="Câmera" value={props.cameraNumber} />
+              <TooltipInfoItem label="Localização" value={props.location} />
+              <TooltipInfoItem label="Bairro" value={props.district} />
+              <TooltipInfoItem label="Logradouro" value={props.streetName} />
+              <TooltipInfoItem label="Sentido" value={props.direction} />
             </Card>
           )
         })}

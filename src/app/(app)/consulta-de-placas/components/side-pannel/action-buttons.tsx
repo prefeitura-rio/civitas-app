@@ -18,15 +18,9 @@ export function ActionButtons() {
     <div
       className={cn(
         'flex h-11 items-center gap-2 rounded bg-secondary p-1',
-        empty ? 'justify-center border border-secondary bg-transparent' : '',
+        empty ? 'hidden' : '',
       )}
     >
-      {empty && (
-        <span className="text-center text-sm text-muted">
-          Nenhuma ação disponível
-        </span>
-      )}
-
       {downloadReportButton && <DownloadReportButton />}
       {monitoringToggle && <MonitoringToggle />}
       {clearTripsButton && (

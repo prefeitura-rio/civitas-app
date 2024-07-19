@@ -25,7 +25,7 @@ export function SearchByRadarFilterForm() {
   const {
     register,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useFormContext<SearchByRadarForm>()
 
   return (
@@ -36,7 +36,7 @@ export function SearchByRadarFilterForm() {
             Lista de radares
           </BreadcrumbLink>
           <BreadcrumbSeparator />
-          <BreadcrumbPage>{`Câmera número ${selectedRadar.cameraNumero}`}</BreadcrumbPage>
+          <BreadcrumbPage>{`Câmera número ${selectedRadar.cameraNumber}`}</BreadcrumbPage>
         </BreadcrumbList>
       </Breadcrumb>
 
@@ -54,6 +54,7 @@ export function SearchByRadarFilterForm() {
                 date={field.value}
                 setDate={field.onChange}
                 type="datetime-local"
+                disabled={isSubmitting}
               />
             </div>
           )}
@@ -77,6 +78,7 @@ export function SearchByRadarFilterForm() {
                   max={10}
                   min={-10}
                   step={1}
+                  disabled={isSubmitting}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Min: -10min</span>
@@ -102,7 +104,11 @@ export function SearchByRadarFilterForm() {
             <span className="text-xs text-muted-foreground">(opcional)</span>
             <InputError message={errors.plateHint?.message} />
           </div>
-          <Input id="plateHint" {...register('plateHint')} />
+          <Input
+            id="plateHint"
+            {...register('plateHint')}
+            disabled={isSubmitting}
+          />
         </div>
       </div>
     </div>

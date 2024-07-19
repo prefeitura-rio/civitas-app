@@ -55,7 +55,7 @@ export function MapActions() {
           onCheckedChange={setIsRadarsEnabled}
         />
         <Label htmlFor="mapStyle" className="text-xs">
-          Radars
+          Radares
         </Label>
       </div>
 
