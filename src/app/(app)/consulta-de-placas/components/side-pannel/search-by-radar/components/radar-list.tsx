@@ -4,7 +4,7 @@ import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 import { cn } from '@/lib/utils'
 import type { Radar } from '@/models/entities'
 
-import { TooltipInfoItem } from '../../../map/tooltip-info-item'
+import { TooltipInfoItem } from '../../../map/icon-tooltip/components/tooltip-info-item'
 
 export function RadarList() {
   const { mapRef, deckRef, setSelectedRadar, selectedRadar } = useCarPath()

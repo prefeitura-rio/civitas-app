@@ -9,81 +9,93 @@ export function MapActions() {
   const {
     mapStates: {
       isCamerasEnabled,
-      isIconColorEnabled,
-      isLinesEnabled,
-      isMapStyleSatellite,
-      isRadarsEnabled,
       setIsCamerasEnabled,
+      isIconColorEnabled,
       setIsIconColorEnabled,
+      isLinesEnabled,
       setIsLinesEnabled,
+      isMapStyleSatellite,
       setIsMapStyleSatellite,
+      isRadarsEnabled,
       setIsRadarsEnabled,
+      isWazePoliceAlertsLayerEnabled,
+      setIsWazePoliceAlertsLayerEnabled,
     },
   } = useMapLayers()
 
+  const fixedSwitches = [
+    {
+      id: 'mapStyle',
+      label: 'Satélite',
+      checked: isMapStyleSatellite,
+      onCheckedChange: setIsMapStyleSatellite,
+    },
+    {
+      id: 'cameras',
+      label: 'Câmeras',
+      checked: isCamerasEnabled,
+      onCheckedChange: setIsCamerasEnabled,
+    },
+    {
+      id: 'radars',
+      label: 'Radares',
+      checked: isRadarsEnabled,
+      onCheckedChange: setIsRadarsEnabled,
+    },
+    {
+      id: 'waze-police-alerts',
+      label: 'Alerta de polícia (waze)',
+      checked: isWazePoliceAlertsLayerEnabled,
+      onCheckedChange: setIsWazePoliceAlertsLayerEnabled,
+    },
+  ]
+
+  const tripRelatedSwitches = [
+    {
+      id: 'lines',
+      label: 'Linhas',
+      checked: isLinesEnabled,
+      onCheckedChange: setIsLinesEnabled,
+    },
+    {
+      id: 'iconColor',
+      label: 'Pontos com gradiente',
+      checked: isIconColorEnabled,
+      onCheckedChange: setIsIconColorEnabled,
+    },
+  ]
+
   return (
     <Card className="absolute right-2 top-2 flex flex-col gap-2 whitespace-nowrap bg-card p-2 tracking-tighter">
-      <div className="flex items-center justify-between gap-2">
-        <Switch
-          id="mapStyle"
-          size="sm"
-          checked={isMapStyleSatellite}
-          onCheckedChange={setIsMapStyleSatellite}
-        />
-        <Label htmlFor="mapStyle" className="text-xs">
-          Satélite
-        </Label>
-      </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <Switch
-          id="mapStyle"
-          size="sm"
-          checked={isCamerasEnabled}
-          onCheckedChange={setIsCamerasEnabled}
-        />
-        <Label htmlFor="mapStyle" className="text-xs">
-          Câmeras
-        </Label>
-      </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <Switch
-          id="mapStyle"
-          size="sm"
-          checked={isRadarsEnabled}
-          onCheckedChange={setIsRadarsEnabled}
-        />
-        <Label htmlFor="mapStyle" className="text-xs">
-          Radares
-        </Label>
-      </div>
+      {fixedSwitches.map((item) => (
+        <div className="flex items-center justify-between gap-2">
+          <Switch
+            id={item.id}
+            size="sm"
+            checked={item.checked}
+            onCheckedChange={item.onCheckedChange}
+          />
+          <Label htmlFor={item.id} className="text-xs">
+            {item.label}
+          </Label>
+        </div>
+      ))}
 
       {selectedTrip && (
         <>
-          <div className="flex items-center justify-between gap-2">
-            <Switch
-              id="lines"
-              size="sm"
-              checked={isLinesEnabled}
-              onCheckedChange={() => setIsLinesEnabled(!isLinesEnabled)}
-            />
-            <Label htmlFor="lines" className="text-xs">
-              Linhas
-            </Label>
-          </div>
-
-          <div className="flex items-center justify-between gap-2">
-            <Switch
-              id="iconColor"
-              size="sm"
-              checked={isIconColorEnabled}
-              onCheckedChange={() => setIsIconColorEnabled(!isIconColorEnabled)}
-            />
-            <Label htmlFor="iconColor" className="text-xs">
-              Pontos com gradiente
-            </Label>
-          </div>
+          {tripRelatedSwitches.map((item) => (
+            <div className="flex items-center justify-between gap-2">
+              <Switch
+                id={item.id}
+                size="sm"
+                checked={item.checked}
+                onCheckedChange={item.onCheckedChange}
+              />
+              <Label htmlFor={item.id} className="text-xs">
+                {item.label}
+              </Label>
+            </div>
+          ))}
         </>
       )}
     </Card>
