@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { Download, SatelliteDish } from 'lucide-react'
+import { Cctv, Download } from 'lucide-react'
 import { FormProvider, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
@@ -68,8 +68,8 @@ export function SearchByRadar() {
       <form className="h-full w-full" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex h-[3.25rem] items-center justify-between py-2">
           <CardTitle className="flex items-center gap-2">
-            Consultar Radar
-            <SatelliteDish className="h-8 w-8" />
+            Consultar radar
+            <Cctv className="h-8 w-8" />
           </CardTitle>
           {selectedRadar && (
             <Tooltip asChild text="Baixar relatório">
