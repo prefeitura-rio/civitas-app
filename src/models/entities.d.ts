@@ -107,3 +107,27 @@ export type Radar = {
   streetName: string
   direction: string
 }
+
+export type BackendWazeAlert = {
+  timestamp: string
+  street?: string
+  type: string
+  subtype: string
+  reliability: number
+  confidence: number
+  number_thumbs_up?: number
+  latitude: number
+  longitude: number
+}
+
+export type WazeAlert = {
+  timestamp: string
+  street?: string
+  type: string
+  subtype: string
+  reliability: number
+  confidence: number
+  numberThumbsUp?: number
+  latitude: number
+  longitude: number
+}
