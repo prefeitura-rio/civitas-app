@@ -16,19 +16,22 @@ export function PlateList() {
     })
   }
 
-  function styleAsterisk(word: string | undefined) {
-    if (!word) return [<span></span>]
-    return Array.from(lastSearchParams?.placa || '').map((char, index) => {
-      if (char === '*') {
-        return <span className="text-primary">{word[index]}</span>
-      }
-      return <span>{word[index]}</span>
-    })
-  }
+  // function styleAsterisk(word: string | undefined) {
+  //   if (!word) return [<span></span>]
+  //   return Array.from(word).map((char, index) => {
+  //     if (
+  //       lastSearchParams?.placa[index] === '*' ||
+  //       !lastSearchParams?.placa[index]
+  //     ) {
+  //       return <span className="text-primary">{char}</span>
+  //     }
+  //     return <span>{char}</span>
+  //   })
+  // }
 
   return (
     <div className="h-[calc(100%-15rem)] space-y-2">
-      <div>
+      <div className="w-full text-center">
         <h4 className="text-muted-foreground">
           Resultado para{' '}
           <span className="code-highlight">{lastSearchParams.placa}</span>
@@ -46,8 +49,7 @@ export function PlateList() {
             onClick={() => handlePlateClick(plate)}
             className="selectable-item"
           >
-            {styleAsterisk(plate)}
-            <span>{}</span>
+            <span>{plate}</span>
           </li>
         ))}
       </ul>
