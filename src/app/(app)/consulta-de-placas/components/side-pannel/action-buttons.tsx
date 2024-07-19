@@ -1,29 +1,33 @@
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { cn } from '@/lib/utils'
 
+import { ClearTripsButton } from './action-buttons/clear-trips-button'
 import { MonitoringToggle } from './action-buttons/monitoring-toggle'
 import DownloadReportButton from './action-buttons/report/download-report-button'
 
 export function ActionButtons() {
-  const { isLoading, lastSearchParams } = useCarPath()
+  const { isLoading, lastSearchParams, trips, possiblePlates } = useCarPath()
 
-  const shouldShowDownloadReportButton = lastSearchParams && !isLoading
-  const shouldShowMonitoringToggle = lastSearchParams && !isLoading
-  const shouldShowActionsSection =
-    shouldShowDownloadReportButton || shouldShowMonitoringToggle
+  const downloadReportButton = lastSearchParams && !isLoading && trips
+  const monitoringToggle = lastSearchParams && !isLoading && trips
+  const clearTripsButton =
+    ((lastSearchParams && trips) || possiblePlates) && !isLoading
+  const empty = !downloadReportButton && !monitoringToggle && !clearTripsButton
 
   return (
-    <>
-      {shouldShowActionsSection && (
-        <div className="flex flex-col">
-          <span className="text-center text-sm text-muted-foreground">
-            Ações
-          </span>
-          <div className="mx-6 mb-2 flex gap-2 rounded-xl border p-2">
-            {shouldShowDownloadReportButton && <DownloadReportButton />}
-            {shouldShowMonitoringToggle && <MonitoringToggle />}
-          </div>
+    <div
+      className={cn(
+        'flex h-11 items-center gap-2 rounded bg-secondary p-1',
+        empty ? 'hidden' : '',
+      )}
+    >
+      {downloadReportButton && <DownloadReportButton />}
+      {monitoringToggle && <MonitoringToggle />}
+      {clearTripsButton && (
+        <div className="flex w-full justify-end">
+          <ClearTripsButton />
         </div>
       )}
-    </>
+    </div>
   )
 }

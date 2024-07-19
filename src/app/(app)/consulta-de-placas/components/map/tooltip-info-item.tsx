@@ -3,7 +3,7 @@ interface TooltipInfoProps {
   value: string
 }
 
-export function IconTooltipInfo({ label, value }: TooltipInfoProps) {
+export function TooltipInfoItem({ label, value }: TooltipInfoProps) {
   return (
     <div>
       <span className="text-xs font-bold">{label}: </span>

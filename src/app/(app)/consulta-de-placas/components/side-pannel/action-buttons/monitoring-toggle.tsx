@@ -80,7 +80,8 @@ export function MonitoringToggle() {
                 disabled={
                   isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
                 }
-                className="cursor-default"
+                className=""
+                size="sm"
               >
                 <Siren className="h-4 w-4" />
               </Toggle>

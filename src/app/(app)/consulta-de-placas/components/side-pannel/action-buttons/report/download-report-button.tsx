@@ -17,7 +17,7 @@ export default function DownloadReportButton() {
     <Dialog>
       <Tooltip asChild text="Imprimir relatório" disabled={isLoading}>
         <DialogTrigger asChild>
-          <Button variant="outline" disabled={isLoading}>
+          <Button variant="outline" disabled={isLoading} size="sm">
             <Printer className="h-4 w-4" />
           </Button>
         </DialogTrigger>
