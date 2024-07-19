@@ -21,6 +21,7 @@ interface DatePickerProps {
   setDate: React.Dispatch<React.SetStateAction<Date | undefined>> | undefined
   type?: 'date' | 'datetime-local'
   className?: string
+  disabled?: boolean
 }
 
 export function DatePicker({
@@ -28,6 +29,7 @@ export function DatePicker({
   setDate,
   className,
   type = 'date',
+  disabled = false,
 }: DatePickerProps) {
   return (
     <Popover>
@@ -39,6 +41,7 @@ export function DatePicker({
             !date && 'text-muted-foreground',
             className,
           )}
+          disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {date ? (
@@ -54,6 +57,7 @@ export function DatePicker({
           selected={date}
           onSelect={setDate}
           initialFocus
+          disabled={disabled}
         />
         {type === 'datetime-local' && (
           <>

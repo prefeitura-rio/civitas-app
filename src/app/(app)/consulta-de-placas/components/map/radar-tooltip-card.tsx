@@ -19,27 +19,27 @@ export function RadarTooltipCard() {
           >
             <TooltipInfoItem
               label="Código CET-Rio"
-              value={radarHoverInfo.object.codcet}
+              value={radarHoverInfo.object.cetRioCode}
             />
             <TooltipInfoItem
               label="Número Câmera"
-              value={radarHoverInfo.object.cameraNumero}
+              value={radarHoverInfo.object.cameraNumber}
             />
             <TooltipInfoItem
-              label="locequip"
-              value={radarHoverInfo.object.locequip}
+              label="Localização"
+              value={radarHoverInfo.object.location}
             />
             <TooltipInfoItem
               label="Bairro"
-              value={radarHoverInfo.object.bairro}
+              value={radarHoverInfo.object.district}
             />
             <TooltipInfoItem
               label="Logradouro"
-              value={radarHoverInfo.object.logradouro}
+              value={radarHoverInfo.object.streetName}
             />
             <TooltipInfoItem
               label="Sentido"
-              value={radarHoverInfo.object.sentido}
+              value={radarHoverInfo.object.direction}
             />
           </Card>
         )}

@@ -168,8 +168,8 @@ export function CarPathContextProvider({
       endTime: props.endTime,
     })
     const response = await getCarHintApi(props)
-    setIsLoading(false)
     setPossiblePlates(response.data)
+    setIsLoading(false)
 
     return response.data
   }

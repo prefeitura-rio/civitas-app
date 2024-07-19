@@ -98,12 +98,12 @@ export type BackendRadar = {
 }
 
 export type Radar = {
-  codcet: string
-  cameraNumero: string
+  cetRioCode: string
+  cameraNumber: string
   latitude: number
   longitude: number
-  locequip: string
-  bairro: string
-  logradouro: string
-  sentido: string
+  location: string
+  district: string
+  streetName: string
+  direction: string
 }

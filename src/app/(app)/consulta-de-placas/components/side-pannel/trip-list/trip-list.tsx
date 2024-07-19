@@ -13,7 +13,7 @@ export function TripList() {
   if (!lastSearchParams) return null
 
   return (
-    <div className="h-[calc(100%-15rem)] w-full overflow-y-scroll">
+    <div className="h-[calc(100%-15rem)] w-full">
       {isLoading ? (
         <div className="flex h-full w-full items-center justify-center">
           <Loader2 className="size-10 animate-spin text-muted-foreground" />
@@ -27,8 +27,8 @@ export function TripList() {
             </span>
           </div>
         ) : (
-          <div className="space-y-2">
-            <div>
+          <div className="h-[calc(100%-4.75rem)] space-y-2">
+            <div className="text-center">
               <h4 className="text-muted-foreground">
                 Resultado para{' '}
                 <span className="code-highlight">{lastSearchParams.placa}</span>
@@ -40,7 +40,7 @@ export function TripList() {
                 {`Até  ${format(lastSearchParams.endTime, "dd 'de' MMMM 'de' y 'às' HH'h'mm'min'", { locale: ptBR })}`}
               </span>
             </div>
-            <ul className="relative flex h-full w-full flex-col bg-card">
+            <ul className="relative flex h-full w-full flex-col overflow-y-scroll bg-card">
               {trips.map((trip, index) => {
                 const startLocation = trip.points[0]
                 const endLocation = trip.points[trip.points.length - 1]
