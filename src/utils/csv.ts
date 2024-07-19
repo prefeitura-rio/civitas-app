@@ -6,7 +6,9 @@ export const exportToCSV = (filename: string, rows: any[]) => {
 
   const separator = ','
   const keys = Object.keys(rows[0])
+
   const csvContent =
+    '\uFEFF' + // UTF-8 BOM
     keys.join(separator) +
     '\n' +
     rows
