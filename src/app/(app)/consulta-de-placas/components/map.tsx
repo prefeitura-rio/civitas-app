@@ -24,6 +24,7 @@ export function Map() {
       radarLayer,
       selectedRadarLayer,
       selectedCameraLayer,
+      inactiveRadarLayer,
       wazePoliceAlertsLayer,
     },
     mapStates: {
@@ -55,6 +56,7 @@ export function Map() {
         wazePoliceAlertsLayer,
         selectedCameraLayer,
         selectedRadarLayer,
+        inactiveRadarLayer,
         coloredIconLayer,
         blackIconLayer,
         textLayer,

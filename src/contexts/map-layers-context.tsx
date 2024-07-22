@@ -12,6 +12,7 @@ import cctvOrange from '@/assets/cctv-orange.svg'
 import cctvOrangeFilled from '@/assets/cctv-orange-filled.svg'
 import iconAtlas from '@/assets/icon-atlas.png'
 import mapPinRed from '@/assets/map-pin-red.svg'
+import slash from '@/assets/slash-orange-500.svg'
 import videoCamera from '@/assets/video-camera.svg'
 import videoCameraFilled from '@/assets/video-camera-filled.svg'
 import { useWazePoliceAlerts } from '@/hooks/map-layers/use-waze-police-alerts'
@@ -40,6 +41,7 @@ interface MapLayersContextProps {
     addressMarkerLayer: IconLayer<Coordinates, object>
     radarLayer: IconLayer<Radar, object>
     selectedRadarLayer: IconLayer<Radar, object>
+    inactiveRadarLayer: IconLayer<Radar, object>
     wazePoliceAlertsLayer: IconLayer<WazeAlert, object>
   }
   mapStates: {
@@ -282,10 +284,34 @@ export function MapLayersContextProvider({
       : undefined,
   })
 
+  const inactiveRadarLayer = new IconLayer<Radar>({
+    id: 'inactive-radars',
+    data: radars.filter((item) => !item.activeInLast24Hours && item.hasData),
+    getPosition: (radar) => [radar.longitude, radar.latitude],
+    getSize: 24,
+    getIcon: () => ({
+      url: slash.src,
+      width: 48,
+      height: 48,
+      mask: false,
+    }),
+    pickable: true,
+    onClick: (radar) => setSelectedRadar(radar.object),
+    onHover: (info) => {
+      setRadarHoverInfo(info)
+    },
+    highlightColor: [249, 115, 22, 255], // orange-500
+    autoHighlight: true,
+    visible: isRadarsEnabled,
+    highlightedObjectIndex: radarHoverInfo.object
+      ? radarHoverInfo.index
+      : undefined,
+  })
+
   const selectedRadarLayer = new IconLayer<Radar>({
     id: 'selected-radar',
     data: [selectedRadar],
-    getPosition: (info) => [info.longitude, info.latitude],
+    getPosition: (info) => [info?.longitude, info?.latitude],
     getSize: 24,
     getIcon: () => ({
       url: cctvOrangeFilled.src,
@@ -302,7 +328,7 @@ export function MapLayersContextProvider({
   const selectedCameraLayer = new IconLayer<CameraCor>({
     id: 'selected-camera',
     data: [selectedCamera],
-    getPosition: (info) => [info.longitude, info.latitude],
+    getPosition: (info) => [info?.longitude, info?.latitude],
     getSize: 24,
     getIcon: () => ({
       url: videoCameraFilled.src,
@@ -338,6 +364,7 @@ export function MapLayersContextProvider({
           addressMarkerLayer,
           radarLayer,
           selectedRadarLayer,
+          inactiveRadarLayer,
           selectedCameraLayer,
           wazePoliceAlertsLayer,
         },
