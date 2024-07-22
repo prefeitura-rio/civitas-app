@@ -9,18 +9,18 @@ import type { Radar } from '@/models/entities'
 import { TooltipInfoItem } from '../../../map/icon-tooltip/components/tooltip-info-item'
 
 export function RadarList() {
-  const { mapRef, deckRef, setSelectedRadar, selectedRadar } = useCarPath()
+  const { deckRef, setSelectedRadar, selectedRadar } = useCarPath()
   const {
     mapStates: { radarHoverInfo, setRadarHoverInfo },
   } = useMapLayers()
-  const canvasContainer = mapRef.current?.getCanvasContainer()
-  const h = window.innerHeight
-  const canvasWidth = canvasContainer?.clientWidth
-  const objects = deckRef.current?.pickObjects({
+
+  const deck = deckRef.current?.deck
+
+  const objects = deckRef.current?.deck?.pickObjects({
     x: 0,
     y: 0,
-    width: canvasWidth,
-    height: h,
+    width: deck?.width,
+    height: deck?.height,
     layerIds: ['radars'],
     maxObjects: 20,
   })
@@ -29,6 +29,12 @@ export function RadarList() {
     !selectedRadar && (
       <div className="h-[calc(100%-3.25rem)] w-full space-y-2 overflow-y-scroll">
         <CardDescription>Selecione um radar:</CardDescription>
+
+        <p className="text-sm text-muted-foreground">
+          ⚠️ Atenção! Radares são considerados inativos se não enviarem dados há
+          mais de 24 horas. No entanto, essa informação não é atualizada em
+          tempo real e pode seguir desatualizada por várias horas.
+        </p>
 
         {objects?.map((item, index) => {
           const props: Radar = item.object
@@ -62,7 +68,10 @@ export function RadarList() {
                 label="Código CET-Rio"
                 value={props.cetRioCode}
               />
-              <TooltipInfoItem label="Câmera" value={props.cameraNumber} />
+              <TooltipInfoItem
+                label="Número Câmera"
+                value={props.cameraNumber}
+              />
               <TooltipInfoItem label="Localização" value={props.location} />
               <TooltipInfoItem label="Bairro" value={props.district} />
               <TooltipInfoItem label="Logradouro" value={props.streetName} />
@@ -83,12 +92,6 @@ export function RadarList() {
                 label="Ativo nas últimas 24 horas"
                 value={props.activeInLast24Hours ? 'Sim' : 'Não'}
               />
-              <p className="text-sm text-muted-foreground">
-                ⚠️ Atenção! Radares são considerados inativos se não enviarem
-                dados há mais de 24 horas. No entanto, essa informação não é
-                atualizada em tempo real e pode seguir desatualizada por várias
-                horas.
-              </p>
             </Card>
           )
         })}

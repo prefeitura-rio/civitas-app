@@ -13,7 +13,7 @@ dependencies:
     version: 9.0.20
   '@deck.gl/geo-layers':
     specifier: ^9.0.20
-    version: 9.0.20(@deck.gl/core@9.0.20)(@deck.gl/extensions@9.0.20)(@deck.gl/layers@9.0.20)(@deck.gl/mesh-layers@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
+    version: 9.0.20(@deck.gl/core@9.0.20)(@deck.gl/extensions@9.0.24)(@deck.gl/layers@9.0.20)(@deck.gl/mesh-layers@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
   '@deck.gl/layers':
     specifier: ^9.0.20
     version: 9.0.20(@deck.gl/core@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
@@ -343,6 +343,21 @@ packages:
       '@math.gl/core': 4.0.1
     dev: false
 
+  /@deck.gl/extensions@9.0.24(@deck.gl/core@9.0.20)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15):
+    resolution: {integrity: sha512-iIGDN94dUe3OarjoSwemX6/bZhFX51wdzqelEPYuEe/F4xlYFFClsDMzROJ34QAdtXULKnG9Adgi101w4oYQgA==}
+    peerDependencies:
+      '@deck.gl/core': ^9.0.0
+      '@luma.gl/core': ^9.0.0
+      '@luma.gl/engine': ^9.0.0
+    dependencies:
+      '@deck.gl/core': 9.0.20
+      '@luma.gl/constants': 9.0.15
+      '@luma.gl/core': 9.0.15
+      '@luma.gl/engine': 9.0.15(@luma.gl/core@9.0.15)
+      '@luma.gl/shadertools': 9.0.15(@luma.gl/core@9.0.15)
+      '@math.gl/core': 4.0.1
+    dev: false
+
   /@deck.gl/geo-layers@9.0.20(@deck.gl/core@9.0.20)(@deck.gl/extensions@9.0.20)(@deck.gl/layers@9.0.20)(@deck.gl/mesh-layers@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15):
     resolution: {integrity: sha512-lO6JW5abwvNvRjrRMlroLkL+UtK+o3MXiyp9g5s0WoXy+KtJ9D10OQ02GpCw0L48udbpO42Cmpg3imcZdO66Dg==}
     peerDependencies:
@@ -356,6 +371,42 @@ packages:
     dependencies:
       '@deck.gl/core': 9.0.20
       '@deck.gl/extensions': 9.0.20(@deck.gl/core@9.0.20)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
+      '@deck.gl/layers': 9.0.20(@deck.gl/core@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
+      '@deck.gl/mesh-layers': 9.0.20(@deck.gl/core@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
+      '@loaders.gl/3d-tiles': 4.2.2(@loaders.gl/core@4.2.2)
+      '@loaders.gl/core': 4.2.2
+      '@loaders.gl/gis': 4.2.2(@loaders.gl/core@4.2.2)
+      '@loaders.gl/loader-utils': 4.2.2(@loaders.gl/core@4.2.2)
+      '@loaders.gl/mvt': 4.2.2(@loaders.gl/core@4.2.2)
+      '@loaders.gl/schema': 4.2.2(@loaders.gl/core@4.2.2)
+      '@loaders.gl/terrain': 4.2.2(@loaders.gl/core@4.2.2)
+      '@loaders.gl/tiles': 4.2.2(@loaders.gl/core@4.2.2)
+      '@loaders.gl/wms': 4.2.2(@loaders.gl/core@4.2.2)
+      '@luma.gl/core': 9.0.15
+      '@luma.gl/engine': 9.0.15(@luma.gl/core@9.0.15)
+      '@luma.gl/gltf': 9.0.15(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
+      '@luma.gl/shadertools': 9.0.15(@luma.gl/core@9.0.15)
+      '@math.gl/core': 4.0.1
+      '@math.gl/culling': 4.0.1
+      '@math.gl/web-mercator': 4.0.1
+      '@types/geojson': 7946.0.14
+      h3-js: 4.1.0
+      long: 3.2.0
+    dev: false
+
+  /@deck.gl/geo-layers@9.0.20(@deck.gl/core@9.0.20)(@deck.gl/extensions@9.0.24)(@deck.gl/layers@9.0.20)(@deck.gl/mesh-layers@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15):
+    resolution: {integrity: sha512-lO6JW5abwvNvRjrRMlroLkL+UtK+o3MXiyp9g5s0WoXy+KtJ9D10OQ02GpCw0L48udbpO42Cmpg3imcZdO66Dg==}
+    peerDependencies:
+      '@deck.gl/core': ^9.0.0
+      '@deck.gl/extensions': ^9.0.0
+      '@deck.gl/layers': ^9.0.0
+      '@deck.gl/mesh-layers': ^9.0.0
+      '@loaders.gl/core': ^4.2.0
+      '@luma.gl/core': ^9.0.0
+      '@luma.gl/engine': ^9.0.0
+    dependencies:
+      '@deck.gl/core': 9.0.20
+      '@deck.gl/extensions': 9.0.24(@deck.gl/core@9.0.20)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
       '@deck.gl/layers': 9.0.20(@deck.gl/core@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
       '@deck.gl/mesh-layers': 9.0.20(@deck.gl/core@9.0.20)(@loaders.gl/core@4.2.2)(@luma.gl/core@9.0.15)(@luma.gl/engine@9.0.15)
       '@loaders.gl/3d-tiles': 4.2.2(@loaders.gl/core@4.2.2)
