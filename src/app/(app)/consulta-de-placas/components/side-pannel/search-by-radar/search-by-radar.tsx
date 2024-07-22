@@ -43,24 +43,17 @@ export function SearchByRadar() {
         Horário: string
       }[] = []
       data.data.forEach((carPath) => {
-        const plate = carPath.plate
-
-        carPath.timestamps.forEach((timestamp) => {
-          rows.push({
-            Placa: plate,
-            Horário: formatDate(timestamp, "dd/MM/yyyy 'às' HH:mm"),
-          })
+        rows.push({
+          Horário: formatDate(carPath.timestamp, "dd/MM/yyyy 'às' HH:mm:ss"),
+          Placa: carPath.plate,
         })
       })
 
-      if (data.data.length === 0) {
-        rows.push({
-          Placa: '',
-          Horário: '',
-        })
+      if (data.data.length > 0) {
+        exportToCSV(`radar_${variables.radar}`, rows)
+      } else {
+        toast.warning('A busca resultou em zero registros encontrados.')
       }
-      console.log({ rows })
-      exportToCSV(`radar_${variables.radar}`, rows)
     },
     onError: () => {
       toast.error(genericErrorMessage)

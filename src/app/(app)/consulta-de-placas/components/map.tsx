@@ -5,13 +5,9 @@ import { config } from '@/config'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
-import { CameraFullInfoPopup } from './map/camera-info/camera-full-info-popup'
-import { CameraInfoPopupCard } from './map/camera-info/camera-info-popup'
-import { IconTooltipCard } from './map/icon-tooltip-card'
-import { LineTooltipCard } from './map/line-tooltip-card'
+import { IconTooltip } from './map/icon-tooltip/icon-tooltip'
 import { MapActions } from './map/map-actions'
 import { MapCaption } from './map/map-caption'
-import { RadarTooltipCard } from './map/radar-tooltip-card'
 import { SearchBox } from './search-box'
 
 export function Map() {
@@ -28,14 +24,14 @@ export function Map() {
       radarLayer,
       selectedRadarLayer,
       selectedCameraLayer,
+      inactiveRadarLayer,
+      wazePoliceAlertsLayer,
     },
     mapStates: {
       cameraHoverInfo,
-      iconHoverInfo,
       isIconColorEnabled,
       isLinesEnabled,
       isMapStyleSatellite,
-      lineHoverInfo,
       isAddressMarkerEnabled,
       setIsAddressMarkerEnabled,
     },
@@ -56,9 +52,11 @@ export function Map() {
         lineLayer,
         lineLayerTransparent,
         cameraLayer,
-        selectedCameraLayer,
         radarLayer,
+        wazePoliceAlertsLayer,
+        selectedCameraLayer,
         selectedRadarLayer,
+        inactiveRadarLayer,
         coloredIconLayer,
         blackIconLayer,
         textLayer,
@@ -78,11 +76,7 @@ export function Map() {
             : 'mapbox://styles/mapbox/streets-v12'
         }
       />
-      <IconTooltipCard {...iconHoverInfo} />
-      <LineTooltipCard {...lineHoverInfo} />
-      <CameraInfoPopupCard {...cameraHoverInfo} />
-      <RadarTooltipCard />
-      <CameraFullInfoPopup />
+      <IconTooltip />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox

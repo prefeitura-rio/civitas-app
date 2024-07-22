@@ -10,7 +10,7 @@ export function PlateWildcardsHelperInfo() {
         <p>
           Você pode utilizar este campo para pesquisar por uma placa específica
           ou por parte de uma placa utilizando um{' '}
-          <span className="font-bold text-primary">caracter coringa</span>:
+          <span className="font-bold text-primary">caractere coringa</span>:
         </p>
         <ul className="my-2">
           <li>
@@ -53,7 +53,7 @@ export function PlateWildcardsHelperInfo() {
           <li>
             <span className="code-highlight">ABC*1234</span>: Encontrará todas
             as placas que começam com "ABC", seguidas de quaisquer caracteres
-            (inclusive nenhum caracter), e terminam com "1234".
+            (inclusive nenhum caractere), e terminam com "1234".
           </li>
         </ul>
       </CardContent>
