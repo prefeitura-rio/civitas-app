@@ -1,3 +1,5 @@
+import { formatDate } from 'date-fns'
+
 import { Card } from '@/components/ui/card'
 import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
@@ -39,8 +41,33 @@ export function RadarTooltipCard() {
             />
             <TooltipInfoItem
               label="Sentido"
-              value={radarHoverInfo.object.direction}
+              value={radarHoverInfo.object.direction || ''}
             />
+            <TooltipInfoItem
+              label="Empresa"
+              value={radarHoverInfo.object.company || ''}
+            />
+            <TooltipInfoItem
+              label="Última detecção"
+              value={
+                radarHoverInfo.object.lastDetectionTime
+                  ? formatDate(
+                      radarHoverInfo.object.lastDetectionTime,
+                      "dd/MM/yyyy 'às' HH:mm:ss",
+                    )
+                  : ''
+              }
+            />
+            <TooltipInfoItem
+              label="Ativo nas últimas 24 horas"
+              value={radarHoverInfo.object.activeInLast24Hours ? 'Sim' : 'Não'}
+            />
+            <p className="text-sm text-muted-foreground">
+              ⚠️ Atenção! Radares são considerados inativos se não enviarem
+              dados há mais de 24 horas. No entanto, essa informação não é
+              atualizada em tempo real e pode seguir desatualizada por várias
+              horas.
+            </p>
           </Card>
         )}
     </>

@@ -94,7 +94,11 @@ export type BackendRadar = {
   locequip: string
   bairro: string
   logradouro: string
-  sentido: string
+  has_data: string
+  empresa?: string
+  active_in_last_24_hours?: string
+  last_detection_time?: string
+  sentido?: string
 }
 
 export type Radar = {
@@ -105,7 +109,11 @@ export type Radar = {
   location: string
   district: string
   streetName: string
-  direction: string
+  hasData: boolean
+  activeInLast24Hours: boolean
+  company: string | null
+  lastDetectionTime: string | null
+  direction: string | null
 }
 
 export type BackendWazeAlert = {
@@ -130,4 +138,9 @@ export type WazeAlert = {
   numberThumbsUp?: number
   latitude: number
   longitude: number
+}
+
+export interface RadarRegistry {
+  plate: string
+  timestamp: string
 }
