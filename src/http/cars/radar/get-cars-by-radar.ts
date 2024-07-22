@@ -1,4 +1,5 @@
 import { api } from '@/lib/api'
+import type { RadarRegistry } from '@/models/entities'
 
 interface GetCarsByRadarRequest {
   radar: string
@@ -7,18 +8,13 @@ interface GetCarsByRadarRequest {
   plateHint?: string
 }
 
-export interface CarPath {
-  plate: string
-  timestamps: string[]
-}
-
 export function getCarsByRadar({
   radar,
   startTime,
   endTime,
   plateHint,
 }: GetCarsByRadarRequest) {
-  const response = api.get<CarPath[]>('/cars/radar', {
+  const response = api.get<RadarRegistry[]>('/cars/radar', {
     params: {
       radar,
       start_time: startTime,
