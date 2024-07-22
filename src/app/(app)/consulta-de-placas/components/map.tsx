@@ -1,5 +1,5 @@
 import DeckGL from '@deck.gl/react'
-import ReactMalGL from 'react-map-gl'
+import ReactMapGL from 'react-map-gl'
 
 import { config } from '@/config'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
@@ -67,7 +67,7 @@ export function Map() {
         isDragging ? 'grabbing' : cameraHoverInfo ? 'pointer' : 'grab'
       }
     >
-      <ReactMalGL
+      <ReactMapGL
         ref={mapRef}
         mapboxAccessToken={config.mapboxAccessToken}
         mapStyle={

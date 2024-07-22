@@ -344,13 +344,6 @@ export function MapLayersContextProvider({
 
   const bbox = mapRef.current?.getBounds()
 
-  console.log({
-    isVisible: isWazePoliceAlertsLayerEnabled,
-    setIsVisible: setIsWazePoliceAlertsLayerEnabled,
-    hoverInfo: wazePoliceAlertHoverInfo,
-    setHoverInfo: setWazePoliceAlertHoverInfo,
-  })
-
   return (
     <MapLayersContext.Provider
       value={{

@@ -16,15 +16,13 @@ export function useWazePoliceAlerts() {
   const { data: response, isLoading } = useQuery({
     queryKey: ['waze', 'police'],
     queryFn: () => getWazePoliceAlerts(),
+    refetchInterval: 1000 * 60 * 5, // 5 min
   })
 
   const layer = new IconLayer<WazeAlert>({
     id: 'waze-police-alert',
     data: response?.data,
-    getPosition: (info) => {
-      console.log({ info })
-      return [info.longitude, info.latitude]
-    },
+    getPosition: (info) => [info.longitude, info.latitude],
     getSize: 24,
     getIcon: () => ({
       url: siren.src,
