@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 import type { CameraCor } from '@/models/entities'
 
-import { TooltipInfoItem } from '../tooltip-info-item'
+import { TooltipInfoItem } from '../icon-tooltip/components/tooltip-info-item'
 
 export function CameraInfoPopupCard({ x, y, object }: PickingInfo<CameraCor>) {
   const [isLoading, setIsLoading] = useState(true)

@@ -119,6 +119,7 @@ export function CarPathContextProvider({
   function clearSearch() {
     setPossiblePlates(null)
     setTrips(null)
+    setSelectedTrip(null)
   }
 
   function setViewport(newViewport: MapViewState) {
