@@ -13,10 +13,9 @@ import cctvOrangeFilled from '@/assets/cctv-orange-filled.svg'
 import iconAtlas from '@/assets/icon-atlas.png'
 import mapPinRed from '@/assets/map-pin-red.svg'
 import slash from '@/assets/slash-orange-500.svg'
-import videoCamera from '@/assets/video-camera.svg'
-import videoCameraFilled from '@/assets/video-camera-filled.svg'
+import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import { useWazePoliceAlerts } from '@/hooks/map-layers/use-waze-police-alerts'
-import type { CameraCor, Radar, WazeAlert } from '@/models/entities'
+import type { CameraCOR, Radar, WazeAlert } from '@/models/entities'
 import type { Point } from '@/utils/formatCarPathResponse'
 
 import { useCarPath } from '../hooks/use-contexts/use-car-path-context'
@@ -24,17 +23,18 @@ import { useCarPath } from '../hooks/use-contexts/use-car-path-context'
 export interface InfoPopupProps {
   x: number
   y: number
-  object: Pick<CameraCor, 'code' | 'location' | 'zone' | 'streamingUrl'>
+  object: Pick<CameraCOR, 'code' | 'location' | 'zone' | 'streamingUrl'>
 }
 
 type Coordinates = [long: number, lat: number]
 
 interface MapLayersContextProps {
+  layerHooks: {
+    camerasCOR: UseCameraCOR
+  }
   layers: {
     lineLayer: LineLayer<Point, object>
     lineLayerTransparent: LineLayer<Point, object>
-    cameraLayer: IconLayer<CameraCor, object>
-    selectedCameraLayer: IconLayer<CameraCor, object>
     blackIconLayer: IconLayer<Point, object>
     coloredIconLayer: IconLayer<Point, object>
     textLayer: TextLayer<Point, object>
@@ -47,15 +47,12 @@ interface MapLayersContextProps {
   mapStates: {
     iconHoverInfo: PickingInfo<Point>
     lineHoverInfo: PickingInfo<Point>
-    cameraHoverInfo: PickingInfo<CameraCor>
     isMapStyleSatellite: boolean
     setIsMapStyleSatellite: Dispatch<SetStateAction<boolean>>
     isLinesEnabled: boolean
     setIsLinesEnabled: Dispatch<SetStateAction<boolean>>
     isIconColorEnabled: boolean
     setIsIconColorEnabled: Dispatch<SetStateAction<boolean>>
-    isCamerasEnabled: boolean
-    setIsCamerasEnabled: Dispatch<SetStateAction<boolean>>
     isAddressMarkerEnabled: boolean
     setIsAddressMarkerEnabled: Dispatch<SetStateAction<boolean>>
     bbox: mapboxgl.LngLatBounds | undefined
@@ -84,9 +81,6 @@ export function MapLayersContextProvider({
   const {
     trips,
     selectedTripIndex,
-    cameras,
-    selectedCamera,
-    setSelectedCamera,
     addressMarkerPosition,
     mapRef,
     radars,
@@ -100,19 +94,17 @@ export function MapLayersContextProvider({
   const [lineHoverInfo, setLineHoverInfo] = useState<PickingInfo<Point>>(
     {} as PickingInfo<Point>,
   )
-  const [cameraHoverInfo, setCameraHoverInfo] = useState<
-    PickingInfo<CameraCor>
-  >({} as PickingInfo<CameraCor>)
   const [radarHoverInfo, setRadarHoverInfo] = useState<PickingInfo<Radar>>(
     {} as PickingInfo<Radar>,
   )
   const [isMapStyleSatellite, setIsMapStyleSatellite] = useState(false)
   const [isLinesEnabled, setIsLinesEnabled] = useState(false)
   const [isIconColorEnabled, setIsIconColorEnabled] = useState(false)
-  const [isCamerasEnabled, setIsCamerasEnabled] = useState(false)
   const [isAddressMarkerEnabled, setIsAddressMarkerEnabled] = useState(false)
   const [isRadarsEnabled, setIsRadarsEnabled] = useState(false)
   const points = trips?.at(selectedTripIndex)?.points
+
+  const camerasCOR = useCameraCOR()
 
   const {
     layer: wazePoliceAlertsLayer,
@@ -238,28 +230,6 @@ export function MapLayersContextProvider({
     visible: isAddressMarkerEnabled,
   })
 
-  const cameraLayer = new IconLayer<CameraCor>({
-    id: 'cameras',
-    data: cameras,
-    pickable: true,
-    getSize: 24,
-    autoHighlight: true,
-    highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
-    visible: isCamerasEnabled,
-    getIcon: () => ({
-      url: videoCamera.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    getPosition: (camera) => [camera.longitude, camera.latitude],
-    onHover: (info) => setCameraHoverInfo(info),
-    onClick: (info) => {
-      setSelectedCamera(info.object)
-      cameraLayer.setNeedsUpdate()
-    },
-  })
-
   const radarLayer = new IconLayer<Radar>({
     id: 'radars',
     data: radars,
@@ -325,32 +295,17 @@ export function MapLayersContextProvider({
     visible: isRadarsEnabled && !!selectedRadar,
   })
 
-  const selectedCameraLayer = new IconLayer<CameraCor>({
-    id: 'selected-camera',
-    data: [selectedCamera],
-    getPosition: (info) => [info?.longitude, info?.latitude],
-    getSize: 24,
-    getIcon: () => ({
-      url: videoCameraFilled.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    onHover: (info) => {
-      setCameraHoverInfo(info)
-    },
-    visible: isCamerasEnabled && !!selectedCamera,
-  })
-
   const bbox = mapRef.current?.getBounds()
 
   return (
     <MapLayersContext.Provider
       value={{
+        layerHooks: {
+          camerasCOR,
+        },
         layers: {
           lineLayer,
           lineLayerTransparent,
-          cameraLayer,
           blackIconLayer,
           coloredIconLayer,
           textLayer,
@@ -358,21 +313,17 @@ export function MapLayersContextProvider({
           radarLayer,
           selectedRadarLayer,
           inactiveRadarLayer,
-          selectedCameraLayer,
           wazePoliceAlertsLayer,
         },
         mapStates: {
           iconHoverInfo,
           lineHoverInfo,
-          cameraHoverInfo,
           isMapStyleSatellite,
           setIsMapStyleSatellite,
           isLinesEnabled,
           setIsLinesEnabled,
           isIconColorEnabled,
           setIsIconColorEnabled,
-          isCamerasEnabled,
-          setIsCamerasEnabled,
           isAddressMarkerEnabled,
           setIsAddressMarkerEnabled,
           bbox,

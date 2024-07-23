@@ -1,19 +1,19 @@
-/* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
-// import { useEffect, useState } from 'react'
-
-import type { PickingInfo } from '@deck.gl/core'
 import { useEffect, useState } from 'react'
 
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 import { cn } from '@/lib/utils'
-import type { CameraCor } from '@/models/entities'
 
 import { TooltipInfoItem } from '../icon-tooltip/components/tooltip-info-item'
 
-export function CameraInfoPopupCard({ x, y, object }: PickingInfo<CameraCor>) {
+export function CameraInfoPopupCard() {
   const [isLoading, setIsLoading] = useState(true)
+  const {
+    layerHooks: { camerasCOR },
+  } = useMapLayers()
+  const { object, x, y } = camerasCOR.layerStates.hoverInfo
 
   useEffect(() => {
     setIsLoading(true)
