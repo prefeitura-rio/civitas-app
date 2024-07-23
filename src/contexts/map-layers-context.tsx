@@ -8,29 +8,22 @@ import {
   useState,
 } from 'react'
 
-import cctvOrange from '@/assets/cctv-orange.svg'
-import cctvOrangeFilled from '@/assets/cctv-orange-filled.svg'
 import iconAtlas from '@/assets/icon-atlas.png'
 import mapPinRed from '@/assets/map-pin-red.svg'
-import slash from '@/assets/slash-orange-500.svg'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
+import { type UseRadars, useRadars } from '@/hooks/map-layers/use-radars'
 import { useWazePoliceAlerts } from '@/hooks/map-layers/use-waze-police-alerts'
-import type { CameraCOR, Radar, WazeAlert } from '@/models/entities'
+import type { WazeAlert } from '@/models/entities'
 import type { Point } from '@/utils/formatCarPathResponse'
 
 import { useCarPath } from '../hooks/use-contexts/use-car-path-context'
-
-export interface InfoPopupProps {
-  x: number
-  y: number
-  object: Pick<CameraCOR, 'code' | 'location' | 'zone' | 'streamingUrl'>
-}
 
 type Coordinates = [long: number, lat: number]
 
 interface MapLayersContextProps {
   layerHooks: {
     camerasCOR: UseCameraCOR
+    radars: UseRadars
   }
   layers: {
     lineLayer: LineLayer<Point, object>
@@ -39,9 +32,6 @@ interface MapLayersContextProps {
     coloredIconLayer: IconLayer<Point, object>
     textLayer: TextLayer<Point, object>
     addressMarkerLayer: IconLayer<Coordinates, object>
-    radarLayer: IconLayer<Radar, object>
-    selectedRadarLayer: IconLayer<Radar, object>
-    inactiveRadarLayer: IconLayer<Radar, object>
     wazePoliceAlertsLayer: IconLayer<WazeAlert, object>
   }
   mapStates: {
@@ -56,10 +46,6 @@ interface MapLayersContextProps {
     isAddressMarkerEnabled: boolean
     setIsAddressMarkerEnabled: Dispatch<SetStateAction<boolean>>
     bbox: mapboxgl.LngLatBounds | undefined
-    isRadarsEnabled: boolean
-    setIsRadarsEnabled: Dispatch<SetStateAction<boolean>>
-    radarHoverInfo: PickingInfo<Radar>
-    setRadarHoverInfo: Dispatch<SetStateAction<PickingInfo<Radar>>>
     isWazePoliceAlertsLayerEnabled: boolean
     setIsWazePoliceAlertsLayerEnabled: Dispatch<SetStateAction<boolean>>
     wazePoliceAlertHoverInfo: PickingInfo<WazeAlert>
@@ -78,15 +64,8 @@ interface MapLayersContextProviderProps {
 export function MapLayersContextProvider({
   children,
 }: MapLayersContextProviderProps) {
-  const {
-    trips,
-    selectedTripIndex,
-    addressMarkerPosition,
-    mapRef,
-    radars,
-    setSelectedRadar,
-    selectedRadar,
-  } = useCarPath()
+  const { trips, selectedTripIndex, addressMarkerPosition, mapRef } =
+    useCarPath()
 
   const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
     {} as PickingInfo<Point>,
@@ -94,17 +73,14 @@ export function MapLayersContextProvider({
   const [lineHoverInfo, setLineHoverInfo] = useState<PickingInfo<Point>>(
     {} as PickingInfo<Point>,
   )
-  const [radarHoverInfo, setRadarHoverInfo] = useState<PickingInfo<Radar>>(
-    {} as PickingInfo<Radar>,
-  )
   const [isMapStyleSatellite, setIsMapStyleSatellite] = useState(false)
   const [isLinesEnabled, setIsLinesEnabled] = useState(false)
   const [isIconColorEnabled, setIsIconColorEnabled] = useState(false)
   const [isAddressMarkerEnabled, setIsAddressMarkerEnabled] = useState(false)
-  const [isRadarsEnabled, setIsRadarsEnabled] = useState(false)
   const points = trips?.at(selectedTripIndex)?.points
 
   const camerasCOR = useCameraCOR()
+  const radars = useRadars()
 
   const {
     layer: wazePoliceAlertsLayer,
@@ -230,71 +206,6 @@ export function MapLayersContextProvider({
     visible: isAddressMarkerEnabled,
   })
 
-  const radarLayer = new IconLayer<Radar>({
-    id: 'radars',
-    data: radars,
-    getPosition: (radar) => [radar.longitude, radar.latitude],
-    getSize: 24,
-    getIcon: () => ({
-      url: cctvOrange.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    pickable: true,
-    onClick: (radar) => setSelectedRadar(radar.object),
-    onHover: (info) => {
-      setRadarHoverInfo(info)
-    },
-    highlightColor: [249, 115, 22, 255], // orange-500
-    autoHighlight: true,
-    visible: isRadarsEnabled,
-    highlightedObjectIndex: radarHoverInfo.object
-      ? radarHoverInfo.index
-      : undefined,
-  })
-
-  const inactiveRadarLayer = new IconLayer<Radar>({
-    id: 'inactive-radars',
-    data: radars.filter((item) => !item.activeInLast24Hours && item.hasData),
-    getPosition: (radar) => [radar.longitude, radar.latitude],
-    getSize: 24,
-    getIcon: () => ({
-      url: slash.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    pickable: true,
-    onClick: (radar) => setSelectedRadar(radar.object),
-    onHover: (info) => {
-      setRadarHoverInfo(info)
-    },
-    highlightColor: [249, 115, 22, 255], // orange-500
-    autoHighlight: true,
-    visible: isRadarsEnabled,
-    highlightedObjectIndex: radarHoverInfo.object
-      ? radarHoverInfo.index
-      : undefined,
-  })
-
-  const selectedRadarLayer = new IconLayer<Radar>({
-    id: 'selected-radar',
-    data: [selectedRadar],
-    getPosition: (info) => [info?.longitude, info?.latitude],
-    getSize: 24,
-    getIcon: () => ({
-      url: cctvOrangeFilled.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    onHover: (info) => {
-      setRadarHoverInfo(info)
-    },
-    visible: isRadarsEnabled && !!selectedRadar,
-  })
-
   const bbox = mapRef.current?.getBounds()
 
   return (
@@ -302,6 +213,7 @@ export function MapLayersContextProvider({
       value={{
         layerHooks: {
           camerasCOR,
+          radars,
         },
         layers: {
           lineLayer,
@@ -310,9 +222,6 @@ export function MapLayersContextProvider({
           coloredIconLayer,
           textLayer,
           addressMarkerLayer,
-          radarLayer,
-          selectedRadarLayer,
-          inactiveRadarLayer,
           wazePoliceAlertsLayer,
         },
         mapStates: {
@@ -327,10 +236,6 @@ export function MapLayersContextProvider({
           isAddressMarkerEnabled,
           setIsAddressMarkerEnabled,
           bbox,
-          isRadarsEnabled,
-          setIsRadarsEnabled,
-          radarHoverInfo,
-          setRadarHoverInfo,
           isWazePoliceAlertsLayerEnabled,
           setIsWazePoliceAlertsLayerEnabled,
           wazePoliceAlertHoverInfo,

@@ -1,6 +1,5 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import type { DeckGLRef } from '@deck.gl/react'
-import { useQuery } from '@tanstack/react-query'
 import {
   createContext,
   type Dispatch,
@@ -20,8 +19,6 @@ import {
   getCarPath as getCarPathApi,
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
-import { getRadars } from '@/http/radars/get-radars'
-import type { Radar } from '@/models/entities'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -43,9 +40,6 @@ interface CarPathContextProps {
   >
   getCarHint: (props: GetCarHintRequest) => Promise<string[]>
   possiblePlates: string[] | null
-  radars: Radar[]
-  selectedRadar: Radar | null
-  setSelectedRadar: Dispatch<SetStateAction<Radar | null>>
   clearSearch: () => void
 }
 
@@ -69,22 +63,10 @@ export function CarPathContextProvider({
     [longitude: number, latitude: number]
   >([0, 0])
 
-  const [radars, setRadars] = useState<Radar[]>([])
-  const [selectedRadar, setSelectedRadar] = useState<Radar | null>(null)
-
   const [possiblePlates, setPossiblePlates] = useState<string[] | null>(null)
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
-
-  useQuery({
-    queryKey: ['radars'],
-    queryFn: async () => {
-      const response = await getRadars()
-      setRadars(response.data)
-      return response.data
-    },
-  })
 
   function setSelectedTripIndex(index: number) {
     setSelectedTripIndexState(index)
@@ -171,9 +153,6 @@ export function CarPathContextProvider({
         setAddressmMarkerPositionState,
         getCarHint,
         possiblePlates,
-        radars,
-        selectedRadar,
-        setSelectedRadar,
         clearSearch,
       }}
     >

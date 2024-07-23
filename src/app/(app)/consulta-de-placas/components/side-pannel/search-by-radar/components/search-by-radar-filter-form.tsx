@@ -14,14 +14,22 @@ import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 
 import { PlateWildcardsHelperInfo } from '../../search-by-plate/components/plate-wildcards-helper-info'
 import { SearchByRadarForm } from './search-by-radar-form-schema'
 
 export function SearchByRadarFilterForm() {
-  const { selectedRadar, setSelectedRadar } = useCarPath()
+  const {
+    layerHooks: {
+      radars: {
+        layerStates: { selectedRadar, setSelectedRadar },
+      },
+    },
+  } = useMapLayers()
+
   if (!selectedRadar) return null
+
   const {
     register,
     control,

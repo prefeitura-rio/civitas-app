@@ -22,14 +22,23 @@ const selectRadarFormSchema = z.object({
 type SelectRadarForm = z.infer<typeof selectRadarFormSchema>
 
 export function RadarList() {
-  const { deckRef, setSelectedRadar, selectedRadar, radars, setViewport } =
-    useCarPath()
+  const { deckRef, setViewport } = useCarPath()
+  const {
+    layerHooks: {
+      radars: {
+        layerStates: {
+          hoverInfo,
+          setHoverInfo,
+          selectedRadar,
+          setSelectedRadar,
+        },
+        data,
+      },
+    },
+  } = useMapLayers()
   const { register, handleSubmit } = useForm<SelectRadarForm>({
     resolver: zodResolver(selectRadarFormSchema),
   })
-  const {
-    mapStates: { radarHoverInfo, setRadarHoverInfo },
-  } = useMapLayers()
 
   const deck = deckRef.current?.deck
 
@@ -45,7 +54,7 @@ export function RadarList() {
   function onSubmit(props: SelectRadarForm) {
     // ...
     console.log('submit')
-    const radar = radars.find(
+    const radar = data.find(
       (item) =>
         item.cameraNumber === props.cameraNumber ||
         item.cetRioCode === props.cameraNumber,
@@ -92,22 +101,22 @@ export function RadarList() {
               key={index}
               className={cn(
                 'p-2 hover:cursor-pointer hover:bg-secondary',
-                props.cameraNumber === radarHoverInfo.object?.cameraNumber
+                props.cameraNumber === hoverInfo.object?.cameraNumber
                   ? 'bg-secondary'
                   : '',
               )}
               onMouseEnter={() => {
-                setRadarHoverInfo(item)
+                setHoverInfo(item)
               }}
               onMouseLeave={() =>
-                setRadarHoverInfo({
+                setHoverInfo({
                   ...item,
                   object: undefined,
                 })
               }
               onClick={() => {
                 setSelectedRadar(props)
-                setRadarHoverInfo({
+                setHoverInfo({
                   ...item,
                   object: undefined,
                 })

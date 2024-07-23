@@ -13,7 +13,7 @@ import { SearchBox } from './search-box'
 export function Map() {
   const { viewport, setViewport, deckRef, mapRef } = useCarPath()
   const {
-    layerHooks: { camerasCOR },
+    layerHooks: { camerasCOR, radars },
     layers: {
       blackIconLayer,
       coloredIconLayer,
@@ -21,9 +21,6 @@ export function Map() {
       lineLayerTransparent,
       textLayer,
       addressMarkerLayer,
-      radarLayer,
-      selectedRadarLayer,
-      inactiveRadarLayer,
       wazePoliceAlertsLayer,
     },
     mapStates: {
@@ -50,11 +47,11 @@ export function Map() {
         lineLayer,
         lineLayerTransparent,
         camerasCOR.layers.cameraCORLayer,
-        radarLayer,
+        radars.layers.radarLayer,
         wazePoliceAlertsLayer,
         camerasCOR.layers.selectedCameraCORLayer,
-        selectedRadarLayer,
-        inactiveRadarLayer,
+        radars.layers.selectedRadarLayer,
+        radars.layers.slashInactiveRadarsLayer,
         coloredIconLayer,
         blackIconLayer,
         textLayer,
