@@ -44,7 +44,7 @@ export function MapActions() {
     },
     {
       id: 'waze-police-alerts',
-      label: 'Alerta de polícia (waze)',
+      label: 'Alerta de polícia (Waze)',
       checked: isWazePoliceAlertsLayerEnabled,
       onCheckedChange: setIsWazePoliceAlertsLayerEnabled,
     },
@@ -68,7 +68,7 @@ export function MapActions() {
   return (
     <Card className="absolute right-2 top-2 flex flex-col gap-2 whitespace-nowrap bg-card p-2 tracking-tighter">
       {fixedSwitches.map((item) => (
-        <div className="flex items-center justify-between gap-2">
+        <div key={item.id} className="flex items-center justify-between gap-2">
           <Switch
             id={item.id}
             size="sm"
@@ -84,7 +84,10 @@ export function MapActions() {
       {selectedTrip && (
         <>
           {tripRelatedSwitches.map((item) => (
-            <div className="flex items-center justify-between gap-2">
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-2"
+            >
               <Switch
                 id={item.id}
                 size="sm"
