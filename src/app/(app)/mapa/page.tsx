@@ -23,7 +23,7 @@ const SidePanel = dynamic(
   },
 )
 
-export default function ConsultaDePlacas() {
+export default function Mapa() {
   return (
     <CarPathContextProvider>
       <MapLayersContextProvider>
