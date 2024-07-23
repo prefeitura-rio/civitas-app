@@ -6,15 +6,19 @@ import { SearchByRadar } from './side-pannel/search-by-radar/search-by-radar'
 
 export function SidePanel() {
   const {
-    mapStates: { isRadarsEnabled, setIsRadarsEnabled },
+    layerHooks: {
+      radars: {
+        layerStates: { setIsVisible, isVisible },
+      },
+    },
   } = useMapLayers()
 
   return (
     <div className="flex h-screen w-full max-w-md flex-col px-4 py-2">
       <Tabs
         onValueChange={(e) => {
-          if (e === 'radar' && !isRadarsEnabled) {
-            setIsRadarsEnabled(true)
+          if (e === 'radar' && !isVisible) {
+            setIsVisible(true)
           }
         }}
         className="h-[calc(100%-3rem)]"

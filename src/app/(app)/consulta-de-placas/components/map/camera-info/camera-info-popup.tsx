@@ -11,9 +11,14 @@ import { TooltipInfoItem } from '../icon-tooltip/components/tooltip-info-item'
 export function CameraInfoPopupCard() {
   const [isLoading, setIsLoading] = useState(true)
   const {
-    layerHooks: { camerasCOR },
+    layerHooks: {
+      camerasCOR: {
+        layerStates: {
+          hoverInfo: { object, x, y },
+        },
+      },
+    },
   } = useMapLayers()
-  const { object, x, y } = camerasCOR.layerStates.hoverInfo
 
   useEffect(() => {
     setIsLoading(true)

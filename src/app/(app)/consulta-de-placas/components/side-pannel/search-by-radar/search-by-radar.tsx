@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { CardTitle } from '@/components/ui/card'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
 import { exportToCSV } from '@/utils/csv'
 import { dateToString } from '@/utils/date-to-string'
@@ -22,7 +22,13 @@ import {
 } from './components/search-by-radar-form-schema'
 
 export function SearchByRadar() {
-  const { selectedRadar, isLoading } = useCarPath()
+  const {
+    layerHooks: {
+      radars: {
+        layerStates: { selectedRadar, isLoading },
+      },
+    },
+  } = useMapLayers()
   const form = useForm<SearchByRadarForm>({
     resolver: zodResolver(searchByRadarFormSchema),
     defaultValues: {

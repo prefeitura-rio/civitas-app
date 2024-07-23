@@ -16,9 +16,12 @@ import { toPascalCase } from '@/utils/toPascalCase'
 
 export function CameraFullInfoPopup() {
   const {
-    layerHooks: { camerasCOR },
+    layerHooks: {
+      camerasCOR: {
+        layerStates: { selectedCameraCOR, setSelectedCameraCOR },
+      },
+    },
   } = useMapLayers()
-  const { selectedCameraCOR, setSelectedCameraCOR } = camerasCOR.layerStates
 
   return (
     <Card
