@@ -16,7 +16,7 @@ import type { Radar } from '@/models/entities'
 import { TooltipInfoItem } from '../../../map/icon-tooltip/components/tooltip-info-item'
 
 const selectRadarFormSchema = z.object({
-  cameraNumber: z.string().min(2),
+  cameraNumber: z.string().min(1),
 })
 
 type SelectRadarForm = z.infer<typeof selectRadarFormSchema>
@@ -70,7 +70,10 @@ export function RadarList() {
         <CardDescription>Selecione um radar:</CardDescription>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex gap-2 px-1">
-          <Input {...register('cameraNumber')} placeholder="Número Câmera" />
+          <Input
+            {...register('cameraNumber')}
+            placeholder="Número Câmera / Código CET-Rio"
+          />
           <Button type="button" onClick={handleSubmit(onSubmit)}>
             <Search className="h-4 w-4" />
           </Button>
