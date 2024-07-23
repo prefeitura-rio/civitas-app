@@ -1,4 +1,11 @@
-import { Home, Radar, Search, Siren, TrafficCone } from 'lucide-react'
+import {
+  Home,
+  LayoutDashboard,
+  MapPinned,
+  Radar,
+  Siren,
+  TrafficCone,
+} from 'lucide-react'
 
 import type { NavItem } from '@/models/utils'
 
@@ -12,15 +19,15 @@ export const navItems: NavItem[] = [
   {
     title: 'Cerco Digital',
     icon: Radar,
-    href: '/consulta-de-placas',
+    href: '/',
     color: 'text-primary',
     isChidren: true,
     children: [
       {
-        title: 'Consulta de placas',
-        icon: Search,
+        title: 'Mapa',
+        icon: MapPinned,
         color: 'text-muted-foreground',
-        href: '/consulta-de-placas',
+        href: '/mapa',
       },
       {
         title: 'Placas monitoradas',
@@ -35,5 +42,11 @@ export const navItems: NavItem[] = [
         href: '/operacoes',
       },
     ],
+  },
+  {
+    title: 'Dashboard',
+    icon: LayoutDashboard,
+    href: '/dashboard',
+    color: 'text-primary',
   },
 ]

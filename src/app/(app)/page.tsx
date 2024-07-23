@@ -9,10 +9,10 @@ import {
 
 const cards = [
   {
-    title: 'Consulta de Placas',
-    href: '/consulta-de-placas',
+    title: 'Mapa',
+    href: '/mapa',
     description:
-      'Pesquise por uma placa e veja no mapa locais onde ela foi detectada.',
+      'Consulte radares e câmeras da cidade, pesquise por placas, gere relatórios de detecção e mais.',
   },
   {
     title: 'Placas Monitoradas',
@@ -25,6 +25,11 @@ const cards = [
     href: '/operacoes',
     description:
       'Cadastre uma operação para ser vinculada a uma placa monitorada.',
+  },
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    description: 'Veja insights sobre radares e câmeras da cidade.',
   },
 ]
 
