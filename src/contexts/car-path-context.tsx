@@ -12,7 +12,6 @@ import {
 } from 'react'
 import type { MapRef } from 'react-map-gl'
 
-import { getCamerasCor } from '@/http/cameras-cor/get-cameras-cor'
 import {
   getCarHint as getCarHintApi,
   type GetCarHintRequest,
@@ -22,14 +21,9 @@ import {
   GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
 import { getRadars } from '@/http/radars/get-radars'
-import type { CameraCor, Radar } from '@/models/entities'
+import type { Radar } from '@/models/entities'
 import { formatCarPathResponse, type Trip } from '@/utils/formatCarPathResponse'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
-
-interface SelectedCamera
-  extends Pick<CameraCor, 'code' | 'location' | 'streamingUrl' | 'zone'> {
-  index: number
-}
 
 interface CarPathContextProps {
   trips: Trip[] | null
@@ -41,9 +35,6 @@ interface CarPathContextProps {
   setViewport: (viewport: MapViewState) => void
   isLoading: boolean
   lastSearchParams: GetCarPathRequest | null
-  cameras: CameraCor[]
-  selectedCamera: SelectedCamera | null
-  setSelectedCamera: Dispatch<SetStateAction<SelectedCamera | null>>
   deckRef: RefObject<DeckGLRef>
   mapRef: RefObject<MapRef>
   addressMarkerPosition: [longitude: number, latitude: number]
@@ -78,11 +69,6 @@ export function CarPathContextProvider({
     [longitude: number, latitude: number]
   >([0, 0])
 
-  const [cameras, setCameras] = useState<CameraCor[]>([])
-  const [selectedCamera, setSelectedCamera] = useState<SelectedCamera | null>(
-    null,
-  )
-
   const [radars, setRadars] = useState<Radar[]>([])
   const [selectedRadar, setSelectedRadar] = useState<Radar | null>(null)
 
@@ -90,15 +76,6 @@ export function CarPathContextProvider({
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
-
-  useQuery({
-    queryKey: ['cameras-cor'],
-    queryFn: async () => {
-      const response = await getCamerasCor()
-      setCameras(response.data)
-      return response.data
-    },
-  })
 
   useQuery({
     queryKey: ['radars'],
@@ -188,9 +165,6 @@ export function CarPathContextProvider({
         setViewport,
         isLoading,
         lastSearchParams,
-        cameras,
-        selectedCamera,
-        setSelectedCamera,
         deckRef,
         mapRef,
         addressMarkerPosition,

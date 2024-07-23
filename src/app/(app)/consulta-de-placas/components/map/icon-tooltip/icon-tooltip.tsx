@@ -9,14 +9,14 @@ import { WazePoliceAlertTooltip } from './components/waze-police-alert-tooltip'
 
 export function IconTooltip() {
   const {
-    mapStates: { iconHoverInfo, lineHoverInfo, cameraHoverInfo },
+    mapStates: { iconHoverInfo, lineHoverInfo },
   } = useMapLayers()
 
   return (
     <>
       <IconTooltipCard {...iconHoverInfo} />
       <LineTooltipCard {...lineHoverInfo} />
-      <CameraInfoPopupCard {...cameraHoverInfo} />
+      <CameraInfoPopupCard />
       <CameraFullInfoPopup />
       <RadarTooltipCard />
       <WazePoliceAlertTooltip />

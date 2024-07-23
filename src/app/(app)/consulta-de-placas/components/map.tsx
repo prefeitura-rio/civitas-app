@@ -13,9 +13,9 @@ import { SearchBox } from './search-box'
 export function Map() {
   const { viewport, setViewport, deckRef, mapRef } = useCarPath()
   const {
+    layerHooks: { camerasCOR },
     layers: {
       blackIconLayer,
-      cameraLayer,
       coloredIconLayer,
       lineLayer,
       lineLayerTransparent,
@@ -23,12 +23,10 @@ export function Map() {
       addressMarkerLayer,
       radarLayer,
       selectedRadarLayer,
-      selectedCameraLayer,
       inactiveRadarLayer,
       wazePoliceAlertsLayer,
     },
     mapStates: {
-      cameraHoverInfo,
       isIconColorEnabled,
       isLinesEnabled,
       isMapStyleSatellite,
@@ -51,10 +49,10 @@ export function Map() {
       layers={[
         lineLayer,
         lineLayerTransparent,
-        cameraLayer,
+        camerasCOR.layers.cameraCORLayer,
         radarLayer,
         wazePoliceAlertsLayer,
-        selectedCameraLayer,
+        camerasCOR.layers.selectedCameraCORLayer,
         selectedRadarLayer,
         inactiveRadarLayer,
         coloredIconLayer,
@@ -64,7 +62,11 @@ export function Map() {
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
       getCursor={({ isDragging }) =>
-        isDragging ? 'grabbing' : cameraHoverInfo ? 'pointer' : 'grab'
+        isDragging
+          ? 'grabbing'
+          : camerasCOR.layerStates.hoverInfo
+            ? 'pointer'
+            : 'grab'
       }
     >
       <ReactMapGL

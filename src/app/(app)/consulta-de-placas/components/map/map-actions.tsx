@@ -7,9 +7,8 @@ import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 export function MapActions() {
   const { selectedTrip } = useCarPath()
   const {
+    layerHooks: { camerasCOR },
     mapStates: {
-      isCamerasEnabled,
-      setIsCamerasEnabled,
       isIconColorEnabled,
       setIsIconColorEnabled,
       isLinesEnabled,
@@ -33,8 +32,8 @@ export function MapActions() {
     {
       id: 'cameras',
       label: 'Câmeras',
-      checked: isCamerasEnabled,
-      onCheckedChange: setIsCamerasEnabled,
+      checked: camerasCOR.layerStates.isVisible,
+      onCheckedChange: camerasCOR.layerStates.setIsVisible,
     },
     {
       id: 'radars',

@@ -10,18 +10,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 import { cn } from '@/lib/utils'
 import { toPascalCase } from '@/utils/toPascalCase'
 
 export function CameraFullInfoPopup() {
-  const { selectedCamera, setSelectedCamera } = useCarPath()
+  const {
+    layerHooks: { camerasCOR },
+  } = useMapLayers()
+  const { selectedCameraCOR, setSelectedCameraCOR } = camerasCOR.layerStates
 
   return (
     <Card
       className={cn(
         'absolute left-2 top-2 w-72 tracking-tighter',
-        !selectedCamera ? 'hidden' : '',
+        !selectedCameraCOR ? 'hidden' : '',
       )}
     >
       <div className="relative">
@@ -29,7 +32,7 @@ export function CameraFullInfoPopup() {
           variant="outline"
           className="absolute right-1 top-1 h-5 w-5 p-0"
           onClick={() => {
-            setSelectedCamera(null)
+            setSelectedCameraCOR(null)
           }}
         >
           <X className="h-4 w-4" />
@@ -38,15 +41,15 @@ export function CameraFullInfoPopup() {
           <CardTitle className="text-md text-center tracking-tighter">
             Câmera{' '}
             <span className="font-extrabold text-primary">
-              {selectedCamera?.code}
+              {selectedCameraCOR?.code}
             </span>
           </CardTitle>
-          <CardDescription className="text-xs">{`${toPascalCase(selectedCamera?.location || '')} - ${toPascalCase(selectedCamera?.zone || '')}`}</CardDescription>
+          <CardDescription className="text-xs">{`${toPascalCase(selectedCameraCOR?.location || '')} - ${toPascalCase(selectedCameraCOR?.zone || '')}`}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4">
           <div className="relative w-full">
             <img
-              src={selectedCamera?.streamingUrl}
+              src={selectedCameraCOR?.streamingUrl}
               alt="Streaming"
               className="aspect-video w-full bg-border"
             />
@@ -56,7 +59,7 @@ export function CameraFullInfoPopup() {
               className="absolute bottom-1 right-1 h-6 p-1"
             >
               <Link
-                href={selectedCamera?.streamingUrl || ''}
+                href={selectedCameraCOR?.streamingUrl || ''}
                 className="text-xs text-muted-foreground"
                 target="_blank"
               >
