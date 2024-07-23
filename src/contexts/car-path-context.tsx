@@ -124,6 +124,7 @@ export function CarPathContextProvider({
 
   function setViewport(newViewport: MapViewState) {
     setViewportState({
+      ...viewport,
       ...newViewport,
       transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
       transitionDuration: 'auto',

@@ -20,12 +20,12 @@ export function RadarTooltipCard() {
             className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
           >
             <TooltipInfoItem
-              label="Código CET-Rio"
-              value={radarHoverInfo.object.cetRioCode}
-            />
-            <TooltipInfoItem
               label="Número Câmera"
               value={radarHoverInfo.object.cameraNumber}
+            />
+            <TooltipInfoItem
+              label="Código CET-Rio"
+              value={radarHoverInfo.object.cetRioCode}
             />
             <TooltipInfoItem
               label="Localização"
