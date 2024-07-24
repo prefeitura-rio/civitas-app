@@ -9,7 +9,7 @@ type AddressMarker = {
 }
 
 export interface UseAddressMarker {
-  addressMarkerLayer: IconLayer<AddressMarker, object>
+  layer: IconLayer<AddressMarker, object>
   layerStates: {
     isVisible: boolean
     setIsVisible: Dispatch<SetStateAction<boolean>>
@@ -22,7 +22,7 @@ export function useAddressMarker(): UseAddressMarker {
   const [addressMarker, setAddressMarker] = useState<AddressMarker | null>(null)
   const [isVisible, setIsVisible] = useState(false)
 
-  const addressMarkerLayer = new IconLayer<AddressMarker>({
+  const layer = new IconLayer<AddressMarker>({
     id: 'address-marker-layer',
     data: addressMarker ? [addressMarker] : [],
     getPosition: (info) => [info.longitude, info.latitude],
@@ -39,7 +39,7 @@ export function useAddressMarker(): UseAddressMarker {
   })
 
   return {
-    addressMarkerLayer,
+    layer,
     layerStates: {
       isVisible,
       setIsVisible,

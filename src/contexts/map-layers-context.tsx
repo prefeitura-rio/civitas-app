@@ -15,8 +15,10 @@ import {
 } from '@/hooks/map-layers/use-address-marker'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import { type UseRadars, useRadars } from '@/hooks/map-layers/use-radars'
-import { useWazePoliceAlerts } from '@/hooks/map-layers/use-waze-police-alerts'
-import type { WazeAlert } from '@/models/entities'
+import {
+  type UseWazePoliceAlerts,
+  useWazePoliceAlerts,
+} from '@/hooks/map-layers/use-waze-police-alerts'
 import type { Point } from '@/utils/formatCarPathResponse'
 
 import { useCarPath } from '../hooks/use-contexts/use-car-path-context'
@@ -26,6 +28,7 @@ interface MapLayersContextProps {
     camerasCOR: UseCameraCOR
     radars: UseRadars
     addressMarker: UseAddressMarker
+    wazePoliceAlerts: UseWazePoliceAlerts
   }
   layers: {
     lineLayer: LineLayer<Point, object>
@@ -33,7 +36,6 @@ interface MapLayersContextProps {
     blackIconLayer: IconLayer<Point, object>
     coloredIconLayer: IconLayer<Point, object>
     textLayer: TextLayer<Point, object>
-    wazePoliceAlertsLayer: IconLayer<WazeAlert, object>
   }
   mapStates: {
     iconHoverInfo: PickingInfo<Point>
@@ -47,12 +49,6 @@ interface MapLayersContextProps {
     isAddressMarkerEnabled: boolean
     setIsAddressMarkerEnabled: Dispatch<SetStateAction<boolean>>
     bbox: mapboxgl.LngLatBounds | undefined
-    isWazePoliceAlertsLayerEnabled: boolean
-    setIsWazePoliceAlertsLayerEnabled: Dispatch<SetStateAction<boolean>>
-    wazePoliceAlertHoverInfo: PickingInfo<WazeAlert>
-    setWazePoliceAlertHoverInfo: Dispatch<
-      SetStateAction<PickingInfo<WazeAlert>>
-    >
   }
 }
 
@@ -83,15 +79,7 @@ export function MapLayersContextProvider({
   const radars = useRadars()
   const addressMarker = useAddressMarker()
 
-  const {
-    layer: wazePoliceAlertsLayer,
-    layerStates: {
-      isVisible: isWazePoliceAlertsLayerEnabled,
-      setIsVisible: setIsWazePoliceAlertsLayerEnabled,
-      hoverInfo: wazePoliceAlertHoverInfo,
-      setHoverInfo: setWazePoliceAlertHoverInfo,
-    },
-  } = useWazePoliceAlerts()
+  const wazePoliceAlerts = useWazePoliceAlerts()
 
   // Assuming icon_atlas has an arrow icon at the specified coordinates
   const ICON_MAPPING = {
@@ -194,6 +182,7 @@ export function MapLayersContextProvider({
           camerasCOR,
           radars,
           addressMarker,
+          wazePoliceAlerts,
         },
         layers: {
           lineLayer,
@@ -201,7 +190,6 @@ export function MapLayersContextProvider({
           blackIconLayer,
           coloredIconLayer,
           textLayer,
-          wazePoliceAlertsLayer,
         },
         mapStates: {
           iconHoverInfo,
@@ -215,10 +203,6 @@ export function MapLayersContextProvider({
           isAddressMarkerEnabled,
           setIsAddressMarkerEnabled,
           bbox,
-          isWazePoliceAlertsLayerEnabled,
-          setIsWazePoliceAlertsLayerEnabled,
-          wazePoliceAlertHoverInfo,
-          setWazePoliceAlertHoverInfo,
         },
       }}
     >
