@@ -1,7 +1,8 @@
 import { api } from '@/lib/api'
+import { formatCarPathResponse } from '@/utils/formatCarPathResponse'
 
 export interface GetCarPathRequest {
-  placa: string
+  plate: string
   startTime: string
   endTime: string
 }
@@ -24,17 +25,17 @@ export interface GetCarPathResponseItem {
 export type GetCarPathResponse = GetCarPathResponseItem[]
 
 export async function getCarPath({
-  placa,
+  plate,
   startTime,
   endTime,
 }: GetCarPathRequest) {
   const response = await api.get<GetCarPathResponse>('cars/path', {
     params: {
-      placa,
+      placa: plate,
       start_time: startTime,
       end_time: endTime,
     },
   })
 
-  return response
+  return formatCarPathResponse(response.data)
 }

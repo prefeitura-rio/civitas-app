@@ -2,7 +2,7 @@ import { Document, Page, StyleSheet } from '@react-pdf/renderer'
 import React from 'react'
 
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
-import type { Trip } from '@/utils/formatCarPathResponse'
+import type { Trip } from '@/models/entities'
 
 import { ReportCover } from './components/report-cover'
 import { ReportEmptyResult } from './components/report-empty-result'
@@ -38,7 +38,7 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
               <ReportTrip
                 trip={trip}
                 index={index}
-                plate={searchParams.placa}
+                plate={searchParams.plate}
               />
             </Page>
           )

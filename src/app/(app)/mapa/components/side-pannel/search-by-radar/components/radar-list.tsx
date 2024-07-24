@@ -8,8 +8,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 import type { Radar } from '@/models/entities'
 
@@ -22,9 +21,10 @@ const selectRadarFormSchema = z.object({
 type SelectRadarForm = z.infer<typeof selectRadarFormSchema>
 
 export function RadarList() {
-  const { deckRef, setViewport } = useCarPath()
   const {
-    layerHooks: {
+    deckRef,
+    setViewport,
+    layers: {
       radars: {
         layerStates: {
           hoverInfo,
@@ -35,7 +35,7 @@ export function RadarList() {
         data,
       },
     },
-  } = useMapLayers()
+  } = useMap()
   const { register, handleSubmit } = useForm<SelectRadarForm>({
     resolver: zodResolver(selectRadarFormSchema),
   })
@@ -52,8 +52,6 @@ export function RadarList() {
   })
 
   function onSubmit(props: SelectRadarForm) {
-    // ...
-    console.log('submit')
     const radar = data.find(
       (item) =>
         item.cameraNumber === props.cameraNumber ||

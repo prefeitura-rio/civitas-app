@@ -2,8 +2,7 @@ import DeckGL from '@deck.gl/react'
 import ReactMapGL from 'react-map-gl'
 
 import { config } from '@/config'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { IconTooltip } from './map/icon-tooltip/icon-tooltip'
 import { MapActions } from './map/map-actions'
@@ -11,18 +10,14 @@ import { MapCaption } from './map/map-caption'
 import { SearchBox } from './search-box'
 
 export function Map() {
-  const { viewport, setViewport, deckRef, mapRef } = useCarPath()
   const {
-    layerHooks: { camerasCOR, radars, addressMarker, wazePoliceAlerts },
-    layers: {
-      blackIconLayer,
-      coloredIconLayer,
-      lineLayer,
-      lineLayerTransparent,
-      textLayer,
-    },
-    mapStates: { isIconColorEnabled, isLinesEnabled, isMapStyleSatellite },
-  } = useMapLayers()
+    layers: { camerasCOR, radars, addressMarker, wazePoliceAlerts, trips },
+    deckRef,
+    mapRef,
+    viewport,
+    setViewport,
+    isMapStyleSatellite,
+  } = useMap()
 
   return (
     <DeckGL
@@ -36,20 +31,20 @@ export function Map() {
       }}
       controller
       layers={[
-        lineLayer,
-        lineLayerTransparent,
+        trips.layers.lineLayer,
+        trips.layers.lineLayerTransparent,
         camerasCOR.layers.cameraCORLayer,
         radars.layers.radarLayer,
         wazePoliceAlerts.layer,
         camerasCOR.layers.selectedCameraCORLayer,
         radars.layers.selectedRadarLayer,
         radars.layers.slashInactiveRadarsLayer,
-        coloredIconLayer,
-        blackIconLayer,
-        textLayer,
+        trips.layers.coloredIconLayer,
+        trips.layers.blackIconLayer,
+        trips.layers.textLayer,
         addressMarker.layer,
       ]}
-      onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
+      onViewStateChange={(e) => setViewport({ ...e.viewState })}
       getCursor={({ isDragging }) =>
         isDragging
           ? 'grabbing'
@@ -68,7 +63,8 @@ export function Map() {
         }
       />
       <IconTooltip />
-      {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
+      {(trips.layersState.isLinesEnabled ||
+        trips.layersState.isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox />
       </div>

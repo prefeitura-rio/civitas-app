@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { MonitoredPlateFormDialog } from '@/app/(app)/placas-monitoradas/components/dialogs/monitored-plate-form-dialog'
 import { Toggle } from '@/components/ui/toggle'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
 import { useDisclosure } from '@/hooks/use-disclosure'
 import { useProfile } from '@/hooks/use-queries/use-profile'
@@ -21,12 +21,16 @@ export function MonitoringToggle() {
   const disableMonitoringAlertDisclosure = useDisclosure()
   const { setDialogInitialData } = useMonitoredPlates()
   const [monitored, setMonitored] = useState(false)
-  const { lastSearchParams, isLoading: isLoadingGetCarPath } = useCarPath()
+  const {
+    layers: {
+      trips: { lastSearchParams, isLoading: isLoadingGetCarPath },
+    },
+  } = useMap()
   const { isAdmin } = useProfile()
 
   const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
-    queryKey: ['cars', 'monitored', lastSearchParams?.placa],
-    queryFn: () => getMonitoredPlate({ plate: lastSearchParams?.placa || '' }),
+    queryKey: ['cars', 'monitored', lastSearchParams?.plate],
+    queryFn: () => getMonitoredPlate({ plate: lastSearchParams?.plate || '' }),
     retry(failureCount, error) {
       if (
         isApiError(error) &&
@@ -43,7 +47,7 @@ export function MonitoringToggle() {
 
   function handleSetMonitored() {
     if (lastSearchParams) {
-      setDialogInitialData({ plate: lastSearchParams?.placa })
+      setDialogInitialData({ plate: lastSearchParams?.plate })
     }
 
     monitoredPlateFormDialog.onOpen()
@@ -96,7 +100,7 @@ export function MonitoringToggle() {
           <DisableMonitoringAlertDialog
             isOpen={disableMonitoringAlertDisclosure.isOpen}
             onOpenChange={disableMonitoringAlertDisclosure.onOpenChange}
-            plate={lastSearchParams?.placa}
+            plate={lastSearchParams?.plate}
           />
         </div>
       )}

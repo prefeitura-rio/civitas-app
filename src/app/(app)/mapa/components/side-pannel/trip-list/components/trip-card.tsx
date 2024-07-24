@@ -2,8 +2,8 @@ import { format } from 'date-fns'
 import { ChevronRight } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
-import type { Point } from '@/utils/formatCarPathResponse'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
+import type { Point } from '@/models/entities'
 import { toPascalCase } from '@/utils/toPascalCase'
 
 import { PointCard } from './point-card'
@@ -30,25 +30,22 @@ function getTimeDiff(a: Date, b: Date) {
 
 export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
   const {
-    setSelectedTripIndex,
     setViewport,
-    viewport,
-    selectedTripIndex,
-    selectedTrip,
-    trips,
-  } = useCarPath()
+    layers: {
+      trips: { trips, selectedTrip, setSelectedTrip },
+    },
+  } = useMap()
 
   const points = selectedTrip?.points || []
-  const isSelected = selectedTripIndex === index
+  const isSelected = selectedTrip?.index === index
 
   function handleTripClick() {
-    setSelectedTripIndex(index)
+    setSelectedTrip(index)
     const longitude = trips?.at(index)?.points?.at(0)?.from[0]
     const latitude = trips?.at(index)?.points?.at(0)?.from[1]
     setViewport({
-      ...viewport,
-      longitude: longitude || viewport.longitude,
-      latitude: latitude || viewport.latitude,
+      longitude,
+      latitude,
     })
   }
 

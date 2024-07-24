@@ -1,7 +1,11 @@
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 export function LastSearchParams() {
-  const { lastSearchParams } = useCarPath()
+  const {
+    layers: {
+      trips: { lastSearchParams },
+    },
+  } = useMap()
   if (!lastSearchParams) return null
 
   return (

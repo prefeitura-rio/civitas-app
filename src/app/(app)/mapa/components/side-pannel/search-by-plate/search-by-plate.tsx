@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react'
 
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { ActionButtons } from '../action-buttons'
 import { TripList } from '../trip-list/trip-list'
@@ -8,7 +8,11 @@ import { PlateList } from './components/plate-list'
 import { SearchByPlateFilterForm } from './components/search-by-plate-filter-form'
 
 export function SearchByPlate() {
-  const { possiblePlates, trips, isLoading } = useCarPath()
+  const {
+    layers: {
+      trips: { possiblePlates, trips, isLoading },
+    },
+  } = useMap()
   return (
     <div className="h-full space-y-2">
       <SearchByPlateFilterForm />

@@ -1,20 +1,20 @@
 import { formatDate } from 'date-fns'
 
 import { Card } from '@/components/ui/card'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { TooltipInfoItem } from './tooltip-info-item'
 
 export function RadarTooltipCard() {
   const {
-    layerHooks: {
+    layers: {
       radars: {
         layerStates: {
           hoverInfo: { object, x, y },
         },
       },
     },
-  } = useMapLayers()
+  } = useMap()
 
   return (
     <>

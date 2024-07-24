@@ -8,8 +8,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { getPlaces } from '@/http/mapbox/get-places'
 import { cn } from '@/lib/utils'
 
@@ -21,16 +20,15 @@ type SearchForm = z.infer<typeof searchFormSchema>
 
 export function SearchBox() {
   const {
-    layerHooks: {
+    layers: {
       addressMarker: {
         layerStates: { setAddressMarker, isVisible, setIsVisible },
       },
     },
-  } = useMapLayers()
+    setViewport,
+  } = useMap()
   const [suggestions, setSuggestions] = useState<Feature[]>([])
   const [openSuggestions, setOpenSuggestions] = useState(true)
-
-  const { setViewport, viewport } = useCarPath()
 
   const { watch, handleSubmit, register, reset, setValue } =
     useForm<SearchForm>({
@@ -113,7 +111,6 @@ export function SearchBox() {
                   const lon = Number(coordinates?.longitude)
                   const lat = Number(coordinates?.latitude)
                   setViewport({
-                    ...viewport,
                     zoom: 14.15,
                     longitude: lon,
                     latitude: lat,

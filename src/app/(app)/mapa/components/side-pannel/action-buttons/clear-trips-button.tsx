@@ -2,10 +2,14 @@ import { SearchX } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 export function ClearTripsButton() {
-  const { clearSearch } = useCarPath()
+  const {
+    layers: {
+      trips: { clearSearch },
+    },
+  } = useMap()
 
   return (
     <Tooltip text="Limpar pesquisa" asChild>

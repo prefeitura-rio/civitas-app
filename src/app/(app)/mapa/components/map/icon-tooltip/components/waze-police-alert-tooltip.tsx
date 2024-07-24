@@ -1,20 +1,20 @@
 import { formatDate } from 'date-fns'
 
 import { Card } from '@/components/ui/card'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { TooltipInfoItem } from './tooltip-info-item'
 
 export function WazePoliceAlertTooltip() {
   const {
-    layerHooks: {
+    layers: {
       wazePoliceAlerts: {
         layerStates: {
           hoverInfo: { object, x, y },
         },
       },
     },
-  } = useMapLayers()
+  } = useMap()
 
   return (
     <>

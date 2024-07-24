@@ -10,18 +10,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 import { toPascalCase } from '@/utils/toPascalCase'
 
 export function CameraFullInfoPopup() {
   const {
-    layerHooks: {
+    layers: {
       camerasCOR: {
         layerStates: { selectedCameraCOR, setSelectedCameraCOR },
       },
     },
-  } = useMapLayers()
+  } = useMap()
 
   return (
     <Card

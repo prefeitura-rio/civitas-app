@@ -5,12 +5,16 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { ReportDocument } from './components/report-document'
 
 export default function DownloadReportButton() {
-  const { trips, isLoading, lastSearchParams } = useCarPath()
+  const {
+    layers: {
+      trips: { trips, isLoading, lastSearchParams },
+    },
+  } = useMap()
   if (!lastSearchParams) return null
 
   return (

@@ -1,4 +1,4 @@
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { CameraFullInfoPopup } from '../camera-info/camera-full-info-popup'
 import { CameraInfoPopupCard } from '../camera-info/camera-info-popup'
@@ -9,8 +9,12 @@ import { WazePoliceAlertTooltip } from './components/waze-police-alert-tooltip'
 
 export function IconTooltip() {
   const {
-    mapStates: { iconHoverInfo, lineHoverInfo },
-  } = useMapLayers()
+    layers: {
+      trips: {
+        layersState: { iconHoverInfo, lineHoverInfo },
+      },
+    },
+  } = useMap()
 
   return (
     <>
