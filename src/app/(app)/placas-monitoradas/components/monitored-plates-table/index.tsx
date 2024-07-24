@@ -146,7 +146,7 @@ export function MonitoredPlatesTable() {
               </Button>
             </Tooltip>
             <Tooltip
-              text={row.original.active ? 'Ativo' : 'Inativo'}
+              text={'Excluir'}
               disabled={
                 (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
               }

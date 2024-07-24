@@ -1,9 +1,9 @@
 import {
+  Car,
   Home,
   LayoutDashboard,
   MapPinned,
   Radar,
-  Siren,
   TrafficCone,
 } from 'lucide-react'
 
@@ -31,7 +31,7 @@ export const navItems: NavItem[] = [
       },
       {
         title: 'Placas monitoradas',
-        icon: Siren,
+        icon: Car,
         color: 'text-muted-foreground',
         href: '/placas-monitoradas',
       },
