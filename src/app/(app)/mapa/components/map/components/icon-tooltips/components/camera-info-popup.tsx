@@ -1,12 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from 'react'
 
+import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
-
-import { TooltipInfoItem } from '../icon-tooltip/components/tooltip-info-item'
 
 export function CameraInfoPopupCard() {
   const [isLoading, setIsLoading] = useState(true)

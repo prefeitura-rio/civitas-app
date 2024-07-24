@@ -4,10 +4,10 @@ import ReactMapGL from 'react-map-gl'
 import { config } from '@/config'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { IconTooltip } from './map/icon-tooltip/icon-tooltip'
-import { MapActions } from './map/map-actions'
-import { MapCaption } from './map/map-caption'
-import { SearchBox } from './search-box'
+import { IconTooltips } from './components/icon-tooltips'
+import { MapActions } from './components/map-actions'
+import { MapCaption } from './components/map-caption'
+import { SearchBox } from './components/search-box'
 
 export function Map() {
   const {
@@ -62,7 +62,7 @@ export function Map() {
             : 'mapbox://styles/mapbox/streets-v12'
         }
       />
-      <IconTooltip />
+      <IconTooltips />
       {(trips.layersState.isLinesEnabled ||
         trips.layersState.isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">

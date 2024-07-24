@@ -1,8 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { SearchByPlate } from './side-pannel/search-by-plate/search-by-plate'
-import { SearchByRadar } from './side-pannel/search-by-radar/search-by-radar'
+import { SearchByPlate } from './components/search-by-plate/index'
+import { SearchByRadar } from './components/search-by-radar/index'
 
 export function SidePanel() {
   const {
@@ -35,7 +35,6 @@ export function SidePanel() {
           <SearchByRadar />
         </TabsContent>
       </Tabs>
-      {/* {isRadarsEnabled ? <SearchByRadar /> : <SearchByPlate />} */}
     </div>
   )
 }

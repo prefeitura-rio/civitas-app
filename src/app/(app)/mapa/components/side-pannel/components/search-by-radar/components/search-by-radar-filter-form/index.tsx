@@ -16,8 +16,8 @@ import { Slider } from '@/components/ui/slider'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { PlateWildcardsHelperInfo } from '../../search-by-plate/components/plate-wildcards-helper-info'
-import { SearchByRadarForm } from './search-by-radar-form-schema'
+import { PlateWildcardsHelperInfo } from '../../../common/plate-wildcards-helper-info'
+import { SearchByRadarForm } from './components/search-by-radar-form-schema'
 
 export function SearchByRadarFilterForm() {
   const {

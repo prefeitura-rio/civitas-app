@@ -19,7 +19,7 @@ import { SearchByRadarFilterForm } from './components/search-by-radar-filter-for
 import {
   type SearchByRadarForm,
   searchByRadarFormSchema,
-} from './components/search-by-radar-form-schema'
+} from './components/search-by-radar-filter-form/components/search-by-radar-form-schema'
 
 export function SearchByRadar() {
   const {

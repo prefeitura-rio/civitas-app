@@ -5,14 +5,13 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 import type { Radar } from '@/models/entities'
-
-import { TooltipInfoItem } from '../../../map/icon-tooltip/components/tooltip-info-item'
 
 const selectRadarFormSchema = z.object({
   cameraNumber: z.string().min(1),

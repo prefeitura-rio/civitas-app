@@ -1,12 +1,19 @@
-import type { PickingInfo } from '@deck.gl/core'
 import { format } from 'date-fns'
 
+import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
 import { Card } from '@/components/ui/card'
-import type { Point } from '@/models/entities'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { TooltipInfoItem } from './tooltip-info-item'
-
-export function IconTooltipCard({ x, y, object }: PickingInfo<Point>) {
+export function TripPointTooltipCard() {
+  const {
+    layers: {
+      trips: {
+        layersState: {
+          iconHoverInfo: { object, x, y },
+        },
+      },
+    },
+  } = useMap()
   return (
     <>
       {object && (
