@@ -1,3 +1,22 @@
+export type Point = {
+  index: number
+  from: [longitude: number, latitude: number]
+  startTime: string
+  to?: [longitude: number, latitude: number]
+  endTime?: string
+  cameraNumber: string
+  district: string
+  location: string
+  direction: string
+  lane: string
+  secondsToNextPoint: number | null
+}
+
+export type Trip = {
+  index: number
+  points: Point[]
+}
+
 export type Operation = {
   id: string
   title: string

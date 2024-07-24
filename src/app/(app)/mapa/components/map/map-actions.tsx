@@ -1,22 +1,14 @@
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 export function MapActions() {
-  const { selectedTrip } = useCarPath()
   const {
-    layerHooks: { camerasCOR, radars, wazePoliceAlerts },
-    mapStates: {
-      isIconColorEnabled,
-      setIsIconColorEnabled,
-      isLinesEnabled,
-      setIsLinesEnabled,
-      isMapStyleSatellite,
-      setIsMapStyleSatellite,
-    },
-  } = useMapLayers()
+    layers: { camerasCOR, radars, wazePoliceAlerts, trips },
+    isMapStyleSatellite,
+    setIsMapStyleSatellite,
+  } = useMap()
 
   const fixedSwitches = [
     {
@@ -49,14 +41,14 @@ export function MapActions() {
     {
       id: 'lines',
       label: 'Linhas',
-      checked: isLinesEnabled,
-      onCheckedChange: setIsLinesEnabled,
+      checked: trips.layersState.isLinesEnabled,
+      onCheckedChange: trips.layersState.setIsLinesEnabled,
     },
     {
       id: 'iconColor',
       label: 'Pontos com gradiente',
-      checked: isIconColorEnabled,
-      onCheckedChange: setIsIconColorEnabled,
+      checked: trips.layersState.isIconColorEnabled,
+      onCheckedChange: trips.layersState.setIsIconColorEnabled,
     },
   ]
 
@@ -76,7 +68,7 @@ export function MapActions() {
         </div>
       ))}
 
-      {selectedTrip && (
+      {trips.selectedTrip && (
         <>
           {tripRelatedSwitches.map((item) => (
             <div

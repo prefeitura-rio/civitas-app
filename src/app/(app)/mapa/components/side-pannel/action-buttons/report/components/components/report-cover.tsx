@@ -3,8 +3,6 @@ import { formatDate } from 'date-fns'
 
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 
-// import { format } from 'date-fns'
-// import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
 import { ReportFooter } from './report-footer'
 import { ReportHeader } from './report-header'
 
@@ -196,7 +194,7 @@ export function ReportCover({ searchParams }: ReportCoverProps) {
         <View style={{ flexDirection: 'column', marginTop: 36 }}>
           <View style={styles.tableRow}>
             <Text style={styles.tableRowTitle}>Placa monitorada:</Text>
-            <Text style={{ padding: 4 }}>{searchParams.placa}</Text>
+            <Text style={{ padding: 4 }}>{searchParams.plate}</Text>
           </View>
 
           <View style={styles.tableRow}>

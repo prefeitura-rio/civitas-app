@@ -1,40 +1,31 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 export function PlateList() {
-  const { possiblePlates, getCarPath, lastSearchParams } = useCarPath()
+  const {
+    layers: {
+      trips: { possiblePlates, getTrips, lastSearchParams },
+    },
+  } = useMap()
   if (!possiblePlates || !lastSearchParams) return null
 
   async function handlePlateClick(plate: string) {
     if (!lastSearchParams) return
-    await getCarPath({
-      placa: plate,
+    await getTrips({
+      plate,
       startTime: lastSearchParams?.startTime,
       endTime: lastSearchParams?.endTime,
     })
   }
-
-  // function styleAsterisk(word: string | undefined) {
-  //   if (!word) return [<span></span>]
-  //   return Array.from(word).map((char, index) => {
-  //     if (
-  //       lastSearchParams?.placa[index] === '*' ||
-  //       !lastSearchParams?.placa[index]
-  //     ) {
-  //       return <span className="text-primary">{char}</span>
-  //     }
-  //     return <span>{char}</span>
-  //   })
-  // }
 
   return (
     <div className="h-[calc(100%-15rem)] space-y-2">
       <div className="w-full text-center">
         <h4 className="text-muted-foreground">
           Resultado para{' '}
-          <span className="code-highlight">{lastSearchParams.placa}</span>
+          <span className="code-highlight">{lastSearchParams.plate}</span>
         </h4>
         <span className="block text-sm text-muted-foreground">
           {`De ${format(lastSearchParams.startTime, "dd 'de' MMMM 'de' y 'às' HH'h'mm'min'", { locale: ptBR })}`}

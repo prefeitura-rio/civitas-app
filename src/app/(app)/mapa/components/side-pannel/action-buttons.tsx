@@ -1,4 +1,4 @@
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 
 import { ClearTripsButton } from './action-buttons/clear-trips-button'
@@ -6,8 +6,11 @@ import { MonitoringToggle } from './action-buttons/monitoring-toggle'
 import DownloadReportButton from './action-buttons/report/download-report-button'
 
 export function ActionButtons() {
-  const { isLoading, lastSearchParams, trips, possiblePlates } = useCarPath()
-
+  const {
+    layers: {
+      trips: { trips, lastSearchParams, isLoading, possiblePlates },
+    },
+  } = useMap()
   const downloadReportButton = lastSearchParams && !isLoading && trips
   const monitoringToggle = lastSearchParams && !isLoading && trips
   const clearTripsButton =

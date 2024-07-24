@@ -12,7 +12,7 @@ interface ReportEmptyResultProps {
 }
 
 export function ReportEmptyResult({ searchParams }: ReportEmptyResultProps) {
-  const plate = searchParams.placa
+  const plate = searchParams.plate
   const from = format(new Date(searchParams.startTime), "dd/MM/yyyy 'às' HH:mm")
   const to = format(new Date(searchParams.endTime), "dd/MM/yyyy 'às' HH:mm")
 

@@ -4,8 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Loader2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
-import { CarPathContextProvider } from '@/contexts/car-path-context'
-import { MapLayersContextProvider } from '@/contexts/map-layers-context'
+import { MapContextProvider } from '@/contexts/map-context'
 
 const Map = dynamic(() => import('./components/map').then((mod) => mod.Map), {
   loading: () => (
@@ -25,13 +24,11 @@ const SidePanel = dynamic(
 
 export default function Mapa() {
   return (
-    <CarPathContextProvider>
-      <MapLayersContextProvider>
-        <div className="relative flex h-screen w-full pt-0">
-          <Map />
-          <SidePanel />
-        </div>
-      </MapLayersContextProvider>
-    </CarPathContextProvider>
+    <MapContextProvider>
+      <div className="relative flex h-screen w-full pt-0">
+        <Map />
+        <SidePanel />
+      </div>
+    </MapContextProvider>
   )
 }

@@ -1,8 +1,8 @@
 import { format } from 'date-fns'
 
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
-import type { Point } from '@/utils/formatCarPathResponse'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
+import type { Point } from '@/models/entities'
 import { toPascalCase } from '@/utils/toPascalCase'
 
 interface PointCardProps
@@ -19,7 +19,12 @@ export function PointCard({
   startTime,
   from,
 }: PointCardProps) {
-  const { setViewport, viewport, selectedTrip } = useCarPath()
+  const {
+    setViewport,
+    layers: {
+      trips: { selectedTrip },
+    },
+  } = useMap()
 
   const points = selectedTrip?.points || []
 
@@ -27,9 +32,8 @@ export function PointCard({
     const longitude = from[0]
     const latitude = from[1]
     setViewport({
-      ...viewport,
-      longitude: longitude || viewport.longitude,
-      latitude: latitude || viewport.latitude,
+      longitude,
+      latitude,
     })
   }
 

@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { dateToString } from '@/utils/date-to-string'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
@@ -56,7 +56,11 @@ export const filterFormSchema = z.object({
 export type FilterForm = z.infer<typeof filterFormSchema>
 
 export function SearchByPlateFilterForm() {
-  const { getCarPath, getCarHint, isLoading } = useCarPath()
+  const {
+    layers: {
+      trips: { getTrips, getPossiblePlates, isLoading },
+    },
+  } = useMap()
   const today = new Date()
   const from = new Date()
   from.setDate(today.getDate() - 7)
@@ -83,14 +87,14 @@ export function SearchByPlateFilterForm() {
   async function onSubmit(props: FilterForm) {
     try {
       if (props.plate.includes('*')) {
-        await getCarHint({
+        await getPossiblePlates({
           plate: props.plate,
           startTime: dateToString(props.date.from),
           endTime: dateToString(props.date.to),
         })
       } else {
-        await getCarPath({
-          placa: props.plate,
+        await getTrips({
+          plate: props.plate,
           startTime: format(props.date.from, "yyyy-MM-dd'T'HH:mm"),
           endTime: format(props.date.to, "yyyy-MM-dd'T'HH:mm:ss"),
         })

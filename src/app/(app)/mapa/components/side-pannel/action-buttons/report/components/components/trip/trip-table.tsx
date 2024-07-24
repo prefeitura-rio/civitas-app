@@ -1,7 +1,7 @@
 import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
 
-import type { Point } from '@/utils/formatCarPathResponse'
+import type { Point } from '@/models/entities'
 import { toPascalCase } from '@/utils/toPascalCase'
 
 interface TripTableProps {

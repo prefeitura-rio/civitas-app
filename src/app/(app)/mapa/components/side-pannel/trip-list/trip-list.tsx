@@ -4,12 +4,17 @@ import { Loader2 } from 'lucide-react'
 import React from 'react'
 
 import { Separator } from '@/components/ui/separator'
-import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { TripCard } from './components/trip-card'
 
 export function TripList() {
-  const { trips, isLoading, lastSearchParams } = useCarPath()
+  const {
+    layers: {
+      trips: { trips, lastSearchParams, isLoading },
+    },
+  } = useMap()
+
   if (!lastSearchParams) return null
 
   return (
@@ -31,7 +36,7 @@ export function TripList() {
             <div className="text-center">
               <h4 className="text-muted-foreground">
                 Resultado para{' '}
-                <span className="code-highlight">{lastSearchParams.placa}</span>
+                <span className="code-highlight">{lastSearchParams.plate}</span>
               </h4>
               <span className="block text-sm text-muted-foreground">
                 {`De ${format(lastSearchParams.startTime, "dd 'de' MMMM 'de' y 'às' HH'h'mm'min'", { locale: ptBR })}`}

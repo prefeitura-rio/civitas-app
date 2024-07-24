@@ -1,7 +1,7 @@
 import { Font, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
 
-import type { Trip } from '@/utils/formatCarPathResponse'
+import type { Trip } from '@/models/entities'
 
 import { ReportFooter } from './report-footer'
 import { ReportHeader } from './report-header'

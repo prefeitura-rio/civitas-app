@@ -14,19 +14,19 @@ import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { PlateWildcardsHelperInfo } from '../../search-by-plate/components/plate-wildcards-helper-info'
 import { SearchByRadarForm } from './search-by-radar-form-schema'
 
 export function SearchByRadarFilterForm() {
   const {
-    layerHooks: {
+    layers: {
       radars: {
         layerStates: { selectedRadar, setSelectedRadar },
       },
     },
-  } = useMapLayers()
+  } = useMap()
 
   if (!selectedRadar) return null
 

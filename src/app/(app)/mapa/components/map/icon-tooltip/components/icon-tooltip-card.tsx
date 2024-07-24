@@ -2,7 +2,7 @@ import type { PickingInfo } from '@deck.gl/core'
 import { format } from 'date-fns'
 
 import { Card } from '@/components/ui/card'
-import type { Point } from '@/utils/formatCarPathResponse'
+import type { Point } from '@/models/entities'
 
 import { TooltipInfoItem } from './tooltip-info-item'
 

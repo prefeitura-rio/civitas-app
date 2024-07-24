@@ -2,7 +2,7 @@
 import { Image } from '@react-pdf/renderer'
 
 import { config } from '@/config'
-import type { Point } from '@/utils/formatCarPathResponse'
+import type { Point } from '@/models/entities'
 
 interface MapViewProps {
   points: Point[]

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
-import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 
 import { TooltipInfoItem } from '../icon-tooltip/components/tooltip-info-item'
@@ -11,14 +11,14 @@ import { TooltipInfoItem } from '../icon-tooltip/components/tooltip-info-item'
 export function CameraInfoPopupCard() {
   const [isLoading, setIsLoading] = useState(true)
   const {
-    layerHooks: {
+    layers: {
       camerasCOR: {
         layerStates: {
           hoverInfo: { object, x, y },
         },
       },
     },
-  } = useMapLayers()
+  } = useMap()
 
   useEffect(() => {
     setIsLoading(true)
