@@ -13,23 +13,16 @@ import { SearchBox } from './search-box'
 export function Map() {
   const { viewport, setViewport, deckRef, mapRef } = useCarPath()
   const {
-    layerHooks: { camerasCOR, radars },
+    layerHooks: { camerasCOR, radars, addressMarker },
     layers: {
       blackIconLayer,
       coloredIconLayer,
       lineLayer,
       lineLayerTransparent,
       textLayer,
-      addressMarkerLayer,
       wazePoliceAlertsLayer,
     },
-    mapStates: {
-      isIconColorEnabled,
-      isLinesEnabled,
-      isMapStyleSatellite,
-      isAddressMarkerEnabled,
-      setIsAddressMarkerEnabled,
-    },
+    mapStates: { isIconColorEnabled, isLinesEnabled, isMapStyleSatellite },
   } = useMapLayers()
 
   return (
@@ -55,7 +48,7 @@ export function Map() {
         coloredIconLayer,
         blackIconLayer,
         textLayer,
-        addressMarkerLayer,
+        addressMarker.addressMarkerLayer,
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
       getCursor={({ isDragging }) =>
@@ -78,10 +71,7 @@ export function Map() {
       <IconTooltip />
       {(isLinesEnabled || isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">
-        <SearchBox
-          isAddressmarkerEnabled={isAddressMarkerEnabled}
-          setIsAddressmarkerEnabled={setIsAddressMarkerEnabled}
-        />
+        <SearchBox />
       </div>
       <MapActions />
     </DeckGL>

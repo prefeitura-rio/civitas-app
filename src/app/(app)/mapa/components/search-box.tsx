@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { Feature } from 'geojson'
 import { Search, X } from 'lucide-react'
-import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useCarPath } from '@/hooks/use-contexts/use-car-path-context'
+import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 import { getPlaces } from '@/http/mapbox/get-places'
 import { cn } from '@/lib/utils'
 
@@ -18,16 +19,14 @@ const searchFormSchema = z.object({
 
 type SearchForm = z.infer<typeof searchFormSchema>
 
-interface SearchBoxProps {
-  isAddressmarkerEnabled: boolean
-  setIsAddressmarkerEnabled: Dispatch<SetStateAction<boolean>>
-}
-
-export function SearchBox({
-  isAddressmarkerEnabled,
-  setIsAddressmarkerEnabled,
-}: SearchBoxProps) {
-  const { setAddressmMarkerPositionState } = useCarPath()
+export function SearchBox() {
+  const {
+    layerHooks: {
+      addressMarker: {
+        layerStates: { setAddressMarker, isVisible, setIsVisible },
+      },
+    },
+  } = useMapLayers()
   const [suggestions, setSuggestions] = useState<Feature[]>([])
   const [openSuggestions, setOpenSuggestions] = useState(true)
 
@@ -84,13 +83,13 @@ export function SearchBox({
             )}
             autoComplete="off"
           />
-          {isAddressmarkerEnabled && (
+          {isVisible && (
             <Button
               className="absolute right-2 h-5 w-5 p-0"
               variant="ghost"
               onClick={() => {
                 reset()
-                setIsAddressmarkerEnabled(false)
+                setIsVisible(false)
               }}
             >
               <X className="h-4 w-4" />
@@ -119,8 +118,11 @@ export function SearchBox({
                     longitude: lon,
                     latitude: lat,
                   })
-                  setAddressmMarkerPositionState([lon, lat])
-                  setIsAddressmarkerEnabled(true)
+                  setAddressMarker({
+                    longitude: lon,
+                    latitude: lat,
+                  })
+                  setIsVisible(true)
                   setSuggestions([])
                 }}
               >
