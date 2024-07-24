@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Siren } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { MonitoredPlateFormDialog } from '@/app/(app)/placas-monitoradas/components/dialogs/monitored-plate-form-dialog'
+import { MonitoredPlateFormDialog } from '@/app/(app)/placas-monitoradas/components/monitored-plates-dialogs/components/monitored-plate-form-dialog'
 import { Toggle } from '@/components/ui/toggle'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
