@@ -7,61 +7,55 @@ import { TooltipInfoItem } from './tooltip-info-item'
 
 export function WazePoliceAlertTooltip() {
   const {
-    mapStates: { wazePoliceAlertHoverInfo },
+    layerHooks: {
+      wazePoliceAlerts: {
+        layerStates: {
+          hoverInfo: { object, x, y },
+        },
+      },
+    },
   } = useMapLayers()
 
   return (
     <>
-      {wazePoliceAlertHoverInfo &&
-        wazePoliceAlertHoverInfo.object &&
-        (wazePoliceAlertHoverInfo.x !== 0 ||
-          wazePoliceAlertHoverInfo.y !== 0) && (
-          <Card
-            style={{
-              left: wazePoliceAlertHoverInfo.x,
-              top: wazePoliceAlertHoverInfo.y,
-              zIndex: 1,
-            }}
-            className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
-          >
+      {object && (x !== 0 || y !== 0) && (
+        <Card
+          style={{
+            left: x,
+            top: y,
+            zIndex: 1,
+          }}
+          className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
+        >
+          <TooltipInfoItem label="Logradouro" value={object.street || ''} />
+          <TooltipInfoItem
+            label="Data"
+            value={formatDate(object.timestamp, "dd/MM/yyyy 'às' HH:mm")}
+          />
+          {object.subtype && (
             <TooltipInfoItem
-              label="Logradouro"
-              value={wazePoliceAlertHoverInfo.object.street || ''}
-            />
-            <TooltipInfoItem
-              label="Data"
-              value={formatDate(
-                wazePoliceAlertHoverInfo.object.timestamp,
-                "dd/MM/yyyy 'às' HH:mm",
-              )}
-            />
-            {wazePoliceAlertHoverInfo.object.subtype && (
-              <TooltipInfoItem
-                label="Tipo"
-                value={
-                  wazePoliceAlertHoverInfo.object.subtype === 'POLICE_HIDING'
-                    ? 'Polícia oculta'
-                    : wazePoliceAlertHoverInfo.object.subtype
-                }
-              />
-            )}
-            <TooltipInfoItem
-              label="Confiabilidade"
-              value={wazePoliceAlertHoverInfo.object.reliability.toString()}
-            />
-            <TooltipInfoItem
-              label="Confiança"
-              value={wazePoliceAlertHoverInfo.object.confidence.toString()}
-            />
-            <TooltipInfoItem
-              label="Número de joinhas"
+              label="Tipo"
               value={
-                wazePoliceAlertHoverInfo.object.numberThumbsUp?.toString() ||
-                '0'
+                object.subtype === 'POLICE_HIDING'
+                  ? 'Polícia oculta'
+                  : object.subtype
               }
             />
-          </Card>
-        )}
+          )}
+          <TooltipInfoItem
+            label="Confiabilidade"
+            value={object.reliability.toString()}
+          />
+          <TooltipInfoItem
+            label="Confiança"
+            value={object.confidence.toString()}
+          />
+          <TooltipInfoItem
+            label="Número de joinhas"
+            value={object.numberThumbsUp?.toString() || '0'}
+          />
+        </Card>
+      )}
     </>
   )
 }

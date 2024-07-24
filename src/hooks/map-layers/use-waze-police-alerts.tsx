@@ -1,13 +1,25 @@
 import type { PickingInfo } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { type Dispatch, type SetStateAction, useState } from 'react'
 
 import siren from '@/assets/siren-red-500.svg'
 import { getWazePoliceAlerts } from '@/http/waze/police/get-waze-police-alerts'
 import { WazeAlert } from '@/models/entities'
 
-export function useWazePoliceAlerts() {
+export interface UseWazePoliceAlerts {
+  data: WazeAlert[]
+  layer: IconLayer<WazeAlert, object>
+  layerStates: {
+    isLoading: boolean
+    isVisible: boolean
+    setIsVisible: Dispatch<SetStateAction<boolean>>
+    hoverInfo: PickingInfo<WazeAlert>
+    setHoverInfo: Dispatch<SetStateAction<PickingInfo<WazeAlert>>>
+  }
+}
+
+export function useWazePoliceAlerts(): UseWazePoliceAlerts {
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<WazeAlert>>(
     {} as PickingInfo<WazeAlert>,
   )

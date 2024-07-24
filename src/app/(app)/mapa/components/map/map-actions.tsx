@@ -7,7 +7,7 @@ import { useMapLayers } from '@/hooks/use-contexts/use-map-layers-context'
 export function MapActions() {
   const { selectedTrip } = useCarPath()
   const {
-    layerHooks: { camerasCOR, radars },
+    layerHooks: { camerasCOR, radars, wazePoliceAlerts },
     mapStates: {
       isIconColorEnabled,
       setIsIconColorEnabled,
@@ -15,8 +15,6 @@ export function MapActions() {
       setIsLinesEnabled,
       isMapStyleSatellite,
       setIsMapStyleSatellite,
-      isWazePoliceAlertsLayerEnabled,
-      setIsWazePoliceAlertsLayerEnabled,
     },
   } = useMapLayers()
 
@@ -42,8 +40,8 @@ export function MapActions() {
     {
       id: 'waze-police-alerts',
       label: 'Alerta de polícia (Waze)',
-      checked: isWazePoliceAlertsLayerEnabled,
-      onCheckedChange: setIsWazePoliceAlertsLayerEnabled,
+      checked: wazePoliceAlerts.layerStates.isVisible,
+      onCheckedChange: wazePoliceAlerts.layerStates.setIsVisible,
     },
   ]
 

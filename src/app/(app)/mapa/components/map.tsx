@@ -13,14 +13,13 @@ import { SearchBox } from './search-box'
 export function Map() {
   const { viewport, setViewport, deckRef, mapRef } = useCarPath()
   const {
-    layerHooks: { camerasCOR, radars, addressMarker },
+    layerHooks: { camerasCOR, radars, addressMarker, wazePoliceAlerts },
     layers: {
       blackIconLayer,
       coloredIconLayer,
       lineLayer,
       lineLayerTransparent,
       textLayer,
-      wazePoliceAlertsLayer,
     },
     mapStates: { isIconColorEnabled, isLinesEnabled, isMapStyleSatellite },
   } = useMapLayers()
@@ -41,14 +40,14 @@ export function Map() {
         lineLayerTransparent,
         camerasCOR.layers.cameraCORLayer,
         radars.layers.radarLayer,
-        wazePoliceAlertsLayer,
+        wazePoliceAlerts.layer,
         camerasCOR.layers.selectedCameraCORLayer,
         radars.layers.selectedRadarLayer,
         radars.layers.slashInactiveRadarsLayer,
         coloredIconLayer,
         blackIconLayer,
         textLayer,
-        addressMarker.addressMarkerLayer,
+        addressMarker.layer,
       ]}
       onViewStateChange={(e) => setViewport({ ...viewport, ...e.viewState })}
       getCursor={({ isDragging }) =>
