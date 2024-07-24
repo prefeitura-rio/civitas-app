@@ -14,7 +14,7 @@ import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 import { toPascalCase } from '@/utils/toPascalCase'
 
-export function CameraFullInfoPopup() {
+export function CameraInfoFixedPopup() {
   const {
     layers: {
       camerasCOR: {

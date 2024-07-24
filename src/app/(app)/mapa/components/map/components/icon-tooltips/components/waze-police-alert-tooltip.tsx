@@ -1,9 +1,8 @@
 import { formatDate } from 'date-fns'
 
+import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
 import { Card } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
-
-import { TooltipInfoItem } from './tooltip-info-item'
 
 export function WazePoliceAlertTooltip() {
   const {

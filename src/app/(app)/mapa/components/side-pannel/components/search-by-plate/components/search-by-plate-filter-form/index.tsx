@@ -17,7 +17,7 @@ import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { dateToString } from '@/utils/date-to-string'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
-import { PlateWildcardsHelperInfo } from './plate-wildcards-helper-info'
+import { PlateWildcardsHelperInfo } from '../../../common/plate-wildcards-helper-info'
 
 export const filterFormSchema = z.object({
   plate: z

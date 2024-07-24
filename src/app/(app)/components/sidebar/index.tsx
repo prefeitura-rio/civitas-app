@@ -8,8 +8,8 @@ import { useSidebar } from '@/hooks/use-contexts/use-sidebar-context'
 import { useProfile } from '@/hooks/use-queries/use-profile'
 import { cn } from '@/lib/utils'
 
-import { SideNav } from './side-nav'
-import { navItems } from './sidebar-constants'
+import { SideNav } from './components/side-nav'
+import { navItems } from './components/sidebar-constants'
 
 interface SidebarProps {
   className?: string

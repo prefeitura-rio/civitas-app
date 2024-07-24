@@ -2,10 +2,10 @@ import { Loader2 } from 'lucide-react'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { ActionButtons } from '../action-buttons'
-import { TripList } from '../trip-list/trip-list'
+import { ActionButtons } from './components/action-buttons'
 import { PlateList } from './components/plate-list'
 import { SearchByPlateFilterForm } from './components/search-by-plate-filter-form'
+import { TripList } from './components/trip-list/trip-list'
 
 export function SearchByPlate() {
   const {

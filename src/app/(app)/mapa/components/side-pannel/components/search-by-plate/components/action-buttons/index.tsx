@@ -1,9 +1,9 @@
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 
-import { ClearTripsButton } from './action-buttons/clear-trips-button'
-import { MonitoringToggle } from './action-buttons/monitoring-toggle'
-import DownloadReportButton from './action-buttons/report/download-report-button'
+import { ClearTripsButton } from './components/clear-trips-button'
+import { MonitoringToggle } from './components/monitoring-toggle'
+import DownloadReportButton from './components/report/download-report-button'
 
 export function ActionButtons() {
   const {

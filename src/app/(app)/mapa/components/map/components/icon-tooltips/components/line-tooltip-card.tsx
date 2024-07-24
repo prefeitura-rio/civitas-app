@@ -1,11 +1,17 @@
-import type { PickingInfo } from '@deck.gl/core'
-
+import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
 import { Card } from '@/components/ui/card'
-import type { Point } from '@/models/entities'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { TooltipInfoItem } from './tooltip-info-item'
-
-export function LineTooltipCard({ x, y, object }: PickingInfo<Point>) {
+export function TripLineTooltipCard() {
+  const {
+    layers: {
+      trips: {
+        layersState: {
+          iconHoverInfo: { object, x, y },
+        },
+      },
+    },
+  } = useMap()
   const diffInSeconds = object?.secondsToNextPoint || 0
   const diffInMinutes = diffInSeconds / 60
 
