@@ -9,7 +9,10 @@ import {
 } from 'react'
 
 import iconAtlas from '@/assets/icon-atlas.png'
-import mapPinRed from '@/assets/map-pin-red.svg'
+import {
+  type UseAddressMarker,
+  useAddressMarker,
+} from '@/hooks/map-layers/use-address-marker'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import { type UseRadars, useRadars } from '@/hooks/map-layers/use-radars'
 import { useWazePoliceAlerts } from '@/hooks/map-layers/use-waze-police-alerts'
@@ -18,12 +21,11 @@ import type { Point } from '@/utils/formatCarPathResponse'
 
 import { useCarPath } from '../hooks/use-contexts/use-car-path-context'
 
-type Coordinates = [long: number, lat: number]
-
 interface MapLayersContextProps {
   layerHooks: {
     camerasCOR: UseCameraCOR
     radars: UseRadars
+    addressMarker: UseAddressMarker
   }
   layers: {
     lineLayer: LineLayer<Point, object>
@@ -31,7 +33,6 @@ interface MapLayersContextProps {
     blackIconLayer: IconLayer<Point, object>
     coloredIconLayer: IconLayer<Point, object>
     textLayer: TextLayer<Point, object>
-    addressMarkerLayer: IconLayer<Coordinates, object>
     wazePoliceAlertsLayer: IconLayer<WazeAlert, object>
   }
   mapStates: {
@@ -64,8 +65,7 @@ interface MapLayersContextProviderProps {
 export function MapLayersContextProvider({
   children,
 }: MapLayersContextProviderProps) {
-  const { trips, selectedTripIndex, addressMarkerPosition, mapRef } =
-    useCarPath()
+  const { trips, selectedTripIndex, mapRef } = useCarPath()
 
   const [iconHoverInfo, setIconHoverInfo] = useState<PickingInfo<Point>>(
     {} as PickingInfo<Point>,
@@ -81,6 +81,7 @@ export function MapLayersContextProvider({
 
   const camerasCOR = useCameraCOR()
   const radars = useRadars()
+  const addressMarker = useAddressMarker()
 
   const {
     layer: wazePoliceAlertsLayer,
@@ -184,28 +185,6 @@ export function MapLayersContextProvider({
     onHover: (info) => setIconHoverInfo(info),
   })
 
-  const addressMarkerLayer = new IconLayer({
-    id: 'address-marker-layer',
-    data: [
-      {
-        coordinates: [addressMarkerPosition[0], addressMarkerPosition[1]],
-      },
-    ],
-    getPosition: (point) => {
-      return point.coordinates
-    },
-    pickable: true,
-    getColor: [245, 158, 11, 255],
-    getSize: 40,
-    getIcon: () => ({
-      url: mapPinRed.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    visible: isAddressMarkerEnabled,
-  })
-
   const bbox = mapRef.current?.getBounds()
 
   return (
@@ -214,6 +193,7 @@ export function MapLayersContextProvider({
         layerHooks: {
           camerasCOR,
           radars,
+          addressMarker,
         },
         layers: {
           lineLayer,
@@ -221,7 +201,6 @@ export function MapLayersContextProvider({
           blackIconLayer,
           coloredIconLayer,
           textLayer,
-          addressMarkerLayer,
           wazePoliceAlertsLayer,
         },
         mapStates: {
