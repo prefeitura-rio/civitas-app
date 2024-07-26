@@ -1,8 +1,8 @@
 import { OperationsContextProvider } from '@/contexts/operations-context'
 
-import { Dialogs } from './components/dialogs/dialogs'
-import { OperationsHeader } from './components/header/operations-header'
-import { OperationsTable } from './components/table/operations-table'
+import { OperationDialogs } from './components/operation-dialogs'
+import { OperationsHeader } from './components/operations-header'
+import { OperationsTable } from './components/operations-table'
 
 export default function Operacoes() {
   return (
@@ -11,7 +11,7 @@ export default function Operacoes() {
         <OperationsHeader />
         <OperationsTable />
 
-        <Dialogs />
+        <OperationDialogs />
       </div>
     </OperationsContextProvider>
   )

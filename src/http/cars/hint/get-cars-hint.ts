@@ -10,8 +10,8 @@ export interface GetCarHintRequest {
   maxLon?: number
 }
 
-export function getCarHint(props: GetCarHintRequest) {
-  const response = api.get<string[]>('/cars/hint', {
+export async function getCarHint(props: GetCarHintRequest) {
+  const response = await api.get<string[]>('/cars/hint', {
     params: {
       placa: props.plate,
       start_time: props.startTime,
@@ -22,5 +22,5 @@ export function getCarHint(props: GetCarHintRequest) {
       longitude_max: props?.maxLon,
     },
   })
-  return response
+  return response.data
 }

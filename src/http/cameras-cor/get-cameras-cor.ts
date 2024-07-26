@@ -1,8 +1,8 @@
 import { api } from '@/lib/api'
-import type { BackendCameraCor, CameraCor } from '@/models/entities'
+import type { BackendCameraCOR, CameraCOR } from '@/models/entities'
 
-export async function getCamerasCor() {
-  const response = await api.get<BackendCameraCor[]>('/cameras-cor')
+export async function getCameraCOR() {
+  const response = await api.get<BackendCameraCOR[]>('/cameras-cor')
 
   const data = response.data.map((item) => {
     return {
@@ -12,7 +12,7 @@ export async function getCamerasCor() {
       streamingUrl: item.Streamming,
       latitude: Number(item.Latitude),
       longitude: Number(item.Longitude),
-    } as CameraCor
+    } as CameraCOR
   })
   return {
     ...response,
