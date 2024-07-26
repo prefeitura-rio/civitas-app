@@ -28,7 +28,7 @@ export function Watermark() {
         <Image
           src={watermark.src}
           style={{
-            opacity: 0.05,
+            opacity: 0.1,
             width: 400,
             height: 'auto',
           }}
