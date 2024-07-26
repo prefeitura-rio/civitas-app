@@ -44,10 +44,17 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
   }
 
   function setSelectedTrip(trip: number | Trip | null) {
-    if (!trip) setSelectedTrip(null)
-    else if (typeof trip === 'number' && trips)
-      setSelectedTripState(trips[trip])
-    else if (typeof trip === 'object' && trips) setSelectedTripState(trip)
+    if (typeof trip === 'number' && trips) {
+      if (selectedTrip && trip === selectedTrip.index) {
+        setSelectedTrip(null)
+      } else {
+        setSelectedTripState(trips[trip])
+      }
+    } else if (typeof trip === 'object' && trips) {
+      setSelectedTripState(trip)
+    } else {
+      setSelectedTrip(null)
+    }
   }
 
   const {
@@ -66,10 +73,12 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
       })
     },
     onSuccess(data) {
-      setViewport({
-        longitude: data.at(0)?.points.at(0)?.from[0],
-        latitude: data.at(0)?.points.at(0)?.from[1],
-      })
+      if (data.length > 0) {
+        setViewport({
+          longitude: data.at(0)?.points.at(0)?.from[0],
+          latitude: data.at(0)?.points.at(0)?.from[1],
+        })
+      }
     },
     onSettled(data) {
       setSelectedTripState(data?.at(0) || null)

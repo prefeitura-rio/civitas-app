@@ -11,3 +11,5 @@ export interface NavItem {
   isChidren?: boolean
   children?: NavItem[]
 }
+
+export type Coordinates = [longitude: number, latitude: number]

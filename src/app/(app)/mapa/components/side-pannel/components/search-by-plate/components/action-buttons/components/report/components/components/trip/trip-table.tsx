@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 export function TripTable({ points }: TripTableProps) {
   return (
     <View style={{ flexDirection: 'column' }}>
-      <View style={styles.row}>
+      <View style={styles.row} wrap={false}>
         <View style={styles.index}>
           <Text>Posição</Text>
         </View>
@@ -84,6 +84,7 @@ export function TripTable({ points }: TripTableProps) {
       {points.map((item, index) => {
         const location = toPascalCase(item.location)
         const direction = toPascalCase(item.direction)
+        const district = toPascalCase(item.district)
 
         return (
           <View style={styles.row} wrap={false}>
@@ -91,7 +92,7 @@ export function TripTable({ points }: TripTableProps) {
               <Text>{index + 1}</Text>
             </View>
             <View style={styles.location}>
-              <Text>{`${location}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
+              <Text>{`${location}, ${district}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
             </View>
             <View style={styles.data}>
               <Text>{format(item.startTime, 'dd/MM/yyyy')}</Text>
