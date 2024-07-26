@@ -5,14 +5,18 @@ import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 
 import { ReportFooter } from './report-footer'
 import { ReportHeader } from './report-header'
-import { Watermark } from './report-watermark'
 
 interface ReportCoverProps {
   searchParams: GetCarPathRequest
   totalPoints: number
 }
 
-const bulletPoints = [
+type BulletPoint = {
+  value: string
+  children?: BulletPoint[]
+}
+
+const bulletPoints: BulletPoint[] = [
   {
     value: 'Estrutura do relatório:',
     children: [
@@ -25,7 +29,7 @@ const bulletPoints = [
           },
           {
             value:
-              'Os pontos de detecção possuem uma numeração chamada de "posição" que representa a ordem temporal de detecção dentro de uma viagem.',
+              'Os pontos de detecção possuem uma numeração chamada "posição" que representa a ordem temporal de detecção dentro de uma viagem.',
           },
         ],
       },
@@ -39,11 +43,36 @@ const bulletPoints = [
           },
           {
             value:
-              'Uma viagem é definida como um conjunto de pontos de detecção que possuem uma distância temporal entre si inferior a 1 hora.',
+              'Uma viagem é um conjunto de pontos de detecção com uma distância temporal entre si inferior a 1 hora.',
           },
           {
             value:
-              'Uma viagem é representada no relatório por meio de um mapa e uma tabela, onde são dispostos os pontos de detecção e seus detalhes.',
+              'Uma viagem pode ser dividida em partes para melhor representar os pontos de detecção.',
+          },
+          {
+            value:
+              'Uma viagem é representada no relatório por um ou mais mapas e tabelas, dependendo de como ela foi dividida em partes. Neles, são apresentados os pontos de detecção e seus detalhes.',
+          },
+        ],
+      },
+      {
+        value: 'Critérios de particionamento de uma viagem:',
+        children: [
+          {
+            value:
+              'Viagens são particionadas quando atendem a um ou mais dos seguintes critérios:',
+            children: [
+              {
+                value: 'Existem múltiplos pontos de detecção no mesmo radar.',
+              },
+              {
+                value: 'A viagem contém mais de 10 pontos de detecção.',
+              },
+              {
+                value:
+                  'Dois pontos subsequentes têm uma distância superior a 6 km entre si.',
+              },
+            ],
           },
         ],
       },
@@ -53,42 +82,38 @@ const bulletPoints = [
     value: 'Limitações do relatório:',
     children: [
       {
-        value: 'No conceito de viagem:',
+        value: 'Período disponível para consultas:',
         children: [
           {
             value:
-              'A definição de viagem utilizada neste relatório é arbitrária e pode falhar em alguns casos. Por exemplo, em uma viagem longa de mais de 1 hora, onde a placa foi detectada apenas duas vezes, uma próxima do início e outra próxima do fim, poderá ser representada no relatório como duas viagens distintas de apenas um ponto de detecção cada, caso o intervalo de tempo entre uma detecção e outra seja superior a 1 hora.',
+              'Os dados para geração automática deste e de outros relatórios de identificação de pontos de detecção no sistema CIVITAS estão disponíveis apenas a partir de 01/06/2024.',
           },
         ],
       },
       {
-        value: 'Na detecção de placas:',
+        value: 'Conceito de viagem:',
         children: [
           {
             value:
-              'A ausência de um registro não garante que o veículo não tenha passado por um local que tenha radar.',
+              'A definição de viagem utilizada neste relatório é arbitrária e pode falhar em alguns casos. Por exemplo, viagens de mais de 1 hora, onde a placa foi detectada apenas duas vezes, uma próxima do início e outra próxima do fim, podem ser representadas no relatório como duas viagens distintas se o intervalo entre detecções for superior a 1 hora.',
           },
         ],
       },
       {
-        value: 'Na aferição de trajetos:',
+        value: 'Detecção de placas:',
+        children: [
+          {
+            value:
+              'A ausência de um registro não garante que o veículo não tenha passado por um local com radar.',
+          },
+        ],
+      },
+      {
+        value: 'Aferição de trajetos:',
         children: [
           {
             value:
               'Não é possível determinar o trajeto exato do veículo entre os pontos detectados.',
-          },
-        ],
-      },
-      {
-        value: 'No mapa de pontos de detecção:',
-        children: [
-          {
-            value:
-              'É importante notar que, se um veículo passar mais de uma vez pelo mesmo radar durante uma viagem, os ícones que representam a detecção do veículo serão exibidos sobrepostos, o que pode dificultar a visualização. Portanto, nesses casos, é imprescindível consultar a tabela de pontos de detecção para um melhor entendimento do trajeto do veículo.',
-          },
-          {
-            value:
-              'Os mapas de pontos de detecção são gerados apenas para viagens que possuem menos de 100 pontos de detecção.',
           },
         ],
       },
@@ -138,6 +163,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginLeft: 40,
   },
+  bulletSubSubSubRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginLeft: 60,
+  },
   bullet: {
     height: '100%',
   },
@@ -185,29 +215,44 @@ export function ReportCover({ searchParams, totalPoints }: ReportCoverProps) {
               <Text style={styles.bulletTitle}>{topic.value}</Text>
             </View>
 
-            {topic.children.map((subTopic) => (
+            {topic.children?.map((subTopic) => (
               <>
                 <View style={styles.bulletSubRow}>
                   <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
-                  <View style={{ fontWeight: 'bold' }}>
-                    <Text style={styles.bulletTitle}>{subTopic.value}</Text>
-                  </View>
+                  <Text style={styles.bulletTitle}>{subTopic.value}</Text>
                 </View>
 
-                {subTopic.children.map((subSubTopic) => (
-                  <View style={styles.bulletSubSubRow}>
-                    <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
-                    <Text style={styles.bulletContent}>
-                      {subSubTopic.value}
-                    </Text>
-                  </View>
+                {subTopic.children?.map((subSubTopic) => (
+                  <>
+                    <View style={styles.bulletSubSubRow}>
+                      <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
+                      <Text
+                        style={
+                          subSubTopic.children
+                            ? styles.bulletTitle
+                            : styles.bulletContent
+                        }
+                      >
+                        {subSubTopic.value}
+                      </Text>
+                    </View>
+
+                    {subSubTopic.children?.map((subSubSubTopic) => (
+                      <View style={styles.bulletSubSubSubRow}>
+                        <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
+                        <Text style={styles.bulletContent}>
+                          {subSubSubTopic.value}
+                        </Text>
+                      </View>
+                    ))}
+                  </>
                 ))}
               </>
             ))}
           </>
         ))}
 
-        <View style={{ flexDirection: 'column', marginTop: 36 }}>
+        <View style={{ flexDirection: 'column', marginTop: 28 }}>
           <View style={styles.tableRow}>
             <Text style={styles.tableRowTitle}>Placa monitorada:</Text>
             <Text style={{ padding: 4 }}>{searchParams.plate}</Text>
@@ -238,7 +283,6 @@ export function ReportCover({ searchParams, totalPoints }: ReportCoverProps) {
         Este relatório foi gerado automaticamente com base nos dados do sistema
         Cerco Digital.
       </Text>
-      <Watermark />
       <ReportFooter />
     </>
   )
