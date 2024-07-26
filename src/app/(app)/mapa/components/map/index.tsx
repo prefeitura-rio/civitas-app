@@ -45,13 +45,18 @@ export function Map() {
         addressMarker.layer,
       ]}
       onViewStateChange={(e) => setViewport({ ...e.viewState })}
-      getCursor={({ isDragging }) =>
-        isDragging
-          ? 'grabbing'
-          : camerasCOR.layerStates.hoverInfo
-            ? 'pointer'
-            : 'grab'
-      }
+      getCursor={({ isDragging, isHovering }) => {
+        if (isDragging) return 'grabbing'
+        else if (isHovering) {
+          // Actually clickable objects:
+          if (
+            radars.layerStates.hoverInfo.object ||
+            camerasCOR.layerStates.hoverInfo.object
+          )
+            return 'pointer'
+        }
+        return 'grab'
+      }}
     >
       <ReactMapGL
         ref={mapRef}

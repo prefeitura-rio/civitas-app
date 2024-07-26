@@ -11,8 +11,8 @@ interface MapViewProps {
 export function MapView({ points }: MapViewProps) {
   const accessToken = config.mapboxAccessToken
   const mapStyle = 'mapbox/streets-v12'
-  const mapWidth = '600'
-  const mapHeight = '300'
+  const mapWidth = '800'
+  const mapHeight = '550'
 
   function createMarkerPart(point: Point) {
     const name = 'pin-s'
@@ -33,7 +33,7 @@ export function MapView({ points }: MapViewProps) {
   function createViewport(point: Point) {
     const lon = point.from[0].toString()
     const lat = point.from[1].toString()
-    const zoom = '13.5'
+    const zoom = '13'
     const bearing = '0'
     const pitch = '0'
 

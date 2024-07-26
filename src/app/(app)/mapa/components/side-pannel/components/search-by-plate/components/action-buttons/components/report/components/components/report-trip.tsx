@@ -1,17 +1,17 @@
 import { Font, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
 
-import type { Trip } from '@/models/entities'
+import type { Point, Trip } from '@/models/entities'
+import { haversineDistance } from '@/utils/haversine-distance'
 
-import { ReportFooter } from './report-footer'
-import { ReportHeader } from './report-header'
 import { MapView } from './trip/map-view'
 import { TripTable } from './trip/trip-table'
 
 interface ReportTripProps {
   trip: Trip
-  index: number
   plate: string
+  useImgCounter: () => number
+  useTableCounter: () => number
 }
 
 Font.register({
@@ -27,52 +27,96 @@ Font.register({
   ],
 })
 
-export function ReportTrip({ trip, index, plate }: ReportTripProps) {
+export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
   const date = trip.points[0].startTime
 
+  const hash = new Set<string>()
+  let mapPoints: Point[] = []
+  const tripChuncks: Point[][] = []
+
+  trip.points.forEach((point) => {
+    const coordinates = point.from.toString()
+
+    const distance =
+      point.to && mapPoints.length >= 1
+        ? haversineDistance({
+            pointA: mapPoints[mapPoints.length - 1].from, // Last point
+            pointB: point.from, // Current point
+          })
+        : 0
+    console.log(distance)
+    if (hash.has(coordinates) || distance > 5000 || mapPoints.length >= 10) {
+      tripChuncks.push([...mapPoints])
+      hash.clear()
+      mapPoints = []
+    }
+
+    mapPoints.push(point)
+    hash.add(coordinates)
+
+    if (!point.to) {
+      tripChuncks.push([...mapPoints])
+    }
+  })
+
   return (
-    <>
-      <ReportHeader />
-      <View style={{ flexDirection: 'column', gap: 20, paddingVertical: 20 }}>
-        <View style={{ flexDirection: 'column', gap: 4 }}>
-          <Text
-            style={{
-              fontFamily: 'Open Sans',
-              fontSize: 16,
-              fontWeight: 600,
-              textAlign: 'center',
-            }}
-          >{`PLACA ${plate}`}</Text>
-          <Text
-            style={{
-              fontFamily: 'Open Sans',
-              fontSize: 14,
-              textAlign: 'center',
-            }}
-          >{`Viagem ${index + 1} - Dia ${formatDate(date, 'dd/MM/yyyy')}`}</Text>
+    <View
+      style={{
+        flexDirection: 'column',
+        gap: 20,
+        paddingVertical: 20,
+        zIndex: 10,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: 'Open Sans',
+          fontSize: 16,
+          fontWeight: 600,
+          textAlign: 'center',
+        }}
+      >{`PLACA ${plate}`}</Text>
+
+      {tripChuncks.map((tripChunck, index) => (
+        <View key={index} style={{ flexDirection: 'column', gap: 16 }}>
+          <View style={{ flexDirection: 'column', gap: 2 }} wrap={false}>
+            <Text
+              style={{
+                fontFamily: 'Open Sans',
+                fontSize: 14,
+                textAlign: 'center',
+              }}
+            >{`Viagem ${trip.index + 1} - Dia ${formatDate(date, 'dd/MM/yyyy')}${tripChuncks.length > 1 ? ` - Parte ${index + 1} de ${tripChuncks.length}` : ''}:`}</Text>
+            <MapView points={tripChunck} />
+            <Text
+              style={{
+                textAlign: 'center',
+                fontFamily: 'Open Sans',
+                fontSize: 11,
+              }}
+            >
+              {tripChunck.length === 1
+                ? `Figura ${useImgCounter()}: Mapa do ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${trip.index + 1}.`
+                : `Figura ${useImgCounter()}: Mapa dos pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${trip.index + 1}.`}
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: 'column', gap: 2 }}>
+            <TripTable points={tripChunck} />
+            <Text
+              style={{
+                textAlign: 'center',
+                fontFamily: 'Open Sans',
+                fontSize: 11,
+              }}
+            >
+              {tripChunck.length === 1
+                ? `Tabela ${useImgCounter()}: Ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${trip.index + 1}.`
+                : `Tabela ${useImgCounter()}: Pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${trip.index + 1}.`}
+            </Text>
+          </View>
         </View>
-        <View style={{ flexDirection: 'column', gap: 2 }}>
-          <MapView points={trip.points} />
-          <Text
-            style={{
-              textAlign: 'center',
-              fontFamily: 'Open Sans',
-              fontSize: 11,
-            }}
-          >{`Figura ${index + 1}: Mapa dos pontos de detecção da viagem ${index + 1}`}</Text>
-        </View>
-        <View style={{ flexDirection: 'column', gap: 2 }}>
-          <TripTable points={trip.points} />
-          <Text
-            style={{
-              textAlign: 'center',
-              fontFamily: 'Open Sans',
-              fontSize: 11,
-            }}
-          >{`Tabela ${index + 1}: Pontos de detecção referentes ao mapa da figura ${index + 1}`}</Text>
-        </View>
-      </View>
-      <ReportFooter />
-    </>
+      ))}
+    </View>
   )
 }

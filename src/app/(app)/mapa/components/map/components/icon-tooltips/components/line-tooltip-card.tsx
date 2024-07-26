@@ -7,7 +7,7 @@ export function TripLineTooltipCard() {
     layers: {
       trips: {
         layersState: {
-          iconHoverInfo: { object, x, y },
+          lineHoverInfo: { object, x, y },
         },
       },
     },
