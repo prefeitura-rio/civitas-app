@@ -79,6 +79,7 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={initialMonth}
             selected={date}
+            fromDate={new Date(2024, 5, 1)}
             toDate={new Date()}
             onSelect={(value) => {
               if (value?.from && !value?.to) {
