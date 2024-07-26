@@ -18,6 +18,8 @@ import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { PlateWildcardsHelperInfo } from '../../../common/plate-wildcards-helper-info'
 import { SearchByRadarForm } from './components/search-by-radar-form-schema'
+import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
+import { formatDate } from 'date-fns'
 
 export function SearchByRadarFilterForm() {
   const {
@@ -118,6 +120,38 @@ export function SearchByRadarFilterForm() {
             disabled={isSubmitting}
           />
         </div>
+      </div>
+
+      <div className=''>
+        <TooltipInfoItem label="Número Câmera" value={selectedRadar.cameraNumber} />
+        <TooltipInfoItem label="Código CET-Rio" value={selectedRadar.cetRioCode} />
+        <TooltipInfoItem label="Localização" value={selectedRadar.location} />
+        <TooltipInfoItem label="Latitude" value={selectedRadar.latitude.toString()} />
+        <TooltipInfoItem label="Longitude" value={selectedRadar.longitude.toString()} />
+        <TooltipInfoItem label="Bairro" value={selectedRadar.district} />
+        <TooltipInfoItem label="Logradouro" value={selectedRadar.streetName} />
+        <TooltipInfoItem label="Sentido" value={selectedRadar.direction || ''} />
+        <TooltipInfoItem label="Empresa" value={selectedRadar.company || ''} />
+        <TooltipInfoItem
+          label="Última detecção"
+          value={
+            selectedRadar.lastDetectionTime
+              ? formatDate(
+                selectedRadar.lastDetectionTime,
+                "dd/MM/yyyy 'às' HH:mm:ss",
+              )
+              : ''
+          }
+        />
+        <TooltipInfoItem
+          label="Ativo nas últimas 24 horas"
+          value={selectedRadar.activeInLast24Hours ? 'Sim' : 'Não'}
+        />
+        <p className="text-sm text-muted-foreground">
+          ⚠️ Atenção! Radares são considerados inativos se não enviarem dados
+          há mais de 24 horas. No entanto, essa informação não é atualizada em
+          tempo real e pode seguir desatualizada por várias horas.
+        </p>
       </div>
     </div>
   )

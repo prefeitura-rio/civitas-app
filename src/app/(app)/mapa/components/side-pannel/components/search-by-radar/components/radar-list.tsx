@@ -128,6 +128,8 @@ export function RadarList() {
                 value={props.cetRioCode}
               />
               <TooltipInfoItem label="Localização" value={props.location} />
+              <TooltipInfoItem label="Latitude" value={props.latitude.toString()} />
+              <TooltipInfoItem label="Longitude" value={props.longitude.toString()} />
               <TooltipInfoItem label="Bairro" value={props.district} />
               <TooltipInfoItem label="Logradouro" value={props.streetName} />
               <TooltipInfoItem label="Sentido" value={props.direction || ''} />
@@ -137,9 +139,9 @@ export function RadarList() {
                 value={
                   props.lastDetectionTime
                     ? formatDate(
-                        props.lastDetectionTime,
-                        "dd/MM/yyyy 'às' HH:mm:ss",
-                      )
+                      props.lastDetectionTime,
+                      "dd/MM/yyyy 'às' HH:mm:ss",
+                    )
                     : ''
                 }
               />
