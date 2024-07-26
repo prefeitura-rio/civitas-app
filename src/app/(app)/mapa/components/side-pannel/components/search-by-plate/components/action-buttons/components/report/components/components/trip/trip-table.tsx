@@ -81,7 +81,7 @@ export function TripTable({ points }: TripTableProps) {
         </View>
       </View>
 
-      {points.map((item, index) => {
+      {points.map((item) => {
         const location = toPascalCase(item.location)
         const direction = toPascalCase(item.direction)
         const district = toPascalCase(item.district)
@@ -89,7 +89,7 @@ export function TripTable({ points }: TripTableProps) {
         return (
           <View style={styles.row} wrap={false}>
             <View style={styles.index}>
-              <Text>{index + 1}</Text>
+              <Text>{item.index + 1}</Text>
             </View>
             <View style={styles.location}>
               <Text>{`${location}, ${district}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
