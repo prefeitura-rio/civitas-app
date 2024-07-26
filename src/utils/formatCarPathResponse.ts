@@ -1,30 +1,14 @@
 import type { GetCarPathResponse } from '@/http/cars/path/get-car-path'
+import type { Point, Trip } from '@/models/entities'
 
 import { formatLocation } from './formatLocation'
 
-export type Point = {
-  index: number
-  from: [longitude: number, latitude: number]
-  startTime: string
-  to?: [longitude: number, latitude: number]
-  endTime?: string
-  cameraNumber: string
-  district: string
-  location: string
-  direction: string
-  lane: string
-  secondsToNextPoint: number | null
-}
-
-export type Trip = {
-  points: Point[]
-}
-
 export function formatCarPathResponse(response: GetCarPathResponse) {
-  const trips: Trip[] = response.map((trips) => {
+  const trips: Trip[] = response.map((trips, i) => {
     const pointSet = new Set<Point>()
     const points = trips.locations.flat()
     return {
+      index: i,
       points: points
         .map((point, index) => {
           const { location, direction, lane } = formatLocation(point.localidade)

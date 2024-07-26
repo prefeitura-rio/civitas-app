@@ -5,7 +5,7 @@ import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-cont
 import { SidebarContextProvider } from '@/contexts/sidebar-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 
-import { Sidebar } from './components/sidebar/sidebar'
+import { Sidebar } from './components/sidebar'
 
 export default function AppLayout({
   children,

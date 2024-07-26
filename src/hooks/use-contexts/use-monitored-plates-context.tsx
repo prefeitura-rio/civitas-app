@@ -1,3 +1,4 @@
+'use client'
 import { useContext } from 'react'
 
 import { MonitoredPlatesContext } from '@/contexts/monitored-plates-context'

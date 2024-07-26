@@ -1,7 +1,7 @@
-import { Dialogs } from './components/dialogs/dialogs'
-import { MonitoredPlatesFilter } from './components/filter/monitored-plates-filter'
-import { MonitoredPlatesHeader } from './components/header/monitored-plates-header'
-import { MonitoredPlatesTable } from './components/table/monitored-plates-table'
+import { Dialogs } from './components/monitored-plates-dialogs'
+import { MonitoredPlatesFilter } from './components/monitored-plates-filter'
+import { MonitoredPlatesHeader } from './components/monitored-plates-header'
+import { MonitoredPlatesTable } from './components/monitored-plates-table'
 
 export default function PlacasMonitoradas() {
   return (

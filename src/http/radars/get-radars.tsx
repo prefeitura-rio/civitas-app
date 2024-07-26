@@ -7,6 +7,7 @@ export async function getRadars() {
   const filteredData = response.data.filter((item) => item.has_data === 'yes')
 
   const clusters: { [key: string]: number } = {}
+  let inactiveCounter = 0
 
   const data = filteredData.map((item) => {
     const key = `${Math.floor(item.longitude * 10000)},${Math.floor(item.latitude * 10000)}`
@@ -23,6 +24,8 @@ export async function getRadars() {
       lat = item.latitude - 0.00001 * clusters[key]
     }
 
+    if (item.active_in_last_24_hours !== 'yes') inactiveCounter++
+
     return {
       district: item.bairro,
       cameraNumber: item.camera_numero,
@@ -37,6 +40,12 @@ export async function getRadars() {
       lastDetectionTime: item.last_detection_time || null,
       direction: item.sentido || null,
     } as Radar
+  })
+
+  console.log({
+    inactiveCounter,
+    has_data: data.length,
+    total: response.data.length,
   })
   return {
     ...response,
