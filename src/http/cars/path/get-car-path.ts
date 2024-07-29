@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import { formatCarPathResponse } from '@/utils/formatCarPathResponse'
+import { formatCarPathResponse } from '@/utils/format-car-path-response'
 
 export interface GetCarPathRequest {
   plate: string
