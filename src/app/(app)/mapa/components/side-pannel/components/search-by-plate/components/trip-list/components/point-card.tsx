@@ -1,24 +1,18 @@
-import { format } from 'date-fns'
+import { formatDate } from 'date-fns'
+import { TriangleAlert } from 'lucide-react'
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import type { Point } from '@/models/entities'
+import { haversineDistance } from '@/utils/haversine-distance'
 import { toPascalCase } from '@/utils/toPascalCase'
 
-interface PointCardProps
-  extends Pick<
-    Point,
-    'index' | 'location' | 'direction' | 'district' | 'startTime' | 'from'
-  > {}
+interface PointCardProps {
+  point: Point
+}
 
-export function PointCard({
-  index,
-  location,
-  direction,
-  district,
-  startTime,
-  from,
-}: PointCardProps) {
+export function PointCard({ point }: PointCardProps) {
   const {
     setViewport,
     layers: {
@@ -28,10 +22,29 @@ export function PointCard({
 
   const points = selectedTrip?.points || []
 
+  const distanceInKilometers = point.to
+    ? haversineDistance({
+        pointA: point.from,
+        pointB: point.to,
+      }) / 1000
+    : 0
+
+  const intervalInHours = point.endTime
+    ? Math.abs(
+        new Date(point.startTime).getTime() - new Date(point.endTime).getTime(),
+      ) /
+      1000 /
+      60 /
+      60
+    : 0
+
+  const speed = distanceInKilometers / intervalInHours
+
   function handlePointClick() {
-    const longitude = from[0]
-    const latitude = from[1]
+    const longitude = point.from[0]
+    const latitude = point.from[1]
     setViewport({
+      zoom: 13.5,
       longitude,
       latitude,
     })
@@ -45,24 +58,81 @@ export function PointCard({
         handlePointClick()
       }}
     >
+      {point.cloneAlert && (
+        <div className="absolute -left-10">
+          <Tooltip
+            className="p-0"
+            render={
+              <Card className="m-0">
+                <CardHeader>
+                  <CardTitle>Alerta de suspeita de placa clonada:</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="list-decoration">
+                    {/* <li>
+                      <span className="text-muted-foreground">Distância: </span>
+                      <span>{distanceInKilometers.toFixed(1)} Km</span>
+                    </li>
+                     */}
+                    <li>
+                      <span className="text-muted-foreground">Origem: </span>
+                      <span>{toPascalCase(point.district)}</span>
+                    </li>
+                    <li>
+                      <span className="text-muted-foreground">Destino: </span>
+                      <span>
+                        {toPascalCase(
+                          points.at(point.index + 1)?.district || '',
+                        )}
+                      </span>
+                    </li>
+                    <li>
+                      <span className="text-muted-foreground">Intervalo: </span>
+                      <span>
+                        {((point.secondsToNextPoint || 0) / 60).toFixed(0)} min
+                      </span>
+                    </li>
+                    <li>
+                      <span className="text-muted-foreground">
+                        Velocidade Média:{' '}
+                      </span>
+                      <span className="text-destructive">
+                        {speed.toFixed(0)} Km/h
+                      </span>
+                    </li>
+                  </ul>
+
+                  <p className="">
+                    Obs.: A velocidade média informada acima é calculada para
+                    uma linha reta entre dois pontos na superfície da terra, não
+                    considerando possíveis trajetos realizados pelo veículo.
+                  </p>
+                </CardContent>
+              </Card>
+            }
+          >
+            <TriangleAlert className="h-4 w-4 text-destructive" />
+          </Tooltip>
+        </div>
+      )}
       <span className="w-16 shrink-0">
-        {format(new Date(startTime), 'hh:mm aa')}
+        {formatDate(point.startTime, 'hh:mm aa')}
       </span>
-      {index < points.length - 1 && (
+      {point.index < points.length - 1 && (
         <div className="absolute left-[4.8rem] top-0 mt-2 h-full w-0.5 bg-primary" />
       )}
       <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
       <div className="ml-1.5 flex flex-col truncate">
-        <Tooltip text={toPascalCase(location)}>
+        <Tooltip text={toPascalCase(point.location)}>
           <div className="truncate">
-            <span className="truncate">{toPascalCase(location)}</span>
+            <span className="truncate">{toPascalCase(point.location)}</span>
           </div>
         </Tooltip>
         <span className="block truncate text-xs text-muted-foreground">
-          {toPascalCase(district)}
+          {toPascalCase(point.district)}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {toPascalCase('Sentido ' + direction)}
+          {toPascalCase('Sentido ' + point.direction)}
         </span>
       </div>
     </div>

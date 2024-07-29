@@ -1,7 +1,9 @@
 import { format } from 'date-fns'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, TriangleAlert } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import type { Point } from '@/models/entities'
 import { toPascalCase } from '@/utils/toPascalCase'
@@ -12,6 +14,7 @@ interface TripCardProps {
   index: number
   startLocation: Point
   endLocation: Point
+  cloneAlert: boolean
 }
 
 function getTimeDiff(a: Date, b: Date) {
@@ -28,7 +31,12 @@ function getTimeDiff(a: Date, b: Date) {
   return `${minutes} min`
 }
 
-export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
+export function TripCard({
+  index,
+  startLocation,
+  endLocation,
+  cloneAlert,
+}: TripCardProps) {
   const {
     setViewport,
     layers: {
@@ -86,6 +94,42 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
         </div>
       </div>
 
+      {cloneAlert && (
+        <Tooltip
+          className="p-0"
+          render={
+            <Card className="m-0">
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Alerta de suspeita de placa clonada:
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>
+                  O alerta de suspeita de placa clonada é acionado quando o
+                  intervalo de tempo e a distância entre dois pontos de detecção
+                  são incompatíveis. Por exemplo, se dois pontos subsequentes
+                  apresentam um intervalo curto e uma distância grande, isso
+                  pode sugerir que há dois veículos com a mesma placa circulando
+                  pela cidade simultaneamente.
+                </p>
+
+                <p>
+                  No entanto, é importante destacar que os registros de pontos
+                  de detecção estão sujeitos a falhas de leitura dos radares, o
+                  que também poderia explicar o caso mencionado acima.
+                </p>
+              </CardContent>
+            </Card>
+          }
+        >
+          <div className="flex items-center gap-2 pl-20 text-destructive">
+            <TriangleAlert className="mb-0.5 h-4 w-4" />
+            <span>Suspeita de placa clonada</span>
+          </div>
+        </Tooltip>
+      )}
+
       {/* Second row: Districts */}
       <div className="flex w-full items-center gap-2 pl-20 text-muted-foreground">
         <span>{toPascalCase(startLocation.district)}</span>
@@ -110,15 +154,7 @@ export function TripCard({ index, startLocation, endLocation }: TripCardProps) {
         <div className="flex flex-col pl-20 text-sm">
           {points.length > 0 ? (
             points.map((point, index) => (
-              <PointCard
-                key={index}
-                index={point.index}
-                location={point.location}
-                startTime={point.startTime}
-                from={point.from}
-                direction={point.direction}
-                district={point.district}
-              />
+              <PointCard key={index} point={point} />
             ))
           ) : (
             <span>Nenhum resultado encontrado</span>
