@@ -11,7 +11,14 @@ import { SearchBox } from './components/search-box'
 
 export function Map() {
   const {
-    layers: { camerasCOR, radars, addressMarker, wazePoliceAlerts, trips },
+    layers: {
+      camerasCOR,
+      radars,
+      addressMarker,
+      wazePoliceAlerts,
+      trips,
+      agents,
+    },
     deckRef,
     mapRef,
     viewport,
@@ -39,6 +46,7 @@ export function Map() {
         camerasCOR.layers.selectedCameraCORLayer,
         radars.layers.selectedRadarLayer,
         radars.layers.slashInactiveRadarsLayer,
+        agents.layers.AgentsLayer,
         trips.layers.coloredIconLayer,
         trips.layers.blackIconLayer,
         trips.layers.textLayer,
