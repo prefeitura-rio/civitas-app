@@ -14,7 +14,7 @@ export function SidePanel() {
   } = useMap()
 
   return (
-    <div className="flex h-screen w-full max-w-md flex-col px-4 py-2">
+    <div className="flex h-screen w-full flex-col px-4 py-2">
       <Tabs
         onValueChange={(e) => {
           if (e === 'radar' && !isVisible) {
