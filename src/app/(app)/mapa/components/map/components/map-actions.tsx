@@ -5,7 +5,7 @@ import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 export function MapActions() {
   const {
-    layers: { camerasCOR, radars, wazePoliceAlerts, trips },
+    layers: { camerasCOR, radars, wazePoliceAlerts, trips, agents },
     isMapStyleSatellite,
     setIsMapStyleSatellite,
   } = useMap()
@@ -34,6 +34,12 @@ export function MapActions() {
       label: 'Alerta de polícia (Waze)',
       checked: wazePoliceAlerts.layerStates.isVisible,
       onCheckedChange: wazePoliceAlerts.layerStates.setIsVisible,
+    },
+    {
+      id: 'agents',
+      label: 'Agentes',
+      checked: agents.layerStates.isVisible,
+      onCheckedChange: agents.layerStates.setIsVisible,
     },
   ]
 
