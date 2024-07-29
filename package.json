@@ -57,6 +57,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.52.0",
     "react-map-gl": "^7.1.7",
+    "react-resizable-panels": "^2.0.22",
     "react-stately": "^3.31.1",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.3.0",
