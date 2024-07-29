@@ -10,10 +10,12 @@ export type Point = {
   direction: string
   lane: string
   secondsToNextPoint: number | null
+  cloneAlert: boolean
 }
 
 export type Trip = {
   index: number
+  cloneAlert: boolean
   points: Point[]
 }
 

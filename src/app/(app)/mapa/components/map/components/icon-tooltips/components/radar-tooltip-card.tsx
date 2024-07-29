@@ -25,6 +25,8 @@ export function RadarTooltipCard() {
           <TooltipInfoItem label="Número Câmera" value={object.cameraNumber} />
           <TooltipInfoItem label="Código CET-Rio" value={object.cetRioCode} />
           <TooltipInfoItem label="Localização" value={object.location} />
+          <TooltipInfoItem label="Latitude" value={object.latitude.toString()} />
+          <TooltipInfoItem label="Longitude" value={object.longitude.toString()} />
           <TooltipInfoItem label="Bairro" value={object.district} />
           <TooltipInfoItem label="Logradouro" value={object.streetName} />
           <TooltipInfoItem label="Sentido" value={object.direction || ''} />
@@ -34,9 +36,9 @@ export function RadarTooltipCard() {
             value={
               object.lastDetectionTime
                 ? formatDate(
-                    object.lastDetectionTime,
-                    "dd/MM/yyyy 'às' HH:mm:ss",
-                  )
+                  object.lastDetectionTime,
+                  "dd/MM/yyyy 'às' HH:mm:ss",
+                )
                 : ''
             }
           />

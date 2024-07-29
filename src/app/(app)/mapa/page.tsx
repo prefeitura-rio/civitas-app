@@ -4,6 +4,11 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Loader2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
 import { MapContextProvider } from '@/contexts/map-context'
 
 const Map = dynamic(
@@ -28,10 +33,17 @@ const SidePanel = dynamic(
 export default function Mapa() {
   return (
     <MapContextProvider>
-      <div className="relative flex h-screen w-full pt-0">
-        <Map />
-        <SidePanel />
-      </div>
+      {/* <div className="relative flex h-screen w-full pt-0"> */}
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel minSize={10}>
+          <Map />
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel minSize={33} defaultSize={33}>
+          <SidePanel />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+      {/* </div> */}
     </MapContextProvider>
   )
 }
