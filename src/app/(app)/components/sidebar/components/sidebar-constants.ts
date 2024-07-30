@@ -1,5 +1,6 @@
 import {
   Car,
+  Cctv,
   Home,
   LayoutDashboard,
   MapPinned,
@@ -19,9 +20,7 @@ export const navItems: NavItem[] = [
   {
     title: 'Cerco Digital',
     icon: Radar,
-    href: '/',
     color: 'text-primary',
-    isChidren: true,
     children: [
       {
         title: 'Mapa',
@@ -46,7 +45,14 @@ export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
-    href: '/dashboard',
     color: 'text-primary',
+    children: [
+      {
+        title: 'Status Infra dos Radares',
+        icon: Cctv,
+        color: 'text-muted-foreground',
+        href: '/dashboard',
+      },
+    ],
   },
 ]
