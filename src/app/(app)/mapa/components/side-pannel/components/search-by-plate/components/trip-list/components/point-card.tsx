@@ -115,11 +115,11 @@ export function PointCard({ point }: PointCardProps) {
           </Tooltip>
         </div>
       )}
-      <span className="w-16 shrink-0">
-        {formatDate(point.startTime, 'hh:mm aa')}
+      <span className="w-10 shrink-0">
+        {formatDate(point.startTime, 'HH:mm')}
       </span>
       {point.index < points.length - 1 && (
-        <div className="absolute left-[4.8rem] top-0 mt-2 h-full w-0.5 bg-primary" />
+        <div className="absolute left-[3.35rem] top-0 mt-2 h-full w-0.5 bg-primary" />
       )}
       <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
       <div className="ml-1.5 flex flex-col truncate">
