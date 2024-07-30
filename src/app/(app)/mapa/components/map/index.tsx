@@ -46,7 +46,7 @@ export function Map() {
         camerasCOR.layers.selectedCameraCORLayer,
         radars.layers.selectedRadarLayer,
         radars.layers.slashInactiveRadarsLayer,
-        agents.layers.AgentsLayer,
+        agents.layer,
         trips.layers.coloredIconLayer,
         trips.layers.blackIconLayer,
         trips.layers.textLayer,

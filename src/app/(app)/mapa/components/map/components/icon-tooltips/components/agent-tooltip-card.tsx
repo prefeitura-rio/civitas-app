@@ -25,14 +25,6 @@ export function AgentTooltipCard() {
           <TooltipInfoItem label="Nome" value={object.name} />
           <TooltipInfoItem label="Operação" value={object.operation} />
           <TooltipInfoItem
-            label="Latitude"
-            value={object.latitude.toString()}
-          />
-          <TooltipInfoItem
-            label="Longitude"
-            value={object.longitude.toString()}
-          />
-          <TooltipInfoItem
             label="Info. de contato"
             value={object.contactInfo}
           />
