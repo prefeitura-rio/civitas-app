@@ -61,8 +61,8 @@ export function SearchByRadarFilterForm() {
                 <InputError message={errors.startTime?.message} />
               </div>
               <DatePicker
-                date={field.value}
-                setDate={field.onChange}
+                value={field.value}
+                onChange={field.onChange}
                 type="datetime-local"
                 disabled={isSubmitting}
               />

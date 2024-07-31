@@ -26,3 +26,11 @@ Date.prototype.setCurrentTime = function (): Date {
 
   return this
 }
+
+Date.prototype.setDatePreservingTime = function (newDate: Date): Date {
+  this.setDate(newDate.getDate())
+  this.setMonth(newDate.getMonth())
+  this.setFullYear(newDate.getFullYear())
+
+  return this
+}

@@ -42,10 +42,10 @@ export const navItems: NavItem[] = [
         href: '/operacoes',
       },
       {
-        title: 'Denúncias',
+        title: 'Ocorrências',
         icon: Speech,
         color: 'text-muted-foreground',
-        href: '/denuncias',
+        href: '/ocorrencias',
       },
     ],
   },
