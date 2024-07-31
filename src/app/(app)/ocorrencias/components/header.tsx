@@ -1,7 +1,7 @@
 export function Header() {
   return (
     <div>
-      <h2>Denúncias</h2>
+      <h2>Ocorrências</h2>
     </div>
   )
 }
