@@ -44,7 +44,6 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
             pointB: point.from, // Current point
           })
         : 0
-    console.log(distance)
     if (hash.has(coordinates) || distance > 5000 || mapPoints.length >= 10) {
       tripChuncks.push([...mapPoints])
       hash.clear()

@@ -72,7 +72,6 @@ export function SearchByPlateFilterForm() {
     register,
     handleSubmit,
     setValue,
-    resetField,
     formState: { errors, isSubmitting },
   } = useForm<FilterForm>({
     resolver: zodResolver(filterFormSchema),
@@ -159,16 +158,9 @@ export function SearchByPlateFilterForm() {
                   </div>
                   <DatePickerWithRange
                     placeholder="Selecione uma data"
-                    onChangeValue={(e) => {
-                      field.onChange(e)
-                      if (e) {
-                        if (e.from) setValue('date.from', e.from)
-                        if (e.to) setValue('date.to', e.to)
-                      } else {
-                        resetField('date.from')
-                        resetField('date.to')
-                      }
-                    }}
+                    onChange={field.onChange}
+                    fromDate={new Date(2024, 5, 1)}
+                    toDate={new Date()}
                     value={field.value}
                     defaultValue={field.value}
                     defaultMonth={new Date().getMonth() - 1}

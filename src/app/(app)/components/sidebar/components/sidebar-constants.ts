@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   MapPinned,
   Radar,
+  Speech,
   TrafficCone,
 } from 'lucide-react'
 
@@ -40,6 +41,12 @@ export const navItems: NavItem[] = [
         color: 'text-muted-foreground',
         href: '/operacoes',
       },
+      {
+        title: 'Denúncias',
+        icon: Speech,
+        color: 'text-muted-foreground',
+        href: '/denuncias',
+      },
     ],
   },
   {
@@ -51,7 +58,7 @@ export const navItems: NavItem[] = [
         title: 'Status Infra dos Radares',
         icon: Cctv,
         color: 'text-muted-foreground',
-        href: '/dashboard',
+        href: '/dashboards/status-infra-radares',
       },
     ],
   },
