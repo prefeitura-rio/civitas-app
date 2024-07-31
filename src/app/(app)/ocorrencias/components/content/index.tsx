@@ -19,7 +19,7 @@ export function Content() {
       <div className="w-full space-y-2 overflow-y-scroll pr-2">
         <Dashboard className="w-full" />
 
-        <div className="relative h-[calc(100%-24rem)] bg-blue-500">
+        <div className="relative h-[calc(100%-24rem)]">
           {view === Views.MAP && <Map className="h-full" />}
           {view === Views.TABLE && <Table className="h-full" />}
 
