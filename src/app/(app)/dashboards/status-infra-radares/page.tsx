@@ -1,4 +1,4 @@
-export default function Dashboard() {
+export default function StatusInfraRadares() {
   return (
     <div className="page-content p-0">
       <iframe

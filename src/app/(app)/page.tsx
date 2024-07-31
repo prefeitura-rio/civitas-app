@@ -27,8 +27,13 @@ const cards = [
       'Cadastre uma operação para ser vinculada a uma placa monitorada.',
   },
   {
-    title: 'Dashboard',
-    href: '/dashboard',
+    title: 'Denúncias',
+    href: '/denuncias',
+    description: '',
+  },
+  {
+    title: 'Dashboards',
+    href: '/dashboards/status-infra-radares',
     description: 'Veja insights sobre radares e câmeras da cidade.',
   },
 ]
