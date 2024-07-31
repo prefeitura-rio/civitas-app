@@ -1,4 +1,5 @@
 export enum Views {
-  'MAP' = 'MAP',
-  'TABLE' = 'TABLE',
+  'DASHBOARD' = 'Dashboard',
+  'TABLE' = 'Histórico',
+  'MAP' = 'Mapa',
 }
