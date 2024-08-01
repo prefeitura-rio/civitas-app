@@ -39,7 +39,7 @@ export default function Mapa() {
           <Map />
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel minSize={33} defaultSize={33}>
+        <ResizablePanel minSize={22} defaultSize={33}>
           <SidePanel />
         </ResizablePanel>
       </ResizablePanelGroup>
