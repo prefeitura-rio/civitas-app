@@ -36,6 +36,7 @@ export function Map() {
         height: '100vh',
         overflow: 'hidden',
       }}
+      onResize={() => mapRef?.current?.resize()}
       controller
       layers={[
         // trips.layers.lineLayer,
