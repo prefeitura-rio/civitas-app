@@ -1,6 +1,6 @@
 'use client'
 
-import { TrendingUp } from 'lucide-react'
+// import { TrendingUp } from 'lucide-react'
 import * as React from 'react'
 import { Label, Pie, PieChart } from 'recharts'
 
@@ -8,7 +8,7 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
+  // CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -68,13 +68,16 @@ export function TotalReportsByOriginPieChart({
   return (
     <Card className={cn(className, 'flex flex-col')}>
       <CardHeader className="items-center pb-0">
-        <CardTitle>Total de Ocorrências Por Origem</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Distribuição das Fontes de Ocorrências</CardTitle>
+        <CardDescription>
+          Gráfico de rosca mostrando a distribuição de ocorrências por fonte,
+          com o total no centro.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="h-[calc(100%-6.125rem)] p-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px] pb-0 [&_.recharts-pie-label-text]:fill-foreground"
+          className="mx-auto aspect-square h-full [&_.recharts-pie-label-text]:fill-foreground"
         >
           <PieChart>
             <ChartTooltip
@@ -110,7 +113,7 @@ export function TotalReportsByOriginPieChart({
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Visitors
+                          Ocorrências
                         </tspan>
                       </text>
                     )
@@ -121,14 +124,14 @@ export function TotalReportsByOriginPieChart({
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
+      {/* <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
           Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Exibindo o total de ocorrências para os últimos 6 meses
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   )
 }

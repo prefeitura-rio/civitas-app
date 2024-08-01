@@ -12,3 +12,8 @@ export interface NavItem {
 }
 
 export type Coordinates = [longitude: number, latitude: number]
+
+export type AddressMarker = {
+  longitude: number
+  latitude: number
+}

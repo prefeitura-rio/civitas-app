@@ -1,16 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { Feature } from 'geojson'
 import { Search, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import type { SetViewportProps } from '@/hooks/map-layers/use-trips-data'
 import { getPlaces } from '@/http/mapbox/get-places'
 import { cn } from '@/lib/utils'
+import type { AddressMarker } from '@/models/utils'
 
 const searchFormSchema = z.object({
   address: z.string().min(1),
@@ -18,15 +19,19 @@ const searchFormSchema = z.object({
 
 type SearchForm = z.infer<typeof searchFormSchema>
 
-export function SearchBox() {
-  const {
-    layers: {
-      addressMarker: {
-        layerStates: { setAddressMarker, isVisible, setIsVisible },
-      },
-    },
-    setViewport,
-  } = useMap()
+interface SearchBoxProps {
+  setAddressMarker: Dispatch<SetStateAction<AddressMarker | null>>
+  isVisible: boolean
+  setIsVisible: Dispatch<SetStateAction<boolean>>
+  setViewport: (props: SetViewportProps) => void
+}
+
+export function SearchBox({
+  isVisible,
+  setAddressMarker,
+  setIsVisible,
+  setViewport,
+}: SearchBoxProps) {
   const [suggestions, setSuggestions] = useState<Feature[]>([])
   const [openSuggestions, setOpenSuggestions] = useState(true)
 

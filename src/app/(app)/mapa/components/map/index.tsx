@@ -80,7 +80,12 @@ export function Map() {
       {(trips.layersState.isLinesEnabled ||
         trips.layersState.isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">
-        <SearchBox />
+        <SearchBox
+          isVisible={addressMarker.layerStates.isVisible}
+          setIsVisible={addressMarker.layerStates.setIsVisible}
+          setAddressMarker={addressMarker.layerStates.setAddressMarker}
+          setViewport={setViewport}
+        />
       </div>
       <MapActions />
     </DeckGL>

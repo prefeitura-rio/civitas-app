@@ -56,8 +56,11 @@
       background-color: theme('colors.border');
       border-radius: 9999px;
     }
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
-  body {
+  html {
     @apply bg-background text-foreground;
   }
   /* Disable number input arrows */

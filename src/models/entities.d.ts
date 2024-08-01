@@ -183,3 +183,15 @@ export type Agent = {
   longitude: number
   lastUpdate: string
 }
+
+export type Report = {
+  title: string
+  date: Date
+  description: string
+  type: string
+  subtype: string
+  latitude: number
+  longitude: number
+  location: string
+  origin: string
+}

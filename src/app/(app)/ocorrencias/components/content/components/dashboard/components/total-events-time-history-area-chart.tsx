@@ -161,9 +161,12 @@ export function TotalEventsTimeHistoryAreaChart({
     <Card className={cn(className)}>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Total de Ocorrências no Tempo</CardTitle>
+          <CardTitle>
+            Número Total de Ocorrências ao Longo do Tempo por Fonte
+          </CardTitle>
           <CardDescription>
-            Showing total visitors for the last 3 months
+            Gráfico de área mostrando o total de ocorrências ao longo do tempo,
+            dividido por fonte.
           </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -186,10 +189,10 @@ export function TotalEventsTimeHistoryAreaChart({
           </SelectContent>
         </Select>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+      <CardContent className="h-[calc(100%-6rem)] px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-full w-full"
         >
           <AreaChart data={filteredData}>
             <defs>
