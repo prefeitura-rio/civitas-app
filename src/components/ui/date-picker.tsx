@@ -21,6 +21,8 @@ interface DatePickerProps {
   setDate: React.Dispatch<React.SetStateAction<Date | undefined>> | undefined
   type?: 'date' | 'datetime-local'
   className?: string
+  fromDate?: Date
+  toDate?: Date
   disabled?: boolean
 }
 
@@ -29,6 +31,8 @@ export function DatePicker({
   setDate,
   className,
   type = 'date',
+  fromDate,
+  toDate,
   disabled = false,
 }: DatePickerProps) {
   return (
@@ -56,6 +60,8 @@ export function DatePicker({
           mode="single"
           selected={date}
           onSelect={setDate}
+          fromDate={fromDate}
+          toDate={toDate}
           initialFocus
           disabled={disabled}
         />
@@ -64,6 +70,7 @@ export function DatePicker({
             <Separator orientation="horizontal" className="" />
             <div className="flex items-center justify-center gap-2">
               <TimePicker
+                disableFuture
                 value={date}
                 defaultValue={date}
                 onChangeHourValue={(val) => {
