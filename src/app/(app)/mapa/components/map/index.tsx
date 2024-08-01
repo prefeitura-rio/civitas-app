@@ -38,8 +38,8 @@ export function Map() {
       }}
       controller
       layers={[
-        trips.layers.lineLayer,
-        trips.layers.lineLayerTransparent,
+        // trips.layers.lineLayer,
+        // trips.layers.lineLayerTransparent,
         camerasCOR.layers.cameraCORLayer,
         radars.layers.radarLayer,
         wazePoliceAlerts.layer,
@@ -47,7 +47,7 @@ export function Map() {
         radars.layers.selectedRadarLayer,
         radars.layers.slashInactiveRadarsLayer,
         agents.layer,
-        trips.layers.coloredIconLayer,
+        // trips.layers.coloredIconLayer,
         trips.layers.blackIconLayer,
         trips.layers.textLayer,
         addressMarker.layer,
