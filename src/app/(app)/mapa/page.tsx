@@ -33,17 +33,15 @@ const SidePanel = dynamic(
 export default function Mapa() {
   return (
     <MapContextProvider>
-      {/* <div className="relative flex h-screen w-full pt-0"> */}
       <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel minSize={10}>
+        <ResizablePanel minSize={10} defaultSize={67}>
           <Map />
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel minSize={33} defaultSize={33}>
+        <ResizablePanel minSize={22} defaultSize={33}>
           <SidePanel />
         </ResizablePanel>
       </ResizablePanelGroup>
-      {/* </div> */}
     </MapContextProvider>
   )
 }

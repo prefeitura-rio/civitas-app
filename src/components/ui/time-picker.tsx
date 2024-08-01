@@ -46,6 +46,8 @@ export function TimePicker({
 
   function shouldDisableMinute(item: string) {
     if (!disableFuture || !isValueToday) return false
+    if (value?.getHours() !== today.getHours()) return false
+
     if (Number(item) > today.getMinutes()) return true
     if (item === '0' && today.getMinutes() === 59) return true
   }

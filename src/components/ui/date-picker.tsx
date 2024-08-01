@@ -21,6 +21,8 @@ interface DatePickerProps {
   onChange: React.Dispatch<React.SetStateAction<Date | undefined>>
   type?: 'date' | 'datetime-local'
   className?: string
+  fromDate?: Date
+  toDate?: Date
   disabled?: boolean
 }
 
@@ -29,6 +31,8 @@ export function DatePicker({
   onChange,
   className,
   type = 'date',
+  fromDate,
+  toDate,
   disabled = false,
 }: DatePickerProps) {
   return (
@@ -55,6 +59,8 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={value}
+          fromDate={fromDate}
+          toDate={toDate}
           onSelect={(newDate) => {
             if (newDate && value) {
               const newValue = new Date(value)
@@ -72,6 +78,7 @@ export function DatePicker({
             <Separator orientation="horizontal" className="" />
             <div className="flex items-center justify-center gap-2">
               <TimePicker
+                disableFuture
                 value={value}
                 defaultValue={value}
                 onChange={onChange}

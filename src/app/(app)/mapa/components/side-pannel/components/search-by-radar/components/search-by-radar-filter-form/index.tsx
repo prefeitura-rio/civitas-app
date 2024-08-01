@@ -65,6 +65,8 @@ export function SearchByRadarFilterForm() {
                 onChange={field.onChange}
                 type="datetime-local"
                 disabled={isSubmitting}
+                fromDate={new Date(2024, 5, 1)}
+                toDate={new Date()}
               />
             </div>
           )}

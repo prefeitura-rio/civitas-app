@@ -63,17 +63,19 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
       style={{
         flexDirection: 'column',
         gap: 20,
-        paddingVertical: 20,
+        paddingBottom: 20,
         zIndex: 10,
       }}
     >
       <Text
         style={{
+          marginTop: 20,
           fontFamily: 'Open Sans',
           fontSize: 16,
           fontWeight: 600,
           textAlign: 'center',
         }}
+        fixed
       >{`PLACA ${plate}`}</Text>
 
       {tripChuncks.map((tripChunck, index) => (
