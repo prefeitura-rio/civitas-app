@@ -15,6 +15,7 @@ import {
   type UseAddressMarker,
   useAddressMarker,
 } from '@/hooks/map-layers/use-address-marker'
+import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import { type UseRadars, useRadars } from '@/hooks/map-layers/use-radars'
 import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
@@ -32,6 +33,7 @@ interface MapContextProps {
     radars: UseRadars
     addressMarker: UseAddressMarker
     wazePoliceAlerts: UseWazePoliceAlerts
+    agents: UseAgents
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
@@ -64,6 +66,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const addressMarker = useAddressMarker()
   const wazePoliceAlerts = useWazePoliceAlerts()
   const trips = useTrips({ setViewport })
+  const agents = useAgents()
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
@@ -77,6 +80,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           addressMarker,
           wazePoliceAlerts,
           trips,
+          agents,
         },
         viewport,
         setViewport,

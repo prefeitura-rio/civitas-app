@@ -165,3 +165,21 @@ export interface RadarRegistry {
   plate: string
   timestamp: string
 }
+
+export type BackendAgent = {
+  name: string
+  contact_info: string
+  operation: string
+  latitude: number
+  longitude: number
+  last_update: string
+}
+
+export type Agent = {
+  name: string
+  contactInfo: string
+  operation: string
+  latitude: number
+  longitude: number
+  lastUpdate: string
+}

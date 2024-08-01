@@ -1,3 +1,4 @@
+import { AgentTooltipCard } from './components/agent-tooltip-card'
 import { CameraInfoFixedPopup } from './components/camera-info-fixed-popup'
 import { CameraInfoPopupCard } from './components/camera-info-popup'
 import { TripLineTooltipCard } from './components/line-tooltip-card'
@@ -14,6 +15,7 @@ export function IconTooltips() {
       <CameraInfoFixedPopup />
       <RadarTooltipCard />
       <WazePoliceAlertTooltip />
+      <AgentTooltipCard />
     </>
   )
 }
