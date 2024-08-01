@@ -10,10 +10,12 @@ interface DashboardProps {
 
 export function Dashboard({ className }: DashboardProps) {
   return (
-    <div className={cn(className, 'grid grid-cols-3 gap-2')}>
-      <TotalEventsTimeHistoryAreaChart className="col-span-3" />
-      <Top5EventTypesBarChart className="col-span-1" />
-      <TotalReportsByOriginPieChart className="col-span-1" />
+    <div className={cn(className, 'flex h-[calc(100%-0rem)] flex-col gap-2')}>
+      <TotalEventsTimeHistoryAreaChart className="h-96" />
+      <div className="flex h-96 gap-2">
+        <Top5EventTypesBarChart className="h-96 w-2/3 min-w-96" />
+        <TotalReportsByOriginPieChart className="h-96 w-1/3 min-w-96" />
+      </div>
     </div>
   )
 }
