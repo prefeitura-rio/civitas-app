@@ -9,7 +9,6 @@ import { ReportEmptyResult } from './components/report-empty-result'
 import { ReportFooter } from './components/report-footer'
 import { ReportHeader } from './components/report-header'
 import { ReportTrip } from './components/report-trip'
-// import { Watermark } from './components/report-watermark'
 
 const styles = StyleSheet.create({
   page: {
@@ -45,7 +44,6 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         <ReportCover searchParams={searchParams} totalPoints={totalPoints} />
-        {/* <Watermark /> */}
         <ReportFooter />
       </Page>
 
@@ -54,7 +52,6 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
           return (
             <Page key={index} size="A4" style={styles.page}>
               <ReportHeader />
-              {/* <Watermark /> */}
               <ReportTrip
                 trip={trip}
                 plate={searchParams.plate}
@@ -70,7 +67,6 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
           <ReportHeader />
           <ReportEmptyResult searchParams={searchParams} />
           <ReportFooter />
-          {/* <Watermark /> */}
         </Page>
       )}
     </Document>
