@@ -11,6 +11,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#000',
     flexDirection: 'column',
+    marginBottom: 40,
   },
   headerRow: {
     display: 'flex',
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     width: '65%',
     textAlign: 'center',
     fontSize: 14,
-    paddingVertical: 2,
+    padding: 2,
   },
   subTitle: {
     textAlign: 'center',
@@ -59,7 +60,11 @@ const styles = StyleSheet.create({
   },
 })
 
-export function ReportHeader() {
+interface ReportHeaderProps {
+  title: string
+}
+
+export function ReportHeader({ title }: ReportHeaderProps) {
   const now = new Date()
   const code = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}.${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}${now.getMilliseconds().toString().padStart(3, '0')}`
 
@@ -72,9 +77,7 @@ export function ReportHeader() {
             <Image style={styles.image} src={logoCivitas.src} />
           </View>
         </View>
-        <Text style={styles.title}>
-          RELATÓRIO DE IDENTIFICAÇÃO DE PONTOS DE DETECÇÃO
-        </Text>
+        <Text style={styles.title}>{title.toUpperCase()}</Text>
       </View>
       <View style={styles.headerRowSecond}>
         <Text style={styles.subTitle}>{`ID: ${code}`}</Text>
