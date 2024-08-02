@@ -5,7 +5,7 @@ import {
   LayoutDashboard,
   MapPinned,
   Radar,
-  Speech,
+  // Speech,
   TrafficCone,
 } from 'lucide-react'
 
@@ -41,12 +41,12 @@ export const navItems: NavItem[] = [
         color: 'text-muted-foreground',
         href: '/operacoes',
       },
-      {
-        title: 'Ocorrências',
-        icon: Speech,
-        color: 'text-muted-foreground',
-        href: '/ocorrencias',
-      },
+      // {
+      //   title: 'Ocorrências',
+      //   icon: Speech,
+      //   color: 'text-muted-foreground',
+      //   href: '/ocorrencias',
+      // },
     ],
   },
   {
