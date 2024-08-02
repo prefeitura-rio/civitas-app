@@ -69,7 +69,6 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
     >
       <Text
         style={{
-          marginTop: 20,
           fontFamily: 'Open Sans',
           fontSize: 16,
           fontWeight: 600,

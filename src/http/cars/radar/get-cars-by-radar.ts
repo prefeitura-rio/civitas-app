@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { RadarRegistry } from '@/models/entities'
+import type { RadarDetection } from '@/models/entities'
 
 interface GetCarsByRadarRequest {
   radar: string
@@ -14,7 +14,7 @@ export function getCarsByRadar({
   endTime,
   plateHint,
 }: GetCarsByRadarRequest) {
-  const response = api.get<RadarRegistry[]>('/cars/radar', {
+  const response = api.get<RadarDetection[]>('/cars/radar', {
     params: {
       radar,
       start_time: startTime,

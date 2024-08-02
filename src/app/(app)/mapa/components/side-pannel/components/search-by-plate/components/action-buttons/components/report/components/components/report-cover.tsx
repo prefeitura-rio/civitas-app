@@ -3,8 +3,7 @@ import { formatDate } from 'date-fns'
 
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 
-import { ReportFooter } from './report-footer'
-import { ReportHeader } from './report-header'
+import { ReportFooter } from '../../../../../../../common/report-footer'
 
 interface ReportCoverProps {
   searchParams: GetCarPathRequest
@@ -138,7 +137,6 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     flexDirection: 'column',
-    paddingVertical: 20,
     fontSize: 11,
   },
   title: {
@@ -199,12 +197,11 @@ const styles = StyleSheet.create({
 })
 
 export function ReportCover({ searchParams, totalPoints }: ReportCoverProps) {
-  const from = formatDate(searchParams.startTime, "dd/MM/yyyy 'às' HH:mm")
-  const to = formatDate(searchParams.endTime, "dd/MM/yyyy 'às' HH:mm")
+  const from = formatDate(searchParams.startTime, "dd/MM/yyyy 'às' HH:mm:ss")
+  const to = formatDate(searchParams.endTime, "dd/MM/yyyy 'às' HH:mm:ss")
 
   return (
     <>
-      <ReportHeader />
       <View style={styles.container}>
         <Text style={styles.title}>Informações gerais sobre o relatório:</Text>
 

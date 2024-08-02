@@ -4,10 +4,10 @@ import React from 'react'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 import type { Trip } from '@/models/entities'
 
+import { ReportFooter } from '../../../../../../common/report-footer'
+import { ReportHeader } from '../../../../../../common/report-header'
 import { ReportCover } from './components/report-cover'
 import { ReportEmptyResult } from './components/report-empty-result'
-import { ReportFooter } from './components/report-footer'
-import { ReportHeader } from './components/report-header'
 import { ReportTrip } from './components/report-trip'
 
 const styles = StyleSheet.create({
@@ -40,9 +40,12 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
 
   const totalPoints = trips.reduce((acc, cur) => acc + cur.points.length, 0)
 
+  const reportTitle = 'Relatório de Identificação de Pontos de Detecção'
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <ReportHeader title={reportTitle} />
         <ReportCover searchParams={searchParams} totalPoints={totalPoints} />
         <ReportFooter />
       </Page>
@@ -51,7 +54,7 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
         trips.map((trip, index) => {
           return (
             <Page key={index} size="A4" style={styles.page}>
-              <ReportHeader />
+              <ReportHeader title={reportTitle} />
               <ReportTrip
                 trip={trip}
                 plate={searchParams.plate}
@@ -64,7 +67,7 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
         })
       ) : (
         <Page size="A4" style={styles.page}>
-          <ReportHeader />
+          <ReportHeader title={reportTitle} />
           <ReportEmptyResult searchParams={searchParams} />
           <ReportFooter />
         </Page>
