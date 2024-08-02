@@ -1,6 +1,7 @@
 'use client'
+import '@/utils/date-extensions'
+
 import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
 import { CarFront, Info, Search } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -64,15 +65,13 @@ export function SearchByPlateFilterForm() {
   const today = new Date()
   const from = new Date()
   from.setDate(today.getDate() - 7)
-  from.setHours(0)
-  from.setMinutes(0)
+  from.setMinTime()
 
   const {
     control,
     register,
     handleSubmit,
     setValue,
-    resetField,
     formState: { errors, isSubmitting },
   } = useForm<FilterForm>({
     resolver: zodResolver(filterFormSchema),
@@ -86,17 +85,21 @@ export function SearchByPlateFilterForm() {
 
   async function onSubmit(props: FilterForm) {
     try {
+      const endTime = new Date(props.date.to)
+      endTime.setSeconds(59)
+      endTime.setMilliseconds(999)
+
       if (props.plate.includes('*')) {
         await getPossiblePlates({
           plate: props.plate,
           startTime: dateToString(props.date.from),
-          endTime: dateToString(props.date.to),
+          endTime: dateToString(endTime),
         })
       } else {
         await getTrips({
           plate: props.plate,
-          startTime: format(props.date.from, "yyyy-MM-dd'T'HH:mm"),
-          endTime: format(props.date.to, "yyyy-MM-dd'T'HH:mm:ss"),
+          startTime: dateToString(props.date.from),
+          endTime: dateToString(endTime),
         })
       }
     } catch (error) {
@@ -159,16 +162,9 @@ export function SearchByPlateFilterForm() {
                   </div>
                   <DatePickerWithRange
                     placeholder="Selecione uma data"
-                    onChangeValue={(e) => {
-                      field.onChange(e)
-                      if (e) {
-                        if (e.from) setValue('date.from', e.from)
-                        if (e.to) setValue('date.to', e.to)
-                      } else {
-                        resetField('date.from')
-                        resetField('date.to')
-                      }
-                    }}
+                    onChange={field.onChange}
+                    fromDate={new Date(2024, 5, 1)}
+                    toDate={new Date()}
                     value={field.value}
                     defaultValue={field.value}
                     defaultMonth={new Date().getMonth() - 1}

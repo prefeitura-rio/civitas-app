@@ -36,10 +36,11 @@ export function Map() {
         height: '100vh',
         overflow: 'hidden',
       }}
+      onResize={() => mapRef?.current?.resize()}
       controller
       layers={[
-        trips.layers.lineLayer,
-        trips.layers.lineLayerTransparent,
+        // trips.layers.lineLayer,
+        // trips.layers.lineLayerTransparent,
         camerasCOR.layers.cameraCORLayer,
         radars.layers.radarLayer,
         wazePoliceAlerts.layer,
@@ -47,7 +48,7 @@ export function Map() {
         radars.layers.selectedRadarLayer,
         radars.layers.slashInactiveRadarsLayer,
         agents.layer,
-        trips.layers.coloredIconLayer,
+        // trips.layers.coloredIconLayer,
         trips.layers.blackIconLayer,
         trips.layers.textLayer,
         addressMarker.layer,
@@ -79,7 +80,12 @@ export function Map() {
       {(trips.layersState.isLinesEnabled ||
         trips.layersState.isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">
-        <SearchBox />
+        <SearchBox
+          isVisible={addressMarker.layerStates.isVisible}
+          setIsVisible={addressMarker.layerStates.setIsVisible}
+          setAddressMarker={addressMarker.layerStates.setAddressMarker}
+          setViewport={setViewport}
+        />
       </div>
       <MapActions />
     </DeckGL>

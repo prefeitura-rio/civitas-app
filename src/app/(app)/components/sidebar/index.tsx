@@ -29,9 +29,9 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <nav
       className={cn(
-        `relative z-10 h-screen border-r`,
+        `relative z-10 h-screen shrink-0 border-r`,
         status && 'duration-500',
-        isOpen ? 'w-72' : 'w-14',
+        isOpen ? 'w-56' : 'w-14',
         className,
       )}
     >

@@ -17,8 +17,8 @@ import { Separator } from './separator'
 import { TimePicker } from './time-picker'
 
 interface DatePickerProps {
-  date: Date | undefined
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>> | undefined
+  value: Date | undefined
+  onChange: React.Dispatch<React.SetStateAction<Date | undefined>>
   type?: 'date' | 'datetime-local'
   className?: string
   fromDate?: Date
@@ -27,8 +27,8 @@ interface DatePickerProps {
 }
 
 export function DatePicker({
-  date,
-  setDate,
+  value,
+  onChange,
   className,
   type = 'date',
   fromDate,
@@ -42,14 +42,14 @@ export function DatePicker({
           variant={'outline'}
           className={cn(
             'w-full justify-start text-left font-normal',
-            !date && 'text-muted-foreground',
+            !value && 'text-muted-foreground',
             className,
           )}
           disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? (
-            format(date, 'dd MMM, y HH:mm')
+          {value ? (
+            format(value, 'dd MMM, y HH:mm')
           ) : (
             <span>Escolha uma data</span>
           )}
@@ -58,10 +58,18 @@ export function DatePicker({
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
-          selected={date}
-          onSelect={setDate}
+          selected={value}
           fromDate={fromDate}
           toDate={toDate}
+          onSelect={(newDate) => {
+            if (newDate && value) {
+              const newValue = new Date(value)
+              newValue.setDatePreservingTime(newDate)
+              onChange(newValue)
+            } else {
+              onChange(newDate)
+            }
+          }}
           initialFocus
           disabled={disabled}
         />
@@ -71,22 +79,10 @@ export function DatePicker({
             <div className="flex items-center justify-center gap-2">
               <TimePicker
                 disableFuture
-                value={date}
-                defaultValue={date}
-                onChangeHourValue={(val) => {
-                  if (date) {
-                    const newDate = new Date(date)
-                    newDate.setHours(Number(val))
-                    setDate?.(newDate)
-                  }
-                }}
-                onChangeMinuteValue={(val) => {
-                  if (date) {
-                    const newDate = new Date(date)
-                    newDate.setMinutes(Number(val))
-                    setDate?.(newDate)
-                  }
-                }}
+                value={value}
+                defaultValue={value}
+                onChange={onChange}
+                disabled={!value}
               />
             </div>
           </>

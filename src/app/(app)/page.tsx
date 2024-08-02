@@ -26,9 +26,15 @@ const cards = [
     description:
       'Cadastre uma operação para ser vinculada a uma placa monitorada.',
   },
+  // {
+  //   title: 'Ocorrências',
+  //   href: '/ocorrencias',
+  //   description:
+  //     'Veja denúncias e incidentes registrados por diversos canais, além de um dashboard com diferentes insights sobre os registros',
+  // },
   {
-    title: 'Dashboard',
-    href: '/dashboard',
+    title: 'Dashboards',
+    href: '/dashboards/status-infra-radares',
     description: 'Veja insights sobre radares e câmeras da cidade.',
   },
 ]
@@ -39,7 +45,7 @@ export default function Home() {
       <div className="grid grid-cols-4 gap-4">
         {cards.map((item) => (
           <Link href={item.href} className="col-span-2">
-            <Card className="h-full hover:bg-border">
+            <Card className="h-full max-w-[40rem] hover:bg-border">
               <CardHeader>
                 <CardTitle>{item.title}</CardTitle>
                 <CardDescription>{item.description}</CardDescription>
