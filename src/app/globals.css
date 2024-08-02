@@ -126,6 +126,13 @@
     @apply absolute top-0 bottom-0 mt-auto mb-auto;
   }
 
+  .absolute-centered {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
   .list-decoration {
     @apply list-inside list-disc;
 
