@@ -4,3 +4,7 @@ interface Date {
   setCurrentTime(): Date
   setDatePreservingTime(newDate: Date): Date
 }
+
+interface String {
+  capitalizeFirstLetter(): string
+}

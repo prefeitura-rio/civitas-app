@@ -78,7 +78,7 @@ export function SearchByRadarFilterForm() {
           render={({ field }) => (
             <div className="flex items-center gap-2">
               <Label htmlFor="plateHint">Duração:</Label>
-              <div className="w-full space-y-2 pt-6">
+              <div className="w-full space-y-2 pr-7 pt-6">
                 <Slider
                   value={field.value}
                   onValueChange={(value) => {
@@ -87,14 +87,14 @@ export function SearchByRadarFilterForm() {
                     else field.onChange(value)
                   }}
                   defaultValue={[5, 10]}
-                  max={10}
-                  min={-10}
+                  max={60}
+                  min={-60}
                   step={1}
                   disabled={isSubmitting}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Min: -10min</span>
-                  <span>Max: 10min</span>
+                  <span>Min: -60min</span>
+                  <span>Max: 60min</span>
                 </div>
               </div>
             </div>
