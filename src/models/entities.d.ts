@@ -161,9 +161,10 @@ export type WazeAlert = {
   longitude: number
 }
 
-export interface RadarRegistry {
+export interface RadarDetection {
   plate: string
   timestamp: string
+  speed: number
 }
 
 export type BackendAgent = {
@@ -182,4 +183,16 @@ export type Agent = {
   latitude: number
   longitude: number
   lastUpdate: string
+}
+
+export type Report = {
+  title: string
+  date: Date
+  description: string
+  type: string
+  subtype: string
+  latitude: number
+  longitude: number
+  location: string
+  origin: string
 }

@@ -1,9 +1,11 @@
 import {
   Car,
+  Cctv,
   Home,
   LayoutDashboard,
   MapPinned,
   Radar,
+  // Speech,
   TrafficCone,
 } from 'lucide-react'
 
@@ -19,9 +21,7 @@ export const navItems: NavItem[] = [
   {
     title: 'Cerco Digital',
     icon: Radar,
-    href: '/',
     color: 'text-primary',
-    isChidren: true,
     children: [
       {
         title: 'Mapa',
@@ -41,12 +41,25 @@ export const navItems: NavItem[] = [
         color: 'text-muted-foreground',
         href: '/operacoes',
       },
+      // {
+      //   title: 'Ocorrências',
+      //   icon: Speech,
+      //   color: 'text-muted-foreground',
+      //   href: '/ocorrencias',
+      // },
     ],
   },
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
-    href: '/dashboard',
     color: 'text-primary',
+    children: [
+      {
+        title: 'Status Infra dos Radares',
+        icon: Cctv,
+        color: 'text-muted-foreground',
+        href: '/dashboards/status-infra-radares',
+      },
+    ],
   },
 ]

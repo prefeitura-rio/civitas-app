@@ -42,7 +42,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
     <div className="flex h-[calc(100%-4rem)] flex-col justify-between">
       <div className="space-y-2">
         {items.map((item) =>
-          item.isChidren ? (
+          item.children ? (
             <Accordion
               type="single"
               collapsible
@@ -105,7 +105,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                           size="sm"
                         >
                           <Link
-                            href={child.href}
+                            href={child.href || '/'}
                             onClick={() => {
                               if (setOpen) setOpen(false)
                             }}
@@ -150,7 +150,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                   asChild
                   size="sm"
                 >
-                  <Link href={item.href}>
+                  <Link href={item.href || '/'}>
                     <item.icon className={cn('h-4 w-4', item.color)} />
                     <span
                       className={cn(

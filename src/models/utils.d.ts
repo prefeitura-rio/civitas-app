@@ -5,11 +5,15 @@ export type ComboboxOption = {
 
 export interface NavItem {
   title: string
-  href: string
+  href?: string
   icon: LucideIcon
   color?: string
-  isChidren?: boolean
   children?: NavItem[]
 }
 
 export type Coordinates = [longitude: number, latitude: number]
+
+export type AddressMarker = {
+  longitude: number
+  latitude: number
+}

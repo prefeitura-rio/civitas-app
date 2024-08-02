@@ -33,6 +33,12 @@
     --ring: 194 88% 40%;
 
     --radius: 0.5rem;
+
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -50,8 +56,11 @@
       background-color: theme('colors.border');
       border-radius: 9999px;
     }
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
-  body {
+  html {
     @apply bg-background text-foreground;
   }
   /* Disable number input arrows */
@@ -100,7 +109,7 @@
 
 @layer components {
   .page-content {
-    @apply h-screen p-4 pt-8 w-full overflow-y-scroll;
+    @apply h-screen p-4 pt-8 w-full;
   }
 
   .A4 {
@@ -115,6 +124,13 @@
 
   .absolute-y-centered {
     @apply absolute top-0 bottom-0 mt-auto mb-auto;
+  }
+
+  .absolute-centered {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .list-decoration {

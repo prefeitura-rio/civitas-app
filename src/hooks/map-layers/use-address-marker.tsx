@@ -2,11 +2,7 @@ import { IconLayer } from '@deck.gl/layers'
 import { type Dispatch, type SetStateAction, useState } from 'react'
 
 import mapPinRed from '@/assets/map-pin-red.svg'
-
-type AddressMarker = {
-  longitude: number
-  latitude: number
-}
+import type { AddressMarker } from '@/models/utils'
 
 export interface UseAddressMarker {
   layer: IconLayer<AddressMarker, object>

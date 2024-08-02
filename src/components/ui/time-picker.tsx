@@ -16,18 +16,18 @@ const minutes = Array.from({ length: 60 }, (_, i) =>
 )
 
 interface TimePickerProps {
-  value?: Date | null
+  value: Date | null | undefined
   defaultValue?: Date | null
-  onChangeHourValue: (value: string) => void
-  onChangeMinuteValue: (value: string) => void
+  onChange: (date: Date) => void
   disableFuture?: boolean
+  disabled?: boolean
 }
 
 export function TimePicker({
   value,
   defaultValue,
-  onChangeHourValue,
-  onChangeMinuteValue,
+  onChange,
+  disabled = false,
   disableFuture = false,
 }: TimePickerProps) {
   const today = new Date()
@@ -58,8 +58,15 @@ export function TimePicker({
         <span className="text-sm text-muted-foreground">Hora</span>
         <Select
           defaultValue={defaultValue?.getHours().toString().padStart(2, '0')}
-          value={value?.getHours().toString().padStart(2, '0')}
-          onValueChange={onChangeHourValue}
+          value={value ? value.getHours().toString().padStart(2, '0') : ''}
+          disabled={disabled}
+          onValueChange={(val) => {
+            if (value) {
+              const newDate = new Date(value)
+              newDate.setHours(Number(val))
+              onChange(newDate)
+            }
+          }}
         >
           <SelectTrigger className="h-9 w-16">
             <SelectValue placeholder="--" />
@@ -82,15 +89,23 @@ export function TimePicker({
         <span className="text-sm text-muted-foreground">Minuto</span>
         <Select
           defaultValue={defaultValue?.getMinutes().toString().padStart(2, '0')}
-          value={value?.getMinutes().toString().padStart(2, '0')}
-          onValueChange={onChangeMinuteValue}
+          value={value ? value.getMinutes().toString().padStart(2, '0') : ''}
+          disabled={disabled}
+          onValueChange={(val) => {
+            if (value) {
+              const newDate = new Date(value)
+              newDate.setMinutes(Number(val))
+              onChange(newDate)
+            }
+          }}
         >
           <SelectTrigger className="h-9 w-16">
             <SelectValue placeholder="--" />
           </SelectTrigger>
           <SelectContent className="w-16 min-w-0">
-            {minutes.map((item) => (
+            {minutes.map((item, index) => (
               <SelectItem
+                key={index}
                 className="w-16 min-w-0"
                 value={item}
                 disabled={shouldDisableMinute(item)}

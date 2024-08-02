@@ -10,13 +10,15 @@ interface ReportEmptyResultProps {
 
 export function ReportEmptyResult({ searchParams }: ReportEmptyResultProps) {
   const plate = searchParams.plate
-  const from = format(new Date(searchParams.startTime), "dd/MM/yyyy 'às' HH:mm")
-  const to = format(new Date(searchParams.endTime), "dd/MM/yyyy 'às' HH:mm")
+  const from = format(
+    new Date(searchParams.startTime),
+    "dd/MM/yyyy 'às' HH:mm:ss",
+  )
+  const to = format(new Date(searchParams.endTime), "dd/MM/yyyy 'às' HH:mm:ss")
 
   return (
     <Text
       style={{
-        paddingVertical: 20,
         fontFamily: 'Open Sans',
         fontSize: 11,
         textAlign: 'center',
