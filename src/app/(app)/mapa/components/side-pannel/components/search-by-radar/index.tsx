@@ -8,7 +8,12 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
@@ -107,7 +112,10 @@ export function SearchByRadar() {
                   </Button>
                 </DialogTrigger>
               </Tooltip>
-              <DialogContent className="h-[80%] max-w-7xl">
+              <DialogContent className="relative h-[80%] max-w-7xl">
+                <DialogTitle className="sr-only">
+                  Imprimir relatório
+                </DialogTitle>
                 <PDFViewer style={{ width: '100%', height: '100%' }}>
                   <RadarReportDocument {...documentProps} />
                 </PDFViewer>

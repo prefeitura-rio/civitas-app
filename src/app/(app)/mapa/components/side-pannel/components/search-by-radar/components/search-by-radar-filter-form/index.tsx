@@ -89,7 +89,7 @@ export function SearchByRadarFilterForm() {
                   defaultValue={[5, 10]}
                   max={60}
                   min={-60}
-                  step={1}
+                  step={5}
                   disabled={isSubmitting}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
