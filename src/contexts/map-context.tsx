@@ -1,3 +1,4 @@
+'use client'
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import type { DeckGLRef } from '@deck.gl/react'
 import {
