@@ -66,8 +66,10 @@ export function SidePanel({ className }: SidePanelProps) {
 
   const { control, handleSubmit, reset } = form
 
-  function onSubmit() {
+  function onSubmit(props: FilterFormType) {
     // ...
+    console.log('submit')
+    console.log(props)
   }
 
   function clearFilter() {
@@ -104,7 +106,16 @@ export function SidePanel({ className }: SidePanelProps) {
                     <div className="space-y-1">
                       <DatePickerWithRange
                         placeholder="Selecione uma data"
-                        onChange={field.onChange}
+                        onChange={(newValue) => {
+                          if (!newValue?.from && !newValue?.to) {
+                            field.onChange(undefined)
+                          } else {
+                            field.onChange({
+                              from: newValue.from || null,
+                              to: newValue.to || undefined,
+                            })
+                          }
+                        }}
                         value={field.value}
                         defaultValue={field.value}
                         defaultMonth={new Date().getMonth() - 1}
