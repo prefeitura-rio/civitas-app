@@ -136,11 +136,11 @@
   .list-decoration {
     @apply list-inside list-disc;
 
-    ul {
+    ul, dl {
       @apply list-inside list-disc ml-6;
     }
 
-    ul ul {
+    ul ul, dl dl  {
       @apply list-inside list-disc ml-12;
     }
   }
@@ -154,14 +154,14 @@
   }
 
   .markdown {
-    @apply mx-auto max-w-4xl;
+    @apply mx-auto max-w-3xl;
 
     h1 {
       @apply pb-[0.6rem] border-b mb-4 text-[2.125rem]
     }
 
     h2 {
-      @apply pb-[0.45rem] mt-6 border-b mb-4 text-2xl flex gap-2 items-center
+      @apply pb-[0.45rem] mt-6 border-b mb-4 text-2xl
     }
 
     h3 {
@@ -172,13 +172,16 @@
       @apply mt-6 mb-4 text-base
     }
 
-
     p {
       @apply mb-4
     }
 
     code {
       @apply code-highlight;
+    }
+
+    ul {
+      @apply list-disc pl-8;
     }
   }
 }
