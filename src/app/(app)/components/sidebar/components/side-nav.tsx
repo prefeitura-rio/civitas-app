@@ -1,5 +1,5 @@
 'use client'
-import { ChevronDown, LogOut } from 'lucide-react'
+import { ChevronDown, Lightbulb, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -167,27 +167,53 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
           ),
         )}
       </div>
-      <Tooltip asChild text={'Sair'} side="right" hideContent={isOpen}>
-        <Button
-          onClick={() => {
-            if (setOpen) setOpen(false)
-            logout()
-          }}
-          variant="ghost"
-          className={'group relative flex justify-start'}
-          size="sm"
-        >
-          <LogOut className="h-4 w-4 text-muted-foreground" />
-          <span
-            className={cn(
-              'absolute left-10 text-sm tracking-tight duration-200',
-              !isOpen && className,
-            )}
-          >
-            Sair
-          </span>
-        </Button>
-      </Tooltip>
+      <div className="space-y-2">
+        <div>
+          <Tooltip asChild text={'Novidades'} side="right" hideContent={isOpen}>
+            <Button
+              variant="ghost"
+              className={'group relative flex justify-start'}
+              size="sm"
+              asChild
+            >
+              <Link href="/docs/novidades">
+                <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                <span
+                  className={cn(
+                    'absolute left-10 text-sm tracking-tight duration-200',
+                    !isOpen && className,
+                  )}
+                >
+                  Sair
+                </span>
+              </Link>
+            </Button>
+          </Tooltip>
+        </div>
+        <div>
+          <Tooltip asChild text={'Sair'} side="right" hideContent={isOpen}>
+            <Button
+              onClick={() => {
+                if (setOpen) setOpen(false)
+                logout()
+              }}
+              variant="ghost"
+              className={'group relative flex justify-start'}
+              size="sm"
+            >
+              <LogOut className="h-4 w-4 text-muted-foreground" />
+              <span
+                className={cn(
+                  'absolute left-10 text-sm tracking-tight duration-200',
+                  !isOpen && className,
+                )}
+              >
+                Sair
+              </span>
+            </Button>
+          </Tooltip>
+        </div>
+      </div>
     </div>
   )
 }
