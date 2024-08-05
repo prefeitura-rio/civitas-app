@@ -184,7 +184,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
                     !isOpen && className,
                   )}
                 >
-                  Sair
+                  Novidades
                 </span>
               </Link>
             </Button>
@@ -193,23 +193,26 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
         <div>
           <Tooltip asChild text={'Sair'} side="right" hideContent={isOpen}>
             <Button
+              variant="ghost"
+              className={'group relative flex justify-start'}
+              size="sm"
               onClick={() => {
                 if (setOpen) setOpen(false)
                 logout()
               }}
-              variant="ghost"
-              className={'group relative flex justify-start'}
-              size="sm"
+              asChild
             >
-              <LogOut className="h-4 w-4 text-muted-foreground" />
-              <span
-                className={cn(
-                  'absolute left-10 text-sm tracking-tight duration-200',
-                  !isOpen && className,
-                )}
-              >
-                Sair
-              </span>
+              <div className="cursor-pointer">
+                <LogOut className="h-4 w-4 text-muted-foreground" />
+                <span
+                  className={cn(
+                    'absolute left-10 text-sm tracking-tight duration-200',
+                    !isOpen && className,
+                  )}
+                >
+                  Sair
+                </span>
+              </div>
             </Button>
           </Tooltip>
         </div>
