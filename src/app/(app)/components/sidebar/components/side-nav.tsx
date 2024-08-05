@@ -176,7 +176,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
               size="sm"
               asChild
             >
-              <Link href="/docs/novidades">
+              <Link href="/novidades">
                 <Lightbulb className="h-4 w-4 text-muted-foreground" />
                 <span
                   className={cn(
