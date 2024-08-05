@@ -37,12 +37,12 @@ const filterFormSchema = z.object({
   keyWord: z.string().optional(),
   dateRange: z
     .object({
-      from: z.date({ message: 'Campo obrigatório' }),
-      to: z.date({ message: 'Selecione uma data de término' }),
+      from: z.date({ message: 'Campo obrigatório' }).nullable(),
+      to: z.date({ message: 'Selecione uma data de término' }).optional(),
     })
     .optional()
     .superRefine((val, ctx) => {
-      if (val && val.to > new Date()) {
+      if (val && val.to && val.to > new Date()) {
         ctx.addIssue({
           code: 'invalid_date',
           message: 'A data de término deve ser menor ou igual à data atual',
