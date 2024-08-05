@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
-// import { DatePickerWithRange } from '@/components/ui/date-range-picker'
+import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import {
   Form,
   FormControl,
@@ -37,7 +37,7 @@ const filterFormSchema = z.object({
   keyWord: z.string().optional(),
   dateRange: z
     .object({
-      from: z.date({ message: 'Campo obrigatório' }).nullable(),
+      from: z.date({ message: 'Campo obrigatório' }),
       to: z.date({ message: 'Selecione uma data de término' }).optional(),
     })
     .optional()
@@ -69,7 +69,7 @@ export function SidePanel({ className }: SidePanelProps) {
   function onSubmit(props: FilterFormType) {
     // ...
     console.log('submit')
-    console.log(props)
+    console.log(props.dateRange)
   }
 
   function clearFilter() {
@@ -96,7 +96,7 @@ export function SidePanel({ className }: SidePanelProps) {
               )}
             />
 
-            {/* <FormField
+            <FormField
               control={control}
               name="dateRange"
               render={({ field }) => (
@@ -106,16 +106,7 @@ export function SidePanel({ className }: SidePanelProps) {
                     <div className="space-y-1">
                       <DatePickerWithRange
                         placeholder="Selecione uma data"
-                        onChange={(newValue) => {
-                          if (!newValue?.from && !newValue?.to) {
-                            field.onChange(undefined)
-                          } else {
-                            field.onChange({
-                              from: newValue.from || null,
-                              to: newValue.to || undefined,
-                            })
-                          }
-                        }}
+                        onChange={field.onChange}
                         value={field.value}
                         defaultValue={field.value}
                         defaultMonth={new Date().getMonth() - 1}
@@ -127,7 +118,7 @@ export function SidePanel({ className }: SidePanelProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            /> */}
+            />
 
             <FormField
               control={control}
@@ -188,8 +179,9 @@ export function SidePanel({ className }: SidePanelProps) {
               type="button"
               variant="secondary"
               className="mt-2 w-full gap-2"
+              onClick={clearFilter}
             >
-              <FilterX className="h-4 w-4" onClick={clearFilter} />
+              <FilterX className="h-4 w-4" />
               Limpar Filtro
             </Button>
           </form>

@@ -22,8 +22,8 @@ import { TimePicker } from './time-picker'
 
 interface DatePickerWithRangeProps {
   className?: string
-  onChange: (props: DateRange | undefined) => void
-  defaultValue?: DateRange | undefined
+  onChange: (props?: DateRange | undefined) => void
+  defaultValue?: DateRange
   value: DateRange | undefined
   placeholder?: string
   fromDate?: Date
@@ -46,44 +46,51 @@ export function DatePickerWithRange({
   const initialMonth = new Date(2024, defaultMonth || new Date().getMonth(), 1)
 
   function onSelect(newDateRange: DateRange | undefined) {
-    const from = newDateRange?.from ? new Date(newDateRange.from) : null
-    const to = newDateRange?.to ? new Date(newDateRange.to) : undefined
+    const from =
+      newDateRange && newDateRange.from ? new Date(newDateRange.from) : null
+    if (from) {
+      const to =
+        newDateRange && newDateRange?.to ? new Date(newDateRange.to) : undefined
 
-    if (timePicker) {
-      // Preserva hora e minuto selecionados
-      if (from) {
-        const oldHoursFrom = value?.from ? value.from.getHours() : 0
-        const oldMinutesFrom = value?.from ? value.from.getMinutes() : 0
+      if (timePicker) {
+        // Preserva hora e minuto selecionados
+        if (from) {
+          const oldHoursFrom = value?.from ? value.from.getHours() : 0
+          const oldMinutesFrom = value?.from ? value.from.getMinutes() : 0
 
-        from.setHours(oldHoursFrom)
-        from.setMinutes(oldMinutesFrom)
-      }
+          from.setHours(oldHoursFrom)
+          from.setMinutes(oldMinutesFrom)
+        }
 
-      if (to) {
-        const oldHoursTo = value?.to ? value.to.getHours() : 0
-        const oldMinutesTo = value?.to ? value.to.getMinutes() : 0
+        if (to) {
+          const oldHoursTo = value?.to ? value.to.getHours() : 0
+          const oldMinutesTo = value?.to ? value.to.getMinutes() : 0
 
-        to.setHours(oldHoursTo)
-        to.setMinutes(oldMinutesTo)
-      }
-    } else {
-      // Seta hora mínima (from) e máxima (to)
-      if (from) {
-        from.setMinTime()
-      }
+          to.setHours(oldHoursTo)
+          to.setMinutes(oldMinutesTo)
+        }
+      } else {
+        // Seta hora mínima (from) e máxima (to)
+        if (from) {
+          from.setMinTime()
+        }
 
-      if (to) {
-        if (to.setMinTime().getTime() === new Date().setMinTime().getTime()) {
-          to.setCurrentTime()
-        } else {
-          to.setMaxTime()
+        if (to) {
+          if (to.setMinTime().getTime() === new Date().setMinTime().getTime()) {
+            to.setCurrentTime()
+          } else {
+            to.setMaxTime()
+          }
         }
       }
+
+      onChange({
+        from,
+        to,
+      })
+    } else {
+      onChange(undefined)
     }
-    onChange({
-      from,
-      to,
-    })
   }
 
   return (
@@ -158,10 +165,14 @@ export function DatePickerWithRange({
                     value={value?.from}
                     defaultValue={defaultValue?.from}
                     onChange={(newDate) => {
-                      onChange({
-                        from: newDate,
-                        to: value?.to,
-                      })
+                      if (newDate) {
+                        onChange({
+                          from: newDate,
+                          to: value ? value.to : undefined,
+                        })
+                      } else {
+                        onChange(undefined)
+                      }
                     }}
                     disabled={!value?.from}
                   />
@@ -179,10 +190,12 @@ export function DatePickerWithRange({
                     defaultValue={defaultValue?.to}
                     disabled={!value?.to}
                     onChange={(newDate) => {
-                      onChange({
-                        from: value?.from || null,
-                        to: newDate,
-                      })
+                      if (value && value.from) {
+                        onChange({
+                          from: value.from,
+                          to: newDate,
+                        })
+                      }
                     }}
                   />
                 </div>
