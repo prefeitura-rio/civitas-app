@@ -6,7 +6,7 @@ import { changelog } from './components/changelog'
 export default function Novidades() {
   return (
     <div className="page-content overflow-y-scroll">
-      <div className="markdown h-full">
+      <div className="markdown">
         <h1>Histórico de Atualizações</h1>
         <p>
           Este documento registra todas as novas atualizações mais relevantes do
