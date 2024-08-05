@@ -81,8 +81,8 @@ export function DatePickerWithRange({
       }
     }
     onChange({
-      from: from || null,
-      to: to || undefined,
+      from,
+      to,
     })
   }
 
