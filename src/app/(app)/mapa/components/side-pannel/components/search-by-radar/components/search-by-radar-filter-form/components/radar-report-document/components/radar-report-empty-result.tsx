@@ -14,10 +14,6 @@ export function RadarReportEmptyResult({
   toDate,
   radarId,
 }: ReportEmptyResultProps) {
-  console.log({
-    fromDate,
-    toDate,
-  })
   const from = format(fromDate, "d 'de' MMMM 'de' y 'às' HH:mm:ss", {
     locale: ptBR,
   })
