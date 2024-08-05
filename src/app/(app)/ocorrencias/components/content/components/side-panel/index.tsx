@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
-import { DatePickerWithRange } from '@/components/ui/date-range-picker'
+// import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import {
   Form,
   FormControl,
@@ -96,7 +96,7 @@ export function SidePanel({ className }: SidePanelProps) {
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={control}
               name="dateRange"
               render={({ field }) => (
@@ -127,7 +127,7 @@ export function SidePanel({ className }: SidePanelProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             <FormField
               control={control}
