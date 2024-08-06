@@ -38,11 +38,11 @@ const filterFormSchema = z.object({
   dateRange: z
     .object({
       from: z.date({ message: 'Campo obrigatório' }),
-      to: z.date({ message: 'Selecione uma data de término' }),
+      to: z.date({ message: 'Selecione uma data de término' }).optional(),
     })
     .optional()
     .superRefine((val, ctx) => {
-      if (val && val.to > new Date()) {
+      if (val && val.to && val.to > new Date()) {
         ctx.addIssue({
           code: 'invalid_date',
           message: 'A data de término deve ser menor ou igual à data atual',
@@ -66,8 +66,10 @@ export function SidePanel({ className }: SidePanelProps) {
 
   const { control, handleSubmit, reset } = form
 
-  function onSubmit() {
+  function onSubmit(props: FilterFormType) {
     // ...
+    console.log('submit')
+    console.log(props.dateRange)
   }
 
   function clearFilter() {
@@ -177,8 +179,9 @@ export function SidePanel({ className }: SidePanelProps) {
               type="button"
               variant="secondary"
               className="mt-2 w-full gap-2"
+              onClick={clearFilter}
             >
-              <FilterX className="h-4 w-4" onClick={clearFilter} />
+              <FilterX className="h-4 w-4" />
               Limpar Filtro
             </Button>
           </form>
