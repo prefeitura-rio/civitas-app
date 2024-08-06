@@ -112,7 +112,7 @@ export function SearchByRadar() {
                   </Button>
                 </DialogTrigger>
               </Tooltip>
-              <DialogContent className="relative h-[80%] max-w-7xl">
+              <DialogContent className="box-border h-[80%] max-w-7xl">
                 <DialogTitle className="sr-only">
                   Imprimir relatório
                 </DialogTitle>
