@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils'
 
-import { TagEnum } from '../../../../changelog'
+import { TagType } from '../../../../changelog'
 
 interface TagProps {
-  tag: TagEnum
+  tag: TagType
 }
 
 export function Tag({ tag }: TagProps) {
@@ -11,23 +11,23 @@ export function Tag({ tag }: TagProps) {
   let textColor = ''
 
   switch (tag) {
-    case TagEnum.ADICIONADO:
-      backgroundColor = 'bg-emerald-900'
+    case 'Adicionado':
+      backgroundColor = 'bg-green-700'
       textColor = 'text-white'
       break
 
-    case TagEnum.ALTERADO:
-      backgroundColor = 'bg-orange-900'
+    case 'Alterado':
+      backgroundColor = 'bg-orange-700'
       textColor = 'text-white'
       break
 
-    case TagEnum.CORRIGIDO:
-      backgroundColor = 'bg-red-900'
+    case 'Corrigido':
+      backgroundColor = 'bg-red-700'
       textColor = 'text-white'
       break
 
-    case TagEnum.REMOVIDO:
-      backgroundColor = 'bg-slate-900'
+    case 'Removido':
+      backgroundColor = 'bg-neutral-500'
       textColor = 'text-white'
       break
 
