@@ -1,15 +1,12 @@
 import type { ReactNode } from 'react'
 
-export enum TagEnum {
-  'ADICIONADO' = 'Adicionado',
-  'ALTERADO' = 'Alterado',
-  'CORRIGIDO' = 'Corrigido',
-  'REMOVIDO' = 'Removido',
-}
+import { Tag } from './card/components/sub-card/components/tag'
+
+export type TagType = 'Adicionado' | 'Alterado' | 'Corrigido' | 'Removido'
 
 export interface SubCard {
   title: string
-  tag: TagEnum
+  tag: TagType
   content: ReactNode
 }
 
@@ -24,12 +21,36 @@ export const changelog: Card[] = [
     subCards: [
       {
         title: 'Histórico de Atualizações',
-        tag: TagEnum.ADICIONADO,
+        tag: 'Adicionado',
         content: (
-          <p>
-            A partir de agora, todas as novas atualizações do sistema serão
-            documentadas aqui, no <code>Histórico de Atualizações</code>.
-          </p>
+          <>
+            <p>
+              A partir de agora, todas as novas atualizações do sistema serão
+              documentadas aqui, no <code>Histórico de Atualizações</code>.
+            </p>
+            <p>
+              As atualizações serão organizadas por{' '}
+              <code>data de publicação</code> e consistirão de uma{' '}
+              <code>etiqueta</code>, um <code>título</code> e uma{' '}
+              <code>descrição</code> .
+            </p>
+            <p>Tipos de etiqueta:</p>
+            <ul className="space-y-1">
+              <li>
+                <Tag tag="Adicionado" />: Para novas funcionalidades.
+              </li>
+              <li>
+                <Tag tag="Alterado" />: Para mudanças em funcionalidades já
+                existentes.
+              </li>
+              <li>
+                <Tag tag="Removido" />: Para funcionalidades removidas.
+              </li>
+              <li>
+                <Tag tag="Corrigido" />: Para erros corigidos.
+              </li>
+            </ul>
+          </>
         ),
       },
     ],
@@ -39,7 +60,7 @@ export const changelog: Card[] = [
     subCards: [
       {
         title: 'Relatório de busca por radar',
-        tag: TagEnum.ADICIONADO,
+        tag: 'Adicionado',
         content: (
           <>
             <p>
@@ -77,7 +98,7 @@ export const changelog: Card[] = [
       },
       {
         title: 'Limite de intervalo de busca por radar',
-        tag: TagEnum.ALTERADO,
+        tag: 'Alterado',
         content: (
           <p>
             O intervalo de busca por radar foi ampliado. Anteriormente, era
