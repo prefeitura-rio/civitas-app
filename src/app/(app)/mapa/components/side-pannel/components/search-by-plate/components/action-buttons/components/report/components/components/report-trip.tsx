@@ -1,5 +1,4 @@
 import { Font, Text, View } from '@react-pdf/renderer'
-import { formatDate } from 'date-fns'
 
 import type { Point, Trip } from '@/models/entities'
 import { haversineDistance } from '@/utils/haversine-distance'
@@ -28,8 +27,6 @@ Font.register({
 })
 
 export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
-  const date = trip.points[0].startTime
-
   const hash = new Set<string>()
   let mapPoints: Point[] = []
   const tripChuncks: Point[][] = []
@@ -86,7 +83,7 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
                 fontSize: 14,
                 textAlign: 'center',
               }}
-            >{`Viagem ${trip.index + 1} - Dia ${formatDate(date, 'dd/MM/yyyy')}${tripChuncks.length > 1 ? ` - Parte ${index + 1} de ${tripChuncks.length}` : ''}:`}</Text>
+            >{`Viagem ${trip.index + 1}${tripChuncks.length > 1 ? ` - Parte ${index + 1} de ${tripChuncks.length}` : ''}:`}</Text>
             <MapView points={tripChunck} />
             <Text
               style={{
