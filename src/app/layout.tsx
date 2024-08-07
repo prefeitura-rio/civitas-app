@@ -8,7 +8,8 @@ import { Toaster } from '@/components/ui/sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'CIVITAS | Prefeitura do Rio de Janeiro',
+  title: 'CIVITAS',
+  description: 'Prefeitura do Rio de Janeiro',
 }
 
 export default function RootLayout({
