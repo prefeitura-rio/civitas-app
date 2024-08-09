@@ -17,6 +17,60 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '8 de Agosto de 2024',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Alertas de placas monitoradas no Discord',
+        content: (
+          <>
+            {/* <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/Captura%20de%20tela%202024-08-08%20201549.png"
+              alt="Exemplo da nova notificação contendo a informação de atraso"
+            /> */}
+            <span className="">Contexto:</span>
+            <p>
+              Recentemente, identificamos que alguns alertas têm sido publicados
+              com atrasos significativos, chegando a múltiplas horas após a
+              detecção inicial. Embora a maioria dos alertas chegue em tempo
+              hábil, atrasos maiores podem causar confusão na avaliação da
+              situação e no planejamento de respostas.
+            </p>
+
+            <span>Alterações implementadas:</span>
+            <ol>
+              <li className="ml-4 list-inside list-decimal">
+                Inclusão da Informação de Atraso nos Alertas:
+              </li>
+              <ul>
+                <li className="ml-8">
+                  Agora, todas as mensagens de detecção incluirão uma informação
+                  de atraso, indicando o tempo decorrido entre a detecção do
+                  veículo e a publicação do alerta. Essa melhoria permite que os
+                  operadores avaliem a urgência de cada mensagem com maior
+                  precisão.
+                </li>
+              </ul>
+
+              <li className="ml-4 list-inside list-decimal">
+                Redirecionamento de Alertas com Atraso Superior a 1 Hora:
+              </li>
+              <ul>
+                <li className="ml-8">
+                  Mensagens com atraso superior a 1 hora não serão mais
+                  publicadas nos canais principais de operação. Em vez disso,
+                  essas mensagens serão direcionadas para um canal específico
+                  chamado #debug, garantindo o registro sem interferir nas
+                  operações em tempo real.
+                </li>
+              </ul>
+            </ol>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '5 de Agosto de 2024',
     subCards: [
       {
