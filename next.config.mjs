@@ -16,6 +16,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'app.tixxi.rio',
       },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+      },
     ],
   },
 }
