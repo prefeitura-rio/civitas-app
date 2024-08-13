@@ -1,11 +1,12 @@
 'use client'
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
 import { useFormState } from '@/hooks/use-form-state'
 
 import { signInAction } from './actions'
@@ -51,7 +52,7 @@ export default function SignInForm() {
       </div>
 
       <Button className="w-full" type="submit" disabled={isPending}>
-        {isPending ? <Loader2 className="size-4 animate-spin" /> : 'Login'}
+        {isPending ? <Spinner /> : 'Login'}
       </Button>
     </form>
   )
