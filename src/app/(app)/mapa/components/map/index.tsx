@@ -94,6 +94,7 @@ export function Map() {
                 (item) => item.code === cameraCode,
               )
               if (camera) {
+                camerasCOR.layerStates.setIsVisible(true)
                 camerasCOR.layerStates.setSelectedCameraCOR(camera)
                 setViewport({
                   latitude: camera.latitude,
@@ -111,6 +112,7 @@ export function Map() {
                   item.cetRioCode === radarCode,
               )
               if (radar) {
+                radars.layerStates.setIsVisible(true)
                 radars.layerStates.setSelectedRadar(radar)
                 setViewport({
                   latitude: radar.latitude,
