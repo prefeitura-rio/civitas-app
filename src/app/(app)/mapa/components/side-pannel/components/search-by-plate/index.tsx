@@ -1,5 +1,4 @@
-import { Loader2 } from 'lucide-react'
-
+import { Spinner } from '@/components/ui/spinner'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { ActionButtons } from './components/action-buttons'
@@ -19,7 +18,7 @@ export function SearchByPlate() {
       <ActionButtons />
       {isLoading ? (
         <div className="flex h-[calc(100%-15rem)] w-full items-center justify-center">
-          <Loader2 className="size-10 animate-spin text-muted-foreground" />
+          <Spinner className="size-10" />
         </div>
       ) : (
         (possiblePlates && <PlateList />) || (trips && <TripList />)

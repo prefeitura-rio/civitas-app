@@ -1,9 +1,9 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Loader2 } from 'lucide-react'
 import React from 'react'
 
 import { Separator } from '@/components/ui/separator'
+import { Spinner } from '@/components/ui/spinner'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { TripCard } from './components/trip-card'
@@ -21,7 +21,7 @@ export function TripList() {
     <div className="h-[calc(100%-15rem)] w-full">
       {isLoading ? (
         <div className="flex h-full w-full items-center justify-center">
-          <Loader2 className="size-10 animate-spin text-muted-foreground" />
+          <Spinner className="size-10" />
         </div>
       ) : (
         trips && (
