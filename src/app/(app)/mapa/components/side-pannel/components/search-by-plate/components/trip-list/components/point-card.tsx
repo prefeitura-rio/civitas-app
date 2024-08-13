@@ -69,11 +69,6 @@ export function PointCard({ point }: PointCardProps) {
                 </CardHeader>
                 <CardContent>
                   <ul className="list-decoration">
-                    {/* <li>
-                      <span className="text-muted-foreground">Distância: </span>
-                      <span>{distanceInKilometers.toFixed(1)} Km</span>
-                    </li>
-                     */}
                     <li>
                       <span className="text-muted-foreground">Origem: </span>
                       <span>{toPascalCase(point.district)}</span>
@@ -130,6 +125,9 @@ export function PointCard({ point }: PointCardProps) {
         </Tooltip>
         <span className="block truncate text-xs text-muted-foreground">
           {toPascalCase(point.district)}
+        </span>
+        <span className="block truncate text-xs text-muted-foreground">
+          {`${point.speed} Km/h`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
           {toPascalCase('Sentido ' + point.direction)}
