@@ -9,6 +9,7 @@ export type Point = {
   location: string
   direction: string
   lane: string
+  speed: number
   secondsToNextPoint: number | null
   cloneAlert: boolean
 }

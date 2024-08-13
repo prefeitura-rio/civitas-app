@@ -1,7 +1,6 @@
 'use client'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { Loader2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 import {
@@ -9,14 +8,15 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
+import { Spinner } from '@/components/ui/spinner'
 import { MapContextProvider } from '@/contexts/map-context'
 
 const Map = dynamic(
   () => import('./components/map/index').then((mod) => mod.Map),
   {
     loading: () => (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="size-10 animate-spin text-muted-foreground" />
+      <div className="flex h-screen w-full items-center justify-center">
+        <Spinner className="size-10" />
       </div>
     ),
     ssr: false, // Disable server-side rendering
@@ -26,6 +26,11 @@ const Map = dynamic(
 const SidePanel = dynamic(
   () => import('./components/side-pannel/index').then((mod) => mod.SidePanel),
   {
+    loading: () => (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Spinner className="size-10" />
+      </div>
+    ),
     ssr: false, // Disable server-side rendering
   },
 )

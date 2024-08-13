@@ -21,14 +21,14 @@ const styles = StyleSheet.create({
   index: {
     textAlign: 'center',
     borderRight: 1,
-    width: '15%',
+    width: '9%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
   },
   location: {
     borderRight: 1,
-    width: '50%',
+    width: '39%',
     paddingHorizontal: 4,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   data: {
     textAlign: 'center',
     borderRight: 1,
-    width: '22%',
+    width: '13%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
@@ -46,14 +46,22 @@ const styles = StyleSheet.create({
   time: {
     textAlign: 'center',
     borderRight: 1,
-    width: '12%',
+    width: '7%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
+  speed: {
+    textAlign: 'center',
+    borderRight: 1,
+    width: '19%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
   },
   radar: {
     textAlign: 'center',
-    width: '22%',
+    width: '13%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
@@ -75,6 +83,9 @@ export function TripTable({ points }: TripTableProps) {
         </View>
         <View style={styles.time}>
           <Text>Hora</Text>
+        </View>
+        <View style={styles.speed}>
+          <Text>Velocidade [Km/h]</Text>
         </View>
         <View style={styles.radar}>
           <Text>Radar nº</Text>
@@ -99,6 +110,9 @@ export function TripTable({ points }: TripTableProps) {
             </View>
             <View style={styles.time}>
               <Text>{format(item.startTime, 'HH:mm')}</Text>
+            </View>
+            <View style={styles.speed}>
+              <Text>{item.speed.toFixed(0)}</Text>
             </View>
             <View style={styles.radar}>
               <Text>{item.cameraNumber}</Text>

@@ -24,6 +24,8 @@ interface SearchBoxProps {
   isVisible: boolean
   setIsVisible: Dispatch<SetStateAction<boolean>>
   setViewport: (props: SetViewportProps) => void
+  onSubmit?: (props: SearchForm) => void
+  placeHolder?: string
 }
 
 export function SearchBox({
@@ -31,6 +33,8 @@ export function SearchBox({
   setAddressMarker,
   setIsVisible,
   setViewport,
+  onSubmit,
+  placeHolder = 'Pesquise um endereço',
 }: SearchBoxProps) {
   const [suggestions, setSuggestions] = useState<Feature[]>([])
   const [openSuggestions, setOpenSuggestions] = useState(true)
@@ -41,10 +45,6 @@ export function SearchBox({
     })
 
   const address = watch('address')
-
-  function onSubmit() {
-    // ...
-  }
 
   useEffect(() => {
     const getData = async (query: string) => {
@@ -65,19 +65,20 @@ export function SearchBox({
   return (
     <Card
       className={cn(
+        'w-[21.125rem]',
         suggestions.length === 0 || !openSuggestions ? '' : 'rounded-b-none',
       )}
     >
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={onSubmit ? handleSubmit(onSubmit) : undefined}
         onFocus={() => setOpenSuggestions(true)}
         onBlur={() => setOpenSuggestions(false)}
       >
-        <div className="relative flex items-center">
+        <div className="relative flex w-[21rem] items-center">
           <Search className="absolute left-2 h-4 w-4" />
           <Input
             {...register('address')}
-            placeholder="Pequise um endereço"
+            placeholder={placeHolder}
             className={cn(
               'pl-8 pr-8 focus-visible:ring-0 focus-visible:ring-offset-0',
               suggestions.length === 0 || !openSuggestions

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { ReactNode } from 'react'
 
 import { Tag } from './card/components/sub-card/components/tag'
@@ -16,6 +17,97 @@ export interface Card {
 }
 
 export const changelog: Card[] = [
+  {
+    title: '13 de Agosto de 2024',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Campo de busca por endereço agora abrange câmeras e radares',
+        content: (
+          <>
+            <p>
+              O campo de busca por endereço no mapa foi aprimorado e agora
+              permite a pesquisa por câmeras do COR e radares utilizando seus
+              respectivos códigos.
+            </p>
+            <p>
+              A identificação do tipo de busca será feita da seguinte maneira:
+            </p>
+            <ol>
+              <li className="ml-4 list-inside list-decimal font-medium">
+                Busca por endereço:
+              </li>
+              <ul>
+                <li className="ml-8">
+                  Para localizar um endereço, inicie a digitação no campo de
+                  busca e selecione uma das <code>sugestões de endereços</code>{' '}
+                  que aparecerão abaixo.
+                </li>
+              </ul>
+              <li className="ml-4 list-inside list-decimal font-medium">
+                Busca por câmera do COR:
+              </li>
+              <ul>
+                <li className="ml-8">
+                  Para encontrar uma câmera do COR, digite os 6 dígitos
+                  correspondentes ao código da câmera e pressione{' '}
+                  <code>ENTER</code>.
+                </li>
+              </ul>
+              <li className="ml-4 list-inside list-decimal font-medium">
+                Busca por radar:
+              </li>
+              <ul>
+                <li className="ml-8">
+                  Para localizar um radar, insira o{' '}
+                  <code>Número da Câmera</code> ou o <code>Código CET-Rio</code>{' '}
+                  correspondente e pressione <code>ENTER</code>. Ambos os
+                  códigos devem ter mais de 6 dígitos, o que permite distinguir
+                  os radares das câmeras.
+                </li>
+              </ul>
+            </ol>
+            <p>
+              Se uma câmera ou radar não forem encontrados, uma notificação de
+              aviso será exibida, informando a falha na busca.
+            </p>
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Velocidade do veículo na busca por placa',
+        content: (
+          <>
+            <p>
+              A informação da velocidade do veículo no ponto de detecção passa a
+              ser incluída no resultado de buscas por placa, tanto no resultado
+              direto da busca quanto no relatório em PDF."
+            </p>
+            <div className="flex flex-col items-center gap-3">
+              <div>
+                <Image
+                  src="https://storage.googleapis.com/rj-civitas-public/assets/velocidade_display_trip_list.png"
+                  alt=""
+                  width={361}
+                  height={251}
+                />
+                <span className="text-sm leading-4 text-muted-foreground"></span>
+              </div>
+              <div>
+                <Image
+                  src="https://storage.googleapis.com/rj-civitas-public/assets/velocidade_relatorio.png"
+                  alt=""
+                  width={790}
+                  height={256}
+                />
+              </div>
+            </div>
+          </>
+        ),
+      },
+    ],
+  },
   {
     title: '8 de Agosto de 2024',
     subCards: [
