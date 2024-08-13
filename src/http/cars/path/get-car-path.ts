@@ -14,6 +14,7 @@ export interface Point {
   longitude: number
   bairro: string
   localidade: string
+  velocidade: number
   seconds_to_next_point: number | null
 }
 

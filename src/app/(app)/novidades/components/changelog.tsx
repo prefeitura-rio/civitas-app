@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { ReactNode } from 'react'
 
 import { Tag } from './card/components/sub-card/components/tag'
@@ -70,6 +71,38 @@ export const changelog: Card[] = [
               Se uma câmera ou radar não forem encontrados, uma notificação de
               aviso será exibida, informando a falha na busca.
             </p>
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Velocidade do veículo na busca por placa',
+        content: (
+          <>
+            <p>
+              A informação da velocidade do veículo no ponto de detecção passa a
+              ser incluída no resultado de buscas por placa, tanto no resultado
+              direto da busca quanto no relatório em PDF."
+            </p>
+            <div className="flex flex-col items-center gap-3">
+              <div>
+                <Image
+                  src="https://storage.googleapis.com/rj-civitas-public/assets/velocidade_display_trip_list.png"
+                  alt=""
+                  width={361}
+                  height={251}
+                />
+                <span className="text-sm leading-4 text-muted-foreground"></span>
+              </div>
+              <div>
+                <Image
+                  src="https://storage.googleapis.com/rj-civitas-public/assets/velocidade_relatorio.png"
+                  alt=""
+                  width={790}
+                  height={256}
+                />
+              </div>
+            </div>
           </>
         ),
       },

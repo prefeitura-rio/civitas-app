@@ -33,6 +33,7 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
           district: point.bairro,
           location,
           direction,
+          speed: point.velocidade,
           lane,
           secondsToNextPoint: point.seconds_to_next_point,
           cloneAlert: false,
