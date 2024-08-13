@@ -1,5 +1,6 @@
 import DeckGL from '@deck.gl/react'
 import ReactMapGL from 'react-map-gl'
+import { toast } from 'sonner'
 
 import { config } from '@/config'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
@@ -85,6 +86,42 @@ export function Map() {
           setIsVisible={addressMarker.layerStates.setIsVisible}
           setAddressMarker={addressMarker.layerStates.setAddressMarker}
           setViewport={setViewport}
+          placeHolder="Pesquise um endereço, câmera ou radar"
+          onSubmit={(props) => {
+            if (props.address.length === 6) {
+              const cameraCode = props.address
+              const camera = camerasCOR.data.find(
+                (item) => item.code === cameraCode,
+              )
+              if (camera) {
+                camerasCOR.layerStates.setSelectedCameraCOR(camera)
+                setViewport({
+                  latitude: camera.latitude,
+                  longitude: camera.longitude,
+                  zoom: 20,
+                })
+              } else {
+                toast.warning('Nenhuma câmera com esse código foi encontrada.')
+              }
+            } else if (props.address.length > 6) {
+              const radarCode = props.address
+              const radar = radars.data.find(
+                (item) =>
+                  item.cameraNumber === radarCode ||
+                  item.cetRioCode === radarCode,
+              )
+              if (radar) {
+                radars.layerStates.setSelectedRadar(radar)
+                setViewport({
+                  latitude: radar.latitude,
+                  longitude: radar.longitude,
+                  zoom: 20,
+                })
+              } else {
+                toast.warning('Nenhum radar com esse código foi encontrada.')
+              }
+            }
+          }}
         />
       </div>
       <MapActions />
