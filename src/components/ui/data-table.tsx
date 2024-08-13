@@ -6,7 +6,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Loader2 } from 'lucide-react'
 
 import {
   Table,
@@ -16,6 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
+import { Spinner } from './spinner'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -77,7 +78,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24">
                   <div className="flex h-full w-full items-center justify-center">
-                    <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                    <Spinner className="size-5" />
                   </div>
                 </TableCell>
               </TableRow>
