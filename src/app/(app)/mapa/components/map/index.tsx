@@ -19,6 +19,7 @@ export function Map() {
       wazePoliceAlerts,
       trips,
       agents,
+      fogoCruzadoIncidents,
     },
     deckRef,
     mapRef,
@@ -40,8 +41,6 @@ export function Map() {
       onResize={() => mapRef?.current?.resize()}
       controller
       layers={[
-        // trips.layers.lineLayer,
-        // trips.layers.lineLayerTransparent,
         camerasCOR.layers.cameraCORLayer,
         radars.layers.radarLayer,
         wazePoliceAlerts.layer,
@@ -49,10 +48,10 @@ export function Map() {
         radars.layers.selectedRadarLayer,
         radars.layers.slashInactiveRadarsLayer,
         agents.layer,
-        // trips.layers.coloredIconLayer,
         trips.layers.blackIconLayer,
         trips.layers.textLayer,
         addressMarker.layer,
+        fogoCruzadoIncidents.layer,
       ]}
       onViewStateChange={(e) => setViewport({ ...e.viewState })}
       getCursor={({ isDragging, isHovering }) => {

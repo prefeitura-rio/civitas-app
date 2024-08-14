@@ -197,3 +197,124 @@ export type Report = {
   location: string
   origin: string
 }
+
+export type FogoCruzadoIncident = {
+  id: string
+  documentNumber: number
+  address: string
+  state: {
+    id: string
+    name: string
+  }
+  region: {
+    id: string
+    region: string
+    state: string
+    enabled: boolean
+  }
+  city: {
+    id: string
+    name: string
+  }
+  neighborhood: {
+    id: string
+    name: string
+  }
+  subNeighborhood: string | null
+  locality: {
+    id: string
+    name: string
+  } | null
+  latitude: number
+  longitude: number
+  date: string
+  policeAction: boolean
+  agentPresence: boolean
+  relatedRecord: string
+  contextInfo: {
+    mainReason: {
+      id: string
+      name: string
+    }
+    complementaryReasons: {
+      id: string
+      name: string
+    }[]
+    clippings: {
+      id: string
+      name: string
+    }[]
+    massacre: boolean
+    policeUnit: string
+  }
+  transports: {
+    id: string
+    occurenceId: string
+    transport: string
+    interruptedTransport: boolean
+    dateInterruption: string
+    releaseDate: string
+    transportDescription: string
+  }[]
+  victims: {
+    id: string
+    occurrenceId: string
+    type: 'People'
+    situation: string
+    circumstances: []
+    deathDate: string
+    personType: string
+    age: number
+    ageGroup: {
+      id: string
+      name: string
+    }
+    genre: {
+      id: string
+      name: string
+    }
+    race: string | null
+    place: {
+      id: string
+      name: string
+    }
+    serviceStatus: {
+      id: string
+      name: string
+      type: string
+    }
+    qualifications: []
+    politicalPosition: {
+      id: string
+      name: string
+      type: string
+    }
+    politicalStatus: {
+      id: string
+      name: string
+      type: string
+    }
+    partie: unknown
+    coorporation: {
+      id: string
+      name: string
+    }
+    agentPosition: null
+    agentStatus: {
+      id: string
+      name: string
+      type: string
+    }
+    unit: string
+  }[]
+  animalVictims: {
+    id: string
+    occurenceId: string
+    name: string
+    type: 'Animal'
+    animalType: string
+    situation: string
+    circumstances: string
+    deathDate: string | null
+  }[]
+}
