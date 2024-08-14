@@ -14,7 +14,13 @@ interface Switches {
 
 export function MapActions() {
   const {
-    layers: { camerasCOR, radars, wazePoliceAlerts, trips, agents },
+    layers: {
+      camerasCOR,
+      radars,
+      wazePoliceAlerts,
+      agents,
+      fogoCruzadoIncidents,
+    },
     isMapStyleSatellite,
     setIsMapStyleSatellite,
   } = useMap()
@@ -50,21 +56,12 @@ export function MapActions() {
       checked: agents.layerStates.isVisible,
       onCheckedChange: agents.layerStates.setIsVisible,
     },
-  ]
-
-  const tripRelatedSwitches: Switches[] = [
-    // {
-    //   id: 'lines',
-    //   label: 'Linhas',
-    //   checked: trips.layersState.isLinesEnabled,
-    //   onCheckedChange: trips.layersState.setIsLinesEnabled,
-    // },
-    // {
-    //   id: 'iconColor',
-    //   label: 'Pontos com gradiente',
-    //   checked: trips.layersState.isIconColorEnabled,
-    //   onCheckedChange: trips.layersState.setIsIconColorEnabled,
-    // },
+    {
+      id: 'fogo-cruzado-incidents',
+      label: 'Fogo Cruzado',
+      checked: fogoCruzadoIncidents.layerStates.isVisible,
+      onCheckedChange: fogoCruzadoIncidents.layerStates.setIsVisible,
+    },
   ]
 
   return (
@@ -82,27 +79,6 @@ export function MapActions() {
           </Label>
         </div>
       ))}
-
-      {trips.selectedTrip && (
-        <>
-          {tripRelatedSwitches.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between gap-2"
-            >
-              <Switch
-                id={item.id}
-                size="sm"
-                checked={item.checked}
-                onCheckedChange={item.onCheckedChange}
-              />
-              <Label htmlFor={item.id} className="text-xs">
-                {item.label}
-              </Label>
-            </div>
-          ))}
-        </>
-      )}
     </Card>
   )
 }
