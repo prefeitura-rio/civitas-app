@@ -34,3 +34,12 @@ Date.prototype.setDatePreservingTime = function (newDate: Date): Date {
 
   return this
 }
+
+Date.prototype.addDays = function (days: number): Date {
+  const daysInMiliseconds = 1000 * 60 * 60 * 24 * days
+  const newTime = this.getTime() + daysInMiliseconds
+
+  this.setTime(newTime)
+
+  return this
+}
