@@ -56,21 +56,21 @@ export function Table({ className }: TableProps) {
                   <div className="flex flex-col">
                     <h4>Tipo</h4>
                     <span className="block text-muted-foreground">
-                      {item.type}
+                      {item.typeAndSubtype.at(0)?.type}
                     </span>
                   </div>
 
                   <div className="flex flex-col">
                     <h4>Subtipo</h4>
                     <span className="block text-muted-foreground">
-                      {item.subtype}
+                      {item.typeAndSubtype.at(0)?.subtype}
                     </span>
                   </div>
 
                   <div className="flex flex-col">
                     <h4>Origem</h4>
                     <span className="block text-muted-foreground">
-                      {item.origin}
+                      {item.sourceId}
                     </span>
                   </div>
                 </div>
@@ -78,7 +78,7 @@ export function Table({ className }: TableProps) {
                 <div className="flex gap-2 border-t-2 p-8">
                   <Speech className="h-6 w-6 shrink-0" />
                   <div>
-                    <h4>{item.title}</h4>
+                    <h4>{'Sem título'}</h4>
                     <p className="block text-muted-foreground">
                       {item.description}
                     </p>
