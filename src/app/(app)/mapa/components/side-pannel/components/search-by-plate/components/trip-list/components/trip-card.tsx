@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import type { Point } from '@/models/entities'
-import { toPascalCase } from '@/utils/toPascalCase'
 
 import { PointCard } from './point-card'
 
@@ -132,7 +131,7 @@ export function TripCard({
 
       {/* Second row: Districts */}
       <div className="flex w-full items-center gap-2 pl-20 text-muted-foreground">
-        <span>{toPascalCase(startLocation.district)}</span>
+        <span>{startLocation.district.capitalizeFirstLetter()}</span>
         {totalIndexes > 0 && (
           <>
             <div className="flex gap-2">
@@ -144,7 +143,7 @@ export function TripCard({
                 </>
               )}
             </div>
-            <span>{toPascalCase(endLocation.district)}</span>
+            <span>{endLocation.district.capitalizeFirstLetter()}</span>
           </>
         )}
       </div>
