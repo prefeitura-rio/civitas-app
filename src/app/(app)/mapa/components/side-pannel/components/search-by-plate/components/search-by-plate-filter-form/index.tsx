@@ -15,7 +15,6 @@ import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { dateToString } from '@/utils/date-to-string'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import { PlateWildcardsHelperInfo } from '../../../common/plate-wildcards-helper-info'
@@ -92,14 +91,14 @@ export function SearchByPlateFilterForm() {
       if (props.plate.includes('*')) {
         await getPossiblePlates({
           plate: props.plate,
-          startTime: dateToString(props.date.from),
-          endTime: dateToString(endTime),
+          startTime: props.date.from.toISOString(),
+          endTime: endTime.toISOString(),
         })
       } else {
         await getTrips({
           plate: props.plate,
-          startTime: dateToString(props.date.from),
-          endTime: dateToString(endTime),
+          startTime: props.date.from.toISOString(),
+          endTime: endTime.toISOString(),
         })
       }
     } catch (error) {
