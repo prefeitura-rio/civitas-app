@@ -1,6 +1,7 @@
 'use client'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, icons } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import { useState } from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,11 @@ export default function SignInForm() {
       redirect('/')
     },
   )
+  const [passwordFieldType, setPasswordFieldType] = useState<
+    'password' | 'text'
+  >('password')
+
+  const LucideIcon = icons[passwordFieldType === 'password' ? 'EyeOff' : 'Eye']
 
   return (
     <form className="w-full max-w-sm space-y-4" onSubmit={handleSubmit}>
@@ -42,8 +48,24 @@ export default function SignInForm() {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="password">Password</Label>
-        <Input type="password" id="password" name="password" />
+        <Label htmlFor="password">Senha</Label>
+        <div className="relative">
+          <Input
+            className="pr-8"
+            type={passwordFieldType}
+            id="password"
+            name="password"
+          />
+          <LucideIcon
+            className="absolute bottom-[50%] right-1.5 top-[50%] size-5 translate-y-[-50%] cursor-pointer select-none text-muted-foreground"
+            onClick={(e) => {
+              e.stopPropagation()
+              setPasswordFieldType(
+                passwordFieldType === 'password' ? 'text' : 'password',
+              )
+            }}
+          />
+        </div>
         {errors?.password && (
           <span className="ml-2 text-xs text-rose-600">
             {errors.password[0]}
