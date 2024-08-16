@@ -30,7 +30,7 @@ const cards = [
   //   title: 'Ocorrências',
   //   href: '/ocorrencias',
   //   description:
-  //     'Veja denúncias e incidentes registrados por diversos canais, além de um dashboard com diferentes insights sobre os registros',
+  //     'Veja denúncias e reportes registrados por diversos canais, além de um dashboard com diferentes insights sobre os registros',
   // },
   {
     title: 'Dashboards',

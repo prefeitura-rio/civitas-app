@@ -1,191 +1,171 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FilterX, Search } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { usePathname, useRouter } from 'next/navigation'
+import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { MultiselectCheckbox } from '@/components/custom/multiselect-checkbox'
 import { Button } from '@/components/ui/button'
 import { DatePickerWithRange } from '@/components/ui/date-range-picker'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
+import { useReportFilterOptions } from '@/hooks/use-queries/use-report-filter-options'
+import type { GetReportsRequest } from '@/http/reports/get-reports'
 import { cn } from '@/lib/utils'
 
 interface SidePanelProps {
   className?: string
 }
 
-enum Origins {
-  ALL = 'Todas',
-  DISK_DENUNCIA = 'Disk Denúncia',
-  UM_SETE_QUARTO_MEIA = '1746',
-}
-
 const filterFormSchema = z.object({
-  keyWord: z.string().optional(),
+  semanticallySimilar: z.string().optional(),
   dateRange: z
     .object({
       from: z.date({ message: 'Campo obrigatório' }),
       to: z.date({ message: 'Selecione uma data de término' }).optional(),
     })
-    .optional()
-    .superRefine((val, ctx) => {
-      if (val && val.to && val.to > new Date()) {
-        ctx.addIssue({
-          code: 'invalid_date',
-          message: 'A data de término deve ser menor ou igual à data atual',
-        })
-      }
-    }),
-  type: z.string().optional(),
-  subtype: z.string().optional(),
-  origin: z.nativeEnum(Origins),
+    .optional(),
+  sourceIdContains: z.array(z.string()).optional(),
+  categoryContains: z.array(z.string()).optional(),
 })
 
 type FilterFormType = z.infer<typeof filterFormSchema>
 
 export function SidePanel({ className }: SidePanelProps) {
-  const form = useForm<FilterFormType>({
+  const router = useRouter()
+  const pathName = usePathname()
+
+  const { formattedSearchParams } = useReportsSearchParams()
+  const {
+    categories,
+    sources,
+    states: { categoriesIsLoading, sourcesIsLoading },
+  } = useReportFilterOptions()
+
+  console.log({ categories })
+
+  const { control, handleSubmit, reset, register } = useForm<FilterFormType>({
     resolver: zodResolver(filterFormSchema),
     defaultValues: {
-      origin: Origins.ALL,
+      dateRange: {
+        from: formattedSearchParams.minDate
+          ? new Date(formattedSearchParams.minDate)
+          : undefined,
+        to: formattedSearchParams.maxDate
+          ? new Date(formattedSearchParams.maxDate)
+          : undefined,
+      },
     },
   })
 
-  const { control, handleSubmit, reset } = form
-
   function onSubmit(props: FilterFormType) {
-    // ...
-    console.log('submit')
-    console.log(props.dateRange)
+    const params = new URLSearchParams()
+
+    const searchParams: GetReportsRequest = {
+      semanticallySimilar: props.semanticallySimilar,
+      minDate: props.dateRange?.from.toISOString(),
+      maxDate: props.dateRange?.to?.toISOString(),
+      categoryContains: props.categoryContains,
+      sourceIdContains: props.sourceIdContains,
+    }
+
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value) {
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            params.append(key, item)
+          })
+        } else {
+          params.set(key, value)
+        }
+      }
+    })
+
+    router.push(`${pathName}?${params.toString()}`)
   }
 
   function clearFilter() {
     reset()
+    router.replace(pathName)
   }
 
   return (
     <div className={cn(className, 'space-y-4 pl-2')}>
       <h4>Filtros:</h4>
       <div className="w-full">
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <FormField
-              control={control}
-              name="keyWord"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Palavras-chave</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+          <div className="space-y-0.5">
+            <Label>Busca semântica</Label>
+            <Input {...register('semanticallySimilar')} />
+          </div>
 
-            <FormField
-              control={control}
-              name="dateRange"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data</FormLabel>
-                  <FormControl>
-                    <div className="space-y-1">
-                      <DatePickerWithRange
-                        placeholder="Selecione uma data"
-                        onChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
-                        defaultMonth={new Date().getMonth() - 1}
-                        timePicker={false}
-                        toDate={new Date()}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Controller
+            name="dateRange"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-0.5">
+                <Label>Data</Label>
+                <DatePickerWithRange
+                  placeholder="Selecione uma data"
+                  onChange={field.onChange}
+                  value={field.value}
+                  defaultValue={field.value}
+                  defaultMonth={new Date().getMonth() - 1}
+                  timePicker={false}
+                  toDate={new Date()}
+                />
+              </div>
+            )}
+          />
 
-            <FormField
-              control={control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tipo</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+          <Controller
+            name="categoryContains"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-0.5">
+                <Label>Categorias</Label>
+                <MultiselectCheckbox
+                  options={categories}
+                  value={field.value}
+                  onChange={field.onChange}
+                  isLoading={categoriesIsLoading}
+                />
+              </div>
+            )}
+          />
 
-            <FormField
-              control={control}
-              name="subtype"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subtipo</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+          <Controller
+            name="categoryContains"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-0.5">
+                <Label>Fontes</Label>
+                <MultiselectCheckbox
+                  options={sources}
+                  value={field.value}
+                  onChange={field.onChange}
+                  isLoading={sourcesIsLoading}
+                />
+              </div>
+            )}
+          />
 
-            <FormField
-              control={control}
-              name="origin"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Origem</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(Origins).map((item, index) => (
-                          <SelectItem key={index} value={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+          <Button type="submit" className="mt-4 w-full gap-2">
+            <Search className="h-4 w-4" />
+            Pesquisar
+          </Button>
 
-            <Button type="submit" className="mt-4 w-full gap-2">
-              <Search className="h-4 w-4" />
-              Pesquisar
-            </Button>
-
-            <Button
-              type="button"
-              variant="secondary"
-              className="mt-2 w-full gap-2"
-              onClick={clearFilter}
-            >
-              <FilterX className="h-4 w-4" />
-              Limpar Filtro
-            </Button>
-          </form>
-        </Form>
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-2 w-full gap-2"
+            onClick={clearFilter}
+          >
+            <FilterX className="h-4 w-4" />
+            Limpar Filtro
+          </Button>
+        </form>
       </div>
     </div>
   )

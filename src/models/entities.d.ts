@@ -187,15 +187,49 @@ export type Agent = {
 }
 
 export type Report = {
-  title: string
-  date: Date
+  reportId: string
+  sourceId: string
+  originalReportId: string
+  date: string
+  entities: {
+    name: string
+  }[]
+  category: string
+  typeAndSubtype: {
+    type: string
+    subtype: string[]
+  }[]
   description: string
-  type: string
-  subtype: string
   latitude: number
   longitude: number
   location: string
-  origin: string
+  locationNumber: string
+  additionalInfo: {
+    certainty: number
+  }
+}
+
+export type BackendReport = {
+  id_report: string
+  id_source: string
+  id_report_original: string
+  data_report: string
+  orgaos: {
+    nome: string
+  }[]
+  categoria: string
+  tipo_subtipo: {
+    tipo: string
+    subtipo: string[]
+  }[]
+  descricao: string
+  logradouro: string
+  numero_logradouro: string
+  latitude: 0
+  longitude: 0
+  additional_info: {
+    certainty: number
+  }
 }
 
 export type FogoCruzadoIncident = {
