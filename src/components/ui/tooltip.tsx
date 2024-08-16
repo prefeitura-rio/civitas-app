@@ -43,7 +43,11 @@ export function Tooltip({
             className={cn('max-w-sm text-justify', className)}
             sideOffset={10}
           >
-            {render || <p>{disabled && disabledText ? disabledText : text}</p>}
+            {render || (
+              <p className="whitespace-pre-wrap">
+                {disabled && disabledText ? disabledText : text}
+              </p>
+            )}
           </TooltipContent>
         )}
       </RawTooltip>
