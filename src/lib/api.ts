@@ -4,6 +4,8 @@ import { CookiesFn } from 'cookies-next/lib/types'
 
 import { config } from '@/config'
 
+import { queryClient } from './react-query'
+
 export const isApiError = axios.isAxiosError
 
 export const api = axios.create({
@@ -33,6 +35,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       deleteCookie('token')
+      queryClient.clear()
       window.location.href = '/auth/sign-in'
     }
     return Promise.reject(error)

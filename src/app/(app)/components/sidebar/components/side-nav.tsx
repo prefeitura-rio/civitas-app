@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useSidebar } from '@/hooks/use-contexts/use-sidebar-context'
+import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'
 import type { NavItem } from '@/models/utils'
 import { logout } from '@/utils/logout'
@@ -198,6 +199,7 @@ export function SideNav({ items, setOpen, className }: SideNavProps) {
               size="sm"
               onClick={() => {
                 if (setOpen) setOpen(false)
+                queryClient.clear()
                 logout()
               }}
               asChild
