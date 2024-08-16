@@ -9,6 +9,7 @@ import { FogoCruzadoIncident } from '@/models/entities'
 
 export interface UseFogoCruzadoIncidents {
   data: FogoCruzadoIncident[]
+  failed: boolean
   layer: IconLayer<FogoCruzadoIncident, object>
   layerStates: {
     isLoading: boolean
@@ -26,13 +27,13 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
   const [isVisible, setIsVisible] = useState(false)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['fogocruzadoincidents'],
+    queryKey: ['layers', 'fogocruzado'],
     queryFn: () => getFogoCruzadoIncidents(),
     refetchInterval: 1000 * 60 * 5, // 5 min
   })
 
   const layer = new IconLayer<FogoCruzadoIncident>({
-    id: 'fogocruzadoincidents',
+    id: 'fogocruzado-incidents',
     data,
     pickable: true,
     getSize: 24,
@@ -48,9 +49,10 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
     getPosition: (info) => [info.longitude, info.latitude],
     onHover: (info) => setHoverInfo(info),
   })
-
+  console.log(!data && !isLoading)
   return {
     data: data || [],
+    failed: !data && !isLoading,
     layer,
     layerStates: {
       isLoading,
