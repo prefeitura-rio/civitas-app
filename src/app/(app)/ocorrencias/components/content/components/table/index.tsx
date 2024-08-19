@@ -1,9 +1,9 @@
 import { format } from 'date-fns'
-import { MapPin, Speech } from 'lucide-react'
 
-import { Card } from '@/components/ui/card'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 import { cn } from '@/lib/utils'
+
+import { ReportCard } from './components/report-card'
 
 interface TableProps {
   className?: string
@@ -21,7 +21,7 @@ export function Table({ className }: TableProps) {
       <h3>Histórico de ocorrências:</h3>
       <div className="pt-10">
         {data.map((item, index) => (
-          <div key={index} className="flex h-full">
+          <div className="flex h-full">
             <div className="flex w-[16rem] justify-end gap-4 px-4">
               <div className="flex flex-col items-end">
                 <span className="text-lg font-semibold leading-5 text-primary">
@@ -40,59 +40,7 @@ export function Table({ className }: TableProps) {
               </div>
             </div>
 
-            <div className="w-full pb-14">
-              <Card className="-mt-10 grid grid-cols-1">
-                <div className="grid grid-cols-5 p-8">
-                  <div className="col-span-1 flex gap-2">
-                    <MapPin className="h-6 w-6 shrink-0" />
-                    <div className="flex flex-col">
-                      <h4>Local</h4>
-                      <span className="block text-muted-foreground">
-                        {item.location}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <h4>Tipo</h4>
-                    <span className="block text-muted-foreground">
-                      {item.typeAndSubtype.at(0)?.type}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <h4>Subtipo</h4>
-                    <span className="block text-muted-foreground">
-                      {item.typeAndSubtype.at(0)?.subtype.join(', ')}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <h4>Origem</h4>
-                    <span className="block text-muted-foreground">
-                      {item.sourceId}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <h4>Orgãos</h4>
-                    <span className="block text-muted-foreground">
-                      {item.entities.map((item) => item.name).join(', ')}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 border-t-2 p-8">
-                  <Speech className="h-6 w-6 shrink-0" />
-                  <div>
-                    <h4>{'Sem título'}</h4>
-                    <p className="block text-muted-foreground">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </div>
+            <ReportCard {...item} key={index} />
           </div>
         ))}
       </div>
