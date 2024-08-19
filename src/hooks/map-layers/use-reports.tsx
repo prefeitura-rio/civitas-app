@@ -1,3 +1,4 @@
+import type { PickingInfo } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
 import { type Dispatch, type SetStateAction, useState } from 'react'
@@ -12,16 +13,22 @@ export interface UseReports {
   data: Report[]
   layer: IconLayer<Report, object>
   layerStates: {
+    isLoading: boolean
     isVisible: boolean
     setIsVisible: Dispatch<SetStateAction<boolean>>
+    hoverInfo: PickingInfo<Report>
+    setHoverInfo: Dispatch<SetStateAction<PickingInfo<Report>>>
   }
 }
 
 export function useReports(): UseReports {
   const [isVisible, setIsVisible] = useState(true)
   const { queryKey, formattedSearchParams } = useReportsSearchParams()
+  const [hoverInfo, setHoverInfo] = useState<PickingInfo<Report>>(
+    {} as PickingInfo<Report>,
+  )
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () => getReports(formattedSearchParams),
   })
@@ -41,14 +48,18 @@ export function useReports(): UseReports {
     highlightColor: [249, 115, 22, 255], // orange-500
     autoHighlight: true,
     visible: isVisible,
+    onHover: (info) => setHoverInfo(info),
   })
 
   return {
     data: data?.items || [],
     layer,
     layerStates: {
+      isLoading,
       isVisible,
       setIsVisible,
+      hoverInfo,
+      setHoverInfo,
     },
   }
 }
