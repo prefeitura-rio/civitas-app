@@ -38,9 +38,9 @@ export function Content() {
 
           <div className="h-[calc(100%-3rem)] overflow-y-scroll">
             {view === Views.MAP && <Map className="" />}
-            {view === Views.TABLE && <Table className="" />}
+            {view === Views.TABLE && <Table className="min-w-screen-lg" />}
             {view === Views.DASHBOARD && (
-              <Dashboard className="h-full w-full min-w-[48rem]" />
+              <Dashboard className="min-w-screen-md h-full w-full" />
             )}
           </div>
         </div>

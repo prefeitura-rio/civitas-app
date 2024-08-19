@@ -22,7 +22,7 @@ export function Table({ className }: TableProps) {
       <div className="pt-10">
         {data.map((item, index) => (
           <div key={index} className="flex h-full">
-            <div className="flex w-[40rem] justify-end gap-4 px-4">
+            <div className="flex w-[16rem] justify-end gap-4 px-4">
               <div className="flex flex-col items-end">
                 <span className="text-lg font-semibold leading-5 text-primary">
                   {format(item.date, 'dd.MM.y')}
@@ -40,10 +40,10 @@ export function Table({ className }: TableProps) {
               </div>
             </div>
 
-            <div className="pb-14">
+            <div className="w-full pb-14">
               <Card className="-mt-10 grid grid-cols-1">
-                <div className="col-span-5 grid grid-cols-5 p-8">
-                  <div className="col-span-2 flex gap-2">
+                <div className="grid grid-cols-5 p-8">
+                  <div className="col-span-1 flex gap-2">
                     <MapPin className="h-6 w-6 shrink-0" />
                     <div className="flex flex-col">
                       <h4>Local</h4>
@@ -63,7 +63,7 @@ export function Table({ className }: TableProps) {
                   <div className="flex flex-col">
                     <h4>Subtipo</h4>
                     <span className="block text-muted-foreground">
-                      {item.typeAndSubtype.at(0)?.subtype}
+                      {item.typeAndSubtype.at(0)?.subtype.join(', ')}
                     </span>
                   </div>
 
@@ -71,6 +71,13 @@ export function Table({ className }: TableProps) {
                     <h4>Origem</h4>
                     <span className="block text-muted-foreground">
                       {item.sourceId}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <h4>Orgãos</h4>
+                    <span className="block text-muted-foreground">
+                      {item.entities.map((item) => item.name).join(', ')}
                     </span>
                   </div>
                 </div>

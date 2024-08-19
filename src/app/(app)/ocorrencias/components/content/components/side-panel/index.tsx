@@ -43,8 +43,6 @@ export function SidePanel({ className }: SidePanelProps) {
     states: { categoriesIsLoading, sourcesIsLoading },
   } = useReportFilterOptions()
 
-  console.log({ categories })
-
   const { control, handleSubmit, reset, register } = useForm<FilterFormType>({
     resolver: zodResolver(filterFormSchema),
     defaultValues: {
@@ -136,7 +134,7 @@ export function SidePanel({ className }: SidePanelProps) {
           />
 
           <Controller
-            name="categoryContains"
+            name="sourceIdContains"
             control={control}
             render={({ field }) => (
               <div className="space-y-0.5">
