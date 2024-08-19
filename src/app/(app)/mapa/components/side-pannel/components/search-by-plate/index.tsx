@@ -1,4 +1,4 @@
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '@/components/custom/spinner'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { ActionButtons } from './components/action-buttons'

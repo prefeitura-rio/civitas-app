@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { CardTitle } from '@/components/ui/card'
 import {
@@ -14,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
 import { genericErrorMessage } from '@/utils/error-handlers'

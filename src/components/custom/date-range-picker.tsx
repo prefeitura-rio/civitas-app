@@ -15,9 +15,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-import { Separator } from './separator'
 import { TimePicker } from './time-picker'
 
 interface DatePickerWithRangeProps {

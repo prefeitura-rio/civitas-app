@@ -2,8 +2,8 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import React from 'react'
 
+import { Spinner } from '@/components/custom/spinner'
 import { Separator } from '@/components/ui/separator'
-import { Spinner } from '@/components/ui/spinner'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { TripCard } from './components/trip-card'

@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { Spinner } from './spinner'
+import { Spinner } from '../custom/spinner'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
