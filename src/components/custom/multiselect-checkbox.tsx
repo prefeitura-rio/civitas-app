@@ -29,8 +29,6 @@ export function MultiselectCheckbox({
     ),
   )
 
-  console.log({ defaultOptions })
-
   useEffect(() => {
     setOptions(
       defaultOptions.reduce(

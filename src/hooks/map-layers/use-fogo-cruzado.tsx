@@ -49,7 +49,7 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
     getPosition: (info) => [info.longitude, info.latitude],
     onHover: (info) => setHoverInfo(info),
   })
-  console.log(!data && !isLoading)
+
   return {
     data: data || [],
     failed: !data && !isLoading,
