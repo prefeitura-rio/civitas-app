@@ -1,7 +1,7 @@
 import { SearchX } from 'lucide-react'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 export function ClearTripsButton() {

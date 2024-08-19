@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import {
   Accordion,
   AccordionContent,
@@ -11,7 +12,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useSidebar } from '@/hooks/use-contexts/use-sidebar-context'
 import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'

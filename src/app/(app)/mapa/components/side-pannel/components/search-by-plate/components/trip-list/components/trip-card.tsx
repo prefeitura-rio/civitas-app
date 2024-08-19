@@ -2,8 +2,8 @@ import { format } from 'date-fns'
 import { ChevronRight, TriangleAlert } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import type { Point } from '@/models/entities'
 
