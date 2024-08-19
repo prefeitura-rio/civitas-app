@@ -26,55 +26,57 @@ export function ReportHoverInfoTooltip() {
         >
           <div className="spave-y-1 text-xs leading-4">
             <div className="flex gap-2">
-              <span className="font-medium text-muted-foreground">Data:</span>
-              <span>{formatDate(object.date, 'dd/mm/y HH:mm')}</span>
-            </div>
-
-            <div className="flex gap-2">
-              <span className="font-medium text-muted-foreground">Fonte:</span>
-              <span>{object.sourceId}</span>
-            </div>
-
-            <div className="flex gap-2">
-              <span className="font-medium text-muted-foreground">
-                Categoria:
+              <span className="font-medium">Data:</span>
+              <span className="text-muted-foreground">
+                {formatDate(object.date, 'dd/mm/y HH:mm')}
               </span>
-              <span>{object.category}</span>
             </div>
 
             <div className="flex gap-2">
-              <span className="font-medium text-muted-foreground">
-                Logradouro:
-              </span>
-              <span>{object.location}</span>
+              <span className="font-medium">Fonte:</span>
+              <span className="text-muted-foreground">{object.sourceId}</span>
             </div>
 
             <div className="flex gap-2">
-              <span className="font-medium text-muted-foreground">
-                Número Logradouro:
-              </span>
-              <span>{object.locationNumber}</span>
+              <span className="font-medium">Categoria:</span>
+              <span className="text-muted-foreground">{object.category}</span>
             </div>
 
             <div className="flex gap-2">
-              <span className="font-medium text-muted-foreground">Órgãos:</span>
-              <span>{object.entities.map((item) => item.name).join(', ')}</span>
+              <span className="font-medium">Logradouro:</span>
+              <span className="text-muted-foreground">{object.location}</span>
             </div>
 
-            <div>
-              <span className="font-medium text-muted-foreground">
-                Tipos e Subtipos:{' '}
+            <div className="flex gap-2">
+              <span className="font-medium">Número Logradouro:</span>
+              <span className="text-muted-foreground">
+                {object.locationNumber}
               </span>
-              <ul>
+            </div>
+
+            <div className="">
+              <span className="font-medium">Órgãos:</span>
+              <ul className="pl-4">
+                {object.entities.map((item) => (
+                  <li className="list-inside list-disc text-muted-foreground">
+                    {item.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="">
+              <span className="font-medium">Tipos e Subtipos: </span>
+              <ul className="pl-4 text-muted-foreground">
                 {object.typeAndSubtype.map((item) => (
                   <>
-                    <li className="ml-4 list-inside list-disc">
+                    <li className="list-inside list-disc">
                       {item.type.capitalizeFirstLetter()}
                     </li>
                     <ul>
                       {item.subtype.map((subtype) => (
-                        <li className="list- ml-8 flex list-inside items-center gap-2">
-                          <Circle className="size-1" />
+                        <li className="list- ml-4 flex list-inside items-start gap-2">
+                          <Circle className="mt-1.5 size-1" />
                           <span>{subtype.capitalizeFirstLetter()}</span>
                         </li>
                       ))}
@@ -84,11 +86,11 @@ export function ReportHoverInfoTooltip() {
               </ul>
             </div>
 
-            <div className="flex gap-2">
-              <span className="font-medium text-muted-foreground">
-                Descrição:
+            <div className="">
+              <span className="font-medium">Descrição:</span>
+              <span className="block pl-4 text-muted-foreground">
+                {object.description}
               </span>
-              <span>{object.description}</span>
             </div>
           </div>
         </Card>

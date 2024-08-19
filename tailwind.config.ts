@@ -18,6 +18,9 @@ const config = {
       },
     },
     extend: {
+      lineHeight: {
+        '3.5': '0.875rem',
+      },
       scale: {
         '101': '1.01',
         '102': '1.02',

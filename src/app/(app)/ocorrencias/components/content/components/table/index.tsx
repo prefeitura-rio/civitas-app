@@ -22,12 +22,12 @@ export function Table({ className }: TableProps) {
       <div className="pt-10">
         {data.map((item, index) => (
           <div className="flex h-full">
-            <div className="flex w-[16rem] justify-end gap-4 px-4">
+            <div className="flex w-40 justify-end gap-4 px-4">
               <div className="flex flex-col items-end">
-                <span className="text-lg font-semibold leading-5 text-primary">
+                <span className="text-sm font-semibold leading-4 text-primary">
                   {format(item.date, 'dd.MM.y')}
                 </span>
-                <span className="text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   {format(item.date, 'HH:mm')}
                 </span>
               </div>
