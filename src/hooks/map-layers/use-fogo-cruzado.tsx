@@ -17,6 +17,8 @@ export interface UseFogoCruzadoIncidents {
     setIsVisible: Dispatch<SetStateAction<boolean>>
     hoverInfo: PickingInfo<FogoCruzadoIncident>
     setHoverInfo: Dispatch<SetStateAction<PickingInfo<FogoCruzadoIncident>>>
+    selected: FogoCruzadoIncident | null
+    setSelected: Dispatch<SetStateAction<FogoCruzadoIncident | null>>
   }
 }
 
@@ -25,6 +27,7 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
     {} as PickingInfo<FogoCruzadoIncident>,
   )
   const [isVisible, setIsVisible] = useState(false)
+  const [selected, setSelected] = useState<FogoCruzadoIncident | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['layers', 'fogocruzado'],
@@ -48,7 +51,12 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
     }),
     getPosition: (info) => [info.longitude, info.latitude],
     onHover: (info) => setHoverInfo(info),
+    onClick: (info) => {
+      setSelected(info.object)
+    },
   })
+
+  console.log(selected)
 
   return {
     data: data || [],
@@ -60,6 +68,8 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
       setIsVisible,
       hoverInfo,
       setHoverInfo,
+      selected,
+      setSelected,
     },
   }
 }

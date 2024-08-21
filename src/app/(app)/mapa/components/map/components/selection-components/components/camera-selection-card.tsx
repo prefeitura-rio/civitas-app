@@ -15,7 +15,7 @@ import {
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 
-export function CameraInfoFixedPopup() {
+export function CameraSelectionCard() {
   const {
     layers: {
       camerasCOR: {
