@@ -5,10 +5,11 @@ import { toast } from 'sonner'
 import { config } from '@/config'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { IconTooltips } from './components/icon-tooltips'
+import { HoverComponents } from './components/hover-components'
 import { MapActions } from './components/map-actions'
 import { MapCaption } from './components/map-caption'
 import { SearchBox } from './components/search-box'
+import { SelectionComponents } from './components/selection-components'
 
 export function Map() {
   const {
@@ -60,7 +61,8 @@ export function Map() {
           // Actually clickable objects:
           if (
             radars.layerStates.hoverInfo.object ||
-            camerasCOR.layerStates.hoverInfo.object
+            camerasCOR.layerStates.hoverInfo.object ||
+            fogoCruzadoIncidents.layerStates.hoverInfo.object
           )
             return 'pointer'
         }
@@ -76,7 +78,8 @@ export function Map() {
             : 'mapbox://styles/mapbox/streets-v12'
         }
       />
-      <IconTooltips />
+      <HoverComponents />
+      <SelectionComponents />
       {(trips.layersState.isLinesEnabled ||
         trips.layersState.isIconColorEnabled) && <MapCaption />}
       <div className="absolute-x-centered top-2 z-50 w-64">

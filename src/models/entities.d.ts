@@ -295,7 +295,11 @@ export type FogoCruzadoIncident = {
     occurrenceId: string
     type: 'People'
     situation: string
-    circumstances: []
+    circumstances: {
+      id: string
+      name: string
+      type: string
+    }[]
     deathDate: string
     personType: string
     age: number
@@ -317,28 +321,40 @@ export type FogoCruzadoIncident = {
       name: string
       type: string
     }
-    qualifications: []
+    qualifications: {
+      id: string
+      name: string
+      type: string
+    }[]
     politicalPosition: {
       id: string
       name: string
       type: string
-    }
+    } | null
     politicalStatus: {
       id: string
       name: string
       type: string
-    }
-    partie: unknown
+    } | null
+    partie: {
+      id: string
+      name: string
+      type: string
+    } | null
     coorporation: {
       id: string
       name: string
-    }
-    agentPosition: null
+    } | null
+    agentPosition: {
+      id: string
+      name: string
+      type: string
+    } | null
     agentStatus: {
       id: string
       name: string
       type: string
-    }
+    } | null
     unit: string
   }[]
   animalVictims: {
@@ -348,7 +364,11 @@ export type FogoCruzadoIncident = {
     type: 'Animal'
     animalType: string
     situation: string
-    circumstances: string
+    circumstances: {
+      id: string
+      name: string
+      type: string
+    }[]
     deathDate: string | null
   }[]
 }

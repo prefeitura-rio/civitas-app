@@ -13,7 +13,7 @@ export function ReportCard(props: Report) {
           <div className="col-span-2 flex gap-2">
             <MapPin className="h-5 w-5 shrink-0" />
             <div className="flex flex-col">
-              <span className="leading-3.5 text-sm">Local</span>
+              <span className="text-sm leading-3.5">Local</span>
               <span className="block text-sm text-muted-foreground">
                 {props.location.capitalizeFirstLetter()}
               </span>
@@ -21,14 +21,14 @@ export function ReportCard(props: Report) {
           </div>
 
           <div className="col-span-1 flex flex-col">
-            <span className="leading-3.5 text-sm">Origem</span>
+            <span className="text-sm leading-3.5">Origem</span>
             <span className="block text-muted-foreground">
               {props.sourceId}
             </span>
           </div>
 
           <div className="col-span-3 flex flex-col">
-            <span className="leading-3.5 text-sm">Orgãos</span>
+            <span className="text-sm leading-3.5">Orgãos</span>
             <ul className="text-muted-foreground">
               {props.entities.map((item) => (
                 <li className="list-inside list-disc">
@@ -39,7 +39,7 @@ export function ReportCard(props: Report) {
           </div>
 
           <div className="col-span-3 flex flex-col">
-            <span className="leading-3.5 text-sm">Tipos e Subtipos</span>
+            <span className="text-sm leading-3.5">Tipos e Subtipos</span>
             <ul className="text-sm text-muted-foreground">
               {props.typeAndSubtype.map((item) => (
                 <>
@@ -63,7 +63,7 @@ export function ReportCard(props: Report) {
         <div className="flex gap-2 border-t-2 p-8">
           <Speech className="h-6 w-6 shrink-0" />
           <div>
-            <span className="leading-3.5 text-sm">{'Sem título'}</span>
+            <span className="text-sm leading-3.5">Descrição</span>
             <p className="block text-sm text-muted-foreground">
               {props.description}
             </p>
