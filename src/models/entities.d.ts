@@ -295,7 +295,11 @@ export type FogoCruzadoIncident = {
     occurrenceId: string
     type: 'People'
     situation: string
-    circumstances: []
+    circumstances: {
+      id: string
+      name: string
+      type: string
+    }[]
     deathDate: string
     personType: string
     age: number
@@ -317,7 +321,11 @@ export type FogoCruzadoIncident = {
       name: string
       type: string
     }
-    qualifications: []
+    qualifications: {
+      id: string
+      name: string
+      type: string
+    }[]
     politicalPosition: {
       id: string
       name: string
@@ -333,7 +341,11 @@ export type FogoCruzadoIncident = {
       id: string
       name: string
     }
-    agentPosition: null
+    agentPosition: {
+      id: string
+      name: string
+      type: string
+    }
     agentStatus: {
       id: string
       name: string

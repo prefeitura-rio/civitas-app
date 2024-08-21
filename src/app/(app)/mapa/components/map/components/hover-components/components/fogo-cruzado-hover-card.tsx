@@ -4,7 +4,7 @@ import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info
 import { Card } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-export function FogoCruzadoIncidentTooltipCard() {
+export function FogoCruzadoHoverCard() {
   const {
     layers: {
       fogoCruzadoIncidents: {

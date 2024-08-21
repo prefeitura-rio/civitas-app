@@ -17,7 +17,7 @@ export interface GetReportsRequest extends PaginationRequest {
   maxLon?: number
 }
 
-interface GetReportsBackendRequest {
+interface GetReportsBackendRequest extends PaginationRequest {
   semantically_similar?: string
   id_report?: string
   id_report_original?: string
@@ -52,6 +52,8 @@ export async function getReports(props: GetReportsRequest) {
     latitude_max: props.maxLat,
     longitude_min: props.minLon,
     longitude_max: props.maxLon,
+    page: props.page,
+    size: props.size,
   }
 
   Object.entries(newProps).forEach(([key, value]) => {
