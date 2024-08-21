@@ -11,6 +11,7 @@ import { Radar } from '@/models/entities'
 
 export interface UseRadars {
   data: Radar[]
+  failed: boolean
   layers: {
     radarLayer: IconLayer<Radar, object>
     slashInactiveRadarsLayer: IconLayer<Radar, object>
@@ -34,14 +35,16 @@ export function useRadars(): UseRadars {
   const [isVisible, setIsVisible] = useState(false)
   const [selectedRadar, setSelectedRadar] = useState<Radar | null>(null)
 
-  const { data: response, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['radars'],
     queryFn: () => getRadars(),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   })
 
   const radarLayer = new IconLayer<Radar>({
     id: 'radars',
-    data: response?.data,
+    data,
     getPosition: (info) => [info.longitude, info.latitude],
     getSize: 24,
     getIcon: () => ({
@@ -63,9 +66,7 @@ export function useRadars(): UseRadars {
 
   const slashInactiveRadarsLayer = new IconLayer<Radar>({
     id: 'inactive-radars',
-    data: response?.data.filter(
-      (item) => !item.activeInLast24Hours && item.hasData,
-    ),
+    data: data?.filter((item) => !item.activeInLast24Hours && item.hasData),
     getPosition: (radar) => [radar.longitude, radar.latitude],
     getSize: 24,
     getIcon: () => ({
@@ -103,7 +104,8 @@ export function useRadars(): UseRadars {
   })
 
   return {
-    data: response?.data || [],
+    data: data || [],
+    failed: !data && !isLoading,
     layers: {
       radarLayer,
       slashInactiveRadarsLayer,

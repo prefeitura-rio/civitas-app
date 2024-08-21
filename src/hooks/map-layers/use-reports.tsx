@@ -11,6 +11,7 @@ import { useReportsSearchParams } from '../use-params/use-reports-search-params'
 
 export interface UseReports {
   data: Report[]
+  failed: boolean
   layer: IconLayer<Report, object>
   layerStates: {
     isLoading: boolean
@@ -53,6 +54,7 @@ export function useReports(): UseReports {
 
   return {
     data: data?.items || [],
+    failed: !data && !isLoading,
     layer,
     layerStates: {
       isLoading,

@@ -9,6 +9,7 @@ import { Agent } from '@/models/entities'
 
 export interface UseAgents {
   data: Agent[]
+  failed: boolean
   layer: IconLayer<Agent, object>
   layerStates: {
     isLoading: boolean
@@ -51,6 +52,7 @@ export function useAgents(): UseAgents {
 
   return {
     data: data || [],
+    failed: !data && !isLoading,
     layer,
     layerStates: {
       isLoading,

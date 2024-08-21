@@ -39,8 +39,5 @@ export async function getRadars() {
     } as Radar
   })
 
-  return {
-    ...response,
-    data,
-  }
+  return data
 }

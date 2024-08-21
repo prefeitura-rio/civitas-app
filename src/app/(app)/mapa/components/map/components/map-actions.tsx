@@ -46,7 +46,7 @@ export function MapActions() {
       checked: camerasCOR.layerStates.isVisible,
       onCheckedChange: camerasCOR.layerStates.setIsVisible,
       isLoading: camerasCOR.layerStates.isLoading,
-      failed: false,
+      failed: camerasCOR.failed,
     },
     {
       id: 'radars',
@@ -54,7 +54,7 @@ export function MapActions() {
       checked: radars.layerStates.isVisible,
       onCheckedChange: radars.layerStates.setIsVisible,
       isLoading: radars.layerStates.isLoading,
-      failed: false,
+      failed: radars.failed,
     },
     {
       id: 'waze-police-alerts',
@@ -62,7 +62,7 @@ export function MapActions() {
       checked: wazePoliceAlerts.layerStates.isVisible,
       onCheckedChange: wazePoliceAlerts.layerStates.setIsVisible,
       isLoading: wazePoliceAlerts.layerStates.isLoading,
-      failed: false,
+      failed: wazePoliceAlerts.failed,
     },
     {
       id: 'agents',
@@ -70,7 +70,7 @@ export function MapActions() {
       checked: agents.layerStates.isVisible,
       onCheckedChange: agents.layerStates.setIsVisible,
       isLoading: agents.layerStates.isLoading,
-      failed: false,
+      failed: agents.failed,
     },
     {
       id: 'fogo-cruzado-incidents',
