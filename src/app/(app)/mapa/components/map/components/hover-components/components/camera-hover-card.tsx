@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
 
-export function CameraInfoPopupCard() {
+export function CameraHoverCard() {
   const [isLoading, setIsLoading] = useState(true)
   const {
     layers: {

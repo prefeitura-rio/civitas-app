@@ -1,5 +1,5 @@
 export enum Views {
-  'DASHBOARD' = 'Dashboard',
-  'TABLE' = 'Histórico',
+  'TIMELINE' = 'Timeline',
   'MAP' = 'Mapa',
+  'DASHBOARD' = 'Dashboard',
 }

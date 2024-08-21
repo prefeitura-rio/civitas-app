@@ -1,20 +1,22 @@
 import '@/utils/date-extensions'
 
-import { redirect, useSearchParams } from 'next/navigation'
+import { redirect, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
 import type { GetReportsRequest } from '@/http/reports/get-reports'
 
-type ReportsQueryKey = ['search', query: GetReportsRequest]
+type ReportsQueryKey = ['reports', query: GetReportsRequest]
 
 interface UseReportsSearchParamsReturn {
   searchParams: URLSearchParams
   formattedSearchParams: GetReportsRequest
   queryKey: ReportsQueryKey
+  handlePaginate: (index: number) => void
 }
 
 export function useReportsSearchParams(): UseReportsSearchParamsReturn {
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const params = {
     semanticallySimilar: searchParams.get('semanticallySimilar'),
@@ -29,6 +31,8 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     maxLat: z.coerce.number().parse(searchParams.get('maxLat')),
     minLon: z.coerce.number().parse(searchParams.get('minLon')),
     maxLon: z.coerce.number().parse(searchParams.get('maxLon')),
+    page: z.coerce.number().parse(searchParams.get('page') ?? '1'),
+    size: z.coerce.number().parse(searchParams.get('size') ?? '10'),
   }
 
   let formattedSearchParams: GetReportsRequest = {}
@@ -52,9 +56,14 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     )
   }
 
+  function handlePaginate(index: number) {
+    router.replace(`ocorrencias?page=${index}`)
+  }
+
   return {
     searchParams,
     formattedSearchParams,
-    queryKey: ['search', formattedSearchParams],
+    handlePaginate,
+    queryKey: ['reports', formattedSearchParams],
   }
 }

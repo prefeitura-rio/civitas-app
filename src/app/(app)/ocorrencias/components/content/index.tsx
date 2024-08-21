@@ -9,10 +9,10 @@ import { Views } from './components/common/views'
 import { Dashboard } from './components/dashboard'
 import { Map } from './components/map'
 import { SidePanel } from './components/side-panel'
-import { Table } from './components/table'
+import { Timeline } from './components/timeline'
 
 export function Content() {
-  const [view, setView] = useState<Views>(Views.DASHBOARD)
+  const [view, setView] = useState<Views>(Views.TIMELINE)
 
   return (
     <ReportsMapContextProvider>
@@ -37,10 +37,12 @@ export function Content() {
           </div>
 
           <div className="h-[calc(100%-3rem)] overflow-y-scroll">
-            {view === Views.MAP && <Map className="" />}
-            {view === Views.TABLE && <Table className="min-w-screen-lg" />}
+            {view === Views.MAP && <Map />}
+            {view === Views.TIMELINE && (
+              <Timeline className="min-w-screen-lg" />
+            )}
             {view === Views.DASHBOARD && (
-              <Dashboard className="min-w-screen-md h-full w-full" />
+              <Dashboard className="h-full w-full min-w-screen-md" />
             )}
           </div>
         </div>
