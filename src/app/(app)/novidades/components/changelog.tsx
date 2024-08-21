@@ -18,34 +18,68 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
-    title: '16 de Agosto de 2024',
+    title: '21 de Agosto de 2024',
     subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Nova camada "Fogo Cruzado" no mapa interativo',
+        content: (
+          <>
+            <p>
+              Agora, o mapa interativo conta com a camada "Fogo Cruzado",
+              trazendo informações detalhadas sobre tiroteios e disparos de arma
+              de fogo na cidade do Rio de Janeiro. Essa camada utiliza dados
+              fornecidos pelo Instituto Fogo Cruzado, que monitora a violência
+              armada em áreas urbanas.
+            </p>
+            <p>
+              Os dados são coletados em tempo real através de um aplicativo, e
+              alimentam o primeiro banco de dados abertos sobre violência armada
+              na América Latina. Com esta nova camada, os usuários têm acesso a
+              informações relevantes e atualizadas sobre incidentes de violência
+              armada no Rio de Janeiro.
+            </p>
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Botão para tornar a senha visível durante o login',
+        content: (
+          <>
+            <p>
+              Para melhorar a experiência de login foi adicionado um botão para
+              visualizar a senha digitada, facilitando a conferência da senha
+              antes de se confirmar as credenciais.
+            </p>
+            <p className="z-50">
+              Essa funcionalidade ajuda a evitar erros de digitação e
+              proporciona maior confiança ao fazer login no sistema.
+            </p>
+            <div className="-mt-4">
+              <Image
+                src={
+                  'https://storage.googleapis.com/rj-civitas-public/assets/login-password-eye-button-edit.gif'
+                }
+                className="z-10"
+                alt=""
+                width={968}
+                height={544}
+              />
+            </div>
+          </>
+        ),
+      },
       {
         tag: 'Adicionado',
         title: 'Indicadores de estado sobre as camadas do mapa',
         content: (
           <>
-            {/* <p>
-              Agora, os switches que controlam a ativação das camadas do mapa
-              interativo oferecem um feedback visual aprimorado durante o
-              carregamento dos dados. Anteriormente, ao carregar a página, era
-              possível ativar camadas antes que seus dados fossem completamente
-              carregados, resultando em switches ativados sem exibir nenhum dado
-              por alguns segundos. Além disso, quando o carregamento demorava,
-              não havia uma forma clara de distinguir entre uma falha no fetch
-              dos dados e um carregamento em andamento.
-            </p> */}
-
             <p>
               Para garantir uma experiência de usuário mais clara e informativa
               ao interagir com as camadas do mapa, foram criados 3 estados para
               os seus interruptores:
             </p>
-
-            {/* <span>
-              Os interruptores de camadas do mapa interativo possuem 3 estados:
-            </span> */}
-
             <ul className="list-decoration">
               <li>
                 <span className="font-bold text-muted-foreground">
@@ -79,32 +113,21 @@ export const changelog: Card[] = [
           </>
         ),
       },
+    ],
+  },
+  {
+    title: '19 de Agosto de 2024',
+    subCards: [
       {
-        tag: 'Adicionado',
-        title: 'Botão para tornar a senha visível durante o login',
+        tag: 'Corrigido',
+        title: 'Erro na consulta de placas para data específica',
         content: (
-          <>
-            <p>
-              Para melhorar a experiência de login foi adicionado um botão para
-              visualizar a senha digitada, facilitando a conferência da senha
-              antes de se confirmar as credenciais.
-            </p>
-            <p className="z-50">
-              Essa funcionalidade ajuda a evitar erros de digitação e
-              proporciona maior confiança ao fazer login no sistema.
-            </p>
-            <div className="-mt-4">
-              <Image
-                src={
-                  'https://storage.googleapis.com/rj-civitas-public/assets/login-password-eye-button-edit.gif'
-                }
-                className="z-10"
-                alt=""
-                width={968}
-                height={544}
-              />
-            </div>
-          </>
+          <p>
+            Foi corrigido um erro na funcionalidade de consulta de placas de
+            veículos, que ocorria ao pesquisar em intervalos de datas que
+            incluíam o dia 20/06/2024. Agora, as buscas nessas datas são
+            processadas corretamente, sem gerar falhas.
+          </p>
         ),
       },
     ],

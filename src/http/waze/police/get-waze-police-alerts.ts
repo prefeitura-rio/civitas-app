@@ -17,8 +17,5 @@ export async function getWazePoliceAlerts() {
     } as WazeAlert
   })
 
-  return {
-    ...response,
-    data,
-  }
+  return data
 }
