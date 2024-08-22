@@ -48,11 +48,11 @@ export function ReportsMapContextProvider({
       transitionDuration: 'auto',
     })
   }
-  const reports = useReports()
-  const addressMarker = useAddressMarker()
-
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
+
+  const reports = useReports()
+  const addressMarker = useAddressMarker()
 
   return (
     <ReportsMapContext.Provider

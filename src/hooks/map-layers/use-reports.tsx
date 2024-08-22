@@ -1,29 +1,44 @@
+'use'
+import { HeatmapLayer } from '@deck.gl/aggregation-layers'
 import type { PickingInfo } from '@deck.gl/core'
-import { IconLayer } from '@deck.gl/layers'
+import { IconLayer, TextLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
 import { type Dispatch, type SetStateAction, useState } from 'react'
+import Supercluster from 'supercluster'
 
+import circle from '@/assets/circle.svg'
 import messageCircleWarning from '@/assets/message-circle-warning.svg'
 import { getReports } from '@/http/reports/get-reports'
 import type { Report } from '@/models/entities'
+import type { Coordinates } from '@/models/utils'
 
 import { useReportsSearchParams } from '../use-params/use-reports-search-params'
 
+interface ClusterIcon extends Report {
+  position: Coordinates
+  icon: string
+  size: number
+  point_count: number
+}
 export interface UseReports {
   data: Report[]
   failed: boolean
-  layer: IconLayer<Report, object>
+  layers: {
+    icons: IconLayer<Report, object>
+    heatmap: HeatmapLayer<Report, object>
+    clusteredIcons: (
+      bounds: number[],
+      zoom: number,
+    ) => [IconLayer<ClusterIcon, object>, TextLayer<ClusterIcon, object>]
+  }
   layerStates: {
     isLoading: boolean
-    isVisible: boolean
-    setIsVisible: Dispatch<SetStateAction<boolean>>
     hoverInfo: PickingInfo<Report>
     setHoverInfo: Dispatch<SetStateAction<PickingInfo<Report>>>
   }
 }
 
 export function useReports(): UseReports {
-  const [isVisible, setIsVisible] = useState(true)
   const { queryKey, formattedSearchParams } = useReportsSearchParams()
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<Report>>(
     {} as PickingInfo<Report>,
@@ -34,10 +49,13 @@ export function useReports(): UseReports {
     queryFn: () => getReports(formattedSearchParams),
   })
 
-  const layer = new IconLayer<Report>({
-    id: 'radars',
-    data: data?.items || [],
-    getPosition: (info) => [info.longitude, info.latitude],
+  const filtered =
+    data?.items.filter((item) => !!item.longitude && !!item.latitude) || []
+
+  const icons = new IconLayer<Report>({
+    id: 'report-icons',
+    data: filtered,
+    getPosition: (info) => [info.longitude || 0, info.latitude || 0],
     getSize: 24,
     getIcon: () => ({
       url: messageCircleWarning.src,
@@ -48,18 +66,118 @@ export function useReports(): UseReports {
     pickable: true,
     highlightColor: [249, 115, 22, 255], // orange-500
     autoHighlight: true,
-    visible: isVisible,
+    visible: false,
     onHover: (info) => setHoverInfo(info),
   })
+
+  const heatmap = new HeatmapLayer<Report>({
+    id: 'reports-heatmap',
+    data: filtered,
+    aggregation: 'SUM',
+    getPosition: (info) => [info.longitude || 0, info.latitude || 0],
+    getWeight: () => 1,
+    radiusPixels: 25,
+    visible: false,
+  })
+
+  function clusteredIcons(bounds: number[], zoom: number) {
+    const index = new Supercluster({
+      radius: 40, // Cluster radius in pixels
+      maxZoom: 16, // Max zoom level for clustering
+      minZoom: 0, // Min zoom level for clustering
+      extent: 512, // Tile extent (512 by default)
+      nodeSize: 64, // Size of the tile index node
+    })
+
+    index.load(
+      filtered.map((item) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [item.longitude || 0, item.latitude || 0],
+        },
+        properties: item,
+      })),
+    )
+
+    const clusters = index.getClusters(
+      [bounds[0], bounds[1], bounds[2], bounds[3]],
+      zoom,
+    )
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const formattedData = clusters.map((cluster: any) => {
+      const isCluster = cluster.properties.cluster
+
+      return {
+        ...cluster.properties,
+        position: [
+          cluster.geometry.coordinates[0],
+          cluster.geometry.coordinates[1],
+        ],
+        icon: isCluster ? circle.src : messageCircleWarning.src, // Use different icons for clusters vs points
+        size: cluster.properties.cluster
+          ? 35 + 2 * cluster.properties.point_count
+          : 30, // Scale icon size based on whether it's a cluster or point
+        point_count: cluster.properties.point_count || 1, // For displaying number of points in a cluster
+      }
+    })
+
+    const iconLayer = new IconLayer<ClusterIcon>({
+      id: 'clustered-report-icons',
+      data: formattedData,
+      getPosition: (info) => info.position,
+      getSize: (info) => info.size,
+      getIcon: (info) => ({
+        url: info.icon,
+        width: info.size,
+        height: info.size,
+        mask: false,
+      }),
+      pickable: true,
+      highlightColor: [249, 115, 22, 255], // orange-500
+      autoHighlight: true,
+      onHover: (info) => {
+        if (!info.object?.cluster) {
+          setHoverInfo(info)
+        }
+      },
+    })
+
+    console.log({
+      data: formattedData.filter((item) => item?.cluster),
+    })
+
+    const textLayer = new TextLayer<ClusterIcon>({
+      id: 'clustered-report-icons-text',
+      data: formattedData.filter((item) => item?.cluster),
+      getPosition: (info) => info.position,
+      getColor: [0, 0, 0],
+      getSize: 15,
+      getTextAnchor: 'middle',
+      getText: (info) => String(info.point_count),
+      fontWeight: 10,
+      pickable: false,
+    })
+
+    return [iconLayer, textLayer] as [
+      IconLayer<ClusterIcon, object>,
+      TextLayer<ClusterIcon, object>,
+    ]
+  }
+
+  console.log('refresh use-reports')
 
   return {
     data: data?.items || [],
     failed: !data && !isLoading,
-    layer,
+    layers: {
+      icons,
+      heatmap,
+      clusteredIcons,
+    },
     layerStates: {
       isLoading,
-      isVisible,
-      setIsVisible,
       hoverInfo,
       setHoverInfo,
     },

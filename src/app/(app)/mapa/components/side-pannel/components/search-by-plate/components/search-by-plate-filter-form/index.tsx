@@ -91,14 +91,14 @@ export function SearchByPlateFilterForm() {
       if (props.plate.includes('*')) {
         await getPossiblePlates({
           plate: props.plate,
-          startTime: props.date.from.toISOString(),
-          endTime: endTime.toISOString(),
+          startTime: props.date.from.toLocaleISOString(),
+          endTime: endTime.toLocaleISOString(),
         })
       } else {
         await getTrips({
           plate: props.plate,
-          startTime: props.date.from.toISOString(),
-          endTime: endTime.toISOString(),
+          startTime: props.date.from.toLocaleISOString(),
+          endTime: endTime.toLocaleISOString(),
         })
       }
     } catch (error) {

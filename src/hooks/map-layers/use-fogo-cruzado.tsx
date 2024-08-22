@@ -56,8 +56,6 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
     },
   })
 
-  console.log(selected)
-
   return {
     data: data || [],
     failed: !data && !isLoading,
