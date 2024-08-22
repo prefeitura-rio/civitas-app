@@ -1,3 +1,4 @@
+'use client'
 import { DeckGL } from '@deck.gl/react'
 import ReactMapGL from 'react-map-gl'
 
@@ -20,6 +21,10 @@ export function Map({ className }: MapProps) {
     setViewport,
     layers: { reports, addressMarker },
   } = useReportsMap()
+
+  const bounds = mapRef.current?.getBounds().toArray().flat() || [0, 0, 0, 0]
+  const zoom = viewport.zoom
+
   return (
     <div className={cn(className, 'h-full')}>
       <DeckGL
@@ -36,6 +41,7 @@ export function Map({ className }: MapProps) {
         layers={[
           reports.layers.heatmap,
           reports.layers.icons,
+          ...reports.layers.clusteredIcons(bounds, zoom),
           addressMarker.layer,
         ]}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
