@@ -100,8 +100,6 @@ export function TotalReportsTimeHistoryAreaChart({
       const chartConfig: ChartConfig = {}
 
       sources.forEach((item, index) => {
-        console.log(item)
-        console.log(`hsl(var(--chart-${index + 1}))`)
         chartConfig[item] = {
           label: item,
           color: `hsl(var(--chart-${index + 1}))`,
@@ -111,8 +109,6 @@ export function TotalReportsTimeHistoryAreaChart({
       setChartConfig(chartConfig)
     }
   }, [data, sources])
-
-  console.log({ chartConfig, data, sources })
 
   return (
     <Card className={cn(className)}>
