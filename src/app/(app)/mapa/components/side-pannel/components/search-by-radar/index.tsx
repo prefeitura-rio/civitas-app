@@ -1,3 +1,5 @@
+import '@/utils/date-extensions'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { PDFViewer } from '@react-pdf/renderer'
 import { useMutation } from '@tanstack/react-query'
@@ -83,8 +85,8 @@ export function SearchByRadar() {
 
     await getCarsByRadarMutation({
       radar: selectedRadar?.cameraNumber || '',
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
+      startTime: startTime.toLocaleISOString(),
+      endTime: endTime.toLocaleISOString(),
       plateHint: props.plateHint,
     })
   }

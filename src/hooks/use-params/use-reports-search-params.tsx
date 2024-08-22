@@ -52,7 +52,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     const defaultMinDate = new Date().addDays(-7).setMinTime()
     const defaultMaxDate = new Date().setMaxTime()
     redirect(
-      `/ocorrencias?minDate=${defaultMinDate.toISOString()}&maxDate=${defaultMaxDate.toISOString()}`,
+      `/ocorrencias?minDate=${defaultMinDate.toLocaleISOString()}&maxDate=${defaultMaxDate.toLocaleISOString()}`,
     )
   }
 
