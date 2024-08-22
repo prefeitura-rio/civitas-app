@@ -33,7 +33,11 @@ export function Map({ className }: MapProps) {
         }}
         onResize={() => mapRef?.current?.resize()}
         controller
-        layers={[reports.layer, addressMarker.layer]}
+        layers={[
+          reports.layers.heatmap,
+          reports.layers.icons,
+          addressMarker.layer,
+        ]}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
         getCursor={({ isDragging, isHovering }) => {
           if (isDragging) return 'grabbing'

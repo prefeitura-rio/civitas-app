@@ -200,10 +200,10 @@ export type Report = {
     subtype: string[]
   }[]
   description: string
-  latitude: number
-  longitude: number
-  location: string
-  locationNumber: string
+  latitude: number | null
+  longitude: number | null
+  location: string | null
+  locationNumber: string | null
   additionalInfo: {
     certainty: number
   }

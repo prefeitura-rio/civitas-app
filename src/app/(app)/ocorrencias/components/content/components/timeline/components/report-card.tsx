@@ -15,7 +15,7 @@ export function ReportCard(props: Report) {
             <div className="flex flex-col">
               <span className="text-sm leading-3.5">Local</span>
               <span className="block text-sm text-muted-foreground">
-                {props.location.capitalizeFirstLetter()}
+                {props.location?.capitalizeFirstLetter()}
               </span>
             </div>
           </div>
