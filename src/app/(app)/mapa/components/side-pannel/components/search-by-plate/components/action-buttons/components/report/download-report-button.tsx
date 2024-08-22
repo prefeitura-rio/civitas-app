@@ -2,9 +2,9 @@ import { PDFViewer } from '@react-pdf/renderer'
 import { Printer } from 'lucide-react'
 import React from 'react'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { ReportDocument } from './components/report-document'

@@ -3,6 +3,8 @@ import { Info } from 'lucide-react'
 import { Controller, useFormContext } from 'react-hook-form'
 
 import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
+import { InputError } from '@/components/custom/input-error'
+import { Tooltip } from '@/components/custom/tooltip'
 import {
   Breadcrumb,
   BreadcrumbLink,
@@ -12,10 +14,8 @@ import {
 } from '@/components/ui/breadcrumb'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
-import { InputError } from '@/components/ui/input-error'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { PlateWildcardsHelperInfo } from '../../../common/plate-wildcards-helper-info'

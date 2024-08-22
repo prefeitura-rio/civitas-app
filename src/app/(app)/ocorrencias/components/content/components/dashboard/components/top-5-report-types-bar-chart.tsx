@@ -53,17 +53,19 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-interface Top5TypesBarChartProps {
+interface Top5ReportTypesBarChartProps {
   className?: string
 }
 
-export function Top5EventTypesBarChart({ className }: Top5TypesBarChartProps) {
+export function Top5ReportTypesBarChart({
+  className,
+}: Top5ReportTypesBarChartProps) {
   return (
     <Card className={cn(className)}>
       <CardHeader className="">
         <CardTitle>Top 5 Tipos de Ocorrências</CardTitle>
         <CardDescription>
-          Gráfico de barras horizontais comparando os cinco tipos de incidentes
+          Gráfico de barras horizontais comparando os cinco tipos de reportes
           mais comuns.
         </CardDescription>
       </CardHeader>

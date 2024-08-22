@@ -1,6 +1,10 @@
 /* eslint-disable no-extend-native */
 String.prototype.capitalizeFirstLetter = function (): string {
-  return this.replace(/\b\w+/g, (word) => {
-    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-  })
+  return this.split(' ')
+    .map((word) => {
+      return (
+        word.charAt(0).toLocaleUpperCase() + word.slice(1).toLocaleLowerCase()
+      )
+    })
+    .join(' ')
 }

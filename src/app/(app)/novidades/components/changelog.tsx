@@ -18,6 +18,121 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '22 de Agosto de 2024',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Nova camada "Fogo Cruzado" no mapa interativo',
+        content: (
+          <>
+            <p>
+              Agora, o mapa interativo conta com a camada "Fogo Cruzado",
+              trazendo informações detalhadas sobre tiroteios e disparos de arma
+              de fogo na cidade do Rio de Janeiro. Essa camada utiliza dados
+              fornecidos pelo Instituto Fogo Cruzado, que monitora a violência
+              armada em áreas urbanas.
+            </p>
+            <p>
+              Os dados são coletados em tempo real através de um aplicativo, e
+              alimentam o primeiro banco de dados abertos sobre violência armada
+              na América Latina. Com esta nova camada, os usuários têm acesso a
+              informações relevantes e atualizadas sobre incidentes de violência
+              armada no Rio de Janeiro.
+            </p>
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Botão para tornar a senha visível durante o login',
+        content: (
+          <>
+            <p>
+              Para melhorar a experiência de login foi adicionado um botão para
+              visualizar a senha digitada, facilitando a conferência da senha
+              antes de se confirmar as credenciais.
+            </p>
+            <p className="z-50">
+              Essa funcionalidade ajuda a evitar erros de digitação e
+              proporciona maior confiança ao fazer login no sistema.
+            </p>
+            <div className="-mt-4">
+              <Image
+                src={
+                  'https://storage.googleapis.com/rj-civitas-public/assets/login-password-eye-button-edit.gif'
+                }
+                className="z-10"
+                alt=""
+                width={968}
+                height={544}
+              />
+            </div>
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Indicadores de estado sobre as camadas do mapa',
+        content: (
+          <>
+            <p>
+              Para garantir uma experiência de usuário mais clara e informativa
+              ao interagir com as camadas do mapa, foram criados 3 estados para
+              os seus interruptores:
+            </p>
+            <ul className="list-decoration">
+              <li>
+                <span className="font-bold text-muted-foreground">
+                  Em processamento:
+                </span>{' '}
+                Indica que os dados da camada estão sendo processados e ainda
+                não estão prontos para uso.
+              </li>
+              <li>
+                <span className="font-bold text-emerald-500">Ativo:</span>{' '}
+                Indica que os dados da camada foram processados com sucesso e
+                estão prontos para uso.
+              </li>
+              <li>
+                <span className="font-bold text-destructive">
+                  Indisponível:
+                </span>{' '}
+                Indica que houve um erro durante o processamento dos dados da
+                camada e, em caso de persistência do erro, um administrador do
+                sistema deve ser contatado para tratar o erro.
+              </li>
+            </ul>
+            <div className="my-8">
+              <Image
+                src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-loading-spinner-and-fail-alert-edit.gif"
+                alt=""
+                width={1280}
+                height={720}
+              />
+            </div>
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    title: '19 de Agosto de 2024',
+    subCards: [
+      {
+        tag: 'Corrigido',
+        title: 'Erro na consulta de placas para data específica',
+        content: (
+          <p>
+            Foi corrigido um erro na funcionalidade de consulta de placas de
+            veículos, que ocorria ao pesquisar em intervalos de datas que
+            incluíam o dia 20/06/2024. Agora, as buscas nessas datas são
+            processadas corretamente, sem gerar falhas.
+          </p>
+        ),
+      },
+    ],
+  },
+  {
     title: '13 de Agosto de 2024',
     subCards: [
       {

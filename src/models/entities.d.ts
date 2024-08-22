@@ -187,13 +187,188 @@ export type Agent = {
 }
 
 export type Report = {
-  title: string
-  date: Date
+  reportId: string
+  sourceId: string
+  originalReportId: string
+  date: string
+  entities: {
+    name: string
+  }[]
+  category: string
+  typeAndSubtype: {
+    type: string
+    subtype: string[]
+  }[]
   description: string
-  type: string
-  subtype: string
   latitude: number
   longitude: number
   location: string
-  origin: string
+  locationNumber: string
+  additionalInfo: {
+    certainty: number
+  }
+}
+
+export type BackendReport = {
+  id_report: string
+  id_source: string
+  id_report_original: string
+  data_report: string
+  orgaos: {
+    nome: string
+  }[]
+  categoria: string
+  tipo_subtipo: {
+    tipo: string
+    subtipo: string[]
+  }[]
+  descricao: string
+  logradouro: string
+  numero_logradouro: string
+  latitude: 0
+  longitude: 0
+  additional_info: {
+    certainty: number
+  }
+}
+
+export type FogoCruzadoIncident = {
+  id: string
+  documentNumber: number
+  address: string
+  state: {
+    id: string
+    name: string
+  }
+  region: {
+    id: string
+    region: string
+    state: string
+    enabled: boolean
+  }
+  city: {
+    id: string
+    name: string
+  }
+  neighborhood: {
+    id: string
+    name: string
+  }
+  subNeighborhood: string | null
+  locality: {
+    id: string
+    name: string
+  } | null
+  latitude: number
+  longitude: number
+  date: string
+  policeAction: boolean
+  agentPresence: boolean
+  relatedRecord: string
+  contextInfo: {
+    mainReason: {
+      id: string
+      name: string
+    }
+    complementaryReasons: {
+      id: string
+      name: string
+    }[]
+    clippings: {
+      id: string
+      name: string
+    }[]
+    massacre: boolean
+    policeUnit: string
+  }
+  transports: {
+    id: string
+    occurenceId: string
+    transport: string
+    interruptedTransport: boolean
+    dateInterruption: string
+    releaseDate: string
+    transportDescription: string
+  }[]
+  victims: {
+    id: string
+    occurrenceId: string
+    type: 'People'
+    situation: string
+    circumstances: {
+      id: string
+      name: string
+      type: string
+    }[]
+    deathDate: string
+    personType: string
+    age: number
+    ageGroup: {
+      id: string
+      name: string
+    }
+    genre: {
+      id: string
+      name: string
+    }
+    race: string | null
+    place: {
+      id: string
+      name: string
+    }
+    serviceStatus: {
+      id: string
+      name: string
+      type: string
+    }
+    qualifications: {
+      id: string
+      name: string
+      type: string
+    }[]
+    politicalPosition: {
+      id: string
+      name: string
+      type: string
+    } | null
+    politicalStatus: {
+      id: string
+      name: string
+      type: string
+    } | null
+    partie: {
+      id: string
+      name: string
+      type: string
+    } | null
+    coorporation: {
+      id: string
+      name: string
+    } | null
+    agentPosition: {
+      id: string
+      name: string
+      type: string
+    } | null
+    agentStatus: {
+      id: string
+      name: string
+      type: string
+    } | null
+    unit: string
+  }[]
+  animalVictims: {
+    id: string
+    occurenceId: string
+    name: string
+    type: 'Animal'
+    animalType: string
+    situation: string
+    circumstances: {
+      id: string
+      name: string
+      type: string
+    }[]
+    deathDate: string | null
+  }[]
 }

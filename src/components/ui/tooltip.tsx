@@ -1,52 +1,30 @@
-import type { ReactNode } from 'react'
+'use client'
 
-import {
-  Tooltip as RawTooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/raw-tooltip'
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
+import * as React from 'react'
+
 import { cn } from '@/lib/utils'
 
-interface TooltipProps {
-  children: ReactNode
-  text?: string
-  side?: 'left' | 'right' | 'bottom' | 'top'
-  disabled?: boolean
-  className?: string
-  asChild?: boolean
-  hideContent?: boolean
-  disabledText?: string
-  render?: JSX.Element
-}
+const TooltipProvider = TooltipPrimitive.Provider
 
-export function Tooltip({
-  children,
-  text,
-  side,
-  disabled = false,
-  className = '',
-  asChild = false,
-  hideContent = false,
-  disabledText,
-  render,
-}: TooltipProps) {
-  return (
-    <TooltipProvider delayDuration={200} skipDelayDuration={0}>
-      <RawTooltip>
-        <TooltipTrigger asChild={asChild} disabled={disabled} type="button">
-          {children}
-        </TooltipTrigger>
-        {!hideContent && (
-          <TooltipContent
-            side={side}
-            className={cn('max-w-sm text-justify', className)}
-            sideOffset={10}
-          >
-            {render || <p>{disabled && disabledText ? disabledText : text}</p>}
-          </TooltipContent>
-        )}
-      </RawTooltip>
-    </TooltipProvider>
-  )
-}
+const Tooltip = TooltipPrimitive.Root
+
+const TooltipTrigger = TooltipPrimitive.Trigger
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    sideOffset={sideOffset}
+    className={cn(
+      'z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+      className,
+    )}
+    {...props}
+  />
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

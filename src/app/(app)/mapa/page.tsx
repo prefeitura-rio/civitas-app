@@ -3,12 +3,12 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 import dynamic from 'next/dynamic'
 
+import { Spinner } from '@/components/custom/spinner'
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-import { Spinner } from '@/components/ui/spinner'
 import { MapContextProvider } from '@/contexts/map-context'
 
 const Map = dynamic(

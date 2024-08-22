@@ -3,6 +3,7 @@ interface Date {
   setMinTime(): Date
   setCurrentTime(): Date
   setDatePreservingTime(newDate: Date): Date
+  addDays(days: number): Date
 }
 
 interface String {
