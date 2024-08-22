@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+
 /* eslint-disable no-extend-native */
 Date.prototype.setMaxTime = function (): Date {
   this.setHours(23)
@@ -42,4 +44,17 @@ Date.prototype.addDays = function (days: number): Date {
   this.setTime(newTime)
 
   return this
+}
+
+Date.prototype.addHours = function (hours: number): Date {
+  const hoursInMiliseconds = 1000 * 60 * 60 * hours
+  const newTime = this.getTime() + hoursInMiliseconds
+
+  this.setTime(newTime)
+
+  return this
+}
+
+Date.prototype.toLocaleISOString = function (): string {
+  return format(this, "y-MM-dd'T'HH:mm:ss.SSS")
 }
