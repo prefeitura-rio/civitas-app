@@ -6,7 +6,7 @@ import { Circle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 
-export function ReportHoverInfoTooltip() {
+export function ReportHoverCard() {
   const {
     layers: {
       reports: {

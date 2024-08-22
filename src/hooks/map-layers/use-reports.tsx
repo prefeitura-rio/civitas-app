@@ -24,7 +24,6 @@ export interface UseReports {
   data: Report[]
   failed: boolean
   layers: {
-    icons: IconLayer<Report, object>
     heatmap: HeatmapLayer<Report, object>
     clusteredIcons: (
       bounds: number[],
@@ -35,10 +34,16 @@ export interface UseReports {
     isLoading: boolean
     hoverInfo: PickingInfo<Report>
     setHoverInfo: Dispatch<SetStateAction<PickingInfo<Report>>>
+    isIconsLayerVisible: boolean
+    setIsIconsLayerVisible: Dispatch<SetStateAction<boolean>>
+    isHeatmapLayerVisible: boolean
+    setIsHeatmapLayerVisible: Dispatch<SetStateAction<boolean>>
   }
 }
 
 export function useReports(): UseReports {
+  const [isIconsLayerVisible, setIsIconsLayerVisible] = useState(false)
+  const [isHeatmapLayerVisible, setIsHeatmapLayerVisible] = useState(false)
   const { queryKey, formattedSearchParams } = useReportsSearchParams()
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<Report>>(
     {} as PickingInfo<Report>,
@@ -52,24 +57,6 @@ export function useReports(): UseReports {
   const filtered =
     data?.items.filter((item) => !!item.longitude && !!item.latitude) || []
 
-  const icons = new IconLayer<Report>({
-    id: 'report-icons',
-    data: filtered,
-    getPosition: (info) => [info.longitude || 0, info.latitude || 0],
-    getSize: 24,
-    getIcon: () => ({
-      url: messageCircleWarning.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    pickable: true,
-    highlightColor: [249, 115, 22, 255], // orange-500
-    autoHighlight: true,
-    visible: false,
-    onHover: (info) => setHoverInfo(info),
-  })
-
   const heatmap = new HeatmapLayer<Report>({
     id: 'reports-heatmap',
     data: filtered,
@@ -77,7 +64,7 @@ export function useReports(): UseReports {
     getPosition: (info) => [info.longitude || 0, info.latitude || 0],
     getWeight: () => 1,
     radiusPixels: 25,
-    visible: false,
+    visible: isHeatmapLayerVisible,
   })
 
   function clusteredIcons(bounds: number[], zoom: number) {
@@ -142,6 +129,7 @@ export function useReports(): UseReports {
           setHoverInfo(info)
         }
       },
+      visible: isIconsLayerVisible,
     })
 
     console.log({
@@ -153,11 +141,12 @@ export function useReports(): UseReports {
       data: formattedData.filter((item) => item?.cluster),
       getPosition: (info) => info.position,
       getColor: [0, 0, 0],
-      getSize: 15,
+      getSize: (info) => info.size * 0.5,
       getTextAnchor: 'middle',
       getText: (info) => String(info.point_count),
       fontWeight: 10,
       pickable: false,
+      visible: isIconsLayerVisible,
     })
 
     return [iconLayer, textLayer] as [
@@ -172,7 +161,6 @@ export function useReports(): UseReports {
     data: data?.items || [],
     failed: !data && !isLoading,
     layers: {
-      icons,
       heatmap,
       clusteredIcons,
     },
@@ -180,6 +168,10 @@ export function useReports(): UseReports {
       isLoading,
       hoverInfo,
       setHoverInfo,
+      isIconsLayerVisible,
+      setIsIconsLayerVisible,
+      isHeatmapLayerVisible,
+      setIsHeatmapLayerVisible,
     },
   }
 }
