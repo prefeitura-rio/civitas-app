@@ -1,3 +1,5 @@
+import '@/utils/date-extensions'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FilterX, Search } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
@@ -62,8 +64,8 @@ export function SidePanel({ className }: SidePanelProps) {
 
     const searchParams: GetReportsRequest = {
       semanticallySimilar: props.semanticallySimilar,
-      minDate: props.dateRange?.from.toISOString(),
-      maxDate: props.dateRange?.to?.toISOString(),
+      minDate: props.dateRange?.from.toLocaleISOString(),
+      maxDate: props.dateRange?.to?.toLocaleISOString(),
       categoryContains: props.categoryContains,
       sourceIdContains: props.sourceIdContains,
     }

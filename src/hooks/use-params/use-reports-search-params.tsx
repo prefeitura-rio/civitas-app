@@ -32,7 +32,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     minLon: z.coerce.number().parse(searchParams.get('minLon')),
     maxLon: z.coerce.number().parse(searchParams.get('maxLon')),
     page: z.coerce.number().parse(searchParams.get('page') ?? '1'),
-    size: z.coerce.number().parse(searchParams.get('size') ?? '10'),
+    size: z.coerce.number().parse(searchParams.get('size') ?? '100'),
   }
 
   let formattedSearchParams: GetReportsRequest = {}
@@ -52,7 +52,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     const defaultMinDate = new Date().addDays(-7).setMinTime()
     const defaultMaxDate = new Date().setMaxTime()
     redirect(
-      `/ocorrencias?minDate=${defaultMinDate.toISOString()}&maxDate=${defaultMaxDate.toISOString()}`,
+      `/ocorrencias?minDate=${defaultMinDate.toLocaleISOString()}&maxDate=${defaultMaxDate.toLocaleISOString()}`,
     )
   }
 

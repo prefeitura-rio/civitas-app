@@ -4,6 +4,8 @@ interface Date {
   setCurrentTime(): Date
   setDatePreservingTime(newDate: Date): Date
   addDays(days: number): Date
+  addHours(hours: number): Date
+  toLocaleISOString(): string
 }
 
 interface String {

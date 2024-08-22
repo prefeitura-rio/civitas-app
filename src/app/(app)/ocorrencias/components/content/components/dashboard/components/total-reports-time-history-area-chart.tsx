@@ -1,5 +1,7 @@
 'use client'
 
+import '@/utils/date-extensions'
+
 import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
@@ -53,18 +55,18 @@ export function TotalReportsTimeHistoryAreaChart({
         // const { date, sourceId } = item
         const date =
           index === 0
-            ? new Date().toISOString()
+            ? new Date().toLocaleISOString()
             : index === 0
-              ? new Date().addDays(-3).toISOString()
+              ? new Date().addDays(-3).toLocaleISOString()
               : index === 1
-                ? new Date().addDays(-1).toISOString()
+                ? new Date().addDays(-1).toLocaleISOString()
                 : index === 2
-                  ? new Date().addDays(-2).toISOString()
+                  ? new Date().addDays(-2).toLocaleISOString()
                   : index === 3
-                    ? new Date().addDays(-2).toISOString()
+                    ? new Date().addDays(-2).toLocaleISOString()
                     : index === 4
-                      ? new Date().addDays(-4).toISOString()
-                      : new Date().addDays(-5).toISOString()
+                      ? new Date().addDays(-4).toLocaleISOString()
+                      : new Date().addDays(-5).toLocaleISOString()
         const sourceId = [1, 3, 5].includes(index) ? '1746' : 'DD'
         const formattedDate = format(date, 'dd/MM/y')
 
@@ -100,8 +102,6 @@ export function TotalReportsTimeHistoryAreaChart({
       const chartConfig: ChartConfig = {}
 
       sources.forEach((item, index) => {
-        console.log(item)
-        console.log(`hsl(var(--chart-${index + 1}))`)
         chartConfig[item] = {
           label: item,
           color: `hsl(var(--chart-${index + 1}))`,
@@ -111,8 +111,6 @@ export function TotalReportsTimeHistoryAreaChart({
       setChartConfig(chartConfig)
     }
   }, [data, sources])
-
-  console.log({ chartConfig, data, sources })
 
   return (
     <Card className={cn(className)}>
