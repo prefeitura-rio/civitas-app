@@ -2,7 +2,6 @@ import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
 
 import type { Point } from '@/models/entities'
-import { toPascalCase } from '@/utils/toPascalCase'
 
 interface TripTableProps {
   points: Point[]
@@ -93,9 +92,9 @@ export function TripTable({ points }: TripTableProps) {
       </View>
 
       {points.map((item) => {
-        const location = toPascalCase(item.location)
-        const direction = toPascalCase(item.direction)
-        const district = toPascalCase(item.district)
+        const location = item.location.capitalizeFirstLetter()
+        const direction = item.direction.capitalizeFirstLetter()
+        const district = item.district.capitalizeFirstLetter()
 
         return (
           <View style={styles.row} wrap={false}>

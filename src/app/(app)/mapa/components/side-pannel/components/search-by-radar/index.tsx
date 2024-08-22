@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { CardTitle } from '@/components/ui/card'
 import {
@@ -14,10 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
-import { dateToString } from '@/utils/date-to-string'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import { RadarList } from './components/radar-list'
@@ -84,8 +83,8 @@ export function SearchByRadar() {
 
     await getCarsByRadarMutation({
       radar: selectedRadar?.cameraNumber || '',
-      startTime: dateToString(startTime),
-      endTime: dateToString(endTime),
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
       plateHint: props.plateHint,
     })
   }

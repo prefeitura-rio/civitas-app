@@ -18,11 +18,21 @@ const config = {
       },
     },
     extend: {
+      lineHeight: {
+        '3.5': '0.875rem',
+      },
       scale: {
         '101': '1.01',
         '102': '1.02',
         '103': '1.03',
         '104': '1.04',
+      },
+      minWidth: {
+        'screen-sm': '640px',
+        'screen-md': '768px',
+        'screen-lg': '1024px',
+        'screen-xl': '1280px',
+        'screen-2xl': '1536px',
       },
       colors: {
         border: 'hsl(var(--border))',

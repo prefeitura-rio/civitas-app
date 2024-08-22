@@ -10,6 +10,7 @@ import { CameraCOR } from '@/models/entities'
 
 export interface UseCameraCOR {
   data: CameraCOR[]
+  failed: boolean
   layers: {
     cameraCORLayer: IconLayer<CameraCOR, object>
     selectedCameraCORLayer: IconLayer<CameraCOR, object>
@@ -34,14 +35,16 @@ export function useCameraCOR(): UseCameraCOR {
     null,
   )
 
-  const { data: response, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['cameras'],
     queryFn: () => getCameraCOR(),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   })
 
   const cameraCORLayer = new IconLayer<CameraCOR>({
     id: 'cameras',
-    data: response?.data,
+    data,
     pickable: true,
     getSize: 24,
     autoHighlight: true,
@@ -78,7 +81,8 @@ export function useCameraCOR(): UseCameraCOR {
   })
 
   return {
-    data: response?.data || [],
+    data: data || [],
+    failed: !data && !isLoading,
     layers: {
       cameraCORLayer,
       selectedCameraCORLayer,

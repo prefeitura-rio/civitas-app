@@ -18,6 +18,10 @@ import {
 } from '@/hooks/map-layers/use-address-marker'
 import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
+import {
+  type UseFogoCruzadoIncidents,
+  useFogoCruzadoIncidents,
+} from '@/hooks/map-layers/use-fogo-cruzado'
 import { type UseRadars, useRadars } from '@/hooks/map-layers/use-radars'
 import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
 import type { SetViewportProps } from '@/hooks/map-layers/use-trips-data'
@@ -35,6 +39,7 @@ interface MapContextProps {
     addressMarker: UseAddressMarker
     wazePoliceAlerts: UseWazePoliceAlerts
     agents: UseAgents
+    fogoCruzadoIncidents: UseFogoCruzadoIncidents
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
@@ -68,6 +73,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const wazePoliceAlerts = useWazePoliceAlerts()
   const trips = useTrips({ setViewport })
   const agents = useAgents()
+  const fogoCruzadoIncidents = useFogoCruzadoIncidents()
 
   const deckRef = useRef<DeckGLRef>(null)
   const mapRef = useRef<MapRef>(null)
@@ -82,6 +88,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           wazePoliceAlerts,
           trips,
           agents,
+          fogoCruzadoIncidents,
         },
         viewport,
         setViewport,

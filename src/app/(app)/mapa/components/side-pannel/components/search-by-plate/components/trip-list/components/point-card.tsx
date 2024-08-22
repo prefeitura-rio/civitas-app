@@ -1,12 +1,11 @@
 import { formatDate } from 'date-fns'
 import { TriangleAlert } from 'lucide-react'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import type { Point } from '@/models/entities'
 import { haversineDistance } from '@/utils/haversine-distance'
-import { toPascalCase } from '@/utils/toPascalCase'
 
 interface PointCardProps {
   point: Point
@@ -71,14 +70,14 @@ export function PointCard({ point }: PointCardProps) {
                   <ul className="list-decoration">
                     <li>
                       <span className="text-muted-foreground">Origem: </span>
-                      <span>{toPascalCase(point.district)}</span>
+                      <span>{point.district.capitalizeFirstLetter()}</span>
                     </li>
                     <li>
                       <span className="text-muted-foreground">Destino: </span>
                       <span>
-                        {toPascalCase(
-                          points.at(point.index + 1)?.district || '',
-                        )}
+                        {points
+                          .at(point.index + 1)
+                          ?.district.capitalizeFirstLetter()}
                       </span>
                     </li>
                     <li>
@@ -118,19 +117,21 @@ export function PointCard({ point }: PointCardProps) {
       )}
       <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
       <div className="ml-1.5 flex flex-col truncate">
-        <Tooltip text={toPascalCase(point.location)}>
+        <Tooltip text={point.location.capitalizeFirstLetter()}>
           <div className="truncate">
-            <span className="truncate">{toPascalCase(point.location)}</span>
+            <span className="truncate">
+              {point.location.capitalizeFirstLetter()}
+            </span>
           </div>
         </Tooltip>
         <span className="block truncate text-xs text-muted-foreground">
-          {toPascalCase(point.district)}
+          {point.district.capitalizeFirstLetter()}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
           {`${point.speed} Km/h`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {toPascalCase('Sentido ' + point.direction)}
+          {`Sentido ${point.direction.capitalizeFirstLetter()}`}
         </span>
       </div>
     </div>

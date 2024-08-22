@@ -14,8 +14,6 @@ export async function getCameraCOR() {
       longitude: Number(item.Longitude),
     } as CameraCOR
   })
-  return {
-    ...response,
-    data,
-  }
+
+  return data
 }

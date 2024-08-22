@@ -9,6 +9,7 @@ import { WazeAlert } from '@/models/entities'
 
 export interface UseWazePoliceAlerts {
   data: WazeAlert[]
+  failed: boolean
   layer: IconLayer<WazeAlert, object>
   layerStates: {
     isLoading: boolean
@@ -25,7 +26,7 @@ export function useWazePoliceAlerts(): UseWazePoliceAlerts {
   )
   const [isVisible, setIsVisible] = useState(false)
 
-  const { data: response, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['waze', 'police'],
     queryFn: () => getWazePoliceAlerts(),
     refetchInterval: 1000 * 60 * 5, // 5 min
@@ -33,7 +34,7 @@ export function useWazePoliceAlerts(): UseWazePoliceAlerts {
 
   const layer = new IconLayer<WazeAlert>({
     id: 'waze-police-alert',
-    data: response?.data,
+    data,
     getPosition: (info) => [info.longitude, info.latitude],
     getSize: 24,
     getIcon: () => ({
@@ -53,7 +54,8 @@ export function useWazePoliceAlerts(): UseWazePoliceAlerts {
   })
 
   return {
-    data: response?.data || [],
+    data: data || [],
+    failed: !data && !isLoading,
     layer,
     layerStates: {
       isLoading,

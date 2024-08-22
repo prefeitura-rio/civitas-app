@@ -6,6 +6,8 @@ import { config } from '@/config'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 import { cn } from '@/lib/utils'
 
+import { ReportHoverInfoTooltip } from './components/report-hover-info-tooltip'
+
 interface MapProps {
   className?: string
 }
@@ -33,6 +35,13 @@ export function Map({ className }: MapProps) {
         controller
         layers={[reports.layer, addressMarker.layer]}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
+        getCursor={({ isDragging, isHovering }) => {
+          if (isDragging) return 'grabbing'
+          else if (isHovering) {
+            return 'pointer'
+          }
+          return 'grab'
+        }}
       >
         <ReactMapGL
           ref={mapRef}
@@ -47,6 +56,7 @@ export function Map({ className }: MapProps) {
             setViewport={setViewport}
           />
         </div>
+        <ReportHoverInfoTooltip />
       </DeckGL>
     </div>
   )

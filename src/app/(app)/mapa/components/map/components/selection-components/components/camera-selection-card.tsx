@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
+import '@/utils/string-extensions'
+
 import { Fullscreen, X } from 'lucide-react'
 import Link from 'next/link'
 
@@ -12,9 +14,8 @@ import {
 } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { cn } from '@/lib/utils'
-import { toPascalCase } from '@/utils/toPascalCase'
 
-export function CameraInfoFixedPopup() {
+export function CameraSelectionCard() {
   const {
     layers: {
       camerasCOR: {
@@ -47,7 +48,7 @@ export function CameraInfoFixedPopup() {
               {selectedCameraCOR?.code}
             </span>
           </CardTitle>
-          <CardDescription className="text-xs">{`${toPascalCase(selectedCameraCOR?.location || '')} - ${toPascalCase(selectedCameraCOR?.zone || '')}`}</CardDescription>
+          <CardDescription className="text-xs">{`${selectedCameraCOR?.location.capitalizeFirstLetter()} - ${selectedCameraCOR?.zone.capitalizeFirstLetter()}`}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4">
           <div className="relative w-full">
