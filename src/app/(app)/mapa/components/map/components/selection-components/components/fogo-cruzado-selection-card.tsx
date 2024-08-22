@@ -1,7 +1,6 @@
 import '@/utils/string-extensions'
 
 import { formatDate } from 'date-fns'
-import { Minus } from 'lucide-react'
 
 import {
   Dialog,
@@ -56,7 +55,8 @@ export function FogoCruzadoSelectionCard() {
           : item.situation,
     Circunstâncias: item.circumstances.map((item) => item.name).join(', '),
     'Data da Morte': item.deathDate,
-    'Tipo de Pessoa': item.personType,
+    'Tipo de Pessoa':
+      item.personType === 'Civilian' ? 'Civil' : item.personType,
     Idade: item.age,
     'Grupo Etário': item.ageGroup.name,
     Gênero: item.genre.name,
@@ -88,6 +88,8 @@ export function FogoCruzadoSelectionCard() {
       : item.deathDate,
   }))
 
+  const empty = ['Não se aplica', 'Sem identificação', 'Não identificado']
+
   function setOpen(open: boolean) {
     if (!open) {
       setSelected(null)
@@ -96,83 +98,101 @@ export function FogoCruzadoSelectionCard() {
 
   return (
     <Dialog open={!!selected} onOpenChange={setOpen}>
-      <DialogContent className="m-2 h-[48rem] w-[48rem] overflow-y-scroll">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Informações da ocorrência</DialogTitle>
+      <DialogContent className="m-2 max-h-[48rem] w-[48rem] overflow-y-scroll">
+        <DialogHeader className="">
+          <DialogTitle>Informações da ocorrência:</DialogTitle>
         </DialogHeader>
-        <div className="">
-          <h4>Informações básicas:</h4>
-          <div className="space-y-1">
-            {Object.entries(simpleFields).map(([key, value]) => (
-              <div className="flex gap-2">
-                <Label className="text-sm font-medium">{key}:</Label>
-                {value ? (
-                  <span className="mt-1 text-sm leading-3.5 text-muted-foreground">
-                    {value}
-                  </span>
-                ) : (
-                  <Minus className="size-5 text-muted-foreground" />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <h4 className="mt-10">Contexto:</h4>
-          <div className="space-y-1">
-            {Object.entries(contextFields).map(([key, value]) => (
-              <div className="flex gap-2">
-                <Label className="text-sm font-medium">{key}:</Label>
-                {value ? (
-                  <span className="mt-1 text-sm leading-3.5 text-muted-foreground">
-                    {value}
-                  </span>
-                ) : (
-                  <Minus className="size-5 text-muted-foreground" />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <h4 className="mt-10">{`Vítimas Humanas (${victims?.length}):`}</h4>
-          <div className="space-y-2">
-            {victims?.map((victim, index) => (
-              <div key={index}>
-                <div>{`Vítima ${index + 1}:`}</div>
-                {Object.entries(victim).map(([key, value]) => (
-                  <div className="flex gap-2">
-                    <Label className="text-sm font-medium">{key}:</Label>
-                    {value ? (
-                      <span className="mt-1 text-sm leading-3.5 text-muted-foreground">
+        <div className="space-y-6">
+          <div>
+            <span className="mb-1 block text-lg font-medium">
+              Informações básicas:
+            </span>
+            <div className="space-y-1 pl-4">
+              {Object.entries(simpleFields).map(
+                ([key, value]) =>
+                  value &&
+                  !empty.includes(value.toString()) && (
+                    <div className="flex gap-2">
+                      <Label className="text-sm font-medium leading-4">
+                        {key}:
+                      </Label>
+                      <span className="text-sm leading-4 text-muted-foreground">
                         {value}
                       </span>
-                    ) : (
-                      <Minus className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
+                    </div>
+                  ),
+              )}
+            </div>
           </div>
 
-          <h4 className="mt-10">{`Vítimas Animais (${animalVictims?.length}):`}</h4>
-          <div className="space-y-2">
-            {animalVictims?.map((victim, index) => (
-              <div key={index}>
-                <div>{`Vítima ${index + 1}:`}</div>
-                {Object.entries(victim).map(([key, value]) => (
-                  <div className="flex gap-2">
-                    <Label className="text-sm font-medium">{key}:</Label>
-                    {value ? (
-                      <span className="mt-1 text-sm leading-3.5 text-muted-foreground">
+          <div>
+            <span className="mb-1 block text-lg font-medium">Contexto:</span>
+            <div className="space-y-1 pl-4">
+              {Object.entries(contextFields).map(
+                ([key, value]) =>
+                  value &&
+                  !empty.includes(value) && (
+                    <div className="flex gap-2">
+                      <Label className="text-sm font-medium leading-4">
+                        {key}:
+                      </Label>
+                      <span className="text-sm leading-4 text-muted-foreground">
                         {value}
                       </span>
-                    ) : (
-                      <Minus className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
+                    </div>
+                  ),
+              )}
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-1 block text-lg font-medium">{`Vítimas Humanas (${victims?.length}):`}</span>
+            <div className="space-y-2 pl-4">
+              {victims?.map((victim, index) => (
+                <div key={index}>
+                  <div>{`Vítima ${index + 1}:`}</div>
+                  {Object.entries(victim).map(
+                    ([key, value]) =>
+                      value &&
+                      !empty.includes(value.toString()) && (
+                        <div className="flex gap-2 pl-4">
+                          <Label className="text-sm font-medium leading-4">
+                            {key}:
+                          </Label>
+                          <span className="text-sm leading-4 text-muted-foreground">
+                            {value}
+                          </span>
+                        </div>
+                      ),
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-1 block text-lg font-medium">{`Vítimas Animais (${animalVictims?.length}):`}</span>
+            <div className="space-y-2 pl-4">
+              {animalVictims?.map((victim, index) => (
+                <div key={index}>
+                  <div>{`Vítima ${index + 1}:`}</div>
+                  {Object.entries(victim).map(
+                    ([key, value]) =>
+                      value &&
+                      !empty.includes(value.toString()) && (
+                        <div className="flex gap-2 pl-4">
+                          <Label className="text-sm font-medium leading-4">
+                            {key}:
+                          </Label>
+                          <span className="text-sm leading-4 text-muted-foreground">
+                            {value}
+                          </span>
+                        </div>
+                      ),
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </DialogContent>
