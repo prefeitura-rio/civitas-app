@@ -1,3 +1,4 @@
+import { HeatmapLayer } from '@deck.gl/aggregation-layers'
 import type { PickingInfo } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
@@ -12,18 +13,18 @@ import { useReportsSearchParams } from '../use-params/use-reports-search-params'
 export interface UseReports {
   data: Report[]
   failed: boolean
-  layer: IconLayer<Report, object>
+  layers: {
+    icons: IconLayer<Report, object>
+    heatmap: HeatmapLayer<Report, object>
+  }
   layerStates: {
     isLoading: boolean
-    isVisible: boolean
-    setIsVisible: Dispatch<SetStateAction<boolean>>
     hoverInfo: PickingInfo<Report>
     setHoverInfo: Dispatch<SetStateAction<PickingInfo<Report>>>
   }
 }
 
 export function useReports(): UseReports {
-  const [isVisible, setIsVisible] = useState(true)
   const { queryKey, formattedSearchParams } = useReportsSearchParams()
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<Report>>(
     {} as PickingInfo<Report>,
@@ -34,10 +35,13 @@ export function useReports(): UseReports {
     queryFn: () => getReports(formattedSearchParams),
   })
 
-  const layer = new IconLayer<Report>({
-    id: 'radars',
-    data: data?.items || [],
-    getPosition: (info) => [info.longitude, info.latitude],
+  const filtered =
+    data?.items.filter((item) => !!item.longitude && !!item.latitude) || []
+
+  const icons = new IconLayer<Report>({
+    id: 'report-icons',
+    data: filtered,
+    getPosition: (info) => [info.longitude || 0, info.latitude || 0],
     getSize: 24,
     getIcon: () => ({
       url: messageCircleWarning.src,
@@ -48,18 +52,27 @@ export function useReports(): UseReports {
     pickable: true,
     highlightColor: [249, 115, 22, 255], // orange-500
     autoHighlight: true,
-    visible: isVisible,
     onHover: (info) => setHoverInfo(info),
+  })
+
+  const heatmap = new HeatmapLayer<Report>({
+    id: 'reports-heatmap',
+    data: filtered,
+    aggregation: 'SUM',
+    getPosition: (info) => [info.longitude || 0, info.latitude || 0],
+    getWeight: () => 1,
+    radiusPixels: 25,
   })
 
   return {
     data: data?.items || [],
     failed: !data && !isLoading,
-    layer,
+    layers: {
+      icons,
+      heatmap,
+    },
     layerStates: {
       isLoading,
-      isVisible,
-      setIsVisible,
       hoverInfo,
       setHoverInfo,
     },
