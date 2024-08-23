@@ -5,6 +5,8 @@ import {
   ChevronsRight,
 } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
 import { Button } from './button'
 
 export interface PaginationProps {
@@ -12,6 +14,7 @@ export interface PaginationProps {
   total: number
   size: number
   onPageChange: (pageIndex: number) => Promise<void> | void
+  className?: string
 }
 
 export function Pagination({
@@ -19,11 +22,12 @@ export function Pagination({
   size,
   total,
   onPageChange,
+  className,
 }: PaginationProps) {
   const pages = Math.ceil(total / size) || 1
 
   return (
-    <div className="flex items-center justify-between">
+    <div className={cn('flex items-center justify-between', className)}>
       <span className="text-sm text-muted-foreground">
         Total de {total} item(s)
       </span>

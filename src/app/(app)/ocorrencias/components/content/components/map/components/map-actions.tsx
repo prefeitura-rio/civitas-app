@@ -33,8 +33,8 @@ export function MapActions() {
       failed: reports.failed,
     },
     {
-      id: 'fogo-cruzado-incidents',
-      label: 'Fogo Cruzado',
+      id: 'heatmap',
+      label: 'Heatmap',
       checked: reports.layerStates.isHeatmapLayerVisible,
       onCheckedChange: reports.layerStates.setIsHeatmapLayerVisible,
       isLoading: reports.layerStates.isLoading,

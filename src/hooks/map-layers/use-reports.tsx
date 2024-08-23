@@ -1,4 +1,3 @@
-'use'
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'
 import type { PickingInfo } from '@deck.gl/core'
 import { IconLayer, TextLayer } from '@deck.gl/layers'
@@ -8,7 +7,7 @@ import Supercluster from 'supercluster'
 
 import circle from '@/assets/circle.svg'
 import messageCircleWarning from '@/assets/message-circle-warning.svg'
-import { getReports } from '@/http/reports/get-reports'
+import { getReports, type ReportsResponse } from '@/http/reports/get-reports'
 import type { Report } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
 
@@ -21,7 +20,7 @@ interface ClusterIcon extends Report {
   point_count: number
 }
 export interface UseReports {
-  data: Report[]
+  data: ReportsResponse | undefined
   failed: boolean
   layers: {
     heatmap: HeatmapLayer<Report, object>
@@ -93,20 +92,17 @@ export function useReports(): UseReports {
     )
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedData = clusters.map((cluster: any) => {
-      const isCluster = cluster.properties.cluster
+    const formattedData = clusters.map((item: any) => {
+      const isCluster = item.properties.cluster
 
       return {
-        ...cluster.properties,
-        position: [
-          cluster.geometry.coordinates[0],
-          cluster.geometry.coordinates[1],
-        ],
+        ...item.properties,
+        position: [item.geometry.coordinates[0], item.geometry.coordinates[1]],
         icon: isCluster ? circle.src : messageCircleWarning.src, // Use different icons for clusters vs points
-        size: cluster.properties.cluster
-          ? 35 + 2 * cluster.properties.point_count
+        size: item.properties.cluster
+          ? 35 + 2 * item.properties.point_count
           : 30, // Scale icon size based on whether it's a cluster or point
-        point_count: cluster.properties.point_count || 1, // For displaying number of points in a cluster
+        point_count: item.properties.point_count || 1, // For displaying number of points in a cluster
       }
     })
 
@@ -132,10 +128,6 @@ export function useReports(): UseReports {
       visible: isIconsLayerVisible,
     })
 
-    console.log({
-      data: formattedData.filter((item) => item?.cluster),
-    })
-
     const textLayer = new TextLayer<ClusterIcon>({
       id: 'clustered-report-icons-text',
       data: formattedData.filter((item) => item?.cluster),
@@ -155,10 +147,8 @@ export function useReports(): UseReports {
     ]
   }
 
-  console.log('refresh use-reports')
-
   return {
-    data: data?.items || [],
+    data,
     failed: !data && !isLoading,
     layers: {
       heatmap,

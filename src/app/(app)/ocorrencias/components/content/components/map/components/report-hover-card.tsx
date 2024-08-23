@@ -28,7 +28,7 @@ export function ReportHoverCard() {
             <div className="flex gap-2">
               <span className="font-medium">Data:</span>
               <span className="text-muted-foreground">
-                {formatDate(object.date, 'dd/mm/y HH:mm')}
+                {formatDate(object.date, 'dd/MM/y HH:mm')}
               </span>
             </div>
 

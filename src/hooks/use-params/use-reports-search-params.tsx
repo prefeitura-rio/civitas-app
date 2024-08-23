@@ -32,7 +32,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     minLon: z.coerce.number().parse(searchParams.get('minLon')),
     maxLon: z.coerce.number().parse(searchParams.get('maxLon')),
     page: z.coerce.number().parse(searchParams.get('page') ?? '1'),
-    size: z.coerce.number().parse(searchParams.get('size') ?? '100'),
+    size: z.coerce.number().parse(searchParams.get('size') ?? '10'),
   }
 
   let formattedSearchParams: GetReportsRequest = {}
@@ -52,12 +52,31 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     const defaultMinDate = new Date().addDays(-7).setMinTime()
     const defaultMaxDate = new Date().setMaxTime()
     redirect(
-      `/ocorrencias?minDate=${defaultMinDate.toLocaleISOString()}&maxDate=${defaultMaxDate.toLocaleISOString()}`,
+      `/ocorrencias?minDate=${defaultMinDate.toISOString()}&maxDate=${defaultMaxDate.toISOString()}`,
     )
   }
 
   function handlePaginate(index: number) {
-    router.replace(`ocorrencias?page=${index}`)
+    const query = new URLSearchParams()
+
+    const newParams = {
+      ...params,
+      page: index,
+    }
+
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value) {
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            query.append(key, item)
+          })
+        } else {
+          query.set(key, value.toString())
+        }
+      }
+    })
+
+    router.push(`ocorrencias?${query.toString()}`)
   }
 
   return {
