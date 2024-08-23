@@ -1,7 +1,7 @@
 import '@/utils/string-extensions'
 
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
-import { format } from 'date-fns'
+import { formatDate } from 'date-fns'
 
 import type { Radar } from '@/models/entities'
 
@@ -44,7 +44,7 @@ export function RadarReportCover({
     },
     {
       label: 'Período analisado:',
-      value: `De ${format(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${format(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
+      value: `De ${formatDate(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${formatDate(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
     },
     {
       label: 'Localização:',

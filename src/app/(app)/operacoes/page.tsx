@@ -7,7 +7,7 @@ import { OperationsTable } from './components/operations-table'
 export default function Operacoes() {
   return (
     <OperationsContextProvider>
-      <div className="page-content space-y-4">
+      <div className="page-content space-y-4 overflow-y-scroll">
         <OperationsHeader />
         <OperationsTable />
 
