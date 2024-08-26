@@ -85,8 +85,8 @@ export function SearchByRadar() {
 
     await getCarsByRadarMutation({
       radar: selectedRadar?.cameraNumber || '',
-      startTime: startTime.toLocaleISOString(),
-      endTime: endTime.toLocaleISOString(),
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
       plateHint: props.plateHint,
     })
   }

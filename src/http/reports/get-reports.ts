@@ -32,8 +32,12 @@ interface GetReportsBackendRequest extends PaginationRequest {
   longitude_max?: number
 }
 
-interface GetReportsResponse extends PaginationResponse {
+interface GetReportsBackendResponse extends PaginationResponse {
   items: BackendReport[]
+}
+
+export interface ReportsResponse extends PaginationResponse {
+  items: Report[]
 }
 
 export async function getReports(props: GetReportsRequest) {
@@ -68,7 +72,7 @@ export async function getReports(props: GetReportsRequest) {
     }
   })
 
-  const response = await api.get<GetReportsResponse>(
+  const response = await api.get<GetReportsBackendResponse>(
     `/reports?${query.toString()}`,
   )
 
@@ -101,5 +105,5 @@ export async function getReports(props: GetReportsRequest) {
   return {
     ...response.data,
     items,
-  }
+  } as ReportsResponse
 }

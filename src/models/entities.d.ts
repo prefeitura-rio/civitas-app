@@ -109,28 +109,28 @@ export type CameraCOR = {
 }
 
 export type BackendRadar = {
-  codcet: string
+  codcet: string | null
   camera_numero: string
   latitude: number
   longitude: number
-  locequip: string
-  bairro: string
-  logradouro: string
+  locequip: string | null
+  bairro: string | null
+  logradouro: string | null
   has_data: string
-  empresa?: string
-  active_in_last_24_hours?: string
-  last_detection_time?: string
-  sentido?: string
+  empresa: string | null
+  active_in_last_24_hours: string | null
+  last_detection_time: string | null
+  sentido: string | null
 }
 
 export type Radar = {
-  cetRioCode: string
+  cetRioCode: string | null
   cameraNumber: string
   latitude: number
   longitude: number
-  location: string
-  district: string
-  streetName: string
+  location: string | null
+  district: string | null
+  streetName: string | null
   hasData: boolean
   activeInLast24Hours: boolean
   company: string | null

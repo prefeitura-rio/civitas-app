@@ -51,23 +51,8 @@ export function TotalReportsTimeHistoryAreaChart({
     if (data && sources) {
       const hash: { [date: string]: { [sourceId: string]: number } } = {}
 
-      data.forEach((item, index) => {
-        // const { date, sourceId } = item
-        const date =
-          index === 0
-            ? new Date().toLocaleISOString()
-            : index === 0
-              ? new Date().addDays(-3).toLocaleISOString()
-              : index === 1
-                ? new Date().addDays(-1).toLocaleISOString()
-                : index === 2
-                  ? new Date().addDays(-2).toLocaleISOString()
-                  : index === 3
-                    ? new Date().addDays(-2).toLocaleISOString()
-                    : index === 4
-                      ? new Date().addDays(-4).toLocaleISOString()
-                      : new Date().addDays(-5).toLocaleISOString()
-        const sourceId = [1, 3, 5].includes(index) ? '1746' : 'DD'
+      data.items.forEach((item) => {
+        const { date, sourceId } = item
         const formattedDate = format(date, 'dd/MM/y')
 
         // Initialize date entry if not present

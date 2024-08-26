@@ -5,7 +5,7 @@ import { MonitoredPlatesTable } from './components/monitored-plates-table'
 
 export default function PlacasMonitoradas() {
   return (
-    <div className="page-content space-y-4">
+    <div className="page-content space-y-4 overflow-y-scroll">
       <MonitoredPlatesHeader />
       <MonitoredPlatesFilter />
       <MonitoredPlatesTable />
