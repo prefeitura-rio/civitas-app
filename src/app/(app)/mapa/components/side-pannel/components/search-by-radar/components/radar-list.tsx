@@ -125,9 +125,12 @@ export function RadarList() {
               />
               <TooltipInfoItem
                 label="Código CET-Rio"
-                value={props.cetRioCode}
+                value={props.cetRioCode || ''}
               />
-              <TooltipInfoItem label="Localização" value={props.location} />
+              <TooltipInfoItem
+                label="Localização"
+                value={props.location || ''}
+              />
               <TooltipInfoItem
                 label="Latitude"
                 value={props.latitude.toString()}
@@ -136,8 +139,11 @@ export function RadarList() {
                 label="Longitude"
                 value={props.longitude.toString()}
               />
-              <TooltipInfoItem label="Bairro" value={props.district} />
-              <TooltipInfoItem label="Logradouro" value={props.streetName} />
+              <TooltipInfoItem label="Bairro" value={props.district || ''} />
+              <TooltipInfoItem
+                label="Logradouro"
+                value={props.streetName || ''}
+              />
               <TooltipInfoItem label="Sentido" value={props.direction || ''} />
               <TooltipInfoItem label="Empresa" value={props.company || ''} />
               <TooltipInfoItem
