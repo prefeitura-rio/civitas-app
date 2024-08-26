@@ -40,7 +40,7 @@ export function RadarReportCover({
     },
     {
       label: 'Código do radar (CET-Rio):',
-      value: radar.cetRioCode,
+      value: radar.cetRioCode || '',
     },
     {
       label: 'Período analisado:',
@@ -48,11 +48,11 @@ export function RadarReportCover({
     },
     {
       label: 'Localização:',
-      value: radar.location.capitalizeFirstLetter(),
+      value: radar.location?.capitalizeFirstLetter() || '',
     },
     {
       label: 'Bairro:',
-      value: radar.district.capitalizeFirstLetter(),
+      value: radar.district?.capitalizeFirstLetter() || '',
     },
     {
       label: 'Latitude:',
