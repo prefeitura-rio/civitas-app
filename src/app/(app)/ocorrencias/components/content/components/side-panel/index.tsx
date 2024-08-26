@@ -64,8 +64,8 @@ export function SidePanel({ className }: SidePanelProps) {
 
     const searchParams: GetReportsRequest = {
       semanticallySimilar: props.semanticallySimilar,
-      minDate: props.dateRange?.from.toLocaleISOString(),
-      maxDate: props.dateRange?.to?.toLocaleISOString(),
+      minDate: props.dateRange?.from.toISOString(),
+      maxDate: props.dateRange?.to?.toISOString(),
       categoryContains: props.categoryContains,
       sourceIdContains: props.sourceIdContains,
     }

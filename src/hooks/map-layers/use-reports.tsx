@@ -1,4 +1,3 @@
-'use'
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'
 import type { PickingInfo } from '@deck.gl/core'
 import { IconLayer, TextLayer } from '@deck.gl/layers'
@@ -8,7 +7,7 @@ import Supercluster from 'supercluster'
 
 import circle from '@/assets/circle.svg'
 import messageCircleWarning from '@/assets/message-circle-warning.svg'
-import { getReports } from '@/http/reports/get-reports'
+import { getReports, type ReportsResponse } from '@/http/reports/get-reports'
 import type { Report } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
 
@@ -21,10 +20,9 @@ interface ClusterIcon extends Report {
   point_count: number
 }
 export interface UseReports {
-  data: Report[]
+  data: ReportsResponse | undefined
   failed: boolean
   layers: {
-    icons: IconLayer<Report, object>
     heatmap: HeatmapLayer<Report, object>
     clusteredIcons: (
       bounds: number[],
@@ -35,10 +33,16 @@ export interface UseReports {
     isLoading: boolean
     hoverInfo: PickingInfo<Report>
     setHoverInfo: Dispatch<SetStateAction<PickingInfo<Report>>>
+    isIconsLayerVisible: boolean
+    setIsIconsLayerVisible: Dispatch<SetStateAction<boolean>>
+    isHeatmapLayerVisible: boolean
+    setIsHeatmapLayerVisible: Dispatch<SetStateAction<boolean>>
   }
 }
 
 export function useReports(): UseReports {
+  const [isIconsLayerVisible, setIsIconsLayerVisible] = useState(false)
+  const [isHeatmapLayerVisible, setIsHeatmapLayerVisible] = useState(false)
   const { queryKey, formattedSearchParams } = useReportsSearchParams()
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<Report>>(
     {} as PickingInfo<Report>,
@@ -52,24 +56,6 @@ export function useReports(): UseReports {
   const filtered =
     data?.items.filter((item) => !!item.longitude && !!item.latitude) || []
 
-  const icons = new IconLayer<Report>({
-    id: 'report-icons',
-    data: filtered,
-    getPosition: (info) => [info.longitude || 0, info.latitude || 0],
-    getSize: 24,
-    getIcon: () => ({
-      url: messageCircleWarning.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    pickable: true,
-    highlightColor: [249, 115, 22, 255], // orange-500
-    autoHighlight: true,
-    visible: false,
-    onHover: (info) => setHoverInfo(info),
-  })
-
   const heatmap = new HeatmapLayer<Report>({
     id: 'reports-heatmap',
     data: filtered,
@@ -77,7 +63,7 @@ export function useReports(): UseReports {
     getPosition: (info) => [info.longitude || 0, info.latitude || 0],
     getWeight: () => 1,
     radiusPixels: 25,
-    visible: false,
+    visible: isHeatmapLayerVisible,
   })
 
   function clusteredIcons(bounds: number[], zoom: number) {
@@ -106,20 +92,17 @@ export function useReports(): UseReports {
     )
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedData = clusters.map((cluster: any) => {
-      const isCluster = cluster.properties.cluster
+    const formattedData = clusters.map((item: any) => {
+      const isCluster = item.properties.cluster
 
       return {
-        ...cluster.properties,
-        position: [
-          cluster.geometry.coordinates[0],
-          cluster.geometry.coordinates[1],
-        ],
+        ...item.properties,
+        position: [item.geometry.coordinates[0], item.geometry.coordinates[1]],
         icon: isCluster ? circle.src : messageCircleWarning.src, // Use different icons for clusters vs points
-        size: cluster.properties.cluster
-          ? 35 + 2 * cluster.properties.point_count
+        size: item.properties.cluster
+          ? 35 + 2 * item.properties.point_count
           : 30, // Scale icon size based on whether it's a cluster or point
-        point_count: cluster.properties.point_count || 1, // For displaying number of points in a cluster
+        point_count: item.properties.point_count || 1, // For displaying number of points in a cluster
       }
     })
 
@@ -142,10 +125,7 @@ export function useReports(): UseReports {
           setHoverInfo(info)
         }
       },
-    })
-
-    console.log({
-      data: formattedData.filter((item) => item?.cluster),
+      visible: isIconsLayerVisible,
     })
 
     const textLayer = new TextLayer<ClusterIcon>({
@@ -153,11 +133,12 @@ export function useReports(): UseReports {
       data: formattedData.filter((item) => item?.cluster),
       getPosition: (info) => info.position,
       getColor: [0, 0, 0],
-      getSize: 15,
+      getSize: (info) => info.size * 0.5,
       getTextAnchor: 'middle',
       getText: (info) => String(info.point_count),
       fontWeight: 10,
       pickable: false,
+      visible: isIconsLayerVisible,
     })
 
     return [iconLayer, textLayer] as [
@@ -166,13 +147,10 @@ export function useReports(): UseReports {
     ]
   }
 
-  console.log('refresh use-reports')
-
   return {
-    data: data?.items || [],
+    data,
     failed: !data && !isLoading,
     layers: {
-      icons,
       heatmap,
       clusteredIcons,
     },
@@ -180,6 +158,10 @@ export function useReports(): UseReports {
       isLoading,
       hoverInfo,
       setHoverInfo,
+      isIconsLayerVisible,
+      setIsIconsLayerVisible,
+      isHeatmapLayerVisible,
+      setIsHeatmapLayerVisible,
     },
   }
 }

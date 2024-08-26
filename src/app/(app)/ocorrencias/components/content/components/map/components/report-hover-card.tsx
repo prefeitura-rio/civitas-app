@@ -6,7 +6,7 @@ import { Circle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 
-export function ReportHoverInfoTooltip() {
+export function ReportHoverCard() {
   const {
     layers: {
       reports: {
@@ -28,7 +28,7 @@ export function ReportHoverInfoTooltip() {
             <div className="flex gap-2">
               <span className="font-medium">Data:</span>
               <span className="text-muted-foreground">
-                {formatDate(object.date, 'dd/mm/y HH:mm')}
+                {formatDate(object.date, 'dd/MM/y HH:mm')}
               </span>
             </div>
 

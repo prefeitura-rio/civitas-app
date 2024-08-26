@@ -131,9 +131,12 @@ export function SearchByRadarFilterForm() {
         />
         <TooltipInfoItem
           label="Código CET-Rio"
-          value={selectedRadar.cetRioCode}
+          value={selectedRadar.cetRioCode || ''}
         />
-        <TooltipInfoItem label="Localização" value={selectedRadar.location} />
+        <TooltipInfoItem
+          label="Localização"
+          value={selectedRadar.location || ''}
+        />
         <TooltipInfoItem
           label="Latitude"
           value={selectedRadar.latitude.toString()}
@@ -142,8 +145,11 @@ export function SearchByRadarFilterForm() {
           label="Longitude"
           value={selectedRadar.longitude.toString()}
         />
-        <TooltipInfoItem label="Bairro" value={selectedRadar.district} />
-        <TooltipInfoItem label="Logradouro" value={selectedRadar.streetName} />
+        <TooltipInfoItem label="Bairro" value={selectedRadar.district || ''} />
+        <TooltipInfoItem
+          label="Logradouro"
+          value={selectedRadar.streetName || ''}
+        />
         <TooltipInfoItem
           label="Sentido"
           value={selectedRadar.direction || ''}

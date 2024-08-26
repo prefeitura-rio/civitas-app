@@ -7,7 +7,8 @@ import { config } from '@/config'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 import { cn } from '@/lib/utils'
 
-import { ReportHoverInfoTooltip } from './components/report-hover-info-tooltip'
+import { MapActions } from './components/map-actions'
+import { ReportHoverCard } from './components/report-hover-card'
 
 interface MapProps {
   className?: string
@@ -40,7 +41,6 @@ export function Map({ className }: MapProps) {
         controller
         layers={[
           reports.layers.heatmap,
-          reports.layers.icons,
           ...reports.layers.clusteredIcons(bounds, zoom),
           addressMarker.layer,
         ]}
@@ -66,7 +66,8 @@ export function Map({ className }: MapProps) {
             setViewport={setViewport}
           />
         </div>
-        <ReportHoverInfoTooltip />
+        <MapActions />
+        <ReportHoverCard />
       </DeckGL>
     </div>
   )

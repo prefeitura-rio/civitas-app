@@ -1,7 +1,7 @@
 import '@/utils/string-extensions'
 
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
-import { format } from 'date-fns'
+import { formatDate } from 'date-fns'
 
 import type { Radar } from '@/models/entities'
 
@@ -40,19 +40,19 @@ export function RadarReportCover({
     },
     {
       label: 'Código do radar (CET-Rio):',
-      value: radar.cetRioCode,
+      value: radar.cetRioCode || '',
     },
     {
       label: 'Período analisado:',
-      value: `De ${format(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${format(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
+      value: `De ${formatDate(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${formatDate(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
     },
     {
       label: 'Localização:',
-      value: radar.location.capitalizeFirstLetter(),
+      value: radar.location?.capitalizeFirstLetter() || '',
     },
     {
       label: 'Bairro:',
-      value: radar.district.capitalizeFirstLetter(),
+      value: radar.district?.capitalizeFirstLetter() || '',
     },
     {
       label: 'Latitude:',
