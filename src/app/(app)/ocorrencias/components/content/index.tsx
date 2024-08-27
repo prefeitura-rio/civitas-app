@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ReportsMapContextProvider } from '@/contexts/reports-map-context'
 import { cn } from '@/lib/utils'
 
+import { GenerateReportButton } from './components/common/pdf-report/generate-report-button'
 import { Views } from './components/common/views'
 import { Dashboard } from './components/dashboard'
 import { Map } from './components/map'
@@ -25,7 +26,7 @@ export function Content() {
                 variant="ghost"
                 onClick={() => setView(item[1])}
                 className={cn(
-                  'w-40 border-b-2',
+                  'w-40 shrink-0 border-b-2',
                   item[1] === view
                     ? 'border-b-2 border-primary'
                     : 'border-opacity-0',
@@ -34,6 +35,9 @@ export function Content() {
                 {item[1]}
               </Button>
             ))}
+            <div className="flex w-full justify-end px-2">
+              <GenerateReportButton />
+            </div>
           </div>
 
           <div className="h-[calc(100%-3rem)] overflow-y-scroll">
