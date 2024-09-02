@@ -5,16 +5,11 @@ import ReactMapGL from 'react-map-gl'
 import { SearchBox } from '@/app/(app)/mapa/components/map/components/search-box'
 import { config } from '@/config'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
-import { cn } from '@/lib/utils'
 
 import { MapActions } from './components/map-actions'
 import { ReportHoverCard } from './components/report-hover-card'
 
-interface MapProps {
-  className?: string
-}
-
-export function Map({ className }: MapProps) {
+export default function Map() {
   const {
     deckRef,
     mapRef,
@@ -27,7 +22,7 @@ export function Map({ className }: MapProps) {
   const zoom = viewport.zoom
 
   return (
-    <div className={cn(className, 'h-full')}>
+    <div className="h-full">
       <DeckGL
         ref={deckRef}
         initialViewState={viewport}

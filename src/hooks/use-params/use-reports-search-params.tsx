@@ -3,6 +3,7 @@ import '@/utils/date-extensions'
 import { redirect, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
+import { Views } from '@/app/(app)/ocorrencias/components/views'
 import type { GetReportsRequest } from '@/http/reports/get-reports'
 
 type ReportsQueryKey = ['reports', query: GetReportsRequest]
@@ -52,7 +53,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     const defaultMinDate = new Date().addDays(-7).setMinTime()
     const defaultMaxDate = new Date().setMaxTime()
     redirect(
-      `/ocorrencias?minDate=${defaultMinDate.toISOString()}&maxDate=${defaultMaxDate.toISOString()}`,
+      `/ocorrencias/mapa/?minDate=${defaultMinDate.toISOString()}&maxDate=${defaultMaxDate.toISOString()}`,
     )
   }
 

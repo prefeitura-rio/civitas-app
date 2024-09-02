@@ -1,3 +1,4 @@
+'use client'
 import { format } from 'date-fns'
 import { CircleAlert } from 'lucide-react'
 
@@ -6,16 +7,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Pagination } from '@/components/ui/pagination'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
-import { cn } from '@/lib/utils'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import { ReportCard } from './components/report-card'
 
-interface TimelineProps {
-  className?: string
-}
-
-export function Timeline({ className }: TimelineProps) {
+export default function Timeline() {
   const { handlePaginate } = useReportsSearchParams()
   const {
     layers: {
@@ -28,7 +24,7 @@ export function Timeline({ className }: TimelineProps) {
   } = useReportsMap()
 
   return (
-    <div className={cn(className, 'mt-10 space-y-4')}>
+    <div className="mt-10 min-w-screen-lg space-y-4">
       <h3>Histórico de ocorrências:</h3>
       <div className="pt-10">
         {isLoading ? (
