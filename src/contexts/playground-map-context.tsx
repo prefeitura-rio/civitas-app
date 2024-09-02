@@ -1,9 +1,11 @@
 // context/MapContext.js
 import { Deck } from '@deck.gl/core'
 import { ScatterplotLayer } from '@deck.gl/layers'
-import React, {
+import {
   createContext,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
   useEffect,
   useState,
 } from 'react'
@@ -12,6 +14,7 @@ import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 interface PlaygroundMapContext {
   deck: Deck<null> | null
+  setDeck: Dispatch<SetStateAction<Deck<null> | null>>
 }
 
 export const PlaygroundMapContext = createContext({} as PlaygroundMapContext)
@@ -23,11 +26,11 @@ interface PlaygroundMapContextProviderProps {
 export const PlaygroundMapContextProvider = ({
   children,
 }: PlaygroundMapContextProviderProps) => {
-  const [map, setMap] = useState(null) // Reference to Mapbox instance
+  // const [map, setMap] = useState(null) // Reference to Mapbox instance
   const [deck, setDeck] = useState<Deck<null> | null>(null) // Reference to Deck.gl instance
-  const [viewport, setViewport] = useState({}) // Viewport state
-  const [layers, setLayers] = useState([]) // Store layers that are enabled/disabled
-  const [hoveredObject, setHoveredObject] = useState<null>(null) // Hovered object
+  // const [viewport, setViewport] = useState({}) // Viewport state
+  // const [layers, setLayers] = useState([]) // Store layers that are enabled/disabled
+  // const [hoveredObject, setHoveredObject] = useState<null>(null) // Hovered object
 
   useEffect(() => {
     const deck = new Deck({
@@ -49,7 +52,7 @@ export const PlaygroundMapContextProvider = ({
   }, [])
 
   return (
-    <PlaygroundMapContext.Provider value={{}}>
+    <PlaygroundMapContext.Provider value={{ deck, setDeck }}>
       {children}
     </PlaygroundMapContext.Provider>
   )
