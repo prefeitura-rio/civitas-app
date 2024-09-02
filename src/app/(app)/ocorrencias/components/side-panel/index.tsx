@@ -1,3 +1,4 @@
+'use client'
 import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
