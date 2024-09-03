@@ -1,3 +1,5 @@
+import '@/utils/string-extensions'
+
 import { Circle, MapPin, Speech } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
@@ -31,7 +33,7 @@ export function ReportCard(props: Report) {
             <span className="text-sm leading-3.5">Orgãos</span>
             <ul className="text-muted-foreground">
               {props.entities.map((item) => (
-                <li className="list-inside list-disc">{item.name}</li>
+                <li className="list-inside list-disc">{item}</li>
               ))}
             </ul>
           </div>

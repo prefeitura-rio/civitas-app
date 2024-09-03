@@ -7,7 +7,10 @@ import Supercluster from 'supercluster'
 
 import circle from '@/assets/circle.svg'
 import messageCircleWarning from '@/assets/message-circle-warning.svg'
-import { getReports, type ReportsResponse } from '@/http/reports/get-reports'
+import {
+  getHeatmapReports,
+  type HeatmapCoordinates,
+} from '@/http/reports/dashboard/get-heatmap'
 import type { Report } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
 
@@ -20,7 +23,7 @@ interface ClusterIcon extends Report {
   point_count: number
 }
 export interface UseReports {
-  data: ReportsResponse | undefined
+  data: HeatmapCoordinates | undefined
   failed: boolean
   layers: {
     heatmap: HeatmapLayer<Report, object>
@@ -50,11 +53,11 @@ export function useReports(): UseReports {
 
   const { data, isLoading } = useQuery({
     queryKey,
-    queryFn: () => getReports(formattedSearchParams),
+    queryFn: () => getHeatmapReports(formattedSearchParams),
   })
 
   const filtered =
-    data?.items.filter((item) => !!item.longitude && !!item.latitude) || []
+    data?.filter((item) => !!item.longitude && !!item.latitude) || []
 
   const heatmap = new HeatmapLayer<Report>({
     id: 'reports-heatmap',
@@ -67,8 +70,11 @@ export function useReports(): UseReports {
   })
 
   function clusteredIcons(bounds: number[], zoom: number) {
+    // Adjust the cluster radius based on zoom and cluster size
+    const adjustedRadius = Math.max(40, zoom * 5) // Scale radius with zoom level
+
     const index = new Supercluster({
-      radius: 40, // Cluster radius in pixels
+      radius: adjustedRadius, // Cluster radius in pixels
       maxZoom: 16, // Max zoom level for clustering
       minZoom: 0, // Min zoom level for clustering
       extent: 512, // Tile extent (512 by default)
@@ -100,7 +106,8 @@ export function useReports(): UseReports {
         position: [item.geometry.coordinates[0], item.geometry.coordinates[1]],
         icon: isCluster ? circle.src : messageCircleWarning.src, // Use different icons for clusters vs points
         size: item.properties.cluster
-          ? 35 + 2 * item.properties.point_count
+          ? // ? 35 + 1 * item.properties.point_count
+            25 * Math.log(0.02 * item.properties.point_count - 0.04 + 1) + 35
           : 30, // Scale icon size based on whether it's a cluster or point
         point_count: item.properties.point_count || 1, // For displaying number of points in a cluster
       }
@@ -126,6 +133,7 @@ export function useReports(): UseReports {
         }
       },
       visible: isIconsLayerVisible,
+      // visible: false,
     })
 
     const textLayer = new TextLayer<ClusterIcon>({
@@ -133,12 +141,14 @@ export function useReports(): UseReports {
       data: formattedData.filter((item) => item?.cluster),
       getPosition: (info) => info.position,
       getColor: [0, 0, 0],
-      getSize: (info) => info.size * 0.5,
+      getSize: (info) =>
+        info.point_count <= 99 ? info.size * 0.5 : info.size * 0.4,
       getTextAnchor: 'middle',
       getText: (info) => String(info.point_count),
       fontWeight: 10,
       pickable: false,
       visible: isIconsLayerVisible,
+      // visible: false,
     })
 
     return [iconLayer, textLayer] as [

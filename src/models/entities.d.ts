@@ -191,9 +191,7 @@ export type Report = {
   sourceId: string
   originalReportId: string
   date: string
-  entities: {
-    name: string
-  }[]
+  entities: string[]
   category: string
   typeAndSubtype: {
     type: string
@@ -204,9 +202,11 @@ export type Report = {
   longitude: number | null
   location: string | null
   locationNumber: string | null
-  additionalInfo: {
-    certainty: number
-  }
+  additionalInfo:
+    | {
+        certainty: number
+      }
+    | undefined
 }
 
 export type BackendReport = {
@@ -214,9 +214,7 @@ export type BackendReport = {
   id_source: string
   id_report_original: string
   data_report: string
-  orgaos: {
-    nome: string
-  }[]
+  orgaos: string[]
   categoria: string
   tipo_subtipo: {
     tipo: string
@@ -227,9 +225,11 @@ export type BackendReport = {
   numero_logradouro: string
   latitude: 0
   longitude: 0
-  additional_info: {
-    certainty: number
-  }
+  additional_info:
+    | {
+        certainty: number
+      }
+    | undefined
 }
 
 export type FogoCruzadoIncident = {

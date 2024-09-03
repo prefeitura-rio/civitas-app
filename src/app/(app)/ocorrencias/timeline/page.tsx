@@ -24,7 +24,7 @@ export default function Timeline() {
   } = useReportsMap()
 
   return (
-    <div className="mt-10 min-w-screen-lg space-y-4">
+    <div className="mt-10 h-[calc(100%-4.75rem)] min-w-screen-lg space-y-4 overflow-y-scroll">
       <h3>Histórico de ocorrências:</h3>
       <div className="pt-10">
         {isLoading ? (

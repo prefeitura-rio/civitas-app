@@ -22,7 +22,7 @@ export default function Map() {
   const zoom = viewport.zoom
 
   return (
-    <div className="h-full">
+    <div className="h-[calc(100%-2.25rem)]">
       <DeckGL
         ref={deckRef}
         initialViewState={viewport}

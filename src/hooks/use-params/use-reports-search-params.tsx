@@ -3,8 +3,7 @@ import '@/utils/date-extensions'
 import { redirect, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
-import { Views } from '@/app/(app)/ocorrencias/components/views'
-import type { GetReportsRequest } from '@/http/reports/get-reports'
+import type { GetReportsRequest } from '@/models/interfaces'
 
 type ReportsQueryKey = ['reports', query: GetReportsRequest]
 
