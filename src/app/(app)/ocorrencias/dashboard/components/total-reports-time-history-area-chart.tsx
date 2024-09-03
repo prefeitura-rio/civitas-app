@@ -44,7 +44,7 @@ export function TotalReportsTimeHistoryAreaChart({
   const { sources } = useReportFilterOptions()
 
   const { data } = useQuery({
-    queryKey: ['graph1', ...queryKey],
+    queryKey: ['timeline', ...queryKey],
     queryFn: () =>
       getTimelineReports(formattedSearchParams).then((data) => {
         const formattedData: { [key: string]: ChartData } = {}

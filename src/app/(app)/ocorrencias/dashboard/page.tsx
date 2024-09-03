@@ -8,7 +8,7 @@ export default function Dashboard() {
       <TotalReportsTimeHistoryAreaChart className="h-96" />
       <div className="flex h-96 gap-2">
         <Top5ReportTypesBarChart className="h-96 w-2/3 min-w-96" />
-        <TotalReportsByOriginPieChart className="h-96 w-1/3 min-w-96 opacity-20" />
+        <TotalReportsByOriginPieChart className="h-96 w-1/3 min-w-96" />
       </div>
     </div>
   )
