@@ -97,7 +97,6 @@ export function TotalReportsTimeHistoryAreaChart({
     }
   }, [sources])
 
-  console.log({ data })
   return (
     <Card className={cn(className)}>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
