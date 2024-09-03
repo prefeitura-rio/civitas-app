@@ -1,6 +1,11 @@
 import '@/utils/date-extensions'
 
-import { redirect, useRouter, useSearchParams } from 'next/navigation'
+import {
+  redirect,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from 'next/navigation'
 import { z } from 'zod'
 
 import type { GetReportsRequest } from '@/models/interfaces'
@@ -16,6 +21,8 @@ interface UseReportsSearchParamsReturn {
 
 export function useReportsSearchParams(): UseReportsSearchParamsReturn {
   const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const view = pathname.replace('/ocorrencias/', '')
   const router = useRouter()
 
   const params = {
@@ -27,6 +34,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     maxDate: searchParams.get('maxDate'),
     categoryContains: searchParams.getAll('categoryContains'),
     descriptionContains: searchParams.getAll('descriptionContains'),
+    keywords: searchParams.getAll('keywords'),
     minLat: z.coerce.number().parse(searchParams.get('minLat')),
     maxLat: z.coerce.number().parse(searchParams.get('maxLat')),
     minLon: z.coerce.number().parse(searchParams.get('minLon')),
@@ -52,7 +60,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
     const defaultMinDate = new Date().addDays(-7).setMinTime()
     const defaultMaxDate = new Date().setMaxTime()
     redirect(
-      `/ocorrencias/mapa/?minDate=${defaultMinDate.toISOString()}&maxDate=${defaultMaxDate.toISOString()}`,
+      `/ocorrencias/${view}/?minDate=${defaultMinDate.toISOString()}&maxDate=${defaultMaxDate.toISOString()}`,
     )
   }
 
@@ -76,7 +84,7 @@ export function useReportsSearchParams(): UseReportsSearchParamsReturn {
       }
     })
 
-    router.push(`ocorrencias?${query.toString()}`)
+    router.push(`/ocorrencias/${view}?${query.toString()}`)
   }
 
   return {

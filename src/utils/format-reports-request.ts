@@ -15,6 +15,7 @@ export function formatReportsRequest(
     data_report_max: props.maxDate,
     categoria_contains: props.categoryContains,
     descricao_contains: props.descriptionContains,
+    keywords: props.keywords,
     latitude_min: props.minLat,
     latitude_max: props.maxLat,
     longitude_min: props.minLon,

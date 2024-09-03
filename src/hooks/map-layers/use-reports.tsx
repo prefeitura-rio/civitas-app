@@ -23,7 +23,7 @@ interface ClusterIcon extends Report {
   point_count: number
 }
 export interface UseReports {
-  data: HeatmapCoordinates | undefined
+  data: HeatmapCoordinates[] | undefined
   failed: boolean
   layers: {
     heatmap: HeatmapLayer<Report, object>
@@ -52,12 +52,13 @@ export function useReports(): UseReports {
   )
 
   const { data, isLoading } = useQuery({
-    queryKey,
+    queryKey: ['heatmap', ...queryKey],
     queryFn: () => getHeatmapReports(formattedSearchParams),
   })
 
-  const filtered =
-    data?.filter((item) => !!item.longitude && !!item.latitude) || []
+  const filtered = data
+    ? data.filter((item) => !!item.longitude && !!item.latitude)
+    : []
 
   const heatmap = new HeatmapLayer<Report>({
     id: 'reports-heatmap',
@@ -75,7 +76,7 @@ export function useReports(): UseReports {
 
     const index = new Supercluster({
       radius: adjustedRadius, // Cluster radius in pixels
-      maxZoom: 16, // Max zoom level for clustering
+      maxZoom: 100, // Max zoom level for clustering
       minZoom: 0, // Min zoom level for clustering
       extent: 512, // Tile extent (512 by default)
       nodeSize: 64, // Size of the tile index node
@@ -124,14 +125,14 @@ export function useReports(): UseReports {
         height: info.size,
         mask: false,
       }),
-      pickable: true,
+      // pickable: true,
       highlightColor: [249, 115, 22, 255], // orange-500
       autoHighlight: true,
-      onHover: (info) => {
-        if (!info.object?.cluster) {
-          setHoverInfo(info)
-        }
-      },
+      // onHover: (info) => {
+      //   if (!info.object?.cluster) {
+      //     setHoverInfo(info)
+      //   }
+      // },
       visible: isIconsLayerVisible,
       // visible: false,
     })
