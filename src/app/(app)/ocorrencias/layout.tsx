@@ -13,7 +13,7 @@ export default function Ocorrencias({
     <div className="page-content space-y-4">
       <Header />
       <ReportsMapContextProvider>
-        <div className="flex h-[calc(100%-2.75rem)] w-full">
+        <div className="flex h-[calc(100%-1rem)] w-full">
           <div className="w-full space-y-2">
             <ViewButtons />
 

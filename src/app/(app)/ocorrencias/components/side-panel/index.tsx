@@ -2,9 +2,9 @@
 import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { FilterX, Search } from 'lucide-react'
+import { FilterX, Search, Trash } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { DatePickerWithRange } from '@/components/custom/date-range-picker'
@@ -22,7 +22,10 @@ interface SidePanelProps {
 }
 
 const filterFormSchema = z.object({
-  semanticallySimilar: z.string().optional(),
+  // semanticallySimilar: z.string().optional(),
+  keywords: z.array(
+    z.object({ word: z.string().min(1, { message: 'Campo obrigatório' }) }),
+  ),
   dateRange: z
     .object({
       from: z.date({ message: 'Campo obrigatório' }),
@@ -46,7 +49,13 @@ export function SidePanel({ className }: SidePanelProps) {
     states: { categoriesIsLoading, sourcesIsLoading },
   } = useReportFilterOptions()
 
-  const { control, handleSubmit, reset, register } = useForm<FilterFormType>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    register,
+    formState: { errors },
+  } = useForm<FilterFormType>({
     resolver: zodResolver(filterFormSchema),
     defaultValues: {
       dateRange: {
@@ -60,15 +69,21 @@ export function SidePanel({ className }: SidePanelProps) {
     },
   })
 
+  const { fields, append, remove } = useFieldArray({
+    name: 'keywords',
+    control,
+  })
+
   function onSubmit(props: FilterFormType) {
     const params = new URLSearchParams()
 
     const searchParams: GetReportsRequest = {
-      semanticallySimilar: props.semanticallySimilar,
+      // semanticallySimilar: props.semanticallySimilar,
       minDate: props.dateRange?.from.toISOString(),
       maxDate: props.dateRange?.to?.toISOString(),
       categoryContains: props.categoryContains,
       sourceIdContains: props.sourceIdContains,
+      keywords: props.keywords.map((item) => item.word),
     }
 
     Object.entries(searchParams).forEach(([key, value]) => {
@@ -92,13 +107,54 @@ export function SidePanel({ className }: SidePanelProps) {
   }
 
   return (
-    <div className={cn(className, 'space-y-4 pl-2')}>
+    <div
+      className={cn(
+        className,
+        'h-[calc(100%-2.25rem)] shrink-0 space-y-4 overflow-y-scroll pb-2 pl-2',
+      )}
+    >
       <h4>Filtros:</h4>
       <div className="w-full">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-          <div className="space-y-0.5">
+          {/* <div className="space-y-0.5">
             <Label>Busca semântica</Label>
             <Input {...register('semanticallySimilar')} />
+          </div> */}
+
+          <div className="flex flex-col space-y-2">
+            <Label>Palavras-chave:</Label>
+            <div>
+              {fields.map((keyword, index) => (
+                <div key={index} className="mb-2 flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    {...register(`keywords.${index}.word`)}
+                    className="block w-full p-2"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash className="size-4 shrink-0" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => append({ word: '' })}
+              >
+                Adicionar palavra-chave
+              </Button>
+            </div>
+            {errors.keywords && (
+              <p className="text-sm text-red-500">{errors.keywords.message}</p>
+            )}
           </div>
 
           <Controller
