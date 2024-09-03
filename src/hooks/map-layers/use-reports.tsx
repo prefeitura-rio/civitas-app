@@ -76,7 +76,7 @@ export function useReports(): UseReports {
 
     const index = new Supercluster({
       radius: adjustedRadius, // Cluster radius in pixels
-      maxZoom: 100, // Max zoom level for clustering
+      maxZoom: 16, // Max zoom level for clustering
       minZoom: 0, // Min zoom level for clustering
       extent: 512, // Tile extent (512 by default)
       nodeSize: 64, // Size of the tile index node
@@ -125,14 +125,14 @@ export function useReports(): UseReports {
         height: info.size,
         mask: false,
       }),
-      // pickable: true,
+      pickable: true,
       highlightColor: [249, 115, 22, 255], // orange-500
       autoHighlight: true,
-      // onHover: (info) => {
-      //   if (!info.object?.cluster) {
-      //     setHoverInfo(info)
-      //   }
-      // },
+      onHover: (info) => {
+        if (!info.object?.cluster) {
+          setHoverInfo(info)
+        }
+      },
       visible: isIconsLayerVisible,
       // visible: false,
     })
@@ -157,7 +157,6 @@ export function useReports(): UseReports {
       TextLayer<ClusterIcon, object>,
     ]
   }
-
   return {
     data,
     failed: !data && !isLoading,
