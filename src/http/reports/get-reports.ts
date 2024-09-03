@@ -14,11 +14,8 @@ export interface ReportsResponse extends PaginationResponse {
 }
 
 export async function getReports(props: GetReportsRequest) {
-  console.log(props)
   const newProps = formatReportsRequest(props)
   const query = toQueryParams(newProps)
-
-  console.log(query.toString())
 
   const response = await api.get<GetReportsBackendResponse>(
     `/reports?${query.toString()}`,

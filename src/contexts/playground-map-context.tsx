@@ -23,11 +23,7 @@ interface PlaygroundMapContextProviderProps {
 export const PlaygroundMapContextProvider = ({
   children,
 }: PlaygroundMapContextProviderProps) => {
-  const [map, setMap] = useState(null) // Reference to Mapbox instance
   const [deck, setDeck] = useState<Deck<null> | null>(null) // Reference to Deck.gl instance
-  const [viewport, setViewport] = useState({}) // Viewport state
-  const [layers, setLayers] = useState([]) // Store layers that are enabled/disabled
-  const [hoveredObject, setHoveredObject] = useState<null>(null) // Hovered object
 
   useEffect(() => {
     const deck = new Deck({
@@ -49,7 +45,7 @@ export const PlaygroundMapContextProvider = ({
   }, [])
 
   return (
-    <PlaygroundMapContext.Provider value={{}}>
+    <PlaygroundMapContext.Provider value={{ deck }}>
       {children}
     </PlaygroundMapContext.Provider>
   )
