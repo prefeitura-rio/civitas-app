@@ -2,7 +2,8 @@
 
 import '@/utils/date-extensions'
 
-import { format } from 'date-fns'
+import { useQuery } from '@tanstack/react-query'
+import { formatDate } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 
@@ -21,8 +22,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
+import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
 import { useReportFilterOptions } from '@/hooks/use-queries/use-report-filter-options'
+import { getTimelineReports } from '@/http/reports/dashboard/get-timeline'
 import { cn } from '@/lib/utils'
 
 interface TotalReportsTimeHistoryAreaChartProps {
@@ -37,53 +39,51 @@ interface ChartData {
 export function TotalReportsTimeHistoryAreaChart({
   className,
 }: TotalReportsTimeHistoryAreaChartProps) {
-  const [chartData, setChartData] = useState<ChartData[]>([])
+  const { queryKey, formattedSearchParams } = useReportsSearchParams()
   const [chartConfig, setChartConfig] = useState<ChartConfig>({})
-
-  const {
-    layers: {
-      reports: { data },
-    },
-  } = useReportsMap()
   const { sources } = useReportFilterOptions()
 
-  useEffect(() => {
-    if (data && sources) {
-      const hash: { [date: string]: { [sourceId: string]: number } } = {}
+  const { data } = useQuery({
+    queryKey: ['graph1', ...queryKey],
+    queryFn: () =>
+      getTimelineReports(formattedSearchParams).then((data) => {
+        const formattedData: { [key: string]: ChartData } = {}
+        const dateMap: { [key: string]: { [source: string]: number } } = {}
+        const from = new Date(formattedSearchParams.minDate || '')
+        const to = new Date(formattedSearchParams.maxDate || '')
 
-      data.items.forEach((item) => {
-        const { date, sourceId } = item
-        const formattedDate = format(date, 'dd/MM/y')
+        // Build a map for quick lookup of existing data
+        data.forEach((entry) => {
+          const { date, source, count } = entry
+          if (!dateMap[date]) {
+            dateMap[date] = {}
+          }
+          dateMap[date][source] = count
+        })
 
-        // Initialize date entry if not present
-        if (!hash[formattedDate]) {
-          hash[formattedDate] = {}
-        }
+        // Iterate through each day in the date range
+        for (let date = new Date(from); date <= to; date = date.addDays(1)) {
+          const dateString = date.toISOString().split('T')[0] + 'T00:00:00' // Ensure date format matches
 
-        // Initialize sourceId entry if not present
-        if (!hash[formattedDate][sourceId]) {
-          hash[formattedDate][sourceId] = 0
-        }
+          // Initialize the formatted entry for this date
+          const entry: ChartData = { date: formatDate(dateString, 'dd/MM/y') }
 
-        // Increment the count for this date and sourceId
-        hash[formattedDate][sourceId] += 1
-      })
-
-      // Convert grouped data to ChartData format
-      const newChartData: ChartData[] = Object.entries(hash).map(
-        ([date, sourceCounts]) => {
-          const chartDataEntry: ChartData = { date }
-
-          sources.forEach((sourceId) => {
-            chartDataEntry[sourceId] = sourceCounts[sourceId] || 0
+          // For each source, check if we have data, if not add count = 0
+          sources?.forEach((source) => {
+            entry[source] = dateMap[dateString]?.[source] || 0
           })
 
-          return chartDataEntry
-        },
-      )
+          // Add to formatted data
+          formattedData[dateString] = entry
+        }
 
-      setChartData(newChartData)
+        // Convert the formattedData object into an array of objects
+        return Object.values(formattedData)
+      }),
+  })
 
+  useEffect(() => {
+    if (sources) {
       const chartConfig: ChartConfig = {}
 
       sources.forEach((item, index) => {
@@ -95,8 +95,9 @@ export function TotalReportsTimeHistoryAreaChart({
 
       setChartConfig(chartConfig)
     }
-  }, [data, sources])
+  }, [sources])
 
+  console.log({ data })
   return (
     <Card className={cn(className)}>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
@@ -115,7 +116,7 @@ export function TotalReportsTimeHistoryAreaChart({
           config={chartConfig}
           className="aspect-auto h-full w-full"
         >
-          <AreaChart data={chartData}>
+          <AreaChart data={data}>
             <CartesianGrid vertical={false} />
             <defs>
               {sources?.map((item) => (
