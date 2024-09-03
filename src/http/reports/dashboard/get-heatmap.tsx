@@ -8,7 +8,7 @@ import { toQueryParams } from '@/utils/to-query-params'
 export type HeatmapCoordinates = {
   latitude: number
   longitude: number
-}[]
+}
 
 export interface ReportsResponse extends PaginationResponse {
   items: Report[]
@@ -18,7 +18,7 @@ export async function getHeatmapReports(props: GetReportsRequest) {
   const newProps = formatReportsRequest(props)
   const query = toQueryParams(newProps)
 
-  const response = await api.get<HeatmapCoordinates>(
+  const response = await api.get<HeatmapCoordinates[]>(
     `/reports/dashboard/map?${query.toString()}`,
   )
 

@@ -1,27 +1,24 @@
 'use client'
+import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { CircleAlert } from 'lucide-react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Pagination } from '@/components/ui/pagination'
-import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
+import { getReports } from '@/http/reports/get-reports'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import { ReportCard } from './components/report-card'
 
 export default function Timeline() {
-  const { handlePaginate } = useReportsSearchParams()
-  const {
-    layers: {
-      reports: {
-        data,
-        layerStates: { isLoading },
-        failed,
-      },
-    },
-  } = useReportsMap()
+  const { handlePaginate, queryKey, formattedSearchParams } =
+    useReportsSearchParams()
+  const { data, isLoading, error } = useQuery({
+    queryKey,
+    queryFn: () => getReports(formattedSearchParams),
+  })
 
   return (
     <div className="mt-10 h-[calc(100%-4.75rem)] min-w-screen-lg space-y-4 overflow-y-scroll">
@@ -31,7 +28,7 @@ export default function Timeline() {
           <div className="flex justify-center">
             <Spinner className="size-6" />
           </div>
-        ) : failed ? (
+        ) : error ? (
           <div className="flex justify-center">
             <Alert className="w-96" variant="destructive">
               <CircleAlert className="h-4 w-4" />
@@ -39,7 +36,7 @@ export default function Timeline() {
               <AlertDescription>{genericErrorMessage}</AlertDescription>
             </Alert>
           </div>
-        ) : data?.items.length === 0 ? (
+        ) : data?.items?.length === 0 ? (
           <div className="flex justify-center">
             <span className="text-sm text-muted-foreground">
               Nenhum resultado encontrado.

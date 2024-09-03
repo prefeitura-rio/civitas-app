@@ -14,8 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
 import { useReportFilterOptions } from '@/hooks/use-queries/use-report-filter-options'
-import type { GetReportsRequest } from '@/http/reports/get-reports'
 import { cn } from '@/lib/utils'
+import type { GetReportsRequest } from '@/models/interfaces'
 
 interface SidePanelProps {
   className?: string
