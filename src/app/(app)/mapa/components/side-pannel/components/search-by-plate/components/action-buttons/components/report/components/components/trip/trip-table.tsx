@@ -1,6 +1,8 @@
-import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
+/* eslint-disable jsx-a11y/alt-text */
+import { Font, Image, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
 
+import alert from '@/assets/triangle-alert.png'
 import type { Point } from '@/models/entities'
 
 interface TripTableProps {
@@ -97,26 +99,45 @@ export function TripTable({ points }: TripTableProps) {
         const district = item.district.capitalizeFirstLetter()
 
         return (
-          <View style={styles.row} wrap={false}>
-            <View style={styles.index}>
-              <Text>{item.index + 1}</Text>
+          <>
+            <View style={styles.row} wrap={false}>
+              <View style={styles.index}>
+                {item.cloneAlert && (
+                  <View
+                    style={{
+                      marginTop: -6,
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                      paddingHorizontal: 4,
+                    }}
+                  >
+                    <Image style={{ width: 12, height: 12 }} src={alert.src} />
+                  </View>
+                )}
+                <Text>{item.index + 1}</Text>
+              </View>
+              <View style={styles.location}>
+                <Text>{`${location}, ${district}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
+              </View>
+              <View style={styles.data}>
+                <Text>{format(item.startTime, 'dd/MM/yyyy')}</Text>
+              </View>
+              <View style={styles.time}>
+                <Text>{format(item.startTime, 'HH:mm')}</Text>
+              </View>
+              <View style={styles.speed}>
+                <Text>{item.speed.toFixed(0)}</Text>
+              </View>
+              <View style={styles.radar}>
+                <Text>{item.cameraNumber}</Text>
+              </View>
             </View>
-            <View style={styles.location}>
-              <Text>{`${location}, ${district}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
-            </View>
-            <View style={styles.data}>
-              <Text>{format(item.startTime, 'dd/MM/yyyy')}</Text>
-            </View>
-            <View style={styles.time}>
-              <Text>{format(item.startTime, 'HH:mm')}</Text>
-            </View>
-            <View style={styles.speed}>
-              <Text>{item.speed.toFixed(0)}</Text>
-            </View>
-            <View style={styles.radar}>
-              <Text>{item.cameraNumber}</Text>
-            </View>
-          </View>
+
+            <View
+              style={{ position: 'absolute', bottom: 0, left: 0 }}
+              fixed
+            ></View>
+          </>
         )
       })}
     </View>
