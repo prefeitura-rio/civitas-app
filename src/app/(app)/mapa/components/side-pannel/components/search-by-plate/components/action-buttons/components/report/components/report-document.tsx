@@ -46,7 +46,11 @@ export function ReportDocument({ trips, searchParams }: ReportProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         <ReportHeader title={reportTitle} />
-        <ReportCover searchParams={searchParams} totalPoints={totalPoints} />
+        <ReportCover
+          searchParams={searchParams}
+          totalPoints={totalPoints}
+          cloneAlert={!!trips.find((item) => item.cloneAlert)}
+        />
         <ReportFooter />
       </Page>
 
