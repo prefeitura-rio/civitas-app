@@ -8,6 +8,7 @@ import { ReportFooter } from '../../../../../../../common/report-footer'
 interface ReportCoverProps {
   searchParams: GetCarPathRequest
   totalPoints: number
+  cloneAlert: boolean
 }
 
 type BulletPoint = {
@@ -28,7 +29,7 @@ const bulletPoints: BulletPoint[] = [
           },
           {
             value:
-              'Os pontos de detecção possuem uma numeração chamada "posição" que representa a ordem temporal de detecção dentro de uma viagem.',
+              'Os pontos de detecção possuem uma numeração chamada "posição", que indica  a ordem cronológica dos registros dentro de uma viagem.',
           },
         ],
       },
@@ -38,19 +39,19 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'No relatório, os pontos de detecção são organizados em grupos chamados "viagens".',
+              'Os pontos de detecção são agrupados em "viagens" no relatório.',
           },
           {
             value:
-              'Uma viagem é um conjunto de pontos de detecção com uma distância temporal entre si inferior a 1 hora.',
+              'Uma viagem consiste em um conjunto de pontos de detecção com intervalo de tempo inferior a 1 hora entre si.',
           },
           {
             value:
-              'Uma viagem pode ser dividida em partes para melhor representar os pontos de detecção.',
+              'As viagens podem ser particionadas para facilitar a visualização dos pontos de detecção.',
           },
           {
             value:
-              'Uma viagem é representada no relatório por um ou mais mapas e tabelas, dependendo de como ela foi dividida em partes. Neles, são apresentados os pontos de detecção e seus detalhes.',
+              'O relatório exibe as viagens por meio de mapas e tabelas, destacando os pontos de detecção e seus detalhes.',
           },
         ],
       },
@@ -62,14 +63,43 @@ const bulletPoints: BulletPoint[] = [
               'Viagens são particionadas quando atendem a um ou mais dos seguintes critérios:',
             children: [
               {
-                value: 'Existem múltiplos pontos de detecção no mesmo radar.',
+                value: 'Múltiplos pontos de detecção no mesmo radar.',
               },
               {
-                value: 'A viagem contém mais de 10 pontos de detecção.',
+                value: 'Viagem contendo mais de 10 pontos de detecção.',
               },
               {
                 value:
-                  'Dois pontos subsequentes têm uma distância superior a 6 km entre si.',
+                  'Dois pontos subsequentes com uma distância superior a 6 km entre si.',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        value: 'Alerta de suspeita de placa clonada:',
+        children: [
+          {
+            value:
+              'Um ícone de alerta é exibido quando o intervalo de tempo e a distância entre dois pontos de detecção são incompatíveis. Por exemplo, um curto intervalo de tempo aliado a uma longa distância pode sugerir a presença de dois veículos com a mesma placa circulando simultaneamente.',
+          },
+          {
+            value:
+              'Falhas na leitura dos radares podem, entretanto, gerar situações similares ao exemplo acima.',
+          },
+          {
+            value:
+              'O alerta é ativado quando a velocidade necessária para percorrer a distância entre dois pontos excede 110 km/h, considerando uma linha reta entre os pontos e desconsiderando possíveis rotas reais.',
+          },
+          {
+            value: 'Os alertas são representados de duas formas:',
+            children: [
+              {
+                value: 'No mapa, por um marcador de cor vermelha.',
+              },
+              {
+                value:
+                  'Na tabela, com um ícone vermelho ao lado do índice da posição do ponto.',
               },
             ],
           },
@@ -94,7 +124,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'A definição de viagem utilizada neste relatório é arbitrária e pode falhar em alguns casos. Por exemplo, viagens de mais de 1 hora, onde a placa foi detectada apenas duas vezes, uma próxima do início e outra próxima do fim, podem ser representadas no relatório como duas viagens distintas se o intervalo entre detecções for superior a 1 hora.',
+              'A definição de viagem utilizada no relatório é arbitrária e pode ser inadequada em alguns casos. Por exemplo, se uma viagem dura mais de 1 hora e contém apenas duas detecções, uma no início e outra no final, o relatório pode exibi-la como duas viagens separadas.',
           },
         ],
       },
@@ -103,7 +133,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'A ausência de um registro não garante que o veículo não tenha passado por um local com radar.',
+              'A ausência de um registro de detecção não significa que o veículo não passou por uma área monitorada por radar.',
           },
         ],
       },
@@ -112,7 +142,21 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'Não é possível determinar o trajeto exato do veículo entre os pontos detectados.',
+              'Não é possível determinar o trajeto exato entre os pontos de detecção registrados.',
+          },
+        ],
+      },
+      {
+        value: 'Alertas de suspeita de placa clonada:',
+        children: [
+          {
+            value: 'Cálculo da velocidade média entre dois pontos:',
+            children: [
+              {
+                value:
+                  'O cálculo é baseado na distância em linha reta entre dois pontos na superfície terrestre, sem levar em conta possíveis rotas reais percorridas pelo veículo.',
+              },
+            ],
           },
         ],
       },
@@ -196,7 +240,11 @@ const styles = StyleSheet.create({
   },
 })
 
-export function ReportCover({ searchParams, totalPoints }: ReportCoverProps) {
+export function ReportCover({
+  searchParams,
+  totalPoints,
+  cloneAlert,
+}: ReportCoverProps) {
   const from = formatDate(searchParams.startTime, "dd/MM/yyyy 'às' HH:mm:ss")
   const to = formatDate(searchParams.endTime, "dd/MM/yyyy 'às' HH:mm:ss")
 
@@ -205,22 +253,22 @@ export function ReportCover({ searchParams, totalPoints }: ReportCoverProps) {
       <View style={styles.container}>
         <Text style={styles.title}>Informações gerais sobre o relatório:</Text>
 
-        {bulletPoints.map((topic) => (
-          <>
+        {bulletPoints.map((topic, i) => (
+          <View key={i}>
             <View style={styles.bulletRow}>
               <Text>{'\u2022' + ' '}</Text>
               <Text style={styles.bulletTitle}>{topic.value}</Text>
             </View>
 
-            {topic.children?.map((subTopic) => (
-              <>
+            {topic.children?.map((subTopic, j) => (
+              <View key={j}>
                 <View style={styles.bulletSubRow}>
                   <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
                   <Text style={styles.bulletTitle}>{subTopic.value}</Text>
                 </View>
 
-                {subTopic.children?.map((subSubTopic) => (
-                  <>
+                {subTopic.children?.map((subSubTopic, k) => (
+                  <View key={k}>
                     <View style={styles.bulletSubSubRow}>
                       <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
                       <Text
@@ -242,11 +290,11 @@ export function ReportCover({ searchParams, totalPoints }: ReportCoverProps) {
                         </Text>
                       </View>
                     ))}
-                  </>
+                  </View>
                 ))}
-              </>
+              </View>
             ))}
-          </>
+          </View>
         ))}
 
         <View style={{ flexDirection: 'column', marginTop: 28 }}>
@@ -264,6 +312,10 @@ export function ReportCover({ searchParams, totalPoints }: ReportCoverProps) {
               Total de pontos detectados:
             </Text>
             <Text style={{ padding: 4 }}>{totalPoints}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableRowTitle}>Suspeita de placa clonada:</Text>
+            <Text style={{ padding: 4 }}>{cloneAlert ? 'Sim' : 'Não'}</Text>
           </View>
         </View>
       </View>

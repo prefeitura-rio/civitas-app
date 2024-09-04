@@ -104,7 +104,7 @@ export function Top5ReportTypesBarChart({
   return (
     <Card className={cn(className)}>
       <CardHeader className="">
-        <CardTitle>Top 5 Tipos de Ocorrências</CardTitle>
+        <CardTitle>Top 5 Subtipos de Ocorrências</CardTitle>
         <CardDescription>
           Gráfico de barras horizontais comparando os cinco tipos de reportes
           mais comuns.

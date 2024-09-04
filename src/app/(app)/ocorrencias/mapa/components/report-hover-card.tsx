@@ -58,6 +58,11 @@ export function ReportHoverCard() {
               </div>
 
               <div className="flex gap-2">
+                <span className="font-medium">ID:</span>
+                <span className="text-muted-foreground">{data.reportId}</span>
+              </div>
+
+              <div className="flex gap-2">
                 <span className="font-medium">Fonte:</span>
                 <span className="text-muted-foreground">{data.sourceId}</span>
               </div>
