@@ -19,6 +19,41 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '04 de Setembro de 2024',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Alerta de suspeita de placa clonada no relatório',
+        content: (
+          <>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/alerta-suspeita-placa-clonada.png"
+              alt=""
+              width={745}
+              height={735}
+              className="mb-10"
+            />
+            <p>
+              O alerta de suspeita de placa clonada, já presente no app, foi
+              introduzido também no relatório de busca por placa.
+            </p>
+            <p>
+              O alerta é acionado quando o intervalo de tempo e a distância
+              entre dois pontos de detecção são incompatíveis, sugerindo que
+              dois veículos com a mesma placa possam estar circulando
+              simultaneamente.
+            </p>
+            <p>
+              A lógica de detecção considera como anômalo qualquer deslocamento
+              que exigiria uma velocidade média superior a 110 km/h entre dois
+              pontos consecutivos, considerando a distância em linha reta.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '03 de Setembro de 2024',
     subCards: [
       {
