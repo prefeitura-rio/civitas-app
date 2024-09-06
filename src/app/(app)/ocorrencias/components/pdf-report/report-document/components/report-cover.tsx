@@ -17,13 +17,13 @@ export function ReportCover() {
           permite às pessoas denunciarem anonimamente atividades criminosas ou
           suspeitas para as autoridades, enquanto o 1746 é o canal que concentra
           solicitações de providências ou serviços públicos para problemas
-          identificados pela população.{' '}
+          identificados pela população.
         </Text>
         <Text style={styles.p}>
           Os resultados apresentados a seguir consideram o período de tempo
           requerido pelo solicitante do(s) hotline(s) de interesse. Além disso,
           a busca poderá considerar palavras semânticas para facilitar e
-          focalizar a análise para temática de interesse.{' '}
+          focalizar a análise para temática de interesse.
         </Text>
         <Text style={styles.p}>
           Ao longo do documento, serão apresentadas duas análises. A primeira
@@ -31,7 +31,7 @@ export function ReportCover() {
           no mapa. A segunda análise apresenta o histórico com a localização,
           dinâmica narrada pelo denunciante, órgãos de difusão, tipos e subtipos
           e demais informações pertinentes das denúncias e/ou serviços filtrados
-          pelo requerente.{' '}
+          pelo requerente.
         </Text>
       </View>
       <ReportFooter />

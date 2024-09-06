@@ -5,8 +5,8 @@ import React from 'react'
 import { Spinner } from '@/components/custom/spinner'
 import { Separator } from '@/components/ui/separator'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { usePlate } from '@/hooks/use-queries/use-plate'
 
+import { PlateInfo } from './components/plate-info'
 import { TripCard } from './components/trip-card'
 
 export function TripList() {
@@ -15,16 +15,6 @@ export function TripList() {
       trips: { trips, lastSearchParams, isLoading },
     },
   } = useMap()
-
-  const { data } = usePlate(lastSearchParams?.plate || '')
-
-  const plateInfos = {
-    'Marca/Modelo': data?.marcaModelo,
-    Cor: data?.cor,
-    Possuidor: data?.possuidor.nomePossuidor,
-    Proprietario: data?.proprietario.nomeProprietario,
-    'Ano do Modelo': data?.anoModelo,
-  }
 
   if (!lastSearchParams) return null
 
@@ -48,22 +38,8 @@ export function TripList() {
             </div>
 
             <div className="h-[calc(100%)] overflow-y-scroll">
-              {data && (
-                <>
-                  <h4 className="my-4 mb-2">Informações do Veículo:</h4>
-                  <div className="mb-3 flex flex-col gap-0.5 text-sm">
-                    {Object.entries(plateInfos).map(([key, value]) => (
-                      <div>
-                        <span className="text-sm font-medium">{key}: </span>
-                        <span className="text-sm text-muted-foreground">
-                          {value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {/* <Separator className="my-3 bg-muted" /> */}
-                </>
-              )}
+              <PlateInfo />
+              <Separator className="my-3 bg-muted" />
 
               {trips.length === 0 ? (
                 <div className="flex h-full w-full justify-center pt-6">
