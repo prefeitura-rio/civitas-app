@@ -2,72 +2,28 @@ import { Font, Text, View } from '@react-pdf/renderer'
 
 import { cellStyle, hyphenationCallback, styles } from '../../styles'
 
-export function ReportTimeline() {
+export interface ReportTimelineProps {
+  data: {
+    date: string
+    keywords: string[]
+    location: string
+    description: string
+  }[]
+}
+
+export function ReportTimeline({ data }: ReportTimelineProps) {
   Font.registerHyphenationCallback(hyphenationCallback)
 
   const rows = [
     ['Data', 'Palavra-chave buscada', 'Local', 'Dinâmica do evento'],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
-    [
-      'XX/XX/XXXX',
-      'Tiroteio subaquático',
-      'Rua Machado de Assis, Largo do Machado',
-      'Labore cupidatat cupidatat do et. Culpa dolor pariatur pariatur id qui duis anim duis. In cupidatat do aute sunt labore Lorem reprehenderit elit.',
-    ],
+    ...data.map(({ date, keywords, location, description }) => [
+      date,
+      keywords.join(', '),
+      location,
+      description,
+    ]),
   ]
+
   return (
     <View style={styles.contentModuloContainer}>
       <Text style={styles.h3}>
