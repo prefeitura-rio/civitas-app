@@ -8,18 +8,43 @@ import { ReportClusterMap } from './components/report-cluster-map'
 import { ReportHeatmap } from './components/report-heatmap'
 import { ReportParameters } from './components/report-parameters'
 import { ReportSources } from './components/report-sources'
-import { ReportTimeline } from './components/report-timeline'
+import {
+  ReportTimeline,
+  type ReportTimelineProps,
+} from './components/report-timeline'
 
-export function ReportContent() {
+interface ReportContentProps {
+  data: ReportTimelineProps['data']
+  minDate: string
+  maxDate: string
+  keywords?: string[]
+  sourceIdContains?: string[]
+  categoryContains?: string[]
+}
+
+export function ReportContent({
+  data,
+  minDate,
+  maxDate,
+  keywords,
+  sourceIdContains,
+  categoryContains,
+}: ReportContentProps) {
   return (
     <Page style={styles.page}>
       <ReportHeader title={title} />
       <View style={styles.contentContainer}>
-        <ReportParameters />
+        <ReportParameters
+          minDate={minDate}
+          maxDate={maxDate}
+          keywords={keywords}
+          sourceIdContains={sourceIdContains}
+          categoryContains={categoryContains}
+        />
         <ReportSources />
         <ReportHeatmap />
         <ReportClusterMap />
-        <ReportTimeline />
+        <ReportTimeline data={data} />
       </View>
       <ReportFooter />
     </Page>
