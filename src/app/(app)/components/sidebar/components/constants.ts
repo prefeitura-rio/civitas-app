@@ -38,6 +38,11 @@ export const modules: Module[] = [
         title: 'Operações',
         path: '/operacoes',
       },
+      {
+        icon: 'Speech',
+        title: 'Ocorrências (DD & 1746)',
+        path: '/ocorrencias/timeline',
+      },
     ],
   },
   {
