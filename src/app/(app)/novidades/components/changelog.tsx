@@ -1,3 +1,4 @@
+import { Clock, LayoutDashboard, MapPinned } from 'lucide-react'
 import Image from 'next/image'
 import type { ReactNode } from 'react'
 
@@ -17,6 +18,143 @@ export interface Card {
 }
 
 export const changelog: Card[] = [
+  {
+    title: '04 de Setembro de 2024',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Alerta de suspeita de placa clonada no relatório',
+        content: (
+          <>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/alerta-suspeita-placa-clonada.png"
+              alt=""
+              width={745}
+              height={735}
+              className="mb-10"
+            />
+            <p>
+              O alerta de suspeita de placa clonada, já presente no app, foi
+              introduzido também no relatório de busca por placa.
+            </p>
+            <p>
+              O alerta é acionado quando o intervalo de tempo e a distância
+              entre dois pontos de detecção são incompatíveis, sugerindo que
+              dois veículos com a mesma placa possam estar circulando
+              simultaneamente.
+            </p>
+            <p>
+              A lógica de detecção considera como anômalo qualquer deslocamento
+              que exigiria uma velocidade média superior a 110 km/h entre dois
+              pontos consecutivos, considerando a distância em linha reta.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    title: '03 de Setembro de 2024',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Novo módulo Ocorrências',
+        content: (
+          <>
+            <p>
+              O módulo Ocorrências visa integrar dados do{' '}
+              <span className="code">Disque Denúncia</span> e do{' '}
+              <span className="code">1746</span>, proporcionando uma visão ampla
+              e detalhada das denúncias registradas na cidade. A seguir,
+              detalhamos suas principais funcionalidades:
+            </p>
+            <div className="flex gap-2">
+              <Clock className="mb-4 mt-6 size-6" />
+              <h4>Histórico de Denúncias em Linha do Tempo</h4>
+            </div>
+            <p>
+              A nova funcionalidade permite a visualização das ocorrências em um
+              formato cronológico, organizado em uma linha do tempo. O objetivo
+              é facilitar o acompanhamento do histórico das denúncias
+              registradas. Para melhor navegação e análise, o módulo oferece
+              paginação e os seguintes filtros:
+            </p>
+            <ul>
+              <li>
+                <code>Data</code>: permite a seleção de um período específico de
+                ocorrências;
+              </li>
+              <li>
+                <code>Palavras-chave</code>: possibilita a busca por termos
+                relevantes contidos nas denúncias;
+              </li>
+              <li>
+                <code>Categoria</code>: filtra as ocorrências de acordo com a
+                sua classificação (denúncia ou serviço);
+              </li>
+              <li>
+                <code>Fonte</code>: permite a escolha entre as bases de dados
+                "Disque Denúncia" e "1746".
+              </li>
+            </ul>
+
+            <div className="flex gap-2">
+              <MapPinned className="mb-4 mt-6 size-6" />
+              <h4>Mapa Interativo</h4>
+            </div>
+            <p>
+              O módulo também apresenta uma visualização por meio de um mapa
+              interativo, onde as ocorrências são georreferenciadas e
+              representadas por ícones. Ao interagir com o mapa, passando o
+              mouse sobre os ícones, é possível visualizar os detalhes de cada
+              denúncia. Adicionalmente, o usuário pode alternar entre dois modos
+              de exibição:
+            </p>
+            <ul>
+              <li>
+                <code>Visualização por ícones</code>: cada ocorrência é
+                representada por um marcador individual no mapa;
+              </li>
+              <li>
+                <code>Mapa de calor</code>: as ocorrências são exibidas de
+                acordo com a densidade geográfica, destacando áreas com maior
+                concentração de denúncias.
+              </li>
+            </ul>
+
+            <div className="flex gap-2">
+              <LayoutDashboard className="mb-4 mt-6 size-6" />
+              <h4>Dashboard de Visualizações Gráficas</h4>
+            </div>
+            <p>
+              Para complementar a análise dos dados filtrados, o módulo
+              Ocorrências oferece um dashboard com três tipos de gráficos,
+              conforme detalhado a seguir:
+            </p>
+            <ol>
+              <li>
+                <code>
+                  Número Total de Ocorrências ao Longo do Tempo por Fonte
+                </code>
+                : gráfico de linha que demonstra a variação do número de
+                ocorrências, categorizadas por sua fonte de origem, ao longo de
+                um período selecionado.
+              </li>
+              <li>
+                <code>Top 5 Subtipos de Ocorrências</code>: gráfico de barras
+                que exibe os cinco subtipos de ocorrências mais frequentes.
+              </li>
+              <li>
+                <code>Distribuição das Fontes de Ocorrências</code>: gráfico de
+                pizza que apresenta a proporção das denúncias originadas das
+                diferentes fontes integradas.
+              </li>
+            </ol>
+          </>
+        ),
+      },
+    ],
+  },
   {
     title: '22 de Agosto de 2024',
     subCards: [

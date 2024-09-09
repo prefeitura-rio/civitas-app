@@ -2,7 +2,7 @@
 
 import { PlaygroundMapContextProvider } from '@/contexts/playground-map-context'
 
-import { GenerateReportButton } from '../ocorrencias/components/content/components/common/pdf-report/generate-report-button'
+import { GenerateReportButton } from '../ocorrencias/components/pdf-report/generate-report-button'
 import { PlaygroundMap } from './components/map'
 
 export default function Home() {

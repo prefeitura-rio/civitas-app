@@ -26,12 +26,12 @@ const cards = [
     description:
       'Cadastre uma operação para ser vinculada a uma placa monitorada.',
   },
-  // {
-  //   title: 'Ocorrências',
-  //   href: '/ocorrencias',
-  //   description:
-  //     'Veja denúncias e reportes registrados por diversos canais, além de um dashboard com diferentes insights sobre os registros',
-  // },
+  {
+    title: 'Ocorrências',
+    href: '/ocorrencias/timeline',
+    description:
+      'Veja denúncias e reportes registrados por diversos canais, além de um dashboard com diferentes insights sobre os registros',
+  },
   {
     title: 'Dashboards',
     href: '/dashboards/status-infra-radares',
