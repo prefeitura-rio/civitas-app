@@ -17,7 +17,7 @@ export function MapView({ points }: MapViewProps) {
   function createMarkerPart(point: Point) {
     const name = 'pin-s'
     const label = (point.index + 1).toString()
-    const color = '000'
+    const color = point.cloneAlert ? 'f26e6e' : '000000'
     const lon = point.from[0].toString()
     const lat = point.from[1].toString()
 

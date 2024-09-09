@@ -191,9 +191,7 @@ export type Report = {
   sourceId: string
   originalReportId: string
   date: string
-  entities: {
-    name: string
-  }[]
+  entities: string[]
   category: string
   typeAndSubtype: {
     type: string
@@ -204,9 +202,11 @@ export type Report = {
   longitude: number | null
   location: string | null
   locationNumber: string | null
-  additionalInfo: {
-    certainty: number
-  }
+  additionalInfo:
+    | {
+        certainty: number
+      }
+    | undefined
 }
 
 export type BackendReport = {
@@ -214,9 +214,7 @@ export type BackendReport = {
   id_source: string
   id_report_original: string
   data_report: string
-  orgaos: {
-    nome: string
-  }[]
+  orgaos: string[]
   categoria: string
   tipo_subtipo: {
     tipo: string
@@ -225,11 +223,13 @@ export type BackendReport = {
   descricao: string
   logradouro: string
   numero_logradouro: string
-  latitude: 0
-  longitude: 0
-  additional_info: {
-    certainty: number
-  }
+  latitude: number
+  longitude: number
+  additional_info:
+    | {
+        certainty: number
+      }
+    | undefined
 }
 
 export type FogoCruzadoIncident = {
@@ -371,4 +371,140 @@ export type FogoCruzadoIncident = {
     }[]
     deathDate: string | null
   }[]
+}
+
+export type PlateInfo = {
+  anoFabricacao: string
+  anoModelo: string
+  anoUltimoLicenciamnento: number
+  arrendatario: {
+    enderecoArrendatario: string
+    id: number
+    nomeArrendatario: string
+    numeroDocumentoArrendatario: string
+    placa: string
+    tipoDocumentoArrendatario: string
+  }
+  capacidadeMaximaCarga: string
+  capacidadeMaximaTracao: string
+  carroceria: string
+  categoria: string
+  chassi: string
+  cilindrada: number
+  codigoCarroceira: number
+  codigoCategoria: number
+  codigoCor: number
+  codigoEspecie: number
+  codigoMarcaModelo: number
+  codigoMunicipioEmplacamento: string
+  codigoOrgaoSRF: string
+  codigoSegurancaCRV: string
+  codigoTipoVeiculo: number
+  combustivel: string
+  cor: string
+  dataAtualizacaoAlarme: string
+  dataAtualizacaoRouboFurto: string
+  dataAtualizacaoVeiculo: string
+  dataDeclaracaoImportacao: string
+  dataEmissaoCRLV: string
+  dataEmissaoUltimoCRV: string
+  dataEmplacamento: string
+  dataHoraAtualizacaoVeiculo: string
+  dataLimiteRestricaoTributaria: string
+  dataPreCadastro: string
+  dataReplicacao: string
+  descricaoOrgaoRegiaoFiscal: string
+  especie: string
+  flagAtivo: true
+  grupoVeiculo: string
+  id: number
+  identificadorUnicoVeiculo: string
+  indicadorRemarcacaoChassi: true
+  indicadorVeiculoLicenciadoCirculacao: string
+  indicadorVeiculoNacional: true
+  indiceNacionalVeiculos: {
+    id: number
+    metodo: string
+    qtd: number
+  }[]
+  lotacao: string
+  marcaModelo: string
+  mesAnoValidadeLicenciamento: number
+  mesFabricacaoVeiculo: string
+  municipioPlaca: string
+  nomeArrendatario: string
+  nomePossuidor: string
+  nomeProprietario: string
+  numeroCRV: string
+  numeroCaixaCambio: string
+  numeroCarroceria: string
+  numeroDeclaracaoImportacao: string
+  numeroEixoAuxiliar: string
+  numeroEixoTraseiro: string
+  numeroIdentificacaoFaturado: string
+  numeroIdentificacaoImportador: string
+  numeroLicencaUsoConfiguracaoVeiculosMotor: string
+  numeroMotor: string
+  numeroProcessoImportacao: string
+  numeroSequenciaCRV: string
+  numeroTipoCRLV: string
+  numeroViaCRLV: number
+  numeroViaCRV: number
+  origemPossuidor: string
+  paisTransferenciaVeiculo: string
+  pesoBrutoTotal: string
+  placa: string
+  placaPreMercosul: string
+  possuidor: {
+    enderecoPossuidor: string
+    id: number
+    nomePossuidor: string
+    numeroDocumentoPossuidor: string
+    placa: string
+    tipoDocumentoPossuidor: string
+  }
+  potencia: number
+  proprietario: {
+    enderecoProprietario: string
+    id: number
+    nomeProprietario: string
+    numeroDocumentoProprietario: string
+    placa: string
+    tipoDocumentoProprietario: string
+  }
+  quantidadeEixo: string
+  quantidadeRestricoesBaseEmplacamento: string
+  registroAduaneiro: string
+  renavam: string
+  restricao: {
+    anoBO: string
+    dataOcorrencia: string
+    dddContato: string
+    historico: string
+    id: number
+    municipioBO: string
+    naturezaOcorrencia: string
+    nomeDeclarante: string
+    numeroBO: string
+    placa: string
+    ramalContato: string
+    sistema: string
+    telefoneContato: string
+    ufBO: string
+    unidadePolicial: string
+  }[]
+  restricaoVeiculo1: string
+  restricaoVeiculo2: string
+  restricaoVeiculo3: string
+  restricaoVeiculo4: string
+  situacaoVeiculo: string
+  tipoDocumentoFaturado: string
+  tipoDocumentoProprietario: string
+  tipoMontagem: string
+  tipoVeiculo: string
+  ufDestinoVeiculoFaturado: string
+  ufEmplacamento: string
+  ufFatura: string
+  ufJurisdicaoVeiculo: string
+  valorIPVA: number
 }

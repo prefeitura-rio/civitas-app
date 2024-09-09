@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#000',
     flexDirection: 'column',
-    marginBottom: 40,
+    marginBottom: 35,
   },
   headerRow: {
     display: 'flex',
