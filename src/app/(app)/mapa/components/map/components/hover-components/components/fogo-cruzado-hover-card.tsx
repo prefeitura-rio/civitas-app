@@ -1,6 +1,7 @@
 import { formatDate } from 'date-fns'
 
-import { Card, CardTitle } from '@/components/ui/card'
+import { MapHoverCard } from '@/components/custom/map-hover-card'
+import { CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
@@ -11,7 +12,7 @@ export function FogoCruzadoHoverCard() {
     layers: {
       fogoCruzadoIncidents: {
         layerStates: {
-          hoverInfo: { object, x, y },
+          hoverInfo: { object, x, y, viewport },
         },
       },
     },
@@ -41,12 +42,9 @@ export function FogoCruzadoHoverCard() {
   }
 
   return (
-    <>
-      {object && (x !== 0 || y !== 0) && (
-        <Card
-          style={{ left: x, top: y, zIndex: 1 }}
-          className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
-        >
+    <MapHoverCard x={x} y={y} object={object} viewport={viewport}>
+      {object && (
+        <>
           <CardTitle className="sr-only">Iformações da ocorrência</CardTitle>
 
           <div className="space-y-6">
@@ -119,8 +117,8 @@ export function FogoCruzadoHoverCard() {
               Clique para ver mais detalhes...
             </span>
           </div>
-        </Card>
+        </>
       )}
-    </>
+    </MapHoverCard>
   )
 }

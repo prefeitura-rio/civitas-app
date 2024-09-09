@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 
 import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
-import { Card } from '@/components/ui/card'
+import { MapHoverCard } from '@/components/custom/map-hover-card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 export function TripPointHoverCard() {
@@ -9,18 +9,15 @@ export function TripPointHoverCard() {
     layers: {
       trips: {
         layersState: {
-          iconHoverInfo: { object, x, y },
+          iconHoverInfo: { object, x, y, viewport },
         },
       },
     },
   } = useMap()
   return (
-    <>
+    <MapHoverCard x={x} y={y} object={object} viewport={viewport}>
       {object && (
-        <Card
-          style={{ left: x, top: y, zIndex: 1 }}
-          className="pointer-events-none absolute min-w-40 max-w-96 px-3 py-2"
-        >
+        <>
           <TooltipInfoItem
             label="Data"
             value={format(new Date(object?.startTime), "dd/MM/yyyy 'às' HH:mm")}
@@ -36,8 +33,8 @@ export function TripPointHoverCard() {
               }
             />
           )}
-        </Card>
+        </>
       )}
-    </>
+    </MapHoverCard>
   )
 }
