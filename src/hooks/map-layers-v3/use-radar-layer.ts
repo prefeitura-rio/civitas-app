@@ -1,19 +1,27 @@
 import { IconLayer, type PickingInfo } from 'deck.gl'
-import { useState } from 'react'
+import { type Dispatch, type SetStateAction, useState } from 'react'
 
 import radarAtlas from '@/assets/radar-icon.png'
 import type { Radar } from '@/models/entities'
 
 import { useRadars } from '../use-queries/use-radars'
 
-export function useRadarLayer() {
+export interface UseRadarLayer {
+  data: Radar[] | undefined
+  layer: IconLayer<Radar>
+  hoveredObject: PickingInfo<Radar> | null
+  isVisible: boolean
+  setIsVisible: (value: boolean) => void
+  handleSelectObject: (radar: Radar) => void
+  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
+  selectedObjects: Radar[]
+}
+
+export function useRadarLayer(): UseRadarLayer {
   const [hoveredObject, setHoveredObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
   const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
-  const [clickedObject, setClickedObject] = useState<PickingInfo<Radar> | null>(
-    null,
-  )
   const [selectedObjects, setSelectedObjects] = useState<Radar[]>([])
   const [isVisible, setIsVisible] = useState(true)
 
@@ -97,12 +105,10 @@ export function useRadarLayer() {
     data,
     layer,
     hoveredObject,
-    clickedObject,
     isVisible,
     setIsVisible,
     handleSelectObject,
-    setClickedObject,
-    isHoveringInfoCard,
     setIsHoveringInfoCard,
+    selectedObjects,
   }
 }
