@@ -2,6 +2,7 @@
   "name": "civitas-app",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next lint --fix && next build",
