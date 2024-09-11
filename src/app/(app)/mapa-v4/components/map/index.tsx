@@ -2,23 +2,25 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { DeckGL, type MapViewState, WebMercatorViewport } from 'deck.gl'
-import { useState } from 'react'
 import Map from 'react-map-gl'
 
-import { useRadarLayer } from '@/hooks/map-layers-v3/use-radar-layer'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { INITIAL_VIEW_STATE, MAPBOX_ACCESS_TOKEN } from './components/constants'
 import RadarHoverCard from './components/radar-hover-card'
 
 export default function MapComponent() {
-  const [viewport, setViewport] = useState<MapViewState>(INITIAL_VIEW_STATE)
-
   const {
-    layer: radarLayer,
-    hoveredObject: hoveredRadar,
-    setClickedObject: setClickedRadar,
-    setIsHoveringInfoCard,
-  } = useRadarLayer()
+    layers: {
+      radars: {
+        layer: radarLayer,
+        hoveredObject: hoveredRadar,
+        setIsHoveringInfoCard,
+      },
+    },
+    viewport,
+    setViewport,
+  } = useMap()
 
   const layers = [radarLayer] // TODO: Add other layers
 
@@ -39,11 +41,6 @@ export default function MapComponent() {
         onViewStateChange={({ viewState }) =>
           setViewport(viewState as MapViewState)
         }
-        onClick={(info) => {
-          if (!info.picked) {
-            setClickedRadar(null)
-          }
-        }}
         getCursor={({ isDragging, isHovering }) => {
           if (isDragging) return 'grabbing'
           else if (isHovering) {
