@@ -90,7 +90,7 @@ export function Topbar() {
   }
 
   return (
-    <div className="z-40 flex w-full items-center justify-center border-2 py-4">
+    <div className="z-40 flex items-center justify-center border-2 py-4">
       <div className="custom-shadow flex items-center justify-evenly gap-4 rounded-full border-2 bg-background px-8 py-4 shadow-muted-foreground transition-all duration-500">
         <Popover modal>
           <PopoverTrigger asChild>

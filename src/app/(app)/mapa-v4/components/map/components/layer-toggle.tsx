@@ -12,7 +12,7 @@ export default function LayerToggle({
   onToggle,
 }: LayerToggleProps) {
   return (
-    <div className="absolute right-4 top-4 rounded-lg bg-white p-4 shadow-lg">
+    <div className="absolute right-4 top-4 rounded-lg bg-card p-4 shadow-lg">
       <h3 className="mb-2 text-lg font-semibold">Toggle Layers</h3>
       {layers.map((layerId) => (
         <div key={layerId} className="mb-2 flex items-center">

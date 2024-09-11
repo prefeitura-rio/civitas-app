@@ -1,14 +1,15 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { DeckGL, WebMercatorViewport } from 'deck.gl'
-import { useCallback, useState } from 'react'
+import { DeckGL, type MapViewState, WebMercatorViewport } from 'deck.gl'
+import { useState } from 'react'
 import Map from 'react-map-gl'
 
 import { useRadarLayer } from '@/hooks/map-layers-v3/use-radar-layer'
 
+import ClickCard from './components/click-card'
 import { INITIAL_VIEW_STATE, MAPBOX_ACCESS_TOKEN } from './components/constants'
-import HoverCard from './components/hover-card'
 import LayerToggle from './components/layer-toggle'
+import RadarHoverCard from './components/radar-hover-card'
 
 const initialEnabledLayers = {
   radar: true,
@@ -16,13 +17,15 @@ const initialEnabledLayers = {
 } as const
 
 export default function MapComponent() {
-  const [viewport, setViewport] = useState(INITIAL_VIEW_STATE)
+  const [viewport, setViewport] = useState<MapViewState>(INITIAL_VIEW_STATE)
   const [enabledLayers, setEnabledLayers] = useState(initialEnabledLayers)
 
   const {
     layer: radarLayer,
     hoveredObject: hoveredRadar,
     clickedObject: clickedRadar,
+    setClickedObject: setClickedRadar,
+    handleSelectObject: selectRadar,
   } = useRadarLayer()
 
   const layers = [radarLayer]
@@ -34,49 +37,35 @@ export default function MapComponent() {
     }))
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onViewStateChange = useCallback(({ viewState }: any) => {
-    setViewport(viewState)
-  }, [])
-
-  const getPixelPosition = useCallback(
-    (longitude: number, latitude: number) => {
-      const mercatorViewport = new WebMercatorViewport(viewport)
-      const [x, y] = mercatorViewport.project([longitude, latitude])
-      return [x, y]
-    },
-    [viewport],
-  )
+  const getPixelPosition = (longitude: number, latitude: number) => {
+    const mercatorViewport = new WebMercatorViewport(viewport)
+    const [x, y] = mercatorViewport.project([longitude, latitude])
+    return [x, y]
+  }
 
   const hoveredObject = hoveredRadar
   const clickedObject = clickedRadar
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+    <div className="relative h-[calc(100vh-7rem)] w-full">
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
         layers={layers}
-        onViewStateChange={onViewStateChange}
+        onViewStateChange={({ viewState }) =>
+          setViewport(viewState as MapViewState)
+        }
+        onClick={(info) => {
+          if (!info.picked) {
+            setClickedRadar(null)
+          }
+        }}
       >
         <Map
-          mapStyle="mapbox://styles/mapbox/dark-v10"
+          mapStyle="mapbox://styles/mapbox/streets-v12"
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
-      {hoveredObject && !clickedObject && (
-        <div
-          style={{
-            position: 'absolute',
-            zIndex: 1,
-            pointerEvents: 'none',
-            left: hoveredObject.x,
-            top: hoveredObject.y,
-          }}
-        >
-          {hoveredObject.object && <HoverCard {...hoveredObject.object} />}
-        </div>
-      )}
       {clickedObject && clickedObject.object && (
         <div
           style={{
@@ -92,9 +81,18 @@ export default function MapComponent() {
             )[1],
           }}
         >
-          <HoverCard {...clickedObject.object} />
+          <ClickCard selectRadar={selectRadar} radar={clickedObject.object} />
         </div>
       )}
+      {hoveredObject && hoveredObject.object && (
+        <RadarHoverCard
+          viewport={hoveredObject.viewport}
+          x={hoveredObject.x}
+          y={hoveredObject.y}
+          radar={hoveredObject.object}
+        />
+      )}
+
       <LayerToggle
         layers={Object.keys(enabledLayers)}
         enabledLayers={enabledLayers}

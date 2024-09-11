@@ -1,6 +1,7 @@
 import { IconLayer, type PickingInfo } from 'deck.gl'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
+import radarAtlas from '@/assets/radar-icon.png'
 import type { Radar } from '@/models/entities'
 
 import { useRadars } from '../use-queries/use-radars'
@@ -12,32 +13,85 @@ export function useRadarLayer() {
   const [clickedObject, setClickedObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
+  const [selectedObjects, setSelectedObjects] = useState<Radar[]>([])
   const [isVisible, setIsVisible] = useState(true)
 
   const { data } = useRadars()
 
-  const layer = useMemo(
-    () =>
-      new IconLayer<Radar>({
-        id: 'radars',
-        data,
-        pickable: true,
-        iconAtlas:
-          'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-        iconMapping: {
-          marker: { x: 0, y: 0, width: 128, height: 128, mask: true },
-        },
-        getIcon: () => 'marker',
-        sizeScale: 15,
-        getPosition: (d) => [d.longitude, d.latitude],
-        getSize: () => 5,
-        getColor: () => [240, 140, 10],
-        visible: isVisible,
-        onHover: (info) => setHoveredObject(info.object ? info : null),
-        onClick: (info) => setClickedObject(info.object ? info : null),
-      }),
-    [data, isVisible],
-  )
+  function handleSelectObject(radar: Radar) {
+    if (
+      selectedObjects.find((item) => item.cameraNumber === radar.cameraNumber)
+    ) {
+      setSelectedObjects(
+        selectedObjects.filter(
+          (item) => item.cameraNumber !== radar.cameraNumber,
+        ),
+      )
+    } else {
+      setSelectedObjects([...selectedObjects, radar])
+    }
+  }
 
-  return { data, layer, hoveredObject, clickedObject, isVisible, setIsVisible }
+  const layer = new IconLayer<Radar>({
+    id: 'radars',
+    data,
+    pickable: true,
+    iconAtlas: radarAtlas.src,
+    iconMapping: {
+      default: {
+        x: 0,
+        y: 0,
+        width: 48,
+        height: 48,
+        mask: false,
+      },
+      disabled: {
+        x: 0,
+        y: 48,
+        width: 48,
+        height: 48,
+        mask: false,
+      },
+      highlighted: {
+        x: 48,
+        y: 0,
+        width: 48,
+        height: 48,
+        mask: false,
+      },
+      'disabled-highlighted': {
+        x: 48,
+        y: 48,
+        width: 48,
+        height: 48,
+        mask: false,
+      },
+    },
+    getIcon: (d) => {
+      if (
+        selectedObjects.find((item) => item.cameraNumber === d.cameraNumber)
+      ) {
+        return 'highlighted'
+      } else return 'default'
+    },
+    sizeScale: 24,
+    getPosition: (d) => [d.longitude, d.latitude],
+    getColor: () => [240, 140, 10],
+    visible: isVisible,
+    onHover: (info) => setHoveredObject(info.object ? info : null),
+    onClick: (info) => setClickedObject(info.object ? info : null),
+    autoHighlight: true,
+    highlightColor: [249, 115, 22],
+  })
+
+  return {
+    data,
+    layer,
+    hoveredObject,
+    clickedObject,
+    isVisible,
+    setIsVisible,
+    handleSelectObject,
+    setClickedObject,
+  }
 }
