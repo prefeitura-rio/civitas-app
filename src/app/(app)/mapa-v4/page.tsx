@@ -9,7 +9,7 @@ import { Topbar } from './components/topbar'
 export default function Mapa() {
   return (
     <MapContextProvider>
-      <div className="h-screen w-full">
+      <div className="h-full w-full">
         <Topbar />
         <Map />
       </div>
