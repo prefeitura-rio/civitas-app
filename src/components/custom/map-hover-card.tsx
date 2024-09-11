@@ -1,3 +1,4 @@
+'use client'
 import type { Viewport } from '@deck.gl/core'
 import type { ReactNode } from 'react'
 
@@ -21,17 +22,17 @@ export function MapHoverCard({
   object,
   className,
 }: MapHoverCardProps) {
-  const left = x < (viewport?.width || 0) / 2 ? x : undefined
+  const left = x < (viewport?.width || 0) / 2 ? x + 5 : undefined
   const top = y < (viewport?.height || 0) / 2 ? y : undefined
   const right =
-    x > (viewport?.width || 0) / 2 ? (viewport?.width || 0) - x : undefined
+    x > (viewport?.width || 0) / 2 ? (viewport?.width || 0) - x + 5 : undefined
   const bottom =
     y > (viewport?.height || 0) / 2 ? (viewport?.height || 0) - y : undefined
   return (
     <Card
-      style={{ left, top, bottom, right, zIndex: 1 }}
+      style={{ left, top, bottom, right }}
       className={cn(
-        'pointer-events-none absolute w-96 px-3 py-2',
+        'absolute w-96 px-3 py-2',
         object ? '' : 'hidden',
         className,
       )}
