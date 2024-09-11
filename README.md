@@ -1,18 +1,18 @@
 # CIVITAS
 Central de Vigilância, Inteligência e Tecnologia de Apoio à Segurança Pública
 
-## Getting Started
+## Primeiros Passos
 
-First, run the development server:
+1. Instale as dependências:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm i
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Inicie o servidor de desenvolvimento:
+
+```bash
+pnpm run dev
+```
+
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador para ver o resultado.
