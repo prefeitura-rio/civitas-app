@@ -10,6 +10,7 @@ export function useRadarLayer() {
   const [hoveredObject, setHoveredObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
+  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
   const [clickedObject, setClickedObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
@@ -78,8 +79,16 @@ export function useRadarLayer() {
     getPosition: (d) => [d.longitude, d.latitude],
     getColor: () => [240, 140, 10],
     visible: isVisible,
-    onHover: (info) => setHoveredObject(info.object ? info : null),
-    onClick: (info) => setClickedObject(info.object ? info : null),
+    onHover: (info) => {
+      if (!isHoveringInfoCard) {
+        setHoveredObject(info.object ? info : null)
+      }
+    },
+    onClick: (info) => {
+      if (info.object) {
+        handleSelectObject(info.object)
+      }
+    },
     autoHighlight: true,
     highlightColor: [249, 115, 22],
   })
@@ -93,5 +102,7 @@ export function useRadarLayer() {
     setIsVisible,
     handleSelectObject,
     setClickedObject,
+    isHoveringInfoCard,
+    setIsHoveringInfoCard,
   }
 }

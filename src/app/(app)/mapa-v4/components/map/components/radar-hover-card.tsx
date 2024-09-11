@@ -1,6 +1,7 @@
+'use client'
 import { formatDate } from 'date-fns'
 import type { Viewport } from 'deck.gl'
-import React from 'react'
+import React, { type Dispatch, type SetStateAction } from 'react'
 
 import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
 import { MapHoverCard } from '@/components/custom/map-hover-card'
@@ -11,25 +12,26 @@ interface HoverCardProps {
   x: number
   y: number
   viewport: Viewport | undefined
+  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 export default function RadarHoverCard({
   radar,
   viewport,
   x,
   y,
+  setIsHoveringInfoCard,
 }: HoverCardProps) {
-  console.log({
-    x,
-    y,
-    radar,
-    viewport,
-  })
-  console.log(viewport?.width)
-  console.log(viewport?.height)
   return (
     <MapHoverCard x={x} y={y} object={radar} viewport={viewport}>
       {radar && (
-        <>
+        <div
+          onMouseEnter={() => {
+            setIsHoveringInfoCard(true)
+          }}
+          onMouseLeave={() => {
+            setIsHoveringInfoCard(false)
+          }}
+        >
           <TooltipInfoItem label="Número Câmera" value={radar.cameraNumber} />
           <TooltipInfoItem
             label="Código CET-Rio"
@@ -65,7 +67,7 @@ export default function RadarHoverCard({
             há mais de 24 horas. No entanto, essa informação não é atualizada em
             tempo real e pode seguir desatualizada por várias horas.
           </p>
-        </>
+        </div>
       )}
     </MapHoverCard>
   )
