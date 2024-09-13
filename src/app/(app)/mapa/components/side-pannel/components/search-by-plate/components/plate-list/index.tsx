@@ -1,20 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Calendar, Car } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { getPlateInfo } from '@/http/cars/plate/get-plate-info'
-
-type Vehicle = {
-  plate: string
-  brandModel: string
-  modelYear: string
-  color: string
-}
+import { useVehicles } from '@/hooks/use-queries/use-vehicles'
+import { useState } from 'react'
 
 export function PlateList() {
+  const [loadingProgress, setLoadingProgress] = useState(0)
   const {
     layers: {
       trips: { possiblePlates, getTrips, lastSearchParams },
@@ -31,25 +25,7 @@ export function PlateList() {
     })
   }
 
-  const { data: vehicles } = useQuery({
-    queryKey: ['cortex', 'plate-info', ...possiblePlates],
-    queryFn: async () => {
-      return Promise.all(
-        possiblePlates.map(async (plate) => {
-          const response = await getPlateInfo(plate)
-          return {
-            plate,
-            brandModel: response.marcaModelo,
-            color: response.cor,
-            modelYear: response.anoModelo,
-          } as Vehicle
-        }),
-      )
-    },
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-    enabled: possiblePlates.length <= 50,
-  })
+  const { data: vehicles } = useVehicles({ possiblePlates, progress: (i) => setLoadingProgress(i) })
 
   return (
     <div className="h-[calc(100%-15rem)] space-y-2">
@@ -63,8 +39,10 @@ export function PlateList() {
         </span>
       </div>
       <div className="mb-4 h-[calc(100%-4.75rem)] space-y-2 overflow-y-scroll rounded p-2">
-        {possiblePlates.length <= 50
-          ? vehicles?.map((item) => (
+
+        {
+          vehicles ? (
+            vehicles?.map((item) => (
               <Card
                 onClick={() => handlePlateClick(item.plate)}
                 className="flex cursor-pointer flex-col rounded-md border-2 p-4"
@@ -85,11 +63,11 @@ export function PlateList() {
                 </div>
               </Card>
             ))
-          : possiblePlates.map((item) => (
-              <Card>
-                <span>{item}</span>
-              </Card>
-            ))}
+          ) : (
+            <div>
+              <span className='text-muted-foreground'>Carregando... {(loadingProgress * 100).toFixed(0)}%</span>
+            </div>
+          )}
       </div>
     </div>
   )
