@@ -1,40 +1,20 @@
 'use client'
-import { Label } from "@/components/ui/label"
-import { useMap } from "@/hooks/use-contexts/use-map-context"
-import { useCarRadarSearchParams } from "@/hooks/use-params/use-car-radar-search-params."
-import { useRadars } from "@/hooks/use-queries/use-radars"
-import { getCarsByRadar } from "@/http/cars/radar/get-cars-by-radar"
-import { cn } from "@/lib/utils"
-import type { Radar, RadarDetection } from "@/models/entities"
-import { useQuery } from "@tanstack/react-query"
-import { formatDate } from "date-fns"
-import { useSearchParams } from "next/navigation"
-import { Fragment } from "react"
+import { useQuery } from '@tanstack/react-query'
 
-const radarLabels: Record<Exclude<keyof Radar, 'hasData' | 'activeInLast24Hours'>, string> = {
-  cameraNumber: 'Câmera Número',
-  cetRioCode: 'Código CET-Rio',
-  location: 'Localização',
-  district: 'Bairro',
-  streetName: 'Logradouro',
-  direction: 'Direção',
-  company: 'Empresa',
-  longitude: 'Longitude',
-  latitude: 'Latitude',
-  lastDetectionTime: 'Última detecção',
-}
+import { Spinner } from '@/components/custom/spinner'
+import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { useRadars } from '@/hooks/use-queries/use-radars'
+import { getBulkPlatesInfo } from '@/http/cars/plate/get-plate-info-bulk'
+import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
 
-const detectionLabels: Record<keyof RadarDetection, string> = {
-  plate: 'Placa',
-  speed: 'Velocidade',
-  timestamp: 'Data e Hora',
-}
+import { DetectionsTable } from './components/detections-table'
+import { RadarInfo } from './components/radar-info'
 
 export default function RadarDetections() {
   const { formattedSearchParams, queryKey } = useCarRadarSearchParams()
   const { data: radars } = useRadars()
 
-  const { data } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey,
     queryFn: () => {
       const radarIds = formattedSearchParams.radarIds
@@ -47,11 +27,27 @@ export default function RadarDetections() {
           plateHint: formattedSearchParams.plate,
         })
 
+        const vehicles = await getBulkPlatesInfo(
+          detections.map((item) => item.plate),
+        )
+
+        const joinedData = detections.map((detection) => {
+          const vehicle = vehicles.find(
+            (vehicle) => vehicle.plate === detection.plate,
+          )
+          if (!vehicle) throw Error(`Vehicle ${detection.plate} not found`)
+          return {
+            ...detection,
+            ...vehicle,
+          }
+        })
+
         const radar = radars?.find((item) => item.cameraNumber === cameraNumber)
+        if (!radar) throw Error(`Radar ${cameraNumber} not found`)
 
         return {
           radar,
-          detections,
+          detections: joinedData,
         }
       })
 
@@ -60,49 +56,19 @@ export default function RadarDetections() {
     enabled: !!radars,
   })
 
-
   return (
-    <div className="overflow-y-scroll h-full p-2">
+    <div className="h-full overflow-y-scroll p-2">
+      {isPending && (
+        <div className="flex w-full justify-center p-6">
+          <Spinner className="size-10" />
+        </div>
+      )}
       {data?.map((item) => (
-        <div key={item.radar?.cameraNumber}>
-          <h3>Radar {item.radar?.cameraNumber}</h3>
-
-          <h4>Propriedades do Radar</h4>
-          <div className="ml-4">
-            {Object.entries(radarLabels).map(([key, label], index) => (
-              <div key={index}>
-                <Label>{label}: </Label>
-                <span className='textt-xs text-muted-foreground'>{item.radar?.[key as keyof Radar]}</span>
-              </div>
-            ))}
-          </div>
-
-          <h4>Detecções</h4>
-          <div className={cn('grid w-96', `grid-cols-${Object.keys(detectionLabels).length + 1}`)}>
-            {Object.entries(detectionLabels).map(([key, label], index) => {
-              if (key === 'timestamp') {
-                return  <Label key={index} className="col-span-2">{label}</Label>                
-              } else {
-                return  <Label key={index}>{label}</Label>                
-              }
-            })}
-
-            {item.detections.map((detection) => (
-              Object.keys(detectionLabels).map((key, j) => {
-                const value = detection[key as keyof RadarDetection]
-                if (key === 'timestamp' ) {
-                  return <span key={j} className='text-sm text-muted-foreground col-span-2'>{formatDate(value, 'dd/MM/y HH:mm:ss')}</span>
-
-                } else {
-
-                  return <span key={j} className='text-sm text-muted-foreground'>{value}</span>
-                }
-              })
-            ))}
-          </div>
+        <div key={item.radar?.cameraNumber} className="space-y-4">
+          <RadarInfo radar={item.radar} />
+          <DetectionsTable data={item.detections} isLoading={isPending} />
         </div>
       ))}
-
     </div>
   )
 }

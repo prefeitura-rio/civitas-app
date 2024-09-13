@@ -7,13 +7,6 @@ import { Card } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { getPlateInfo } from '@/http/cars/plate/get-plate-info'
 
-type Vehicle = {
-  plate: string
-  brandModel: string
-  modelYear: string
-  color: string
-}
-
 export function PlateList() {
   const {
     layers: {

@@ -508,3 +508,10 @@ export type PlateInfo = {
   ufJurisdicaoVeiculo: string
   valorIPVA: number
 }
+
+export type Vehicle = {
+  plate: string
+  brandModel: string
+  modelYear: string
+  color: string
+}

@@ -55,6 +55,15 @@ Date.prototype.addHours = function (hours: number): Date {
   return this
 }
 
+Date.prototype.addMinutes = function (minutes: number): Date {
+  const minutesInMiliseconds = 1000 * 60 * minutes
+  const newTime = this.getTime() + minutesInMiliseconds
+
+  this.setTime(newTime)
+
+  return this
+}
+
 Date.prototype.toLocaleISOString = function (): string {
   return format(this, "y-MM-dd'T'HH:mm:ss.SSS")
 }
