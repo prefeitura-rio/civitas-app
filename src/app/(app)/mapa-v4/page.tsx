@@ -1,17 +1,17 @@
 'use client'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import Map from './components/map'
 import { MapContextProvider } from '@/contexts/map-context'
 
-import { Topbar } from './components/topbar'
+import Map from './components/map'
+import { SearchTopbar } from './components/search-topbar'
 
 export default function Mapa() {
   return (
     <MapContextProvider>
       <div className="h-full w-full">
-        <Topbar />
-        <div className='h-[calc(100vh-7rem)]'>
+        <SearchTopbar />
+        <div className="h-[calc(100vh-7rem)]">
           <Map />
         </div>
       </div>

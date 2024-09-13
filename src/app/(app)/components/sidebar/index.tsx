@@ -17,7 +17,7 @@ import { SidebarButton } from './components/sidebar-button'
 export function Sidebar() {
   const { profile } = useProfile()
   return (
-    <div className="relative z-50 h-screen w-14">
+    <div className="relative z-50 h-screen w-14 shrink-0">
       <nav className="group absolute left-0 top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-x-hidden border-r-2 bg-background p-2 transition-all duration-300 ease-in hover:w-64">
         <div className="flex flex-col gap-2">
           <div className="relative h-20">

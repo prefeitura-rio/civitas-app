@@ -15,11 +15,14 @@ export default function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
-      <CustomQueryClientProvider>
+    <CustomQueryClientProvider>
+      <div className="flex min-h-screen min-w-screen-2xl">
         <Sidebar />
+        {/* <div className="w-full">
+          <span>abcdefasda</span>
+        </div> */}
         {children}
-      </CustomQueryClientProvider>
-    </div>
+      </div>
+    </CustomQueryClientProvider>
   )
 }

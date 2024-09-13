@@ -2,7 +2,8 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { DeckGL, WebMercatorViewport } from 'deck.gl'
-import Map from 'react-map-gl'
+import { useRef } from 'react'
+import Map, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
@@ -21,7 +22,7 @@ export default function MapComponent() {
     viewport,
     setViewport,
   } = useMap()
-
+  const mapRef = useRef<MapRef | null>(null)
   const layers = [radarLayer] // TODO: Add other layers
 
   const getPixelPosition = (longitude: number, latitude: number) => {
@@ -37,6 +38,7 @@ export default function MapComponent() {
       <DeckGL
         initialViewState={viewport}
         controller
+        onResize={() => mapRef?.current?.resize()}
         layers={layers}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
         getCursor={({ isDragging, isHovering }) => {
@@ -49,6 +51,7 @@ export default function MapComponent() {
         }}
       >
         <Map
+          ref={mapRef}
           mapStyle="mapbox://styles/mapbox/streets-v12"
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />

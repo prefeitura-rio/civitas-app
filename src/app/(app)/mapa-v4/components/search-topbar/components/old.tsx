@@ -10,6 +10,7 @@ import {
   Search,
   Trash,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -24,7 +25,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { useRouter } from 'next/navigation'
 import { toQueryParams } from '@/utils/to-query-params'
 
 const filterFormSchema = z.object({
@@ -80,7 +80,7 @@ export function Topbar() {
   from.setDate(today.getDate() - 7)
   from.setMinTime()
 
-  const { control, watch, register, handleSubmit, formState: {errors} } = useForm<FilterForm>({
+  const { control, watch, register, handleSubmit } = useForm<FilterForm>({
     resolver: zodResolver(filterFormSchema),
     defaultValues: {
       date: {
@@ -100,7 +100,10 @@ export function Topbar() {
 
   function onSubmit(data: FilterForm) {
     // ...
-    const queryData = { ...data, radarIds: selectedObjects.map((item) => item.cameraNumber) }
+    const queryData = {
+      ...data,
+      radarIds: selectedObjects.map((item) => item.cameraNumber),
+    }
     const query = toQueryParams(queryData)
     console.log(query.toString())
     router.push(`/mapa-v4/busca/radares?${query.toString()}`)
@@ -189,7 +192,7 @@ export function Topbar() {
                     const radar = radars?.find(
                       (item) =>
                         item.cameraNumber ===
-                        radarSearchInputRef.current?.value ||
+                          radarSearchInputRef.current?.value ||
                         item.cetRioCode === radarSearchInputRef.current?.value,
                     )
                     if (radar) {
@@ -257,7 +260,7 @@ export function Topbar() {
         <Button
           variant="secondary"
           className="flex items-center gap-2"
-          type='submit'
+          type="submit"
         >
           <Search className="size-5 shrink-0" />
           <span>Pesquisar</span>
