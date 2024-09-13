@@ -232,6 +232,9 @@ devDependencies:
   '@types/node':
     specifier: ^20
     version: 20.14.6
+  '@types/papaparse':
+    specifier: ^5.3.14
+    version: 5.3.14
   '@types/qs':
     specifier: ^6.9.15
     version: 6.9.15
@@ -5872,6 +5875,12 @@ packages:
   /@types/pako@1.0.7:
     resolution: {integrity: sha512-YBtzT2ztNF6R/9+UXj2wTGFnC9NklAnASt3sC0h2m1bbH7G6FyBIkt4AN8ThZpNfxUo1b2iMVO0UawiJymEt8A==}
     dev: false
+
+  /@types/papaparse@5.3.14:
+    resolution: {integrity: sha512-LxJ4iEFcpqc6METwp9f6BV6VVc43m6MfH0VqFosHvrUgfXiFe6ww7R3itkOQ+TCK6Y+Iv/+RnnvtRZnkc5Kc9g==}
+    dependencies:
+      '@types/node': 20.14.6
+    dev: true
 
   /@types/prop-types@15.7.12:
     resolution: {integrity: sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==}
