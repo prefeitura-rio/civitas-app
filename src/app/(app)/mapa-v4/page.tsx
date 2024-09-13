@@ -1,7 +1,7 @@
 'use client'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import Map from '@/app/(app)/mapa-v4/components/map'
+import Map from './components/map'
 import { MapContextProvider } from '@/contexts/map-context'
 
 import { Topbar } from './components/topbar'
@@ -11,7 +11,9 @@ export default function Mapa() {
     <MapContextProvider>
       <div className="h-full w-full">
         <Topbar />
-        <Map />
+        <div className='h-[calc(100vh-7rem)]'>
+          <Map />
+        </div>
       </div>
     </MapContextProvider>
   )

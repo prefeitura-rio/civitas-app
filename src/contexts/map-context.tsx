@@ -34,6 +34,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
       transitionDuration: 'auto',
     })
   }
+
   const radars = useRadarLayer()
 
   return (

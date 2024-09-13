@@ -53,7 +53,7 @@
       background: transparent;
     }
     &::-webkit-scrollbar-thumb {
-      background-color: theme('colors.border');
+      background-color: theme('colors.input');
       border-radius: 9999px;
     }
     &::-webkit-scrollbar-corner {
