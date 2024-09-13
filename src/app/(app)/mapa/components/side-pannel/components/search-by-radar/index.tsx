@@ -65,7 +65,7 @@ export function SearchByRadar() {
         radar: selectedRadar,
         fromDate: new Date(variables.startTime),
         toDate: new Date(variables.endTime),
-        detections: data.data,
+        detections: data,
       })
       setOpenPrintModal(true)
     },
