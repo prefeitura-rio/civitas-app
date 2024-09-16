@@ -136,6 +136,8 @@ export type Radar = {
   company: string | null
   lastDetectionTime: string | null
   direction: string | null
+  lane: string | null
+  streetNumber: string
 }
 
 export type BackendWazeAlert = {

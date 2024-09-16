@@ -4,11 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 import { Spinner } from '@/components/custom/spinner'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import { useRadars } from '@/hooks/use-queries/use-radars'
-import { getBulkPlatesInfo } from '@/http/cars/plate/get-plate-info-bulk'
+// import { getBulkPlatesInfo } from '@/http/cars/plate/get-plate-info-bulk'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
+import type { Radar, RadarDetection, Vehicle } from '@/models/entities'
 
 import { DetectionsTable } from './components/detections-table'
-import { RadarInfo } from './components/radar-info'
+// import { DownloadReport } from './components/download-report'
+import { RadarsInfo } from './components/radars-info'
 
 export default function RadarDetections() {
   const { formattedSearchParams, queryKey } = useCarRadarSearchParams()
@@ -16,7 +18,7 @@ export default function RadarDetections() {
 
   const { data, isPending } = useQuery({
     queryKey,
-    queryFn: () => {
+    queryFn: async () => {
       if (
         !formattedSearchParams.date ||
         !formattedSearchParams.radarIds ||
@@ -34,39 +36,89 @@ export default function RadarDetections() {
         .toISOString()
       const plateHint = formattedSearchParams.plateHint
 
-      const result = radarIds?.map(async (cameraNumber) => {
-        const detections = await getCarsByRadar({
-          radar: cameraNumber,
-          startTime,
-          endTime,
-          plateHint,
-        })
+      const _radars =
+        radars?.filter(
+          (radar) =>
+            radarIds.includes(radar.cameraNumber) ||
+            (radar.cetRioCode && radarIds.includes(radar?.cetRioCode)),
+        ) || []
 
-        const vehicles = await getBulkPlatesInfo(
-          detections.map((item) => item.plate),
-        )
+      const result = await Promise.all(
+        _radars.map(async (radar) => {
+          const detections = await getCarsByRadar({
+            radar: radar.cameraNumber,
+            startTime,
+            endTime,
+            plateHint,
+          })
 
-        const joinedData = detections.map((detection) => {
-          const vehicle = vehicles.find(
-            (vehicle) => vehicle.plate === detection.plate,
-          )
-          if (!vehicle) throw Error(`Vehicle ${detection.plate} not found`)
+          // const vehicles = await getBulkPlatesInfo(
+          //   detections.map((item) => item.plate),
+          // )
+
+          const joinedData = detections.map((detection) => {
+            // const vehicle = vehicles.find(
+            //   (vehicle) => vehicle.plate === detection.plate,
+            // )
+            // if (!vehicle) throw Error(`Vehicle ${detection.plate} not found`)
+            return {
+              ...detection,
+              // ...vehicle,
+              color: '',
+              brandModel: '',
+              modelYear: '',
+              cameraNumber: radar.cameraNumber,
+              lane: radar.lane || '',
+            }
+          })
+
           return {
-            ...detection,
-            ...vehicle,
+            radar,
+            detections: joinedData,
           }
-        })
+        }),
+      )
 
-        const radar = radars?.find((item) => item.cameraNumber === cameraNumber)
-        if (!radar) throw Error(`Radar ${cameraNumber} not found`)
+      const groupedData = result.reduce(
+        (acc, item) => {
+          const location = item.radar.location?.replace(/- FX \d+/, '') || 'N/A'
+          if (!acc[location]) {
+            acc[location] = {
+              location,
+              radars: [],
+              detections: [],
+            }
+          }
+          acc[location].radars.push(item.radar)
+          acc[location].detections.push(
+            ...item.detections.map((detection) => ({
+              ...detection,
+              lane: detection.lane || 'N/A',
+            })),
+          )
+          return acc
+        },
+        {} as {
+          [key: string]: {
+            location: string
+            radars: Radar[]
+            detections: (RadarDetection &
+              Vehicle & {
+                cameraNumber: string
+                lane: string
+              })[]
+          }
+        },
+      )
 
-        return {
-          radar,
-          detections: joinedData,
-        }
+      Object.values(groupedData).forEach((group) => {
+        group.detections.sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
       })
 
-      return Promise.all(result)
+      return Object.values(groupedData)
     },
     enabled: !!radars,
   })
@@ -78,12 +130,24 @@ export default function RadarDetections() {
           <Spinner className="size-10" />
         </div>
       )}
-      {data?.map((item) => (
-        <div key={item.radar?.cameraNumber} className="space-y-4">
-          <RadarInfo radar={item.radar} />
-          <DetectionsTable data={item.detections} isLoading={isPending} />
-        </div>
-      ))}
+      {data &&
+        data.map((item) => (
+          <div key={item.location} className="relative space-y-4">
+            <div className="absolute right-2 top-0">
+              {/* <DownloadReport
+                data={data}
+                parameters={{
+                  from: new Date(formattedSearchParams.date || ''),
+                  to: new Date(formattedSearchParams.date || ''),
+                  plateHint: formattedSearchParams.plateHint,
+                  radarIds: formattedSearchParams.radarIds || [],
+                }}
+              /> */}
+            </div>
+            <RadarsInfo location={item.location} />
+            <DetectionsTable data={item} isLoading={isPending} />
+          </div>
+        ))}
     </div>
   )
 }

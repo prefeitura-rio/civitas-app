@@ -19,8 +19,6 @@ interface UseCarPathsSearchParamsReturn {
 export function useCarRadarSearchParams(): UseCarPathsSearchParamsReturn {
   const searchParams = useSearchParams()
 
-  console.log(searchParams.getAll('duration'))
-
   const plateHint = searchParams.get('plateHint') || undefined
   const date = searchParams.get('date') || undefined
   const duration =

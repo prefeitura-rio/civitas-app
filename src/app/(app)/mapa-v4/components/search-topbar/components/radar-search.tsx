@@ -37,7 +37,12 @@ export function RadarSearch() {
 
   const {
     layers: {
-      radars: { selectedObjects, handleSelectObject, data: radars },
+      radars: {
+        selectedObjects,
+        handleSelectObject,
+        setSelectedObjects,
+        data: radars,
+      },
     },
     setViewport,
   } = useMap()
@@ -63,7 +68,6 @@ export function RadarSearch() {
 
   const onSubmit = (data: RadarSearchFormData) => {
     const query = toQueryParams(data)
-    console.log(query.toString())
     router.push(`/mapa-v4/busca/radares?${query.toString()}`)
   }
 
@@ -75,18 +79,20 @@ export function RadarSearch() {
   }, [selectedObjects])
 
   useEffect(() => {
-    if (radars) {
-      if (formattedSearchParams.radarIds) {
-        formattedSearchParams.radarIds.forEach((radarId) => {
-          const radar = radars?.find(
-            (radar) =>
-              radar.cameraNumber === radarId || radar.cetRioCode === radarId,
-          )
-          if (radar) {
-            handleSelectObject(radar)
-          }
-        })
-      }
+    if (
+      radars &&
+      formattedSearchParams.radarIds &&
+      selectedObjects.length === 0
+    ) {
+      const ids = formattedSearchParams.radarIds
+
+      const selectedRadars = radars.filter(
+        (radar) =>
+          ids.includes(radar.cameraNumber) ||
+          (radar.cetRioCode && ids.includes(radar.cetRioCode)),
+      )
+
+      setSelectedObjects(selectedRadars)
     }
   }, [radars])
 
@@ -159,7 +165,6 @@ export function RadarSearch() {
                 <Button
                   className="dark:bg-blue-600"
                   onClick={() => {
-                    console.log(radarSearchInputRef.current?.value)
                     const radar = radars?.find(
                       (item) =>
                         item.cameraNumber ===

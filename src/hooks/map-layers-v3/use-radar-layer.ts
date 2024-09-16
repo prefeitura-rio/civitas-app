@@ -15,6 +15,7 @@ export interface UseRadarLayer {
   handleSelectObject: (radar: Radar) => void
   setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
   selectedObjects: Radar[]
+  setSelectedObjects: Dispatch<SetStateAction<Radar[]>>
 }
 
 export function useRadarLayer(): UseRadarLayer {
@@ -110,5 +111,6 @@ export function useRadarLayer(): UseRadarLayer {
     handleSelectObject,
     setIsHoveringInfoCard,
     selectedObjects,
+    setSelectedObjects,
   }
 }

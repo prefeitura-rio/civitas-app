@@ -7,20 +7,29 @@ interface RadarInfoProps {
   radar: Radar
 }
 
-const radarLabels: Record<
-  Exclude<keyof Radar, 'hasData' | 'activeInLast24Hours'>,
-  string
-> = {
+// const radarLabels: Record<
+//   Exclude<keyof Radar, 'hasData' | 'activeInLast24Hours'>,
+//   string
+// > = {
+//   cameraNumber: 'Câmera Número',
+//   cetRioCode: 'Código CET-Rio',
+//   location: 'Localização',
+//   district: 'Bairro',
+//   streetName: 'Logradouro',
+//   direction: 'Direção',
+//   company: 'Empresa',
+//   longitude: 'Longitude',
+//   latitude: 'Latitude',
+//   lastDetectionTime: 'Última detecção',
+//   lane: 'Faixa',
+//   streetNumber: 'Número',
+// }
+
+const radarLabels: Record<string, string> = {
   cameraNumber: 'Câmera Número',
   cetRioCode: 'Código CET-Rio',
-  location: 'Localização',
-  district: 'Bairro',
-  streetName: 'Logradouro',
-  direction: 'Direção',
-  company: 'Empresa',
-  longitude: 'Longitude',
-  latitude: 'Latitude',
   lastDetectionTime: 'Última detecção',
+  lane: 'Faixa',
 }
 
 export function RadarInfo({ radar }: RadarInfoProps) {
