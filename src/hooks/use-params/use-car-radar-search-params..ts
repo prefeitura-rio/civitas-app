@@ -1,12 +1,11 @@
 import { useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
-
 export interface FormattedSearchParams {
-  plate: string | undefined
-  from: string
-  to: string
-  radarIds: string[]
+  plateHint: string | undefined
+  date: string | undefined
+  duration: number[] | undefined
+  radarIds: string[] | undefined
 }
 
 type CarPathsQueryKey = ['cars', 'radar', FormattedSearchParams]
@@ -20,15 +19,23 @@ interface UseCarPathsSearchParamsReturn {
 export function useCarRadarSearchParams(): UseCarPathsSearchParamsReturn {
   const searchParams = useSearchParams()
 
-  const plate = z.string().optional().parse(searchParams.get('plate') || undefined)
-  const from = z.string().parse(searchParams.get('from'))
-  const to = z.string().parse(searchParams.get('to'))
-  const radarIds = z.array(z.string()).parse(searchParams.getAll('radarIds'))
+  console.log(searchParams.getAll('duration'))
+
+  const plateHint = searchParams.get('plateHint') || undefined
+  const date = searchParams.get('date') || undefined
+  const duration =
+    searchParams.getAll('duration').length > 0
+      ? z.array(z.coerce.number()).parse(searchParams.getAll('duration'))
+      : undefined
+  const radarIds =
+    searchParams.getAll('radarIds').length > 0
+      ? searchParams.getAll('radarIds')
+      : undefined
 
   const formattedSearchParams: FormattedSearchParams = {
-    plate,
-    from,
-    to,
+    plateHint,
+    date,
+    duration,
     radarIds,
   }
 

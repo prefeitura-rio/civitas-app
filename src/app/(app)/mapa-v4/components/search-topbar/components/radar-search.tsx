@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
-import type { FormattedSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import { toQueryParams } from '@/utils/to-query-params'
 
 import { RadarSearchFormData, radarSearchSchema } from './validationSchemas'
@@ -32,6 +32,9 @@ import { RadarSearchFormData, radarSearchSchema } from './validationSchemas'
 export function RadarSearch() {
   const radarSearchInputRef = useRef<HTMLInputElement | null>(null)
   const router = useRouter()
+
+  const { formattedSearchParams } = useCarRadarSearchParams()
+
   const {
     layers: {
       radars: { selectedObjects, handleSelectObject, data: radars },
@@ -47,31 +50,45 @@ export function RadarSearch() {
   } = useForm<RadarSearchFormData>({
     resolver: zodResolver(radarSearchSchema),
     defaultValues: {
-      duration: [-30, 30],
-      plateHint: '',
-      startTime: new Date().addHours(-1),
-      radars: selectedObjects.map((radar) => radar.cameraNumber),
+      date: formattedSearchParams.date
+        ? new Date(formattedSearchParams.date)
+        : new Date().addHours(-1),
+      duration: formattedSearchParams.duration || [-30, 30],
+      plateHint: formattedSearchParams.plateHint || '',
+      radarIds:
+        formattedSearchParams.radarIds ||
+        selectedObjects.map((radar) => radar.cameraNumber),
     },
   })
 
   const onSubmit = (data: RadarSearchFormData) => {
-    const _data = {
-      from: data.startTime.addMinutes(data.duration[0]).toISOString(),
-      to: data.startTime.addMinutes(data.duration[1]).toISOString(),
-      plate: data.plateHint,
-      radarIds: data.radars,
-    } as FormattedSearchParams
-    const query = toQueryParams(_data)
+    const query = toQueryParams(data)
     console.log(query.toString())
     router.push(`/mapa-v4/busca/radares?${query.toString()}`)
   }
 
   useEffect(() => {
     setValue(
-      'radars',
+      'radarIds',
       selectedObjects.map((radar) => radar.cameraNumber),
     )
   }, [selectedObjects])
+
+  useEffect(() => {
+    if (radars) {
+      if (formattedSearchParams.radarIds) {
+        formattedSearchParams.radarIds.forEach((radarId) => {
+          const radar = radars?.find(
+            (radar) =>
+              radar.cameraNumber === radarId || radar.cetRioCode === radarId,
+          )
+          if (radar) {
+            handleSelectObject(radar)
+          }
+        })
+      }
+    }
+  }, [radars])
 
   return (
     <form
@@ -81,7 +98,7 @@ export function RadarSearch() {
       <div className="flex flex-col">
         <Controller
           control={control}
-          name="startTime"
+          name="date"
           render={({ field }) => (
             <DatePicker
               className="w-48"
@@ -94,7 +111,7 @@ export function RadarSearch() {
             />
           )}
         />
-        <InputError message={errors.startTime?.message} />
+        <InputError message={errors.date?.message} />
       </div>
 
       <Controller
@@ -198,7 +215,7 @@ export function RadarSearch() {
             </div>
           </PopoverContent>
         </Popover>
-        <InputError message={errors.radars?.message} />
+        <InputError message={errors.radarIds?.message} />
       </div>
 
       <div className="flex flex-col">

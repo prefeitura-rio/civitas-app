@@ -1,5 +1,3 @@
-import { sub } from "date-fns"
-
 export function toQueryParams(props: object): URLSearchParams {
   const query = new URLSearchParams()
 
@@ -15,7 +13,11 @@ export function toQueryParams(props: object): URLSearchParams {
         Object.entries(value).forEach(([subKey, subValue]) => {
           if (subValue instanceof Date) {
             query.set(subKey, subValue.toISOString())
-          } else if (typeof subValue === 'number' || typeof subValue === 'boolean' || typeof subValue === 'string') {
+          } else if (
+            typeof subValue === 'number' ||
+            typeof subValue === 'boolean' ||
+            typeof subValue === 'string'
+          ) {
             query.set(subKey, subValue.toString())
           }
         })

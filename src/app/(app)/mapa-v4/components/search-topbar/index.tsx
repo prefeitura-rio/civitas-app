@@ -1,4 +1,5 @@
 import { CarIcon } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import React, { useState } from 'react'
 
 import { Label } from '@/components/ui/label'
@@ -9,7 +10,11 @@ import { RadarSearch } from './components/radar-search'
 import { WideSearch } from './components/wide-search'
 
 export function SearchTopbar() {
-  const [searchType, setSearchType] = useState<'radar' | 'wide'>('wide')
+  const pathname = usePathname()
+  const initialSearchType = pathname.includes('radares') ? 'radar' : 'wide'
+  const [searchType, setSearchType] = useState<'radar' | 'wide'>(
+    initialSearchType,
+  )
 
   return (
     <div className="h-28 px-10">
@@ -25,19 +30,6 @@ export function SearchTopbar() {
             <Label htmlFor="search-type" className="dark:text-white">
               Tipo de Busca:
             </Label>
-            {/* <RadioGroup
-              defaultValue={searchType}
-              onValueChange={(e) => setSearchType(e as 'radar' | 'wide')}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="wide" id="r1" />
-                <Label htmlFor="r1">Cidade Inteira</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="radar" id="r2" />
-                <Label htmlFor="r2">Por Radar</Label>
-              </div>
-            </RadioGroup> */}
             <Switch
               id="search-type"
               checked={searchType === 'radar'}
