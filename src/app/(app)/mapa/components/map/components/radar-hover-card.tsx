@@ -3,7 +3,7 @@ import { formatDate } from 'date-fns'
 import type { Viewport } from 'deck.gl'
 import React, { type Dispatch, type SetStateAction } from 'react'
 
-import { TooltipInfoItem } from '@/app/(app)/mapa/components/common/tooltip-info-item'
+import { TooltipInfoItem } from '@/app/(app)/mapa-[old]/components/common/tooltip-info-item'
 import { MapHoverCard } from '@/components/custom/map-hover-card'
 import type { Radar } from '@/models/entities'
 
@@ -14,7 +14,7 @@ interface HoverCardProps {
   viewport: Viewport | undefined
   setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
-export default function RadarHoverCard({
+export function RadarHoverCard({
   radar,
   viewport,
   x,

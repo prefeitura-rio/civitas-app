@@ -68,7 +68,7 @@ export function RadarSearch() {
 
   const onSubmit = (data: RadarSearchFormData) => {
     const query = toQueryParams(data)
-    router.push(`/mapa-v4/busca/radares?${query.toString()}`)
+    router.push(`/mapa/busca/radares?${query.toString()}`)
   }
 
   useEffect(() => {

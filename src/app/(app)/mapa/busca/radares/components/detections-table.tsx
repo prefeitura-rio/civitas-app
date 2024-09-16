@@ -80,7 +80,7 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
             variant="outline"
             className="size-6 shrink-0 p-0"
             onClick={() =>
-              router.push(`/mapa-v4/busca/veiculo?${searchParams.toString()}`)
+              router.push(`/mapa/busca/veiculo?${searchParams.toString()}`)
             }
           >
             <ArrowUpRight className="size-4" />
