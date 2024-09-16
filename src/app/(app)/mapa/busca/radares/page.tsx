@@ -9,8 +9,7 @@ import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
 import type { Radar, RadarDetection, Vehicle } from '@/models/entities'
 
 import { DetectionsTable } from './components/detections-table'
-// import { DownloadReport } from './components/download-report'
-import { RadarsInfo } from './components/radars-info'
+import { DownloadReport } from './components/download-report'
 
 export default function RadarDetections() {
   const { formattedSearchParams, queryKey } = useCarRadarSearchParams()
@@ -130,24 +129,27 @@ export default function RadarDetections() {
           <Spinner className="size-10" />
         </div>
       )}
-      {data &&
-        data.map((item) => (
-          <div key={item.location} className="relative space-y-4">
-            <div className="absolute right-2 top-0">
-              {/* <DownloadReport
-                data={data}
-                parameters={{
-                  from: new Date(formattedSearchParams.date || ''),
-                  to: new Date(formattedSearchParams.date || ''),
-                  plateHint: formattedSearchParams.plateHint,
-                  radarIds: formattedSearchParams.radarIds || [],
-                }}
-              /> */}
-            </div>
-            <RadarsInfo location={item.location} />
-            <DetectionsTable data={item} isLoading={isPending} />
+      {data && (
+        <div className="relative">
+          <div className="absolute right-2 top-0 z-10">
+            <DownloadReport
+              data={data}
+              parameters={{
+                from: new Date(formattedSearchParams.date || ''),
+                to: new Date(formattedSearchParams.date || ''),
+                plateHint: formattedSearchParams.plateHint,
+                radarIds: formattedSearchParams.radarIds || [],
+              }}
+            />
           </div>
-        ))}
+          {data.map((item) => (
+            <div key={item.location} className="relative mb-10 space-y-4">
+              <h4 className="">{item.location}</h4>
+              <DetectionsTable data={item} isLoading={isPending} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

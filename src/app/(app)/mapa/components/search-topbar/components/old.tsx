@@ -106,7 +106,7 @@ export function Topbar() {
     }
     const query = toQueryParams(queryData)
     console.log(query.toString())
-    router.push(`/mapa-v4/busca/radares?${query.toString()}`)
+    router.push(`/mapa/busca/radares?${query.toString()}`)
   }
 
   return (

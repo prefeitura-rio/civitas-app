@@ -1,134 +1,80 @@
-import DeckGL from '@deck.gl/react'
-import ReactMapGL from 'react-map-gl'
-import { toast } from 'sonner'
+'use client'
+import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { config } from '@/config'
+import { DeckGL, WebMercatorViewport } from 'deck.gl'
+import { useRef } from 'react'
+import Map, { type MapRef } from 'react-map-gl'
+
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { HoverComponents } from './components/hover-components'
-import { MapActions } from './components/map-actions'
-import { MapCaption } from './components/map-caption'
-import { SearchBox } from './components/search-box'
-import { SelectionComponents } from './components/selection-components'
+import { MAPBOX_ACCESS_TOKEN } from './components/constants'
+import { RadarHoverCard } from './components/radar-hover-card'
 
-export function Map() {
+export default function MapComponent() {
   const {
     layers: {
-      camerasCOR,
-      radars,
-      addressMarker,
-      wazePoliceAlerts,
-      trips,
-      agents,
-      fogoCruzadoIncidents,
+      radars: {
+        layer: radarLayer,
+        hoveredObject: hoveredRadar,
+        setIsHoveringInfoCard,
+      },
     },
-    deckRef,
-    mapRef,
     viewport,
     setViewport,
-    isMapStyleSatellite,
   } = useMap()
+  const mapRef = useRef<MapRef | null>(null)
+  const layers = [radarLayer] // TODO: Add other layers
+
+  const getPixelPosition = (longitude: number, latitude: number) => {
+    const mercatorViewport = new WebMercatorViewport(viewport)
+    const [x, y] = mercatorViewport.project([longitude, latitude])
+    return [x, y]
+  }
+
+  const hoveredObject = hoveredRadar // TODO: Add other layers
 
   return (
-    <DeckGL
-      ref={deckRef}
-      initialViewState={viewport}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-      onResize={() => mapRef?.current?.resize()}
-      controller
-      layers={[
-        camerasCOR.layers.cameraCORLayer,
-        radars.layers.radarLayer,
-        wazePoliceAlerts.layer,
-        camerasCOR.layers.selectedCameraCORLayer,
-        radars.layers.selectedRadarLayer,
-        radars.layers.slashInactiveRadarsLayer,
-        agents.layer,
-        trips.layers.blackIconLayer,
-        trips.layers.textLayer,
-        addressMarker.layer,
-        fogoCruzadoIncidents.layer,
-      ]}
-      onViewStateChange={(e) => setViewport({ ...e.viewState })}
-      getCursor={({ isDragging, isHovering }) => {
-        if (isDragging) return 'grabbing'
-        else if (isHovering) {
-          // Actually clickable objects:
-          if (
-            radars.layerStates.hoverInfo.object ||
-            camerasCOR.layerStates.hoverInfo.object ||
-            fogoCruzadoIncidents.layerStates.hoverInfo.object
-          )
-            return 'pointer'
-        }
-        return 'grab'
-      }}
-    >
-      <ReactMapGL
-        ref={mapRef}
-        mapboxAccessToken={config.mapboxAccessToken}
-        mapStyle={
-          isMapStyleSatellite
-            ? 'mapbox://styles/mapbox/satellite-streets-v12'
-            : 'mapbox://styles/mapbox/streets-v12'
-        }
-      />
-      <HoverComponents />
-      <SelectionComponents />
-      {(trips.layersState.isLinesEnabled ||
-        trips.layersState.isIconColorEnabled) && <MapCaption />}
-      <div className="absolute-x-centered top-2 z-50 w-64">
-        <SearchBox
-          isVisible={addressMarker.layerStates.isVisible}
-          setIsVisible={addressMarker.layerStates.setIsVisible}
-          setAddressMarker={addressMarker.layerStates.setAddressMarker}
-          setViewport={setViewport}
-          placeHolder="Pesquise um endereço, câmera ou radar"
-          onSubmit={(props) => {
-            if (props.address.length === 6) {
-              const cameraCode = props.address
-              const camera = camerasCOR.data.find(
-                (item) => item.code === cameraCode,
-              )
-              if (camera) {
-                camerasCOR.layerStates.setIsVisible(true)
-                camerasCOR.layerStates.setSelectedCameraCOR(camera)
-                setViewport({
-                  latitude: camera.latitude,
-                  longitude: camera.longitude,
-                  zoom: 20,
-                })
-              } else {
-                toast.warning('Nenhuma câmera com esse código foi encontrada.')
-              }
-            } else if (props.address.length > 6) {
-              const radarCode = props.address
-              const radar = radars.data.find(
-                (item) =>
-                  item.cameraNumber === radarCode ||
-                  item.cetRioCode === radarCode,
-              )
-              if (radar) {
-                radars.layerStates.setIsVisible(true)
-                radars.layerStates.setSelectedRadar(radar)
-                setViewport({
-                  latitude: radar.latitude,
-                  longitude: radar.longitude,
-                  zoom: 20,
-                })
-              } else {
-                toast.warning('Nenhum radar com esse código foi encontrada.')
-              }
-            }
-          }}
+    <div className="relative h-full w-full overflow-hidden">
+      <DeckGL
+        initialViewState={viewport}
+        controller
+        onResize={() => mapRef?.current?.resize()}
+        layers={layers}
+        onViewStateChange={(e) => setViewport({ ...e.viewState })}
+        getCursor={({ isDragging, isHovering }) => {
+          if (isDragging) return 'grabbing'
+          else if (isHovering) {
+            // Actually clickable objects:
+            if (hoveredRadar) return 'pointer'
+          }
+          return 'grab'
+        }}
+      >
+        <Map
+          ref={mapRef}
+          mapStyle="mapbox://styles/mapbox/streets-v12"
+          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
-      </div>
-      <MapActions />
-    </DeckGL>
+      </DeckGL>
+      {hoveredObject && hoveredObject.object && (
+        <RadarHoverCard
+          viewport={hoveredObject.viewport}
+          setIsHoveringInfoCard={setIsHoveringInfoCard}
+          x={
+            getPixelPosition(
+              hoveredObject.object.longitude,
+              hoveredObject.object.latitude,
+            )[0]
+          }
+          y={
+            getPixelPosition(
+              hoveredObject.object.longitude,
+              hoveredObject.object.latitude,
+            )[1]
+          }
+          radar={hoveredObject.object}
+        />
+      )}
+    </div>
   )
 }

@@ -16,8 +16,8 @@ interface RadarInfoProps {
 
 export function RadarsInfo(props: RadarInfoProps) {
   return (
-    <div>
-      <h4 className="mt-4">{props.location?.replace(/ - FX \d+/, '')}</h4>
+    <div className="mb">
+      <h4 className="mb-4 mt-2">{props.location?.replace(/ - FX \d+/, '')}</h4>
       {/* <div className="ml-4">
         {Object.entries(radarLabels).map(([key, label], index) => (
           <div key={index}>
