@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const radarSearchSchema = z.object({
-  startTime: z.date({ message: 'Campo obrigatório' }),
+  date: z.date({ message: 'Campo obrigatório' }),
   duration: z.array(z.number()),
   plateHint: z
     .string()
@@ -17,7 +17,7 @@ export const radarSearchSchema = z.object({
       { message: 'Formato inválido' },
     )
     .optional(),
-  radars: z
+  radarIds: z
     .array(z.string(), { message: 'Campo obrigatório 2' })
     .min(1, { message: 'Campo obrigatório' }),
 })

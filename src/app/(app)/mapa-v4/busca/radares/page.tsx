@@ -17,14 +17,29 @@ export default function RadarDetections() {
   const { data, isPending } = useQuery({
     queryKey,
     queryFn: () => {
-      const radarIds = formattedSearchParams.radarIds
+      if (
+        !formattedSearchParams.date ||
+        !formattedSearchParams.radarIds ||
+        !formattedSearchParams.duration
+      ) {
+        throw new Error('Missing required parameters')
+      }
 
-      const result = radarIds.map(async (cameraNumber) => {
+      const radarIds = formattedSearchParams.radarIds
+      const startTime = new Date(formattedSearchParams.date)
+        .addMinutes(formattedSearchParams.duration[0])
+        .toISOString()
+      const endTime = new Date(formattedSearchParams.date)
+        .addMinutes(formattedSearchParams.duration[1])
+        .toISOString()
+      const plateHint = formattedSearchParams.plateHint
+
+      const result = radarIds?.map(async (cameraNumber) => {
         const detections = await getCarsByRadar({
           radar: cameraNumber,
-          startTime: formattedSearchParams.from,
-          endTime: formattedSearchParams.to,
-          plateHint: formattedSearchParams.plate,
+          startTime,
+          endTime,
+          plateHint,
         })
 
         const vehicles = await getBulkPlatesInfo(
