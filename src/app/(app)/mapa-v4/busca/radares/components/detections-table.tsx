@@ -8,10 +8,19 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import type { RadarDetection, Vehicle } from '@/models/entities'
+import type { Radar, RadarDetection, Vehicle } from '@/models/entities'
 
+type Detection = RadarDetection &
+  Vehicle & {
+    cameraNumber: string
+    lane: string
+  }
 interface DetectionsTableProps {
-  data: (RadarDetection & Vehicle)[]
+  data: {
+    location: string
+    radars: Radar[]
+    detections: Detection[]
+  }
   isLoading: boolean
 }
 
@@ -19,7 +28,7 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
   const router = useRouter()
   const { searchParams } = useCarRadarSearchParams()
 
-  const columns: ColumnDef<RadarDetection & Vehicle>[] = [
+  const columns: ColumnDef<Detection & Vehicle>[] = [
     {
       accessorKey: 'timestamp',
       header: () => <Label>Data e Hora</Label>,
@@ -48,8 +57,18 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       cell: ({ row }) => <span>{row.getValue('modelYear')}</span>,
     },
     {
+      accessorKey: 'cameraNumber',
+      header: () => <Label className="w-28">Radar</Label>,
+      cell: ({ row }) => <span>{row.getValue('cameraNumber')}</span>,
+    },
+    {
+      accessorKey: 'lane',
+      header: () => <Label className="w-28">Faixa</Label>,
+      cell: ({ row }) => <span>{row.getValue('lane')}</span>,
+    },
+    {
       accessorKey: 'speed',
-      header: () => <Label className="text-right">Velocidade</Label>,
+      header: () => <Label className="text-right">Velocidade [Km/h]</Label>,
       cell: ({ row }) => <span>{row.getValue('speed')}</span>,
     },
     {
@@ -74,7 +93,7 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
   return (
     <DataTable
       columns={columns}
-      data={data}
+      data={data.detections}
       isLoading={isLoading}
       filters={[
         {
