@@ -1,3 +1,4 @@
+'use client'
 import { useQuery } from '@tanstack/react-query'
 
 import { getRadars } from '@/http/radars/get-radars'

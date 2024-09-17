@@ -1,15 +1,22 @@
+'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { RectangleEllipsis, SearchIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { DatePickerWithRange } from '@/components/custom/date-range-picker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
+import { toQueryParams } from '@/utils/to-query-params'
 
 import { WideSearchFormData, wideSearchSchema } from './validationSchemas'
 
 export function WideSearch() {
+  const router = useRouter()
+  const { formattedSearchParams } = useCarPathsSearchParams()
+
   const {
     control,
     handleSubmit,
@@ -18,15 +25,21 @@ export function WideSearch() {
     resolver: zodResolver(wideSearchSchema),
     defaultValues: {
       date: {
-        from: new Date(),
-        to: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
+        from: formattedSearchParams.from
+          ? new Date(formattedSearchParams.from)
+          : new Date(),
+        to: formattedSearchParams.to
+          ? new Date(formattedSearchParams.to)
+          : new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
       },
-      plateHint: '',
+      plateHint: formattedSearchParams.plate || '',
     },
   })
 
   const onSubmit = (data: WideSearchFormData) => {
     console.log('Realizando busca na cidade:', data)
+    const query = toQueryParams(data)
+    router.push(`/mapa/busca/veiculo?${query}`)
   }
 
   return (
