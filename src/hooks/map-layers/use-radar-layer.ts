@@ -1,3 +1,4 @@
+'use client'
 import { IconLayer, type PickingInfo } from 'deck.gl'
 import { type Dispatch, type SetStateAction, useState } from 'react'
 

@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/resizable'
 import { MapContextProvider } from '@/contexts/map-context'
 
-import Map from '../components/map'
+import { Map } from '../components/map'
 import { SearchTopbar } from '../components/search-topbar'
 
 export default function MapLayout({

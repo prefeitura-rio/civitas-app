@@ -3,27 +3,32 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { DeckGL, WebMercatorViewport } from 'deck.gl'
 import { useRef } from 'react'
-import Map, { type MapRef } from 'react-map-gl'
+import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { RadarHoverCard } from './components/radar-hover-card'
 
-export default function MapComponent() {
+export function Map() {
   const {
     layers: {
       radars: {
         layer: radarLayer,
         hoveredObject: hoveredRadar,
-        setIsHoveringInfoCard,
+        setIsHoveringInfoCard: setIsHoveringRadarInfoCard,
+      },
+      trips: {
+        layers: tripLayers,
+        // hoveredObject: hoveredTrip,
+        // setIsHoveringInfoCard: setIsHoveringTripInfoCard,
       },
     },
     viewport,
     setViewport,
   } = useMap()
   const mapRef = useRef<MapRef | null>(null)
-  const layers = [radarLayer] // TODO: Add other layers
+  const layers = [radarLayer, ...tripLayers] // TODO: Add other layers
 
   const getPixelPosition = (longitude: number, latitude: number) => {
     const mercatorViewport = new WebMercatorViewport(viewport)
@@ -31,7 +36,7 @@ export default function MapComponent() {
     return [x, y]
   }
 
-  const hoveredObject = hoveredRadar // TODO: Add other layers
+  const hoveredObject = hoveredRadar // Add other hovered objects
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -50,7 +55,7 @@ export default function MapComponent() {
           return 'grab'
         }}
       >
-        <Map
+        <MapGl
           ref={mapRef}
           mapStyle="mapbox://styles/mapbox/streets-v12"
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
@@ -59,7 +64,7 @@ export default function MapComponent() {
       {hoveredObject && hoveredObject.object && (
         <RadarHoverCard
           viewport={hoveredObject.viewport}
-          setIsHoveringInfoCard={setIsHoveringInfoCard}
+          setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
           x={
             getPixelPosition(
               hoveredObject.object.longitude,

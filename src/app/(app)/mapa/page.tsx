@@ -3,7 +3,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { MapContextProvider } from '@/contexts/map-context'
 
-import Map from './components/map'
+import { Map } from './components/map'
 import { SearchTopbar } from './components/search-topbar'
 
 export default function Mapa() {

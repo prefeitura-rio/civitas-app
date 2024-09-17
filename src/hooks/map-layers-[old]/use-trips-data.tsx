@@ -1,3 +1,4 @@
+import type { MapViewState } from '@deck.gl/core'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
@@ -10,7 +11,8 @@ import {
   type GetCarPathRequest,
 } from '@/http/cars/path/get-car-path'
 import type { Trip } from '@/models/entities'
-import type { SetViewportProps } from '@/models/utils'
+
+export interface SetViewportProps extends Partial<MapViewState> {}
 
 export interface UseTripsProps {
   setViewport: (props: SetViewportProps) => void

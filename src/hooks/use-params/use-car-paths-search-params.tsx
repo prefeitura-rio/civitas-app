@@ -1,13 +1,13 @@
 import { useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-
-type CarPathsQueryKey = ['cars/path', plate: string, from: string, to: string]
 
 export interface FormattedSearchParams {
-  plate: string
-  from: string
-  to: string
+  plate: string | undefined
+  from: string | undefined
+  to: string | undefined
 }
+
+type CarPathsQueryKey = ['cars', 'path', FormattedSearchParams]
+
 interface UseCarPathsSearchParamsReturn {
   searchParams: URLSearchParams
   formattedSearchParams: FormattedSearchParams
@@ -17,17 +17,22 @@ interface UseCarPathsSearchParamsReturn {
 export function useCarPathsSearchParams(): UseCarPathsSearchParamsReturn {
   const searchParams = useSearchParams()
 
-  const plate = z.string().parse(searchParams.get('plate'))
-  const from = z.string().parse(searchParams.get('from'))
-  const to = z.string().parse(searchParams.get('to'))
+  const plate =
+    searchParams.get('plateHint') || searchParams.get('plate') || undefined
+  const from = searchParams.get('from') || undefined
+  const to = searchParams.get('to') || undefined
+
+  const formattedSearchParams: FormattedSearchParams = {
+    plate,
+    from,
+    to,
+  }
+
+  const queryKey: CarPathsQueryKey = ['cars', 'path', formattedSearchParams]
 
   return {
     searchParams,
-    formattedSearchParams: {
-      plate,
-      from,
-      to,
-    },
-    queryKey: ['cars/path', plate, from, to],
+    formattedSearchParams,
+    queryKey,
   }
 }

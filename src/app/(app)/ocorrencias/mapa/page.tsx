@@ -2,10 +2,10 @@
 import { DeckGL } from '@deck.gl/react'
 import ReactMapGL from 'react-map-gl'
 
-import { SearchBox } from '@/app/(app)/mapa/components/map/components/search-box'
 import { config } from '@/config'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 
+import { SearchBox } from '../../mapa/components/map/components/search-box'
 import { MapActions } from './components/map-actions'
 import { ReportHoverCard } from './components/report-hover-card'
 
