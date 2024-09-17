@@ -1,38 +1,64 @@
 import { useSearchParams } from 'next/navigation'
 
+import {
+  type WideSearchFormData,
+  wideSearchSchema,
+} from '@/app/(app)/mapa/components/search-topbar/components/validationSchemas'
+
 export interface FormattedSearchParams {
-  plate: string | undefined
-  from: string | undefined
-  to: string | undefined
+  plate: string
+  from: string
+  to: string
 }
 
-type CarPathsQueryKey = ['cars', 'path', FormattedSearchParams]
+type CarPathsQueryKey = ['cars', 'path', FormattedSearchParams | null]
 
 interface UseCarPathsSearchParamsReturn {
   searchParams: URLSearchParams
-  formattedSearchParams: FormattedSearchParams
+  formattedSearchParams: FormattedSearchParams | null
   queryKey: CarPathsQueryKey
 }
 
 export function useCarPathsSearchParams(): UseCarPathsSearchParamsReturn {
   const searchParams = useSearchParams()
 
-  const plate =
-    searchParams.get('plateHint') || searchParams.get('plate') || undefined
-  const from = searchParams.get('from') || undefined
-  const to = searchParams.get('to') || undefined
+  try {
+    const plate = searchParams.get('plate')
+    const from = searchParams.get('from')
+    const to = searchParams.get('to')
 
-  const formattedSearchParams: FormattedSearchParams = {
-    plate,
-    from,
-    to,
-  }
+    if (plate === null || from === null || to === null) {
+      throw new Error('Invalid search parameters')
+    }
 
-  const queryKey: CarPathsQueryKey = ['cars', 'path', formattedSearchParams]
+    const params: WideSearchFormData = {
+      date: {
+        from: new Date(from),
+        to: new Date(to),
+      },
+      plate,
+    }
 
-  return {
-    searchParams,
-    formattedSearchParams,
-    queryKey,
+    wideSearchSchema.parse(params)
+
+    const formattedSearchParams: FormattedSearchParams = {
+      plate,
+      from,
+      to,
+    }
+
+    return {
+      searchParams,
+      formattedSearchParams,
+      queryKey: ['cars', 'path', formattedSearchParams],
+    }
+  } catch {
+    const formattedSearchParams = null
+
+    return {
+      searchParams,
+      formattedSearchParams,
+      queryKey: ['cars', 'path', formattedSearchParams],
+    }
   }
 }

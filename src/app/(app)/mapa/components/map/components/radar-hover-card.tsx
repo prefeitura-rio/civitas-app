@@ -28,7 +28,7 @@ export function RadarHoverCard({
           onMouseEnter={() => {
             setIsHoveringInfoCard(true)
           }}
-          onMouseLeave={() => {
+          onMouseOut={() => {
             setIsHoveringInfoCard(false)
           }}
         >

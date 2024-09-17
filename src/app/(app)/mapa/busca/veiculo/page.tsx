@@ -1,7 +1,17 @@
 'use client'
+import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 
@@ -15,14 +25,38 @@ export default function Veiculo() {
     },
   } = useMap()
   const { formattedSearchParams } = useCarPathsSearchParams()
+  const router = useRouter()
 
   useEffect(() => {
-    getTrips({
-      plate: formattedSearchParams.plate,
-      startTime: formattedSearchParams.from,
-      endTime: formattedSearchParams.to,
-    })
+    if (formattedSearchParams) {
+      getTrips({
+        plate: formattedSearchParams.plate,
+        startTime: formattedSearchParams.from,
+        endTime: formattedSearchParams.to,
+      })
+    }
   }, [getTrips])
+
+  if (!formattedSearchParams) {
+    return (
+      <AlertDialog open={true}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Parâmetros Inválidos</AlertDialogTitle>
+            <AlertDialogDescription>
+              Os parâmetros de busca são inválidos. Volte para o mapa e tente
+              realizar a busca novamente pelo painel de busca.
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => router.push('/mapa')}>
+                Voltar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogHeader>
+        </AlertDialogContent>
+      </AlertDialog>
+    )
+  }
 
   return (
     <div className="h-full space-y-2">

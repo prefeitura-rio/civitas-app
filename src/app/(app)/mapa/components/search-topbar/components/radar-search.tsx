@@ -54,16 +54,21 @@ export function RadarSearch() {
     formState: { errors, isSubmitting },
   } = useForm<RadarSearchFormData>({
     resolver: zodResolver(radarSearchSchema),
-    defaultValues: {
-      date: formattedSearchParams.date
-        ? new Date(formattedSearchParams.date)
-        : new Date().addHours(-1),
-      duration: formattedSearchParams.duration || [-30, 30],
-      plateHint: formattedSearchParams.plateHint || '',
-      radarIds:
-        formattedSearchParams.radarIds ||
-        selectedObjects.map((radar) => radar.cameraNumber),
-    },
+    defaultValues: formattedSearchParams
+      ? {
+          date: formattedSearchParams.date
+            ? new Date(formattedSearchParams.date)
+            : undefined,
+          duration: formattedSearchParams.duration,
+          plate: formattedSearchParams.plate,
+          radarIds: formattedSearchParams.radarIds,
+        }
+      : {
+          date: new Date(),
+          duration: [0, 5],
+          radarIds: [],
+          plate: '',
+        },
   })
 
   const onSubmit = (data: RadarSearchFormData) => {
@@ -79,11 +84,7 @@ export function RadarSearch() {
   }, [selectedObjects])
 
   useEffect(() => {
-    if (
-      radars &&
-      formattedSearchParams.radarIds &&
-      selectedObjects.length === 0
-    ) {
+    if (radars && formattedSearchParams && selectedObjects.length === 0) {
       const ids = formattedSearchParams.radarIds
 
       const selectedRadars = radars.filter(
@@ -202,6 +203,13 @@ export function RadarSearch() {
                         variant="ghost"
                         size="sm"
                         className="dark:text-white"
+                        onClick={() => {
+                          setViewport({
+                            longitude: radar.longitude,
+                            latitude: radar.latitude,
+                            zoom: 20,
+                          })
+                        }}
                       >
                         <NavigationIcon className="size-4" />
                       </Button>
@@ -227,7 +235,7 @@ export function RadarSearch() {
         <div className="relative">
           <RectangleEllipsis className="absolute left-3 top-1/2 size-4 -translate-y-1/2 transform text-gray-400" />
           <Controller
-            name="plateHint"
+            name="plate"
             control={control}
             render={({ field }) => (
               <Input
@@ -239,7 +247,7 @@ export function RadarSearch() {
             )}
           />
         </div>
-        <InputError message={errors.plateHint?.message} />
+        <InputError message={errors.plate?.message} />
       </div>
 
       <Button type="submit" className="mb-4 dark:bg-blue-600">

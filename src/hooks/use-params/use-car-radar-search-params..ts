@@ -1,47 +1,60 @@
 import { useSearchParams } from 'next/navigation'
-import { z } from 'zod'
+
+import { radarSearchSchema } from '@/app/(app)/mapa/components/search-topbar/components/validationSchemas'
 
 export interface FormattedSearchParams {
-  plateHint: string | undefined
-  date: string | undefined
-  duration: number[] | undefined
-  radarIds: string[] | undefined
+  plate?: string
+  date: string
+  duration: number[]
+  radarIds: string[]
 }
 
-type CarPathsQueryKey = ['cars', 'radar', FormattedSearchParams]
+type CarPathsQueryKey = ['cars', 'radar', FormattedSearchParams | null]
 
 interface UseCarPathsSearchParamsReturn {
   searchParams: URLSearchParams
-  formattedSearchParams: FormattedSearchParams
+  formattedSearchParams: FormattedSearchParams | null
   queryKey: CarPathsQueryKey
 }
 
 export function useCarRadarSearchParams(): UseCarPathsSearchParamsReturn {
   const searchParams = useSearchParams()
 
-  const plateHint = searchParams.get('plateHint') || undefined
-  const date = searchParams.get('date') || undefined
-  const duration =
-    searchParams.getAll('duration').length > 0
-      ? z.array(z.coerce.number()).parse(searchParams.getAll('duration'))
-      : undefined
-  const radarIds =
-    searchParams.getAll('radarIds').length > 0
-      ? searchParams.getAll('radarIds')
-      : undefined
+  try {
+    const plate = searchParams.get('plate') || undefined
+    const date = searchParams.get('date')
+    const duration = searchParams.getAll('duration')
+    const radarIds = searchParams.getAll('radarIds')
 
-  const formattedSearchParams: FormattedSearchParams = {
-    plateHint,
-    date,
-    duration,
-    radarIds,
-  }
+    if (date === null || duration.length !== 2 || radarIds.length === 0) {
+      throw new Error('Invalid search parameters')
+    }
 
-  const queryKey: CarPathsQueryKey = ['cars', 'radar', formattedSearchParams]
+    const params = {
+      plate,
+      date: new Date(date),
+      duration,
+      radarIds,
+    }
+    const result = radarSearchSchema.parse(params)
 
-  return {
-    searchParams,
-    formattedSearchParams,
-    queryKey,
+    const formattedSearchParams = {
+      ...result,
+      date: result.date.toISOString(),
+    }
+
+    const queryKey: CarPathsQueryKey = ['cars', 'radar', formattedSearchParams]
+
+    return {
+      searchParams,
+      formattedSearchParams,
+      queryKey,
+    }
+  } catch (e) {
+    return {
+      searchParams,
+      formattedSearchParams: null,
+      queryKey: ['cars', 'radar', null],
+    }
   }
 }
