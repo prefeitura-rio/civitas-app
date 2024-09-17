@@ -2,12 +2,21 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { DeckGL, WebMercatorViewport } from 'deck.gl'
+import {
+  Cctv,
+  FlameKindling,
+  Satellite,
+  Siren,
+  UsersRound,
+  Video,
+} from 'lucide-react'
 import { useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
+import { MapLayerControl } from './components/layer-toggle'
 import { RadarHoverCard } from './components/radar-hover-card'
 
 export function Map() {
@@ -17,6 +26,8 @@ export function Map() {
         layer: radarLayer,
         hoveredObject: hoveredRadar,
         setIsHoveringInfoCard: setIsHoveringRadarInfoCard,
+        isVisible: isRadarVisible,
+        setIsVisible: setIsRadarVisible,
       },
       trips: {
         layers: tripLayers,
@@ -80,6 +91,46 @@ export function Map() {
           radar={hoveredObject.object}
         />
       )}
+      <MapLayerControl
+        layers={[
+          {
+            name: 'Radar',
+            icon: <Cctv />,
+            isVisible: isRadarVisible,
+            setIsVisible: setIsRadarVisible,
+          },
+          {
+            name: 'Câmeras',
+            icon: <Video />,
+            isVisible: isRadarVisible,
+            setIsVisible: setIsRadarVisible,
+          },
+          {
+            name: 'Agentes',
+            icon: <UsersRound />,
+            isVisible: isRadarVisible,
+            setIsVisible: setIsRadarVisible,
+          },
+          {
+            name: 'Policiamento (Waze)',
+            icon: <Siren />,
+            isVisible: isRadarVisible,
+            setIsVisible: setIsRadarVisible,
+          },
+          {
+            name: 'Fogo Cruzado',
+            icon: <FlameKindling />,
+            isVisible: isRadarVisible,
+            setIsVisible: setIsRadarVisible,
+          },
+          {
+            name: 'Satélite',
+            icon: <Satellite />,
+            isVisible: isRadarVisible,
+            setIsVisible: setIsRadarVisible,
+          },
+        ]}
+      />
     </div>
   )
 }

@@ -1,7 +1,17 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 
 import { Spinner } from '@/components/custom/spinner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import { useRadars } from '@/hooks/use-queries/use-radars'
 // import { getBulkPlatesInfo } from '@/http/cars/plate/get-plate-info-bulk'
@@ -13,16 +23,13 @@ import { DownloadReport } from './components/download-report'
 
 export default function RadarDetections() {
   const { formattedSearchParams, queryKey } = useCarRadarSearchParams()
+  const router = useRouter()
   const { data: radars } = useRadars()
 
   const { data, isPending } = useQuery({
     queryKey,
     queryFn: async () => {
-      if (
-        !formattedSearchParams.date ||
-        !formattedSearchParams.radarIds ||
-        !formattedSearchParams.duration
-      ) {
+      if (!formattedSearchParams) {
         throw new Error('Missing required parameters')
       }
 
@@ -33,7 +40,7 @@ export default function RadarDetections() {
       const endTime = new Date(formattedSearchParams.date)
         .addMinutes(formattedSearchParams.duration[1])
         .toISOString()
-      const plateHint = formattedSearchParams.plateHint
+      const plateHint = formattedSearchParams.plate
 
       const _radars =
         radars?.filter(
@@ -119,8 +126,29 @@ export default function RadarDetections() {
 
       return Object.values(groupedData)
     },
-    enabled: !!radars,
+    enabled: !!radars && !!formattedSearchParams,
   })
+
+  if (!formattedSearchParams) {
+    return (
+      <AlertDialog open={true}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Parâmetros Inválidos</AlertDialogTitle>
+            <AlertDialogDescription>
+              Os parâmetros de busca são inválidos. Volte para o mapa e tente
+              realizar a busca novamente pelo painel de busca.
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => router.push('/mapa')}>
+                Voltar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogHeader>
+        </AlertDialogContent>
+      </AlertDialog>
+    )
+  }
 
   return (
     <div className="h-full overflow-y-scroll p-2">
@@ -135,10 +163,10 @@ export default function RadarDetections() {
             <DownloadReport
               data={data}
               parameters={{
-                from: new Date(formattedSearchParams.date || ''),
-                to: new Date(formattedSearchParams.date || ''),
-                plateHint: formattedSearchParams.plateHint,
-                radarIds: formattedSearchParams.radarIds || [],
+                from: new Date(formattedSearchParams.date),
+                to: new Date(formattedSearchParams.date),
+                plateHint: formattedSearchParams.plate,
+                radarIds: formattedSearchParams.radarIds,
               }}
             />
           </div>

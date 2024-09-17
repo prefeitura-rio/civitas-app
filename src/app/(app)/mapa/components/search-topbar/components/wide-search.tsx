@@ -23,23 +23,28 @@ export function WideSearch() {
     formState: { errors },
   } = useForm<WideSearchFormData>({
     resolver: zodResolver(wideSearchSchema),
-    defaultValues: {
-      date: {
-        from: formattedSearchParams.from
-          ? new Date(formattedSearchParams.from)
-          : new Date(),
-        to: formattedSearchParams.to
-          ? new Date(formattedSearchParams.to)
-          : new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
-      },
-      plateHint: formattedSearchParams.plate || '',
-    },
+    defaultValues: formattedSearchParams
+      ? {
+          date: {
+            from: new Date(formattedSearchParams.from),
+            to: new Date(formattedSearchParams.to),
+          },
+          plate: formattedSearchParams.plate,
+        }
+      : {
+          date: {
+            from: new Date(),
+            to: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
+          },
+          plate: '',
+        },
   })
 
   const onSubmit = (data: WideSearchFormData) => {
     console.log('Realizando busca na cidade:', data)
+    const path = data.plate?.includes('*') ? 'veiculos' : 'veiculo'
     const query = toQueryParams(data)
-    router.push(`/mapa/busca/veiculo?${query}`)
+    router.push(`/mapa/busca/${path}?${query}`)
   }
 
   return (
@@ -72,7 +77,7 @@ export function WideSearch() {
         <div className="relative">
           <RectangleEllipsis className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
           <Controller
-            name="plateHint"
+            name="plate"
             control={control}
             render={({ field }) => (
               <Input
@@ -84,10 +89,8 @@ export function WideSearch() {
             )}
           />
         </div>
-        {errors.plateHint && (
-          <span className="text-xs text-red-500">
-            {errors.plateHint.message}
-          </span>
+        {errors.plate && (
+          <span className="text-xs text-red-500">{errors.plate.message}</span>
         )}
       </div>
 

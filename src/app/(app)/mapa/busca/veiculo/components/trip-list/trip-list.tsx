@@ -48,7 +48,7 @@ export function TripList() {
                   </span>
                 </div>
               ) : (
-                <ul className="relative flex h-full w-full flex-col bg-card">
+                <ul className="flex h-full w-full flex-col">
                   {trips.map((trip, index) => {
                     const startLocation = trip.points[0]
                     const endLocation = trip.points[trip.points.length - 1]

@@ -3,7 +3,6 @@ import { usePathname } from 'next/navigation'
 import React, { useState } from 'react'
 
 import { Label } from '@/components/ui/label'
-// import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
 
 import { RadarSearch } from './components/radar-search'
