@@ -114,48 +114,34 @@ export function Map() {
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
-      {hoveredRadar && hoveredRadar.object && (
-        <RadarHoverCard
-          hoveredObject={hoveredRadar}
-          setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
-        />
-      )}
-      {hoveredCamera && (
-        <CameraHoverCard
-          hoveredObject={hoveredCamera}
-          setIsHoveringInfoCard={setIsHoveringCameraInfoCard}
-        />
-      )}
-      {selectedCamera && (
-        <CameraSelectCard
-          selectedObject={selectedCamera}
-          setSelectedObject={setSelectedCamera}
-        />
-      )}
-      {hoveredFogoCruzado && (
-        <FogoCruzadoHoverCard
-          hoveredObject={hoveredFogoCruzado}
-          setIsHoveringInfoCard={setIsHoveringFogoCruzadoInfoCard}
-        />
-      )}
-      {selectedFogoCruzado && (
-        <FogoCruzadoSelectCard
-          selectedObject={selectedFogoCruzado}
-          setSelectedObject={setSelectedFogoCruzado}
-        />
-      )}
-      {hoveredWaze && (
-        <WazePoliceAlertHoverCard
-          hoveredObject={hoveredWaze}
-          setIsHoveringInfoCard={setIsHoveringWazeInfoCard}
-        />
-      )}
-      {hoveredAgent && (
-        <AgentHoverCard
-          hoveredObject={hoveredAgent}
-          setIsHoveringInfoCard={setIsHoveringAgentInfoCard}
-        />
-      )}
+      <RadarHoverCard
+        hoveredObject={hoveredRadar}
+        setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
+      />
+      <CameraHoverCard
+        hoveredObject={hoveredCamera}
+        setIsHoveringInfoCard={setIsHoveringCameraInfoCard}
+      />
+      <CameraSelectCard
+        selectedObject={selectedCamera}
+        setSelectedObject={setSelectedCamera}
+      />
+      <FogoCruzadoHoverCard
+        hoveredObject={hoveredFogoCruzado}
+        setIsHoveringInfoCard={setIsHoveringFogoCruzadoInfoCard}
+      />
+      <FogoCruzadoSelectCard
+        selectedObject={selectedFogoCruzado}
+        setSelectedObject={setSelectedFogoCruzado}
+      />
+      <WazePoliceAlertHoverCard
+        hoveredObject={hoveredWaze}
+        setIsHoveringInfoCard={setIsHoveringWazeInfoCard}
+      />
+      <AgentHoverCard
+        hoveredObject={hoveredAgent}
+        setIsHoveringInfoCard={setIsHoveringAgentInfoCard}
+      />
       <MapLayerControl
         layers={[
           {
