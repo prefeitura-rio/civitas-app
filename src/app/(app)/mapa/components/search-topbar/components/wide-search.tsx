@@ -8,6 +8,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { DatePickerWithRange } from '@/components/custom/date-range-picker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { toQueryParams } from '@/utils/to-query-params'
 
@@ -15,6 +16,11 @@ import { WideSearchFormData, wideSearchSchema } from './validationSchemas'
 
 export function WideSearch() {
   const router = useRouter()
+  const {
+    layers: {
+      trips: { getTrips, getPossiblePlates },
+    },
+  } = useMap()
   const { formattedSearchParams } = useCarPathsSearchParams()
 
   const {
@@ -42,9 +48,25 @@ export function WideSearch() {
 
   const onSubmit = (data: WideSearchFormData) => {
     console.log('Realizando busca na cidade:', data)
-    const path = data.plate?.includes('*') ? 'veiculos' : 'veiculo'
     const query = toQueryParams(data)
-    router.push(`/mapa/busca/${path}?${query}`)
+
+    if (data.plate.includes('*')) {
+      getPossiblePlates({
+        plate: data.plate,
+        startTime: data.date.from.toISOString(),
+        endTime: data.date.to.toISOString(),
+      })
+
+      router.push(`/mapa/busca/veiculos?${query.toString()}`)
+    } else {
+      getTrips({
+        plate: data.plate,
+        startTime: data.date.from.toISOString(),
+        endTime: data.date.to.toISOString(),
+      })
+
+      router.push(`/mapa/busca/veiculo?${query.toString()}`)
+    }
   }
 
   return (
