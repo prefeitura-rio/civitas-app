@@ -16,10 +16,14 @@ import MapGl, { type MapRef } from 'react-map-gl'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
+import { AgentHoverCard } from './components/hover-cards/agent-hover-card'
 import { CameraHoverCard } from './components/hover-cards/camera-hover-card'
+import { FogoCruzadoHoverCard } from './components/hover-cards/fogo-cruzado-hover-card'
 import { RadarHoverCard } from './components/hover-cards/radar-hover-card'
+import { WazePoliceAlertHoverCard } from './components/hover-cards/waze-police-alert-hover-card'
 import { MapLayerControl } from './components/layer-toggle'
 import { CameraSelectCard } from './components/select-cards/camera-select-card'
+import { FogoCruzadoSelectCard } from './components/select-cards/fogo-cruzado-select-card'
 
 export function Map() {
   const {
@@ -38,6 +42,30 @@ export function Map() {
         hoveredObject: hoveredCamera,
         selectedObject: selectedCamera,
         setSelectedObject: setSelectedCamera,
+        setIsHoveringInfoCard: setIsHoveringCameraInfoCard,
+      },
+      agents: {
+        layer: agentsLayer,
+        isVisible: isAgentsVisible,
+        setIsVisible: setIsAgentsVisible,
+        hoveredObject: hoveredAgent,
+        setIsHoveringInfoCard: setIsHoveringAgentInfoCard,
+      },
+      fogoCruzado: {
+        layer: fogoCruzadoLayer,
+        isVisible: isFogoCruzadoVisible,
+        setIsVisible: setIsFogoCruzadoVisible,
+        hoveredObject: hoveredFogoCruzado,
+        setIsHoveringInfoCard: setIsHoveringFogoCruzadoInfoCard,
+        selectedObject: selectedFogoCruzado,
+        setSelectedObject: setSelectedFogoCruzado,
+      },
+      waze: {
+        layer: wazeLayer,
+        isVisible: isWazeVisible,
+        setIsVisible: setIsWazeVisible,
+        hoveredObject: hoveredWaze,
+        setIsHoveringInfoCard: setIsHoveringWazeInfoCard,
       },
       trips: {
         layers: tripLayers,
@@ -52,7 +80,14 @@ export function Map() {
   const mapRef = useRef<MapRef | null>(null)
 
   // Add other layers
-  const layers = [cameraLayer, radarLayer, ...tripLayers]
+  const layers = [
+    cameraLayer,
+    radarLayer,
+    wazeLayer,
+    fogoCruzadoLayer,
+    agentsLayer,
+    ...tripLayers,
+  ]
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -79,20 +114,44 @@ export function Map() {
       </DeckGL>
       {hoveredRadar && hoveredRadar.object && (
         <RadarHoverCard
-          setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
           hoveredObject={hoveredRadar}
+          setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
         />
       )}
       {hoveredCamera && (
         <CameraHoverCard
           hoveredObject={hoveredCamera}
-          setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
+          setIsHoveringInfoCard={setIsHoveringCameraInfoCard}
         />
       )}
       {selectedCamera && (
         <CameraSelectCard
-          setSelectedObject={setSelectedCamera}
           selectedObject={selectedCamera}
+          setSelectedObject={setSelectedCamera}
+        />
+      )}
+      {hoveredFogoCruzado && (
+        <FogoCruzadoHoverCard
+          hoveredObject={hoveredFogoCruzado}
+          setIsHoveringInfoCard={setIsHoveringFogoCruzadoInfoCard}
+        />
+      )}
+      {selectedFogoCruzado && (
+        <FogoCruzadoSelectCard
+          selectedObject={selectedFogoCruzado}
+          setSelectedObject={setSelectedFogoCruzado}
+        />
+      )}
+      {hoveredWaze && (
+        <WazePoliceAlertHoverCard
+          hoveredObject={hoveredWaze}
+          setIsHoveringInfoCard={setIsHoveringWazeInfoCard}
+        />
+      )}
+      {hoveredAgent && (
+        <AgentHoverCard
+          hoveredObject={hoveredAgent}
+          setIsHoveringInfoCard={setIsHoveringAgentInfoCard}
         />
       )}
       <MapLayerControl
@@ -112,20 +171,20 @@ export function Map() {
           {
             name: 'Agentes',
             icon: <UsersRound />,
-            isVisible: isRadarVisible,
-            setIsVisible: setIsRadarVisible,
+            isVisible: isAgentsVisible,
+            setIsVisible: setIsAgentsVisible,
           },
           {
             name: 'Policiamento (Waze)',
             icon: <Siren />,
-            isVisible: isRadarVisible,
-            setIsVisible: setIsRadarVisible,
+            isVisible: isWazeVisible,
+            setIsVisible: setIsWazeVisible,
           },
           {
             name: 'Fogo Cruzado',
             icon: <FlameKindling />,
-            isVisible: isRadarVisible,
-            setIsVisible: setIsRadarVisible,
+            isVisible: isFogoCruzadoVisible,
+            setIsVisible: setIsFogoCruzadoVisible,
           },
           {
             name: 'Satélite',

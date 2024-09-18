@@ -2,13 +2,22 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import { createContext, type ReactNode, useState } from 'react'
 
+import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
+import {
+  type UseFogoCruzadoIncidents,
+  useFogoCruzadoIncidents,
+} from '@/hooks/map-layers/use-fogo-cruzado'
 import {
   type UseRadarLayer,
   useRadarLayer,
 } from '@/hooks/map-layers/use-radar-layer'
 import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
-import type { SetViewportProps } from '@/hooks/map-layers-[old]/use-trips-data'
+import {
+  type UseWazePoliceAlerts,
+  useWazePoliceAlerts,
+} from '@/hooks/map-layers/use-waze-police-alerts'
+import type { SetViewportProps } from '@/models/utils'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 interface MapContextProps {
@@ -16,6 +25,9 @@ interface MapContextProps {
     radars: UseRadarLayer
     trips: UseTrips
     cameras: UseCameraCOR
+    agents: UseAgents
+    fogoCruzado: UseFogoCruzadoIncidents
+    waze: UseWazePoliceAlerts
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
@@ -42,6 +54,9 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const radars = useRadarLayer()
   const trips = useTrips({ setViewport })
   const cameras = useCameraCOR()
+  const agents = useAgents()
+  const fogoCruzado = useFogoCruzadoIncidents()
+  const waze = useWazePoliceAlerts()
 
   return (
     <MapContext.Provider
@@ -50,6 +65,9 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           radars,
           trips,
           cameras,
+          agents,
+          fogoCruzado,
+          waze,
         },
         viewport,
         setViewport,

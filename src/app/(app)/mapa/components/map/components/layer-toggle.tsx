@@ -46,7 +46,7 @@ export function MapLayerControl({ layers }: MapLayerControlProps) {
             >
               <Layers className="size-6 shrink-0" />
               <span className={`ml-2 ${isOpen ? 'inline' : 'hidden'}`}>
-                Map Layers
+                Camadas
               </span>
               <motion.div
                 initial={false}
@@ -74,7 +74,7 @@ export function MapLayerControl({ layers }: MapLayerControlProps) {
                           key={index}
                           pressed={layer.isVisible}
                           onPressedChange={layer.setIsVisible}
-                          className="flex h-20 w-20 flex-col items-center justify-center data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                          className="flex size-20 shrink-0 flex-col items-center justify-center data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                           aria-label={`Toggle ${layer.name} layer`}
                         >
                           {layer.icon}

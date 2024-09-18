@@ -3,13 +3,21 @@ import { type PickingInfo, WebMercatorViewport } from '@deck.gl/core'
 import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
-import type { CameraCOR, Radar } from '@/models/entities'
+import type {
+  Agent,
+  CameraCOR,
+  FogoCruzadoIncident,
+  Radar,
+  WazeAlert,
+} from '@/models/entities'
 
 import { Card } from '../ui/card'
 
 interface MapHoverCardProps {
   children?: ReactNode
-  hoveredObject: PickingInfo<CameraCOR | Radar> | null
+  hoveredObject: PickingInfo<
+    CameraCOR | Radar | FogoCruzadoIncident | Agent | WazeAlert
+  > | null
   className?: string
 }
 export function MapHoverCard({
