@@ -1,7 +1,7 @@
 'use client'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { DeckGL, WebMercatorViewport } from 'deck.gl'
+import { DeckGL } from 'deck.gl'
 import {
   Cctv,
   FlameKindling,
@@ -16,8 +16,10 @@ import MapGl, { type MapRef } from 'react-map-gl'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
+import { CameraHoverCard } from './components/hover-cards/camera-hover-card'
+import { RadarHoverCard } from './components/hover-cards/radar-hover-card'
 import { MapLayerControl } from './components/layer-toggle'
-import { RadarHoverCard } from './components/radar-hover-card'
+import { CameraSelectCard } from './components/select-cards/camera-select-card'
 
 export function Map() {
   const {
@@ -33,7 +35,9 @@ export function Map() {
         layer: cameraLayer,
         isVisible: isCameraVisible,
         setIsVisible: setIsCameraVisible,
-        // hoveredObject: hoveredCamera,
+        hoveredObject: hoveredCamera,
+        selectedObject: selectedCamera,
+        setSelectedObject: setSelectedCamera,
       },
       trips: {
         layers: tripLayers,
@@ -50,15 +54,6 @@ export function Map() {
   // Add other layers
   const layers = [cameraLayer, radarLayer, ...tripLayers]
 
-  // Add other hovered objects
-  const hoveredObject = hoveredRadar
-
-  const getPixelPosition = (longitude: number, latitude: number) => {
-    const mercatorViewport = new WebMercatorViewport(viewport)
-    const [x, y] = mercatorViewport.project([longitude, latitude])
-    return [x, y]
-  }
-
   return (
     <div className="relative h-full w-full overflow-hidden">
       <DeckGL
@@ -71,7 +66,7 @@ export function Map() {
           if (isDragging) return 'grabbing'
           else if (isHovering) {
             // Actually clickable objects:
-            if (hoveredRadar) return 'pointer'
+            if (hoveredRadar || hoveredCamera) return 'pointer'
           }
           return 'grab'
         }}
@@ -82,23 +77,22 @@ export function Map() {
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
-      {hoveredObject && hoveredObject.object && (
+      {hoveredRadar && hoveredRadar.object && (
         <RadarHoverCard
-          viewport={hoveredObject.viewport}
           setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
-          x={
-            getPixelPosition(
-              hoveredObject.object.longitude,
-              hoveredObject.object.latitude,
-            )[0]
-          }
-          y={
-            getPixelPosition(
-              hoveredObject.object.longitude,
-              hoveredObject.object.latitude,
-            )[1]
-          }
-          radar={hoveredObject.object}
+          hoveredObject={hoveredRadar}
+        />
+      )}
+      {hoveredCamera && (
+        <CameraHoverCard
+          hoveredObject={hoveredCamera}
+          setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
+        />
+      )}
+      {selectedCamera && (
+        <CameraSelectCard
+          setSelectedObject={setSelectedCamera}
+          selectedObject={selectedCamera}
         />
       )}
       <MapLayerControl

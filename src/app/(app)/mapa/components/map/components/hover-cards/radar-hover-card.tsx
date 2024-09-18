@@ -1,54 +1,26 @@
 'use client'
 import { formatDate } from 'date-fns'
-import type { Viewport } from 'deck.gl'
+import type { PickingInfo } from 'deck.gl'
 import { AlertTriangle, Building, History, MapPin } from 'lucide-react'
 import React, { type Dispatch, type SetStateAction } from 'react'
 
 import { MapHoverCard } from '@/components/custom/map-hover-card'
+import { Label, Value } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import type { Radar } from '@/models/entities'
 
 interface HoverCardProps {
-  radar: Radar
-  x: number
-  y: number
-  viewport: Viewport | undefined
+  hoveredObject: PickingInfo<Radar> | null
   setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 export function RadarHoverCard({
-  radar,
-  viewport,
-  x,
-  y,
+  hoveredObject,
   setIsHoveringInfoCard,
 }: HoverCardProps) {
-  const Label = ({
-    children,
-    className,
-  }: {
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <span className={cn('text-sm font-semibold', className)}>{children}</span>
-  )
-
-  const Value = ({
-    children,
-    className,
-  }: {
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <span
-      className={cn('text-sm font-semibold text-muted-foreground', className)}
-    >
-      {children}
-    </span>
-  )
   return (
-    <MapHoverCard x={x} y={y} object={radar} viewport={viewport}>
-      {radar && (
+    <MapHoverCard hoveredObject={hoveredObject}>
+      {hoveredObject && hoveredObject.object && (
         <div
           onMouseEnter={() => {
             setIsHoveringInfoCard(true)
@@ -63,12 +35,12 @@ export function RadarHoverCard({
             <div className="grid grid-cols-2">
               <div className="flex flex-col">
                 <Label>Número Câmera</Label>
-                <Value>{radar.cameraNumber}</Value>
+                <Value>{hoveredObject.object.cameraNumber}</Value>
               </div>
 
               <div className="flex flex-col">
                 <Label>Código CET-Rio</Label>
-                <Value>{radar.cetRioCode}</Value>
+                <Value>{hoveredObject.object.cetRioCode}</Value>
               </div>
             </div>
 
@@ -77,17 +49,17 @@ export function RadarHoverCard({
                 <MapPin className="shinrk-0 size-3.5" />
                 <Label>Localização</Label>
               </div>
-              <Value>{`${radar.location} - ${radar.district}`}</Value>
+              <Value>{`${hoveredObject.object.location} - ${hoveredObject.object.district}`}</Value>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col">
                 <Label>Latitude</Label>
-                <Value>{radar.latitude}</Value>
+                <Value>{hoveredObject.object.latitude}</Value>
               </div>
               <div className="flex flex-col">
                 <Label>Longitude</Label>
-                <Value>{radar.longitude}</Value>
+                <Value>{hoveredObject.object.longitude}</Value>
               </div>
               {/* {radar.district && (
                 <div className="">
@@ -103,9 +75,9 @@ export function RadarHoverCard({
                   <Building className="size-4 shrink-0" />
                   <Label>Empresa</Label>
                 </div>
-                <Value>{radar.company}</Value>
+                <Value>{hoveredObject.object.company}</Value>
               </div>
-              {radar.lastDetectionTime && (
+              {hoveredObject.object.lastDetectionTime && (
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1">
@@ -122,14 +94,14 @@ export function RadarHoverCard({
                     </div>
                     <Value>
                       {formatDate(
-                        radar.lastDetectionTime,
+                        hoveredObject.object.lastDetectionTime,
                         "dd/MM/y 'às' HH:mm:ss",
                       )}
                     </Value>
                   </div>
                   <div className="flex flex-col">
                     <Label>Ativo nas últimas 24 horas</Label>
-                    {radar.activeInLast24Hours ? (
+                    {hoveredObject.object.activeInLast24Hours ? (
                       <Value className="text-emerald-600">Sim</Value>
                     ) : (
                       <Value className="text-rose-600">Não</Value>
