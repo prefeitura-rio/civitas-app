@@ -11,23 +11,25 @@ export interface UseFogoCruzadoIncidents {
   data: FogoCruzadoIncident[]
   failed: boolean
   layer: IconLayer<FogoCruzadoIncident, object>
-  layerStates: {
-    isLoading: boolean
-    isVisible: boolean
-    setIsVisible: Dispatch<SetStateAction<boolean>>
-    hoverInfo: PickingInfo<FogoCruzadoIncident>
-    setHoverInfo: Dispatch<SetStateAction<PickingInfo<FogoCruzadoIncident>>>
-    selected: FogoCruzadoIncident | null
-    setSelected: Dispatch<SetStateAction<FogoCruzadoIncident | null>>
-  }
+  isLoading: boolean
+  isVisible: boolean
+  setIsVisible: Dispatch<SetStateAction<boolean>>
+  hoveredObject: PickingInfo<FogoCruzadoIncident> | null
+  setHoveredObject: Dispatch<
+    SetStateAction<PickingInfo<FogoCruzadoIncident> | null>
+  >
+  selectedObject: FogoCruzadoIncident | null
+  setSelectedObject: Dispatch<SetStateAction<FogoCruzadoIncident | null>>
+  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
 export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo<FogoCruzadoIncident>>(
-    {} as PickingInfo<FogoCruzadoIncident>,
-  )
+  const [hoveredObject, setHoveredObject] =
+    useState<PickingInfo<FogoCruzadoIncident> | null>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const [selected, setSelected] = useState<FogoCruzadoIncident | null>(null)
+  const [selectedObject, setSelectedObject] =
+    useState<FogoCruzadoIncident | null>(null)
+  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['layers', 'fogocruzado'],
@@ -50,9 +52,13 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
       mask: false,
     }),
     getPosition: (info) => [info.longitude, info.latitude],
-    onHover: (info) => setHoverInfo(info),
+    onHover: (info) => {
+      if (!isHoveringInfoCard) {
+        setHoveredObject(info.object ? info : null)
+      }
+    },
     onClick: (info) => {
-      setSelected(info.object)
+      setSelectedObject(info.object)
     },
   })
 
@@ -60,14 +66,13 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
     data: data || [],
     failed: !data && !isLoading,
     layer,
-    layerStates: {
-      isLoading,
-      isVisible,
-      setIsVisible,
-      hoverInfo,
-      setHoverInfo,
-      selected,
-      setSelected,
-    },
+    isLoading,
+    isVisible,
+    setIsVisible,
+    hoveredObject,
+    setHoveredObject,
+    selectedObject,
+    setSelectedObject,
+    setIsHoveringInfoCard,
   }
 }

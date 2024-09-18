@@ -136,6 +136,8 @@ export type Radar = {
   company: string | null
   lastDetectionTime: string | null
   direction: string | null
+  lane: string | null
+  streetNumber: string
 }
 
 export type BackendWazeAlert = {
@@ -507,4 +509,11 @@ export type PlateInfo = {
   ufFatura: string
   ufJurisdicaoVeiculo: string
   valorIPVA: number
+}
+
+export type Vehicle = {
+  plate: string
+  brandModel: string
+  modelYear: string
+  color: string
 }
