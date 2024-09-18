@@ -15,27 +15,26 @@ import {
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 
-import { PlateList } from './components/plate-list'
-import { TripList } from './components/trip-list/trip-list'
+import { TripList } from './components/trip-list'
 
 export default function Veiculo() {
   const {
     layers: {
-      trips: { trips, isLoading, possiblePlates, getTrips },
+      trips: { isLoading, getTrips },
     },
   } = useMap()
   const { formattedSearchParams } = useCarPathsSearchParams()
   const router = useRouter()
 
   useEffect(() => {
-    if (formattedSearchParams) {
+    if (formattedSearchParams && !isLoading) {
       getTrips({
         plate: formattedSearchParams.plate,
         startTime: formattedSearchParams.from,
         endTime: formattedSearchParams.to,
       })
     }
-  }, [getTrips])
+  }, [])
 
   if (!formattedSearchParams) {
     return (
@@ -66,7 +65,7 @@ export default function Veiculo() {
           <Spinner className="size-10" />
         </div>
       ) : (
-        (possiblePlates && <PlateList />) || (trips && <TripList />)
+        <TripList />
       )}
     </div>
   )
