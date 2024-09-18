@@ -31,7 +31,7 @@ export function RadarHoverCard({
         >
           <h4>Informações do Radar</h4>
           <Separator className="mb-4 mt-1 bg-secondary" />
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2">
               <div className="flex flex-col">
                 <Label>Número Câmera</Label>
@@ -69,47 +69,45 @@ export function RadarHoverCard({
               )} */}
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <Building className="size-4 shrink-0" />
-                  <Label>Empresa</Label>
-                </div>
-                <Value>{hoveredObject.object.company}</Value>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                <Building className="size-4 shrink-0" />
+                <Label>Empresa</Label>
               </div>
-              {hoveredObject.object.lastDetectionTime && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1">
-                      {/* <Calendar className="size-4 shrink-0" /> */}
-                      <History
-                        className={cn(
-                          'size-4 shrink-0',
-                          // radar.activeInLast24Hours
-                          //   ? 'text-emerald-600'
-                          //   : 'text-rose-600',
-                        )}
-                      />
-                      <Label>Última detecção</Label>
-                    </div>
-                    <Value>
-                      {formatDate(
-                        hoveredObject.object.lastDetectionTime,
-                        "dd/MM/y 'às' HH:mm:ss",
-                      )}
-                    </Value>
-                  </div>
-                  <div className="flex flex-col">
-                    <Label>Ativo nas últimas 24 horas</Label>
-                    {hoveredObject.object.activeInLast24Hours ? (
-                      <Value className="text-emerald-600">Sim</Value>
-                    ) : (
-                      <Value className="text-rose-600">Não</Value>
-                    )}
-                  </div>
-                </div>
-              )}
+              <Value>{hoveredObject.object.company}</Value>
             </div>
+            {hoveredObject.object.lastDetectionTime && (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1">
+                    {/* <Calendar className="size-4 shrink-0" /> */}
+                    <History
+                      className={cn(
+                        'size-4 shrink-0',
+                        // radar.activeInLast24Hours
+                        //   ? 'text-emerald-600'
+                        //   : 'text-rose-600',
+                      )}
+                    />
+                    <Label>Última detecção</Label>
+                  </div>
+                  <Value>
+                    {formatDate(
+                      hoveredObject.object.lastDetectionTime,
+                      "dd/MM/y 'às' HH:mm:ss",
+                    )}
+                  </Value>
+                </div>
+                <div className="flex flex-col">
+                  <Label>Ativo nas últimas 24 horas</Label>
+                  {hoveredObject.object.activeInLast24Hours ? (
+                    <Value className="text-emerald-600">Sim</Value>
+                  ) : (
+                    <Value className="text-rose-600">Não</Value>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="border-l-4 border-yellow-600 bg-secondary p-2">
               <div className="flex items-start">
