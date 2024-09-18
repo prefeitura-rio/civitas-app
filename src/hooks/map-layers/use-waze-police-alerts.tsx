@@ -11,20 +11,19 @@ export interface UseWazePoliceAlerts {
   data: WazeAlert[]
   failed: boolean
   layer: IconLayer<WazeAlert, object>
-  layerStates: {
-    isLoading: boolean
-    isVisible: boolean
-    setIsVisible: Dispatch<SetStateAction<boolean>>
-    hoverInfo: PickingInfo<WazeAlert>
-    setHoverInfo: Dispatch<SetStateAction<PickingInfo<WazeAlert>>>
-  }
+  isLoading: boolean
+  isVisible: boolean
+  setIsVisible: Dispatch<SetStateAction<boolean>>
+  hoveredObject: PickingInfo<WazeAlert> | null
+  setHoveredObject: Dispatch<SetStateAction<PickingInfo<WazeAlert> | null>>
+  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
 export function useWazePoliceAlerts(): UseWazePoliceAlerts {
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo<WazeAlert>>(
-    {} as PickingInfo<WazeAlert>,
-  )
+  const [hoveredObject, setHoveredObject] =
+    useState<PickingInfo<WazeAlert> | null>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['waze', 'police'],
@@ -45,24 +44,27 @@ export function useWazePoliceAlerts(): UseWazePoliceAlerts {
     }),
     pickable: true,
     onHover: (info) => {
-      setHoverInfo(info)
+      if (!isHoveringInfoCard) {
+        setHoveredObject(info.object ? info : null)
+      }
     },
     highlightColor: [220, 38, 38, 255], // red-600
     autoHighlight: true,
     visible: isVisible,
-    highlightedObjectIndex: hoverInfo?.object ? hoverInfo.index : undefined,
+    highlightedObjectIndex: hoveredObject?.object
+      ? hoveredObject.index
+      : undefined,
   })
 
   return {
     data: data || [],
     failed: !data && !isLoading,
     layer,
-    layerStates: {
-      isLoading,
-      isVisible,
-      setIsVisible,
-      hoverInfo,
-      setHoverInfo,
-    },
+    isLoading,
+    isVisible,
+    setIsVisible,
+    hoveredObject,
+    setHoveredObject,
+    setIsHoveringInfoCard,
   }
 }

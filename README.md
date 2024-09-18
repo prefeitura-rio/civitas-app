@@ -3,13 +3,18 @@ Central de Vigilância, Inteligência e Tecnologia de Apoio à Segurança Públi
 
 ## Primeiros Passos
 
-1. Instale as dependências:
+1. #### Instale as dependências
+Na raiz do projeto, rode o comando abaixo:
 
 ```bash
 pnpm i
 ```
 
-2. Inicie o servidor de desenvolvimento:
+2. #### Forneça as variáveis ambiente
+Crie o arquivo `.env.local` e forneça as variáveis ambientes necessárias. Utilize o arquivo `.env.example` para saber quais variáveis são necessárias.
+
+3. #### Inicie o servidor de desenvolvimento
+Na raiz do projeto, rode o comando abaixo:
 
 ```bash
 pnpm run dev

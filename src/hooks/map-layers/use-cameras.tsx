@@ -3,37 +3,30 @@ import { IconLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
 import { type Dispatch, type SetStateAction, useState } from 'react'
 
-import videoCamera from '@/assets/video-camera.svg'
-import videoCameraFilled from '@/assets/video-camera-filled.svg'
+import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import { getCameraCOR } from '@/http/cameras-cor/get-cameras-cor'
 import { CameraCOR } from '@/models/entities'
 
 export interface UseCameraCOR {
   data: CameraCOR[]
   failed: boolean
-  layers: {
-    cameraCORLayer: IconLayer<CameraCOR, object>
-    selectedCameraCORLayer: IconLayer<CameraCOR, object>
-  }
-  layerStates: {
-    isLoading: boolean
-    isVisible: boolean
-    setIsVisible: Dispatch<SetStateAction<boolean>>
-    hoverInfo: PickingInfo<CameraCOR>
-    setHoverInfo: Dispatch<SetStateAction<PickingInfo<CameraCOR>>>
-    selectedCameraCOR: CameraCOR | null
-    setSelectedCameraCOR: Dispatch<SetStateAction<CameraCOR | null>>
-  }
+  layer: IconLayer<CameraCOR, object>
+  isLoading: boolean
+  isVisible: boolean
+  setIsVisible: Dispatch<SetStateAction<boolean>>
+  hoveredObject: PickingInfo<CameraCOR> | null
+  setHoveredObject: Dispatch<SetStateAction<PickingInfo<CameraCOR> | null>>
+  selectedObject: CameraCOR | null
+  setSelectedObject: Dispatch<SetStateAction<CameraCOR | null>>
+  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
 export function useCameraCOR(): UseCameraCOR {
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo<CameraCOR>>(
-    {} as PickingInfo<CameraCOR>,
-  )
+  const [hoveredObject, setHoveredObject] =
+    useState<PickingInfo<CameraCOR> | null>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const [selectedCameraCOR, setSelectedCameraCOR] = useState<CameraCOR | null>(
-    null,
-  )
+  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
+  const [selectedObject, setSelectedObject] = useState<CameraCOR | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['cameras'],
@@ -42,7 +35,7 @@ export function useCameraCOR(): UseCameraCOR {
     refetchOnWindowFocus: false,
   })
 
-  const cameraCORLayer = new IconLayer<CameraCOR>({
+  const layer = new IconLayer<CameraCOR>({
     id: 'cameras',
     data,
     pickable: true,
@@ -50,51 +43,50 @@ export function useCameraCOR(): UseCameraCOR {
     autoHighlight: true,
     highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
     visible: isVisible,
-    getIcon: () => ({
-      url: videoCamera.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
-    getPosition: (info) => [info.longitude, info.latitude],
-    onHover: (info) => setHoverInfo(info),
-    onClick: (info) => {
-      setSelectedCameraCOR(info.object)
+    iconAtlas: cameraIconAtlas.src,
+    iconMapping: {
+      default: {
+        x: 0,
+        y: 0,
+        width: 48,
+        height: 48,
+        mask: false,
+      },
+      highlighted: {
+        x: 48,
+        y: 0,
+        width: 48,
+        height: 48,
+        mask: false,
+      },
     },
-  })
-
-  const selectedCameraCORLayer = new IconLayer<CameraCOR>({
-    id: 'selected-camera',
-    data: selectedCameraCOR ? [selectedCameraCOR] : [],
+    getIcon: (d) => {
+      if (selectedObject?.code === d.code) {
+        return 'highlighted'
+      } else return 'default'
+    },
     getPosition: (info) => [info.longitude, info.latitude],
-    getSize: 24,
-    getIcon: () => ({
-      url: videoCameraFilled.src,
-      width: 48,
-      height: 48,
-      mask: false,
-    }),
     onHover: (info) => {
-      setHoverInfo(info)
+      if (!isHoveringInfoCard) {
+        setHoveredObject(info.object ? info : null)
+      }
     },
-    visible: isVisible && !!selectedCameraCOR,
+    onClick: (info) => {
+      setSelectedObject(info.object)
+    },
   })
 
   return {
     data: data || [],
     failed: !data && !isLoading,
-    layers: {
-      cameraCORLayer,
-      selectedCameraCORLayer,
-    },
-    layerStates: {
-      isLoading,
-      isVisible,
-      setIsVisible,
-      hoverInfo,
-      setHoverInfo,
-      selectedCameraCOR,
-      setSelectedCameraCOR,
-    },
+    layer,
+    isLoading,
+    isVisible,
+    setIsVisible,
+    hoveredObject,
+    setHoveredObject,
+    selectedObject,
+    setSelectedObject,
+    setIsHoveringInfoCard,
   }
 }
