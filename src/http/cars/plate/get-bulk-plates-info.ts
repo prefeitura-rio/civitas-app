@@ -27,7 +27,10 @@ async function getBasicPlateInfo(plate: string) {
   }
 }
 
-export async function getBulkPlatesInfo(plates: string[], progress?: (progress: number) => void) {
+export async function getBulkPlatesInfo(
+  plates: string[],
+  progress?: (progress: number) => void,
+) {
   const vehicles: Promise<Vehicle>[] = []
 
   for (let i = 0; i < plates.length; i++) {
@@ -35,7 +38,7 @@ export async function getBulkPlatesInfo(plates: string[], progress?: (progress: 
     vehicles.push(vehicle)
     if (i % 50 === 0) {
       await Promise.all(vehicles)
-      progress?.(i/plates.length)
+      progress?.(i / plates.length)
     }
   }
   const result = await Promise.all(vehicles)
