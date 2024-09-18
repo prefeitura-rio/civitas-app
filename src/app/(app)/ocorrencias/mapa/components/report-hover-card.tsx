@@ -13,12 +13,12 @@ export function ReportHoverCard() {
   const {
     layers: {
       reports: {
-        layerStates: {
-          hoverInfo: { viewport, x, y, object },
-        },
+        layerStates: { hoverInfo },
       },
     },
   } = useReportsMap()
+
+  const object = hoverInfo?.object
 
   const { data } = useQuery({
     queryKey: ['report', object?.reportId],
@@ -30,7 +30,7 @@ export function ReportHoverCard() {
   })
 
   return (
-    <MapHoverCard viewport={viewport} x={x} y={y} object={object}>
+    <MapHoverCard hoveredObject={hoverInfo}>
       {data ? (
         <div className="spave-y-1 text-xs leading-4">
           <div className="flex gap-2">

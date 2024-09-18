@@ -1,11 +1,11 @@
 import { Document, Page, StyleSheet } from '@react-pdf/renderer'
 import React from 'react'
 
+import { ReportFooter } from '@/components/custom/report-footer'
+import { ReportHeader } from '@/components/custom/report-header'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 import type { Trip } from '@/models/entities'
 
-import { ReportFooter } from '../../../../../../common/report-footer'
-import { ReportHeader } from '../../../../../../common/report-header'
 import { ReportCover } from './components/report-cover'
 import { ReportEmptyResult } from './components/report-empty-result'
 import { ReportTrip } from './components/report-trip'

@@ -1,7 +1,7 @@
 import { Page, Text, View } from '@react-pdf/renderer'
 
-import { ReportFooter } from '@/app/(app)/mapa/components/side-pannel/components/common/report-footer'
-import { ReportHeader } from '@/app/(app)/mapa/components/side-pannel/components/common/report-header'
+import { ReportFooter } from '@/components/custom/report-footer'
+import { ReportHeader } from '@/components/custom/report-header'
 
 import { styles, title } from './styles'
 

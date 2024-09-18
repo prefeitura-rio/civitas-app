@@ -1,9 +1,8 @@
 import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
 
+import { ReportFooter } from '@/components/custom/report-footer'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
-
-import { ReportFooter } from '../../../../../../../common/report-footer'
 
 interface ReportCoverProps {
   searchParams: GetCarPathRequest
