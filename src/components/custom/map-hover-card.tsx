@@ -8,6 +8,7 @@ import type {
   CameraCOR,
   FogoCruzadoIncident,
   Radar,
+  Report,
   WazeAlert,
 } from '@/models/entities'
 
@@ -16,7 +17,7 @@ import { Card } from '../ui/card'
 interface MapHoverCardProps {
   children?: ReactNode
   hoveredObject: PickingInfo<
-    CameraCOR | Radar | FogoCruzadoIncident | Agent | WazeAlert
+    CameraCOR | Radar | FogoCruzadoIncident | Agent | WazeAlert | Report
   > | null
   className?: string
 }
