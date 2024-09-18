@@ -23,6 +23,11 @@ export async function getRadars() {
       lat = item.latitude - 0.00001 * clusters[key]
     }
 
+    const laneRegex = /- FX (\d+)/
+
+    const laneMatch = item.locequip?.match(laneRegex)
+    const lane = laneMatch ? laneMatch[1] : null
+
     return {
       district: item.bairro,
       cameraNumber: item.camera_numero,
@@ -36,6 +41,7 @@ export async function getRadars() {
       activeInLast24Hours: item.active_in_last_24_hours === 'yes',
       lastDetectionTime: item.last_detection_time || null,
       direction: item.sentido || null,
+      lane,
     } as Radar
   })
 

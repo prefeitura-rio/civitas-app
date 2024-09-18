@@ -1,3 +1,5 @@
+import type { MapViewState } from 'deck.gl'
+
 export type ComboboxOption = {
   value: string
   label: string
@@ -17,3 +19,5 @@ export type AddressMarker = {
   longitude: number
   latitude: number
 }
+
+export interface SetViewportProps extends Partial<MapViewState> {}

@@ -4,9 +4,11 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -18,25 +20,50 @@ import {
 
 import { Spinner } from '../custom/spinner'
 
+interface Filter {
+  accessorKey: string
+  placeholder?: string
+}
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   isLoading: boolean
+  filters?: Filter[]
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   isLoading,
+  filters,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   })
 
   return (
     <div>
+      <div className="flex items-center gap-2 py-4">
+        {filters?.map((filter) => (
+          <Input
+            placeholder={filter.placeholder}
+            value={
+              (table
+                .getColumn(filter.accessorKey)
+                ?.getFilterValue() as string) ?? ''
+            }
+            onChange={(event) =>
+              table
+                .getColumn(filter.accessorKey)
+                ?.setFilterValue(event.target.value)
+            }
+            className="max-w-48"
+          />
+        ))}
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
