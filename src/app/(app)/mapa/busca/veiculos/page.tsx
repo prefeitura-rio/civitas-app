@@ -15,7 +15,8 @@ import {
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 
-import { PlateList } from './components/plate-list'
+import { ActionButtons } from '../components/action-buttons'
+import { PlateList } from './components/plates'
 
 export default function Veiculos() {
   const {
@@ -59,7 +60,7 @@ export default function Veiculos() {
 
   return (
     <div className="h-full space-y-2">
-      {/* <ActionButtons /> */}
+      <ActionButtons />
       {isLoading ? (
         <div className="flex h-[calc(100%-7rem)] w-full items-center justify-center">
           <Spinner className="size-10" />
