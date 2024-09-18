@@ -30,7 +30,7 @@ export function ActionButtons() {
   const clearTripsButton =
     ((lastSearchParams && trips) || !!possiblePlates) && !isLoading
   const empty = !downloadReportButton && !monitoringToggle && !clearTripsButton
-  console.log(vehicles)
+
   return (
     <div
       className={cn(

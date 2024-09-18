@@ -15,6 +15,7 @@ import {
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 
+import { ActionButtons } from '../components/action-buttons'
 import { TripList } from './components/trip-list'
 
 export default function Veiculo() {
@@ -59,7 +60,7 @@ export default function Veiculo() {
 
   return (
     <div className="h-full space-y-2">
-      {/* <ActionButtons /> */}
+      <ActionButtons />
       {isLoading ? (
         <div className="flex h-[calc(100%-7rem)] w-full items-center justify-center">
           <Spinner className="size-10" />
