@@ -10,10 +10,11 @@ import {
   UsersRound,
   Video,
 } from 'lucide-react'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { getMapStyle, MapStyle } from '@/utils/get-map-style'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { AgentHoverCard } from './components/hover-cards/agent-hover-card'
@@ -77,6 +78,7 @@ export function Map() {
     setViewport,
   } = useMap()
 
+  const [mapStyle, setMapStyle] = useState<MapStyle>(MapStyle.Map)
   const mapRef = useRef<MapRef | null>(null)
 
   // Add other layers
@@ -108,7 +110,7 @@ export function Map() {
       >
         <MapGl
           ref={mapRef}
-          mapStyle="mapbox://styles/mapbox/streets-v12"
+          mapStyle={getMapStyle(mapStyle)}
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
@@ -189,8 +191,10 @@ export function Map() {
           {
             name: 'Satélite',
             icon: <Satellite />,
-            isVisible: isRadarVisible,
-            setIsVisible: setIsRadarVisible,
+            isVisible: mapStyle === MapStyle.Satellite,
+            setIsVisible: (satellite) => {
+              setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
+            },
           },
         ]}
       />
