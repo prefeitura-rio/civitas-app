@@ -41,7 +41,7 @@ export function CameraHoverCard({
       >
         <h4>Informações da Câmera</h4>
         <Separator className="mb-4 mt-1 bg-secondary" />
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <Label>Código</Label>
             <Value>{object?.code}</Value>
