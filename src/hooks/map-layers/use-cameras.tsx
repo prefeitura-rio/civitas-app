@@ -18,12 +18,14 @@ export interface UseCameraCOR {
   setHoveredObject: Dispatch<SetStateAction<PickingInfo<CameraCOR> | null>>
   selectedObject: CameraCOR | null
   setSelectedObject: Dispatch<SetStateAction<CameraCOR | null>>
+  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
 export function useCameraCOR(): UseCameraCOR {
   const [hoveredObject, setHoveredObject] =
     useState<PickingInfo<CameraCOR> | null>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
   const [selectedObject, setSelectedObject] = useState<CameraCOR | null>(null)
 
   const { data, isLoading } = useQuery({
@@ -64,7 +66,11 @@ export function useCameraCOR(): UseCameraCOR {
       } else return 'default'
     },
     getPosition: (info) => [info.longitude, info.latitude],
-    onHover: (info) => setHoveredObject(info),
+    onHover: (info) => {
+      if (!isHoveringInfoCard) {
+        setHoveredObject(info.object ? info : null)
+      }
+    },
     onClick: (info) => {
       setSelectedObject(info.object)
     },
@@ -81,5 +87,6 @@ export function useCameraCOR(): UseCameraCOR {
     setHoveredObject,
     selectedObject,
     setSelectedObject,
+    setIsHoveringInfoCard,
   }
 }
