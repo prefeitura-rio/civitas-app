@@ -1,12 +1,13 @@
-import { getBulkPlatesInfo } from "@/http/cars/plate/get-bulk-plates-info"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from '@tanstack/react-query'
+
+import { getBulkPlatesInfo } from '@/http/cars/plate/get-bulk-plates-info'
 
 interface UseVehiclesProps {
   possiblePlates: string[]
   progress?: (progress: number) => void
 }
 
-export function useVehicles({possiblePlates, progress}: UseVehiclesProps) {
+export function useVehicles({ possiblePlates, progress }: UseVehiclesProps) {
   return useQuery({
     queryKey: ['cortex', 'plate-info', ...possiblePlates],
     queryFn: async () => {
