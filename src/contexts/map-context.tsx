@@ -2,6 +2,7 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import { createContext, type ReactNode, useState } from 'react'
 
+import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import {
   type UseRadarLayer,
   useRadarLayer,
@@ -14,6 +15,7 @@ interface MapContextProps {
   layers: {
     radars: UseRadarLayer
     trips: UseTrips
+    cameras: UseCameraCOR
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
@@ -39,6 +41,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
 
   const radars = useRadarLayer()
   const trips = useTrips({ setViewport })
+  const cameras = useCameraCOR()
 
   return (
     <MapContext.Provider
@@ -46,6 +49,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
         layers: {
           radars,
           trips,
+          cameras,
         },
         viewport,
         setViewport,

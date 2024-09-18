@@ -29,6 +29,12 @@ export function Map() {
         isVisible: isRadarVisible,
         setIsVisible: setIsRadarVisible,
       },
+      cameras: {
+        layer: cameraLayer,
+        isVisible: isCameraVisible,
+        setIsVisible: setIsCameraVisible,
+        // hoveredObject: hoveredCamera,
+      },
       trips: {
         layers: tripLayers,
         // hoveredObject: hoveredTrip,
@@ -38,16 +44,20 @@ export function Map() {
     viewport,
     setViewport,
   } = useMap()
+
   const mapRef = useRef<MapRef | null>(null)
-  const layers = [radarLayer, ...tripLayers] // TODO: Add other layers
+
+  // Add other layers
+  const layers = [cameraLayer, radarLayer, ...tripLayers]
+
+  // Add other hovered objects
+  const hoveredObject = hoveredRadar
 
   const getPixelPosition = (longitude: number, latitude: number) => {
     const mercatorViewport = new WebMercatorViewport(viewport)
     const [x, y] = mercatorViewport.project([longitude, latitude])
     return [x, y]
   }
-
-  const hoveredObject = hoveredRadar // Add other hovered objects
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -102,8 +112,8 @@ export function Map() {
           {
             name: 'Câmeras',
             icon: <Video />,
-            isVisible: isRadarVisible,
-            setIsVisible: setIsRadarVisible,
+            isVisible: isCameraVisible,
+            setIsVisible: setIsCameraVisible,
           },
           {
             name: 'Agentes',

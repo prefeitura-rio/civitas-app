@@ -2,7 +2,7 @@
 import { IconLayer, type PickingInfo } from 'deck.gl'
 import { type Dispatch, type SetStateAction, useState } from 'react'
 
-import radarAtlas from '@/assets/radar-icon.png'
+import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Radar } from '@/models/entities'
 
 import { useRadars } from '../use-queries/use-radars'
@@ -47,7 +47,7 @@ export function useRadarLayer(): UseRadarLayer {
     id: 'radars',
     data,
     pickable: true,
-    iconAtlas: radarAtlas.src,
+    iconAtlas: radarIconAtlas.src,
     iconMapping: {
       default: {
         x: 0,
@@ -80,10 +80,24 @@ export function useRadarLayer(): UseRadarLayer {
     },
     getIcon: (d) => {
       if (
-        selectedObjects.find((item) => item.cameraNumber === d.cameraNumber)
+        selectedObjects.find((item) => item.cameraNumber === d.cameraNumber) &&
+        !d.activeInLast24Hours
       ) {
         return 'highlighted'
-      } else return 'default'
+      }
+
+      if (
+        selectedObjects.find((item) => item.cameraNumber === d.cameraNumber) &&
+        d.activeInLast24Hours
+      ) {
+        return 'disabled-highlighted'
+      }
+
+      if (d.activeInLast24Hours) {
+        return 'disabled'
+      }
+
+      return 'default'
     },
     sizeScale: 24,
     getPosition: (d) => [d.longitude, d.latitude],
