@@ -4,11 +4,12 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  // getFilteredRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 
-import { Input } from '@/components/ui/input'
+// import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/table'
 
 import { Spinner } from '../custom/spinner'
+import { Pagination } from './pagination'
 
 interface Filter {
   accessorKey: string
@@ -29,40 +31,46 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   isLoading: boolean
   filters?: Filter[]
+  pagination?: boolean
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   isLoading,
-  filters,
+  // filters,
+  pagination = false,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    // getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   })
 
   return (
     <div>
       <div className="flex items-center gap-2 py-4">
-        {filters?.map((filter) => (
-          <Input
-            placeholder={filter.placeholder}
-            value={
-              (table
-                .getColumn(filter.accessorKey)
-                ?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table
-                .getColumn(filter.accessorKey)
-                ?.setFilterValue(event.target.value)
-            }
-            className="max-w-48"
-          />
-        ))}
+        {/* {filters &&
+          data.length > 0 &&
+          filters.map((filter, index) => (
+            <Input
+              key={index}
+              placeholder={filter.placeholder}
+              value={
+                (table
+                  .getColumn(filter.accessorKey)
+                  ?.getFilterValue() as string) ?? ''
+              }
+              onChange={(event) =>
+                table
+                  .getColumn(filter.accessorKey)
+                  ?.setFilterValue(event.target.value)
+              }
+              className="max-w-48"
+            />
+          ))} */}
       </div>
       <div className="rounded-md border">
         <Table>
@@ -122,6 +130,15 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      {pagination && data.length > 0 && (
+        <Pagination
+          className="mt-4"
+          total={data.length}
+          page={table.getState().pagination.pageIndex + 1}
+          size={10}
+          onPageChange={(e) => table.setPageIndex(e - 1)}
+        />
+      )}
     </div>
   )
 }

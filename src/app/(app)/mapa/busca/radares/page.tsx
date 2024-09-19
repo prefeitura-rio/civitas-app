@@ -3,57 +3,44 @@ import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ChevronDown } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
+import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Input } from '@/components/ui/input'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import { useRadars } from '@/hooks/use-queries/use-radars'
 // import { getBulkPlatesInfo } from '@/http/cars/plate/get-plate-info-bulk'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
 import type { Radar, RadarDetection, Vehicle } from '@/models/entities'
 
-import { DetectionsTable } from './components/detections-table'
+import {
+  type DetectionGroup,
+  DetectionsTable,
+} from './components/detections-table'
 import { DownloadReport } from './components/download-report'
+import { InvalidParamsAlert } from './components/invalid-params-alert'
 
 export default function RadarDetections() {
   const { formattedSearchParams, queryKey } = useCarRadarSearchParams()
-  const router = useRouter()
+  const [plateFilter, setPlateFilter] = useState('')
+  const [brandModelFilter, setBrandModelFilter] = useState('')
+  const [brandModels, setBrandModels] = useState<string[]>([])
+  const [filteredData, setFilteredData] = useState<
+    DetectionGroup[] | undefined
+  >(undefined)
+
   const { data: radars } = useRadars()
+  console.log(plateFilter)
 
   if (!formattedSearchParams) {
-    return (
-      <AlertDialog open={true}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Parâmetros Inválidos</AlertDialogTitle>
-            <AlertDialogDescription>
-              Os parâmetros de busca são inválidos. Volte para o mapa e tente
-              realizar a busca novamente pelo painel de busca.
-            </AlertDialogDescription>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => router.push('/mapa')}>
-                Voltar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogHeader>
-        </AlertDialogContent>
-      </AlertDialog>
-    )
+    return <InvalidParamsAlert />
   }
 
   const radarIds = formattedSearchParams.radarIds
@@ -150,10 +137,88 @@ export default function RadarDetections() {
         )
       })
 
-      return Object.values(groupedData)
+      return Object.values(groupedData) as DetectionGroup[]
     },
     enabled: !!radars && !!formattedSearchParams,
   })
+
+  function filterByPlate(data: DetectionGroup[], plate: string) {
+    // Transforma caracteres minúsculos em maiúsculos
+    const upperCasePlate = plate.toUpperCase()
+    setPlateFilter(upperCasePlate)
+
+    const filtered = data?.map((group) => {
+      if (!plate) return group
+
+      if (!plate.includes('*')) {
+        const detections = group.detections.filter((detection) =>
+          detection.plate.includes(upperCasePlate),
+        )
+        return {
+          ...group,
+          detections,
+        }
+      }
+
+      const regexString = `\\b${plate.replace(/\*/g, '.*')}\\b`
+      const regex = new RegExp(regexString, 'i')
+
+      const detections = group.detections.filter((detection) =>
+        regex.test(detection.plate),
+      )
+
+      return {
+        ...group,
+        detections,
+      }
+    })
+
+    return filtered
+  }
+
+  function filterByBrandModel(data: DetectionGroup[], brandModel: string) {
+    setBrandModelFilter(brandModel)
+
+    const filtered = data?.map((group) => {
+      if (!brandModel) return group
+
+      const detections = group.detections.filter(
+        (detection) => detection.brandModel === brandModel,
+      )
+
+      return {
+        ...group,
+        detections,
+      }
+    })
+
+    return filtered
+  }
+
+  useEffect(() => {
+    const filteredByBrandModelResult = filterByBrandModel(
+      data || [],
+      brandModelFilter,
+    )
+    const filteredByPlateResult = filterByPlate(
+      filteredByBrandModelResult,
+      plateFilter,
+    )
+    setFilteredData(filteredByPlateResult)
+  }, [plateFilter, brandModelFilter])
+
+  useEffect(() => {
+    setFilteredData(data)
+    const detections = data?.map((group) => group.detections).flat()
+    console.log(detections)
+    const brandModelsWithDuplicates = detections?.map(
+      (detection) => detection.brandModel,
+    )
+    console.log(brandModelsWithDuplicates)
+    const uniqueBrandModels = [...new Set(brandModelsWithDuplicates)]
+    console.log(uniqueBrandModels)
+    setBrandModels(uniqueBrandModels)
+  }, [data])
 
   return (
     <div className="relative flex h-full flex-col gap-4 overflow-y-scroll p-2">
@@ -186,9 +251,32 @@ export default function RadarDetections() {
           <Spinner className="size-10" />
         </div>
       )}
-      {data && (
+      {filteredData && (
         <div>
-          {data.map((item, index) => (
+          <div className="mb-4 flex gap-2">
+            <Input
+              value={plateFilter}
+              onChange={(e) => setPlateFilter(e.target.value)}
+              className="w-44"
+              placeholder="Filtrar por placa"
+            />
+            <div className="w-72">
+              <SelectWithSearch
+                onSelect={(item) => {
+                  setBrandModelFilter(item.value)
+                }}
+                options={brandModels.map((item) => {
+                  return {
+                    label: item,
+                    value: item,
+                  }
+                })}
+                value={brandModelFilter}
+                placeholder="Selecione uma marca/modelo"
+              />
+            </div>
+          </div>
+          {filteredData.map((item, index) => (
             <div key={item.location} className="relative mb-10 space-y-4">
               <Collapsible>
                 <CollapsibleTrigger
