@@ -15,12 +15,15 @@ type Detection = RadarDetection &
     cameraNumber: string
     lane: string
   }
+
+export type DetectionGroup = {
+  location: string
+  radars: Radar[]
+  detections: Detection[]
+}
+
 interface DetectionsTableProps {
-  data: {
-    location: string
-    radars: Radar[]
-    detections: Detection[]
-  }
+  data: DetectionGroup
   isLoading: boolean
 }
 
@@ -95,16 +98,7 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       columns={columns}
       data={data.detections}
       isLoading={isLoading}
-      filters={[
-        {
-          accessorKey: 'brandModel',
-          placeholder: 'Filtrar por marca/modelo',
-        },
-        {
-          accessorKey: 'color',
-          placeholder: 'Filtrar por cor',
-        },
-      ]}
+      pagination
     />
   )
 }
