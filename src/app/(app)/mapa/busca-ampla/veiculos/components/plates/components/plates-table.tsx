@@ -72,7 +72,7 @@ export function PlatesTable({ data, isLoading }: DetectionsTableProps) {
               variant="outline"
               className="size-6 shrink-0 p-0"
               onClick={() =>
-                router.push(`/mapa/busca/veiculo?${query.toString()}`)
+                router.push(`/mapa/busca-ampla/veiculo?${query.toString()}`)
               }
             >
               <ArrowUpRight className="size-4" />

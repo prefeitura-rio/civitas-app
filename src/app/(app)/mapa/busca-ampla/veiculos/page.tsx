@@ -15,7 +15,7 @@ import {
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 
-import { ActionButtons } from '../../busca/components/action-buttons'
+import { ActionButtons } from '../../components/action-buttons'
 import { PlateList } from './components/plates'
 
 export default function Veiculos() {
