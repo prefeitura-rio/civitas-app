@@ -16,8 +16,10 @@ export const requiredPlateHintSchema = z
 
 export const optionalPlateHintSchema = z
   .string()
-  .refine((val) => isPlateFormatValid(val), { message: 'Formato inválido' })
   .optional()
+  .refine((val) => (val ? isPlateFormatValid(val) : true), {
+    message: 'Formato inválido',
+  })
 
 export const dateRangeSchema = z
   .object(
