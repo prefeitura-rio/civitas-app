@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation'
 import {
   type WideSearchFormData,
   wideSearchSchema,
-} from '@/app/(app)/mapa/components/search-topbar/components/validationSchemas'
+} from '@/app/(app)/mapa/components/search/components/validationSchemas'
 
 export interface FormattedSearchParams {
   plate: string

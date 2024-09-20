@@ -72,8 +72,9 @@ export function TimePicker({
             <SelectValue placeholder="--" />
           </SelectTrigger>
           <SelectContent className="h-72 w-16 min-w-0">
-            {hours.map((item) => (
+            {hours.map((item, index) => (
               <SelectItem
+                key={index}
                 className="w-16 min-w-0"
                 value={item}
                 disabled={shouldDisableHour(item)}

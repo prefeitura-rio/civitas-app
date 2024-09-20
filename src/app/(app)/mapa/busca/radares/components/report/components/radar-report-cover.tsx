@@ -70,8 +70,8 @@ export function RadarReportCover({
 
   return (
     <View style={styles.container}>
-      {rows.map((item) => (
-        <View style={styles.row}>
+      {rows.map((item, index) => (
+        <View key={index} style={styles.row}>
           <Text style={styles.label}>{item.label}</Text>
           <Text>{item.value}</Text>
         </View>

@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { RadarSearch } from './components/radar-search'
 import { WideSearch } from './components/wide-search'
 
-export function SearchTopbar() {
+export function Search() {
   const pathname = usePathname()
   const initialSearchType = pathname.includes('radares') ? 'radar' : 'wide'
   const [searchType, setSearchType] = useState<'radar' | 'wide'>(

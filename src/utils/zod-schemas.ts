@@ -1,16 +1,23 @@
 import { z } from 'zod'
 
-export const plateHintSchema = z.string().refine(
-  (val) => {
-    // If the value contains a wildcard character, it's valid
-    if (val.includes('*') || !val) {
-      return true
-    }
-    // Otherwise, it must match the regex pattern
-    return /^[A-Z]{3}\d[A-Z\d]\d{2}$/.test(val)
-  },
-  { message: 'Formato inválido' },
-)
+function isPlateFormatValid(val: string) {
+  // If the value contains a wildcard character, it's valid
+  if (val.includes('*')) {
+    return true
+  }
+  // Otherwise, it must match the regex pattern
+  return /^[A-Z]{3}\d[A-Z\d]\d{2}$/.test(val)
+}
+
+export const requiredPlateHintSchema = z
+  .string()
+  .min(1, { message: 'Campo Obrigatório' })
+  .refine((val) => isPlateFormatValid(val), { message: 'Formato inválido' })
+
+export const optionalPlateHintSchema = z
+  .string()
+  .refine((val) => isPlateFormatValid(val), { message: 'Formato inválido' })
+  .optional()
 
 export const dateRangeSchema = z
   .object(

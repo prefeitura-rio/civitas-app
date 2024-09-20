@@ -32,8 +32,10 @@ export function ReportCard(props: Report) {
           <div className="col-span-3 flex flex-col">
             <span className="text-sm leading-3.5">Orgãos</span>
             <ul className="text-muted-foreground">
-              {props.entities.map((item) => (
-                <li className="list-inside list-disc">{item}</li>
+              {props.entities.map((item, index) => (
+                <li key={index} className="list-inside list-disc">
+                  {item}
+                </li>
               ))}
             </ul>
           </div>
@@ -45,8 +47,11 @@ export function ReportCard(props: Report) {
                 <>
                   <li className="list-inside list-disc">{item.type}</li>
                   <ul>
-                    {item.subtype.map((subtype) => (
-                      <li className="list- ml-4 flex list-inside items-start gap-2">
+                    {item.subtype.map((subtype, index) => (
+                      <li
+                        key={index}
+                        className="list- ml-4 flex list-inside items-start gap-2"
+                      >
                         <Circle className="mt-3 size-1" />
                         <span>{subtype}</span>
                       </li>
