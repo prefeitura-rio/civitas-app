@@ -281,8 +281,8 @@ export function ReportCover({
                       </Text>
                     </View>
 
-                    {subSubTopic.children?.map((subSubSubTopic) => (
-                      <View style={styles.bulletSubSubSubRow}>
+                    {subSubTopic.children?.map((subSubSubTopic, index) => (
+                      <View key={index} style={styles.bulletSubSubSubRow}>
                         <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
                         <Text style={styles.bulletContent}>
                           {subSubSubTopic.value}

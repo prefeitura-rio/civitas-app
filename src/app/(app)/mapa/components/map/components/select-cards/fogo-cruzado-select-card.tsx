@@ -109,10 +109,10 @@ export function FogoCruzadoSelectCard({
             </span>
             <div className="space-y-1 pl-4">
               {Object.entries(simpleFields).map(
-                ([key, value]) =>
+                ([key, value], index) =>
                   value &&
                   !empty.includes(value.toString()) && (
-                    <div className="flex gap-2">
+                    <div key={index} className="flex gap-2">
                       <Label className="text-sm font-medium leading-4">
                         {key}:
                       </Label>
@@ -129,10 +129,10 @@ export function FogoCruzadoSelectCard({
             <span className="mb-1 block text-lg font-medium">Contexto:</span>
             <div className="space-y-1 pl-4">
               {Object.entries(contextFields).map(
-                ([key, value]) =>
+                ([key, value], index) =>
                   value &&
                   !empty.includes(value) && (
-                    <div className="flex gap-2">
+                    <div key={index} className="flex gap-2">
                       <Label className="text-sm font-medium leading-4">
                         {key}:
                       </Label>
@@ -152,10 +152,10 @@ export function FogoCruzadoSelectCard({
                 <div key={index}>
                   <div>{`Vítima ${index + 1}:`}</div>
                   {Object.entries(victim).map(
-                    ([key, value]) =>
+                    ([key, value], index) =>
                       value &&
                       !empty.includes(value.toString()) && (
-                        <div className="flex gap-2 pl-4">
+                        <div key={index} className="flex gap-2 pl-4">
                           <Label className="text-sm font-medium leading-4">
                             {key}:
                           </Label>
@@ -177,10 +177,10 @@ export function FogoCruzadoSelectCard({
                 <div key={index}>
                   <div>{`Vítima ${index + 1}:`}</div>
                   {Object.entries(victim).map(
-                    ([key, value]) =>
+                    ([key, value], index) =>
                       value &&
                       !empty.includes(value.toString()) && (
-                        <div className="flex gap-2 pl-4">
+                        <div key={index} className="flex gap-2 pl-4">
                           <Label className="text-sm font-medium leading-4">
                             {key}:
                           </Label>

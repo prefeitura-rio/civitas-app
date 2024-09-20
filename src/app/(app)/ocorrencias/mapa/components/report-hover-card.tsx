@@ -68,8 +68,11 @@ export function ReportHoverCard() {
           <div className="">
             <span className="font-medium">Órgãos:</span>
             <ul className="pl-4">
-              {data.entities.map((item) => (
-                <li className="list-inside list-disc text-muted-foreground">
+              {data.entities.map((item, index) => (
+                <li
+                  key={index}
+                  className="list-inside list-disc text-muted-foreground"
+                >
                   {item}
                 </li>
               ))}
@@ -85,8 +88,11 @@ export function ReportHoverCard() {
                     {item.type.capitalizeFirstLetter()}
                   </li>
                   <ul>
-                    {item.subtype.map((subtype) => (
-                      <li className="list- ml-4 flex list-inside items-start gap-2">
+                    {item.subtype.map((subtype, index) => (
+                      <li
+                        key={index}
+                        className="list- ml-4 flex list-inside items-start gap-2"
+                      >
                         <Circle className="mt-1.5 size-1" />
                         <span>{subtype.capitalizeFirstLetter()}</span>
                       </li>
