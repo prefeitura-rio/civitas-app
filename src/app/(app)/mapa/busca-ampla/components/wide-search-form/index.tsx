@@ -1,12 +1,14 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { RectangleEllipsis, SearchIcon } from 'lucide-react'
+import { Info, RectangleEllipsis, SearchIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { DatePickerWithRange } from '@/components/custom/date-range-picker'
+import { PlateWildcardsHelperInfo } from '@/components/custom/plate-wildcards-helper-info'
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -142,6 +144,11 @@ export function WideSearchForm() {
                   />
                 )}
               />
+              <div className="absolute-y-centered right-2 flex items-center">
+                <Tooltip render={<PlateWildcardsHelperInfo />}>
+                  <Info className="size-4 text-muted-foreground" />
+                </Tooltip>
+              </div>
             </div>
             {errors.plate && (
               <span className="text-xs text-red-500">

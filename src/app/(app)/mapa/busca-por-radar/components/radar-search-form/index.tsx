@@ -3,6 +3,7 @@ import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
+  Info,
   MapPinIcon,
   NavigationIcon,
   RectangleEllipsis,
@@ -15,6 +16,8 @@ import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { InputError } from '@/components/custom/input-error'
+import { PlateWildcardsHelperInfo } from '@/components/custom/plate-wildcards-helper-info'
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -161,10 +164,15 @@ export function RadarSearchForm() {
                       field.onChange(e.target.value.toUpperCase())
                     }
                     placeholder="Placa do Veículo (opcional)"
-                    className="w-full pl-10 dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 pr-8 dark:bg-gray-700 dark:text-white"
                   />
                 )}
               />
+              <div className="absolute-y-centered right-2 flex items-center">
+                <Tooltip render={<PlateWildcardsHelperInfo />}>
+                  <Info className="size-4 text-muted-foreground" />
+                </Tooltip>
+              </div>
             </div>
             <InputError message={errors.plate?.message} />
           </div>
