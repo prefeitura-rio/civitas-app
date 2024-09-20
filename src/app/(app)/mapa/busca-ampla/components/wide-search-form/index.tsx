@@ -88,12 +88,17 @@ export function WideSearchForm() {
       <CardHeader>
         <CardTitle>Formulário de Busca Ampla</CardTitle>
         <CardDescription>
-          Realize uma busca detalhada das detecções de um veículo em toda a
-          cidade, especificando a placa e o intervalo de datas desejado.
+          {/* Realize uma busca detalhada das detecções de um veículo em toda a */}
+          {/* cidade, especificando a placa e o intervalo de datas desejado. */}
+          Consulte informações de um veículo e lugares onde ele foi detectado na
+          cidade do Rio de Janeiro.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid max-w-screen-sm grid-cols-2 gap-x-8 gap-y-2"
+        >
           <div className="flex items-center gap-2">
             <Controller
               name="date"
@@ -120,8 +125,8 @@ export function WideSearchForm() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex w-full items-center gap-2">
+            <div className="relative w-full">
               <RectangleEllipsis className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
               <Controller
                 name="plate"
@@ -133,7 +138,7 @@ export function WideSearchForm() {
                       field.onChange(e.target.value.toUpperCase())
                     }
                     placeholder="Placa do Veículo"
-                    className="w-44 pl-10 dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 dark:bg-gray-700 dark:text-white"
                   />
                 )}
               />
@@ -145,8 +150,8 @@ export function WideSearchForm() {
             )}
           </div>
 
-          <div>
-            <Button type="submit" className="dark:bg-blue-600">
+          <div className="col-span-2 flex justify-end">
+            <Button type="submit" className="mt-4">
               <SearchIcon className="mr-2 h-4 w-4" />
               Buscar
             </Button>

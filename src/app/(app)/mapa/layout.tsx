@@ -17,12 +17,12 @@ export default function MapLayout({
     <MapContextProvider>
       <div className="h-screen w-full">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel minSize={28} defaultSize={50}>
+          <ResizablePanel minSize={40} defaultSize={50}>
             <SearchTabs />
             {children}
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel minSize={28} defaultSize={50}>
+          <ResizablePanel minSize={33} defaultSize={50}>
             <Map />
           </ResizablePanel>
         </ResizablePanelGroup>
