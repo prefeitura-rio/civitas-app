@@ -28,11 +28,12 @@ export function useEnhancedRadarsSearch() {
       )
 
       const enhancedDetection = detections?.map((detection) => {
-        const vehicle = vehicles[0]
+        const vehicle = vehicles.find(
+          (vehicle) => vehicle.placa === detection.plate,
+        )
+        if (!vehicle) throw new Error('Vehicle not found')
         return {
           ...detection,
-          // TODO: Fix this
-          // ...vehicles.find((vehicle) => vehicle.placa === detection.plate),
           brandModel: vehicle.marcaModelo,
           color: vehicle.cor,
           modelYear: vehicle.anoModelo,

@@ -1,4 +1,4 @@
-import { WideSearchForm } from './components/wide-search-form'
+import { SearchByPlateForm } from './components/search-by-plate-form'
 
 export default function MapLayout({
   children,
@@ -7,7 +7,7 @@ export default function MapLayout({
 }>) {
   return (
     <div className="flex h-screen w-full flex-col items-center gap-2 overflow-y-scroll p-2">
-      <WideSearchForm />
+      <SearchByPlateForm />
       {children}
     </div>
   )

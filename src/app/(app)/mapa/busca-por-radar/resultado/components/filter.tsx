@@ -7,16 +7,16 @@ import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 interface FilterProps {
   data: DetectionDTO[] | undefined
   setFilteredData: Dispatch<SetStateAction<DetectionDTO[] | undefined>>
+  radarIds: string[]
 }
 
-export function Filter({ setFilteredData, data }: FilterProps) {
+export function Filter({ setFilteredData, data, radarIds }: FilterProps) {
   // Filter States
   const [selectedPlate, setSelectedPlate] = useState('')
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
+  const [selectedRadars, setSelectedRadars] = useState<string[]>([])
 
   // Filter Options
-  // const [brandModelOptions, setBrandModelOptions] = useState<string[]>([])
-  // const [colorsOptions, setColorOptions] = useState<string[]>([])
   const [locationOptions, setLocationOptions] = useState<string[]>([])
 
   function filterByPlate(detections: DetectionDTO[], plate: string) {
@@ -48,14 +48,22 @@ export function Filter({ setFilteredData, data }: FilterProps) {
     )
   }
 
+  function filterByRadar(detections: DetectionDTO[], radars: string[]) {
+    setSelectedRadars(radars)
+
+    if (radars.length === 0) return detections
+
+    return detections.filter((detection) =>
+      radars.includes(detection.cameraNumber),
+    )
+  }
+
   useEffect(() => {
     const filteredByLocation = filterByLocation(data || [], selectedLocations)
-    const filteredByPlateResult = filterByPlate(
-      filteredByLocation,
-      selectedPlate,
-    )
+    const filteredByRadars = filterByRadar(filteredByLocation, selectedRadars)
+    const filteredByPlateResult = filterByPlate(filteredByRadars, selectedPlate)
     setFilteredData(filteredByPlateResult)
-  }, [selectedPlate, selectedLocations])
+  }, [selectedPlate, selectedLocations, selectedRadars])
 
   useEffect(() => {
     setFilteredData(data)
@@ -87,6 +95,23 @@ export function Filter({ setFilteredData, data }: FilterProps) {
           }}
           defaultValue={selectedLocations}
           placeholder="Selecione uma localidade"
+          variant="secondary"
+          maxCount={2}
+        />
+      </div>
+      <div>
+        <MultiSelectWithSearch
+          options={radarIds.map((item) => {
+            return {
+              label: item,
+              value: item,
+            }
+          })}
+          onValueChange={(item) => {
+            setSelectedRadars(item)
+          }}
+          defaultValue={selectedRadars}
+          placeholder="Selecione um radar"
           variant="secondary"
           maxCount={2}
         />

@@ -2,6 +2,7 @@
 import type { Vehicle } from '@/models/entities'
 
 export async function getVehicles(plates: string[]) {
+  // TODO: Fix this
   // const response = await api.post<Vehicle[]>('/cars/plates', {
   //   plates,
   // })
@@ -167,6 +168,10 @@ export async function getVehicles(plates: string[]) {
     valorIPVA: 0,
   } as Vehicle
 
-  const dummyVehicles: Vehicle[] = Array(plates.length).fill(dummyVehicle)
+  const dummyVehicles: Vehicle[] = plates.map((plate) => ({
+    ...dummyVehicle,
+    placa: plate,
+  }))
+
   return dummyVehicles
 }

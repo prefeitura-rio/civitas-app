@@ -1,4 +1,5 @@
 'use client'
+import { format } from 'date-fns'
 import { WandSparkles } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -31,7 +32,7 @@ export function EnhancePlatesInfo({
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const [timer, setTimer] = useState<number | undefined>(undefined)
+  const [resetDate, setResetDate] = useState<Date | null>(null)
 
   function handleEnhancement() {
     router.push(
@@ -41,25 +42,13 @@ export function EnhancePlatesInfo({
 
   const { data: remainingCredits } = useCortexRemainingCredits()
   const { data: creditsRequired } = useVehiclesNecessaryCredits(plates)
-  console.log(timer)
+
   useEffect(() => {
-    if (remainingCredits && remainingCredits.remaining_credit < 100) {
-      if (!timer) {
-        const interval = setInterval(() => {
-          setTimer((prev) => {
-            if (!prev) {
-              return remainingCredits.time_until_reset
-            } else {
-              return prev - 1
-            }
-          })
-        }, 1000)
-        return () => clearInterval(interval)
-      } else {
-        setTimer(remainingCredits.time_until_reset)
-      }
-    }
-  }, [remainingCredits, remainingCredits?.time_until_reset])
+    const date = new Date(
+      Date.now() + (remainingCredits?.time_until_reset || 0) * 1000,
+    )
+    setResetDate(date)
+  }, [])
 
   return (
     <Dialog>
@@ -89,12 +78,10 @@ export function EnhancePlatesInfo({
             <Label>Crédito necessários: </Label>
             <span>{creditsRequired?.credits}</span>
           </div>
-          {timer && (
+          {resetDate && (
             <div>
-              <Label>Tempo até o reestabelecimento do crédito: </Label>
-              <span>
-                {((timer || 0) / 60).toFixed(0)} min {(timer || 0) % 60} s
-              </span>
+              <Label>Reset dos créditos: </Label>
+              <span>{format(resetDate, 'HH:mm:ss')}</span>
             </div>
           )}
         </div>

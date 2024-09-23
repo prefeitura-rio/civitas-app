@@ -57,7 +57,7 @@ export function WideSearch() {
         endTime: data.date.to.toISOString(),
       })
 
-      router.push(`/mapa/busca-ampla/veiculos?${query.toString()}`)
+      router.push(`/mapa/busca-por-placa/veiculos?${query.toString()}`)
     } else {
       getTrips({
         plate: data.plate,
@@ -65,7 +65,7 @@ export function WideSearch() {
         endTime: data.date.to.toISOString(),
       })
 
-      router.push(`/mapa/busca-ampla/veiculo?${query.toString()}`)
+      router.push(`/mapa/busca-por-placa/veiculo?${query.toString()}`)
     }
   }
 
