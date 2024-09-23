@@ -1,40 +1,23 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const exportToCSV = (filename: string, rows: any[]) => {
-  if (!rows || !rows.length) {
-    return
-  }
+import Papa from 'papaparse'
 
-  const separator = ','
-  const keys = Object.keys(rows[0])
+export const exportToCSV = (filename: string, data: unknown[]) => {
+  // Gera o CSV usando PapaParse
+  const csv = Papa.unparse(data)
 
-  const csvContent =
-    '\uFEFF' + // UTF-8 BOM
-    keys.join(separator) +
-    '\n' +
-    rows
-      .map((row) => {
-        return keys
-          .map((key) => {
-            let cell =
-              row[key] === null || row[key] === undefined ? '' : row[key]
-            cell =
-              cell instanceof Date
-                ? cell.toLocaleString()
-                : cell.toString().replace(/"/g, '""')
-            if (cell.search(/("|,|\n)/g) >= 0) {
-              cell = `"${cell}"`
-            }
-            return cell
-          })
-          .join(separator)
-      })
-      .join('\n')
+  // Cria um blob com o CSV
+  const blob = new Blob([csv], {
+    type: 'text/csv;charset=utf-8;',
+  })
+  const url = URL.createObjectURL(blob)
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  // Cria um elemento de link e dispara o download
   const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.setAttribute('download', filename)
+  link.href = url
+  link.setAttribute('download', 'relatorio_veiculos.csv')
   document.body.appendChild(link)
   link.click()
+
+  // Limpa o URL para liberar memória
   document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }

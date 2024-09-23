@@ -18,8 +18,8 @@ export function Filter({ setFilteredData, data }: FilterProps) {
   const [selectedColors, setSelectedColors] = useState<string[]>([])
 
   // Filter Options
-  const [brandModelOptions, setBrandModelOptions] = useState<string[]>([])
-  const [colorsOptions, setColorOptions] = useState<string[]>([])
+  // const [brandModelOptions, setBrandModelOptions] = useState<string[]>([])
+  // const [colorsOptions, setColorOptions] = useState<string[]>([])
   const [locationOptions, setLocationOptions] = useState<string[]>([])
 
   function filterByPlate(detections: Detection[], plate: string) {
@@ -90,11 +90,11 @@ export function Filter({ setFilteredData, data }: FilterProps) {
     setFilteredData(data)
 
     // Filtra as marcas e modelos únicos
-    const brandModelsWithDuplicates = data?.map(
-      (detection) => detection.brandModel,
-    )
-    const uniqueBrandModels = [...new Set(brandModelsWithDuplicates)]
-    setBrandModelOptions(uniqueBrandModels)
+    // const brandModelsWithDuplicates = data?.map(
+    //   (detection) => detection.brandModel,
+    // )
+    // const uniqueBrandModels = [...new Set(brandModelsWithDuplicates)]
+    // setBrandModelOptions(uniqueBrandModels)
 
     // Filtra as localizações únicas
     const locationWithDuplicates = data?.map((detection) => detection.location)
@@ -102,9 +102,9 @@ export function Filter({ setFilteredData, data }: FilterProps) {
     setLocationOptions(uniqueLocations)
 
     // Filtra as cores únicas
-    const colorWithDuplicates = data?.map((detection) => detection.color)
-    const uniqueColors = [...new Set(colorWithDuplicates)]
-    setColorOptions(uniqueColors)
+    // const colorWithDuplicates = data?.map((detection) => detection.color)
+    // const uniqueColors = [...new Set(colorWithDuplicates)]
+    // setColorOptions(uniqueColors)
   }, [data])
 
   return (

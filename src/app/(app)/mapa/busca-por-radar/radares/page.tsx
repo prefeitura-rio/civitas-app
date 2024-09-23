@@ -67,7 +67,7 @@ export default function RadarDetections() {
 
   return (
     <div className="flex w-full flex-col items-center gap-4">
-      <ActionBar />
+      <ActionBar data={filteredData || []} />
       <Card className="w-full">
         <Header />
         <CardContent className="">
