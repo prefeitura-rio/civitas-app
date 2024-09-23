@@ -6,7 +6,7 @@ export default function MapLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div className="flex h-screen w-full flex-col gap-2 overflow-y-scroll p-2">
+    <div className="flex h-screen w-full flex-col items-center gap-2 overflow-y-scroll p-2">
       <WideSearchForm />
       {children}
     </div>

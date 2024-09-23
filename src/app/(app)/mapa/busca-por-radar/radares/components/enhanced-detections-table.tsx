@@ -38,21 +38,21 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       header: () => <Label className="w-28">Placa</Label>,
       cell: ({ row }) => <span>{row.getValue('plate')}</span>,
     },
-    // {
-    //   accessorKey: 'brandModel',
-    //   header: () => <Label className="w-28">Marca/Modelo</Label>,
-    //   cell: ({ row }) => <span>{row.getValue('brandModel')}</span>,
-    // },
-    // {
-    //   accessorKey: 'color',
-    //   header: () => <Label className="w-28">Cor</Label>,
-    //   cell: ({ row }) => <span>{row.getValue('color')}</span>,
-    // },
-    // {
-    //   accessorKey: 'modelYear',
-    //   header: () => <Label className="w-28">Ano Modelo</Label>,
-    //   cell: ({ row }) => <span>{row.getValue('modelYear')}</span>,
-    // },
+    {
+      accessorKey: 'brandModel',
+      header: () => <Label className="w-28">Marca/Modelo</Label>,
+      cell: ({ row }) => <span>{row.getValue('brandModel')}</span>,
+    },
+    {
+      accessorKey: 'color',
+      header: () => <Label className="w-28">Cor</Label>,
+      cell: ({ row }) => <span>{row.getValue('color')}</span>,
+    },
+    {
+      accessorKey: 'modelYear',
+      header: () => <Label className="w-28">Ano Modelo</Label>,
+      cell: ({ row }) => <span>{row.getValue('modelYear')}</span>,
+    },
     {
       accessorKey: 'cameraNumber',
       header: () => <Label className="w-28">Radar</Label>,

@@ -119,18 +119,18 @@ export function RadarSearchForm() {
   }, [radars])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Formulário de Busca por Radar</CardTitle>
+    <Card className="flex w-full max-w-screen-md flex-col">
+      <CardHeader className="">
+        <CardTitle className="">Formulário de Busca por Radar</CardTitle>
         <CardDescription>
           Consulte os veículos detectados por um ou mais radares num determinado
           período.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="grid max-w-screen-sm grid-cols-2 gap-x-8 gap-y-2"
+          className="grid grid-cols-2 gap-x-8 gap-y-2"
         >
           <div className="flex w-full flex-col">
             <Controller

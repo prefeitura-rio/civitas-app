@@ -18,11 +18,8 @@ export default function AppLayout({
   return (
     <CustomQueryClientProvider>
       <MonitoredPlatesContextProvider>
-        <div className="flex min-h-screen min-w-screen-2xl">
+        <div className="flex min-h-screen w-full">
           <Sidebar />
-          {/* <div className="w-full">
-          <span>abcdefasda</span>
-          </div> */}
           {children}
         </div>
       </MonitoredPlatesContextProvider>

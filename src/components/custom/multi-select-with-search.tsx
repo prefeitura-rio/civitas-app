@@ -79,7 +79,7 @@ interface MultiSelectProps
   onValueChange: (value: string[]) => void
 
   /** The default selected values when the component mounts. */
-  defaultValue: string[]
+  defaultValue?: string[]
 
   /**
    * Placeholder text to be displayed when no values are selected.
@@ -119,7 +119,7 @@ interface MultiSelectProps
   className?: string
 }
 
-export const MultiSelect = React.forwardRef<
+export const MultiSelectWithSearch = React.forwardRef<
   HTMLButtonElement,
   MultiSelectProps
 >(
@@ -133,6 +133,7 @@ export const MultiSelect = React.forwardRef<
       animation = 0,
       maxCount = 3,
       modalPopover = false,
+      // asChild = false,
       className,
       ...props
     },
@@ -142,10 +143,6 @@ export const MultiSelect = React.forwardRef<
       React.useState<string[]>(defaultValue)
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false)
     const [isAnimating, setIsAnimating] = React.useState(false)
-
-    React.useEffect(() => {
-      setSelectedValues(defaultValue)
-    }, [defaultValue])
 
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>,
@@ -160,10 +157,10 @@ export const MultiSelect = React.forwardRef<
       }
     }
 
-    const toggleOption = (value: string) => {
-      const newSelectedValues = selectedValues.includes(value)
-        ? selectedValues.filter((v) => v !== value)
-        : [...selectedValues, value]
+    const toggleOption = (option: string) => {
+      const newSelectedValues = selectedValues.includes(option)
+        ? selectedValues.filter((value) => value !== option)
+        : [...selectedValues, option]
       setSelectedValues(newSelectedValues)
       onValueChange(newSelectedValues)
     }
@@ -205,7 +202,7 @@ export const MultiSelect = React.forwardRef<
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              'flex h-auto min-h-10 w-full items-center justify-between rounded-md border border-secondary bg-inherit p-1 hover:bg-inherit',
+              'flex h-auto min-h-10 w-full items-center justify-between rounded-md border border-secondary bg-popover p-1 hover:bg-inherit',
               className,
             )}
           >
@@ -247,7 +244,7 @@ export const MultiSelect = React.forwardRef<
                       )}
                       style={{ animationDuration: `${animation}s` }}
                     >
-                      {`+ ${selectedValues.length - maxCount} outros`}
+                      {`+ ${selectedValues.length - maxCount} more`}
                       <XCircle
                         className="ml-2 h-4 w-4 cursor-pointer"
                         onClick={(event) => {
@@ -290,11 +287,11 @@ export const MultiSelect = React.forwardRef<
         >
           <Command>
             <CommandInput
-              placeholder="Pesquise"
+              placeholder="Pesquisar"
               onKeyDown={handleInputKeyDown}
             />
             <CommandList>
-              <CommandEmpty>Nenhum resultado encontrado</CommandEmpty>
+              <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
               <CommandGroup>
                 <CommandItem
                   key="all"
@@ -311,7 +308,7 @@ export const MultiSelect = React.forwardRef<
                   >
                     <CheckIcon className="h-4 w-4" />
                   </div>
-                  <span>(Selecione Todos)</span>
+                  <span>(Selecionar Todos)</span>
                 </CommandItem>
                 {options.map((option) => {
                   const isSelected = selectedValues.includes(option.value)
@@ -381,4 +378,4 @@ export const MultiSelect = React.forwardRef<
   },
 )
 
-MultiSelect.displayName = 'MultiSelect'
+MultiSelectWithSearch.displayName = 'MultiSelect'
