@@ -37,7 +37,7 @@ export function SearchTabs() {
             ? 'bg-card'
             : 'text-muted-foreground',
         )}
-        onClick={() => router.push('/mapa/busca-ampla')}
+        onClick={() => router.push('/mapa/busca-por-placa')}
       >
         <LandPlot className="size-5 shrink-0" />
         <span>Busca Ampla</span>

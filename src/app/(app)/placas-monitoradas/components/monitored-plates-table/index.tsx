@@ -28,7 +28,7 @@ export function MonitoredPlatesTable() {
     deleteAlertDisclosure,
   } = useMonitoredPlates()
   const [plate, setPlate] = useState<string>()
-  const { isAdmin, isLoading: isRoleLoading } = useProfile()
+  const { data: profile, isLoading: isProfileLoading } = useProfile()
 
   const { data: MonitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
     useQuery({
@@ -87,7 +87,9 @@ export function MonitoredPlatesTable() {
           <Tooltip
             text={row.original.active ? 'Ativo' : 'Inativo'}
             disabled={
-              (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
+              (IsUpdatingLoading && plate === row.original.plate) ||
+              !profile ||
+              !profile?.is_admin
             }
             disabledText={notAllowed}
             asChild
@@ -99,7 +101,8 @@ export function MonitoredPlatesTable() {
                 checked={row.original.active}
                 disabled={
                   (IsUpdatingLoading && plate === row.original.plate) ||
-                  !isAdmin
+                  !profile ||
+                  !profile?.is_admin
                 }
                 className="disabled:cursor-default"
                 onCheckedChange={() => {
@@ -126,7 +129,7 @@ export function MonitoredPlatesTable() {
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
             <Tooltip
-              disabled={!isAdmin}
+              disabled={!profile || !profile?.is_admin}
               disabledText={notAllowed}
               text="Editar"
               asChild
@@ -139,7 +142,7 @@ export function MonitoredPlatesTable() {
                   setDialogInitialData({ plate: row.original.plate })
                   formDialogDisclosure.onOpen()
                 }}
-                disabled={!isAdmin}
+                disabled={!profile || !profile?.is_admin}
               >
                 <span className="sr-only">Editar linha</span>
                 <PencilLine className="h-4 w-4" />
@@ -148,7 +151,9 @@ export function MonitoredPlatesTable() {
             <Tooltip
               text={'Excluir'}
               disabled={
-                (IsUpdatingLoading && plate === row.original.plate) || !isAdmin
+                (IsUpdatingLoading && plate === row.original.plate) ||
+                !profile ||
+                !profile?.is_admin
               }
               disabledText={notAllowed}
               asChild
@@ -165,7 +170,8 @@ export function MonitoredPlatesTable() {
                 }}
                 disabled={
                   (IsUpdatingLoading && plate === row.original.plate) ||
-                  !isAdmin
+                  !profile ||
+                  !profile?.is_admin
                 }
               >
                 <span className="sr-only">Excluir linha</span>
@@ -183,7 +189,7 @@ export function MonitoredPlatesTable() {
       <DataTable
         columns={columns}
         data={data?.items || []}
-        isLoading={isMonitoredPlatesLoading || isRoleLoading}
+        isLoading={isMonitoredPlatesLoading || isProfileLoading}
       />
       {data && (
         <Pagination

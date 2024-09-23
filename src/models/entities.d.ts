@@ -375,7 +375,7 @@ export type FogoCruzadoIncident = {
   }[]
 }
 
-export type PlateInfo = {
+export type Vehicle = {
   anoFabricacao: string
   anoModelo: string
   anoUltimoLicenciamnento: number
@@ -509,11 +509,4 @@ export type PlateInfo = {
   ufFatura: string
   ufJurisdicaoVeiculo: string
   valorIPVA: number
-}
-
-export type Vehicle = {
-  plate: string
-  brandModel: string
-  modelYear: string
-  color: string
 }

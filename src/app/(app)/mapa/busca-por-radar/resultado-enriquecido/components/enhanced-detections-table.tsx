@@ -8,24 +8,21 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import type { RadarDetection, Vehicle } from '@/models/entities'
+import type { EnhancedDetectionDTO } from '@/hooks/use-queries/use-enhanced-radars-search'
 
-export type Detection = RadarDetection &
-  Vehicle & {
-    cameraNumber: string
-    location: string
-    lane: string
-  }
 interface DetectionsTableProps {
-  data: Detection[]
+  data: EnhancedDetectionDTO[]
   isLoading: boolean
 }
 
-export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
+export function EnhancedDetectionsTable({
+  data,
+  isLoading,
+}: DetectionsTableProps) {
   const router = useRouter()
   const { searchParams } = useCarRadarSearchParams()
 
-  const columns: ColumnDef<Detection & Vehicle>[] = [
+  const columns: ColumnDef<EnhancedDetectionDTO>[] = [
     {
       accessorKey: 'timestamp',
       header: () => <Label>Data e Hora</Label>,
@@ -38,21 +35,21 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       header: () => <Label className="w-28">Placa</Label>,
       cell: ({ row }) => <span>{row.getValue('plate')}</span>,
     },
-    // {
-    //   accessorKey: 'brandModel',
-    //   header: () => <Label className="w-28">Marca/Modelo</Label>,
-    //   cell: ({ row }) => <span>{row.getValue('brandModel')}</span>,
-    // },
-    // {
-    //   accessorKey: 'color',
-    //   header: () => <Label className="w-28">Cor</Label>,
-    //   cell: ({ row }) => <span>{row.getValue('color')}</span>,
-    // },
-    // {
-    //   accessorKey: 'modelYear',
-    //   header: () => <Label className="w-28">Ano Modelo</Label>,
-    //   cell: ({ row }) => <span>{row.getValue('modelYear')}</span>,
-    // },
+    {
+      accessorKey: 'brandModel',
+      header: () => <Label className="w-28">Marca/Modelo</Label>,
+      cell: ({ row }) => <span>{row.getValue('brandModel')}</span>,
+    },
+    {
+      accessorKey: 'color',
+      header: () => <Label className="w-28">Cor</Label>,
+      cell: ({ row }) => <span>{row.getValue('color')}</span>,
+    },
+    {
+      accessorKey: 'modelYear',
+      header: () => <Label className="w-28">Ano Modelo</Label>,
+      cell: ({ row }) => <span>{row.getValue('modelYear')}</span>,
+    },
     {
       accessorKey: 'cameraNumber',
       header: () => <Label className="w-28">Radar</Label>,

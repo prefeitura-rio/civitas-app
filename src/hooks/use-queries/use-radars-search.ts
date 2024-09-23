@@ -1,17 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
-import type { RadarDetection, Vehicle } from '@/models/entities'
+import type { RadarDetection } from '@/models/entities'
 
 import { useCarRadarSearchParams } from '../use-params/use-car-radar-search-params.'
 import { useRadars } from './use-radars'
 
-export type Detection = RadarDetection &
-  Vehicle & {
-    cameraNumber: string
-    location: string
-    lane: string
-  }
+export type DetectionDTO = RadarDetection & {
+  cameraNumber: string
+  location: string
+  lane: string
+}
 
 export function useRadarsSearch() {
   const { formattedSearchParams, queryKey } = useCarRadarSearchParams()
@@ -31,15 +30,15 @@ export function useRadarsSearch() {
   return useQuery({
     queryKey,
     queryFn: async () => {
-      const filteredRadars =
+      const selectedRadars =
         radars?.filter(
           (radar) =>
             radarIds.includes(radar.cameraNumber) ||
             (radar.cetRioCode && radarIds.includes(radar?.cetRioCode)),
         ) || []
 
-      const result = await Promise.all(
-        filteredRadars.map(async (radar) => {
+      const detections = await Promise.all(
+        selectedRadars.map(async (radar) => {
           const detections = await getCarsByRadar({
             radar: radar.cameraNumber,
             startTime,
@@ -53,14 +52,14 @@ export function useRadarsSearch() {
               cameraNumber: radar.cameraNumber,
               lane: radar.lane || '',
               location: radar.location?.replace(/- FX \d+/, '') || 'N/A',
-            } as Detection
+            } as DetectionDTO
           })
 
           return joinedData
         }),
       )
 
-      const sortedDetections = result
+      const sortedDetections = detections
         .flat()
         .sort(
           (a, b) =>
