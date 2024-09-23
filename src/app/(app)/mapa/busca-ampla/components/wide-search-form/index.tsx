@@ -86,7 +86,7 @@ export function WideSearchForm() {
   }
 
   return (
-    <Card>
+    <Card className="w-full max-w-screen-md">
       <CardHeader>
         <CardTitle>Formulário de Busca Ampla</CardTitle>
         <CardDescription>
@@ -99,16 +99,16 @@ export function WideSearchForm() {
       <CardContent>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="grid max-w-screen-sm grid-cols-2 gap-x-8 gap-y-2"
+          className="grid w-full grid-cols-2 gap-x-8 gap-y-2"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 overflow-hidden rounded-md border-r border-secondary">
             <Controller
               name="date"
               control={control}
               render={({ field }) => (
                 <DatePickerWithRange
                   placeholder="Selecione uma data"
-                  className="w-64"
+                  className="w-full"
                   onChange={field.onChange}
                   fromDate={new Date(2024, 5, 1)}
                   toDate={new Date()}

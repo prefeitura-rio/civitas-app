@@ -50,7 +50,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex items-center gap-2 py-4">
         {/* {filters &&
           data.length > 0 &&

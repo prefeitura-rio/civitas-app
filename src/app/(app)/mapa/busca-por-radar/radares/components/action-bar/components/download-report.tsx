@@ -15,7 +15,7 @@ import {
 import {
   RadarReportDocument,
   type RadarReportDocumentProps,
-} from './report/document'
+} from '../../report/document'
 
 export function DownloadReport({ data, parameters }: RadarReportDocumentProps) {
   return (
