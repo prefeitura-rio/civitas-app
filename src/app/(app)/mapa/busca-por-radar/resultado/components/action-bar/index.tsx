@@ -5,18 +5,20 @@ import { useRouter } from 'next/navigation'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
+import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
 
 import { DownloadReport } from './components/download-report'
 import { EnhancePlatesInfo } from './components/enhance-plates-info'
 
 interface ActionBarProps {
-  data: DetectionDTO[] | undefined
   isLoading: boolean
+  filters: UseSearchByRadarResultDynamicFilter
 }
 
-export function ActionBar({ data, isLoading }: ActionBarProps) {
+export function ActionBar({ isLoading, filters }: ActionBarProps) {
   const router = useRouter()
+  const { filteredData: data } = filters
+
   return (
     <Card className="flex w-full max-w-screen-md justify-between gap-2 p-2">
       <div className="flex gap-2">
@@ -24,6 +26,7 @@ export function ActionBar({ data, isLoading }: ActionBarProps) {
         <EnhancePlatesInfo
           isLoading={isLoading}
           plates={data?.map((item) => item.plate) || []}
+          filters={filters}
         />
       </div>
       <div className="flex gap-2">
