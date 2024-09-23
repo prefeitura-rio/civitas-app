@@ -35,7 +35,7 @@ export function Tooltip({
     <TooltipProvider delayDuration={200} skipDelayDuration={0}>
       <RawTooltip>
         <TooltipTrigger asChild={asChild} disabled={disabled} type="button">
-          <div>{children}</div>
+          {children}
         </TooltipTrigger>
         {!hideContent && (
           <TooltipContent
