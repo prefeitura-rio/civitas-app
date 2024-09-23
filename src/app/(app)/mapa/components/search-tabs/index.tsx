@@ -1,5 +1,5 @@
 'use client'
-import { Cctv, LandPlot } from 'lucide-react'
+import { Cctv, RectangleEllipsis } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
@@ -39,8 +39,8 @@ export function SearchTabs() {
         )}
         onClick={() => router.push('/mapa/busca-por-placa')}
       >
-        <LandPlot className="size-5 shrink-0" />
-        <span>Busca Ampla</span>
+        <RectangleEllipsis className="size-5 shrink-0" />
+        <span>Busca por Placa</span>
       </div>
     </div>
   )

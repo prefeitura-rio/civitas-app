@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardDescription, CardHeader } from '@/components/ui/card'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 
 export function Header() {
@@ -20,7 +20,7 @@ export function Header() {
 
   return (
     <CardHeader className="text-center">
-      <CardTitle>Resultado para</CardTitle>
+      {/* <CardTitle>Resultado para</CardTitle> */}
       <CardDescription>
         <span className="block text-sm text-muted-foreground">
           Radares: {radarIds.join(', ')}

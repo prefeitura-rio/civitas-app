@@ -80,7 +80,7 @@ export function EnhancedDetectionsTable({
             className="size-6 shrink-0 p-0"
             onClick={() =>
               router.push(
-                `/mapa/busca-ampla/veiculo?${searchParams.toString()}`,
+                `/mapa/busca-por-placa/veiculo?${searchParams.toString()}`,
               )
             }
           >

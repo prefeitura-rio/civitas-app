@@ -79,7 +79,13 @@ export default function RadarDetections() {
               <Spinner className="size-10" />
             </div>
           )}
-          {data && <Filter data={data} setFilteredData={setFilteredData} />}
+          {data && (
+            <Filter
+              data={data}
+              setFilteredData={setFilteredData}
+              radarIds={formattedSearchParams.radarIds}
+            />
+          )}
           {filteredData && (
             <div className="flex w-full">
               <DetectionsTable data={filteredData} isLoading={isPending} />

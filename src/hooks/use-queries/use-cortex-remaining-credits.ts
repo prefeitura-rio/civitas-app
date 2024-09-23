@@ -11,6 +11,5 @@ export function useCortexRemainingCredits() {
     queryKey: ['users', 'cortex-remaining-credits'],
     queryFn: () => getCortexRemainingCredits(profile?.id || ''),
     enabled: !!profile,
-    refetchInterval: 10000,
   })
 }
