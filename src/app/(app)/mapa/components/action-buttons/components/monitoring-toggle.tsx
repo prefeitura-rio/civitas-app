@@ -26,7 +26,7 @@ export function MonitoringToggle() {
       trips: { lastSearchParams, isLoading: isLoadingGetCarPath },
     },
   } = useMap()
-  const { isAdmin } = useProfile()
+  const { data: profile } = useProfile()
 
   const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
     queryKey: ['cars', 'monitored', lastSearchParams?.plate],
@@ -70,7 +70,10 @@ export function MonitoringToggle() {
           <Tooltip
             text="Gerenciar monitoramento"
             disabled={
-              isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
+              isLoadingGetCarPath ||
+              isLoadingMonitoredPlate ||
+              !profile ||
+              !profile.is_admin
             }
             disabledText={
               isLoadingGetCarPath || isLoadingMonitoredPlate ? '' : notAllowed
@@ -82,7 +85,10 @@ export function MonitoringToggle() {
                 pressed={monitored}
                 onPressedChange={handleSetMonitored}
                 disabled={
-                  isLoadingGetCarPath || isLoadingMonitoredPlate || !isAdmin
+                  isLoadingGetCarPath ||
+                  isLoadingMonitoredPlate ||
+                  !profile ||
+                  !profile.is_admin
                 }
                 className=""
                 size="sm"

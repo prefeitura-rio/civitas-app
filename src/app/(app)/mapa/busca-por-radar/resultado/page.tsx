@@ -4,10 +4,13 @@ import { useState } from 'react'
 import { Spinner } from '@/components/custom/spinner'
 import { Card, CardContent } from '@/components/ui/card'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import { useRadarsSearch } from '@/hooks/use-queries/use-radars-search'
+import {
+  type DetectionDTO,
+  useRadarsSearch,
+} from '@/hooks/use-queries/use-radars-search'
 
 import { ActionBar } from './components/action-bar'
-import { type Detection, DetectionsTable } from './components/detections-table'
+import { DetectionsTable } from './components/detections-table'
 import { Filter } from './components/filter'
 import { Header } from './components/header'
 import { InvalidParamsAlert } from './components/invalid-params-alert'
@@ -59,7 +62,7 @@ export default function RadarDetections() {
   const { formattedSearchParams } = useCarRadarSearchParams()
   if (!formattedSearchParams) return <InvalidParamsAlert />
 
-  const [filteredData, setFilteredData] = useState<Detection[] | undefined>(
+  const [filteredData, setFilteredData] = useState<DetectionDTO[] | undefined>(
     undefined,
   )
 
@@ -67,7 +70,7 @@ export default function RadarDetections() {
 
   return (
     <div className="flex w-full flex-col items-center gap-4">
-      <ActionBar data={filteredData || []} />
+      <ActionBar data={filteredData} isLoading={isPending} />
       <Card className="w-full">
         <Header />
         <CardContent className="">

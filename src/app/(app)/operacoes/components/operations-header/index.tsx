@@ -7,18 +7,21 @@ import { notAllowed } from '@/utils/template-messages'
 
 export function OperationsHeader() {
   const { formDialogDisclosure } = useOperations()
-  const { isAdmin } = useProfile()
+  const { data: profile } = useProfile()
 
   return (
     <div className="flex w-full justify-between">
       <h2>Operações</h2>
       <Tooltip
         disabledText={notAllowed}
-        disabled={!isAdmin}
-        hideContent={isAdmin}
+        disabled={!profile || !profile.is_admin}
+        hideContent={!profile || profile.is_admin}
         asChild
       >
-        <Button disabled={!isAdmin} onClick={formDialogDisclosure.onOpen}>
+        <Button
+          disabled={!profile || !profile.is_admin}
+          onClick={formDialogDisclosure.onOpen}
+        >
           Adicionar
         </Button>
       </Tooltip>

@@ -1,7 +1,7 @@
 import { api } from '@/lib/api'
 import type { RadarDetection } from '@/models/entities'
 
-interface GetCarsByRadarRequest {
+export interface GetCarsByRadarRequest {
   radar: string
   startTime: string
   endTime: string

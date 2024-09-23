@@ -23,7 +23,7 @@ export function OperationsTable() {
     setOnDeleteOperationProps,
     deleteAlertDisclosure,
   } = useOperations()
-  const { isAdmin } = useProfile()
+  const { data: profile } = useProfile()
 
   const { data: response, isLoading } = useQuery({
     queryKey,
@@ -57,7 +57,7 @@ export function OperationsTable() {
             <Tooltip
               text="Editar"
               disabledText={notAllowed}
-              disabled={!isAdmin}
+              disabled={!profile || !profile.is_admin}
               asChild
             >
               <Button
@@ -68,7 +68,7 @@ export function OperationsTable() {
                   setDialogInitialData({ id: row.original.id })
                   formDialogDisclosure.onOpen()
                 }}
-                disabled={!isAdmin}
+                disabled={!profile || !profile.is_admin}
               >
                 <span className="sr-only">Editar linha</span>
                 <PencilLine className="h-4 w-4" />
@@ -77,7 +77,7 @@ export function OperationsTable() {
             <Tooltip
               text="Editar"
               disabledText={notAllowed}
-              disabled={!isAdmin}
+              disabled={!profile || !profile.is_admin}
               asChild
             >
               <Button
@@ -91,7 +91,7 @@ export function OperationsTable() {
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={!isAdmin}
+                disabled={!profile || !profile.is_admin}
               >
                 <span className="sr-only">Excluir linha</span>
                 <Trash className="h-4 w-4" />

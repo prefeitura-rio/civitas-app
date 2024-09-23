@@ -18,6 +18,7 @@ interface TooltipProps {
   hideContent?: boolean
   disabledText?: string
   render?: JSX.Element
+  type?: 'button'
 }
 
 export function Tooltip({
@@ -30,11 +31,12 @@ export function Tooltip({
   hideContent = false,
   disabledText,
   render,
+  type = 'button',
 }: TooltipProps) {
   return (
     <TooltipProvider delayDuration={200} skipDelayDuration={0}>
       <RawTooltip>
-        <TooltipTrigger asChild={asChild} disabled={disabled} type="button">
+        <TooltipTrigger type={type} asChild={asChild}>
           {children}
         </TooltipTrigger>
         {!hideContent && (

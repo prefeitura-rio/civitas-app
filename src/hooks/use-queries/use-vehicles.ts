@@ -1,20 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getBulkPlatesInfo } from '@/http/cars/plate/get-bulk-plates-info'
+import { getVehicles } from '@/http/cars/plates/get-vehicles'
 
-interface UseVehiclesProps {
-  possiblePlates: string[]
-  progress?: (progress: number) => void
-}
-
-export function useVehicles({ possiblePlates, progress }: UseVehiclesProps) {
+export function useVehicles(plates: string[]) {
   return useQuery({
-    queryKey: ['cortex', 'plate-info', ...possiblePlates],
-    queryFn: async () => {
-      return getBulkPlatesInfo(possiblePlates, (i) => progress?.(i))
-    },
-    refetchOnWindowFocus: false,
+    queryKey: ['cars', 'plate', ...plates],
+    queryFn: () => getVehicles(plates),
     staleTime: Infinity,
-    enabled: possiblePlates.length > 0,
+    refetchOnWindowFocus: false,
+    enabled: plates.length > 0 && plates.length <= 100,
   })
 }
