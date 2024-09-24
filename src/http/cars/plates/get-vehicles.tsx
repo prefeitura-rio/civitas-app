@@ -1,14 +1,8 @@
-// import { api } from '@/lib/api'
+import { config } from '@/config'
+import { api } from '@/lib/api'
 import type { Vehicle } from '@/models/entities'
 
-export async function getVehicles(plates: string[]) {
-  // TODO: Fix
-  // const response = await api.post<Vehicle[]>('/cars/plates', {
-  //   plates,
-  // })
-
-  // return response.data
-
+function getDummyVehicles(plates: string[]) {
   const dummyVehicle = {
     anoFabricacao: '2020',
     anoModelo: '2021',
@@ -171,7 +165,11 @@ export async function getVehicles(plates: string[]) {
   const variants = [
     { cor: 'PRETA', anoModelo: '2021', marcaModelo: 'CHEV/TRACKER 12T A PR' },
     { cor: 'AZUL', anoModelo: '2021', marcaModelo: 'CHEV/TRACKER 12T A PR' },
-    { cor: 'BRANCA', anoModelo: '2021', marcaModelo: 'CHEV/TRACKER 12T A PR' },
+    {
+      cor: 'BRANCA',
+      anoModelo: '2021',
+      marcaModelo: 'CHEV/TRACKER 12T A PR',
+    },
 
     { cor: 'PRETA', anoModelo: '2022', marcaModelo: 'FORD/ECOSPORT' },
     { cor: 'AZUL', anoModelo: '2022', marcaModelo: 'FORD/ECOSPORT' },
@@ -194,4 +192,18 @@ export async function getVehicles(plates: string[]) {
   })
 
   return dummyVehicles
+}
+
+export async function getVehicles(plates: string[]) {
+  // Não utiliza a api do córtex em ambiente de staging
+  if (config.apiUrl.includes('staging')) {
+    const dummyData = getDummyVehicles(plates)
+    return dummyData
+  }
+
+  const response = await api.post<Vehicle[]>('/cars/plates', {
+    plates,
+  })
+
+  return response.data
 }
