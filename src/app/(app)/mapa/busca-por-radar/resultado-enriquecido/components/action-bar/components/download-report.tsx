@@ -27,7 +27,7 @@ import { exportToCSV } from '@/utils/csv'
 import {
   type GroupedEnhancedDetection,
   RadarReportDocument,
-} from '../report/document'
+} from '../../report/document'
 
 enum FileType {
   'PDF' = 'PDF',

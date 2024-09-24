@@ -21,7 +21,6 @@ interface UseCarPathsSearchParamsReturn {
 
 export function useCarPathsSearchParams(): UseCarPathsSearchParamsReturn {
   const searchParams = useSearchParams()
-
   try {
     const plate = searchParams.get('plate')
     const from = searchParams.get('from')

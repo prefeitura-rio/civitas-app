@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { ReportDocument } from './components/report-document'
+import { ReportDocument } from '../../report/components/report-document'
 
 export default function DownloadReportButton() {
   const {
@@ -21,8 +21,8 @@ export default function DownloadReportButton() {
     <Dialog>
       <Tooltip asChild text="Imprimir relatório" disabled={isLoading}>
         <DialogTrigger asChild>
-          <Button variant="outline" disabled={isLoading} size="sm">
-            <Printer className="h-4 w-4" />
+          <Button variant="secondary" size="icon" disabled={isLoading}>
+            <Printer className="size-4 shrink-0" />
           </Button>
         </DialogTrigger>
       </Tooltip>

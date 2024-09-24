@@ -6,13 +6,11 @@ import React from 'react'
 interface ReportEmptyResultProps {
   fromDate: Date
   toDate: Date
-  radarId: string
 }
 
 export function RadarReportEmptyResult({
   fromDate,
   toDate,
-  radarId,
 }: ReportEmptyResultProps) {
   const from = format(fromDate, "d 'de' MMMM 'de' y 'às' HH:mm:ss", {
     locale: ptBR,
@@ -30,7 +28,7 @@ export function RadarReportEmptyResult({
         textAlign: 'justify',
       }}
     >
-      {`O Radar de código ${radarId} NÃO detectou veículos entre ${from} e ${to}.`}
+      {`Os Radares mencionados acima NÃO detectaram veículos entre ${from} e ${to}.`}
     </Text>
   )
 }

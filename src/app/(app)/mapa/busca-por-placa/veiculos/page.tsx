@@ -12,20 +12,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Card } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
+import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
+import { useVehiclesNecessaryCredits } from '@/hooks/use-queries/use-vehicles-necessary-credits'
 
-import { ActionButtons } from '../../components/action-buttons'
-import { PlateList } from './components/plates'
+import { TooManyPlates } from './components/too-many-plates-alert'
+import { VehicleList } from './components/vehicle-list'
 
 export default function Veiculos() {
   const {
     layers: {
-      trips: { isLoading, getPossiblePlates },
+      trips: { isLoading, getPossiblePlates, possiblePlates },
     },
   } = useMap()
   const { formattedSearchParams } = useCarPathsSearchParams()
   const router = useRouter()
+
+  const { data: remainingCredits } = useCortexRemainingCredits()
+  const { data: creditsRequired } = useVehiclesNecessaryCredits(
+    possiblePlates || [],
+  )
 
   useEffect(() => {
     if (formattedSearchParams && !isLoading) {
@@ -36,6 +44,15 @@ export default function Veiculos() {
       })
     }
   }, [])
+
+  if (
+    (possiblePlates && possiblePlates.length > 100) ||
+    (remainingCredits &&
+      creditsRequired &&
+      remainingCredits.remaining_credit < creditsRequired.credits)
+  ) {
+    return <TooManyPlates />
+  }
 
   if (!formattedSearchParams) {
     return (
@@ -48,7 +65,9 @@ export default function Veiculos() {
               realizar a busca novamente pelo painel de busca.
             </AlertDialogDescription>
             <AlertDialogFooter>
-              <AlertDialogAction onClick={() => router.push('/mapa')}>
+              <AlertDialogAction
+                onClick={() => router.push('/mapa/busca-por-placa')}
+              >
                 Voltar
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -59,15 +78,16 @@ export default function Veiculos() {
   }
 
   return (
-    <div className="h-full space-y-2">
-      <ActionButtons />
-      {isLoading ? (
-        <div className="flex h-[calc(100%-7rem)] w-full items-center justify-center">
-          <Spinner className="size-10" />
-        </div>
-      ) : (
-        <PlateList />
-      )}
+    <div className="w-full space-y-2">
+      <Card className="w-full p-6">
+        {isLoading ? (
+          <div className="flex w-full items-center justify-center">
+            <Spinner className="size-10" />
+          </div>
+        ) : (
+          <VehicleList />
+        )}
+      </Card>
     </div>
   )
 }

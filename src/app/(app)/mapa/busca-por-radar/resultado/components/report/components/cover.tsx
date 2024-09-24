@@ -3,13 +3,15 @@ import '@/utils/string-extensions'
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
 
-import type { Radar } from '@/models/entities'
-
 interface RadarReportCoverProps {
-  radar: Radar
+  radarIds: string[]
+  location: string
+  latitude: number
+  longitude: number
   fromDate: Date
   toDate: Date
   totalDetections: number
+  plate?: string
 }
 
 const styles = StyleSheet.create({
@@ -28,54 +30,57 @@ const styles = StyleSheet.create({
 })
 
 export function RadarReportCover({
-  radar,
+  radarIds,
+  latitude,
+  longitude,
+  location,
   fromDate,
   toDate,
   totalDetections,
+  plate,
 }: RadarReportCoverProps) {
-  const rows = [
+  const commons = [
     {
-      label: 'Código do radar (CIVITAS):',
-      value: radar.cameraNumber,
-    },
-    {
-      label: 'Código do radar (CET-Rio):',
-      value: radar.cetRioCode || '',
+      label: 'Localização:',
+      value: location,
     },
     {
       label: 'Período analisado:',
       value: `De ${formatDate(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${formatDate(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
     },
     {
-      label: 'Localização:',
-      value: radar.location?.capitalizeFirstLetter() || '',
-    },
-    {
-      label: 'Bairro:',
-      value: radar.district?.capitalizeFirstLetter() || '',
+      label: 'Placa:',
+      value: plate,
     },
     {
       label: 'Latitude:',
-      value: radar.latitude,
+      value: latitude,
     },
     {
       label: 'Longitude:',
-      value: radar.longitude,
+      value: longitude,
     },
     {
       label: 'Total de placas detectadas:',
       value: totalDetections,
     },
+    {
+      label: 'Radares:',
+      value: radarIds.join(', '),
+    },
   ]
 
   return (
     <View style={styles.container}>
-      {rows.map((item, index) => (
-        <View key={index} style={styles.row}>
-          <Text style={styles.label}>{item.label}</Text>
-          <Text>{item.value}</Text>
-        </View>
-      ))}
+      {commons.map(
+        (item, index) =>
+          !!item.value && (
+            <View key={index} style={styles.row}>
+              <Text style={styles.label}>{item.label}</Text>
+              <Text>{item.value}</Text>
+            </View>
+          ),
+      )}
     </View>
   )
 }
