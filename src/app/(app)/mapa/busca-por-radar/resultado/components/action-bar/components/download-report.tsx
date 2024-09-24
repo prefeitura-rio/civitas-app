@@ -1,5 +1,6 @@
 'use client'
 // import { pdf } from '@react-pdf/renderer'
+import { pdf } from '@react-pdf/renderer'
 import { Download } from 'lucide-react'
 import { useState } from 'react'
 
@@ -17,13 +18,16 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { useRadars } from '@/hooks/use-queries/use-radars'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
+import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
 import { exportToCSV } from '@/utils/csv'
 
-// import {
-//   RadarReportDocument,
-//   type RadarReportDocumentProps,
-// } from '../../report/document'
+import {
+  type GroupedDetection,
+  RadarReportDocument,
+} from '../../report/document'
 
 enum FileType {
   'PDF' = 'PDF',
@@ -37,43 +41,132 @@ enum ApplyFilters {
 
 interface DownloadReportProps {
   data: DetectionDTO[]
+  isLoading: boolean
+  filters: UseSearchByRadarResultDynamicFilter
 }
 
-export function DownloadReport({ data }: DownloadReportProps) {
+export function DownloadReport({
+  data,
+  isLoading,
+  filters,
+}: DownloadReportProps) {
+  const { formattedSearchParams } = useCarRadarSearchParams()
   const [fileType, setFileType] = useState<FileType>(FileType.PDF)
   const [applyFilters, setApplyFilters] = useState<ApplyFilters>(
-    ApplyFilters.Não,
+    ApplyFilters.Sim,
   )
 
-  function handleDownload() {
+  const { data: radars } = useRadars()
+
+  function groupData(data: DetectionDTO[]) {
+    if (!radars) throw new Error('radars is required')
+
+    const groupedData = data.reduce(
+      (acc, item) => {
+        // Remove "faixa" da localização
+        const location = item.location?.replace(/- FX \d+/, '') || 'N/A'
+
+        // Se não existir a localização, cria um novo objeto
+        if (!acc[location]) {
+          acc[location] = {
+            location,
+            radars: [],
+            detections: [],
+          }
+        }
+        // Adiciona o radar ao objeto
+        const radar = radars.find(
+          (radar) =>
+            radar.cameraNumber === item.cameraNumber ||
+            radar.cetRioCode === item.cameraNumber,
+        )
+
+        if (!radar) throw new Error('radar not found')
+        acc[location].radars.push(radar)
+
+        // Adiciona as detecções ao objeto
+        acc[location].detections.push(item)
+        return acc
+      },
+      {} as {
+        [key: string]: GroupedDetection
+      },
+    )
+
+    Object.values(groupedData).forEach((group) => {
+      group.detections.sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      )
+    })
+
+    Object.values(groupedData).forEach((group) => {
+      group.detections.sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      )
+    })
+
+    return Object.values(groupedData) as GroupedDetection[]
+  }
+
+  async function handleDownload() {
+    if (!filters.filteredData) throw new Error('filteredData is required')
+    if (!formattedSearchParams)
+      throw new Error('formattedSearchParams is required')
+
+    const selectedData =
+      applyFilters === ApplyFilters.Sim ? filters.filteredData : data
+
     if (fileType === 'CSV') {
       // Download CSV
-      exportToCSV('busca_por_radar', data)
+      exportToCSV('busca_por_radar', selectedData)
     } else {
       // Download PDF
-      // const blob = await pdf(
-      //   <RadarReportDocument data={data} parameters={parameters} />,
-      // ).toBlob()
-      // const url = URL.createObjectURL(blob)
-      // const a = document.createElement('a')
-      // a.href = url
-      // a.download = 'busca_por_radar.pdf'
-      // a.click()
-      // URL.revokeObjectURL(url)
+      const groupedData = groupData(selectedData)
+
+      const from = new Date(formattedSearchParams.date).addMinutes(
+        formattedSearchParams.duration[0] * -1,
+      )
+      const to = new Date(formattedSearchParams.date).addMinutes(
+        formattedSearchParams.duration[1],
+      )
+
+      // Get unique radarIds
+      const allRadarIds = filters.filteredData?.map((item) => item.cameraNumber)
+      const radarIds = [...new Set(allRadarIds)]
+
+      const blob = await pdf(
+        <RadarReportDocument
+          data={groupedData}
+          parameters={{
+            from,
+            to,
+            radarIds,
+            plate: filters.selectedPlate || formattedSearchParams.plate,
+          }}
+        />,
+      ).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'busca_enriquecida_por_radar.pdf'
+      a.click()
+      URL.revokeObjectURL(url)
     }
   }
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <div>
-          <Tooltip asChild text="Baixar Relatório">
-            <Button variant="secondary" size="icon">
+      <Tooltip asChild text="Baixar Relatório">
+        <span tabIndex={0}>
+          <DialogTrigger asChild>
+            <Button variant="secondary" size="icon" disabled={isLoading}>
               <Download className="size-4 shrink-0" />
             </Button>
-          </Tooltip>
-        </div>
-      </DialogTrigger>
+          </DialogTrigger>
+        </span>
+      </Tooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Relatório de Busca por Radar</DialogTitle>
@@ -119,12 +212,8 @@ export function DownloadReport({ data }: DownloadReportProps) {
                   <RadioGroupItem
                     value={ApplyFilters.Sim}
                     id={ApplyFilters.Sim}
-                    disabled
                   />
-                  <Label
-                    htmlFor={ApplyFilters.Sim}
-                    className="cursor-pointer text-muted-foreground"
-                  >
+                  <Label htmlFor={ApplyFilters.Sim} className="cursor-pointer">
                     Sim
                   </Label>
                 </div>
@@ -134,7 +223,9 @@ export function DownloadReport({ data }: DownloadReportProps) {
                   value={ApplyFilters.Não}
                   id={ApplyFilters.Não}
                 />
-                <Label className="cursor-pointer">Não</Label>
+                <Label htmlFor={ApplyFilters.Não} className="cursor-pointer">
+                  Não
+                </Label>
               </div>
             </RadioGroup>
           </div>
