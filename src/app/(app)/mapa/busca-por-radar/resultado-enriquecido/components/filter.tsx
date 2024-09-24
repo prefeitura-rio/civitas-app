@@ -13,10 +13,11 @@ export function Filter({ setFilteredData, data }: FilterProps) {
   // Filter States
   const [selectedPlate, setSelectedPlate] = useState('')
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
+  const [selectedColors, setSelectedColors] = useState<string[]>([])
 
   // Filter Options
   // const [brandModelOptions, setBrandModelOptions] = useState<string[]>([])
-  // const [colorsOptions, setColorOptions] = useState<string[]>([])
+  const [colorOptions, setColorOptions] = useState<string[]>([])
   const [locationOptions, setLocationOptions] = useState<string[]>([])
 
   function filterByPlate(detections: EnhancedDetectionDTO[], plate: string) {
@@ -51,14 +52,20 @@ export function Filter({ setFilteredData, data }: FilterProps) {
     )
   }
 
+  function filterByColor(detections: EnhancedDetectionDTO[], colors: string[]) {
+    setSelectedColors(colors)
+
+    if (colors.length === 0) return detections
+
+    return detections.filter((detection) => colors.includes(detection.color))
+  }
+
   useEffect(() => {
     const filteredByLocation = filterByLocation(data || [], selectedLocations)
-    const filteredByPlateResult = filterByPlate(
-      filteredByLocation,
-      selectedPlate,
-    )
+    const filteredByColor = filterByColor(filteredByLocation, selectedColors)
+    const filteredByPlateResult = filterByPlate(filteredByColor, selectedPlate)
     setFilteredData(filteredByPlateResult)
-  }, [selectedPlate, selectedLocations])
+  }, [selectedPlate, selectedLocations, selectedColors])
 
   useEffect(() => {
     setFilteredData(data)
@@ -67,6 +74,11 @@ export function Filter({ setFilteredData, data }: FilterProps) {
     const locationWithDuplicates = data?.map((detection) => detection.location)
     const uniqueLocations = [...new Set(locationWithDuplicates)]
     setLocationOptions(uniqueLocations)
+
+    // Filtra as cores únicas
+    const colorWithDuplicates = data?.map((detection) => detection.color)
+    const uniqueColors = [...new Set(colorWithDuplicates)]
+    setColorOptions(uniqueColors)
   }, [data])
 
   return (
@@ -90,6 +102,23 @@ export function Filter({ setFilteredData, data }: FilterProps) {
           }}
           defaultValue={selectedLocations}
           placeholder="Selecione uma localidade"
+          variant="secondary"
+          maxCount={2}
+        />
+      </div>
+      <div>
+        <MultiSelectWithSearch
+          options={colorOptions.map((item) => {
+            return {
+              label: item,
+              value: item,
+            }
+          })}
+          onValueChange={(item) => {
+            setSelectedColors(item)
+          }}
+          defaultValue={selectedColors}
+          placeholder="Selecione uma cor"
           variant="secondary"
           maxCount={2}
         />

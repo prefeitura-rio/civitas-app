@@ -22,7 +22,6 @@ export function PlateList() {
     staleTime: Infinity,
     enabled: possiblePlates.length > 0,
   })
-  console.log(vehicles)
 
   return (
     <div className="h-full space-y-2">

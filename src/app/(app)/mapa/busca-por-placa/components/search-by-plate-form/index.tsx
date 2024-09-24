@@ -57,7 +57,6 @@ export function SearchByPlateForm() {
   })
 
   const onSubmit = (data: WideSearchFormData) => {
-    console.log('Realizando busca na cidade:', data)
     const query = toQueryParams(data)
 
     if (data.plate.includes('*')) {

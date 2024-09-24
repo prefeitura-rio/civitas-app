@@ -2,7 +2,7 @@
 import type { Vehicle } from '@/models/entities'
 
 export async function getVehicles(plates: string[]) {
-  // TODO: Fix this
+  // TODO: Fix
   // const response = await api.post<Vehicle[]>('/cars/plates', {
   //   plates,
   // })
@@ -168,10 +168,22 @@ export async function getVehicles(plates: string[]) {
     valorIPVA: 0,
   } as Vehicle
 
-  const dummyVehicles: Vehicle[] = plates.map((plate) => ({
-    ...dummyVehicle,
-    placa: plate,
-  }))
+  const variants = [
+    { cor: 'PRETA', anoModelo: '2021', marcaModelo: 'CHEV/TRACKER 12T A PR' },
+    { cor: 'BRANCA', anoModelo: '2022', marcaModelo: 'FORD/ECOSPORT' },
+    { cor: 'AZUL', anoModelo: '2023', marcaModelo: 'HONDA/HR-V' },
+  ]
+
+  const dummyVehicles: Vehicle[] = plates.map((plate, index) => {
+    const variant = variants[index % variants.length]
+    return {
+      ...dummyVehicle,
+      placa: plate,
+      cor: variant.cor,
+      anoModelo: variant.anoModelo,
+      marcaModelo: variant.marcaModelo,
+    }
+  })
 
   return dummyVehicles
 }
