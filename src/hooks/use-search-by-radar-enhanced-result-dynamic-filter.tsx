@@ -8,7 +8,6 @@ interface UseRadarsDynamicFilterProps {
 
 export interface UseSearchByRadarEnhancedResultDynamicFilter {
   filteredData: EnhancedDetectionDTO[] | undefined
-  setFilteredData: (data: EnhancedDetectionDTO[] | undefined) => void
   selectedPlate: string
   setSelectedPlate: (plate: string) => void
   selectedLocations: string[]
@@ -144,7 +143,6 @@ export function useSearchByRadarEnhancedResultDynamicFilter({
 
   return {
     filteredData,
-    setFilteredData,
     selectedPlate,
     setSelectedPlate,
     selectedLocations,

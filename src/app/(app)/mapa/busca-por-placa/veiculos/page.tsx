@@ -1,6 +1,8 @@
 'use client'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import {
@@ -12,19 +14,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Card } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
+import { useVehicles } from '@/hooks/use-queries/use-vehicles'
 import { useVehiclesNecessaryCredits } from '@/hooks/use-queries/use-vehicles-necessary-credits'
+import { useSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/use-search-by-plate-enhanced-result-dynamic-filter'
 
+import { Filter } from './components/filter'
 import { TooManyPlates } from './components/too-many-plates-alert'
 import { VehicleList } from './components/vehicle-list'
 
 export default function Veiculos() {
+  const [isLoading, setIsLoading] = useState(true)
+
   const {
     layers: {
-      trips: { isLoading, getPossiblePlates, possiblePlates },
+      trips: {
+        isLoading: isPossiblePlatesLoading,
+        getPossiblePlates,
+        possiblePlates,
+      },
     },
   } = useMap()
   const { formattedSearchParams } = useCarPathsSearchParams()
@@ -35,6 +52,14 @@ export default function Veiculos() {
     possiblePlates || [],
   )
 
+  const { data: vehicles, isLoading: isVehiclesLoading } = useVehicles(
+    possiblePlates || [],
+  )
+
+  const filters = useSearchByPlateEnhancedResultDynamicFilter({
+    data: vehicles,
+  })
+  const { filteredData } = filters
   useEffect(() => {
     if (formattedSearchParams && !isLoading) {
       getPossiblePlates({
@@ -77,17 +102,36 @@ export default function Veiculos() {
     )
   }
 
+  useEffect(() => {
+    if (!isVehiclesLoading && !isPossiblePlatesLoading) {
+      setIsLoading(false)
+    }
+  }, [isVehiclesLoading, isPossiblePlatesLoading])
+
   return (
-    <div className="w-full space-y-2">
-      <Card className="w-full p-6">
-        {isLoading ? (
-          <div className="flex w-full items-center justify-center">
+    <Card className="w-full">
+      <CardHeader className="text-center">
+        <CardTitle className="">
+          Resultado para{' '}
+          <span className="code-highlight">{formattedSearchParams.plate}</span>
+        </CardTitle>
+        <CardDescription className="">
+          {`${format(formattedSearchParams.from, 'dd MMM, y HH:mm', { locale: ptBR })} - ${format(formattedSearchParams.to, 'dd MMM, y HH:mm', { locale: ptBR })}`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading && (
+          <div className="flex w-full justify-center p-6">
             <Spinner className="size-10" />
           </div>
-        ) : (
-          <VehicleList />
         )}
-      </Card>
-    </div>
+        {vehicles && <Filter filters={filters} />}
+        {filteredData && (
+          <div className="flex w-full">
+            <VehicleList data={filteredData} isLoading={isLoading} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
