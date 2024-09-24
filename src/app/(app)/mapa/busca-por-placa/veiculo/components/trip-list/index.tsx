@@ -6,8 +6,8 @@ import { Spinner } from '@/components/custom/spinner'
 import { Separator } from '@/components/ui/separator'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
-import { PlateInfo } from './components/plate-info'
 import { TripCard } from './components/trip-card'
+import { VehicleInfo } from './components/vehicle-info'
 
 export function TripList() {
   const {
@@ -38,7 +38,7 @@ export function TripList() {
             </div>
 
             <div className="h-[calc(100%)]">
-              <PlateInfo />
+              <VehicleInfo plate={lastSearchParams.plate} />
               <Separator className="my-3 bg-muted" />
 
               {trips.length === 0 ? (

@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import { exportToCSV } from '@/utils/csv'
 
 // import {
@@ -33,9 +34,11 @@ enum ApplyFilters {
   'Sim' = 'Sim',
   'Não' = 'Não',
 }
+
 interface DownloadReportProps {
-  data: unknown[]
+  data: DetectionDTO[]
 }
+
 export function DownloadReport({ data }: DownloadReportProps) {
   const [fileType, setFileType] = useState<FileType>(FileType.PDF)
   const [applyFilters, setApplyFilters] = useState<ApplyFilters>(

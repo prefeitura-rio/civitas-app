@@ -4,16 +4,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Label } from '@/components/ui/label'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { usePlate } from '@/hooks/use-queries/use-plate'
+import { useVehicle } from '@/hooks/use-queries/use-vehicle'
 
-export function PlateInfo() {
-  const {
-    layers: {
-      trips: { lastSearchParams },
-    },
-  } = useMap()
-  const { data } = usePlate(lastSearchParams?.plate || '')
+interface VehicleInfoProps {
+  plate: string
+}
+export function VehicleInfo({ plate }: VehicleInfoProps) {
+  const { data } = useVehicle(plate)
 
   const mainInfo = {
     'Marca/Modelo': data?.marcaModelo,
