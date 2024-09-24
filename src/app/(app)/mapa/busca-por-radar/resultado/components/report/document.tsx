@@ -4,7 +4,8 @@ import React from 'react'
 
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
-import type { Radar, RadarDetection, Vehicle } from '@/models/entities'
+import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
+import type { Radar, RadarDetection } from '@/models/entities'
 
 import { RadarReportCover } from './components/cover-v2'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result-v2'
@@ -73,23 +74,19 @@ const columns = [
   { title: 'Velocidade [Km/h]', width: '12%', key: 'speed' },
 ]
 
-type Detection = RadarDetection &
-  Vehicle & {
-    cameraNumber: string
-    lane: string
-  }
+export type GroupedDetection = {
+  location: string
+  radars: Radar[]
+  detections: DetectionDTO[]
+}
 
 export interface RadarReportDocumentProps {
-  data: {
-    location: string
-    radars: Radar[]
-    detections: Detection[]
-  }[]
+  data: GroupedDetection[]
   parameters: {
     from: Date
     to: Date
-    plateHint?: string
     radarIds: string[]
+    plate?: string
   }
 }
 
@@ -106,7 +103,9 @@ export function RadarReportDocument({
 
         {data.map((item, i) => (
           <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
-            <Text style={styles.groupTitle}>{`Grupo ${i + 1}`}</Text>
+            {data.length > 1 && (
+              <Text style={styles.groupTitle}>{`Grupo ${i + 1}`}</Text>
+            )}
             <RadarReportCover
               fromDate={parameters.from}
               toDate={parameters.to}
@@ -115,6 +114,7 @@ export function RadarReportDocument({
               location={item.location}
               radarIds={item.radars.map((r) => r.cameraNumber)}
               totalDetections={item.detections.length}
+              plate={parameters.plate}
             />
             {item.detections.length > 0 ? (
               <>
@@ -153,9 +153,15 @@ export function RadarReportDocument({
                     )
                   })}
                 </View>
-                <Text
-                  style={styles.tableCaption}
-                >{`Tabela ${i + 1}: Detecções do grupo ${i + 1}`}</Text>
+                {data.length > 1 ? (
+                  <Text
+                    style={styles.tableCaption}
+                  >{`Tabela ${i + 1}: Detecções do grupo ${i + 1}`}</Text>
+                ) : (
+                  <Text
+                    style={styles.tableCaption}
+                  >{`Tabela ${i + 1}: Detecções`}</Text>
+                )}
               </>
             ) : (
               <RadarReportEmptyResult

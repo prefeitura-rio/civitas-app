@@ -86,7 +86,7 @@ export function RadarReportCover({
     <View style={styles.container}>
       {commons.map(
         (item, index) =>
-          item.value && (
+          !!item.value && (
             <View key={index} style={styles.row}>
               <Text style={styles.label}>{item.label}</Text>
               <Text>{item.value}</Text>

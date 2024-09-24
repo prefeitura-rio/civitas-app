@@ -22,7 +22,11 @@ export function ActionBar({ isLoading, filters }: ActionBarProps) {
   return (
     <Card className="flex w-full max-w-screen-md justify-between gap-2 p-2">
       <div className="flex gap-2">
-        <DownloadReport data={data || []} />
+        <DownloadReport
+          data={data || []}
+          filters={filters}
+          isLoading={isLoading}
+        />
         <EnhancePlatesInfo
           isLoading={isLoading}
           plates={data?.map((item) => item.plate) || []}
