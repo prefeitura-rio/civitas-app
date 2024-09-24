@@ -85,7 +85,6 @@ export default function RadarDetections() {
     return <TooManyPlates />
   }
 
-  console.log({ filteredData })
   return (
     <div className="flex w-full flex-col items-center gap-4">
       <ActionBar data={filteredData} isLoading={isPending} />
