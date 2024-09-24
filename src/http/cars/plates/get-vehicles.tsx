@@ -170,8 +170,16 @@ export async function getVehicles(plates: string[]) {
 
   const variants = [
     { cor: 'PRETA', anoModelo: '2021', marcaModelo: 'CHEV/TRACKER 12T A PR' },
+    { cor: 'AZUL', anoModelo: '2021', marcaModelo: 'CHEV/TRACKER 12T A PR' },
+    { cor: 'BRANCA', anoModelo: '2021', marcaModelo: 'CHEV/TRACKER 12T A PR' },
+
+    { cor: 'PRETA', anoModelo: '2022', marcaModelo: 'FORD/ECOSPORT' },
+    { cor: 'AZUL', anoModelo: '2022', marcaModelo: 'FORD/ECOSPORT' },
     { cor: 'BRANCA', anoModelo: '2022', marcaModelo: 'FORD/ECOSPORT' },
+
+    { cor: 'PRETA', anoModelo: '2023', marcaModelo: 'HONDA/HR-V' },
     { cor: 'AZUL', anoModelo: '2023', marcaModelo: 'HONDA/HR-V' },
+    { cor: 'BRANCA', anoModelo: '2023', marcaModelo: 'HONDA/HR-V' },
   ]
 
   const dummyVehicles: Vehicle[] = plates.map((plate, index) => {

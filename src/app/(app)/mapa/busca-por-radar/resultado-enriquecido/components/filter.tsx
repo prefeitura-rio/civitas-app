@@ -14,14 +14,14 @@ export function Filter({ setFilteredData, data }: FilterProps) {
   const [selectedPlate, setSelectedPlate] = useState('')
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
   const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [selectedBrandModel, setSelectedBrandModel] = useState<string[]>([])
 
   // Filter Options
-  // const [brandModelOptions, setBrandModelOptions] = useState<string[]>([])
   const [colorOptions, setColorOptions] = useState<string[]>([])
+  const [brandModelOptions, setBrandModelOptions] = useState<string[]>([])
   const [locationOptions, setLocationOptions] = useState<string[]>([])
 
   function filterByPlate(detections: EnhancedDetectionDTO[], plate: string) {
-    // Transforma caracteres minúsculos em maiúsculos
     const upperCasePlate = plate.toUpperCase()
     setSelectedPlate(upperCasePlate)
 
@@ -60,25 +60,49 @@ export function Filter({ setFilteredData, data }: FilterProps) {
     return detections.filter((detection) => colors.includes(detection.color))
   }
 
+  function filterByBrandModel(
+    detections: EnhancedDetectionDTO[],
+    brandModels: string[],
+  ) {
+    setSelectedBrandModel(brandModels) // Corrected state update
+
+    if (brandModels.length === 0) return detections
+
+    return detections.filter((detection) =>
+      brandModels.includes(detection.brandModel),
+    )
+  }
+
   useEffect(() => {
-    const filteredByLocation = filterByLocation(data || [], selectedLocations)
-    const filteredByColor = filterByColor(filteredByLocation, selectedColors)
-    const filteredByPlateResult = filterByPlate(filteredByColor, selectedPlate)
-    setFilteredData(filteredByPlateResult)
-  }, [selectedPlate, selectedLocations, selectedColors])
+    const filteredByPlateResult = filterByPlate(data || [], selectedPlate)
+    const filteredByColor = filterByColor(filteredByPlateResult, selectedColors)
+    const filteredByBrandModel = filterByBrandModel(
+      filteredByColor,
+      selectedBrandModel, // Corrected state usage
+    )
+    const filteredByLocation = filterByLocation(
+      filteredByBrandModel,
+      selectedLocations,
+    )
+    setFilteredData(filteredByLocation)
+  }, [selectedPlate, selectedLocations, selectedColors, selectedBrandModel])
 
   useEffect(() => {
     setFilteredData(data)
 
-    // Filtra as localizações únicas
     const locationWithDuplicates = data?.map((detection) => detection.location)
     const uniqueLocations = [...new Set(locationWithDuplicates)]
     setLocationOptions(uniqueLocations)
 
-    // Filtra as cores únicas
     const colorWithDuplicates = data?.map((detection) => detection.color)
     const uniqueColors = [...new Set(colorWithDuplicates)]
     setColorOptions(uniqueColors)
+
+    const brandModelWithDuplicates = data?.map(
+      (detection) => detection.brandModel,
+    )
+    const uniqueBrandModels = [...new Set(brandModelWithDuplicates)]
+    setBrandModelOptions(uniqueBrandModels)
   }, [data])
 
   return (
@@ -119,6 +143,23 @@ export function Filter({ setFilteredData, data }: FilterProps) {
           }}
           defaultValue={selectedColors}
           placeholder="Selecione uma cor"
+          variant="secondary"
+          maxCount={2}
+        />
+      </div>
+      <div>
+        <MultiSelectWithSearch
+          options={brandModelOptions.map((item) => {
+            return {
+              label: item,
+              value: item,
+            }
+          })}
+          onValueChange={(item) => {
+            setSelectedBrandModel(item)
+          }}
+          defaultValue={selectedBrandModel} // Corrected default value
+          placeholder="Selecione um modelo"
           variant="secondary"
           maxCount={2}
         />
