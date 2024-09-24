@@ -1,9 +1,8 @@
-// import { api } from '@/lib/api'
+import { config } from '@/config'
+import { api } from '@/lib/api'
 import type { Vehicle } from '@/models/entities'
 
-export async function getVehicle(plate: string) {
-  // const response = await api.get<Vehicle>(`/cars/plate/${plate}`)
-  // return response.data
+function getDummyVehicle(plate: string) {
   const dummyVehicle = {
     anoFabricacao: '2020',
     anoModelo: '2021',
@@ -164,4 +163,14 @@ export async function getVehicle(plate: string) {
   } as Vehicle
 
   return dummyVehicle
+}
+export async function getVehicle(plate: string) {
+  // Não utiliza a api do córtex em ambiente de staging
+  if (config.apiUrl.includes('staging')) {
+    const dummyData = getDummyVehicle(plate)
+    return dummyData
+  }
+
+  const response = await api.get<Vehicle>(`/cars/plate/${plate}`)
+  return response.data
 }
