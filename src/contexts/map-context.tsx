@@ -17,6 +17,10 @@ import {
   type UseWazePoliceAlerts,
   useWazePoliceAlerts,
 } from '@/hooks/map-layers/use-waze-police-alerts'
+import {
+  type UseAddressMarker,
+  useAddressMarker,
+} from '@/hooks/map-layers-[old]/use-address-marker'
 import type { SetViewportProps } from '@/models/utils'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -28,6 +32,7 @@ interface MapContextProps {
     agents: UseAgents
     fogoCruzado: UseFogoCruzadoIncidents
     waze: UseWazePoliceAlerts
+    address: UseAddressMarker
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
@@ -57,6 +62,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const agents = useAgents()
   const fogoCruzado = useFogoCruzadoIncidents()
   const waze = useWazePoliceAlerts()
+  const address = useAddressMarker()
 
   return (
     <MapContext.Provider
@@ -68,6 +74,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           agents,
           fogoCruzado,
           waze,
+          address,
         },
         viewport,
         setViewport,
