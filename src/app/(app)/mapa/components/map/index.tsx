@@ -23,6 +23,7 @@ import { FogoCruzadoHoverCard } from './components/hover-cards/fogo-cruzado-hove
 import { RadarHoverCard } from './components/hover-cards/radar-hover-card'
 import { WazePoliceAlertHoverCard } from './components/hover-cards/waze-police-alert-hover-card'
 import { MapLayerControl } from './components/layer-toggle'
+import { SearchBox } from './components/search-box'
 import { CameraSelectCard } from './components/select-cards/camera-select-card'
 import { FogoCruzadoSelectCard } from './components/select-cards/fogo-cruzado-select-card'
 
@@ -73,6 +74,14 @@ export function Map() {
         // hoveredObject: hoveredTrip,
         // setIsHoveringInfoCard: setIsHoveringTripInfoCard,
       },
+      address: {
+        layerStates: {
+          isVisible: isAddressVisible,
+          setIsVisible: setIsAddressVisible,
+          setAddressMarker,
+        },
+        layer: addressLayer,
+      },
     },
     viewport,
     setViewport,
@@ -89,6 +98,7 @@ export function Map() {
     fogoCruzadoLayer,
     agentsLayer,
     ...tripLayers,
+    addressLayer,
   ]
 
   return (
@@ -114,6 +124,14 @@ export function Map() {
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
+      <div className="absolute-x-centered top-2 z-50 w-64">
+        <SearchBox
+          isVisible={isAddressVisible}
+          setIsVisible={setIsAddressVisible}
+          setAddressMarker={setAddressMarker}
+          setViewport={setViewport}
+        />
+      </div>
       <RadarHoverCard
         hoveredObject={hoveredRadar}
         setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
