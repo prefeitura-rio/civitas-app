@@ -11,6 +11,9 @@ interface RadarReportCoverProps {
   fromDate: Date
   toDate: Date
   totalDetections: number
+  colors?: string[]
+  brandModels?: string[]
+  plate?: string
 }
 
 const styles = StyleSheet.create({
@@ -36,6 +39,9 @@ export function RadarReportCover({
   fromDate,
   toDate,
   totalDetections,
+  brandModels,
+  colors,
+  plate,
 }: RadarReportCoverProps) {
   const commons = [
     {
@@ -45,6 +51,10 @@ export function RadarReportCover({
     {
       label: 'Período analisado:',
       value: `De ${formatDate(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${formatDate(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
+    },
+    {
+      label: 'Placa:',
+      value: plate,
     },
     {
       label: 'Latitude:',
@@ -62,16 +72,27 @@ export function RadarReportCover({
       label: 'Radares:',
       value: radarIds.join(', '),
     },
+    {
+      label: 'Cores:',
+      value: colors?.join(', '),
+    },
+    {
+      label: 'Marca/Modelos:',
+      value: brandModels?.join(', '),
+    },
   ]
 
   return (
     <View style={styles.container}>
-      {commons.map((item, index) => (
-        <View key={index} style={styles.row}>
-          <Text style={styles.label}>{item.label}</Text>
-          <Text>{item.value}</Text>
-        </View>
-      ))}
+      {commons.map(
+        (item, index) =>
+          item.value && (
+            <View key={index} style={styles.row}>
+              <Text style={styles.label}>{item.label}</Text>
+              <Text>{item.value}</Text>
+            </View>
+          ),
+      )}
     </View>
   )
 }

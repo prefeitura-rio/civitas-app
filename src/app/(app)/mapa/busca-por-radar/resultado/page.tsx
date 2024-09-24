@@ -12,56 +12,9 @@ import { Filter } from './components/filter'
 import { Header } from './components/header'
 import { InvalidParamsAlert } from './components/invalid-params-alert'
 
-// function groupDetectionsByLocation(detections: Detection[]) {
-//   const groupedData = detections.reduce(
-//     (acc, item) => {
-//       const location = item.location?.replace(/- FX \d+/, '') || 'N/A'
-//       if (!acc[location]) {
-//         acc[location] = {
-//           location,
-//           radars: [],
-//           detections: [],
-//         }
-//       }
-//       acc[location].radars.push(item.)
-//       acc[location].detections.push(
-//         ...item.detections.map((detection) => ({
-//           ...detection,
-//           lane: detection.lane || 'N/A',
-//         })),
-//       )
-//       return acc
-//     },
-//     {} as {
-//       [key: string]: {
-//         location: string
-//         radars: Radar[]
-//         detections: (RadarDetection &
-//           Vehicle & {
-//             cameraNumber: string
-//             lane: string
-//           })[]
-//       }
-//     },
-//   )
-
-//   Object.values(groupedData).forEach((group) => {
-//     group.detections.sort(
-//       (a, b) =>
-//         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-//     )
-//   })
-
-//   return Object.values(groupedData) as DetectionGroup[]
-// }
-
 export default function RadarDetections() {
   const { formattedSearchParams } = useCarRadarSearchParams()
   if (!formattedSearchParams) return <InvalidParamsAlert />
-
-  // const [filteredData, setFilteredData] = useState<DetectionDTO[] | undefined>(
-  //   undefined,
-  // )
 
   const { data, isPending } = useRadarsSearch()
   const filters = useSearchByRadarResultDynamicFilter({ data })
@@ -80,8 +33,6 @@ export default function RadarDetections() {
           )}
           {data && (
             <Filter
-              data={data}
-              // setFilteredData={setFilteredData}
               filters={filters}
               radarIds={formattedSearchParams.radarIds}
             />

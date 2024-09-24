@@ -7,7 +7,6 @@ import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 
 interface DetectionsTableProps {
@@ -17,7 +16,6 @@ interface DetectionsTableProps {
 
 export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
   const router = useRouter()
-  const { searchParams } = useCarRadarSearchParams()
 
   const columns: ColumnDef<DetectionDTO>[] = [
     {
@@ -55,14 +53,14 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
     {
       id: 'actions',
       header: () => <Label></Label>,
-      cell: () => (
+      cell: ({ row }) => (
         <Tooltip asChild text="Ver mais detalhes do veículo">
           <Button
             variant="outline"
             className="size-6 shrink-0 p-0"
             onClick={() =>
               router.push(
-                `/mapa/busca-por-placa/veiculo?${searchParams.toString()}`,
+                `/mapa/busca-por-radar/veiculo?plate=${row.getValue('plate')}`,
               )
             }
           >
