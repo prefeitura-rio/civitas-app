@@ -6,16 +6,22 @@ import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
+import { useVehicle } from '@/hooks/use-queries/use-vehicle'
 
 import { ReportDocument } from '../../report/components/report-document'
 
 export default function DownloadReportButton() {
   const {
     layers: {
-      trips: { trips, isLoading, lastSearchParams },
+      trips: { trips, isLoading },
     },
   } = useMap()
-  if (!lastSearchParams) return null
+  const { formattedSearchParams } = useCarPathsSearchParams()
+  if (!formattedSearchParams)
+    throw new Error('formattedSearchParams is required')
+
+  const { data: vehicle } = useVehicle(formattedSearchParams?.plate || '')
 
   return (
     <Dialog>
@@ -28,7 +34,15 @@ export default function DownloadReportButton() {
       </Tooltip>
       <DialogContent className="h-[80%] max-w-7xl">
         <PDFViewer style={{ width: '100%', height: '100%' }}>
-          <ReportDocument trips={trips || []} searchParams={lastSearchParams} />
+          <ReportDocument
+            trips={trips || []}
+            searchParams={{
+              plate: formattedSearchParams.plate,
+              endTime: formattedSearchParams.to,
+              startTime: formattedSearchParams.from,
+            }}
+            vehicle={vehicle}
+          />
         </PDFViewer>
       </DialogContent>
     </Dialog>
