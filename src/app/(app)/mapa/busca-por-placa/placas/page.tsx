@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
-import { useSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-plates-dynamic-filter'
+import { useSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
 
 import { ActionBar } from './components/action-bar'
 import { Filter } from './components/filter'

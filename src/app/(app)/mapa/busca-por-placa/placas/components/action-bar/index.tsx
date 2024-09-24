@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-plates-dynamic-filter'
+import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
 
 import { EnhancePlatesInfo } from './components/enhance-plates-info'
 

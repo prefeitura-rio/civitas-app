@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
 import { useVehiclesNecessaryCredits } from '@/hooks/use-queries/use-vehicles-necessary-credits'
-import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-plates-dynamic-filter'
+import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
 import { queryClient } from '@/lib/react-query'
 import { toQueryParams } from '@/utils/to-query-params'
 
