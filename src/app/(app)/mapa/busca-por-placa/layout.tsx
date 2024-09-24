@@ -1,4 +1,4 @@
-import { SearchByPlateForm } from './components/search-by-plate-form'
+import { SearchByPlateForm } from './veiculo/components/search-by-radar-form'
 
 export default function MapLayout({
   children,
@@ -6,7 +6,7 @@ export default function MapLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div className="flex h-screen w-full flex-col items-center gap-2 overflow-y-scroll p-2">
+    <div className="flex h-[calc(100%-3.75rem)] w-full flex-col items-center gap-2 overflow-y-scroll p-2">
       <SearchByPlateForm />
       {children}
     </div>

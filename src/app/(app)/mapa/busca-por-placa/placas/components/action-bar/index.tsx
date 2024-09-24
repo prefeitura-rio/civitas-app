@@ -1,31 +1,29 @@
-'use client'
 import { SearchX } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import type { EnhancedDetectionDTO } from '@/hooks/use-queries/use-enhanced-radars-search'
-import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/use-search-by-radar-enhanced-result-dynamic-filter'
+import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-plates-dynamic-filter'
 
-import { DownloadReport } from './components/download-report'
+import { EnhancePlatesInfo } from './components/enhance-plates-info'
 
 interface ActionBarProps {
-  data: EnhancedDetectionDTO[] | undefined
-  filters: UseSearchByRadarEnhancedResultDynamicFilter
   isLoading: boolean
+  filters: UseSearchByPlateResultDynamicFilter
 }
 
-export function ActionBar({ data, filters, isLoading }: ActionBarProps) {
+export function ActionBar({ filters, isLoading }: ActionBarProps) {
   const router = useRouter()
+  const { filteredData: data } = filters
 
   return (
-    <Card className="flex w-full max-w-screen-md justify-between gap-2 p-2">
+    <Card className="mx-auto flex w-full max-w-screen-md justify-between gap-2 p-2">
       <div className="flex gap-2">
-        <DownloadReport
-          data={data || []}
-          filters={filters}
+        <EnhancePlatesInfo
           isLoading={isLoading}
+          plates={data?.map((item) => item.plate) || []}
+          filters={filters}
         />
       </div>
       <div className="flex gap-2">
@@ -33,7 +31,7 @@ export function ActionBar({ data, filters, isLoading }: ActionBarProps) {
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => router.push('/mapa/busca-por-radar')}
+            onClick={() => router.push('/mapa/busca-por-placa')}
           >
             <SearchX className="size-4 shrink-0" />
           </Button>

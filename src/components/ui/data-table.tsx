@@ -51,27 +51,6 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-2 py-4">
-        {/* {filters &&
-          data.length > 0 &&
-          filters.map((filter, index) => (
-            <Input
-              key={index}
-              placeholder={filter.placeholder}
-              value={
-                (table
-                  .getColumn(filter.accessorKey)
-                  ?.getFilterValue() as string) ?? ''
-              }
-              onChange={(event) =>
-                table
-                  .getColumn(filter.accessorKey)
-                  ?.setFilterValue(event.target.value)
-              }
-              className="max-w-48"
-            />
-          ))} */}
-      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

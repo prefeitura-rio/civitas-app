@@ -7,8 +7,8 @@ import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import type { Radar, RadarDetection } from '@/models/entities'
 
-import { RadarReportCover } from './components/cover-v2'
-import { RadarReportEmptyResult } from './components/radar-report-empty-result-v2'
+import { RadarReportCover } from './components/cover'
+import { RadarReportEmptyResult } from './components/radar-report-empty-result'
 
 const styles = StyleSheet.create({
   page: {

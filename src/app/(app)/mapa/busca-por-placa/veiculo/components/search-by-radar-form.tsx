@@ -66,7 +66,7 @@ export function SearchByPlateForm() {
         endTime: data.date.to.toISOString(),
       })
 
-      router.push(`/mapa/busca-por-placa/veiculos?${query.toString()}`)
+      router.push(`/mapa/busca-por-placa/placas?${query.toString()}`)
     } else {
       getTrips({
         plate: data.plate,

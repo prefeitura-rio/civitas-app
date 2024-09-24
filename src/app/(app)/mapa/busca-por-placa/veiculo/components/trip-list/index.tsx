@@ -3,6 +3,7 @@ import { ptBR } from 'date-fns/locale'
 import React from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
+import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 
@@ -19,7 +20,7 @@ export function TripList() {
   if (!lastSearchParams) return null
 
   return (
-    <div className="h-full w-full">
+    <Card className="w-full p-6">
       {isLoading ? (
         <div className="flex h-full w-full items-center justify-center">
           <Spinner className="size-10" />
@@ -72,6 +73,6 @@ export function TripList() {
           </div>
         )
       )}
-    </div>
+    </Card>
   )
 }

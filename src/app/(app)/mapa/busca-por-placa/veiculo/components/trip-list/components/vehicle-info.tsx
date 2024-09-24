@@ -16,7 +16,7 @@ export function VehicleInfo({ plate }: VehicleInfoProps) {
     'Marca/Modelo': data?.marcaModelo,
     Cor: data?.cor,
     'Ano do Modelo': data?.anoModelo,
-    Restricoes: data?.restricao.length || 0,
+    Restrições: data?.restricao.length || 0,
   }
   const simpleFields = {
     UF: data?.ufEmplacamento,
