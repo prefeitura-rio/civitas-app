@@ -3,11 +3,13 @@ import { formatDate } from 'date-fns'
 
 import { ReportFooter } from '@/components/custom/report-footer'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
+import type { Vehicle } from '@/models/entities'
 
 interface ReportCoverProps {
   searchParams: GetCarPathRequest
   totalPoints: number
   cloneAlert: boolean
+  vehicle?: Vehicle
 }
 
 type BulletPoint = {
@@ -243,6 +245,7 @@ export function ReportCover({
   searchParams,
   totalPoints,
   cloneAlert,
+  vehicle,
 }: ReportCoverProps) {
   const from = formatDate(searchParams.startTime, "dd/MM/yyyy 'às' HH:mm:ss")
   const to = formatDate(searchParams.endTime, "dd/MM/yyyy 'às' HH:mm:ss")
@@ -302,16 +305,37 @@ export function ReportCover({
             <Text style={{ padding: 4 }}>{searchParams.plate}</Text>
           </View>
 
+          {vehicle && (
+            <>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableRowTitle}>Marca/Modelo:</Text>
+                <Text style={{ padding: 4 }}>{vehicle.marcaModelo}</Text>
+              </View>
+
+              <View style={styles.tableRow}>
+                <Text style={styles.tableRowTitle}>Cor:</Text>
+                <Text style={{ padding: 4 }}>{vehicle.cor}</Text>
+              </View>
+
+              <View style={styles.tableRow}>
+                <Text style={styles.tableRowTitle}>Ano Modelo:</Text>
+                <Text style={{ padding: 4 }}>{vehicle.anoModelo}</Text>
+              </View>
+            </>
+          )}
+
           <View style={styles.tableRow}>
             <Text style={styles.tableRowTitle}>Período analisado:</Text>
             <Text style={{ padding: 4 }}>{`De ${from} até ${to}`}</Text>
           </View>
+
           <View style={styles.tableRow}>
             <Text style={styles.tableRowTitle}>
               Total de pontos detectados:
             </Text>
             <Text style={{ padding: 4 }}>{totalPoints}</Text>
           </View>
+
           <View style={styles.tableRow}>
             <Text style={styles.tableRowTitle}>Suspeita de placa clonada:</Text>
             <Text style={{ padding: 4 }}>{cloneAlert ? 'Sim' : 'Não'}</Text>
