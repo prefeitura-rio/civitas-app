@@ -11,20 +11,20 @@ export interface UseAgents {
   data: Agent[]
   failed: boolean
   layer: IconLayer<Agent, object>
-  layerStates: {
-    isLoading: boolean
-    isVisible: boolean
-    setIsVisible: Dispatch<SetStateAction<boolean>>
-    hoverInfo: PickingInfo<Agent>
-    setHoverInfo: Dispatch<SetStateAction<PickingInfo<Agent>>>
-  }
+  isLoading: boolean
+  isVisible: boolean
+  setIsVisible: Dispatch<SetStateAction<boolean>>
+  hoveredObject: PickingInfo<Agent> | null
+  setHoveredObject: Dispatch<SetStateAction<PickingInfo<Agent> | null>>
+  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
 export function useAgents(): UseAgents {
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo<Agent>>(
-    {} as PickingInfo<Agent>,
+  const [hoveredObject, setHoveredObject] = useState<PickingInfo<Agent> | null>(
+    null,
   )
   const [isVisible, setIsVisible] = useState(false)
+  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['agents'],
@@ -47,19 +47,22 @@ export function useAgents(): UseAgents {
       mask: false,
     }),
     getPosition: (info) => [info.longitude, info.latitude],
-    onHover: (info) => setHoverInfo(info),
+    onHover: (info) => {
+      if (!isHoveringInfoCard) {
+        setHoveredObject(info.object ? info : null)
+      }
+    },
   })
 
   return {
     data: data || [],
     failed: !data && !isLoading,
     layer,
-    layerStates: {
-      isLoading,
-      isVisible,
-      setIsVisible,
-      hoverInfo,
-      setHoverInfo,
-    },
+    isLoading,
+    isVisible,
+    setIsVisible,
+    hoveredObject,
+    setHoveredObject,
+    setIsHoveringInfoCard,
   }
 }

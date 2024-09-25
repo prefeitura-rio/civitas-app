@@ -44,8 +44,9 @@ export function MapActions() {
 
   return (
     <Card className="absolute right-2 top-2 flex flex-col gap-2 whitespace-nowrap bg-card p-2 tracking-tighter">
-      {fixedSwitches.map((item) => (
+      {fixedSwitches.map((item, index) => (
         <Tooltip
+          key={index}
           hideContent={!item.failed}
           text={`Não foi possível carregar os dados da camada ${item.label}. Se o problema persistir, por favor, entre em contato com um administrador do sistema.`}
         >

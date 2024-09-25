@@ -43,8 +43,8 @@ export default function Home() {
   return (
     <div className="page-content flex items-center justify-center">
       <div className="grid grid-cols-4 gap-4">
-        {cards.map((item) => (
-          <Link href={item.href} className="col-span-2">
+        {cards.map((item, index) => (
+          <Link key={index} href={item.href} className="col-span-2">
             <Card className="h-full max-w-[40rem] hover:bg-border">
               <CardHeader>
                 <CardTitle>{item.title}</CardTitle>

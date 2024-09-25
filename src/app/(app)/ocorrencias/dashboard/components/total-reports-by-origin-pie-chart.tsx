@@ -86,7 +86,6 @@ export function TotalReportsByOriginPieChart({
             fill: 'var(--color-appRio)',
           },
         ]
-        console.log({ count, chartData })
         return { count, chartData }
       }),
   })

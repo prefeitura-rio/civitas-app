@@ -13,8 +13,8 @@ export default function Novidades() {
           projeto CIVITAS perceptíveis ao usuário final.
         </p>
 
-        {changelog.map((cardProps) => (
-          <Card {...cardProps} />
+        {changelog.map((cardProps, index) => (
+          <Card key={index} {...cardProps} />
         ))}
       </div>
     </div>

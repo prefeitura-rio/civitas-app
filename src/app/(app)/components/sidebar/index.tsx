@@ -1,68 +1,83 @@
 'use client'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import React, { useState } from 'react'
 
+import { LogOut } from 'lucide-react'
+
+import { Accordion } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useSidebar } from '@/hooks/use-contexts/use-sidebar-context'
 import { useProfile } from '@/hooks/use-queries/use-profile'
-import { cn } from '@/lib/utils'
+import { queryClient } from '@/lib/react-query'
+import { logout } from '@/utils/logout'
 
-import { SideNav } from './components/side-nav'
-import { navItems } from './components/sidebar-constants'
+import { home, modules } from './components/constants'
+import { SidebarAccordion } from './components/sidebar-accordion'
+import { SidebarButton } from './components/sidebar-button'
 
-interface SidebarProps {
-  className?: string
-}
-
-export function Sidebar({ className }: SidebarProps) {
-  const { isOpen, toggle } = useSidebar()
-  const [status, setStatus] = useState(false)
-  const { profile } = useProfile()
-
-  const handleToggle = () => {
-    setStatus(true)
-    toggle()
-    setTimeout(() => setStatus(false), 500)
-  }
-
+export function Sidebar() {
+  const { data: profile } = useProfile()
   return (
-    <nav
-      className={cn(
-        `relative z-10 h-screen shrink-0 border-r`,
-        status && 'duration-500',
-        isOpen ? 'w-56' : 'w-14',
-        className,
-      )}
-    >
-      <Button
-        variant="outline"
-        onClick={handleToggle}
-        className="absolute -right-[0.85rem] top-4 z-50 flex h-7 w-7 items-center justify-center rounded-full border-2 p-0"
-      >
-        {isOpen ? (
-          <ChevronLeft className="h-5 w-5" />
-        ) : (
-          <ChevronRight className="h-5 w-5" />
-        )}
-      </Button>
-      <div className="h-full space-y-1 px-2 py-4 pt-10">
-        <div className="flex justify-center py-4">
-          {profile ? (
-            isOpen ? (
-              <span>{profile.username}</span>
+    <div className="relative z-50 h-screen w-14 shrink-0">
+      <nav className="group absolute left-0 top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-x-hidden border-r-2 bg-background p-2 transition-all duration-300 ease-in hover:w-64">
+        <div className="flex flex-col gap-2">
+          <div className="relative h-20">
+            {profile ? (
+              <div className="">
+                <span className="absolute-centered text-2xl opacity-100 transition-opacity duration-300 group-hover:opacity-0">
+                  {profile.username[0].toUpperCase()}
+                </span>
+                <span className="absolute-centered text-wrap text-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  {profile.username}
+                </span>
+              </div>
             ) : (
-              <span>{profile.username[0].toUpperCase()}</span>
-            )
-          ) : (
-            <Skeleton className="my-1 h-4 w-full" />
-          )}
+              <Skeleton className="my-1 h-4 w-full" />
+            )}
+          </div>
+
+          <SidebarButton icon={home.icon} title={home.title} path={home.path} />
+
+          <Separator className="-mb-1 -mt-1" />
+
+          <Accordion
+            type="multiple"
+            defaultValue={modules.map((item) => item.title)}
+          >
+            {modules.map((item, index) => (
+              <SidebarAccordion
+                key={index}
+                icon={item.icon}
+                title={item.title}
+                products={item.products}
+              />
+            ))}
+          </Accordion>
         </div>
-        <SideNav
-          className="w-0 text-background opacity-0 transition-all duration-300"
-          items={navItems}
-        />
-      </div>
-    </nav>
+
+        <div className="flex flex-col gap-2">
+          <SidebarButton
+            icon={'Lightbulb'}
+            title={'Novidades'}
+            path="/novidades"
+          />
+          <Separator className="-mb-1 -mt-1" />
+          <Button
+            variant="ghost"
+            className="justify-between px-2 group-hover:w-full"
+            onClick={() => {
+              queryClient.clear()
+              logout()
+            }}
+          >
+            <div className="flex items-center justify-start gap-2">
+              <LogOut className="shrink-0 text-muted-foreground" />
+              <span className="opacity-0 transition-all duration-300 group-hover:opacity-100">
+                Sair
+              </span>
+            </div>
+          </Button>
+        </div>
+      </nav>
+    </div>
   )
 }

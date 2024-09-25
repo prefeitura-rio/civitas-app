@@ -8,10 +8,9 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import type { SetViewportProps } from '@/hooks/map-layers/use-trips-data'
 import { getPlaces } from '@/http/mapbox/get-places'
 import { cn } from '@/lib/utils'
-import type { AddressMarker } from '@/models/utils'
+import type { AddressMarker, SetViewportProps } from '@/models/utils'
 
 const searchFormSchema = z.object({
   address: z.string().min(1),
