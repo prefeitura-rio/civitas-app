@@ -131,7 +131,6 @@ export function DownloadReport({
     } else {
       // Download PDF
       const groupedData = groupData(selectedData)
-      console.log(groupedData)
 
       const from = new Date(formattedSearchParams.date).addMinutes(
         formattedSearchParams.duration[0] * -1,
@@ -147,7 +146,7 @@ export function DownloadReport({
           return radarIds
         })
         .flat()
-      console.log(radarIds)
+
       const blob = await pdf(
         <RadarReportDocument
           data={groupedData}
