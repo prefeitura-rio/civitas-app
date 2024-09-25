@@ -19,7 +19,7 @@ export default function RadarDetections() {
   const { data, isPending } = useRadarsSearch()
   const filters = useSearchByRadarResultDynamicFilter({ data })
   const { filteredData } = filters
-  console.log(data)
+
   return (
     <div className="flex w-full flex-col items-center gap-4">
       <ActionBar isLoading={isPending} filters={filters} data={data} />

@@ -7,7 +7,7 @@ interface FilterProps {
 
 export function Filter({ filters }: FilterProps) {
   const { selectedPlate, setSelectedPlate } = filters
-  console.log(selectedPlate)
+
   return (
     <div className="mb-4 flex flex-wrap gap-2">
       <Input

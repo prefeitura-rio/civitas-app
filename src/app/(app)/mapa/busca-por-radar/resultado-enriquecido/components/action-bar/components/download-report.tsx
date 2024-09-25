@@ -200,8 +200,6 @@ export function DownloadReport({
         })
         .flat()
 
-      console.log(groupedData)
-
       const blob = await pdf(
         <RadarReportDocument
           data={groupedData}

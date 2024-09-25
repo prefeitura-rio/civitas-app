@@ -9,13 +9,7 @@ export function useCortexRemainingCredits() {
 
   return useQuery({
     queryKey: ['users', 'cortex-remaining-credits'],
-    queryFn: () => {
-      console.log(profile)
-      console.log(profile?.id)
-      const r = getCortexRemainingCredits(profile?.id || '')
-      console.log(r)
-      return r
-    },
+    queryFn: () => getCortexRemainingCredits(profile?.id || ''),
     enabled: !!profile,
   })
 }
