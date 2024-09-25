@@ -1,7 +1,13 @@
-import { Text } from '@react-pdf/renderer'
+import { Font, Text } from '@react-pdf/renderer'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import React from 'react'
+
+// Register the font
+Font.register({
+  family: 'Open Sans',
+  src: 'https://fonts.gstatic.com/s/opensans/v18/mem8YaGs126MiZpBA-UFVZ0e.ttf',
+})
 
 interface ReportEmptyResultProps {
   fromDate: Date

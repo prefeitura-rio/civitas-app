@@ -18,7 +18,7 @@ export default function Map() {
     layers: { reports, addressMarker },
   } = useReportsMap()
 
-  const bounds = mapRef.current?.getBounds().toArray().flat() || [0, 0, 0, 0]
+  const bounds = mapRef.current?.getBounds()?.toArray()?.flat() ?? [0, 0, 0, 0]
   const zoom = viewport.zoom
 
   return (
