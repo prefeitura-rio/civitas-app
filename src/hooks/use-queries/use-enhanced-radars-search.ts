@@ -1,16 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { getVehicles } from '@/http/cars/plates/get-vehicles'
-import type { RadarDetection } from '@/models/entities'
 
 import { useCarRadarSearchParams } from '../use-params/use-car-radar-search-params.'
 import { useRadarsSearch } from './use-radars-search'
 
-export type EnhancedDetectionDTO = RadarDetection & {
+export type EnhancedDetectionDTO = {
+  plate: string
+  timestamp: string
+  speed: number
   brandModel: string
   color: string
   modelYear: string
-  plate: string
   cameraNumber: string
   location: string
   lane: string
