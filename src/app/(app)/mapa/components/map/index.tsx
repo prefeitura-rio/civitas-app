@@ -36,6 +36,7 @@ export function Map() {
         setIsHoveringInfoCard: setIsHoveringRadarInfoCard,
         isVisible: isRadarVisible,
         setIsVisible: setIsRadarVisible,
+        data: radars,
       },
       cameras: {
         layer: cameraLayer,
@@ -45,6 +46,7 @@ export function Map() {
         selectedObject: selectedCamera,
         setSelectedObject: setSelectedCamera,
         setIsHoveringInfoCard: setIsHoveringCameraInfoCard,
+        data: cameras,
       },
       agents: {
         layer: agentsLayer,
@@ -130,6 +132,38 @@ export function Map() {
           setIsVisible={setIsAddressVisible}
           setAddressMarker={setAddressMarker}
           setViewport={setViewport}
+          onSubmit={(props) => {
+            const id = props.address
+            const radar = radars?.find((r) => {
+              const trimmedCameraNumber = r.cameraNumber.replace(/^0+/, '')
+              const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
+              const trimmedId = id.replace(/^0+/, '')
+              return (
+                trimmedCameraNumber === trimmedId ||
+                trimmedCetRioCode === trimmedId
+              )
+            })
+            if (radar) {
+              setViewport({
+                latitude: radar.latitude,
+                longitude: radar.longitude,
+                zoom: 20,
+              })
+              return
+            }
+            const camera = cameras?.find((c) => {
+              const trimmedCode = c.code.replace(/^0+/, '')
+              const trimmedId = id.replace(/^0+/, '')
+              return trimmedCode === trimmedId
+            })
+            if (camera) {
+              setViewport({
+                latitude: camera.latitude,
+                longitude: camera.longitude,
+                zoom: 20,
+              })
+            }
+          }}
         />
       </div>
       <RadarHoverCard
