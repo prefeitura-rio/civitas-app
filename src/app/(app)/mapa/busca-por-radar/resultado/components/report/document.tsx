@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
   table: {
     display: 'flex',
     flexDirection: 'column',
+    alignItems: 'center',
     marginTop: 20,
   },
   tableRow: {
@@ -64,14 +65,11 @@ const styles = StyleSheet.create({
 })
 
 const columns = [
-  { title: 'Data e Hora', width: '13%', key: 'timestamp' },
-  { title: 'Placa', width: '12%', key: 'plate' },
-  { title: 'Marca/Modelo', width: '18%', key: 'brandAndModel' },
-  { title: 'Cor', width: '15%', key: 'color' },
-  { title: 'Ano Modelo', width: '10%', key: 'modelYear' },
-  { title: 'Radar', width: '13%', key: 'cameraNumber' },
-  { title: 'Faixa', width: '7%', key: 'lane' },
-  { title: 'Velocidade [Km/h]', width: '12%', key: 'speed' },
+  { title: 'Data e Hora', width: '25%', key: 'timestamp' },
+  { title: 'Placa', width: '15%', key: 'plate' },
+  { title: 'Radar', width: '15%', key: 'cameraNumber' },
+  { title: 'Faixa', width: '10%', key: 'lane' },
+  { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
 ]
 
 export type GroupedDetection = {
@@ -101,7 +99,7 @@ export function RadarReportDocument({
       <Page size="A4" style={styles.page}>
         <ReportHeader title={reportTitle} />
 
-        {data.map((item, i) => (
+        {data.map((group, i) => (
           <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
             {data.length > 1 && (
               <Text style={styles.groupTitle}>{`Grupo ${i + 1}`}</Text>
@@ -109,14 +107,14 @@ export function RadarReportDocument({
             <RadarReportCover
               fromDate={parameters.from}
               toDate={parameters.to}
-              latitude={item.radars[0].latitude}
-              longitude={item.radars[0].longitude}
-              location={item.location}
-              radarIds={item.radars.map((r) => r.cameraNumber)}
-              totalDetections={item.detections.length}
+              latitude={group.radars[0].latitude}
+              longitude={group.radars[0].longitude}
+              location={group.location}
+              radarIds={parameters.radarIds}
+              totalDetections={group.detections.length}
               plate={parameters.plate}
             />
-            {item.detections.length > 0 ? (
+            {group.detections.length > 0 ? (
               <>
                 <View style={styles.table}>
                   <View style={styles.tableRow} wrap={false}>
@@ -133,7 +131,7 @@ export function RadarReportDocument({
                     ))}
                   </View>
 
-                  {item.detections.map((row, i) => {
+                  {group.detections.map((row, i) => {
                     return (
                       <View key={i} style={styles.tableRow} wrap={false}>
                         {columns.map((column, j) => (
@@ -169,7 +167,6 @@ export function RadarReportDocument({
                 toDate={parameters.to}
               />
             )}
-            ,
           </View>
         ))}
 
