@@ -102,7 +102,7 @@ export function RadarReportDocument({
       <Page size="A4" style={styles.page}>
         <ReportHeader title={reportTitle} />
 
-        {data.map((item, i) => (
+        {data.map((group, i) => (
           <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
             {data.length > 1 && (
               <Text style={styles.groupTitle}>{`Grupo ${i + 1}`}</Text>
@@ -110,16 +110,16 @@ export function RadarReportDocument({
             <RadarReportCover
               fromDate={parameters.from}
               toDate={parameters.to}
-              latitude={item.radars[0].latitude}
-              longitude={item.radars[0].longitude}
-              location={item.location}
-              radarIds={parameters.radarIds}
-              totalDetections={item.detections.length}
+              latitude={group.radars[0].latitude}
+              longitude={group.radars[0].longitude}
+              location={group.location}
+              radarIds={group.radars.map((r) => r.cameraNumber)}
+              totalDetections={group.detections.length}
               brandModels={parameters.brandModels}
               colors={parameters.colors}
               plate={parameters.plate}
             />
-            {item.detections.length > 0 ? (
+            {group.detections.length > 0 ? (
               <>
                 <View style={styles.table}>
                   <View style={styles.tableRow} wrap={false}>
@@ -136,7 +136,7 @@ export function RadarReportDocument({
                     ))}
                   </View>
 
-                  {item.detections.map((row, i) => {
+                  {group.detections.map((row, i) => {
                     return (
                       <View key={i} style={styles.tableRow} wrap={false}>
                         {columns.map((column, j) => (
