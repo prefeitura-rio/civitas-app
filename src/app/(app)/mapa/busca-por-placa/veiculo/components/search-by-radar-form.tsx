@@ -49,8 +49,8 @@ export function SearchByPlateForm() {
         }
       : {
           date: {
-            from: new Date(),
-            to: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
+            from: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
+            to: new Date(),
           },
           plate: '',
         },
