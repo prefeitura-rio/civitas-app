@@ -52,7 +52,7 @@ export const modules: Module[] = [
       {
         icon: 'Cctv',
         title: 'Status Infra dos Radares',
-        path: 'dashboard/status-infra-radares',
+        path: 'dashboards/status-infra-radares',
       },
     ],
   },
