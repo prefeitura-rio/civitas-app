@@ -110,7 +110,7 @@ export function RadarReportDocument({
               latitude={group.radars[0].latitude}
               longitude={group.radars[0].longitude}
               location={group.location}
-              radarIds={parameters.radarIds}
+              radarIds={group.radars.map((r) => r.cameraNumber)}
               totalDetections={group.detections.length}
               plate={parameters.plate}
             />
