@@ -5,7 +5,7 @@ import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search
 import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
 import { useEnhancedRadarsSearch } from '@/hooks/use-queries/use-enhanced-radars-search'
 import { useRadarsSearch } from '@/hooks/use-queries/use-radars-search'
-import { useVehiclesNecessaryCredits } from '@/hooks/use-queries/use-vehicles-necessary-credits'
+import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import { useSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/use-search-by-radar-enhanced-result-dynamic-filter'
 
 import { ActionBar } from './components/action-bar'
@@ -25,7 +25,7 @@ export default function RadarDetections() {
     data: enhancedDetections,
   })
   const { data: remainingCredits } = useCortexRemainingCredits()
-  const { data: creditsRequired } = useVehiclesNecessaryCredits(
+  const { data: creditsRequired } = useVehiclesCreditsRequired(
     detections?.map((item) => item.plate) || [],
   )
 

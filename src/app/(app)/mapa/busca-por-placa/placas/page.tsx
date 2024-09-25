@@ -82,7 +82,11 @@ export default function Veiculos() {
 
   return (
     <div className="flex w-full flex-col items-center gap-4">
-      <ActionBar isLoading={isLoading} filters={filters} />
+      <ActionBar
+        isLoading={isLoading}
+        filters={filters}
+        data={data?.map((item) => item.plate) || []}
+      />
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="">
