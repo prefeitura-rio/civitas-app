@@ -58,34 +58,94 @@ export function DownloadReport({
 
   const { data: radars } = useRadars()
 
+  // function groupData(data: EnhancedDetectionDTO[]) {
+  //   if (!radars) throw new Error('radars is required')
+
+  //   const groupedData = data.reduce(
+  //     (acc, item) => {
+  //       // Remove "faixa" da localização
+  //       const location = item.location?.replace(/- FX \d+/, '') || 'N/A'
+
+  //       // Se não existir a localização, cria um novo objeto
+  //       if (!acc[location]) {
+  //         acc[location] = {
+  //           location,
+  //           radars: [],
+  //           detections: [],
+  //         }
+  //       }
+  //       // Adiciona o radar ao objeto
+  //       const radar = radars.find(
+  //         (radar) =>
+  //           radar.cameraNumber === item.cameraNumber ||
+  //           radar.cetRioCode === item.cameraNumber,
+  //       )
+
+  //       if (!radar) throw new Error('radar not found')
+  //       acc[location].radars.push(radar)
+
+  //       // Adiciona as detecções ao objeto
+  //       acc[location].detections.push(item)
+  //       return acc
+  //     },
+  //     {} as {
+  //       [key: string]: GroupedEnhancedDetection
+  //     },
+  //   )
+
+  //   Object.values(groupedData).forEach((group) => {
+  //     group.detections.sort(
+  //       (a, b) =>
+  //         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  //     )
+  //   })
+
+  //   Object.values(groupedData).forEach((group) => {
+  //     group.detections.sort(
+  //       (a, b) =>
+  //         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  //     )
+  //   })
+
+  //   return Object.values(groupedData) as GroupedEnhancedDetection[]
+  // }
+
   function groupData(data: EnhancedDetectionDTO[]) {
     if (!radars) throw new Error('radars is required')
+    if (!formattedSearchParams)
+      throw new Error('formattedSearchParams is required')
 
-    const groupedData = data.reduce(
-      (acc, item) => {
+    const selectedRadars = radars.filter((radar) =>
+      formattedSearchParams.radarIds.some(
+        (radarId) =>
+          radarId === radar.cameraNumber || radarId === radar.cetRioCode,
+      ),
+    )
+
+    const groupedData = selectedRadars.reduce(
+      (acc, radar) => {
         // Remove "faixa" da localização
-        const location = item.location?.replace(/- FX \d+/, '') || 'N/A'
+        const location = radar.location?.replace(/- FX \d+/, '') || 'N/A'
 
         // Se não existir a localização, cria um novo objeto
         if (!acc[location]) {
           acc[location] = {
             location,
             radars: [],
+            // brandModel:
             detections: [],
           }
         }
         // Adiciona o radar ao objeto
-        const radar = radars.find(
-          (radar) =>
-            radar.cameraNumber === item.cameraNumber ||
-            radar.cetRioCode === item.cameraNumber,
-        )
-
-        if (!radar) throw new Error('radar not found')
         acc[location].radars.push(radar)
 
         // Adiciona as detecções ao objeto
-        acc[location].detections.push(item)
+        const detections = data.filter(
+          (detection) =>
+            detection.cameraNumber === radar.cameraNumber ||
+            detection.cameraNumber === radar.cetRioCode,
+        )
+        acc[location].detections.push(...detections)
         return acc
       },
       {} as {
@@ -133,8 +193,14 @@ export function DownloadReport({
       )
 
       // Get unique radarIds
-      const allRadarIds = filters.filteredData?.map((item) => item.cameraNumber)
-      const radarIds = [...new Set(allRadarIds)]
+      const radarIds = groupedData
+        .map((group) => {
+          const radarIds = group.radars.map((radar) => radar.cameraNumber)
+          return radarIds
+        })
+        .flat()
+
+      console.log(groupedData)
 
       const blob = await pdf(
         <RadarReportDocument

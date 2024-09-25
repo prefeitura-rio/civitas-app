@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
 const columns = [
   { title: 'Data e Hora', width: '13%', key: 'timestamp' },
   { title: 'Placa', width: '12%', key: 'plate' },
-  { title: 'Marca/Modelo', width: '18%', key: 'brandAndModel' },
-  { title: 'Cor', width: '15%', key: 'color' },
+  { title: 'Marca/Modelo', width: '20%', key: 'brandModel' },
+  { title: 'Cor', width: '13%', key: 'color' },
   { title: 'Ano Modelo', width: '10%', key: 'modelYear' },
   { title: 'Radar', width: '13%', key: 'cameraNumber' },
   { title: 'Faixa', width: '7%', key: 'lane' },
