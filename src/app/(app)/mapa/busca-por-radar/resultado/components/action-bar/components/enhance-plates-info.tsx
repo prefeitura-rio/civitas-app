@@ -19,21 +19,26 @@ import {
 import { Label } from '@/components/ui/label'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
-import { useVehiclesNecessaryCredits } from '@/hooks/use-queries/use-vehicles-necessary-credits'
+import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
+import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
+import { queryClient } from '@/lib/react-query'
 import { toQueryParams } from '@/utils/to-query-params'
 
 interface EnhancePlatesInfoProps {
   isLoading: boolean
   plates: string[]
   filters: UseSearchByRadarResultDynamicFilter
+  data: DetectionDTO[] | undefined
 }
 
 export function EnhancePlatesInfo({
   isLoading,
   plates,
   filters,
+  data,
 }: EnhancePlatesInfoProps) {
+  const [isOpen, setIsOpen] = useState(false)
   const { formattedSearchParams } = useCarRadarSearchParams()
   const router = useRouter()
 
@@ -45,7 +50,7 @@ export function EnhancePlatesInfo({
       throw new Error('formattedSearchParams is required')
 
     // Get unique radarIds
-    const allRadarIds = filters.filteredData?.map((item) => item.cameraNumber)
+    const allRadarIds = data?.map((item) => item.cameraNumber)
     const radarIds = [...new Set(allRadarIds)]
 
     const params = {
@@ -62,21 +67,36 @@ export function EnhancePlatesInfo({
   }
 
   const { data: remainingCredits } = useCortexRemainingCredits()
-  const { data: creditsRequired } = useVehiclesNecessaryCredits(plates)
+  const { data: creditsRequired } = useVehiclesCreditsRequired(plates)
 
   useEffect(() => {
     const date = new Date(
       Date.now() + (remainingCredits?.time_until_reset || 0) * 1000,
     )
     setResetDate(date)
-  }, [])
+  }, [remainingCredits])
+
+  function handleDialogOpen(open: boolean) {
+    if (open) {
+      queryClient.invalidateQueries({
+        queryKey: ['users', 'cortex-remaining-credits'],
+      })
+      setIsOpen(true)
+    } else {
+      setIsOpen(false)
+    }
+  }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpen}>
       <Tooltip asChild text="Enriquecer resultado">
         <span tabIndex={0}>
           <DialogTrigger asChild>
-            <Button variant="secondary" size="icon" disabled={isLoading}>
+            <Button
+              variant="secondary"
+              size="icon"
+              disabled={isLoading || plates.length === 0}
+            >
               <WandSparkles className="size-4 shrink-0" />
             </Button>
           </DialogTrigger>

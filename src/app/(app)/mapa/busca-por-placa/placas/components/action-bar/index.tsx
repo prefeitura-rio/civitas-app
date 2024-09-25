@@ -11,18 +11,19 @@ import { EnhancePlatesInfo } from './components/enhance-plates-info'
 interface ActionBarProps {
   isLoading: boolean
   filters: UseSearchByPlateResultDynamicFilter
+  data: string[]
 }
 
-export function ActionBar({ filters, isLoading }: ActionBarProps) {
+export function ActionBar({ filters, isLoading, data }: ActionBarProps) {
   const router = useRouter()
-  const { filteredData: data } = filters
+  // const { filteredData } = filters
 
   return (
     <Card className="mx-auto flex w-full max-w-screen-md justify-between gap-2 p-2">
       <div className="flex gap-2">
         <EnhancePlatesInfo
           isLoading={isLoading}
-          plates={data?.map((item) => item.plate) || []}
+          plates={data}
           filters={filters}
         />
       </div>

@@ -19,7 +19,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
-import { useVehiclesNecessaryCredits } from '@/hooks/use-queries/use-vehicles-necessary-credits'
+import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
 import { queryClient } from '@/lib/react-query'
 import { toQueryParams } from '@/utils/to-query-params'
@@ -57,8 +57,8 @@ export function EnhancePlatesInfo({
   }
 
   const { data: remainingCredits } = useCortexRemainingCredits()
-  const { data: creditsRequired } = useVehiclesNecessaryCredits(plates)
-  console.log({ remainingCredits, creditsRequired, plates })
+  const { data: creditsRequired } = useVehiclesCreditsRequired(plates)
+
   useEffect(() => {
     if ((remainingCredits?.remaining_credit || 0) < 100) {
       const date = new Date(
@@ -68,7 +68,7 @@ export function EnhancePlatesInfo({
     } else {
       setResetDate(null)
     }
-  }, [remainingCredits?.remaining_credit])
+  }, [remainingCredits])
 
   function handleDialogOpen(open: boolean) {
     if (open) {
@@ -80,12 +80,17 @@ export function EnhancePlatesInfo({
       setIsOpen(false)
     }
   }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogOpen}>
       <Tooltip asChild text="Enriquecer resultado">
         <span tabIndex={0}>
           <DialogTrigger asChild>
-            <Button variant="secondary" size="icon" disabled={isLoading}>
+            <Button
+              variant="secondary"
+              size="icon"
+              disabled={isLoading || plates.length === 0}
+            >
               <WandSparkles className="size-4 shrink-0" />
             </Button>
           </DialogTrigger>

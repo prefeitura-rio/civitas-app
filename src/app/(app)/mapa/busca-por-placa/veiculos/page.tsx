@@ -25,7 +25,7 @@ import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
 import { useVehicles } from '@/hooks/use-queries/use-vehicles'
-import { useVehiclesNecessaryCredits } from '@/hooks/use-queries/use-vehicles-necessary-credits'
+import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import { useSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/use-search-by-plate-enhanced-result-dynamic-filter'
 
 import { Filter } from './components/filter'
@@ -48,7 +48,7 @@ export default function Veiculos() {
   const router = useRouter()
 
   const { data: remainingCredits } = useCortexRemainingCredits()
-  const { data: creditsRequired } = useVehiclesNecessaryCredits(
+  const { data: creditsRequired } = useVehiclesCreditsRequired(
     possiblePlates || [],
   )
 
