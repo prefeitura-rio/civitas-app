@@ -1,18 +1,23 @@
 # CIVITAS
 Central de Vigilância, Inteligência e Tecnologia de Apoio à Segurança Pública
 
-## Getting Started
+## Primeiros Passos
 
-First, run the development server:
+1. #### Instale as dependências
+Na raiz do projeto, rode o comando abaixo:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm i
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. #### Forneça as variáveis ambiente
+Crie o arquivo `.env.local` e forneça as variáveis ambientes necessárias. Utilize o arquivo `.env.example` para saber quais variáveis são necessárias.
+
+3. #### Inicie o servidor de desenvolvimento
+Na raiz do projeto, rode o comando abaixo:
+
+```bash
+pnpm run dev
+```
+
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador para ver o resultado.

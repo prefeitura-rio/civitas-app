@@ -40,6 +40,7 @@ export function ReportTimeline({ data }: ReportTimelineProps) {
         <View key={rowIndex} style={styles.tr}>
           {row.map((cell, colIndex) => (
             <Text
+              key={colIndex}
               style={cellStyle({
                 colIndex,
                 rowIndex,

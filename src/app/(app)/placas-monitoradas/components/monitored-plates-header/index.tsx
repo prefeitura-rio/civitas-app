@@ -8,18 +8,21 @@ import { notAllowed } from '@/utils/template-messages'
 
 export function MonitoredPlatesHeader() {
   const { formDialogDisclosure } = useMonitoredPlates()
-  const { isAdmin } = useProfile()
+  const { data: profile } = useProfile()
 
   return (
     <div className="flex w-full justify-between">
       <h2>Placas Monitoradas</h2>
       <Tooltip
-        hideContent={isAdmin}
-        disabled={!isAdmin}
+        hideContent={!profile || profile.is_admin}
+        disabled={!profile || !profile.is_admin}
         disabledText={notAllowed}
         asChild
       >
-        <Button onClick={formDialogDisclosure.onOpen} disabled={!isAdmin}>
+        <Button
+          onClick={formDialogDisclosure.onOpen}
+          disabled={!profile || !profile.is_admin}
+        >
           Adicionar
         </Button>
       </Tooltip>

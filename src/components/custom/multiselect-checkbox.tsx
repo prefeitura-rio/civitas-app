@@ -57,8 +57,8 @@ export function MultiselectCheckbox({
           <Spinner />
         ) : (
           <ul>
-            {Object.entries(options).map(([key, value]) => (
-              <li className="flex items-center gap-2">
+            {Object.entries(options).map(([key, value], index) => (
+              <li key={index} className="flex items-center gap-2">
                 <Checkbox
                   checked={value}
                   onCheckedChange={(e) => {

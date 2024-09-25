@@ -118,8 +118,15 @@ export function TotalReportsTimeHistoryAreaChart({
           <AreaChart data={data}>
             <CartesianGrid vertical={false} />
             <defs>
-              {sources?.map((item) => (
-                <linearGradient id={`fill${item}`} x1="0" y1="0" x2="0" y2="1">
+              {sources?.map((item, index) => (
+                <linearGradient
+                  key={index}
+                  id={`fill${item}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop
                     offset="5%"
                     stopColor={`var(--color-${item})`}

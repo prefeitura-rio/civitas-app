@@ -1,20 +1,20 @@
 import { api } from '@/lib/api'
 import type { RadarDetection } from '@/models/entities'
 
-interface GetCarsByRadarRequest {
+export interface GetCarsByRadarRequest {
   radar: string
   startTime: string
   endTime: string
   plateHint?: string
 }
 
-export function getCarsByRadar({
+export async function getCarsByRadar({
   radar,
   startTime,
   endTime,
   plateHint,
 }: GetCarsByRadarRequest) {
-  const response = api.get<RadarDetection[]>('/cars/radar', {
+  const response = await api.get<RadarDetection[]>('/cars/radar', {
     params: {
       radar,
       start_time: startTime,
@@ -23,5 +23,5 @@ export function getCarsByRadar({
     },
   })
 
-  return response
+  return response.data
 }

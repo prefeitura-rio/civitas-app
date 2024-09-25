@@ -1,134 +1,207 @@
-import DeckGL from '@deck.gl/react'
-import ReactMapGL from 'react-map-gl'
-import { toast } from 'sonner'
+'use client'
+import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { config } from '@/config'
+import { DeckGL } from 'deck.gl'
+import {
+  Cctv,
+  FlameKindling,
+  Satellite,
+  Siren,
+  UsersRound,
+  Video,
+} from 'lucide-react'
+import { useRef, useState } from 'react'
+import MapGl, { type MapRef } from 'react-map-gl'
+
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { getMapStyle, MapStyle } from '@/utils/get-map-style'
 
-import { HoverComponents } from './components/hover-components'
-import { MapActions } from './components/map-actions'
-import { MapCaption } from './components/map-caption'
+import { MAPBOX_ACCESS_TOKEN } from './components/constants'
+import { AgentHoverCard } from './components/hover-cards/agent-hover-card'
+import { CameraHoverCard } from './components/hover-cards/camera-hover-card'
+import { FogoCruzadoHoverCard } from './components/hover-cards/fogo-cruzado-hover-card'
+import { RadarHoverCard } from './components/hover-cards/radar-hover-card'
+import { WazePoliceAlertHoverCard } from './components/hover-cards/waze-police-alert-hover-card'
+import { MapLayerControl } from './components/layer-toggle'
 import { SearchBox } from './components/search-box'
-import { SelectionComponents } from './components/selection-components'
+import { CameraSelectCard } from './components/select-cards/camera-select-card'
+import { FogoCruzadoSelectCard } from './components/select-cards/fogo-cruzado-select-card'
 
 export function Map() {
   const {
     layers: {
-      camerasCOR,
-      radars,
-      addressMarker,
-      wazePoliceAlerts,
-      trips,
-      agents,
-      fogoCruzadoIncidents,
+      radars: {
+        layer: radarLayer,
+        hoveredObject: hoveredRadar,
+        setIsHoveringInfoCard: setIsHoveringRadarInfoCard,
+        isVisible: isRadarVisible,
+        setIsVisible: setIsRadarVisible,
+      },
+      cameras: {
+        layer: cameraLayer,
+        isVisible: isCameraVisible,
+        setIsVisible: setIsCameraVisible,
+        hoveredObject: hoveredCamera,
+        selectedObject: selectedCamera,
+        setSelectedObject: setSelectedCamera,
+        setIsHoveringInfoCard: setIsHoveringCameraInfoCard,
+      },
+      agents: {
+        layer: agentsLayer,
+        isVisible: isAgentsVisible,
+        setIsVisible: setIsAgentsVisible,
+        hoveredObject: hoveredAgent,
+        setIsHoveringInfoCard: setIsHoveringAgentInfoCard,
+      },
+      fogoCruzado: {
+        layer: fogoCruzadoLayer,
+        isVisible: isFogoCruzadoVisible,
+        setIsVisible: setIsFogoCruzadoVisible,
+        hoveredObject: hoveredFogoCruzado,
+        setIsHoveringInfoCard: setIsHoveringFogoCruzadoInfoCard,
+        selectedObject: selectedFogoCruzado,
+        setSelectedObject: setSelectedFogoCruzado,
+      },
+      waze: {
+        layer: wazeLayer,
+        isVisible: isWazeVisible,
+        setIsVisible: setIsWazeVisible,
+        hoveredObject: hoveredWaze,
+        setIsHoveringInfoCard: setIsHoveringWazeInfoCard,
+      },
+      trips: {
+        layers: tripLayers,
+        // hoveredObject: hoveredTrip,
+        // setIsHoveringInfoCard: setIsHoveringTripInfoCard,
+      },
+      address: {
+        layerStates: {
+          isVisible: isAddressVisible,
+          setIsVisible: setIsAddressVisible,
+          setAddressMarker,
+        },
+        layer: addressLayer,
+      },
     },
-    deckRef,
-    mapRef,
     viewport,
     setViewport,
-    isMapStyleSatellite,
   } = useMap()
 
+  const [mapStyle, setMapStyle] = useState<MapStyle>(MapStyle.Map)
+  const mapRef = useRef<MapRef | null>(null)
+
+  // Add other layers
+  const layers = [
+    cameraLayer,
+    radarLayer,
+    wazeLayer,
+    fogoCruzadoLayer,
+    agentsLayer,
+    ...tripLayers,
+    addressLayer,
+  ]
+
   return (
-    <DeckGL
-      ref={deckRef}
-      initialViewState={viewport}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-      onResize={() => mapRef?.current?.resize()}
-      controller
-      layers={[
-        camerasCOR.layers.cameraCORLayer,
-        radars.layers.radarLayer,
-        wazePoliceAlerts.layer,
-        camerasCOR.layers.selectedCameraCORLayer,
-        radars.layers.selectedRadarLayer,
-        radars.layers.slashInactiveRadarsLayer,
-        agents.layer,
-        trips.layers.blackIconLayer,
-        trips.layers.textLayer,
-        addressMarker.layer,
-        fogoCruzadoIncidents.layer,
-      ]}
-      onViewStateChange={(e) => setViewport({ ...e.viewState })}
-      getCursor={({ isDragging, isHovering }) => {
-        if (isDragging) return 'grabbing'
-        else if (isHovering) {
-          // Actually clickable objects:
-          if (
-            radars.layerStates.hoverInfo.object ||
-            camerasCOR.layerStates.hoverInfo.object ||
-            fogoCruzadoIncidents.layerStates.hoverInfo.object
-          )
-            return 'pointer'
-        }
-        return 'grab'
-      }}
-    >
-      <ReactMapGL
-        ref={mapRef}
-        mapboxAccessToken={config.mapboxAccessToken}
-        mapStyle={
-          isMapStyleSatellite
-            ? 'mapbox://styles/mapbox/satellite-streets-v12'
-            : 'mapbox://styles/mapbox/streets-v12'
-        }
-      />
-      <HoverComponents />
-      <SelectionComponents />
-      {(trips.layersState.isLinesEnabled ||
-        trips.layersState.isIconColorEnabled) && <MapCaption />}
+    <div className="relative h-full w-full overflow-hidden">
+      <DeckGL
+        initialViewState={viewport}
+        controller
+        onResize={() => mapRef?.current?.resize()}
+        layers={layers}
+        onViewStateChange={(e) => setViewport({ ...e.viewState })}
+        getCursor={({ isDragging, isHovering }) => {
+          if (isDragging) return 'grabbing'
+          else if (isHovering) {
+            // Actually clickable objects:
+            if (hoveredRadar || hoveredCamera) return 'pointer'
+          }
+          return 'grab'
+        }}
+      >
+        <MapGl
+          ref={mapRef}
+          mapStyle={getMapStyle(mapStyle)}
+          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+        />
+      </DeckGL>
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox
-          isVisible={addressMarker.layerStates.isVisible}
-          setIsVisible={addressMarker.layerStates.setIsVisible}
-          setAddressMarker={addressMarker.layerStates.setAddressMarker}
+          isVisible={isAddressVisible}
+          setIsVisible={setIsAddressVisible}
+          setAddressMarker={setAddressMarker}
           setViewport={setViewport}
-          placeHolder="Pesquise um endereço, câmera ou radar"
-          onSubmit={(props) => {
-            if (props.address.length === 6) {
-              const cameraCode = props.address
-              const camera = camerasCOR.data.find(
-                (item) => item.code === cameraCode,
-              )
-              if (camera) {
-                camerasCOR.layerStates.setIsVisible(true)
-                camerasCOR.layerStates.setSelectedCameraCOR(camera)
-                setViewport({
-                  latitude: camera.latitude,
-                  longitude: camera.longitude,
-                  zoom: 20,
-                })
-              } else {
-                toast.warning('Nenhuma câmera com esse código foi encontrada.')
-              }
-            } else if (props.address.length > 6) {
-              const radarCode = props.address
-              const radar = radars.data.find(
-                (item) =>
-                  item.cameraNumber === radarCode ||
-                  item.cetRioCode === radarCode,
-              )
-              if (radar) {
-                radars.layerStates.setIsVisible(true)
-                radars.layerStates.setSelectedRadar(radar)
-                setViewport({
-                  latitude: radar.latitude,
-                  longitude: radar.longitude,
-                  zoom: 20,
-                })
-              } else {
-                toast.warning('Nenhum radar com esse código foi encontrada.')
-              }
-            }
-          }}
         />
       </div>
-      <MapActions />
-    </DeckGL>
+      <RadarHoverCard
+        hoveredObject={hoveredRadar}
+        setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
+      />
+      <CameraHoverCard
+        hoveredObject={hoveredCamera}
+        setIsHoveringInfoCard={setIsHoveringCameraInfoCard}
+      />
+      <CameraSelectCard
+        selectedObject={selectedCamera}
+        setSelectedObject={setSelectedCamera}
+      />
+      <FogoCruzadoHoverCard
+        hoveredObject={hoveredFogoCruzado}
+        setIsHoveringInfoCard={setIsHoveringFogoCruzadoInfoCard}
+      />
+      <FogoCruzadoSelectCard
+        selectedObject={selectedFogoCruzado}
+        setSelectedObject={setSelectedFogoCruzado}
+      />
+      <WazePoliceAlertHoverCard
+        hoveredObject={hoveredWaze}
+        setIsHoveringInfoCard={setIsHoveringWazeInfoCard}
+      />
+      <AgentHoverCard
+        hoveredObject={hoveredAgent}
+        setIsHoveringInfoCard={setIsHoveringAgentInfoCard}
+      />
+      <MapLayerControl
+        layers={[
+          {
+            name: 'Radar',
+            icon: <Cctv />,
+            isVisible: isRadarVisible,
+            setIsVisible: setIsRadarVisible,
+          },
+          {
+            name: 'Câmeras',
+            icon: <Video />,
+            isVisible: isCameraVisible,
+            setIsVisible: setIsCameraVisible,
+          },
+          {
+            name: 'Agentes',
+            icon: <UsersRound />,
+            isVisible: isAgentsVisible,
+            setIsVisible: setIsAgentsVisible,
+          },
+          {
+            name: 'Policiamento (Waze)',
+            icon: <Siren />,
+            isVisible: isWazeVisible,
+            setIsVisible: setIsWazeVisible,
+          },
+          {
+            name: 'Fogo Cruzado',
+            icon: <FlameKindling />,
+            isVisible: isFogoCruzadoVisible,
+            setIsVisible: setIsFogoCruzadoVisible,
+          },
+          {
+            name: 'Satélite',
+            icon: <Satellite />,
+            isVisible: mapStyle === MapStyle.Satellite,
+            setIsVisible: (satellite) => {
+              setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
+            },
+          },
+        ]}
+      />
+    </div>
   )
 }

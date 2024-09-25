@@ -11,8 +11,9 @@ export function Card({ title, subCards }: Card) {
       </h2>
 
       <ul className="list-inside list-disc">
-        {subCards.map((subCard) => (
+        {subCards.map((subCard, index) => (
           <SubCard
+            key={index}
             title={subCard.title}
             tag={subCard.tag}
             content={subCard.content}
