@@ -22,6 +22,7 @@ import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remain
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
 import { queryClient } from '@/lib/react-query'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 import { toQueryParams } from '@/utils/to-query-params'
 
 interface EnhancePlatesInfoProps {
@@ -60,7 +61,7 @@ export function EnhancePlatesInfo({
   const { data: creditsRequired } = useVehiclesCreditsRequired(plates)
 
   useEffect(() => {
-    if ((remainingCredits?.remaining_credit || 0) < 100) {
+    if ((remainingCredits?.remaining_credit || 0) < cortexRequestLimit) {
       const date = new Date(
         Date.now() + (remainingCredits?.time_until_reset || 0) * 1000,
       )
