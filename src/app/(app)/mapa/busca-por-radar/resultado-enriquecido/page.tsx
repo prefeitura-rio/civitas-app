@@ -7,6 +7,7 @@ import { useEnhancedRadarsSearch } from '@/hooks/use-queries/use-enhanced-radars
 import { useRadarsSearch } from '@/hooks/use-queries/use-radars-search'
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import { useSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/use-search-by-radar-enhanced-result-dynamic-filter'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 
 import { ActionBar } from './components/action-bar'
 import { EnhancedDetectionsTable } from './components/enhanced-detections-table'
@@ -32,7 +33,7 @@ export default function RadarDetections() {
   const { filteredData } = filters
 
   if (
-    (detections && detections.length > 100) ||
+    (detections && detections.length > cortexRequestLimit) ||
     (remainingCredits &&
       creditsRequired &&
       remainingCredits.remaining_credit < creditsRequired.credits)

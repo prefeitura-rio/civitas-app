@@ -27,6 +27,7 @@ import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remain
 import { useVehicles } from '@/hooks/use-queries/use-vehicles'
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import { useSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/use-search-by-plate-enhanced-result-dynamic-filter'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 
 import { Filter } from './components/filter'
 import { TooManyPlates } from './components/too-many-plates-alert'
@@ -71,7 +72,7 @@ export default function Veiculos() {
   }, [])
 
   if (
-    (possiblePlates && possiblePlates.length > 100) ||
+    (possiblePlates && possiblePlates.length > cortexRequestLimit) ||
     (remainingCredits &&
       creditsRequired &&
       remainingCredits.remaining_credit < creditsRequired.credits)
