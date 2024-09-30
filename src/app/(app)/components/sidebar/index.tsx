@@ -10,7 +10,7 @@ import { useProfile } from '@/hooks/use-queries/use-profile'
 import { queryClient } from '@/lib/react-query'
 import { logout } from '@/utils/logout'
 
-import { home, modules } from './components/constants'
+import { sidebarItems } from './components/constants'
 import { SidebarAccordion } from './components/sidebar-accordion'
 import { SidebarButton } from './components/sidebar-button'
 
@@ -19,7 +19,7 @@ export function Sidebar() {
   return (
     <div className="relative z-50 h-screen w-14 shrink-0">
       <nav className="group absolute left-0 top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-x-hidden border-r-2 bg-background p-2 transition-all duration-300 ease-in hover:w-64">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
           <div className="relative h-20">
             {profile ? (
               <div className="">
@@ -35,22 +35,37 @@ export function Sidebar() {
             )}
           </div>
 
-          <SidebarButton icon={home.icon} title={home.title} path={home.path} />
-
-          <Separator className="-mb-1 -mt-1" />
+          <div>
+            <SidebarButton icon="Home" title="Início" path="/" primary />
+            <Separator className="my-4" />
+          </div>
 
           <Accordion
             type="multiple"
-            defaultValue={modules.map((item) => item.title)}
+            // defaultValue={modules.map((item) => item.title)}
           >
-            {modules.map((item, index) => (
-              <SidebarAccordion
-                key={index}
-                icon={item.icon}
-                title={item.title}
-                products={item.products}
-              />
-            ))}
+            {sidebarItems.map((item, index) => {
+              if ('modules' in item) {
+                return (
+                  <SidebarAccordion
+                    key={index}
+                    icon={item.icon}
+                    title={item.title}
+                    modules={item.modules}
+                  />
+                )
+              } else {
+                return (
+                  <SidebarButton
+                    key={index}
+                    icon={item.icon}
+                    title={item.title}
+                    path={item.path}
+                    primary
+                  />
+                )
+              }
+            })}
           </Accordion>
         </div>
 

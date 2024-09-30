@@ -1,24 +1,16 @@
 {
   "conventionalCommits.scopes": [
-    "Config",
     "Auth",
-    "CercoDigital",
     "Home",
-    "Utils",
-    "AppLayout",
-    "Home",
-    "ConsultaDePlacas",
+    "Veículos",
+    "Pessoas",
+    "Ocorrências",
     "Operações",
-    "PlacasMonitoradas",
+    "Monitoramento",
     "Sidebar",
     "Dashboard",
-    "Relatorio Placas",
-    "Ocorrências",
-    "Relatório Radares",
     "Changelog",
-    "Mapa",
     "Playground",
-    "Cortex"
   ],
   "editor.rulers": [
     80,
