@@ -79,7 +79,7 @@ export function SearchByRadarForm() {
           radarIds: formattedSearchParams.radarIds,
         }
       : {
-          date: new Date(),
+          date: new Date(new Date().setSeconds(0, 0)),
           duration: [0, 5],
           radarIds: [],
           plate: '',

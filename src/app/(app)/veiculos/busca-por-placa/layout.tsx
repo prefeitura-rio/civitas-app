@@ -1,4 +1,4 @@
-import { SearchByPlateForm } from './veiculo/components/search-by-radar-form'
+import { SearchByPlateForm } from './components/search-by-plate-form'
 
 export default function MapLayout({
   children,
