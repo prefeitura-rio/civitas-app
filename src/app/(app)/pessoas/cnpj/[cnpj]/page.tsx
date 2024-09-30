@@ -61,6 +61,7 @@ export default function Pessoa({ params: { cnpj } }: PessoaProps) {
   const { data, isLoading, error } = useCompany({ cnpj })
 
   // console.log(cnpj)
+  // const error = null
   // const isLoading = false
   // const data = {
   //   bairro: 'Centro',
