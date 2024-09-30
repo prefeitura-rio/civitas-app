@@ -10,7 +10,7 @@ import {
 const cards = [
   {
     title: 'Mapa',
-    href: '/mapa',
+    href: '/veiculos',
     description:
       'Consulte radares e câmeras da cidade, pesquise por placas, gere relatórios de detecção e mais.',
   },
@@ -36,6 +36,11 @@ const cards = [
     title: 'Dashboards',
     href: '/dashboards/status-infra-radares',
     description: 'Veja insights sobre radares e câmeras da cidade.',
+  },
+  {
+    title: 'Pessoas',
+    href: '/pessoas',
+    description: 'Consulte pessoas físicas e jurídicas.',
   },
 ]
 

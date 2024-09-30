@@ -8,5 +8,5 @@ export async function getPlaces(query: string) {
     `https://api.mapbox.com/search/geocode/v6/forward?q=${query}&proximity=ip&access_token=${config.mapboxAccessToken}`,
   )
 
-  return response
+  return response.data
 }

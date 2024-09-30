@@ -1,58 +1,59 @@
 import type { icons } from 'lucide-react'
 
-export interface ModuleProduct {
+export interface Module {
   icon: keyof typeof icons
   title: string
   path: string
 }
 
-export interface Module {
+export interface Category {
   icon: keyof typeof icons
   title: string
-  products: ModuleProduct[]
+  modules: Module[]
 }
 
-export const home: ModuleProduct = {
-  icon: 'Home',
-  title: 'Início',
-  path: '/',
-}
+export type SideBarItem = Module | Category
 
-export const modules: Module[] = [
+export const sidebarItems: SideBarItem[] = [
   {
-    icon: 'Radar',
-    title: 'Cerco Digital',
-    products: [
+    icon: 'Car',
+    title: 'Veículos',
+    path: '/veiculos',
+  },
+  {
+    icon: 'Users',
+    title: 'Pessoas',
+    path: '/pessoas',
+  },
+  {
+    icon: 'Speech',
+    title: 'Ocorrências (DD & 1746)',
+    path: '/ocorrencias/timeline',
+  },
+  {
+    icon: 'LayoutDashboard',
+    title: 'Dashboards',
+    modules: [
       {
-        icon: 'MapPinned',
-        title: 'Mapa',
-        path: '/mapa',
+        icon: 'Cctv',
+        title: 'Status Infra dos Radares',
+        path: 'dashboards/status-infra-radares',
       },
+    ],
+  },
+  {
+    icon: 'Settings',
+    title: 'Configurações',
+    modules: [
       {
-        icon: 'Car',
+        icon: 'Rss',
         title: 'Placas Monitoradas',
         path: '/placas-monitoradas',
       },
       {
         icon: 'TrafficCone',
-        title: 'Operações',
+        title: 'Cadastro de Operações',
         path: '/operacoes',
-      },
-      {
-        icon: 'Speech',
-        title: 'Ocorrências (DD & 1746)',
-        path: '/ocorrencias/timeline',
-      },
-    ],
-  },
-  {
-    icon: 'LayoutDashboard',
-    title: 'Dashboards',
-    products: [
-      {
-        icon: 'Cctv',
-        title: 'Status Infra dos Radares',
-        path: 'dashboards/status-infra-radares',
       },
     ],
   },
