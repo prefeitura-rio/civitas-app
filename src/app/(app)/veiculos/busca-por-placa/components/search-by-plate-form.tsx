@@ -49,8 +49,10 @@ export function SearchByPlateForm() {
         }
       : {
           date: {
-            from: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
-            to: new Date(),
+            from: new Date(
+              new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
+            ), // 7 days ago
+            to: new Date(new Date().setSeconds(0, 0)),
           },
           plate: '',
         },
@@ -77,7 +79,7 @@ export function SearchByPlateForm() {
       router.push(`/veiculos/busca-por-placa/veiculo?${query.toString()}`)
     }
   }
-
+  console.log('debug')
   return (
     <Card className="w-full max-w-screen-md p-6">
       {/* <CardHeader>
