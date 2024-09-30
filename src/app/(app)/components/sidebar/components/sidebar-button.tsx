@@ -1,19 +1,18 @@
-import { ChevronDown, icons } from 'lucide-react'
+import { icons } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 
-import type { ModuleProduct } from './constants'
+import type { Module } from './constants'
 
-interface SidebarButtonProps extends ModuleProduct {
-  isParent?: boolean
+interface SidebarButtonProps extends Module {
+  primary?: boolean
 }
-
 export function SidebarButton({
   icon,
-  title,
-  isParent = false,
   path,
+  title,
+  primary,
 }: SidebarButtonProps) {
   const LucideIcon = icons[icon]
   return (
@@ -26,16 +25,16 @@ export function SidebarButton({
         <Link href={path}>
           <div className="flex items-center justify-start gap-2">
             <LucideIcon
-              data-title={title}
-              className="shrink-0 text-muted-foreground data-[title='Início']:text-primary"
+              data-primary={primary}
+              className="shrink-0 text-muted-foreground data-[primary=true]:text-primary"
             />
             <span className="opacity-0 transition-all duration-300 group-hover:opacity-100">
               {title}
             </span>
           </div>
-          {isParent && (
+          {/* {isParent && (
             <ChevronDown className="AccordionChevron size-6 shrink-0" />
-          )}
+          )} */}
         </Link>
       </Button>
     </div>
