@@ -14,6 +14,7 @@ export function usePeople({ cpf }: UsePeopleProps) {
       const response = await api.get<People>(`/people/${cpf}`)
       return response.data
     },
+    retry: false,
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   })

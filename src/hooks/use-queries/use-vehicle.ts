@@ -8,5 +8,6 @@ export function useVehicle(plate: string) {
     queryFn: () => getVehicle(plate),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
+    retry: false,
   })
 }
