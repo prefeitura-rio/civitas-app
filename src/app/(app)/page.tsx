@@ -37,6 +37,11 @@ const cards = [
     href: '/dashboards/status-infra-radares',
     description: 'Veja insights sobre radares e câmeras da cidade.',
   },
+  {
+    title: 'Pessoas',
+    href: '/pessoas',
+    description: 'Consulte pessoas físicas e jurídicas.',
+  },
 ]
 
 export default function Home() {

@@ -29,6 +29,11 @@ export const modules: Module[] = [
         path: '/mapa',
       },
       {
+        icon: 'Users',
+        title: 'Pessoas',
+        path: '/pessoas',
+      },
+      {
         icon: 'Car',
         title: 'Placas Monitoradas',
         path: '/placas-monitoradas',
