@@ -23,6 +23,7 @@ import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
 import { queryClient } from '@/lib/react-query'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 import { toQueryParams } from '@/utils/to-query-params'
 
 interface EnhancePlatesInfoProps {
@@ -70,10 +71,14 @@ export function EnhancePlatesInfo({
   const { data: creditsRequired } = useVehiclesCreditsRequired(plates)
 
   useEffect(() => {
-    const date = new Date(
-      Date.now() + (remainingCredits?.time_until_reset || 0) * 1000,
-    )
-    setResetDate(date)
+    if ((remainingCredits?.remaining_credit || 0) < cortexRequestLimit) {
+      const date = new Date(
+        Date.now() + (remainingCredits?.time_until_reset || 0) * 1000,
+      )
+      setResetDate(date)
+    } else {
+      setResetDate(null)
+    }
   }, [remainingCredits])
 
   function handleDialogOpen(open: boolean) {
@@ -112,19 +117,48 @@ export function EnhancePlatesInfo({
         </DialogHeader>
         <div className="">
           <div>
-            <Label>Crédito restante: </Label>
-            <span>{remainingCredits?.remaining_credit}</span>
+            <Label>Crédito disponível: </Label>
+            <span className="text-muted-foreground">
+              {remainingCredits?.remaining_credit} de 90
+            </span>
           </div>
           <div>
-            <Label>Crédito necessários: </Label>
-            <span>{creditsRequired?.credits}</span>
+            <Label>Crédito necessário: </Label>
+            <span className="text-muted-foreground">
+              {creditsRequired?.credits}
+            </span>
           </div>
-          {resetDate && (
-            <div>
-              <Label>Reset dos créditos: </Label>
-              <span>{format(resetDate, 'HH:mm:ss')}</span>
-            </div>
-          )}
+          {resetDate &&
+            remainingCredits &&
+            remainingCredits.remaining_credit < cortexRequestLimit && (
+              <div>
+                <Label>Reposição às </Label>
+                <span className="text-muted-foreground">
+                  {format(resetDate, 'HH:mm:ss')}
+                </span>
+              </div>
+            )}
+          {remainingCredits &&
+            creditsRequired &&
+            remainingCredits.remaining_credit < creditsRequired.credits &&
+            (creditsRequired.credits < 90 ? (
+              <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
+                <p className="pl-6 -indent-6 text-muted-foreground">
+                  ⚠️ Você não possui crédito suficiente para enriquecer esse
+                  resultado. Restrinja a sua consulta a fim de diminuir o
+                  crédito necessário para o enriquecimento ou aguarde o horário
+                  de reposição dos seus créditos.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
+                <p className="pl-6 -indent-6 text-muted-foreground">
+                  ⚠️ Você não possui crédito suficiente para enriquecer esse
+                  resultado. Restrinja a sua consulta a fim de diminuir o
+                  crédito necessário para o enriquecimento.
+                </p>
+              </div>
+            ))}
         </div>
         <DialogFooter>
           <DialogClose asChild>

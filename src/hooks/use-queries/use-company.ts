@@ -14,6 +14,7 @@ export function useCompany({ cnpj }: UseCompanyProps) {
       const response = await api.get<Company>(`/companies/${cnpj}`)
       return response.data
     },
+    retry: false,
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   })

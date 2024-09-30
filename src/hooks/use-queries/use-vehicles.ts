@@ -10,5 +10,6 @@ export function useVehicles(plates: string[]) {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     enabled: plates.length > 0 && plates.length <= cortexRequestLimit,
+    retry: false,
   })
 }

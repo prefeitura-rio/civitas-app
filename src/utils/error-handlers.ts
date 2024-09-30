@@ -13,7 +13,7 @@ export function isNotFoundError(error: unknown) {
 }
 
 export const genericErrorMessage =
-  'Um erro inexperado ocorreu! Se o erro persistir, por favor, contate um administrador do sistema.'
+  'Um erro inexperado ocorreu. Se o erro persistir, por favor, contate um administrador do sistema.'
 
 export function isValidationError(error: unknown) {
   return isApiError(error) && error.response?.status === 422
