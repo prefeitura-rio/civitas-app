@@ -22,6 +22,8 @@ import { config } from '@/config'
 import { useCompany } from '@/hooks/use-queries/use-company'
 import { searchAddress } from '@/http/mapbox/search-address'
 
+import { getErrorMessage } from '../../components/get-error-message'
+
 interface PessoaProps {
   params: {
     cnpj: string
@@ -181,9 +183,9 @@ export default function Pessoa({ params: { cnpj } }: PessoaProps) {
         </div>
       )}
       {error && (
-        <div className="flex justify-center">
-          <span className="text-muted-foreground">
-            Erro ao buscar informações da empresa
+        <div className="mx-auto flex w-96 justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
+          <span className="pl-6 -indent-6 text-sm text-muted-foreground">
+            {`⚠️ Não foi possível retornar informações a respeito desse CNPJ. ${getErrorMessage(error)}`}
           </span>
         </div>
       )}

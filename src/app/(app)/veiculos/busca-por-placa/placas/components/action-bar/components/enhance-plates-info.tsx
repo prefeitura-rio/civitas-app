@@ -107,19 +107,44 @@ export function EnhancePlatesInfo({
         </DialogHeader>
         <div className="">
           <div>
-            <Label>Crédito restante: </Label>
+            <Label>Crédito disponível: </Label>
             <span>{remainingCredits?.remaining_credit}</span>
           </div>
           <div>
-            <Label>Crédito necessários: </Label>
+            <Label>Crédito necessário: </Label>
             <span>{creditsRequired?.credits}</span>
           </div>
-          {resetDate && (
-            <div>
-              <Label>Reset dos créditos: </Label>
-              <span>{format(resetDate, 'HH:mm:ss')}</span>
-            </div>
-          )}
+          {resetDate &&
+            remainingCredits &&
+            remainingCredits.remaining_credit < cortexRequestLimit && (
+              <div>
+                <Label>Reposição às </Label>
+                <span className="text-muted-foreground">
+                  {format(resetDate, 'HH:mm:ss')}
+                </span>
+              </div>
+            )}
+          {remainingCredits &&
+            creditsRequired &&
+            remainingCredits.remaining_credit < creditsRequired.credits &&
+            (creditsRequired.credits < 90 ? (
+              <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
+                <p className="pl-6 -indent-6 text-muted-foreground">
+                  ⚠️ Você não possui crédito suficiente para enriquecer esse
+                  resultado. Restrinja a sua consulta a fim de diminuir o
+                  crédito necessário para o enriquecimento ou aguarde o horário
+                  de reposição dos seus créditos.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
+                <p className="pl-6 -indent-6 text-muted-foreground">
+                  ⚠️ Você não possui crédito suficiente para enriquecer esse
+                  resultado. Restrinja a sua consulta a fim de diminuir o
+                  crédito necessário para o enriquecimento.
+                </p>
+              </div>
+            ))}
         </div>
         <DialogFooter>
           <DialogClose asChild>

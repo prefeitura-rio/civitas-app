@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/app/(app)/pessoas/components/get-error-message'
 import {
   Collapsible,
   CollapsibleContent,
@@ -10,7 +11,7 @@ interface VehicleInfoProps {
   plate: string
 }
 export function VehicleInfo({ plate }: VehicleInfoProps) {
-  const { data } = useVehicle(plate)
+  const { data, error } = useVehicle(plate)
 
   const mainInfo = {
     'Marca/Modelo': data?.marcaModelo,
@@ -71,119 +72,132 @@ export function VehicleInfo({ plate }: VehicleInfoProps) {
         <h4 className="my-4 mb-2">
           <span>Informações do Veículo</span>
         </h4>
-        <div className="mb-3 flex flex-col gap-0.5 text-sm">
-          {Object.entries(mainInfo).map(([key, value], index) => (
-            <div key={index}>
-              <span className="text-sm font-medium">{key}: </span>
-              <span className="text-sm text-muted-foreground">{value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <CollapsibleTrigger className="group mb-2 flex items-center gap-2">
-        <span className="text-muted-foreground group-data-[state='open']:hidden">
-          Ver mais...
-        </span>
-        <span className="text-muted-foreground group-data-[state='closed']:hidden">
-          Ver menos...
-        </span>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="CollapsibleContent">
-        <div className="space-y-6">
-          <div>
-            <span className="mb-1 block text-lg font-medium">
-              Informações básicas
-            </span>
-            <div className="space-y-1 pl-4">
-              {Object.entries(simpleFields).map(
-                ([key, value], index) =>
-                  value && (
-                    <div key={index} className="flex gap-2">
-                      <Label className="text-sm font-medium leading-4">
-                        {key}:
-                      </Label>
-                      <span className="text-sm leading-4 text-muted-foreground">
-                        {value}
-                      </span>
-                    </div>
-                  ),
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <span className="mb-1 block text-lg font-medium">
-                Índice Nacional de Veículos
-              </span>
-              <div className="space-y-1 pl-4">
-                {Object.entries(indiceNacionalVeiculos).map(
-                  ([key, value], index) =>
-                    (value || value === 0) && (
-                      <div key={index} className="flex gap-2">
-                        <Label className="text-sm font-medium leading-4">
-                          {key}:
-                        </Label>
-                        <span className="text-sm leading-4 text-muted-foreground">
-                          {value}
-                        </span>
-                      </div>
-                    ),
-                )}
-              </div>
-            </div>
-          </div>
-
-          {data?.arrendatario && data.arrendatario.nomeArrendatario && (
-            <div>
-              <span className="mb-1 block text-lg font-medium">
-                Arrendatário
-              </span>
-              <div className="space-y-1 pl-4">
-                {Object.entries(arrendatario).map(
-                  ([key, value], index) =>
-                    value && (
-                      <div key={index} className="flex gap-2">
-                        <Label className="text-sm font-medium leading-4">
-                          {key}:
-                        </Label>
-                        <span className="text-sm leading-4 text-muted-foreground">
-                          {value}
-                        </span>
-                      </div>
-                    ),
-                )}
-              </div>
-            </div>
-          )}
-          {!restricoes ||
-            (restricoes?.length > 0 && (
-              <div>
-                <span className="mb-1 block text-lg font-medium">{`Restrições (${restricoes?.length}):`}</span>
-                <div className="space-y-2 pl-4">
-                  {restricoes.map((victim, index) => (
-                    <div key={index}>
-                      <div>{`Restrição ${index + 1}:`}</div>
-                      {Object.entries(victim).map(
-                        ([key, value], index) =>
-                          value && (
-                            <div key={index} className="flex gap-2 pl-4">
-                              <Label className="text-sm font-medium leading-4">
-                                {key}:
-                              </Label>
-                              <span className="text-sm leading-4 text-muted-foreground">
-                                {value}
-                              </span>
-                            </div>
-                          ),
-                      )}
-                    </div>
-                  ))}
-                </div>
+        {data && (
+          <div className="mb-3 flex flex-col gap-0.5 text-sm">
+            {Object.entries(mainInfo).map(([key, value], index) => (
+              <div key={index}>
+                <span className="text-sm font-medium">{key}: </span>
+                <span className="text-sm text-muted-foreground">{value}</span>
               </div>
             ))}
-        </div>
-      </CollapsibleContent>
+          </div>
+        )}
+        {error && (
+          <div className="flex justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
+            <span className="pl-6 -indent-6 text-sm text-muted-foreground">
+              {`⚠️ Não foi possível retornar informações a respeito desse veículo. ${getErrorMessage(error)}`}
+            </span>
+          </div>
+        )}
+      </div>
+      {data && (
+        <>
+          <CollapsibleTrigger className="group mb-2 flex items-center gap-2">
+            <span className="text-muted-foreground group-data-[state='open']:hidden">
+              Ver mais...
+            </span>
+            <span className="text-muted-foreground group-data-[state='closed']:hidden">
+              Ver menos...
+            </span>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="CollapsibleContent">
+            <div className="space-y-6">
+              <div>
+                <span className="mb-1 block text-lg font-medium">
+                  Informações básicas
+                </span>
+                <div className="space-y-1 pl-4">
+                  {Object.entries(simpleFields).map(
+                    ([key, value], index) =>
+                      value && (
+                        <div key={index} className="flex gap-2">
+                          <Label className="text-sm font-medium leading-4">
+                            {key}:
+                          </Label>
+                          <span className="text-sm leading-4 text-muted-foreground">
+                            {value}
+                          </span>
+                        </div>
+                      ),
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <span className="mb-1 block text-lg font-medium">
+                    Índice Nacional de Veículos
+                  </span>
+                  <div className="space-y-1 pl-4">
+                    {Object.entries(indiceNacionalVeiculos).map(
+                      ([key, value], index) =>
+                        (value || value === 0) && (
+                          <div key={index} className="flex gap-2">
+                            <Label className="text-sm font-medium leading-4">
+                              {key}:
+                            </Label>
+                            <span className="text-sm leading-4 text-muted-foreground">
+                              {value}
+                            </span>
+                          </div>
+                        ),
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {data?.arrendatario && data.arrendatario.nomeArrendatario && (
+                <div>
+                  <span className="mb-1 block text-lg font-medium">
+                    Arrendatário
+                  </span>
+                  <div className="space-y-1 pl-4">
+                    {Object.entries(arrendatario).map(
+                      ([key, value], index) =>
+                        value && (
+                          <div key={index} className="flex gap-2">
+                            <Label className="text-sm font-medium leading-4">
+                              {key}:
+                            </Label>
+                            <span className="text-sm leading-4 text-muted-foreground">
+                              {value}
+                            </span>
+                          </div>
+                        ),
+                    )}
+                  </div>
+                </div>
+              )}
+              {!restricoes ||
+                (restricoes?.length > 0 && (
+                  <div>
+                    <span className="mb-1 block text-lg font-medium">{`Restrições (${restricoes?.length}):`}</span>
+                    <div className="space-y-2 pl-4">
+                      {restricoes.map((victim, index) => (
+                        <div key={index}>
+                          <div>{`Restrição ${index + 1}:`}</div>
+                          {Object.entries(victim).map(
+                            ([key, value], index) =>
+                              value && (
+                                <div key={index} className="flex gap-2 pl-4">
+                                  <Label className="text-sm font-medium leading-4">
+                                    {key}:
+                                  </Label>
+                                  <span className="text-sm leading-4 text-muted-foreground">
+                                    {value}
+                                  </span>
+                                </div>
+                              ),
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </CollapsibleContent>
+        </>
+      )}
     </Collapsible>
   )
 }
