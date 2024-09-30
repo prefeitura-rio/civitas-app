@@ -20,13 +20,13 @@ export const home: ModuleProduct = {
 
 export const modules: Module[] = [
   {
-    icon: 'Radar',
-    title: 'Cerco Digital',
+    icon: 'Package',
+    title: 'Módulos',
     products: [
       {
-        icon: 'MapPinned',
-        title: 'Mapa',
-        path: '/mapa',
+        icon: 'Car',
+        title: 'Veículos',
+        path: '/veiculos',
       },
       {
         icon: 'Users',
@@ -34,19 +34,25 @@ export const modules: Module[] = [
         path: '/pessoas',
       },
       {
-        icon: 'Car',
+        icon: 'Speech',
+        title: 'Ocorrências (DD & 1746)',
+        path: '/ocorrencias/timeline',
+      },
+    ],
+  },
+  {
+    icon: 'Settings',
+    title: 'Configurações',
+    products: [
+      {
+        icon: 'Rss',
         title: 'Placas Monitoradas',
         path: '/placas-monitoradas',
       },
       {
         icon: 'TrafficCone',
-        title: 'Operações',
+        title: 'Cadastro de Operações',
         path: '/operacoes',
-      },
-      {
-        icon: 'Speech',
-        title: 'Ocorrências (DD & 1746)',
-        path: '/ocorrencias/timeline',
       },
     ],
   },

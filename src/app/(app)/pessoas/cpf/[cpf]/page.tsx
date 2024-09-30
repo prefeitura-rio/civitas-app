@@ -37,9 +37,9 @@ export default function Pessoa({ params: { cpf } }: PessoaProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
 
   const { data, isLoading, error } = usePeople({ cpf })
-  console.error({ error })
 
   // console.log(cpf)
+  // const error = null
   // const isLoading = false
   // const data = {
   //   anoExercicioOcupacao: '2023',
