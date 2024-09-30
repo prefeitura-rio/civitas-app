@@ -48,8 +48,8 @@ export function SearchBox({
   useEffect(() => {
     const getData = async (query: string) => {
       try {
-        const response = await getPlaces(query)
-        const places = response.data.features
+        const data = await getPlaces(query)
+        const places = data.features
         setSuggestions(places)
       } catch (error) {
         console.error(error)

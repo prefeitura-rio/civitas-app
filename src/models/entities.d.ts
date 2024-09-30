@@ -510,3 +510,118 @@ export type Vehicle = {
   ufJurisdicaoVeiculo: string
   valorIPVA: number
 }
+
+export type People = {
+  anoExercicioOcupacao: string
+  anoObito: string
+  bairro: string
+  cep: string
+  complementoLogradouro: string
+  dataAtualizacao: string
+  dataNascimento: string
+  ddd: string
+  id: number
+  identificadorResidenteExterior: string
+  indicadorEstrangeiro: string
+  indicadorMoradorEstrangeiro: true
+  indiceNacionalPessoas: [
+    {
+      id: number
+      metodo: string
+      qtd: number
+    },
+  ]
+  latitudeAproximadaLocal: number
+  logradouro: string
+  longitudeAproximadaLocal: number
+  municipio: string
+  municipioNaturalidade: string
+  naturezaOcupacao: string
+  nomeCompleto: string
+  nomeMae: string
+  nomeSocial: string
+  numeroCPF: string
+  numeroLogradouro: string
+  ocupacaoPrincipal: string
+  paisNascimento: string
+  paisResidencia: string
+  regiaoFiscal: string
+  sexo: string
+  situacaoCadastral: string
+  telefone: string
+  tipoLogradouro: string
+  tituloEleitor: string
+  uf: string
+  ufNaturalidade: string
+}
+
+export type Company = {
+  bairro: string
+  capitalSocialEmpresa: string
+  cep: string
+  cnaeFiscal: string
+  cnaeSecundario: string
+  cnpj: string
+  cnpjContador: {
+    classificacaoCRCContadorPF: string
+    classificacaoCRCEmpresaContabil: string
+    cnpjEmpresaContabil: string
+    crcEmpresaContabil: string
+    nomeContador: string
+    numeroCPFContador: string
+    numeroRegistroContadorPF: string
+    tipoCRCContadorPF: string
+    tipoCRCEmpresaContabil: string
+    ufCRCContador: string
+    ufCRCEmpresaContabil: string
+  }[]
+  cnpjSocio: {
+    cpfRepresentanteLegal: string
+    dataEntradaSociedade: string
+    identificadorSocio: string
+    nomeRepresentanteLegal: string
+    nomeSocio: string
+    numeroCPF: string
+    paisSocioEstrangeiro: string
+    percentualCapitalSocial: number
+    qualificacaoRepresentanteLegal: string
+    qualificacaoSocio: string
+  }[]
+  codigoCnaeFiscal: string
+  codigoCnaeSecundario: string
+  complementoLogradouro: string
+  cpfResponsavel: string
+  dataExclusaoSimples: string
+  dataInicioAtividade: string
+  dataOpcaoSimples: string
+  dataSituacaoCadastral: string
+  email: string
+  fax: string
+  indicadorMatrizFilial: string
+  logradouro: string
+  motivoSituacaoCadastral: string
+  municipio: string
+  naturezaJuridica: string
+  nomeCidadeExterior: string
+  nomeFantasia: string
+  nomePais: string
+  nomeResponsavel: string
+  numeroLogradouro: string
+  opcaoSimples: string
+  porteEmpresa: string
+  qualificacaoPessoaJuridicaResponsavelEmpresa: string
+  razaoSocial: string
+  situacaoCadastral: string
+  sucessao: {
+    cnpjSucedida: string
+    cnpjSucessora: string
+    dataOperacaoSucessora: string
+    operacaoRealizadaSucessora: string
+    razaoSocialSucedida: string
+    razaoSocialSucessora: string
+  }[]
+  telefone1: string
+  telefone2: string
+  tipoLogradouro: string
+  uf: string
+}
