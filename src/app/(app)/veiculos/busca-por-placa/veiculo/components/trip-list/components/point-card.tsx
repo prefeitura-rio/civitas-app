@@ -125,6 +125,9 @@ export function PointCard({ point }: PointCardProps) {
           </div>
         </Tooltip>
         <span className="block truncate text-xs text-muted-foreground">
+          Posição {point.index + 1}
+        </span>
+        <span className="block truncate text-xs text-muted-foreground">
           {point.district.capitalizeFirstLetter()}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
