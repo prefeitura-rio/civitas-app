@@ -184,7 +184,7 @@ export function SearchByRadarForm() {
                 defaultValue={[5, 10]}
                 max={60}
                 min={-60}
-                step={5}
+                step={1}
                 disabled={isSubmitting}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
