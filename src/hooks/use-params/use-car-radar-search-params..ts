@@ -1,6 +1,6 @@
 import { useSearchParams } from 'next/navigation'
 
-import { radarSearchSchema } from '@/app/(app)/veiculos/components/search/components/validationSchemas'
+import { radarSearchSchema } from '@/app/(app)/veiculos/components/validationSchemas'
 
 export interface FormattedSearchParams {
   plate?: string
