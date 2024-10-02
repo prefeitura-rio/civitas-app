@@ -19,6 +19,7 @@ import { getMapStyle, MapStyle } from '@/utils/get-map-style'
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { AgentHoverCard } from './components/hover-cards/agent-hover-card'
 import { CameraHoverCard } from './components/hover-cards/camera-hover-card'
+import { DetectionPointHoverCard } from './components/hover-cards/detection-point-hover-card'
 import { FogoCruzadoHoverCard } from './components/hover-cards/fogo-cruzado-hover-card'
 import { RadarHoverCard } from './components/hover-cards/radar-hover-card'
 import { WazePoliceAlertHoverCard } from './components/hover-cards/waze-police-alert-hover-card'
@@ -73,8 +74,8 @@ export function Map() {
       },
       trips: {
         layers: tripLayers,
-        // hoveredObject: hoveredTrip,
-        // setIsHoveringInfoCard: setIsHoveringTripInfoCard,
+        hoveredObject: hoveredDetectionPoint,
+        setIsHoveringInfoCard: setIsHoveringDetectionPointInfoCard,
       },
       address: {
         layerStates: {
@@ -193,6 +194,10 @@ export function Map() {
       <AgentHoverCard
         hoveredObject={hoveredAgent}
         setIsHoveringInfoCard={setIsHoveringAgentInfoCard}
+      />
+      <DetectionPointHoverCard
+        hoveredObject={hoveredDetectionPoint}
+        setIsHoveringInfoCard={setIsHoveringDetectionPointInfoCard}
       />
       <MapLayerControl
         layers={[
