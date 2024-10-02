@@ -44,7 +44,7 @@ export interface UseReports {
 }
 
 export function useReports(): UseReports {
-  const [isIconsLayerVisible, setIsIconsLayerVisible] = useState(false)
+  const [isIconsLayerVisible, setIsIconsLayerVisible] = useState(true)
   const [isHeatmapLayerVisible, setIsHeatmapLayerVisible] = useState(false)
   const { queryKey, formattedSearchParams } = useReportsSearchParams()
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<Report>>(
@@ -108,7 +108,7 @@ export function useReports(): UseReports {
         icon: isCluster ? circle.src : messageCircleWarning.src, // Use different icons for clusters vs points
         size: item.properties.cluster
           ? // ? 35 + 1 * item.properties.point_count
-            25 * Math.log(0.02 * item.properties.point_count - 0.04 + 1) + 35
+            25 * Math.log(0.005 * item.properties.point_count - 0.04 + 1) + 35
           : 30, // Scale icon size based on whether it's a cluster or point
         point_count: item.properties.point_count || 1, // For displaying number of points in a cluster
       }
@@ -143,7 +143,11 @@ export function useReports(): UseReports {
       getPosition: (info) => info.position,
       getColor: [0, 0, 0],
       getSize: (info) =>
-        info.point_count <= 99 ? info.size * 0.5 : info.size * 0.4,
+        info.point_count <= 99
+          ? info.size * 0.5
+          : info.point_count <= 999
+            ? info.size * 0.4
+            : info.size * 0.3,
       getTextAnchor: 'middle',
       getText: (info) => String(info.point_count),
       fontWeight: 10,
