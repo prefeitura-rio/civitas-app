@@ -47,6 +47,8 @@ export async function getMonitoredPlates({
       ...item,
       additionalInfo: item.additional_info,
       notificationChannels: item.notification_channels,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at,
     } as MonitoredPlate
   })
 

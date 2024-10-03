@@ -50,6 +50,8 @@ export type MonitoredPlate = {
   active: boolean
   additionalInfo: JSON
   notificationChannels: NotificationChannel[]
+  createdAt: string
+  updatedAt: string
 }
 
 export type BackendMonitoredPlate = {
@@ -60,6 +62,8 @@ export type BackendMonitoredPlate = {
   active: boolean
   additional_info: JSON
   notification_channels: NotificationChannel[]
+  created_at: string
+  updated_at: string
 }
 
 export type AdditionalInfo = {
