@@ -21,7 +21,7 @@ export default function MapLayout({
             <Map />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel minSize={36} defaultSize={50}>
+          <ResizablePanel minSize={25} defaultSize={50}>
             <SearchTabs />
             {children}
           </ResizablePanel>

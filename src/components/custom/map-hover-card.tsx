@@ -7,6 +7,7 @@ import type {
   Agent,
   CameraCOR,
   FogoCruzadoIncident,
+  Point,
   Radar,
   Report,
   WazeAlert,
@@ -17,7 +18,7 @@ import { Card } from '../ui/card'
 interface MapHoverCardProps {
   children?: ReactNode
   hoveredObject: PickingInfo<
-    CameraCOR | Radar | FogoCruzadoIncident | Agent | WazeAlert | Report
+    CameraCOR | Radar | FogoCruzadoIncident | Agent | WazeAlert | Report | Point
   > | null
   className?: string
 }
@@ -34,8 +35,20 @@ export function MapHoverCard({
 
   const viewport = hoveredObject?.viewport
 
-  const lon = hoveredObject?.object?.longitude || 0
-  const lat = hoveredObject?.object?.latitude || 0
+  const obj = hoveredObject?.object
+
+  const lon =
+    obj && 'longitude' in obj
+      ? obj?.longitude || 0
+      : obj && 'from' in obj
+        ? obj.from[0]
+        : 0
+  const lat =
+    obj && 'latitude' in obj
+      ? obj?.latitude || 0
+      : obj && 'from' in obj
+        ? obj.from[1]
+        : 0
 
   const x = getPixelPosition(lon, lat)[0]
   const y = getPixelPosition(lon, lat)[1]

@@ -9,22 +9,15 @@ import {
 
 const cards = [
   {
-    title: 'Mapa',
+    title: 'Veículos',
     href: '/veiculos',
     description:
       'Consulte radares e câmeras da cidade, pesquise por placas, gere relatórios de detecção e mais.',
   },
   {
-    title: 'Placas Monitoradas',
-    href: '/placas-monitoradas',
-    description:
-      'Cadastre uma placa e receba uma notificação quando ela for detectada.',
-  },
-  {
-    title: 'Operações',
-    href: '/operacoes',
-    description:
-      'Cadastre uma operação para ser vinculada a uma placa monitorada.',
+    title: 'Pessoas',
+    href: '/pessoas',
+    description: 'Consulte pessoas físicas e jurídicas.',
   },
   {
     title: 'Ocorrências',
@@ -38,9 +31,16 @@ const cards = [
     description: 'Veja insights sobre radares e câmeras da cidade.',
   },
   {
-    title: 'Pessoas',
-    href: '/pessoas',
-    description: 'Consulte pessoas físicas e jurídicas.',
+    title: 'Placas Monitoradas',
+    href: '/placas-monitoradas',
+    description:
+      'Cadastre uma placa e receba uma notificação quando ela for detectada.',
+  },
+  {
+    title: 'Operações',
+    href: '/operacoes',
+    description:
+      'Cadastre uma operação para ser vinculada a uma placa monitorada.',
   },
 ]
 
