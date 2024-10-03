@@ -118,12 +118,13 @@ export function MonitoredPlateFormDialog({
     },
   })
 
-  const { data: monitoredPlateResponse, isLoading: isLoadingMonitoredPlate } =
-    useQuery({
+  const { data: monitoredPlate, isLoading: isLoadingMonitoredPlate } = useQuery(
+    {
       queryKey: ['cars', 'monitored', initialData?.plate],
       queryFn: () => getMonitoredPlate({ plate: initialData?.plate || '' }),
       enabled: !!initialData && shouldFetchData,
-    })
+    },
+  )
 
   const { data: operationsResponse } = useQuery({
     queryKey: ['operations'],
@@ -179,26 +180,24 @@ export function MonitoredPlateFormDialog({
       initialData &&
       isOpen &&
       !isLoading &&
-      monitoredPlateResponse &&
+      monitoredPlate &&
       shouldFetchData
     ) {
-      setValue('plate', monitoredPlateResponse.data.plate)
-      setValue('active', monitoredPlateResponse.data.active)
-      setValue('additionalInfo', monitoredPlateResponse.data.additionalInfo)
-      setValue('notes', monitoredPlateResponse.data.notes)
-      setValue('operation.id', monitoredPlateResponse.data.operation.id || '')
-      setValue(
-        'operation.title',
-        monitoredPlateResponse.data.operation.title || '',
-      )
-      if (monitoredPlateResponse.data.notificationChannels.length > 0) {
-        const channelOptions =
-          monitoredPlateResponse.data.notificationChannels.map((item) => {
+      setValue('plate', monitoredPlate.plate)
+      setValue('active', monitoredPlate.active)
+      setValue('additionalInfo', monitoredPlate.additionalInfo)
+      setValue('notes', monitoredPlate.notes)
+      setValue('operation.id', monitoredPlate.operation.id || '')
+      setValue('operation.title', monitoredPlate.operation.title || '')
+      if (monitoredPlate.notificationChannels.length > 0) {
+        const channelOptions = monitoredPlate.notificationChannels.map(
+          (item) => {
             return {
               label: item.title,
               value: item.id,
             }
-          })
+          },
+        )
         setValue('notificationChannels', channelOptions)
       }
       setIsLoading(false)
@@ -207,7 +206,7 @@ export function MonitoredPlateFormDialog({
     if (initialData && isOpen && !shouldFetchData) {
       setValue('plate', initialData.plate)
     }
-  }, [isOpen, isLoading, monitoredPlateResponse])
+  }, [isOpen, isLoading, monitoredPlate])
 
   useEffect(() => {
     if (

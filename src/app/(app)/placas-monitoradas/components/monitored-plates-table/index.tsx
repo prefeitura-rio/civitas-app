@@ -1,6 +1,7 @@
 'use client'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
+import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
 import { useState } from 'react'
 
@@ -78,6 +79,16 @@ export function MonitoredPlatesTable() {
           return <div />
         }
       },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Data de criação',
+      cell: ({ row }) => formatDate(row.original.createdAt, 'dd/MM/yyyy HH:mm'),
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: 'Última atualização',
+      cell: ({ row }) => formatDate(row.original.updatedAt, 'dd/MM/yyyy HH:mm'),
     },
     {
       accessorKey: 'active',
