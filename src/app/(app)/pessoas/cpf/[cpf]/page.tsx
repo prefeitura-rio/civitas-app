@@ -10,6 +10,7 @@ import { useEffect, useRef } from 'react'
 import { Spinner } from '@/components/custom/spinner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { config } from '@/config'
+import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
 import { usePeople } from '@/hooks/use-queries/use-people'
 import { searchAddress } from '@/http/mapbox/search-address'
 
@@ -37,8 +38,16 @@ const InfoItem = ({
 export default function Pessoa({ params: { cpf } }: PessoaProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const mapContainerRef = useRef<HTMLDivElement>(null)
+  const {
+    data: cortexRemainingCredits,
+    isLoading: isCortexRemainingCreditsLoading,
+  } = useCortexRemainingCredits()
+  const { data, isLoading: isPeopleLoading, error } = usePeople({ cpf })
 
-  const { data, isLoading, error } = usePeople({ cpf })
+  const isLoading = isPeopleLoading || isCortexRemainingCreditsLoading
+  const remainingCredits = cortexRemainingCredits?.remaining_credit
+  const timeUntilReset = cortexRemainingCredits?.time_until_reset
+
   console.log(error)
   // console.log(cpf)
   // const error = null
@@ -126,13 +135,29 @@ export default function Pessoa({ params: { cpf } }: PessoaProps) {
           <Spinner className="size-10" />
         </div>
       )}
-      {error && (
-        <div className="mx-auto flex w-96 justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
-          <span className="pl-6 -indent-6 text-sm text-muted-foreground">
-            {`⚠️ Não foi possível retornar informações a respeito desse CPF. ${getErrorMessage(error)}`}
-          </span>
-        </div>
-      )}
+      {error &&
+        (remainingCredits ? (
+          <div className="mx-auto flex w-96 justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
+            <span className="pl-6 -indent-6 text-sm text-muted-foreground">
+              {`⚠️ Não foi possível retornar informações a respeito desse CPF. ${getErrorMessage(error)}`}
+            </span>
+          </div>
+        ) : (
+          <div className="mx-auto flex w-96 justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
+            <span className="pl-6 -indent-6 text-sm text-muted-foreground">
+              ⚠️ Não foi possível retornar informações a respeito desse CPF.
+              Você atingiu o limite de requisições à API do Córtex. Você poderá
+              realizar novas requisições a partir das{' '}
+              <span className="font-extrabold underline">
+                {format(
+                  new Date(Date.now() + (timeUntilReset || 0) * 1000),
+                  'HH:mm',
+                )}
+              </span>
+              .
+            </span>
+          </div>
+        ))}
       {data && (
         <div className="grid grid-cols-2 gap-6">
           <div className="grid grid-cols-1 gap-6">

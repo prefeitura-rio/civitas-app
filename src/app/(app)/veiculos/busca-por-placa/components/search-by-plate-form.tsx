@@ -130,7 +130,7 @@ export function SearchByPlateForm() {
                   {...field}
                   onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                   placeholder="Placa do Veículo"
-                  className="w-full pl-10 dark:bg-gray-700 dark:text-white"
+                  className="w-full pl-10 pr-8 dark:bg-gray-700 dark:text-white"
                 />
               )}
             />
