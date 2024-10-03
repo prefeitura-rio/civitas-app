@@ -6,18 +6,24 @@ interface GetMonitoredPlateRequest {
 }
 
 export async function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
-  const originalResponse = await api.get<BackendMonitoredPlate>(
+  const response = await api.get<BackendMonitoredPlate>(
     `cars/monitored/${plate}`,
   )
 
-  const response = {
-    ...originalResponse,
-    data: {
-      ...originalResponse.data,
-      additionalInfo: originalResponse.data.additional_info,
-      notificationChannels: originalResponse.data.notification_channels,
-    } as MonitoredPlate,
-  }
+  const data = {
+    id: response.data.id,
+    plate: response.data.plate,
+    active: response.data.active,
+    notes: response.data.notes,
+    operation: {
+      id: response.data.operation.id,
+      title: response.data.operation.title,
+    },
+    createdAt: response.data.created_at,
+    updatedAt: response.data.created_at,
+    additionalInfo: response.data.additional_info,
+    notificationChannels: response.data.notification_channels,
+  } as MonitoredPlate
 
-  return response
+  return data
 }

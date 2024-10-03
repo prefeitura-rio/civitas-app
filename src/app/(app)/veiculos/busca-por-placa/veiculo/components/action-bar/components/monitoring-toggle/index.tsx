@@ -28,22 +28,25 @@ export function MonitoringToggle() {
   } = useMap()
   const { data: profile } = useProfile()
 
-  const { data: response, isLoading: isLoadingMonitoredPlate } = useQuery({
-    queryKey: ['cars', 'monitored', lastSearchParams?.plate],
-    queryFn: () => getMonitoredPlate({ plate: lastSearchParams?.plate || '' }),
-    retry(failureCount, error) {
-      if (
-        isApiError(error) &&
-        error.response?.data.detail === 'Plate not found'
-      ) {
-        return false
-      }
-      if (failureCount > 2) {
-        return false
-      }
-      return true
+  const { data: monitoredPlate, isLoading: isLoadingMonitoredPlate } = useQuery(
+    {
+      queryKey: ['cars', 'monitored', lastSearchParams?.plate],
+      queryFn: () =>
+        getMonitoredPlate({ plate: lastSearchParams?.plate || '' }),
+      retry(failureCount, error) {
+        if (
+          isApiError(error) &&
+          error.response?.data.detail === 'Plate not found'
+        ) {
+          return false
+        }
+        if (failureCount > 2) {
+          return false
+        }
+        return true
+      },
     },
-  })
+  )
 
   function handleSetMonitored() {
     if (lastSearchParams) {
@@ -55,13 +58,13 @@ export function MonitoringToggle() {
 
   useEffect(() => {
     if (!isLoadingMonitoredPlate) {
-      if (response) {
-        setMonitored(response.data.active)
+      if (monitoredPlate) {
+        setMonitored(monitoredPlate.active)
       } else {
         setMonitored(false)
       }
     }
-  }, [response, isLoadingMonitoredPlate])
+  }, [monitoredPlate, isLoadingMonitoredPlate])
 
   return (
     <>
@@ -101,7 +104,7 @@ export function MonitoringToggle() {
             isOpen={monitoredPlateFormDialog.isOpen}
             onClose={monitoredPlateFormDialog.onClose}
             onOpen={monitoredPlateFormDialog.onOpen}
-            shouldFetchData={!!response?.data}
+            shouldFetchData={!!monitoredPlate}
           />
           <DisableMonitoringAlertDialog
             isOpen={disableMonitoringAlertDisclosure.isOpen}
