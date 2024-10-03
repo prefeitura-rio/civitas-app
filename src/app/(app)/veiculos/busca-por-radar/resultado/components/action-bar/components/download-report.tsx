@@ -133,7 +133,7 @@ export function DownloadReport({
       const groupedData = groupData(selectedData)
 
       const from = new Date(formattedSearchParams.date).addMinutes(
-        formattedSearchParams.duration[0] * -1,
+        formattedSearchParams.duration[0],
       )
       const to = new Date(formattedSearchParams.date).addMinutes(
         formattedSearchParams.duration[1],
