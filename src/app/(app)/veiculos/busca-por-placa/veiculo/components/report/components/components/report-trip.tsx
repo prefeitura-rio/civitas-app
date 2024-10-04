@@ -27,31 +27,42 @@ Font.register({
 })
 
 export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
-  const hash = new Set<string>()
-  let mapPoints: Point[] = []
-  const tripChuncks: Point[][] = []
+  const hash = new Set<string>() // Conjunto de hash para armazenar as coordenadas dos pontos no chunk atual
+  let mapPoints: Point[] = [] // Array para armazenar os pontos no chunk atual
+  const tripChuncks: Point[][] = [] // Array para armazenar os chunks de pontos
 
-  trip.points.forEach((point) => {
+  // Para cada ponto na viagem, adiciona-o ao chunk atual ou cria um novo
+  trip.points.forEach((point, index) => {
     const coordinates = point.from.toString()
 
+    // Se ainda há um próximo ponto, calcula a distância entre o último ponto e o ponto atual
+    // Se não, distance = 0
     const distance =
       point.to && mapPoints.length >= 1
         ? haversineDistance({
-            pointA: mapPoints[mapPoints.length - 1].from, // Last point
-            pointB: point.from, // Current point
+            pointA: mapPoints[mapPoints.length - 1].from, // Último ponto
+            pointB: point.from, // Ponto atual
           })
         : 0
+
+    // Verifica se deve finalizar o chunk atual
+    // 1. Se houver mais de um ponto nas mesmas coordenadas no chunk atual
+    // 2. Se a distância entre o último ponto e o ponto atual for maior que 5000 metros
+    // 3. Se o chunk atual já tiver 10 pontos
     if (hash.has(coordinates) || distance > 5000 || mapPoints.length >= 10) {
-      tripChuncks.push([...mapPoints])
-      hash.clear()
-      mapPoints = []
+      tripChuncks.push([...mapPoints]) // Salva o chunk atual de pontos
+      hash.clear() // Limpa o conjunto de hash para o próximo chunk
+      mapPoints = [] // Reseta mapPoints para o próximo chunk
     }
 
-    mapPoints.push(point)
-    hash.add(coordinates)
+    // Adiciona o ponto atual ao mapPoints
+    mapPoints.push(point) // Adiciona o ponto atual ao mapPoints
+    hash.add(coordinates) // Adiciona as coordenadas do ponto atual ao conjunto de hash
 
-    if (!point.to) {
+    // Se o ponto atual é o último, salva o chunk atual de pontos
+    if (index === trip.points.length - 1 && mapPoints.length > 0) {
       tripChuncks.push([...mapPoints])
+      mapPoints = [] // Reseta mapPoints após adicionar o último chunk
     }
   })
 
