@@ -56,7 +56,9 @@ export function VehicleTable({ data, isLoading }: DetectionsTableProps) {
               variant="outline"
               className="size-6 shrink-0 p-0"
               onClick={() =>
-                router.push(`/veiculos/busca-por-placa/veiculo?${query.toString()}`)
+                router.push(
+                  `/veiculos/busca-por-placa/veiculo?${query.toString()}`,
+                )
               }
             >
               <ArrowUpRight className="size-4" />

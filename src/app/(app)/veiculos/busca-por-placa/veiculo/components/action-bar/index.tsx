@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 
 import DownloadReportButton from './components/download-report-button'
 import { MonitoringToggle } from './components/monitoring-toggle'
+import DownloadReportsByDetectionPointButton from './components/reports-by-detection-point'
 
 export function ActionBar() {
   const router = useRouter()
@@ -16,6 +17,7 @@ export function ActionBar() {
       <div className="flex gap-2">
         <DownloadReportButton />
         <MonitoringToggle />
+        <DownloadReportsByDetectionPointButton />
       </div>
       <div className="flex gap-2">
         <Tooltip text="Limpar busca" asChild>

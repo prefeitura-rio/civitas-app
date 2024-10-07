@@ -19,7 +19,6 @@ export function PeopleForm() {
   function handleValueChange(value: string) {
     if (value.length <= 14) {
       const formattedCPF = formatCPF(value)
-      console.log(formattedCPF.length === 14)
       if (formattedCPF.length === 14 && validateCPF(value)) setError(null)
       setValue(formattedCPF)
       return

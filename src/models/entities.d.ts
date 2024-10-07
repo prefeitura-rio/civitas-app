@@ -5,10 +5,10 @@ export type Point = {
   to?: [longitude: number, latitude: number]
   endTime?: string
   cameraNumber: string
-  district: string
-  location: string
-  direction: string
-  lane: string
+  district: string | null
+  location: string | null
+  direction: string | null
+  lane: string | null
   speed: number
   secondsToNextPoint: number | null
   cloneAlert: boolean
