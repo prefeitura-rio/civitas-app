@@ -94,9 +94,9 @@ export function TripTable({ points }: TripTableProps) {
       </View>
 
       {points.map((item) => {
-        const location = item.location.capitalizeFirstLetter()
-        const direction = item.direction.capitalizeFirstLetter()
-        const district = item.district.capitalizeFirstLetter()
+        const location = item.location?.capitalizeFirstLetter()
+        const direction = item.direction?.capitalizeFirstLetter()
+        const district = item.district?.capitalizeFirstLetter()
 
         return (
           <>

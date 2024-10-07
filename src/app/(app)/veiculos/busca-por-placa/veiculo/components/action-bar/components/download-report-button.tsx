@@ -25,7 +25,7 @@ export default function DownloadReportButton() {
 
   return (
     <Dialog>
-      <Tooltip asChild text="Imprimir relatório" disabled={isLoading}>
+      <Tooltip asChild text="Relatório de viagens" disabled={isLoading}>
         <DialogTrigger asChild>
           <Button variant="secondary" size="icon" disabled={isLoading}>
             <Printer className="size-4 shrink-0" />

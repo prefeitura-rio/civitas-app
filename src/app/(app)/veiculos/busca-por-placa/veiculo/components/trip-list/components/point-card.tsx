@@ -70,14 +70,14 @@ export function PointCard({ point }: PointCardProps) {
                   <ul className="list-decoration">
                     <li>
                       <span className="text-muted-foreground">Origem: </span>
-                      <span>{point.district.capitalizeFirstLetter()}</span>
+                      <span>{point.district?.capitalizeFirstLetter()}</span>
                     </li>
                     <li>
                       <span className="text-muted-foreground">Destino: </span>
                       <span>
                         {points
                           .at(point.index + 1)
-                          ?.district.capitalizeFirstLetter()}
+                          ?.district?.capitalizeFirstLetter()}
                       </span>
                     </li>
                     <li>
@@ -117,10 +117,10 @@ export function PointCard({ point }: PointCardProps) {
       )}
       <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
       <div className="ml-1.5 flex flex-col truncate">
-        <Tooltip text={point.location.capitalizeFirstLetter()}>
+        <Tooltip text={point.location?.capitalizeFirstLetter()}>
           <div className="truncate">
             <span className="truncate">
-              {point.location.capitalizeFirstLetter()}
+              {point.location?.capitalizeFirstLetter()}
             </span>
           </div>
         </Tooltip>
@@ -128,13 +128,13 @@ export function PointCard({ point }: PointCardProps) {
           Posição {point.index + 1}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {point.district.capitalizeFirstLetter()}
+          {point.district?.capitalizeFirstLetter()}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
           {`${point.speed} Km/h`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {`Sentido ${point.direction.capitalizeFirstLetter()}`}
+          {`Sentido ${point.direction?.capitalizeFirstLetter()}`}
         </span>
       </div>
     </div>
