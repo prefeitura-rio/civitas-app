@@ -79,7 +79,6 @@ export function SearchByPlateForm() {
       router.push(`/veiculos/busca-por-placa/veiculo?${query.toString()}`)
     }
   }
-  console.log('debug')
   return (
     <Card className="w-full max-w-screen-md p-6">
       {/* <CardHeader>

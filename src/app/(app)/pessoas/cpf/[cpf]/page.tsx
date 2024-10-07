@@ -48,7 +48,6 @@ export default function Pessoa({ params: { cpf } }: PessoaProps) {
   const remainingCredits = cortexRemainingCredits?.remaining_credit
   const timeUntilReset = cortexRemainingCredits?.time_until_reset
 
-  console.log(error)
   // console.log(cpf)
   // const error = null
   // const isLoading = false

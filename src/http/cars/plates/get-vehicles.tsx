@@ -204,6 +204,5 @@ export async function getVehicles(plates: string[]) {
   const response = await api.post<Vehicle[]>('/cars/plates', {
     plates,
   })
-  console.log(response.data)
   return response.data
 }
