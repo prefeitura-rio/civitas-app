@@ -1,6 +1,6 @@
 import { pdf } from '@react-pdf/renderer'
 import { Printer } from 'lucide-react'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
@@ -15,6 +15,8 @@ import { type ReportData, ReportDocument } from './components/report/document'
 
 export default function DownloadReportsByDetectionPointButton() {
   const [isLoading, setIsLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const countRef = useRef(0)
 
   const {
     layers: {
@@ -28,7 +30,8 @@ export default function DownloadReportsByDetectionPointButton() {
   const { data: radars } = useRadars()
 
   const getReportData = useCallback(async () => {
-    if (!trips || !radars) throw new Error('trips and radars are required')
+    if (!trips) throw new Error('trips is required')
+    if (!radars) throw new Error('radars is required')
 
     const points = trips.map((trip) => trip.points).flat()
 
@@ -47,6 +50,10 @@ export default function DownloadReportsByDetectionPointButton() {
     })
 
     const detectionsByGroup: ReportData = []
+    const total = pointsAndRadarGroups.reduce(
+      (acc, group) => acc + group.radars.length,
+      1,
+    )
 
     for await (const pointAndRadarGroup of pointsAndRadarGroups) {
       const { point, radars } = pointAndRadarGroup
@@ -76,7 +83,9 @@ export default function DownloadReportsByDetectionPointButton() {
             } as DetectionDTO
           })
 
-          // Retorna as detecções do grupo com informações de cada radar
+          countRef.current = countRef.current + 1
+          setProgress(countRef.current / total)
+
           return joinedData
         }),
       )
@@ -105,11 +114,13 @@ export default function DownloadReportsByDetectionPointButton() {
 
     return detectionsByGroup
     // Retorna uma lista de grupos de detecções
-  }, [])
+  }, [trips, radars])
 
   async function handleDownload() {
     if (!formattedSearchParams)
       throw new Error('formattedSearchParams is required')
+    if (!trips) throw new Error('trips is required')
+    if (!radars) throw new Error('radars is required')
 
     setIsLoading(true)
     const data = await getReportData()
@@ -137,20 +148,27 @@ export default function DownloadReportsByDetectionPointButton() {
     <Tooltip
       asChild
       text="Relatório de placas conjuntas"
+      disabledText={
+        isLoading
+          ? `Relatório de placas conjuntas (${(progress * 100).toFixed(0)}%)`
+          : undefined
+      }
       disabled={isLoading || !trips || !radars || isTripsLoading}
     >
-      <Button
-        variant="secondary"
-        size="icon"
-        disabled={isLoading || !trips || !radars || isTripsLoading}
-        onClick={handleDownload}
-      >
-        {isLoading ? (
-          <Spinner className="size-4 shrink-0" />
-        ) : (
-          <Printer className="size-4 shrink-0" />
-        )}
-      </Button>
+      <span tabIndex={0}>
+        <Button
+          variant="secondary"
+          size="icon"
+          disabled={isLoading || !trips || !radars || isTripsLoading}
+          onClick={handleDownload}
+        >
+          {isLoading ? (
+            <Spinner className="size-4 shrink-0" />
+          ) : (
+            <Printer className="size-4 shrink-0" />
+          )}
+        </Button>
+      </span>
     </Tooltip>
   )
 }
