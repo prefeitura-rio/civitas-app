@@ -7,8 +7,8 @@ import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import type { RadarDetection } from '@/models/entities'
 
-type ReportDataRow = {
-  detections: DetectionDTO[]
+export type ReportDataRow = {
+  detections: (DetectionDTO & { count: number })[]
   monitoredPlateTimestamp: string
   from: string
   to: string
@@ -27,6 +27,7 @@ interface ReportDocumentProps {
     endTime: string
     startTime: string
   }
+  ranking: { plate: string; count: number }[]
 }
 
 const styles = StyleSheet.create({
@@ -101,15 +102,21 @@ const paramsStyle = StyleSheet.create({
   },
 })
 
-const columns = [
-  { title: 'Data e Hora', width: '25%', key: 'timestamp' },
-  { title: 'Placa', width: '15%', key: 'plate' },
-  { title: 'Radar', width: '15%', key: 'cameraNumber' },
-  { title: 'Faixa', width: '10%', key: 'lane' },
+const detectionColumns = [
+  { title: 'Data e Hora', width: '23%', key: 'timestamp' },
+  { title: 'Placa', width: '14%', key: 'plate' },
+  { title: 'Radar', width: '14%', key: 'cameraNumber' },
+  { title: 'Faixa', width: '9%', key: 'lane' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
+  { title: 'Nº de ocorrências', width: '20%', key: 'count' },
 ]
 
-export function ReportDocument({ data, params }: ReportDocumentProps) {
+const rankingColumns = [
+  { title: 'Placa', width: '15%', key: 'plate' },
+  { title: 'Nº de ocorrências', width: '20%', key: 'count' },
+]
+
+export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
   const reportTitle = 'Relatório de detecções conjuntas por radar'
 
   const coverParams = [
@@ -178,6 +185,64 @@ export function ReportDocument({ data, params }: ReportDocumentProps) {
           )}
         </View>
 
+        <Text style={styles.groupTitle}>Placas com mais de uma ocorrência</Text>
+        {ranking.length > 0 ? (
+          <>
+            <View style={{ ...styles.table, marginVertical: 20 }}>
+              <View style={styles.tableRow} wrap={false}>
+                {rankingColumns.map((column, j) => (
+                  <Text
+                    key={j}
+                    style={{
+                      ...styles.tableHeader,
+                      width: column.width,
+                    }}
+                  >
+                    {column.title}
+                  </Text>
+                ))}
+              </View>
+
+              {ranking.map((row, i) => {
+                return (
+                  <View
+                    key={i}
+                    style={{
+                      ...styles.tableRow,
+                      backgroundColor:
+                        row.plate === params.plate ? 'yellow' : 'white',
+                    }}
+                    wrap={false}
+                  >
+                    {rankingColumns.map((column, j) => (
+                      <Text
+                        key={j}
+                        style={{
+                          ...styles.tableData,
+                          width: column.width,
+                        }}
+                      >
+                        {row[column.key as keyof typeof row]}
+                      </Text>
+                    ))}
+                  </View>
+                )
+              })}
+            </View>
+          </>
+        ) : (
+          <Text
+            style={{
+              paddingVertical: 20,
+              fontFamily: 'Open Sans',
+              fontSize: 11,
+              textAlign: 'justify',
+            }}
+          >
+            {`Nenhuma placa foi detectada mais de uma vez nesse relatório além da própria placa monitorada.`}
+          </Text>
+        )}
+
         {data.map((group, i) => (
           <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
             {data.length > 1 && (
@@ -207,7 +272,7 @@ export function ReportDocument({ data, params }: ReportDocumentProps) {
               <>
                 <View style={styles.table}>
                   <View style={styles.tableRow} wrap={false}>
-                    {columns.map((column, j) => (
+                    {detectionColumns.map((column, j) => (
                       <Text
                         key={j}
                         style={{
@@ -231,7 +296,7 @@ export function ReportDocument({ data, params }: ReportDocumentProps) {
                         }}
                         wrap={false}
                       >
-                        {columns.map((column, j) => (
+                        {detectionColumns.map((column, j) => (
                           <Text
                             key={j}
                             style={{
