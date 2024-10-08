@@ -4,12 +4,15 @@ import React, { useCallback, useRef, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
+import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useRadars } from '@/hooks/use-queries/use-radars'
-import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
+// import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
+import type { Radar } from '@/models/entities'
 
 import { type ReportData, ReportDocument } from './components/report/document'
 
@@ -36,85 +39,144 @@ export default function DownloadReportsByDetectionPointButton() {
     const points = trips.map((trip) => trip.points).flat()
 
     const pointsAndRadarGroups = points.map((point) => {
-      const pointUniqueLocation = `${point.location?.replace(/ - FX .*/, '')} ${point.direction} ${point.district}`
-
+      const pointUniqueLocation = `${point.location?.replace(/ - FX .*/, '')?.replace(/ - SENTIDO .*/, '')} ${point.direction} ${point.district}`
       const group = radars.filter((radar) => {
-        const radarUniqueLocation = `${radar.location?.replace(/ - SENTIDO .*/, '')} ${radar.direction} ${radar.district}`
-        return radarUniqueLocation === pointUniqueLocation
+        const radarUniqueLocation = `${radar.location
+          ?.replace(/ - SENTIDO .*/, '')
+          ?.replace(/ - FX .*/, '')} ${radar.direction} ${radar.district}`
+        return (
+          radarUniqueLocation.replaceAll(' ', '').toUpperCase() ===
+          pointUniqueLocation.replaceAll(' ', '').toUpperCase()
+        )
       })
+      const filteredGroup = group.reduce((acc, radar) => {
+        if (!acc.some((r) => r.cameraNumber === radar.cameraNumber)) {
+          acc.push(radar)
+        }
+        return acc
+      }, [] as Radar[])
 
       return {
         point,
-        radars: group,
+        radars: filteredGroup,
       }
     })
 
-    const detectionsByGroup: ReportData = []
+    // const detectionsByGroup: Omit<ReportData, 'instances'> = []
     const total = pointsAndRadarGroups.reduce(
       (acc, group) => acc + group.radars.length,
-      1,
+      0,
     )
 
-    for await (const pointAndRadarGroup of pointsAndRadarGroups) {
-      const { point, radars } = pointAndRadarGroup
+    const allDetectionsPromises = pointsAndRadarGroups.flatMap(
+      ({ point, radars }) => {
+        const startTime = new Date(point.startTime).addMinutes(-5).toISOString()
+        const endTime = new Date(point.startTime).addMinutes(5).toISOString()
 
-      // Params da busca por groupo de radar = 5 minutos antes e depois da detecção naquele ponto
-      const startTime = new Date(point.startTime).addMinutes(-5).toISOString()
-      const endTime = new Date(point.startTime).addMinutes(5).toISOString()
-
-      // Detecções combinadas de todos os radares do grupo
-      const detections = await Promise.all(
-        // Para cada radar do grupo
-        radars.map(async (radar) => {
-          // Detecções do radar
+        return radars.map(async (radar) => {
           const detections = await getCarsByRadar({
             radar: radar.cameraNumber,
             startTime,
             endTime,
           })
 
-          // Adiciona informações do radar à detecção
-          const joinedData = detections.map((detection) => {
-            return {
-              ...detection, // plate, timestamp, speed
-              cameraNumber: radar.cameraNumber,
-              lane: radar.lane || '',
-              location: radar.location?.replace(/- FX \d+/, '') || '',
-            } as DetectionDTO
-          })
+          const joinedData = detections.map((detection) => ({
+            ...detection,
+            cameraNumber: radar.cameraNumber,
+            lane: radar.lane || '',
+            location: radar.location?.replace(/- FX \d+/, '') || '',
+          }))
 
           countRef.current = countRef.current + 1
           setProgress(countRef.current / total)
 
-          return joinedData
-        }),
-      )
+          return {
+            point,
+            radar,
+            detections: joinedData,
+          }
+        })
+      },
+    )
 
-      // Detecções ordenadas por timestamp
-      const sortedDetections = detections
-        .flat()
-        .sort(
+    const allDetections = await Promise.all(allDetectionsPromises)
+
+    const detectionsByGroup: Omit<ReportData, 'instances'> =
+      pointsAndRadarGroups.map(({ point, radars }) => {
+        const groupDetections = allDetections
+          .filter(
+            (detection) =>
+              detection.point === point && radars.includes(detection.radar),
+          )
+          .flatMap((detection) => detection.detections)
+
+        const sortedDetections = groupDetections.sort(
           (a, b) =>
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
         )
 
-      // Adiciona detecções ao grupo
-      detectionsByGroup.push({
-        detections: sortedDetections,
-        from: startTime,
-        to: endTime,
-        monitoredPlateTimestamp: point.startTime,
-        groupLocation: `${point.location?.replace(/ - FX .*/, '') || ''}, ${point.district} - ${point.direction}`,
-        latitude: radars.at(0)?.latitude || 0,
-        longitude: radars.at(0)?.longitude || 0,
-        totalDetections: sortedDetections.length,
-        radarIds: radars.map((radar) => radar.cameraNumber),
+        return {
+          detections: sortedDetections.map((d) => ({ ...d, count: 0 })),
+          from: new Date(point.startTime).addMinutes(-5).toISOString(),
+          to: new Date(point.startTime).addMinutes(5).toISOString(),
+          monitoredPlateTimestamp: point.startTime,
+          groupLocation: `${point.location?.replace(/ - FX .*/, '') || ''}, ${
+            point.district
+          } - ${point.direction}`,
+          latitude: radars.at(0)?.latitude || 0,
+          longitude: radars.at(0)?.longitude || 0,
+          totalDetections: sortedDetections.length,
+          radarIds: radars.map((radar) => radar.cameraNumber),
+        }
       })
-    }
 
-    return detectionsByGroup
+    // Count plates
+    const plateCount: Record<string, number> = {}
+    detectionsByGroup
+      .flatMap((group) => group.detections)
+      .forEach((detection) => {
+        if (plateCount[detection.plate]) {
+          plateCount[detection.plate] += 1
+        } else {
+          plateCount[detection.plate] = 1
+        }
+      })
+
+    // Adiciona instância de cada placa à detecção
+    const detectionsByGroupWithCount = detectionsByGroup.map((group) => ({
+      ...group,
+      detections: group.detections.map((detection) => ({
+        ...detection,
+        count: plateCount[detection.plate],
+      })),
+    }))
+
     // Retorna uma lista de grupos de detecções
+    return detectionsByGroupWithCount
   }, [trips, radars])
+
+  const getRanking = (data: ReportData) => {
+    // Remove detections with less than 2 instances
+    const plateCount = data
+      .map((group) => group.detections)
+      .flat()
+      .filter((detection) => (detection.count ?? 0) > 1)
+      .map((detection) => ({
+        plate: detection.plate,
+        count: detection.count,
+      }))
+
+    // Get unique plates
+    const uniquePlateIntances = plateCount.filter(
+      (detection, index, self) =>
+        index === self.findIndex((t) => t.plate === detection.plate),
+    )
+
+    // Sort by instances
+    const ranking = uniquePlateIntances.sort((a, b) => b.count - a.count)
+
+    return ranking
+  }
 
   async function handleDownload() {
     if (!formattedSearchParams)
@@ -123,8 +185,10 @@ export default function DownloadReportsByDetectionPointButton() {
     if (!radars) throw new Error('radars is required')
 
     setIsLoading(true)
+    // const { data, ranking } = await getReportData(trips, radars)
     const data = await getReportData()
-
+    const ranking = getRanking(data)
+    console.log({ data, ranking })
     const blob = await pdf(
       <ReportDocument
         params={{
@@ -133,6 +197,7 @@ export default function DownloadReportsByDetectionPointButton() {
           endTime: formattedSearchParams.to,
         }}
         data={data}
+        ranking={ranking}
       />,
     ).toBlob()
     const url = URL.createObjectURL(blob)
@@ -142,33 +207,45 @@ export default function DownloadReportsByDetectionPointButton() {
     a.click()
     URL.revokeObjectURL(url)
     setIsLoading(false)
+    countRef.current = 0
+    setProgress(0)
   }
 
   return (
-    <Tooltip
-      asChild
-      text="Relatório de placas conjuntas"
-      disabledText={
-        isLoading
-          ? `Relatório de placas conjuntas (${(progress * 100).toFixed(0)}%)`
-          : undefined
-      }
-      disabled={isLoading || !trips || !radars || isTripsLoading}
-    >
-      <span tabIndex={0}>
-        <Button
-          variant="secondary"
-          size="icon"
-          disabled={isLoading || !trips || !radars || isTripsLoading}
-          onClick={handleDownload}
-        >
-          {isLoading ? (
-            <Spinner className="size-4 shrink-0" />
-          ) : (
-            <Printer className="size-4 shrink-0" />
-          )}
-        </Button>
-      </span>
-    </Tooltip>
+    <div>
+      <Tooltip
+        asChild
+        text="Relatório de placas conjuntas"
+        disabled={isLoading || !trips || !radars || isTripsLoading}
+      >
+        <span tabIndex={0}>
+          <Button
+            variant="secondary"
+            size="icon"
+            disabled={isLoading || !trips || !radars || isTripsLoading}
+            onClick={handleDownload}
+          >
+            {isLoading ? (
+              <Spinner className="size-4 shrink-0" />
+            ) : (
+              <Printer className="size-4 shrink-0" />
+            )}
+          </Button>
+        </span>
+      </Tooltip>
+      <AlertDialog open={isLoading}>
+        <AlertDialogContent>
+          <div className="flex flex-col items-center justify-center">
+            <Spinner className="size-8" />
+            {progress < 1 ? (
+              <p className="text-center">Gerando relatório...</p>
+            ) : (
+              <p className="text-center">Preparando documento...</p>
+            )}
+            <Progress value={progress * 100} className="w-full" />
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }
