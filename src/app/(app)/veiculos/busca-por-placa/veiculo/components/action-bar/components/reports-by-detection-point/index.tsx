@@ -203,7 +203,7 @@ export default function DownloadReportsByDetectionPointButton() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'busca_por_radar.pdf'
+    a.download = `placas_conjuntas_${formattedSearchParams.plate}.pdf`
     a.click()
     URL.revokeObjectURL(url)
     setIsLoading(false)
