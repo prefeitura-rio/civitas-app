@@ -1,4 +1,5 @@
 'use client'
+import { getErrorMessage } from '@/app/(app)/pessoas/components/get-error-message'
 import { Spinner } from '@/components/custom/spinner'
 import { Card, CardContent } from '@/components/ui/card'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
@@ -21,10 +22,15 @@ export default function RadarDetections() {
   if (!formattedSearchParams) return <InvalidParamsAlert />
 
   const { data: detections } = useRadarsSearch()
-  const { data: enhancedDetections, isPending } = useEnhancedRadarsSearch()
+  const {
+    data: enhancedDetections,
+    isPending,
+    error,
+  } = useEnhancedRadarsSearch()
   const filters = useSearchByRadarEnhancedResultDynamicFilter({
     data: enhancedDetections,
   })
+  console.log(error)
   const { data: remainingCredits } = useCortexRemainingCredits()
   const { data: creditsRequired } = useVehiclesCreditsRequired(
     detections?.map((item) => item.plate) || [],
@@ -54,6 +60,13 @@ export default function RadarDetections() {
           {isPending && (
             <div className="flex w-full justify-center p-6">
               <Spinner className="size-10" />
+            </div>
+          )}
+          {error && (
+            <div className="flex justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
+              <span className="pl-6 -indent-6 text-sm text-muted-foreground">
+                {`⚠️ Não foi possível retornar informações a respeito desse veículo. ${getErrorMessage(error)}`}
+              </span>
             </div>
           )}
           {enhancedDetections && (
