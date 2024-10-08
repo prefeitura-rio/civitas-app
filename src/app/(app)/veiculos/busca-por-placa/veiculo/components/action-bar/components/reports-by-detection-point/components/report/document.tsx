@@ -7,6 +7,8 @@ import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import type { RadarDetection } from '@/models/entities'
 
+import { ReportEmptyResult } from '../../../../../report/components/components/report-empty-result'
+
 export type ReportDataRow = {
   detections: (DetectionDTO & { count: number })[]
   monitoredPlateTimestamp: string
@@ -118,6 +120,10 @@ const rankingColumns = [
 
 export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
   const reportTitle = 'Relatório de detecções conjuntas por radar'
+  const totalDetections = data.reduce(
+    (acc, group) => acc + group.totalDetections,
+    0,
+  )
 
   const coverParams = [
     {
@@ -185,94 +191,16 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
           )}
         </View>
 
-        <Text style={styles.groupTitle}>Placas com mais de uma ocorrência</Text>
-        {ranking.length > 0 ? (
+        {totalDetections > 0 ? (
           <>
-            <View style={{ ...styles.table, marginVertical: 20 }}>
-              <View style={styles.tableRow} wrap={false}>
-                {rankingColumns.map((column, j) => (
-                  <Text
-                    key={j}
-                    style={{
-                      ...styles.tableHeader,
-                      width: column.width,
-                    }}
-                  >
-                    {column.title}
-                  </Text>
-                ))}
-              </View>
-
-              {ranking.map((row, i) => {
-                return (
-                  <View
-                    key={i}
-                    style={{
-                      ...styles.tableRow,
-                      backgroundColor:
-                        row.plate === params.plate ? 'yellow' : 'white',
-                    }}
-                    wrap={false}
-                  >
-                    {rankingColumns.map((column, j) => (
-                      <Text
-                        key={j}
-                        style={{
-                          ...styles.tableData,
-                          width: column.width,
-                        }}
-                      >
-                        {row[column.key as keyof typeof row]}
-                      </Text>
-                    ))}
-                  </View>
-                )
-              })}
-            </View>
-          </>
-        ) : (
-          <Text
-            style={{
-              paddingVertical: 20,
-              fontFamily: 'Open Sans',
-              fontSize: 11,
-              textAlign: 'justify',
-            }}
-          >
-            {`Nenhuma placa foi detectada mais de uma vez nesse relatório além da própria placa monitorada.`}
-          </Text>
-        )}
-
-        {data.map((group, i) => (
-          <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
-            {data.length > 1 && (
-              <Text
-                style={styles.groupTitle}
-              >{`Detecção ${i + 1} da placa monitorada`}</Text>
-            )}
-            {data.length === 1 && (
-              <Text style={styles.groupTitle}>
-                Deteção única da placa monitorada
-              </Text>
-            )}
-            <View style={paramsStyle.container}>
-              {getDetectionParams(group).map(
-                (item, index) =>
-                  (item === undefined ||
-                    item === null ||
-                    item.value !== '') && (
-                    <View key={index} style={paramsStyle.row}>
-                      <Text style={paramsStyle.label}>{item.label}</Text>
-                      <Text>{item.value}</Text>
-                    </View>
-                  ),
-              )}
-            </View>
-            {group.detections.length > 0 ? (
+            <Text style={styles.groupTitle}>
+              Placas com mais de uma ocorrência
+            </Text>
+            {ranking.length > 0 ? (
               <>
-                <View style={styles.table}>
+                <View style={{ ...styles.table, marginVertical: 20 }}>
                   <View style={styles.tableRow} wrap={false}>
-                    {detectionColumns.map((column, j) => (
+                    {rankingColumns.map((column, j) => (
                       <Text
                         key={j}
                         style={{
@@ -285,7 +213,7 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
                     ))}
                   </View>
 
-                  {group.detections.map((row, i) => {
+                  {ranking.map((row, i) => {
                     return (
                       <View
                         key={i}
@@ -296,7 +224,7 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
                         }}
                         wrap={false}
                       >
-                        {detectionColumns.map((column, j) => (
+                        {rankingColumns.map((column, j) => (
                           <Text
                             key={j}
                             style={{
@@ -304,34 +232,119 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
                               width: column.width,
                             }}
                           >
-                            {column.key === 'timestamp'
-                              ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                              : row[column.key as keyof RadarDetection]}
+                            {row[column.key as keyof typeof row]}
                           </Text>
                         ))}
                       </View>
                     )
                   })}
                 </View>
-                {data.length > 1 ? (
-                  <Text
-                    style={styles.tableCaption}
-                  >{`Tabela ${i + 1}: Detecções conjuntas àquela de número ${i + 1} da placa monitorada`}</Text>
-                ) : (
-                  <Text
-                    style={styles.tableCaption}
-                  >{`Tabela ${i + 1}: Detecções conjuntas àquela da placa monitorada`}</Text>
-                )}
               </>
             ) : (
-              <RadarReportEmptyResult
-                fromDate={new Date(params.startTime)}
-                toDate={new Date(params.endTime)}
-              />
+              <Text
+                style={{
+                  paddingVertical: 20,
+                  fontFamily: 'Open Sans',
+                  fontSize: 11,
+                  textAlign: 'justify',
+                }}
+              >
+                {`Nenhuma placa foi detectada mais de uma vez nesse relatório além da própria placa monitorada.`}
+              </Text>
             )}
-          </View>
-        ))}
 
+            {data.map((group, i) => (
+              <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
+                {data.length > 1 && (
+                  <Text
+                    style={styles.groupTitle}
+                  >{`Detecção ${i + 1} da placa monitorada`}</Text>
+                )}
+                {data.length === 1 && (
+                  <Text style={styles.groupTitle}>
+                    Deteção única da placa monitorada
+                  </Text>
+                )}
+                <View style={paramsStyle.container}>
+                  {getDetectionParams(group).map(
+                    (item, index) =>
+                      (item === undefined ||
+                        item === null ||
+                        item.value !== '') && (
+                        <View key={index} style={paramsStyle.row}>
+                          <Text style={paramsStyle.label}>{item.label}</Text>
+                          <Text>{item.value}</Text>
+                        </View>
+                      ),
+                  )}
+                </View>
+                {group.detections.length > 0 ? (
+                  <>
+                    <View style={styles.table}>
+                      <View style={styles.tableRow} wrap={false}>
+                        {detectionColumns.map((column, j) => (
+                          <Text
+                            key={j}
+                            style={{
+                              ...styles.tableHeader,
+                              width: column.width,
+                            }}
+                          >
+                            {column.title}
+                          </Text>
+                        ))}
+                      </View>
+
+                      {group.detections.map((row, i) => {
+                        return (
+                          <View
+                            key={i}
+                            style={{
+                              ...styles.tableRow,
+                              backgroundColor:
+                                row.plate === params.plate ? 'yellow' : 'white',
+                            }}
+                            wrap={false}
+                          >
+                            {detectionColumns.map((column, j) => (
+                              <Text
+                                key={j}
+                                style={{
+                                  ...styles.tableData,
+                                  width: column.width,
+                                }}
+                              >
+                                {column.key === 'timestamp'
+                                  ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
+                                  : row[column.key as keyof RadarDetection]}
+                              </Text>
+                            ))}
+                          </View>
+                        )
+                      })}
+                    </View>
+                    {data.length > 1 ? (
+                      <Text
+                        style={styles.tableCaption}
+                      >{`Tabela ${i + 1}: Detecções conjuntas àquela de número ${i + 1} da placa monitorada`}</Text>
+                    ) : (
+                      <Text
+                        style={styles.tableCaption}
+                      >{`Tabela ${i + 1}: Detecções conjuntas àquela da placa monitorada`}</Text>
+                    )}
+                  </>
+                ) : (
+                  <RadarReportEmptyResult
+                    fromDate={new Date(params.startTime)}
+                    toDate={new Date(params.endTime)}
+                  />
+                )}
+              </View>
+            ))}
+          </>
+        ) : (
+          <ReportEmptyResult searchParams={params} />
+        )}
         <ReportFooter />
       </Page>
     </Document>
