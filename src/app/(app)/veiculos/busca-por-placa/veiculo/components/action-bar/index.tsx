@@ -5,9 +5,8 @@ import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-import DownloadReportButton from './components/download-report-button'
+import { DownloadReportDialog } from './components/download-report-dialog'
 import { MonitoringToggle } from './components/monitoring-toggle'
-import DownloadReportsByDetectionPointButton from './components/reports-by-detection-point'
 
 export function ActionBar() {
   const router = useRouter()
@@ -15,9 +14,8 @@ export function ActionBar() {
   return (
     <Card className="mx-auto flex w-full max-w-screen-md justify-between gap-2 p-2">
       <div className="flex gap-2">
-        <DownloadReportButton />
+        <DownloadReportDialog />
         <MonitoringToggle />
-        <DownloadReportsByDetectionPointButton />
       </div>
       <div className="flex gap-2">
         <Tooltip text="Limpar busca" asChild>
