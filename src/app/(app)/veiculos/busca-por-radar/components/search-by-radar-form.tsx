@@ -15,6 +15,7 @@ import React, { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { Slider } from '@/components/custom/double-slider'
 import { InputError } from '@/components/custom/input-error'
 import { PlateWildcardsHelperInfo } from '@/components/custom/plate-wildcards-helper-info'
 import { Tooltip } from '@/components/custom/tooltip'
@@ -27,7 +28,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Slider } from '@/components/custom/double-slider'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import { toQueryParams } from '@/utils/to-query-params'
