@@ -16,11 +16,20 @@ import {
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useRadars } from '@/hooks/use-queries/use-radars'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
 
 export function DownloadReportDialog() {
+  const {
+    layers: {
+      trips: { trips, isLoading: isLoadingTrips },
+    },
+  } = useMap()
+  const { data: radars, isLoading: isLoadingRadars } = useRadars()
+
   const [open, setOpen] = useState(false)
   const [formType, setFormType] = useState<'viagens' | 'placas conjuntas'>(
     'viagens',
@@ -40,11 +49,19 @@ export function DownloadReportDialog() {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <Tooltip asChild text="Relatórios">
-          <DialogTrigger asChild>
-            <Button variant="secondary" size="icon">
-              <Printer className="size-4 shrink-0" />
-            </Button>
-          </DialogTrigger>
+          <span tabIndex={0}>
+            <DialogTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                disabled={
+                  !trips || isLoadingTrips || !radars || isLoadingRadars
+                }
+              >
+                <Printer className="size-4 shrink-0" />
+              </Button>
+            </DialogTrigger>
+          </span>
         </Tooltip>
         {!showViagens && !showPlacasConjuntas && (
           <DialogContent>
