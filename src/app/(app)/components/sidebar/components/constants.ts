@@ -31,6 +31,11 @@ export const sidebarItems: SideBarItem[] = [
     path: '/ocorrencias/timeline',
   },
   {
+    icon: 'Pencil',
+    title: 'Playground',
+    path: '/playground',
+  },
+  {
     icon: 'LayoutDashboard',
     title: 'Dashboards',
     modules: [

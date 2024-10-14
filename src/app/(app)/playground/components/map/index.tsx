@@ -4,223 +4,176 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
-import type { Feature, GeoJsonProperties, Geometry } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import React, { useEffect, useRef, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { config } from '@/config'
+import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
-// Replace with your actual Mapbox access token
+// You need to replace this with your actual Mapbox access token
 mapboxgl.accessToken = config.mapboxAccessToken
 
 export function PlaygroundMap() {
   const mapContainer = useRef<HTMLDivElement | null>(null)
   const map = useRef<mapboxgl.Map | null>(null)
-  const draw = useRef<MapboxDraw | null>(null)
-  const [geoJSON, setGeoJSON] = useState({})
-  const [selectedFeature, setSelectedFeature] = useState<Feature<
-    Geometry,
-    GeoJsonProperties
-  > | null>(null)
-  const [properties, setProperties] = useState<Record<string, string>>({})
-  const [color, setColor] = useState('#3388ff')
+  const drawRef = useRef<MapboxDraw | null>(null)
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
+    null,
+  )
+  const [selectedColor, setSelectedColor] = useState('#3bb2d0')
+  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [popoverCoordinates, setPopoverCoordinates] = useState({
+    x: 0,
+    y: 0,
+  })
 
   useEffect(() => {
-    if (!mapContainer.current) return // Ensure container is available
-
+    if (map.current) return // initialize map only once
     map.current = new mapboxgl.Map({
-      container: mapContainer.current,
+      container: mapContainer.current as HTMLElement,
       style: 'mapbox://styles/mapbox/streets-v11',
-      center: [0, 0],
-      zoom: 2,
+      center: [INITIAL_VIEW_PORT.longitude, INITIAL_VIEW_PORT.latitude],
+      zoom: INITIAL_VIEW_PORT.zoom,
     })
 
     map.current.on('load', () => {
-      draw.current = new MapboxDraw({
+      drawRef.current = new MapboxDraw({
         displayControlsDefault: false,
         controls: {
+          point: true,
           line_string: true,
+          polygon: true,
           trash: true,
+          combine_features: true,
+          uncombine_features: true,
         },
         userProperties: true,
       })
       if (map.current) {
-        map.current.addControl(draw.current)
-
-        map.current.on('draw.create', createFeature)
-        map.current.on('draw.delete', updateGeoJSON)
-        map.current.on('draw.update', updateGeoJSON)
-        // map.current.on('click', handleMapClick)
+        map.current.addControl(drawRef.current)
         map.current.on('draw.selectionchange', handleSelectionChange)
-      }
-    })
-
-    return () => {
-      if (map.current) {
-        map.current.remove()
-      }
-    }
-  }, [mapContainer.current])
-
-  const handleSelectionChange = (
-    e: {
-      type: 'draw.selectionchange'
-      target: unknown
-    } & MapboxDraw.DrawSelectionChangeEvent,
-  ) => {
-    setSelectedFeature(e.features.at(0) || null)
-  }
-
-  const createFeature = (
-    e: {
-      type: 'draw.create'
-      target: unknown
-    } & MapboxDraw.DrawCreateEvent,
-  ) => {
-    const features = e.features.map((f) => ({
-      ...f,
-      color: '#ff0033',
-      properties: {
-        ...f.properties,
-        color: '#ff0033',
-      },
-    }))
-    if (!draw.current) return
-    const data = draw.current.getAll()
-    setGeoJSON({
-      ...data,
-      features,
-    })
-    updateMapStyle()
-  }
-
-  const updateGeoJSON = () => {
-    if (!draw.current) return
-    const data = draw.current.getAll()
-    setGeoJSON(data)
-    console.log('update')
-    updateMapStyle()
-  }
-
-  const handlePropertyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setProperties((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setColor(e.target.value)
-  }
-
-  const saveProperties = () => {
-    console.log('Saving properties')
-    if (!draw.current || !selectedFeature || !selectedFeature.id) return
-    console.log('Saving properties')
-    draw.current.setFeatureProperty(
-      selectedFeature.id.toString(),
-      'color',
-      color,
-    )
-    Object.keys(properties).forEach((key) => {
-      if (properties[key] !== undefined && draw.current && selectedFeature.id) {
-        draw.current.setFeatureProperty(
-          selectedFeature.id.toString(),
-          key,
-          properties[key] as string,
+        map.current.on('draw.delete', () => setPopoverOpen(false))
+        map.current.on('click', (e) =>
+          setPopoverCoordinates({
+            x: e.point.x,
+            y: e.point.y,
+          }),
         )
       }
     })
-    updateGeoJSON()
-  }
+  }, [])
 
-  const updateMapStyle = () => {
-    if (!selectedFeature?.id) return
-    const layerId = 'gl-draw-line-inactive.cold' // Ensure this layer ID exists in your map style
-    console.log(layerId)
-    const layer = map.current?.getLayer(layerId)
-    console.log(layer)
-    if (layer) {
-      console.log(layer)
-      map.current?.setPaintProperty(layerId, 'line-color', [['get', 'color']])
+  const handleSelectionChange = (e: {
+    features: mapboxgl.MapboxGeoJSONFeature[]
+  }) => {
+    if (e.features.length > 0) {
+      const feature = e.features[0]
+      setSelectedFeatureId(feature.id?.toString() || null)
+      setSelectedColor(feature.properties?.color || '#3bb2d0')
+      setPopoverOpen(true)
+    } else {
+      setSelectedFeatureId(null)
+      setSelectedColor('#3bb2d0')
+      setPopoverOpen(false)
     }
   }
 
-  useEffect(() => {
-    console.log('Update map style')
-  }, [updateMapStyle])
+  const updateFeatureColor = (color: string) => {
+    if (!drawRef.current || !selectedFeatureId) return
+
+    const feature = drawRef.current.get(selectedFeatureId)
+    if (feature) {
+      if (!feature.properties) {
+        feature.properties = {}
+      }
+      feature.properties.color = color
+      drawRef.current.add(feature)
+      updateDrawColors()
+    }
+  }
+
+  const updateDrawColors = () => {
+    if (!drawRef.current || !map.current) return
+
+    const features = drawRef.current.getAll().features
+    const filters = features.flatMap((feature) => {
+      const featureId = feature.id as string
+      const color = feature?.properties?.color || '#3bb2d0'
+      return [['==', ['get', 'id'], featureId], color]
+    })
+
+    // Update colors for each feature type
+    ;[
+      'gl-draw-polygon-stroke',
+      'gl-draw-polygon-fill',
+      'gl-draw-line',
+      'gl-draw-point',
+    ].forEach((prefix) => {
+      ;['cold', 'hot'].forEach((state) => {
+        const layerId = `${prefix}-inactive.${state}`
+        if (map.current?.getLayer(layerId)) {
+          map.current.setPaintProperty(
+            layerId,
+            `${prefix === 'gl-draw-point' ? 'circle' : prefix === 'gl-draw-line' || prefix === 'gl-draw-polygon-stroke' ? 'line' : 'fill'}-color`,
+            [
+              'case',
+              ...filters,
+              '#3bb2d0', // default color
+            ],
+          )
+
+          // // Additional styling for point size and outline
+          // if (prefix === 'gl-draw-point') {
+          //   map.current.setPaintProperty(
+          //     layerId,
+          //     'circle-radius',
+          //     4, // Increase the size of points
+          //   )
+          //   map.current.setPaintProperty(
+          //     layerId,
+          //     'circle-stroke-width',
+          //     3, // Add an outline to the points
+          //   )
+          //   map.current.setPaintProperty(
+          //     layerId,
+          //     'circle-stroke-color',
+          //     '#FFF', // Outline color
+          //   )
+          // }
+        }
+      })
+    })
+  }
 
   return (
-    <div className="flex h-screen">
-      <div ref={mapContainer} className="h-full w-2/3" />
-      <div className="h-full w-1/3 overflow-auto p-4">
-        <h2 className="mb-4 text-2xl font-bold">GeoJSON Output</h2>
-        <pre className="mb-4 h-1/3 overflow-auto rounded bg-card p-4">
-          {JSON.stringify(geoJSON, null, 2)}
-        </pre>
-
-        {selectedFeature && (
-          <div className="mb-4">
-            <h3 className="mb-2 text-xl font-bold">Edit Properties</h3>
-            <div className="mb-2">
-              <Label>Color</Label>
-              <Input
-                type="color"
-                value={color}
-                onChange={handleColorChange}
-                className="mt-1"
-              />
-            </div>
-            {Object.keys(properties).map((key) => (
-              <div key={key} className="mb-2">
-                <Label>{key}</Label>
-                <Input
-                  type="text"
-                  name={key}
-                  value={properties[key]}
-                  onChange={handlePropertyChange}
-                  className="mt-1"
-                />
-              </div>
-            ))}
-            <div className="mb-2">
-              <Label>New Property</Label>
-              <div className="mt-1 flex">
-                <Input
-                  type="text"
-                  placeholder="Key"
-                  onBlur={(e) => {
-                    if (e.target.value && !properties[e.target.value]) {
-                      setProperties((prev) => ({
-                        ...prev,
-                        [e.target.value]: '',
-                      }))
-                    }
-                  }}
-                />
-                <Input
-                  type="text"
-                  placeholder="Value"
-                  onBlur={(e) => {
-                    const key = (e.target.previousSibling as HTMLInputElement)
-                      .value
-                    if (key && e.target.value) {
-                      setProperties((prev) => ({
-                        ...prev,
-                        [key]: e.target.value,
-                      }))
-                    }
-                  }}
-                />
-              </div>
-            </div>
-            <Button onClick={saveProperties} className="mt-2">
-              Save Properties
-            </Button>
-          </div>
-        )}
-      </div>
+    <div className="relative h-screen w-full">
+      <div ref={mapContainer} className="h-full w-full" />
+      <Card
+        data-open={popoverOpen}
+        className="absolute w-full max-w-40 p-2 data-[open=false]:hidden"
+        style={{
+          top: popoverCoordinates.y - 80,
+          left: popoverCoordinates.x - 80,
+        }}
+      >
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="color-picker">Cor:</Label>
+          <Input
+            id="color-picker"
+            type="color"
+            value={selectedColor}
+            onChange={(e) => {
+              const newColor = e.target.value
+              setSelectedColor(newColor)
+              updateFeatureColor(newColor)
+            }}
+            className="h-8 w-full"
+          />
+        </div>
+      </Card>
     </div>
   )
 }

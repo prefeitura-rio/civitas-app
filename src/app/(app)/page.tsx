@@ -26,6 +26,11 @@ const cards = [
       'Veja denúncias e reportes registrados por diversos canais, além de um dashboard com diferentes insights sobre os registros',
   },
   {
+    title: 'Playground',
+    href: '/ocorrencias/timeline',
+    description: 'Desenhe no mapa, adicione pontos e trajetos de interesse.',
+  },
+  {
     title: 'Dashboards',
     href: '/dashboards/status-infra-radares',
     description: 'Veja insights sobre radares e câmeras da cidade.',
