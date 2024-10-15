@@ -81,19 +81,19 @@ export function useRadarLayer(): UseRadarLayer {
     getIcon: (d) => {
       if (
         selectedObjects.find((item) => item.cameraNumber === d.cameraNumber) &&
-        !d.activeInLast24Hours
+        d.activeInLast24Hours
       ) {
         return 'highlighted'
       }
 
       if (
         selectedObjects.find((item) => item.cameraNumber === d.cameraNumber) &&
-        d.activeInLast24Hours
+        !d.activeInLast24Hours
       ) {
         return 'disabled-highlighted'
       }
 
-      if (d.activeInLast24Hours) {
+      if (!d.activeInLast24Hours) {
         return 'disabled'
       }
 
