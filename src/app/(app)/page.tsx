@@ -27,7 +27,7 @@ const cards = [
   },
   {
     title: 'Playground',
-    href: '/ocorrencias/timeline',
+    href: '/playground',
     description: 'Desenhe no mapa, adicione pontos e trajetos de interesse.',
   },
   {
