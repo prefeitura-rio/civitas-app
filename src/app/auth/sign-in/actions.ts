@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { z } from 'zod'
 
 import { signIn } from '@/http/auth/sign-in'
+import { isApiError } from '@/lib/api'
 import { genericErrorMessage, isGrantError } from '@/utils/error-handlers'
 
 const signInSchema = z.object({
@@ -35,7 +36,27 @@ export async function signInAction(data: FormData) {
       maxAge: expiresIn,
     })
   } catch (err) {
-    console.error(err)
+    // Log error
+    if (isApiError(err)) {
+      const data = err.response?.config.data
+        .replace(/(?<=username=).*?(?=&)/, '[REDACTED]')
+        .replace(/(?<=password=).*/, '[REDACTED]')
+
+      const copy = {
+        ...err,
+        response: {
+          ...err.response,
+          config: {
+            ...err.response?.config,
+            data,
+          },
+        },
+      }
+
+      console.error(copy)
+    } else {
+      console.error(err)
+    }
 
     const errorMessage = isGrantError(err)
       ? 'Credenciais inválidas'
