@@ -66,6 +66,20 @@ export function VehicleInfo({ plate }: VehicleInfoProps) {
     'Restrições Administrativas': data?.indiceNacionalVeiculos.at(7)?.qtd,
   }
 
+  const proprietario = {
+    Nome: data?.proprietario.nomeProprietario,
+    [data?.proprietario.tipoDocumentoProprietario || 'Documento']:
+      data?.proprietario.numeroDocumentoProprietario,
+    Endereço: data?.proprietario.enderecoProprietario,
+  }
+
+  const possuidor = {
+    Nome: data?.possuidor.nomePossuidor,
+    [data?.possuidor.tipoDocumentoPossuidor || 'Documento']:
+      data?.possuidor.numeroDocumentoPossuidor,
+    Endereço: data?.possuidor.enderecoPossuidor,
+  }
+
   return (
     <Collapsible>
       <div>
@@ -120,6 +134,52 @@ export function VehicleInfo({ plate }: VehicleInfoProps) {
                         </div>
                       ),
                   )}
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <span className="mb-1 block text-lg font-medium">
+                    Proprietário
+                  </span>
+                  <div className="space-y-1 pl-4">
+                    {Object.entries(proprietario).map(
+                      ([key, value], index) =>
+                        value && (
+                          <div key={index} className="flex gap-2">
+                            <Label className="text-sm font-medium leading-4">
+                              {key}:
+                            </Label>
+                            <span className="text-sm leading-4 text-muted-foreground">
+                              {value}
+                            </span>
+                          </div>
+                        ),
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <span className="mb-1 block text-lg font-medium">
+                    Possuidor
+                  </span>
+                  <div className="space-y-1 pl-4">
+                    {Object.entries(possuidor).map(
+                      ([key, value], index) =>
+                        value && (
+                          <div key={index} className="flex gap-2">
+                            <Label className="text-sm font-medium leading-4">
+                              {key}:
+                            </Label>
+                            <span className="text-sm leading-4 text-muted-foreground">
+                              {value}
+                            </span>
+                          </div>
+                        ),
+                    )}
+                  </div>
                 </div>
               </div>
 

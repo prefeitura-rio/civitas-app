@@ -23,6 +23,7 @@ import { useRadars } from '@/hooks/use-queries/use-radars'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
 import { exportToCSV } from '@/utils/csv'
+import { downloadFile } from '@/utils/download-file'
 
 import {
   type GroupedDetection,
@@ -158,12 +159,8 @@ export function DownloadReport({
           }}
         />,
       ).toBlob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'busca_por_radar.pdf'
-      a.click()
-      URL.revokeObjectURL(url)
+
+      downloadFile(blob, 'busca_por_radar.pdf')
     }
   }
 

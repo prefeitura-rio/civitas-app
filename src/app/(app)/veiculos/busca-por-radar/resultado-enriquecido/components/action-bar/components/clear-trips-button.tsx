@@ -21,7 +21,7 @@ export function ClearTripsButton() {
         onClick={() => {
           console.log('clearSearch')
           clearSearch()
-          router.push('/veiculos/busca-por-placa')
+          router.push('/veiculos/busca-por-radar')
         }}
       >
         <SearchX className="size-4 shrink-0" />

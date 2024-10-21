@@ -4,30 +4,18 @@ import { format } from 'date-fns'
 import { RadarReportEmptyResult } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/report/components/radar-report-empty-result'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
-import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
-import type { RadarDetection } from '@/models/entities'
+import type { DetectionGroup, RadarDetection } from '@/models/entities'
 
 import { ReportEmptyResult } from '../../../../../report/components/components/report-empty-result'
 
-export type ReportDataRow = {
-  detections: (DetectionDTO & { count: number })[]
-  monitoredPlateTimestamp: string
-  from: string
-  to: string
-  groupLocation: string
-  latitude: number
-  longitude: number
-  totalDetections: number
-  radarIds: string[]
-}
-export type ReportData = ReportDataRow[]
-
 interface ReportDocumentProps {
-  data: ReportData
+  data: DetectionGroup[]
   params: {
     plate: string
     endTime: string
     startTime: string
+    nMinutes: number
+    nPlates: number
   }
   ranking: { plate: string; count: number }[]
 }
@@ -107,7 +95,7 @@ const paramsStyle = StyleSheet.create({
 const detectionColumns = [
   { title: 'Data e Hora', width: '23%', key: 'timestamp' },
   { title: 'Placa', width: '14%', key: 'plate' },
-  { title: 'Radar', width: '14%', key: 'cameraNumber' },
+  { title: 'Radar', width: '14%', key: 'camera_numero' },
   { title: 'Faixa', width: '9%', key: 'lane' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
   { title: 'Nº de ocorrências', width: '20%', key: 'count' },
@@ -121,7 +109,7 @@ const rankingColumns = [
 export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
   const reportTitle = 'Relatório de detecções conjuntas por radar'
   const totalDetections = data.reduce(
-    (acc, group) => acc + group.totalDetections,
+    (acc, group) => acc + group.total_detections,
     0,
   )
 
@@ -135,28 +123,37 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
       value: `De ${format(params.startTime, 'dd/MM/yyyy HH:mm:ss')} até ${format(params.endTime, 'dd/MM/yyyy HH:mm:ss')}`,
     },
     {
+      label: 'Limite de placas antes e depois:',
+      value: params.nPlates,
+    },
+    {
       label: 'Total de detecções da placa monitorada:',
       value: data.length,
     },
     {
       label: 'Total de detecções de todos os radares e placas:',
-      value: data.reduce((acc, group) => acc + group.totalDetections, 0),
+      value: data.reduce((acc, group) => acc + group.total_detections, 0),
     },
   ]
 
-  const getDetectionParams = (data: ReportDataRow) => {
+  const getDetectionParams = (data: DetectionGroup) => {
+    const startTime = new Date(data.start_time)
+    const endTime = new Date(data.end_time)
+    const diff = endTime.getTime() - startTime.getTime()
+    const monitoredPlateTimeStamp = new Date(startTime.getTime() + diff / 2)
+
     return [
       {
         label: 'Data e hora da detecção da placa monitorada:',
-        value: format(data.monitoredPlateTimestamp, 'dd/MM/yyyy HH:mm:ss'),
+        value: format(monitoredPlateTimeStamp, 'dd/MM/yyyy HH:mm:ss'),
       },
       {
         label: 'Período analisado:',
-        value: `De ${format(data.from, 'dd/MM/yyyy HH:mm:ss')} até ${format(data.to, 'dd/MM/yyyy HH:mm:ss')}`,
+        value: `De ${format(data.start_time, 'dd/MM/yyyy HH:mm:ss')} até ${format(data.end_time, 'dd/MM/yyyy HH:mm:ss')}`,
       },
       {
         label: 'Radares:',
-        value: data.radarIds.join(', '),
+        value: data.radars.join(', '),
       },
       {
         label: 'Coordenadas:',
@@ -164,11 +161,11 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
       },
       {
         label: 'Endereço:',
-        value: data.groupLocation,
+        value: data.location,
       },
       {
         label: 'Total de detecções:',
-        value: data.totalDetections,
+        value: data.total_detections,
       },
     ]
   }
@@ -262,7 +259,7 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
                 )}
                 {data.length === 1 && (
                   <Text style={styles.groupTitle}>
-                    Deteção única da placa monitorada
+                    Detecção única da placa monitorada
                   </Text>
                 )}
                 <View style={paramsStyle.container}>

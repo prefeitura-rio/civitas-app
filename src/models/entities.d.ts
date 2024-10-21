@@ -629,3 +629,22 @@ export type Company = {
   tipoLogradouro: string
   uf: string
 }
+
+export type DetectionGroup = {
+  radars: string[]
+  monitored_plate_timestamp: string
+  start_time: string
+  end_time: string
+  location: string
+  latitude: number
+  longitude: number
+  total_detections: number
+  detections: {
+    timestamp: string
+    plate: string
+    camera_numero: string
+    lane: string
+    speed: number
+    count: number
+  }[]
+}
