@@ -23,6 +23,7 @@ import type { EnhancedDetectionDTO } from '@/hooks/use-queries/use-enhanced-rada
 import { useRadars } from '@/hooks/use-queries/use-radars'
 import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/use-search-by-radar-enhanced-result-dynamic-filter'
 import { exportToCSV } from '@/utils/csv'
+import { downloadFile } from '@/utils/download-file'
 
 import {
   type GroupedEnhancedDetection,
@@ -213,12 +214,7 @@ export function DownloadReport({
           }}
         />,
       ).toBlob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'busca_enriquecida_por_radar.pdf'
-      a.click()
-      URL.revokeObjectURL(url)
+      downloadFile(blob, 'busca_enriquecida_por_radar.pdf')
     }
   }
 
