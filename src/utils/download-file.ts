@@ -8,6 +8,5 @@ export function downloadFile(blob: Blob, fileName: string) {
   link.click()
 
   // Limpa o URL para liberar memória
-  document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }

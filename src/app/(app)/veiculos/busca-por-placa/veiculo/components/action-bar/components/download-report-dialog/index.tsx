@@ -34,13 +34,15 @@ export function DownloadReportDialog() {
   const [formType, setFormType] = useState<'viagens' | 'placas conjuntas'>(
     'viagens',
   )
-  const [interval, setInterval] = useState(1)
+  const [nMinutes, setNMinutes] = useState(1)
+  const [nPlates, setNPlates] = useState(10)
   const [showViagens, setShowViagens] = useState(false)
   const [showPlacasConjuntas, setShowPlacasConjuntas] = useState(false)
 
   useEffect(() => {
     setFormType('viagens')
-    setInterval(1)
+    setNMinutes(1)
+    setNPlates(10)
     setShowViagens(false)
     setShowPlacasConjuntas(false)
   }, [open])
@@ -97,25 +99,50 @@ export function DownloadReportDialog() {
                 </RadioGroup>
               </div>
               {formType === 'placas conjuntas' && (
-                <div className="space-y-2">
-                  <Label>Intervalo:</Label>
-                  <div className="w-full space-y-2 pl-4 pr-2 pt-6">
-                    <Slider
-                      value={[interval]}
-                      onValueChange={(value) => {
-                        setInterval(value[0])
-                      }}
-                      defaultValue={[interval]}
-                      max={5}
-                      min={1}
-                      step={1}
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Min: 1 min</span>
-                      <span>Max: 5 min</span>
+                <>
+                  <div className="space-y-2">
+                    <Label>
+                      Intervalo de interesse ao redor das detecções:
+                    </Label>
+                    <div className="w-full space-y-2 pl-4 pr-2 pt-6">
+                      <Slider
+                        value={[nMinutes]}
+                        onValueChange={(value) => {
+                          setNMinutes(value[0])
+                        }}
+                        defaultValue={[nMinutes]}
+                        max={5}
+                        min={1}
+                        step={1}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Min: 1 min</span>
+                        <span>Max: 5 min</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                  <div className="space-y-2">
+                    <Label>
+                      Número máximo de placas ao redor das detecções:
+                    </Label>
+                    <div className="w-full space-y-2 pl-4 pr-2 pt-6">
+                      <Slider
+                        value={[nPlates]}
+                        onValueChange={(value) => {
+                          setNPlates(value[0])
+                        }}
+                        defaultValue={[nPlates]}
+                        max={50}
+                        min={5}
+                        step={1}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Min: 5</span>
+                        <span>Max: 50</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
             <DialogFooter className="gap-2">
@@ -136,13 +163,12 @@ export function DownloadReportDialog() {
         )}
         {showViagens && <TripsReportDialogContent />}
       </Dialog>
-      {showPlacasConjuntas && (
-        <JointPlatesReportDownloadProgressAlert
-          open={showPlacasConjuntas}
-          setOpen={setOpen}
-          interval={interval}
-        />
-      )}
+      <JointPlatesReportDownloadProgressAlert
+        open={showPlacasConjuntas}
+        setOpen={setOpen}
+        nMinutes={nMinutes}
+        nPlates={nPlates}
+      />
     </>
   )
 }

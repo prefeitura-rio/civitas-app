@@ -14,6 +14,8 @@ interface ReportDocumentProps {
     plate: string
     endTime: string
     startTime: string
+    nMinutes: number
+    nPlates: number
   }
   ranking: { plate: string; count: number }[]
 }
@@ -144,6 +146,10 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
       {
         label: 'Período analisado:',
         value: `De ${format(data.start_time, 'dd/MM/yyyy HH:mm:ss')} até ${format(data.end_time, 'dd/MM/yyyy HH:mm:ss')}`,
+      },
+      {
+        label: 'Limite de placas antes e depois:',
+        value: params.nPlates,
       },
       {
         label: 'Radares:',
