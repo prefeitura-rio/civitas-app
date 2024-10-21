@@ -5,21 +5,24 @@ interface GetNCarsBeforeAfterRequest {
   plate: string
   startTime: string
   endTime: string
-  n: number
+  nMinutes: number
+  nPlates: number
 }
 
 export async function getNCarsBeforeAfter({
   plate,
   startTime,
   endTime,
-  n,
+  nMinutes,
+  nPlates,
 }: GetNCarsBeforeAfterRequest) {
   const response = await api.get<DetectionGroup[]>('/cars/n_before_after', {
     params: {
       placa: plate,
       start_time: startTime,
       end_time: endTime,
-      n,
+      n_minutes: nMinutes,
+      n_plates: nPlates,
     },
   })
 
