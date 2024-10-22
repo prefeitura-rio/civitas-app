@@ -421,13 +421,13 @@ export type Vehicle = {
   dataReplicacao: string
   descricaoOrgaoRegiaoFiscal: string
   especie: string
-  flagAtivo: true
+  flagAtivo: boolean
   grupoVeiculo: string
   id: number
   identificadorUnicoVeiculo: string
-  indicadorRemarcacaoChassi: true
+  indicadorRemarcacaoChassi: boolean
   indicadorVeiculoLicenciadoCirculacao: string
-  indicadorVeiculoNacional: true
+  indicadorVeiculoNacional: boolean
   indiceNacionalVeiculos: {
     id: number
     metodo: string
@@ -527,7 +527,7 @@ export type People = {
   id: number
   identificadorResidenteExterior: string
   indicadorEstrangeiro: string
-  indicadorMoradorEstrangeiro: true
+  indicadorMoradorEstrangeiro: boolean
   indiceNacionalPessoas: [
     {
       id: number
@@ -647,4 +647,33 @@ export type DetectionGroup = {
     speed: number
     count: number
   }[]
+}
+
+export type MonitoredPlateHistoryItem = {
+  plate: string
+  notes: string | null
+  created_timestamp: string | null
+  created_by: {
+    id: string
+    username: string
+    full_name: string
+    cpf: string
+    registration: string
+    agency: string
+    sector: string
+    email: string
+    is_admin: boolean
+  } | null
+  deleted_timestamp: string | null
+  deleted_by: {
+    id: string
+    username: string
+    full_name: string
+    cpf: string
+    registration: string
+    agency: string
+    sector: string
+    email: string
+    is_admin: boolean
+  } | null
 }
