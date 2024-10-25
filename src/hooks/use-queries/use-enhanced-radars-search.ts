@@ -29,10 +29,14 @@ export function useEnhancedRadarsSearch() {
       )
 
       const enhancedDetection = detections?.map((detection) => {
-        const vehicle = vehicles.find(
-          (vehicle) => vehicle.placa === detection.plate,
-        )
-        if (!vehicle) throw new Error('Vehicle not found')
+        const vehicle = vehicles.find((v) => v?.placa === detection.plate)
+        if (!vehicle)
+          return {
+            ...detection,
+            brandModel: '',
+            color: '',
+            modelYear: '',
+          } as EnhancedDetectionDTO
         return {
           ...detection,
           brandModel: vehicle.marcaModelo,
