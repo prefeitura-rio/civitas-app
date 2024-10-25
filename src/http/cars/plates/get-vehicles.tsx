@@ -201,8 +201,9 @@ export async function getVehicles(plates: string[]) {
   //   return dummyData
   // }
 
-  const response = await api.post<Vehicle[]>('/cars/plates', {
+  const response = await api.post<(Vehicle | null)[]>('/cars/plates', {
     plates,
+    raise_for_errors: false,
   })
   return response.data
 }
