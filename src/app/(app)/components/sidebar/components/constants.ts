@@ -31,8 +31,8 @@ export const sidebarItems: SideBarItem[] = [
     path: '/ocorrencias/timeline',
   },
   {
-    icon: 'Pencil',
-    title: 'Playground',
+    icon: 'Map',
+    title: 'Mapa Interativo',
     path: '/playground',
   },
   {
@@ -59,6 +59,11 @@ export const sidebarItems: SideBarItem[] = [
         icon: 'TrafficCone',
         title: 'Cadastro de Operações',
         path: '/operacoes',
+      },
+      {
+        icon: 'ScanEye',
+        title: 'Visão Computacional',
+        path: '/vision-ai',
       },
     ],
   },
