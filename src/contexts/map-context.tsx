@@ -2,6 +2,10 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import { createContext, type ReactNode, useState } from 'react'
 
+import {
+  type UseAddressMarker,
+  useAddressMarker,
+} from '@/hooks/map-layers/use-address-marker'
 import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import {
@@ -17,10 +21,6 @@ import {
   type UseWazePoliceAlerts,
   useWazePoliceAlerts,
 } from '@/hooks/map-layers/use-waze-police-alerts'
-import {
-  type UseAddressMarker,
-  useAddressMarker,
-} from '@/hooks/map-layers-[old]/use-address-marker'
 import type { SetViewportProps } from '@/models/utils'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
