@@ -1,7 +1,17 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronUp, Layers } from 'lucide-react'
+import {
+  Cctv,
+  ChevronUp,
+  FlameKindling,
+  Layers,
+  Satellite,
+  Shield,
+  Siren,
+  UsersRound,
+  Video,
+} from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -12,6 +22,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Toggle } from '@/components/ui/toggle'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { MapStyle } from '@/utils/get-map-style'
 
 type Layer = {
   name: string
@@ -20,12 +32,78 @@ type Layer = {
   setIsVisible: (isVisible: boolean) => void
 }
 
-interface MapLayerControlProps {
-  layers: Layer[]
-}
+export function MapLayerControl() {
+  const {
+    layers: {
+      radars: { isVisible: isRadarVisible, setIsVisible: setIsRadarVisible },
+      cameras: { isVisible: isCameraVisible, setIsVisible: setIsCameraVisible },
+      agents: { isVisible: isAgentsVisible, setIsVisible: setIsAgentsVisible },
+      fogoCruzado: {
+        isVisible: isFogoCruzadoVisible,
+        setIsVisible: setIsFogoCruzadoVisible,
+      },
+      waze: { isVisible: isWazeVisible, setIsVisible: setIsWazeVisible },
+      AISP: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
+      CISP: { isVisible: isCISPVisible, setIsVisible: setIsCISPVisible },
+    },
+    mapStyle,
+    setMapStyle,
+  } = useMap()
 
-export function MapLayerControl({ layers }: MapLayerControlProps) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const layers: Layer[] = [
+    {
+      name: 'Radar',
+      icon: <Cctv />,
+      isVisible: isRadarVisible,
+      setIsVisible: setIsRadarVisible,
+    },
+    {
+      name: 'Câmeras',
+      icon: <Video />,
+      isVisible: isCameraVisible,
+      setIsVisible: setIsCameraVisible,
+    },
+    {
+      name: 'Agentes',
+      icon: <UsersRound />,
+      isVisible: isAgentsVisible,
+      setIsVisible: setIsAgentsVisible,
+    },
+    {
+      name: 'Policiamento (Waze)',
+      icon: <Siren />,
+      isVisible: isWazeVisible,
+      setIsVisible: setIsWazeVisible,
+    },
+    {
+      name: 'Fogo Cruzado',
+      icon: <FlameKindling />,
+      isVisible: isFogoCruzadoVisible,
+      setIsVisible: setIsFogoCruzadoVisible,
+    },
+    {
+      name: 'AISP',
+      icon: <Shield />,
+      isVisible: isAISPVisible,
+      setIsVisible: setIsAISPVisible,
+    },
+    {
+      name: 'CISP',
+      icon: <Shield />,
+      isVisible: isCISPVisible,
+      setIsVisible: setIsCISPVisible,
+    },
+    {
+      name: 'Satélite',
+      icon: <Satellite />,
+      isVisible: mapStyle === MapStyle.Satellite,
+      setIsVisible: (satellite) => {
+        setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
+      },
+    },
+  ]
 
   return (
     <Card className="absolute bottom-4 left-4">

@@ -2,6 +2,8 @@
 import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
 import { createContext, type ReactNode, useState } from 'react'
 
+import { type UseAISPLayer, useAISPLayer } from '@/hooks/map-layers/AISP-layer'
+import { type UseCISPLayer, useCISPLayer } from '@/hooks/map-layers/CISP-layer'
 import {
   type UseAddressMarker,
   useAddressMarker,
@@ -22,6 +24,7 @@ import {
   useWazePoliceAlerts,
 } from '@/hooks/map-layers/use-waze-police-alerts'
 import type { SetViewportProps } from '@/models/utils'
+import { MapStyle } from '@/utils/get-map-style'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 interface MapContextProps {
@@ -33,9 +36,13 @@ interface MapContextProps {
     fogoCruzado: UseFogoCruzadoIncidents
     waze: UseWazePoliceAlerts
     address: UseAddressMarker
+    CISP: UseCISPLayer
+    AISP: UseAISPLayer
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
+  mapStyle: MapStyle
+  setMapStyle: (style: MapStyle) => void
 }
 
 export const MapContext = createContext({} as MapContextProps)
@@ -46,6 +53,7 @@ interface MapContextProviderProps {
 
 export function MapContextProvider({ children }: MapContextProviderProps) {
   const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
+  const [mapStyle, setMapStyle] = useState<MapStyle>(MapStyle.Map)
 
   function setViewport(props: SetViewportProps) {
     setViewportState({
@@ -63,6 +71,8 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const fogoCruzado = useFogoCruzadoIncidents()
   const waze = useWazePoliceAlerts()
   const address = useAddressMarker()
+  const CISP = useCISPLayer()
+  const AISP = useAISPLayer()
 
   return (
     <MapContext.Provider
@@ -75,9 +85,13 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           fogoCruzado,
           waze,
           address,
+          CISP,
+          AISP,
         },
         viewport,
         setViewport,
+        mapStyle,
+        setMapStyle,
       }}
     >
       {children}
