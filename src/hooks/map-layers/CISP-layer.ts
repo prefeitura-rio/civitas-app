@@ -47,7 +47,7 @@ export function useCISPLayer(): UseCISPLayer {
         pointType: 'icon',
         // autoHighlight: true,
         highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
-        getFillColor: [160, 160, 180, 200],
+        getFillColor: [160, 160, 180, 150],
         visible: isVisible,
         getLineWidth: 20,
         // getPointRadius: 4,
