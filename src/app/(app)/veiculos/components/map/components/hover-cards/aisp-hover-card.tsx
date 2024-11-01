@@ -3,16 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { type PickingInfo } from 'deck.gl'
 import type { Feature } from 'geojson'
-import {
-  Building,
-  Home,
-  Hospital,
-  MapPin,
-  Phone,
-  School,
-  User,
-  Users,
-} from 'lucide-react'
+import { Building, MapPin, Phone, User } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -43,8 +34,8 @@ const InfoItem = ({
 
 const TOOLTIP_HORIZONTAL_MARGIN = 50 // Margin from the cursor
 const TOOLTIP_VERTICAL_MARGIN = 10 // Margin from the cursor
-const TOOLTIP_WIDTH = 500 // Assuming a fixed width for the tooltip
-const TOOLTIP_HEIGHT = 600 // Approximate height of the tooltip, adjust as needed
+const TOOLTIP_WIDTH = 300 // Assuming a fixed width for the tooltip
+const TOOLTIP_HEIGHT = 284 // Approximate height of the tooltip, adjust as needed
 
 export function AISPHoverCard({
   hoveredObject,
@@ -57,11 +48,6 @@ export function AISPHoverCard({
   const y = hoveredObject.y
   const viewportWidth = hoveredObject.viewport!.width
   const viewportHeight = hoveredObject.viewport!.height
-
-  // const left = x < viewport!.width / 2 ? x + 3 : undefined
-  // const top = y < viewport!.height / 2 ? y : undefined
-  // const right = x > viewport!.width / 2 ? viewport!.width - x + 3 : undefined
-  // const bottom = y > viewport!.height / 2 ? viewport!.height - y : undefined
 
   let left: number | undefined
   let top: number | undefined
@@ -102,7 +88,7 @@ export function AISPHoverCard({
       }}
       style={{ left, top }}
       className={cn(
-        'absolute w-[500px] px-3 py-2',
+        'absolute w-[300px] px-3 py-2',
         hoveredObject && hoveredObject.object ? '' : 'hidden',
       )}
     >
@@ -110,51 +96,9 @@ export function AISPHoverCard({
       <Separator className="mb-4 mt-1 bg-secondary" />
       <div className="flex flex-col gap-4">
         <div className="space-y-2">
-          {/* <h4 className="font-semibold text-lg">Informações Gerais</h4> */}
-          {/* <Separator className="bg-secondary" /> */}
-          <div className="grid gap-4">
+          <div className="ap-4 grid grid-cols-2">
+            <InfoItem icon={Building} label="Unidade" value={object?.unidade} />
             <InfoItem icon={MapPin} label="Código AISP" value={object?.aisp} />
-            <InfoItem icon={MapPin} label="Bairros" value={object?.bairros} />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h4 className="text-lg font-semibold">Demografia e Infraestrutura</h4>
-          <Separator className="bg-secondary" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <InfoItem
-              icon={Users}
-              label="População (2022)"
-              value={object?.populacao_2022.toLocaleString()}
-            />
-            <InfoItem
-              icon={Home}
-              label="Domicílios (2022)"
-              value={object?.domicilios_2022.toLocaleString()}
-            />
-            <InfoItem icon={School} label="Escolas" value={object?.escolas} />
-            <InfoItem
-              icon={Hospital}
-              label="Unidades de Saúde"
-              value={object?.unidades_saude}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h4 className="text-lg font-semibold">Segurança Pública</h4>
-          <Separator className="bg-secondary" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <InfoItem
-              icon={Building}
-              label="Total de delegacias (2022)"
-              value={object?.total_DP_2022}
-            />
-            <InfoItem
-              icon={Building}
-              label="Total de ocorrências (2022)"
-              value={object?.total_DP_ocup_2022.toLocaleString()}
-            />
           </div>
         </div>
 
@@ -162,7 +106,6 @@ export function AISPHoverCard({
           <h4 className="text-lg font-semibold">Contato</h4>
           <Separator className="bg-secondary" />
           <div className="grid gap-4">
-            <InfoItem icon={Building} label="Unidade" value={object?.unidade} />
             <InfoItem
               icon={User}
               label="Responsável"
