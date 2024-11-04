@@ -17,7 +17,7 @@ export interface UseCameraCOR {
   hoveredObject: PickingInfo<CameraCOR> | null
   setHoveredObject: Dispatch<SetStateAction<PickingInfo<CameraCOR> | null>>
   selectedObject: CameraCOR | null
-  setSelectedObject: Dispatch<SetStateAction<CameraCOR | null>>
+  handleSelectObject: (camera: CameraCOR | null) => void
   setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
@@ -34,6 +34,14 @@ export function useCameraCOR(): UseCameraCOR {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   })
+
+  function handleSelectObject(camera: CameraCOR | null) {
+    if (camera === null || selectedObject?.code === camera.code) {
+      setSelectedObject(null)
+    } else {
+      setSelectedObject(camera)
+    }
+  }
 
   const layer = new IconLayer<CameraCOR>({
     id: 'cameras',
@@ -66,14 +74,14 @@ export function useCameraCOR(): UseCameraCOR {
       } else return 'default'
     },
     getPosition: (info) => [info.longitude, info.latitude],
-    onHover: (info) => {
-      if (!isHoveringInfoCard) {
-        setHoveredObject(info.object ? info : null)
-      }
-    },
-    onClick: (info) => {
-      setSelectedObject(info.object)
-    },
+    // onHover: (info) => {
+    //   if (!isHoveringInfoCard) {
+    //     setHoveredObject(info.object ? info : null)
+    //   }
+    // },
+    // onClick: (info) => {
+    //   setSelectedObject(info.object)
+    // },
   })
 
   return {
@@ -86,7 +94,7 @@ export function useCameraCOR(): UseCameraCOR {
     hoveredObject,
     setHoveredObject,
     selectedObject,
-    setSelectedObject,
+    handleSelectObject,
     setIsHoveringInfoCard,
   }
 }

@@ -53,11 +53,11 @@ export function useAISPLayer(): UseAISPLayer {
         getLineColor: [0, 0, 0, 250],
         // getPointRadius: 4,
         // getTextSize: 12,
-        onHover: (d) => {
-          if (!isHoveringInfoCard) {
-            setHoverInfo(d.object ? d : null)
-          }
-        },
+        // onHover: (d) => {
+        //   if (!isHoveringInfoCard) {
+        //     setHoverInfo(d.object ? d : null)
+        //   }
+        // },
       }),
 
     [features, isHoveringInfoCard, isVisible],
