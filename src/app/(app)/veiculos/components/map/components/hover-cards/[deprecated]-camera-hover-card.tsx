@@ -2,7 +2,7 @@
 import { type PickingInfo } from 'deck.gl'
 import { Fullscreen, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { MapHoverCard } from '@/components/custom/map-hover-card'
 import { Spinner } from '@/components/custom/spinner'
@@ -14,10 +14,10 @@ import type { CameraCOR } from '@/models/entities'
 
 interface HoverCardProps {
   hoveredObject: PickingInfo<CameraCOR> | null
-  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
+  setIsHoveringInfoCard: (isHovering: boolean) => void
 }
 
-export function CameraHoverCard({
+export function DEPRECATEDCameraHoverCard({
   hoveredObject,
   setIsHoveringInfoCard,
 }: HoverCardProps) {

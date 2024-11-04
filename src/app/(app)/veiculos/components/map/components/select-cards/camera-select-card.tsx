@@ -3,7 +3,6 @@ import '@/utils/string-extensions'
 
 import { Fullscreen, X } from 'lucide-react'
 import Link from 'next/link'
-import type { Dispatch, SetStateAction } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -18,7 +17,7 @@ import type { CameraCOR } from '@/models/entities'
 
 interface CameraSelectCardProps {
   selectedObject: CameraCOR | null
-  setSelectedObject: Dispatch<SetStateAction<CameraCOR | null>>
+  setSelectedObject: (value: CameraCOR | null) => void
 }
 
 export function CameraSelectCard({

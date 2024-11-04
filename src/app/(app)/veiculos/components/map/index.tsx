@@ -2,26 +2,36 @@
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { DeckGL } from 'deck.gl'
-import { useRef } from 'react'
+import { Deck, DeckGL, type PickingInfo } from 'deck.gl'
+import { type MouseEvent, useRef, useState } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import type { CameraCOR, Radar } from '@/models/entities'
 import { getMapStyle } from '@/utils/get-map-style'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
-import { HoverCards } from './components/hover-cards'
+import { ContextMenu } from './components/context-menu'
 import { MapLayerControl } from './components/layer-toggle'
 import { SearchBox } from './components/search-box'
+import { SelectionCards } from './components/select-cards'
 
 export function Map() {
   const {
     layers: {
-      radars: { layer: radarLayer, hoveredObject: hoveredRadar, data: radars },
+      radars: {
+        layer: radarLayer,
+        hoveredObject: hoveredRadar,
+        setHoveredObject: setHoveredRadar,
+        data: radars,
+        handleSelectObject: selectRadar,
+      },
       cameras: {
         layer: cameraLayer,
         hoveredObject: hoveredCamera,
+        setHoveredObject: setHoveredCamera,
         data: cameras,
+        handleSelectObject: selectCamera,
       },
       agents: { layer: agentsLayer },
       fogoCruzado: { layer: fogoCruzadoLayer },
@@ -58,9 +68,51 @@ export function Map() {
     addressLayer,
   ]
 
+  const [openContextMenu, setOpenContextMenu] = useState(false)
+  const [contextMenuPickingInfo, setContextMenuPickingInfo] =
+    useState<PickingInfo | null>(null)
+
+  const deckRef = useRef<Deck | null>(null)
+
+  function onRightClick(e: MouseEvent) {
+    e.preventDefault()
+    const y = e.clientY
+    const x = e.clientX - 56
+    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+    setContextMenuPickingInfo(info || null)
+    setOpenContextMenu(!!info)
+  }
+
+  function onLeftClick(e: MouseEvent) {
+    e.preventDefault()
+    const y = e.clientY
+    const x = e.clientX - 56
+    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+    if (info?.layer?.id === 'radars' && info.object) {
+      selectRadar(info.object as Radar)
+    }
+    if (info?.layer?.id === 'cameras' && info.object) {
+      selectCamera(info.object as CameraCOR)
+    }
+  }
+
+  function onHover(info: PickingInfo) {
+    if (info.layer?.id === 'radars' && info.object) {
+      setHoveredRadar(info as PickingInfo<Radar>)
+    }
+    if (info.layer?.id === 'cameras' && info.object) {
+      setHoveredCamera(info as PickingInfo<CameraCOR>)
+    }
+  }
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div
+      className="relative h-full w-full overflow-hidden"
+      onContextMenu={onRightClick}
+      onClick={onLeftClick}
+    >
       <DeckGL
+        ref={deckRef}
         initialViewState={viewport}
         controller
         onResize={() => mapRef?.current?.resize()}
@@ -74,6 +126,7 @@ export function Map() {
           }
           return 'grab'
         }}
+        onHover={onHover}
       >
         <MapGl
           ref={mapRef}
@@ -121,8 +174,13 @@ export function Map() {
           }}
         />
       </div>
-      <HoverCards />
+      <SelectionCards />
       <MapLayerControl />
+      <ContextMenu
+        open={openContextMenu}
+        onOpenChange={setOpenContextMenu}
+        pickingInfo={contextMenuPickingInfo}
+      />
     </div>
   )
 }

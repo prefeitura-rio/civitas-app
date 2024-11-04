@@ -11,6 +11,7 @@ export interface UseRadarLayer {
   data: Radar[] | undefined
   layer: IconLayer<Radar>
   hoveredObject: PickingInfo<Radar> | null
+  setHoveredObject: (value: PickingInfo<Radar> | null) => void
   isVisible: boolean
   setIsVisible: (value: boolean) => void
   handleSelectObject: (radar: Radar) => void
@@ -103,16 +104,16 @@ export function useRadarLayer(): UseRadarLayer {
     getPosition: (d) => [d.longitude, d.latitude],
     getColor: () => [240, 140, 10],
     visible: isVisible,
-    onHover: (info) => {
-      if (!isHoveringInfoCard) {
-        setHoveredObject(info.object ? info : null)
-      }
-    },
-    onClick: (info) => {
-      if (info.object) {
-        handleSelectObject(info.object)
-      }
-    },
+    // onHover: (info) => {
+    //   if (!isHoveringInfoCard) {
+    //     setHoveredObject(info.object ? info : null)
+    //   }
+    // },
+    // onClick: (info) => {
+    //   if (info.object) {
+    //     handleSelectObject(info.object)
+    //   }
+    // },
     autoHighlight: true,
     highlightColor: [249, 115, 22],
   })
@@ -121,6 +122,7 @@ export function useRadarLayer(): UseRadarLayer {
     data,
     layer,
     hoveredObject,
+    setHoveredObject,
     isVisible,
     setIsVisible,
     handleSelectObject,
