@@ -203,7 +203,10 @@ export function SearchByRadarForm() {
                 Radares ({selectedObjects.length})
               </Button>
             </PopoverTrigger>
-            <PopoverContent sideOffset={2} className="w-80">
+            <PopoverContent
+              sideOffset={2}
+              className="max-h-96 w-80 overflow-y-auto"
+            >
               <div className="space-y-4">
                 <div className="flex space-x-2">
                   <Input
@@ -220,7 +223,13 @@ export function SearchByRadarForm() {
                             radarSearchInputRef.current?.value,
                       )
                       if (radar) {
-                        handleSelectObject(radar)
+                        if (
+                          !selectedObjects.find(
+                            (item) => item.cameraNumber === radar.cameraNumber,
+                          )
+                        ) {
+                          setSelectedObjects((prev) => [radar, ...prev])
+                        }
                         radarSearchInputRef.current!.value = ''
                         setViewport({
                           longitude: radar.longitude,

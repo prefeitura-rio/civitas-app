@@ -40,7 +40,7 @@ export function useRadarLayer(): UseRadarLayer {
         ),
       )
     } else {
-      setSelectedObjects([...selectedObjects, radar])
+      setSelectedObjects([radar, ...selectedObjects])
     }
   }
 

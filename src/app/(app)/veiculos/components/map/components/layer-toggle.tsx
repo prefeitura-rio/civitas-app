@@ -84,6 +84,14 @@ export function MapLayerControl() {
       setIsVisible: setIsFogoCruzadoVisible,
     },
     {
+      name: 'Satélite',
+      icon: <Satellite />,
+      isVisible: mapStyle === MapStyle.Satellite,
+      setIsVisible: (satellite) => {
+        setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
+      },
+    },
+    {
       name: 'AISP',
       icon: <Shield />,
       isVisible: isAISPVisible,
@@ -94,14 +102,6 @@ export function MapLayerControl() {
       icon: <Shield />,
       isVisible: isCISPVisible,
       setIsVisible: setIsCISPVisible,
-    },
-    {
-      name: 'Satélite',
-      icon: <Satellite />,
-      isVisible: mapStyle === MapStyle.Satellite,
-      setIsVisible: (satellite) => {
-        setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
-      },
     },
   ]
 
@@ -151,7 +151,15 @@ export function MapLayerControl() {
                         <Toggle
                           key={index}
                           pressed={layer.isVisible}
-                          onPressedChange={layer.setIsVisible}
+                          onPressedChange={(e) => {
+                            layer.setIsVisible(e)
+                            if (layer.name === 'AISP') {
+                              setIsCISPVisible(false)
+                            }
+                            if (layer.name === 'CISP') {
+                              setIsAISPVisible(false)
+                            }
+                          }}
                           className="flex size-20 shrink-0 flex-col items-center justify-center data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                           aria-label={`Toggle ${layer.name} layer`}
                         >

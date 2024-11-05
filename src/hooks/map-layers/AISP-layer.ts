@@ -49,7 +49,7 @@ export function useAISPLayer(): UseAISPLayer {
         highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
         getFillColor: [160, 160, 180, 200],
         visible: isVisible,
-        getLineWidth: 80,
+        getLineWidth: 20,
         getLineColor: [0, 0, 0, 250],
         // getPointRadius: 4,
         // getTextSize: 12,

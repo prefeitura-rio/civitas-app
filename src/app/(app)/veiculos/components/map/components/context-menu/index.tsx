@@ -6,8 +6,10 @@ import { useState } from 'react'
 
 import { Popover, PopoverContent } from '@/components/ui/popover'
 
+import { AISPInfo } from './components/aisp-info'
 import { calculateTooltipAbsolutePosition } from './components/calculate-tooltip-absolute-position'
-import { RadarContextMenu } from './components/radar-info'
+import { CISPInfo } from './components/cisp-info'
+import { RadarInfo } from './components/radar-info'
 
 interface ContextMenuProps {
   pickingInfo: PickingInfo | null
@@ -20,7 +22,7 @@ export function ContextMenu({
   onOpenChange,
   open,
 }: ContextMenuProps) {
-  if (!pickingInfo) return null
+  if (!pickingInfo || !pickingInfo.object) return null
   const [cardRef, setCardRef] = useState<HTMLDivElement | null>(null)
 
   const { top, left } = calculateTooltipAbsolutePosition(
@@ -29,21 +31,36 @@ export function ContextMenu({
     cardRef?.clientHeight,
   )
 
+  const Content = ({ pickingInfo }: { pickingInfo: PickingInfo }) => {
+    if (pickingInfo?.layer?.id === 'radars') {
+      return <RadarInfo pickingInfo={pickingInfo} />
+    }
+
+    if (pickingInfo?.layer?.id === 'AISP') {
+      return <AISPInfo pickingInfo={pickingInfo} />
+    }
+
+    if (pickingInfo?.layer?.id === 'CISP') {
+      return <CISPInfo pickingInfo={pickingInfo} />
+    }
+  }
+
   return (
     <Popover open={open} onOpenChange={onOpenChange} modal={false}>
-      {pickingInfo?.layer?.id === 'radars' && (
-        <PopoverContent
-          ref={(ref) => setCardRef(ref)}
-          style={{
-            position: 'absolute',
-            top,
-            left,
-            width: '400px',
-          }}
-        >
-          <RadarContextMenu pickingInfo={pickingInfo} />
-        </PopoverContent>
-      )}
+      {pickingInfo.layer?.id &&
+        ['radars', 'AISP', 'CISP'].includes(pickingInfo.layer.id) && (
+          <PopoverContent
+            ref={(ref) => setCardRef(ref)}
+            style={{
+              position: 'absolute',
+              top,
+              left,
+              width: '400px',
+            }}
+          >
+            <Content pickingInfo={pickingInfo} />
+          </PopoverContent>
+        )}
     </Popover>
   )
 }

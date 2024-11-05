@@ -1,6 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import { FlyToInterpolator, type MapViewState } from '@deck.gl/core'
+import {
+  FlyToInterpolator,
+  type MapViewState,
+  type PickingInfo,
+} from '@deck.gl/core'
+import type { DeckGLRef } from 'deck.gl'
 import { createContext, type ReactNode, useState } from 'react'
+import type { MapRef } from 'react-map-gl'
 
 import { type UseAISPLayer, useAISPLayer } from '@/hooks/map-layers/AISP-layer'
 import { type UseCISPLayer, useCISPLayer } from '@/hooks/map-layers/CISP-layer'
@@ -43,6 +50,14 @@ interface MapContextProps {
   setViewport: (props: SetViewportProps) => void
   mapStyle: MapStyle
   setMapStyle: (style: MapStyle) => void
+  mapRef: MapRef | null
+  setMapRef: (ref: MapRef | null) => void
+  setDeckRef: (ref: DeckGLRef<any> | null) => void
+  deckRef: DeckGLRef<any> | null
+  openContextMenu: boolean
+  setOpenContextMenu: (open: boolean) => void
+  contextMenuPickingInfo: PickingInfo | null
+  setContextMenuPickingInfo: (info: PickingInfo | null) => void
 }
 
 export const MapContext = createContext({} as MapContextProps)
@@ -54,6 +69,11 @@ interface MapContextProviderProps {
 export function MapContextProvider({ children }: MapContextProviderProps) {
   const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
   const [mapStyle, setMapStyle] = useState<MapStyle>(MapStyle.Map)
+  const [mapRef, setMapRef] = useState<MapRef | null>(null)
+  const [deckRef, setDeckRef] = useState<DeckGLRef | null>(null)
+  const [openContextMenu, setOpenContextMenu] = useState(false)
+  const [contextMenuPickingInfo, setContextMenuPickingInfo] =
+    useState<PickingInfo | null>(null)
 
   function setViewport(props: SetViewportProps) {
     setViewportState({
@@ -92,6 +112,14 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
         setViewport,
         mapStyle,
         setMapStyle,
+        mapRef,
+        setMapRef,
+        deckRef,
+        setDeckRef,
+        openContextMenu,
+        setOpenContextMenu,
+        contextMenuPickingInfo,
+        setContextMenuPickingInfo,
       }}
     >
       {children}
