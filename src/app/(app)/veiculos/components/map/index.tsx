@@ -2,8 +2,8 @@
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { Deck, DeckGL, type PickingInfo } from 'deck.gl'
-import { type MouseEvent, useRef, useState } from 'react'
+import { type Deck, DeckGL, type PickingInfo } from 'deck.gl'
+import { type MouseEvent, useEffect, useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
@@ -17,6 +17,9 @@ import { SearchBox } from './components/search-box'
 import { SelectionCards } from './components/select-cards'
 
 export function Map() {
+  const deckRef = useRef<Deck | null>(null)
+  const mapRef = useRef<MapRef | null>(null)
+
   const {
     layers: {
       radars: {
@@ -51,9 +54,18 @@ export function Map() {
     viewport,
     setViewport,
     mapStyle,
+    setMapRef,
+    setDeckRef,
+    contextMenuPickingInfo,
+    openContextMenu,
+    setContextMenuPickingInfo,
+    setOpenContextMenu,
   } = useMap()
 
-  const mapRef = useRef<MapRef | null>(null)
+  useEffect(() => {
+    setMapRef(mapRef.current)
+    setDeckRef(deckRef.current)
+  }, [])
 
   // Add other layers
   const layers = [
@@ -67,12 +79,6 @@ export function Map() {
     ...tripLayers,
     addressLayer,
   ]
-
-  const [openContextMenu, setOpenContextMenu] = useState(false)
-  const [contextMenuPickingInfo, setContextMenuPickingInfo] =
-    useState<PickingInfo | null>(null)
-
-  const deckRef = useRef<Deck | null>(null)
 
   function onRightClick(e: MouseEvent) {
     e.preventDefault()
@@ -88,6 +94,7 @@ export function Map() {
     const y = e.clientY
     const x = e.clientX - 56
     const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+
     if (info?.layer?.id === 'radars' && info.object) {
       selectRadar(info.object as Radar)
     }
@@ -115,7 +122,7 @@ export function Map() {
         ref={deckRef}
         initialViewState={viewport}
         controller
-        onResize={() => mapRef?.current?.resize()}
+        onResize={() => mapRef.current?.resize()}
         layers={layers}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
         getCursor={({ isDragging, isHovering }) => {
