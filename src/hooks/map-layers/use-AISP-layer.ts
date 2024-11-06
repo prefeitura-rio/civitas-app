@@ -11,7 +11,6 @@ export interface UseAISPLayer {
   features: FeatureCollection<Geometry, AISP>
   hoverInfo: PickingInfo<Feature<Geometry, AISP>> | null
   setHoverInfo: (info: PickingInfo<Feature<Geometry, AISP>> | null) => void
-  setIsHoveringInfoCard: (isHovering: boolean) => void
   layers: LayersList
   isVisible: boolean
   setIsVisible: (isVisible: boolean) => void
@@ -25,7 +24,6 @@ export function useAISPLayer(): UseAISPLayer {
     features: [],
   })
   const [isVisible, setIsVisible] = useState(false)
-  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
 
   useEffect(() => {
     const fetchCameras = async () => {
@@ -47,29 +45,20 @@ export function useAISPLayer(): UseAISPLayer {
         stroked: true,
         filled: true,
         pointType: 'icon',
-        // autoHighlight: true,
         highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
         getFillColor: [160, 160, 180, 200],
         visible: isVisible,
         getLineWidth: 20,
         getLineColor: [0, 0, 0, 250],
-        // getPointRadius: 4,
-        // getTextSize: 12,
-        // onHover: (d) => {
-        //   if (!isHoveringInfoCard) {
-        //     setHoverInfo(d.object ? d : null)
-        //   }
-        // },
       }),
 
-    [features, isHoveringInfoCard, isVisible],
+    [features, isVisible],
   )
 
   return {
     features,
     hoverInfo,
     setHoverInfo,
-    setIsHoveringInfoCard,
     isVisible,
     setIsVisible,
     layers: [baseLayer],
