@@ -15,7 +15,6 @@ export interface UseRadarLayer {
   isVisible: boolean
   setIsVisible: (value: boolean) => void
   handleSelectObject: (radar: Radar) => void
-  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
   selectedObjects: Radar[]
   setSelectedObjects: Dispatch<SetStateAction<Radar[]>>
 }
@@ -24,7 +23,6 @@ export function useRadarLayer(): UseRadarLayer {
   const [hoveredObject, setHoveredObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
-  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
   const [selectedObjects, setSelectedObjects] = useState<Radar[]>([])
   const [isVisible, setIsVisible] = useState(true)
 
@@ -126,7 +124,6 @@ export function useRadarLayer(): UseRadarLayer {
     isVisible,
     setIsVisible,
     handleSelectObject,
-    setIsHoveringInfoCard,
     selectedObjects,
     setSelectedObjects,
   }

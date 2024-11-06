@@ -14,7 +14,7 @@ export function RadarInfo({
 }) {
   return (
     <div className="h-full w-full">
-      <h4>Informações do Radar</h4>
+      <h4>Radar OCR</h4>
       <Separator className="mb-4 mt-1 bg-secondary" />
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2">

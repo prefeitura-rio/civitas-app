@@ -12,6 +12,7 @@ import { getMapStyle } from '@/utils/get-map-style'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { ContextMenu } from './components/context-menu'
+import { HoverCards } from './components/hover-cards'
 import { MapLayerControl } from './components/layer-toggle'
 import { SearchBox } from './components/search-box'
 import { SelectionCards } from './components/select-cards'
@@ -182,6 +183,7 @@ export function Map() {
         />
       </div>
       <SelectionCards />
+      <HoverCards />
       <MapLayerControl />
       <ContextMenu
         open={openContextMenu}
