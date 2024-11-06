@@ -18,14 +18,12 @@ export interface UseCameraCOR {
   setHoveredObject: Dispatch<SetStateAction<PickingInfo<CameraCOR> | null>>
   selectedObject: CameraCOR | null
   handleSelectObject: (camera: CameraCOR | null) => void
-  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
 export function useCameraCOR(): UseCameraCOR {
   const [hoveredObject, setHoveredObject] =
     useState<PickingInfo<CameraCOR> | null>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
   const [selectedObject, setSelectedObject] = useState<CameraCOR | null>(null)
 
   const { data, isLoading } = useQuery({
@@ -95,6 +93,5 @@ export function useCameraCOR(): UseCameraCOR {
     setHoveredObject,
     selectedObject,
     handleSelectObject,
-    setIsHoveringInfoCard,
   }
 }

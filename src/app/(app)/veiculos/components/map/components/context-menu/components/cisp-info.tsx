@@ -1,11 +1,12 @@
 import * as turf from '@turf/turf'
 import type { PickingInfo } from 'deck.gl'
-import type { Feature } from 'geojson'
+import type { Feature, Geometry } from 'geojson'
 import { Phone, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import type { CISP } from '@/models/entities'
 
 const InfoItem = ({
   icon: Icon,
@@ -28,12 +29,15 @@ const InfoItem = ({
 export function CISPInfo({
   pickingInfo,
 }: {
-  pickingInfo: PickingInfo<Feature>
+  pickingInfo: PickingInfo<Feature<Geometry, CISP>>
 }) {
   const { object } = pickingInfo
   const {
     layers: {
       radars: { setSelectedObjects: setSelectedRadars, data: radars },
+      AISP: {
+        features: { features: aisps },
+      },
     },
   } = useMap()
 
@@ -62,25 +66,25 @@ export function CISPInfo({
     setSelectedRadars([])
   }
 
+  const aisp = aisps.find(
+    (aisp) => aisp.properties.aisp === object?.properties.aisp,
+  )
+
   return (
     <div className="h-full w-full">
       <h4>Circunscrições Integradas de Segurança Pública (CISP)</h4>
       <Separator className="mb-4 mt-1 bg-secondary" />
       <div className="flex flex-col gap-4">
-        <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-4">
-            <InfoItem
-              icon={User}
-              label="Nome"
-              value={object?.properties?.nome}
-            />
-            <InfoItem
-              icon={User}
-              label="Código CISP"
-              value={object?.properties?.cisp}
-            />
-          </div>
-        </div>
+        <InfoItem
+          icon={User}
+          label="Unidade CISP"
+          value={object?.properties?.nome}
+        />
+        <InfoItem
+          icon={User}
+          label="Unidade AISP"
+          value={aisp?.properties.unidade}
+        />
 
         <div className="space-y-2">
           <h4 className="text-lg font-semibold">Contato</h4>

@@ -1,11 +1,12 @@
 import * as turf from '@turf/turf'
 import type { PickingInfo } from 'deck.gl'
-import type { Feature } from 'geojson'
-import { Building, MapPin, Phone, User } from 'lucide-react'
+import type { Feature, Geometry } from 'geojson'
+import { Building, Phone, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import type { AISP } from '@/models/entities'
 
 const InfoItem = ({
   icon: Icon,
@@ -28,7 +29,7 @@ const InfoItem = ({
 export function AISPInfo({
   pickingInfo,
 }: {
-  pickingInfo: PickingInfo<Feature>
+  pickingInfo: PickingInfo<Feature<Geometry, AISP>>
 }) {
   const { object } = pickingInfo
   const {
@@ -62,20 +63,11 @@ export function AISPInfo({
       <h4>Área Integrada de Segurança Pública (AISP)</h4>
       <Separator className="mb-4 mt-1 bg-secondary" />
       <div className="flex flex-col gap-4">
-        <div className="space-y-2">
-          <div className="ap-4 grid grid-cols-2">
-            <InfoItem
-              icon={Building}
-              label="Unidade"
-              value={object?.properties?.unidade}
-            />
-            <InfoItem
-              icon={MapPin}
-              label="Código AISP"
-              value={object?.properties?.aisp}
-            />
-          </div>
-        </div>
+        <InfoItem
+          icon={Building}
+          label="Unidade"
+          value={object?.properties?.unidade}
+        />
 
         <div className="space-y-2">
           <h4 className="text-lg font-semibold">Contato</h4>
@@ -89,7 +81,7 @@ export function AISPInfo({
             <InfoItem
               icon={Phone}
               label="Telefone do responsável"
-              value={object?.properties?.telefone}
+              value={object?.properties?.telefone_responsavel}
             />
           </div>
         </div>

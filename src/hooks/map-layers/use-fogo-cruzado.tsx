@@ -20,7 +20,6 @@ export interface UseFogoCruzadoIncidents {
   >
   selectedObject: FogoCruzadoIncident | null
   setSelectedObject: Dispatch<SetStateAction<FogoCruzadoIncident | null>>
-  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
 }
 
 export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
@@ -29,7 +28,6 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
   const [isVisible, setIsVisible] = useState(false)
   const [selectedObject, setSelectedObject] =
     useState<FogoCruzadoIncident | null>(null)
-  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['layers', 'fogocruzado'],
@@ -52,14 +50,14 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
       mask: false,
     }),
     getPosition: (info) => [info.longitude, info.latitude],
-    onHover: (info) => {
-      if (!isHoveringInfoCard) {
-        setHoveredObject(info.object ? info : null)
-      }
-    },
-    onClick: (info) => {
-      setSelectedObject(info.object)
-    },
+    // onHover: (info) => {
+    //   if (!isHoveringInfoCard) {
+    //     setHoveredObject(info.object ? info : null)
+    //   }
+    // },
+    // onClick: (info) => {
+    //   setSelectedObject(info.object)
+    // },
   })
 
   return {
@@ -73,6 +71,5 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
     setHoveredObject,
     selectedObject,
     setSelectedObject,
-    setIsHoveringInfoCard,
   }
 }

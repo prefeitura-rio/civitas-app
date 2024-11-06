@@ -34,6 +34,7 @@ export function FogoCruzadoSelectCard({
     'Presença de Agentes': selectedObject?.agentPresence ? 'Sim' : 'Não',
     'Registros Relacionados': selectedObject?.relatedRecord,
   }
+
   const contextFields = {
     'Motivo Principal': selectedObject?.contextInfo.mainReason.name,
     'Motivos Complementares': selectedObject?.contextInfo.complementaryReasons
