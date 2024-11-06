@@ -45,7 +45,6 @@ export function useCISPLayer(): UseCISPLayer {
         stroked: true,
         filled: true,
         pointType: 'icon',
-        highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
         getFillColor: [160, 160, 180, 200],
         visible: isVisible,
         getLineWidth: 20,

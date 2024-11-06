@@ -5,29 +5,31 @@ import { IconLayer } from '@deck.gl/layers'
 import type { FeatureCollection, Point } from 'geojson'
 import { useEffect, useMemo, useState } from 'react'
 
-import school from '@/assets/school.svg'
-import type { School } from '@/models/entities'
+import busFront from '@/assets/bus-front.svg'
+import type { BusStop, RawBusStop } from '@/models/entities'
 
-export interface UseSchoolLayer {
-  data: School[]
+export interface UseBusStopLayer {
+  data: BusStop[]
   layers: LayersList
   isVisible: boolean
   setIsVisible: (isVisible: boolean) => void
 }
-export function useSchoolLayer(): UseSchoolLayer {
-  const [data, setData] = useState<School[]>([])
+export function useBusStopLayer(): UseBusStopLayer {
+  const [data, setData] = useState<BusStop[]>([])
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     const fetchCameras = async () => {
-      const data: School[] = await fetch(
-        'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/Escolas_Municipais.geojson',
+      const data: BusStop[] = await fetch(
+        'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/paradas_onibus.geojson',
       ).then((data) =>
-        data
-          .json()
-          .then((data: FeatureCollection<Point, School>) =>
-            data.features.map((feature) => feature.properties),
-          ),
+        data.json().then((data: FeatureCollection<Point, RawBusStop>) =>
+          data.features.map((feature) => ({
+            ...feature.properties,
+            latitude: feature.geometry.coordinates[1],
+            longitude: feature.geometry.coordinates[0],
+          })),
+        ),
       )
 
       setData(data)
@@ -37,16 +39,13 @@ export function useSchoolLayer(): UseSchoolLayer {
 
   const baseLayer = useMemo(
     () =>
-      new IconLayer<School>({
-        id: 'schools',
+      new IconLayer<BusStop>({
+        id: 'BusStops',
         data,
-        pickable: true,
         getSize: 24,
-        autoHighlight: true,
-        highlightColor: [0, 126, 159, 250],
         visible: isVisible,
         getIcon: () => ({
-          url: school.src,
+          url: busFront.src,
           width: 48,
           height: 48,
           mask: false,
