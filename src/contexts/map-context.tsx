@@ -18,6 +18,10 @@ import {
   type UseAISPLayer,
   useAISPLayer,
 } from '@/hooks/map-layers/use-AISP-layer'
+import {
+  type UseBusStopLayer,
+  useBusStopLayer,
+} from '@/hooks/map-layers/use-bus-stop-layer'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import {
   type UseCISPLayer,
@@ -56,6 +60,7 @@ interface MapContextProps {
     CISP: UseCISPLayer
     AISP: UseAISPLayer
     schools: UseSchoolLayer
+    busStops: UseBusStopLayer
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
@@ -105,6 +110,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const CISP = useCISPLayer()
   const AISP = useAISPLayer()
   const schools = useSchoolLayer()
+  const busStops = useBusStopLayer()
 
   return (
     <MapContext.Provider
@@ -120,6 +126,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           CISP,
           AISP,
           schools,
+          busStops,
         },
         viewport,
         setViewport,

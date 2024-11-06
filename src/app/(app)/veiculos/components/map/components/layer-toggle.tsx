@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  BusFront,
   Cctv,
   ChevronUp,
   FlameKindling,
@@ -49,6 +50,10 @@ export function MapLayerControl() {
       schools: {
         isVisible: isSchoolsVisible,
         setIsVisible: setIsSchoolsVisible,
+      },
+      busStops: {
+        isVisible: isBusStopsVisible,
+        setIsVisible: setIsBusStopsVisible,
       },
     },
     mapStyle,
@@ -113,6 +118,12 @@ export function MapLayerControl() {
       icon: <School />,
       isVisible: isSchoolsVisible,
       setIsVisible: setIsSchoolsVisible,
+    },
+    {
+      name: 'Paradas de Ônibus',
+      icon: <BusFront />,
+      isVisible: isBusStopsVisible,
+      setIsVisible: setIsBusStopsVisible,
     },
   ]
 

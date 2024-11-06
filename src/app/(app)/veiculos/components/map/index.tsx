@@ -48,6 +48,7 @@ export function Map() {
       AISP: { layers: AISPLayer },
       CISP: { layers: CISPLayer },
       schools: { layers: schoolsLayer },
+      busStops: { layers: busStopsLayer },
     },
     viewport,
     setViewport,
@@ -77,6 +78,7 @@ export function Map() {
     ...tripLayers,
     addressLayer,
     schoolsLayer,
+    busStopsLayer,
   ]
 
   function onRightClick(e: MouseEvent) {

@@ -715,3 +715,17 @@ export type School = {
   longitude: number
   tipo: string
 }
+
+export type RawBusStop = {
+  data_versao: string
+  id_parada: string
+  nome_parada: string
+}
+
+export type BusStop = {
+  data_versao: string
+  id_parada: string
+  nome_parada: string
+  longitude: number
+  latitude: number
+}
