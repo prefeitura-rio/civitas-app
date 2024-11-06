@@ -9,14 +9,20 @@ import type { DeckGLRef } from 'deck.gl'
 import { createContext, type ReactNode, useState } from 'react'
 import type { MapRef } from 'react-map-gl'
 
-import { type UseAISPLayer, useAISPLayer } from '@/hooks/map-layers/AISP-layer'
-import { type UseCISPLayer, useCISPLayer } from '@/hooks/map-layers/CISP-layer'
 import {
   type UseAddressMarker,
   useAddressMarker,
 } from '@/hooks/map-layers/use-address-marker'
 import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
+import {
+  type UseAISPLayer,
+  useAISPLayer,
+} from '@/hooks/map-layers/use-AISP-layer'
 import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
+import {
+  type UseCISPLayer,
+  useCISPLayer,
+} from '@/hooks/map-layers/use-CISP-layer'
 import {
   type UseFogoCruzadoIncidents,
   useFogoCruzadoIncidents,
