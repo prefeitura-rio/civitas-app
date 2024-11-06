@@ -31,6 +31,10 @@ import {
   type UseRadarLayer,
   useRadarLayer,
 } from '@/hooks/map-layers/use-radar-layer'
+import {
+  type UseSchoolLayer,
+  useSchoolLayer,
+} from '@/hooks/map-layers/use-school-layer'
 import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
 import {
   type UseWazePoliceAlerts,
@@ -51,6 +55,7 @@ interface MapContextProps {
     address: UseAddressMarker
     CISP: UseCISPLayer
     AISP: UseAISPLayer
+    schools: UseSchoolLayer
   }
   viewport: MapViewState
   setViewport: (props: SetViewportProps) => void
@@ -99,6 +104,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const address = useAddressMarker()
   const CISP = useCISPLayer()
   const AISP = useAISPLayer()
+  const schools = useSchoolLayer()
 
   return (
     <MapContext.Provider
@@ -113,6 +119,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           address,
           CISP,
           AISP,
+          schools,
         },
         viewport,
         setViewport,

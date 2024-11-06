@@ -7,6 +7,7 @@ import {
   FlameKindling,
   Layers,
   Satellite,
+  School,
   Shield,
   Siren,
   UsersRound,
@@ -45,6 +46,10 @@ export function MapLayerControl() {
       waze: { isVisible: isWazeVisible, setIsVisible: setIsWazeVisible },
       AISP: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
       CISP: { isVisible: isCISPVisible, setIsVisible: setIsCISPVisible },
+      schools: {
+        isVisible: isSchoolsVisible,
+        setIsVisible: setIsSchoolsVisible,
+      },
     },
     mapStyle,
     setMapStyle,
@@ -102,6 +107,12 @@ export function MapLayerControl() {
       icon: <Shield />,
       isVisible: isCISPVisible,
       setIsVisible: setIsCISPVisible,
+    },
+    {
+      name: 'Escolas Municipais',
+      icon: <School />,
+      isVisible: isSchoolsVisible,
+      setIsVisible: setIsSchoolsVisible,
     },
   ]
 

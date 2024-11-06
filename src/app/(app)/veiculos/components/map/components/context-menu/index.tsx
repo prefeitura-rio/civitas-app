@@ -11,6 +11,7 @@ import { calculateTooltipAbsolutePosition } from './components/calculate-tooltip
 import { CISPInfo } from './components/cisp-info'
 import { FogoCruzadoInfo } from './components/fogo-cruzado-info'
 import { RadarInfo } from './components/radar-info'
+import { SchoolInfo } from './components/school-info'
 import { WazePoliceAlertInfo } from './components/waze-police-alert-info'
 
 interface ContextMenuProps {
@@ -53,6 +54,10 @@ export function ContextMenu({
     if (pickingInfo?.layer?.id === 'fogocruzado-incidents') {
       return <FogoCruzadoInfo pickingInfo={pickingInfo} />
     }
+
+    if (pickingInfo?.layer?.id === 'schools') {
+      return <SchoolInfo pickingInfo={pickingInfo} />
+    }
   }
 
   return (
@@ -64,6 +69,7 @@ export function ContextMenu({
           'CISP',
           'waze-police-alert',
           'fogocruzado-incidents',
+          'schools',
         ].includes(pickingInfo.layer.id) && (
           <PopoverContent
             ref={(ref) => setCardRef(ref)}

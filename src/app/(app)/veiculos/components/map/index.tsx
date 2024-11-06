@@ -2,7 +2,7 @@
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { type Deck, DeckGL, type PickingInfo } from 'deck.gl'
+import { type Deck, DeckGL } from 'deck.gl'
 import { type MouseEvent, useEffect, useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
@@ -25,15 +25,11 @@ export function Map() {
     layers: {
       radars: {
         layer: radarLayer,
-        hoveredObject: hoveredRadar,
-        setHoveredObject: setHoveredRadar,
         data: radars,
         handleSelectObject: selectRadar,
       },
       cameras: {
         layer: cameraLayer,
-        hoveredObject: hoveredCamera,
-        setHoveredObject: setHoveredCamera,
         data: cameras,
         handleSelectObject: selectCamera,
       },
@@ -51,6 +47,7 @@ export function Map() {
       },
       AISP: { layers: AISPLayer },
       CISP: { layers: CISPLayer },
+      schools: { layers: schoolsLayer },
     },
     viewport,
     setViewport,
@@ -79,6 +76,7 @@ export function Map() {
     agentsLayer,
     ...tripLayers,
     addressLayer,
+    schoolsLayer,
   ]
 
   function onRightClick(e: MouseEvent) {
@@ -99,17 +97,9 @@ export function Map() {
     if (info?.layer?.id === 'radars' && info.object) {
       selectRadar(info.object as Radar)
     }
+
     if (info?.layer?.id === 'cameras' && info.object) {
       selectCamera(info.object as CameraCOR)
-    }
-  }
-
-  function onHover(info: PickingInfo) {
-    if (info.layer?.id === 'radars' && info.object) {
-      setHoveredRadar(info as PickingInfo<Radar>)
-    }
-    if (info.layer?.id === 'cameras' && info.object) {
-      setHoveredCamera(info as PickingInfo<CameraCOR>)
     }
   }
 
@@ -128,13 +118,9 @@ export function Map() {
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
         getCursor={({ isDragging, isHovering }) => {
           if (isDragging) return 'grabbing'
-          else if (isHovering) {
-            // Actually clickable objects:
-            if (hoveredRadar || hoveredCamera) return 'pointer'
-          }
+          if (isHovering) return 'pointer'
           return 'grab'
         }}
-        onHover={onHover}
       >
         <MapGl
           ref={mapRef}
