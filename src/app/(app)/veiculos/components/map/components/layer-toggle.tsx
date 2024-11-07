@@ -1,7 +1,19 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronUp, Layers } from 'lucide-react'
+import {
+  BusFront,
+  Cctv,
+  ChevronUp,
+  FlameKindling,
+  Layers,
+  Satellite,
+  School,
+  Shield,
+  Siren,
+  UsersRound,
+  Video,
+} from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -12,6 +24,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Toggle } from '@/components/ui/toggle'
+import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { MapStyle } from '@/utils/get-map-style'
 
 type Layer = {
   name: string
@@ -20,12 +34,98 @@ type Layer = {
   setIsVisible: (isVisible: boolean) => void
 }
 
-interface MapLayerControlProps {
-  layers: Layer[]
-}
+export function MapLayerControl() {
+  const {
+    layers: {
+      radars: { isVisible: isRadarVisible, setIsVisible: setIsRadarVisible },
+      cameras: { isVisible: isCameraVisible, setIsVisible: setIsCameraVisible },
+      agents: { isVisible: isAgentsVisible, setIsVisible: setIsAgentsVisible },
+      fogoCruzado: {
+        isVisible: isFogoCruzadoVisible,
+        setIsVisible: setIsFogoCruzadoVisible,
+      },
+      waze: { isVisible: isWazeVisible, setIsVisible: setIsWazeVisible },
+      AISP: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
+      CISP: { isVisible: isCISPVisible, setIsVisible: setIsCISPVisible },
+      schools: {
+        isVisible: isSchoolsVisible,
+        setIsVisible: setIsSchoolsVisible,
+      },
+      busStops: {
+        isVisible: isBusStopsVisible,
+        setIsVisible: setIsBusStopsVisible,
+      },
+    },
+    mapStyle,
+    setMapStyle,
+  } = useMap()
 
-export function MapLayerControl({ layers }: MapLayerControlProps) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const layers: Layer[] = [
+    {
+      name: 'Radar',
+      icon: <Cctv />,
+      isVisible: isRadarVisible,
+      setIsVisible: setIsRadarVisible,
+    },
+    {
+      name: 'Câmeras',
+      icon: <Video />,
+      isVisible: isCameraVisible,
+      setIsVisible: setIsCameraVisible,
+    },
+    {
+      name: 'Agentes',
+      icon: <UsersRound />,
+      isVisible: isAgentsVisible,
+      setIsVisible: setIsAgentsVisible,
+    },
+    {
+      name: 'Policiamento (Waze)',
+      icon: <Siren />,
+      isVisible: isWazeVisible,
+      setIsVisible: setIsWazeVisible,
+    },
+    {
+      name: 'Fogo Cruzado',
+      icon: <FlameKindling />,
+      isVisible: isFogoCruzadoVisible,
+      setIsVisible: setIsFogoCruzadoVisible,
+    },
+    {
+      name: 'Satélite',
+      icon: <Satellite />,
+      isVisible: mapStyle === MapStyle.Satellite,
+      setIsVisible: (satellite) => {
+        setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
+      },
+    },
+    {
+      name: 'AISP',
+      icon: <Shield />,
+      isVisible: isAISPVisible,
+      setIsVisible: setIsAISPVisible,
+    },
+    {
+      name: 'CISP',
+      icon: <Shield />,
+      isVisible: isCISPVisible,
+      setIsVisible: setIsCISPVisible,
+    },
+    {
+      name: 'Escolas Municipais',
+      icon: <School />,
+      isVisible: isSchoolsVisible,
+      setIsVisible: setIsSchoolsVisible,
+    },
+    {
+      name: 'Paradas de Ônibus',
+      icon: <BusFront />,
+      isVisible: isBusStopsVisible,
+      setIsVisible: setIsBusStopsVisible,
+    },
+  ]
 
   return (
     <Card className="absolute bottom-4 left-4">
@@ -73,7 +173,15 @@ export function MapLayerControl({ layers }: MapLayerControlProps) {
                         <Toggle
                           key={index}
                           pressed={layer.isVisible}
-                          onPressedChange={layer.setIsVisible}
+                          onPressedChange={(e) => {
+                            layer.setIsVisible(e)
+                            if (layer.name === 'AISP') {
+                              setIsCISPVisible(false)
+                            }
+                            if (layer.name === 'CISP') {
+                              setIsAISPVisible(false)
+                            }
+                          }}
                           className="flex size-20 shrink-0 flex-col items-center justify-center data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                           aria-label={`Toggle ${layer.name} layer`}
                         >
