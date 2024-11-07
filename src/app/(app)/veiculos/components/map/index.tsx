@@ -66,7 +66,6 @@ export function Map() {
     setDeckRef(deckRef.current)
   }, [])
 
-  // Add other layers
   const layers = [
     ...AISPLayer,
     ...CISPLayer,
