@@ -17,15 +17,13 @@ export interface UseCameraCOR {
   hoveredObject: PickingInfo<CameraCOR> | null
   setHoveredObject: Dispatch<SetStateAction<PickingInfo<CameraCOR> | null>>
   selectedObject: CameraCOR | null
-  setSelectedObject: Dispatch<SetStateAction<CameraCOR | null>>
-  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
+  handleSelectObject: (camera: CameraCOR | null) => void
 }
 
 export function useCameraCOR(): UseCameraCOR {
   const [hoveredObject, setHoveredObject] =
     useState<PickingInfo<CameraCOR> | null>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
   const [selectedObject, setSelectedObject] = useState<CameraCOR | null>(null)
 
   const { data, isLoading } = useQuery({
@@ -34,6 +32,14 @@ export function useCameraCOR(): UseCameraCOR {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   })
+
+  function handleSelectObject(camera: CameraCOR | null) {
+    if (camera === null || selectedObject?.code === camera.code) {
+      setSelectedObject(null)
+    } else {
+      setSelectedObject(camera)
+    }
+  }
 
   const layer = new IconLayer<CameraCOR>({
     id: 'cameras',
@@ -66,14 +72,14 @@ export function useCameraCOR(): UseCameraCOR {
       } else return 'default'
     },
     getPosition: (info) => [info.longitude, info.latitude],
-    onHover: (info) => {
-      if (!isHoveringInfoCard) {
-        setHoveredObject(info.object ? info : null)
-      }
-    },
-    onClick: (info) => {
-      setSelectedObject(info.object)
-    },
+    // onHover: (info) => {
+    //   if (!isHoveringInfoCard) {
+    //     setHoveredObject(info.object ? info : null)
+    //   }
+    // },
+    // onClick: (info) => {
+    //   setSelectedObject(info.object)
+    // },
   })
 
   return {
@@ -86,7 +92,6 @@ export function useCameraCOR(): UseCameraCOR {
     hoveredObject,
     setHoveredObject,
     selectedObject,
-    setSelectedObject,
-    setIsHoveringInfoCard,
+    handleSelectObject,
   }
 }

@@ -26,9 +26,15 @@ const cards = [
       'Veja denúncias e reportes registrados por diversos canais, além de um dashboard com diferentes insights sobre os registros',
   },
   {
-    title: 'Playground',
+    title: 'Mapa Interativo',
     href: '/playground',
     description: 'Desenhe no mapa, adicione pontos e trajetos de interesse.',
+  },
+  {
+    title: 'Visão Computacional',
+    href: '/vision-ai',
+    description:
+      'Gerencie os projetos de visão computacional pelas câmeras da cidade.',
   },
   {
     title: 'Dashboards',

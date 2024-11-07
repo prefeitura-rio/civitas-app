@@ -677,3 +677,55 @@ export type MonitoredPlateHistoryItem = {
     is_admin: boolean
   } | null
 }
+
+export type AISP = {
+  aisp: number
+  area_geografica: string
+  bairros: string
+  unidades_saude: number
+  escolas: number
+  populacao_2022: number
+  domicilios_2022: number
+  total_DP_2022: number
+  total_DP_ocup_2022: number
+  unidade: string
+  responsavel: string
+  telefone_responsavel: string
+}
+
+export type CISP = {
+  cisp: number
+  aisp: number
+  area_geografica: string
+  localizacao: string
+  categoria: string
+  endereco: string
+  responsavel: string
+  telefone: string
+  celular: null
+  nome: string
+}
+
+export type School = {
+  objectid: number
+  cre: number
+  designacao: number
+  denominacao: string
+  latitude: number
+  longitude: number
+  tipo: string
+}
+
+export type RawBusStop = {
+  data_versao: string
+  id_parada: string
+  nome_parada: string
+}
+
+export type BusStop = {
+  data_versao: string
+  id_parada: string
+  nome_parada: string
+  longitude: number
+  latitude: number
+}

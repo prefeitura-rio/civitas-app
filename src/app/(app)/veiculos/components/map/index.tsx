@@ -1,82 +1,42 @@
 'use client'
+
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { DeckGL } from 'deck.gl'
-import {
-  Cctv,
-  FlameKindling,
-  Satellite,
-  Siren,
-  UsersRound,
-  Video,
-} from 'lucide-react'
-import { useRef, useState } from 'react'
+import { type Deck, DeckGL } from 'deck.gl'
+import { type MouseEvent, useEffect, useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { getMapStyle, MapStyle } from '@/utils/get-map-style'
+import type { CameraCOR, Radar } from '@/models/entities'
+import { getMapStyle } from '@/utils/get-map-style'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
-import { AgentHoverCard } from './components/hover-cards/agent-hover-card'
-import { CameraHoverCard } from './components/hover-cards/camera-hover-card'
-import { DetectionPointHoverCard } from './components/hover-cards/detection-point-hover-card'
-import { FogoCruzadoHoverCard } from './components/hover-cards/fogo-cruzado-hover-card'
-import { RadarHoverCard } from './components/hover-cards/radar-hover-card'
-import { WazePoliceAlertHoverCard } from './components/hover-cards/waze-police-alert-hover-card'
+import { ContextMenu } from './components/context-menu'
+import { HoverCards } from './components/hover-cards'
 import { MapLayerControl } from './components/layer-toggle'
 import { SearchBox } from './components/search-box'
-import { CameraSelectCard } from './components/select-cards/camera-select-card'
-import { FogoCruzadoSelectCard } from './components/select-cards/fogo-cruzado-select-card'
+import { SelectionCards } from './components/select-cards'
 
 export function Map() {
+  const deckRef = useRef<Deck | null>(null)
+  const mapRef = useRef<MapRef | null>(null)
+
   const {
     layers: {
       radars: {
         layer: radarLayer,
-        hoveredObject: hoveredRadar,
-        setIsHoveringInfoCard: setIsHoveringRadarInfoCard,
-        isVisible: isRadarVisible,
-        setIsVisible: setIsRadarVisible,
         data: radars,
+        handleSelectObject: selectRadar,
       },
       cameras: {
         layer: cameraLayer,
-        isVisible: isCameraVisible,
-        setIsVisible: setIsCameraVisible,
-        hoveredObject: hoveredCamera,
-        selectedObject: selectedCamera,
-        setSelectedObject: setSelectedCamera,
-        setIsHoveringInfoCard: setIsHoveringCameraInfoCard,
         data: cameras,
+        handleSelectObject: selectCamera,
       },
-      agents: {
-        layer: agentsLayer,
-        isVisible: isAgentsVisible,
-        setIsVisible: setIsAgentsVisible,
-        hoveredObject: hoveredAgent,
-        setIsHoveringInfoCard: setIsHoveringAgentInfoCard,
-      },
-      fogoCruzado: {
-        layer: fogoCruzadoLayer,
-        isVisible: isFogoCruzadoVisible,
-        setIsVisible: setIsFogoCruzadoVisible,
-        hoveredObject: hoveredFogoCruzado,
-        setIsHoveringInfoCard: setIsHoveringFogoCruzadoInfoCard,
-        selectedObject: selectedFogoCruzado,
-        setSelectedObject: setSelectedFogoCruzado,
-      },
-      waze: {
-        layer: wazeLayer,
-        isVisible: isWazeVisible,
-        setIsVisible: setIsWazeVisible,
-        hoveredObject: hoveredWaze,
-        setIsHoveringInfoCard: setIsHoveringWazeInfoCard,
-      },
-      trips: {
-        layers: tripLayers,
-        hoveredObject: hoveredDetectionPoint,
-        setIsHoveringInfoCard: setIsHoveringDetectionPointInfoCard,
-      },
+      agents: { layer: agentsLayer },
+      fogoCruzado: { layer: fogoCruzadoLayer },
+      waze: { layer: wazeLayer },
+      trips: { layers: tripLayers },
       address: {
         layerStates: {
           isVisible: isAddressVisible,
@@ -85,16 +45,31 @@ export function Map() {
         },
         layer: addressLayer,
       },
+      AISP: { layers: AISPLayer },
+      CISP: { layers: CISPLayer },
+      schools: { layers: schoolsLayer },
+      busStops: { layers: busStopsLayer },
     },
     viewport,
     setViewport,
+    mapStyle,
+    setMapRef,
+    setDeckRef,
+    contextMenuPickingInfo,
+    openContextMenu,
+    setContextMenuPickingInfo,
+    setOpenContextMenu,
   } = useMap()
 
-  const [mapStyle, setMapStyle] = useState<MapStyle>(MapStyle.Map)
-  const mapRef = useRef<MapRef | null>(null)
+  useEffect(() => {
+    setMapRef(mapRef.current)
+    setDeckRef(deckRef.current)
+  }, [])
 
   // Add other layers
   const layers = [
+    ...AISPLayer,
+    ...CISPLayer,
     cameraLayer,
     radarLayer,
     wazeLayer,
@@ -102,22 +77,50 @@ export function Map() {
     agentsLayer,
     ...tripLayers,
     addressLayer,
+    schoolsLayer,
+    busStopsLayer,
   ]
 
+  function onRightClick(e: MouseEvent) {
+    e.preventDefault()
+    const y = e.clientY
+    const x = e.clientX - 56
+    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+    setContextMenuPickingInfo(info || null)
+    setOpenContextMenu(!!info)
+  }
+
+  function onLeftClick(e: MouseEvent) {
+    e.preventDefault()
+    const y = e.clientY
+    const x = e.clientX - 56
+    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+
+    if (info?.layer?.id === 'radars' && info.object) {
+      selectRadar(info.object as Radar)
+    }
+
+    if (info?.layer?.id === 'cameras' && info.object) {
+      selectCamera(info.object as CameraCOR)
+    }
+  }
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div
+      className="relative h-full w-full overflow-hidden"
+      onContextMenu={onRightClick}
+      onClick={onLeftClick}
+    >
       <DeckGL
+        ref={deckRef}
         initialViewState={viewport}
         controller
-        onResize={() => mapRef?.current?.resize()}
+        onResize={() => mapRef.current?.resize()}
         layers={layers}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
         getCursor={({ isDragging, isHovering }) => {
           if (isDragging) return 'grabbing'
-          else if (isHovering) {
-            // Actually clickable objects:
-            if (hoveredRadar || hoveredCamera) return 'pointer'
-          }
+          if (isHovering) return 'pointer'
           return 'grab'
         }}
       >
@@ -167,79 +170,13 @@ export function Map() {
           }}
         />
       </div>
-      <RadarHoverCard
-        hoveredObject={hoveredRadar}
-        setIsHoveringInfoCard={setIsHoveringRadarInfoCard}
-      />
-      <CameraHoverCard
-        hoveredObject={hoveredCamera}
-        setIsHoveringInfoCard={setIsHoveringCameraInfoCard}
-      />
-      <CameraSelectCard
-        selectedObject={selectedCamera}
-        setSelectedObject={setSelectedCamera}
-      />
-      <FogoCruzadoHoverCard
-        hoveredObject={hoveredFogoCruzado}
-        setIsHoveringInfoCard={setIsHoveringFogoCruzadoInfoCard}
-      />
-      <FogoCruzadoSelectCard
-        selectedObject={selectedFogoCruzado}
-        setSelectedObject={setSelectedFogoCruzado}
-      />
-      <WazePoliceAlertHoverCard
-        hoveredObject={hoveredWaze}
-        setIsHoveringInfoCard={setIsHoveringWazeInfoCard}
-      />
-      <AgentHoverCard
-        hoveredObject={hoveredAgent}
-        setIsHoveringInfoCard={setIsHoveringAgentInfoCard}
-      />
-      <DetectionPointHoverCard
-        hoveredObject={hoveredDetectionPoint}
-        setIsHoveringInfoCard={setIsHoveringDetectionPointInfoCard}
-      />
-      <MapLayerControl
-        layers={[
-          {
-            name: 'Radar',
-            icon: <Cctv />,
-            isVisible: isRadarVisible,
-            setIsVisible: setIsRadarVisible,
-          },
-          {
-            name: 'Câmeras',
-            icon: <Video />,
-            isVisible: isCameraVisible,
-            setIsVisible: setIsCameraVisible,
-          },
-          {
-            name: 'Agentes',
-            icon: <UsersRound />,
-            isVisible: isAgentsVisible,
-            setIsVisible: setIsAgentsVisible,
-          },
-          {
-            name: 'Policiamento (Waze)',
-            icon: <Siren />,
-            isVisible: isWazeVisible,
-            setIsVisible: setIsWazeVisible,
-          },
-          {
-            name: 'Fogo Cruzado',
-            icon: <FlameKindling />,
-            isVisible: isFogoCruzadoVisible,
-            setIsVisible: setIsFogoCruzadoVisible,
-          },
-          {
-            name: 'Satélite',
-            icon: <Satellite />,
-            isVisible: mapStyle === MapStyle.Satellite,
-            setIsVisible: (satellite) => {
-              setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
-            },
-          },
-        ]}
+      <SelectionCards />
+      <HoverCards />
+      <MapLayerControl />
+      <ContextMenu
+        open={openContextMenu}
+        onOpenChange={setOpenContextMenu}
+        pickingInfo={contextMenuPickingInfo}
       />
     </div>
   )
