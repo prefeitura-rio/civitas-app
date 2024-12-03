@@ -2,10 +2,9 @@
 
 import '@/utils/date-extensions'
 
-import { useQuery } from '@tanstack/react-query'
-import { formatDate } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
+import { toast } from 'sonner'
 
 import {
   Card,
@@ -23,64 +22,39 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
-import { useReportFilterOptions } from '@/hooks/use-queries/use-report-filter-options'
-import { getTimelineReports } from '@/http/reports/dashboard/get-timeline'
+import { useReportFilterOptions } from '@/hooks/use-queries/reports/use-report-filter-options'
+import { useReportsTimeline } from '@/hooks/use-queries/reports/use-reports-timeline'
 import { cn } from '@/lib/utils'
+
+import { type ChartData, getChartData } from './actions'
 
 interface TotalReportsTimeHistoryAreaChartProps {
   className?: string
 }
 
-interface ChartData {
-  date: string
-  [sourceId: string]: number | string
-}
-
 export function TotalReportsTimeHistoryAreaChart({
   className,
 }: TotalReportsTimeHistoryAreaChartProps) {
-  const { queryKey, formattedSearchParams } = useReportsSearchParams()
+  const { formattedSearchParams } = useReportsSearchParams()
   const [chartConfig, setChartConfig] = useState<ChartConfig>({})
+  const [chartData, setChartData] = useState<ChartData[]>([])
   const { sources } = useReportFilterOptions()
+  const { data: timelineData } = useReportsTimeline()
 
-  const { data } = useQuery({
-    queryKey: ['timeline', ...queryKey],
-    queryFn: () =>
-      getTimelineReports(formattedSearchParams).then((data) => {
-        const formattedData: { [key: string]: ChartData } = {}
-        const dateMap: { [key: string]: { [source: string]: number } } = {}
-        const from = new Date(formattedSearchParams.minDate || '')
-        const to = new Date(formattedSearchParams.maxDate || '')
-
-        // Build a map for quick lookup of existing data
-        data.forEach((entry) => {
-          const { date, source, count } = entry
-          if (!dateMap[date]) {
-            dateMap[date] = {}
-          }
-          dateMap[date][source] = count
-        })
-
-        // Iterate through each day in the date range
-        for (let date = new Date(from); date <= to; date = date.addDays(1)) {
-          const dateString = date.toISOString().split('T')[0] + 'T00:00:00' // Ensure date format matches
-
-          // Initialize the formatted entry for this date
-          const entry: ChartData = { date: formatDate(dateString, 'dd/MM/y') }
-
-          // For each source, check if we have data, if not add count = 0
-          sources?.forEach((source) => {
-            entry[source] = dateMap[dateString]?.[source] || 0
-          })
-
-          // Add to formatted data
-          formattedData[dateString] = entry
-        }
-
-        // Convert the formattedData object into an array of objects
-        return Object.values(formattedData)
-      }),
-  })
+  useEffect(() => {
+    if (sources && timelineData) {
+      if (!formattedSearchParams.minDate || !formattedSearchParams.maxDate) {
+        toast.error('Parâmetros de data inválidos')
+        return
+      }
+      getChartData({
+        timelineData,
+        sources,
+        start: formattedSearchParams.minDate,
+        end: formattedSearchParams.maxDate,
+      }).then((data) => setChartData(data))
+    }
+  }, [sources, timelineData])
 
   useEffect(() => {
     if (sources) {
@@ -115,9 +89,9 @@ export function TotalReportsTimeHistoryAreaChart({
           config={chartConfig}
           className="aspect-auto h-full w-full"
         >
-          <AreaChart data={data}>
+          <AreaChart data={chartData}>
             <CartesianGrid vertical={false} />
-            <defs>
+            {/* <defs>
               {sources?.map((item, index) => (
                 <linearGradient
                   key={index}
@@ -139,7 +113,7 @@ export function TotalReportsTimeHistoryAreaChart({
                   />
                 </linearGradient>
               ))}
-            </defs>
+            </defs> */}
             <XAxis
               dataKey={'date'}
               tickLine={false}
@@ -164,7 +138,7 @@ export function TotalReportsTimeHistoryAreaChart({
                 type="natural"
                 fill={`url(#fill${item})`}
                 stroke={`var(--color-${item})`}
-                stackId="a"
+                stackId={item}
               />
             ))}
             <ChartLegend content={<ChartLegendContent />} />

@@ -1,3 +1,5 @@
+'use client'
+
 /* eslint-disable @next/next/no-img-element */
 import '@/utils/string-extensions'
 
@@ -63,9 +65,13 @@ export function CameraSelectCard({
               className="absolute bottom-1 right-1 h-6 p-1"
             >
               <Link
-                href={selectedObject?.streamingUrl || ''}
+                href={'https://app.tixxi.rio/outvideo/?CODE=004837&KEY=C2406'}
                 className="text-xs text-muted-foreground"
                 target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  window.open(selectedObject?.streamingUrl, '_blank')
+                }}
               >
                 <Fullscreen className="h-4 w-4 text-primary" />
               </Link>

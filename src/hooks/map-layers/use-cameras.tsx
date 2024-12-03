@@ -72,14 +72,6 @@ export function useCameraCOR(): UseCameraCOR {
       } else return 'default'
     },
     getPosition: (info) => [info.longitude, info.latitude],
-    // onHover: (info) => {
-    //   if (!isHoveringInfoCard) {
-    //     setHoveredObject(info.object ? info : null)
-    //   }
-    // },
-    // onClick: (info) => {
-    //   setSelectedObject(info.object)
-    // },
   })
 
   return {

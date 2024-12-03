@@ -19,26 +19,17 @@ export function MultiselectCheckbox({
   isLoading,
 }: MultiselectCheckboxProps) {
   const [open, setOpen] = useState(false)
-  const [options, setOptions] = useState(
-    defaultOptions.reduce(
+  const [options, setOptions] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    const opts = defaultOptions.reduce(
       (acc, cur) => {
         acc[cur] = value.some((item) => item === cur)
         return acc
       },
       {} as Record<string, boolean>,
-    ),
-  )
-
-  useEffect(() => {
-    setOptions(
-      defaultOptions.reduce(
-        (acc, cur) => {
-          acc[cur] = value.some((item) => item === cur)
-          return acc
-        },
-        {} as Record<string, boolean>,
-      ),
     )
+    setOptions(opts)
   }, [defaultOptions])
 
   return (
