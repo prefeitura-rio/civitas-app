@@ -25,25 +25,6 @@ import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-pa
 import { getTimelineReports } from '@/http/reports/dashboard/get-timeline'
 import { cn } from '@/lib/utils'
 
-// const chartData = [
-//   { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
-//   { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
-// ]
-
-const chartConfig = {
-  ocorrencias: {
-    label: 'Ocorrencias',
-  },
-  DD: {
-    label: 'DD',
-    color: 'hsl(var(--chart-1))',
-  },
-  appRio: {
-    label: '1746',
-    color: 'hsl(var(--chart-2))',
-  },
-} satisfies ChartConfig
-
 interface TotalReportsByOriginPieChartProps {
   className?: string
 }
@@ -54,40 +35,44 @@ export function TotalReportsByOriginPieChart({
   const { queryKey, formattedSearchParams } = useReportsSearchParams()
   const { data } = useQuery({
     queryKey: ['pie', ...queryKey],
-    queryFn: () =>
-      getTimelineReports(formattedSearchParams).then((data) => {
-        const count = data.reduce(
-          (acc, cur) => {
-            if (cur.source === 'DD') {
-              return {
-                ...acc,
-                DD: acc.DD + cur.count,
-              }
-            }
-            if (cur.source === '1746') {
-              return {
-                ...acc,
-                appRio: acc.appRio + cur.count,
-              }
-            }
-            return acc
-          },
-          {
-            DD: 0,
-            appRio: 0,
-          },
-        )
+    queryFn: async () => {
+      const reports = await getTimelineReports(formattedSearchParams)
 
-        const chartData = [
-          { source: 'DD', count: count.DD, fill: 'var(--color-DD)' },
-          {
-            source: 'appRio',
-            count: count.appRio,
-            fill: 'var(--color-appRio)',
-          },
-        ]
-        return { count, chartData }
-      }),
+      console.log({ reports })
+
+      const count = reports.reduce(
+        (acc, cur) => {
+          return {
+            ...acc,
+            [cur.source]: acc[cur.source] ? acc[cur.source] + cur.count : 1,
+          }
+        },
+        {} as Record<string, number>,
+      )
+
+      const chartData = Object.entries(count).map(([source, count]) => ({
+        source,
+        count,
+        fill: `var(--color-${source})`,
+      }))
+
+      const chartConfig = {
+        ocorrencias: {
+          label: 'Ocorrencias',
+        },
+      } as ChartConfig
+
+      chartData.forEach((item, index) => {
+        chartConfig[item.source] = {
+          label: item.source,
+          color: `hsl(var(--chart-${index + 1}))`,
+        }
+      })
+
+      console.log({ count, chartData, chartConfig })
+
+      return { count, chartData, chartConfig }
+    },
   })
 
   return (
@@ -102,7 +87,7 @@ export function TotalReportsByOriginPieChart({
       <CardContent className="h-[calc(100%-7.75rem)] p-0">
         {data && (
           <ChartContainer
-            config={chartConfig}
+            config={data.chartConfig}
             className="mx-auto aspect-square h-full [&_.recharts-pie-label-text]:fill-foreground"
           >
             <PieChart>
@@ -134,9 +119,9 @@ export function TotalReportsByOriginPieChart({
                             y={viewBox.cy}
                             className="fill-foreground text-3xl font-bold"
                           >
-                            {(
-                              data.count.DD + data.count.appRio
-                            ).toLocaleString()}
+                            {data.chartData
+                              .reduce((acc, cur) => acc + cur.count, 0)
+                              .toLocaleString()}
                           </tspan>
                           <tspan
                             x={viewBox.cx}
