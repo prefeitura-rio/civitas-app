@@ -25,8 +25,8 @@ export function ContextMenu({
   onOpenChange,
   open,
 }: ContextMenuProps) {
-  if (!pickingInfo || !pickingInfo.object) return null
   const [cardRef, setCardRef] = useState<HTMLDivElement | null>(null)
+  if (!pickingInfo || !pickingInfo.object) return null
 
   const { top, left } = calculateTooltipAbsolutePosition(
     pickingInfo,

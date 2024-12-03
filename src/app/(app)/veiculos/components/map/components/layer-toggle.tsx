@@ -105,13 +105,19 @@ export function MapLayerControl() {
       name: 'AISP',
       icon: <Shield />,
       isVisible: isAISPVisible,
-      setIsVisible: setIsAISPVisible,
+      setIsVisible: (isVisible) => {
+        setIsAISPVisible(isVisible)
+        if (isVisible) setIsCISPVisible(false)
+      },
     },
     {
       name: 'CISP',
       icon: <Shield />,
       isVisible: isCISPVisible,
-      setIsVisible: setIsCISPVisible,
+      setIsVisible: (isVisible) => {
+        setIsCISPVisible(isVisible)
+        if (isVisible) setIsAISPVisible(false)
+      },
     },
     {
       name: 'Escolas Municipais',
@@ -173,15 +179,7 @@ export function MapLayerControl() {
                         <Toggle
                           key={index}
                           pressed={layer.isVisible}
-                          onPressedChange={(e) => {
-                            layer.setIsVisible(e)
-                            if (layer.name === 'AISP') {
-                              setIsCISPVisible(false)
-                            }
-                            if (layer.name === 'CISP') {
-                              setIsAISPVisible(false)
-                            }
-                          }}
+                          onPressedChange={layer.setIsVisible}
                           className="flex size-20 shrink-0 flex-col items-center justify-center data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                           aria-label={`Toggle ${layer.name} layer`}
                         >

@@ -1,15 +1,12 @@
 'use client'
 
-// import { TrendingUp } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import * as React from 'react'
+import { useEffect, useState } from 'react'
 import { Label, Pie, PieChart } from 'recharts'
 
 import {
   Card,
   CardContent,
   CardDescription,
-  // CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -21,29 +18,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
-import { getTimelineReports } from '@/http/reports/dashboard/get-timeline'
+import { useReportsTimeline } from '@/hooks/use-queries/reports/use-reports-timeline'
 import { cn } from '@/lib/utils'
 
-// const chartData = [
-//   { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
-//   { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
-// ]
-
-const chartConfig = {
-  ocorrencias: {
-    label: 'Ocorrencias',
-  },
-  DD: {
-    label: 'DD',
-    color: 'hsl(var(--chart-1))',
-  },
-  appRio: {
-    label: '1746',
-    color: 'hsl(var(--chart-2))',
-  },
-} satisfies ChartConfig
-
+type ChartData = {
+  source: string
+  count: number
+  fill: string
+}
 interface TotalReportsByOriginPieChartProps {
   className?: string
 }
@@ -51,44 +33,53 @@ interface TotalReportsByOriginPieChartProps {
 export function TotalReportsByOriginPieChart({
   className,
 }: TotalReportsByOriginPieChartProps) {
-  const { queryKey, formattedSearchParams } = useReportsSearchParams()
-  const { data } = useQuery({
-    queryKey: ['pie', ...queryKey],
-    queryFn: () =>
-      getTimelineReports(formattedSearchParams).then((data) => {
-        const count = data.reduce(
+  const [chartData, setChartData] = useState<ChartData[] | undefined>()
+  const [chartConfig, setChartConfig] = useState<ChartConfig | undefined>()
+  const { data: timelineData } = useReportsTimeline()
+
+  useEffect(() => {
+    async function initData() {
+      if (timelineData) {
+        const count = timelineData.reduce(
           (acc, cur) => {
-            if (cur.source === 'DD') {
-              return {
-                ...acc,
-                DD: acc.DD + cur.count,
-              }
+            return {
+              ...acc,
+              [cur.source]: acc[cur.source] ? acc[cur.source] + cur.count : 1,
             }
-            if (cur.source === '1746') {
-              return {
-                ...acc,
-                appRio: acc.appRio + cur.count,
-              }
-            }
-            return acc
           },
-          {
-            DD: 0,
-            appRio: 0,
-          },
+          {} as Record<string, number>,
         )
 
-        const chartData = [
-          { source: 'DD', count: count.DD, fill: 'var(--color-DD)' },
-          {
-            source: 'appRio',
-            count: count.appRio,
-            fill: 'var(--color-appRio)',
+        const data: ChartData[] = Object.entries(count).map(
+          ([source, count]) => ({
+            source,
+            count,
+            fill: `var(--color-${source})`,
+          }),
+        )
+
+        const config = {
+          ocorrencias: {
+            label: 'Ocorrencias',
           },
-        ]
-        return { count, chartData }
-      }),
-  })
+        } as ChartConfig
+
+        data?.forEach((item, index) => {
+          config[item.source] = {
+            label: item.source,
+            color: `hsl(var(--chart-${index + 1}))`,
+          }
+        })
+
+        setChartData(data)
+        setChartConfig(config)
+      }
+    }
+
+    initData()
+  }, [timelineData])
+
+  const total = chartData?.reduce((acc, cur) => acc + cur.count, 0) || 0
 
   return (
     <Card className={cn(className, 'flex flex-col')}>
@@ -100,7 +91,7 @@ export function TotalReportsByOriginPieChart({
         </CardDescription>
       </CardHeader>
       <CardContent className="h-[calc(100%-7.75rem)] p-0">
-        {data && (
+        {chartConfig && chartData && (
           <ChartContainer
             config={chartConfig}
             className="mx-auto aspect-square h-full [&_.recharts-pie-label-text]:fill-foreground"
@@ -111,7 +102,7 @@ export function TotalReportsByOriginPieChart({
                 content={<ChartTooltipContent hideLabel />}
               />
               <Pie
-                data={data.chartData}
+                data={chartData}
                 dataKey="count"
                 nameKey="source"
                 innerRadius={50}
@@ -132,11 +123,14 @@ export function TotalReportsByOriginPieChart({
                           <tspan
                             x={viewBox.cx}
                             y={viewBox.cy}
-                            className="fill-foreground text-3xl font-bold"
+                            className={cn(
+                              'fill-foreground font-bold',
+                              total >= 10000 ? 'text-2xl' : 'text-3xl',
+                            )}
                           >
-                            {(
-                              data.count.DD + data.count.appRio
-                            ).toLocaleString()}
+                            {chartData
+                              .reduce((acc, cur) => acc + cur.count, 0)
+                              .toLocaleString()}
                           </tspan>
                           <tspan
                             x={viewBox.cx}

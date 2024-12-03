@@ -6,7 +6,7 @@ export default async function Page() {
 
   return (
     <iframe
-      src={`https://super-app-blond-eight.vercel.app/vision-ai?token=${token}`}
+      src={`https://app.dados.rio/vision-ai?token=${token}`}
       className="h-screen w-full"
       title="Vision AI"
     />
