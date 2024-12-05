@@ -65,6 +65,7 @@ export function MonitoredPlateFormDialog({
     defaultValues: {
       active: true,
       notes: '',
+      contactInfo: '',
       operation: {
         id: '',
         title: '',
@@ -157,6 +158,7 @@ export function MonitoredPlateFormDialog({
       await updateMonitoredPlateMutation({
         plate: props.plate,
         active: props.active,
+        contactInfo: props.contactInfo,
         notes: props.notes,
         operationId: props.operation.id,
         notificationChannels,
@@ -167,6 +169,7 @@ export function MonitoredPlateFormDialog({
         plate: props.plate,
         active: true,
         operationId: props.operation.id,
+        contactInfo: props.contactInfo,
         notes: props.notes,
         notificationChannels,
         // additionalInfo: props.additionalInfo,
@@ -187,6 +190,7 @@ export function MonitoredPlateFormDialog({
       setValue('active', monitoredPlate.active)
       setValue('additionalInfo', monitoredPlate.additionalInfo)
       setValue('notes', monitoredPlate.notes)
+      setValue('contactInfo', monitoredPlate.contactInfo || '')
       setValue('operation.id', monitoredPlate.operation.id || '')
       setValue('operation.title', monitoredPlate.operation.title || '')
       if (monitoredPlate.notificationChannels.length > 0) {
@@ -248,6 +252,18 @@ export function MonitoredPlateFormDialog({
               type="text"
               onChange={(e) => setValue('plate', e.target.value.toUpperCase())}
               disabled={isLoading || !!initialData}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label htmlFor="contactInfo">Contatos</Label>
+              <InputError message={errors.contactInfo?.message} />
+            </div>
+            <Textarea
+              id="contactInfo"
+              {...register('contactInfo')}
+              disabled={isLoading}
             />
           </div>
 

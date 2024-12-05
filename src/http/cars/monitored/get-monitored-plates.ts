@@ -45,6 +45,7 @@ export async function getMonitoredPlates({
   const items = originalResponse.data.items.map((item) => {
     return {
       ...item,
+      contactInfo: item.contact_info,
       additionalInfo: item.additional_info,
       notificationChannels: item.notification_channels,
       createdAt: item.created_at,

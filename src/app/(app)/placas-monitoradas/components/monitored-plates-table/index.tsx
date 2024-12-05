@@ -58,6 +58,10 @@ export function MonitoredPlatesTable() {
       header: 'Placa',
     },
     {
+      accessorKey: 'contactInfo',
+      header: 'Contatos',
+    },
+    {
       accessorKey: 'notes',
       header: 'Observações',
     },

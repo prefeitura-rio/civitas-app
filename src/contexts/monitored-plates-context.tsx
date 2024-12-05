@@ -44,6 +44,7 @@ export const monitoredPlateFormSchema = z.object({
   }),
   active: z.boolean().default(true),
   notes: z.string(),
+  contactInfo: z.string(),
   additionalInfo: z.unknown(),
   notificationChannels: z
     .object({
