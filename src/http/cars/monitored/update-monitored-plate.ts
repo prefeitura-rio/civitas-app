@@ -13,6 +13,7 @@ interface UpdateMonitoredPlateRequest
 export function updateMonitoredPlate({
   plate,
   operationId,
+  contactInfo,
   notes,
   active,
   additionalInfo,
@@ -22,6 +23,7 @@ export function updateMonitoredPlate({
     plate,
     operation_id: operationId,
     active,
+    contact_info: contactInfo,
     notes,
     additional_info: additionalInfo,
     notification_channels: notificationChannels,
