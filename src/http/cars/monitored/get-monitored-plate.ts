@@ -14,6 +14,7 @@ export async function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
     id: response.data.id,
     plate: response.data.plate,
     active: response.data.active,
+    contactInfo: response.data.contact_info,
     notes: response.data.notes,
     operation: {
       id: response.data.operation.id,
