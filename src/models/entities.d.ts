@@ -46,6 +46,7 @@ export type MonitoredPlate = {
   id: string
   plate: string
   operation: Operation
+  contactInfo: string | null
   notes: string
   active: boolean
   additionalInfo: JSON
@@ -58,6 +59,7 @@ export type BackendMonitoredPlate = {
   id: string
   plate: string
   operation: Operation
+  contact_info: string | null
   notes: string
   active: boolean
   additional_info: JSON
