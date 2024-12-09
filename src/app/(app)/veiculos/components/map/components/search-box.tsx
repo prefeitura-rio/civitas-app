@@ -36,7 +36,7 @@ export function SearchBox({
   placeHolder = 'Pesquise um endereço',
 }: SearchBoxProps) {
   const [suggestions, setSuggestions] = useState<Feature[]>([])
-  const [openSuggestions, setOpenSuggestions] = useState(true)
+  const [openSuggestions, setOpenSuggestions] = useState(false)
 
   const { watch, handleSubmit, register, reset, setValue } =
     useForm<SearchForm>({
