@@ -8,7 +8,11 @@
     "build": "next lint --fix && next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": "next lint --fix -- ./"
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.0.20",
@@ -95,6 +99,8 @@
     "eslint-config-next": "^14.2.11",
     "eslint-plugin-react": "^7.36.1",
     "eslint-plugin-simple-import-sort": "^12.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.6",
