@@ -41,9 +41,9 @@ export function DeleteOperationAlertDialog({
       if (onDeleteOperationProps) {
         const response = deleteOperationMutation(onDeleteOperationProps.id)
         toast.promise(response, {
-          loading: `Excluindo operação ${onDeleteOperationProps?.title}...`,
+          loading: `Excluindo demandante ${onDeleteOperationProps?.title}...`,
           success: (data) => {
-            return `Operação ${data.data.title} excluída com sucesso!`
+            return `Demandante ${data.data.title} excluído com sucesso!`
           },
           error: genericErrorMessage,
         })

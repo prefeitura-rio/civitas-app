@@ -47,9 +47,9 @@ export function DeleteMonitoredPlateAlertDialog({
           onDeleteMonitoredPlateProps.plate,
         )
         toast.promise(response, {
-          loading: `Excluindo operação ${onDeleteMonitoredPlateProps?.plate}...`,
+          loading: `Excluindo placa ${onDeleteMonitoredPlateProps?.plate}...`,
           success: (data) => {
-            return `Operação ${data.data.plate} excluída com sucesso!`
+            return `Placa ${data.data.plate} excluída com sucesso!`
           },
           error: genericErrorMessage,
         })

@@ -48,10 +48,10 @@ const cards = [
       'Cadastre uma placa e receba uma notificação quando ela for detectada.',
   },
   {
-    title: 'Operações',
-    href: '/operacoes',
+    title: 'Demandantes',
+    href: '/demandantes',
     description:
-      'Cadastre uma operação para ser vinculada a uma placa monitorada.',
+      'Cadastre um demandante para ser vinculado a uma placa monitorada.',
   },
 ]
 

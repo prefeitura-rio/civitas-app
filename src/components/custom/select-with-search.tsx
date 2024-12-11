@@ -1,7 +1,7 @@
 'use client'
 
 import { CheckIcon, ChevronsUpDown } from 'lucide-react'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -26,6 +26,8 @@ interface SelectWithSearchProps {
   onSelect: (item: ComboboxOption) => void
   placeholder: string
   disabled?: boolean
+  emptyIndicator?: ReactNode
+  topAction?: ReactNode
 }
 
 export function SelectWithSearch({
@@ -34,6 +36,8 @@ export function SelectWithSearch({
   onSelect,
   placeholder,
   disabled = false,
+  emptyIndicator,
+  topAction,
 }: SelectWithSearchProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -58,9 +62,16 @@ export function SelectWithSearch({
       <PopoverContent className="w-[29rem] p-0">
         <Command>
           <CommandInput placeholder="Pesquise" className="h-9" />
-          <CommandEmpty>{}</CommandEmpty>
+          <CommandEmpty className="flex justify-center p-2">
+            {emptyIndicator || (
+              <span className="text-muted-foreground">
+                Nenhum resultado encontrado
+              </span>
+            )}
+          </CommandEmpty>
           <CommandGroup>
             <CommandList>
+              {topAction}
               {options.map((item) => (
                 <CommandItem
                   value={item.label}

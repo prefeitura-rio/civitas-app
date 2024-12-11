@@ -1,21 +1,17 @@
 'use client'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
-import { useState } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
-import { Switch } from '@/components/ui/switch'
 import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
 import { useMonitoredPlatesSearchParams } from '@/hooks/use-params/use-monitored-plates-search-params'
 import { useProfile } from '@/hooks/use-queries/use-profile'
 import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
-import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
-import { queryClient } from '@/lib/react-query'
 import type { MonitoredPlate } from '@/models/entities'
 import { notAllowed } from '@/utils/template-messages'
 
@@ -28,7 +24,7 @@ export function MonitoredPlatesTable() {
     setOnDeleteMonitoredPlateProps,
     deleteAlertDisclosure,
   } = useMonitoredPlates()
-  const [plate, setPlate] = useState<string>()
+  // const [plate, setPlate] = useState<string>()
   const { data: profile, isLoading: isProfileLoading } = useProfile()
 
   const { data: MonitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
@@ -40,15 +36,15 @@ export function MonitoredPlatesTable() {
         }),
     })
 
-  const {
-    mutateAsync: updateMonitoredPlateMutation,
-    isPending: IsUpdatingLoading,
-  } = useMutation({
-    mutationFn: updateMonitoredPlate,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
-    },
-  })
+  // const {
+  //   mutateAsync: updateMonitoredPlateMutation,
+  //   isPending: IsUpdatingLoading,
+  // } = useMutation({
+  //   mutationFn: updateMonitoredPlate,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
+  //   },
+  // })
 
   const data = MonitoredPlatesResponse?.data
 
@@ -67,7 +63,7 @@ export function MonitoredPlatesTable() {
     },
     {
       accessorKey: 'operation.title',
-      header: 'Operação',
+      header: 'Demandante',
     },
     {
       accessorKey: 'notificationChannels',
@@ -94,45 +90,45 @@ export function MonitoredPlatesTable() {
       header: 'Última atualização',
       cell: ({ row }) => formatDate(row.original.updatedAt, 'dd/MM/yyyy HH:mm'),
     },
-    {
-      accessorKey: 'active',
-      header: 'Status',
-      cell: ({ row }) => {
-        return (
-          <Tooltip
-            text={row.original.active ? 'Ativo' : 'Inativo'}
-            disabled={
-              (IsUpdatingLoading && plate === row.original.plate) ||
-              !profile ||
-              !profile?.is_admin
-            }
-            disabledText={notAllowed}
-            asChild
-          >
-            <div>
-              <Switch
-                id="active"
-                size="sm"
-                checked={row.original.active}
-                disabled={
-                  (IsUpdatingLoading && plate === row.original.plate) ||
-                  !profile ||
-                  !profile?.is_admin
-                }
-                className="disabled:cursor-default"
-                onCheckedChange={() => {
-                  setPlate(row.original.plate)
-                  updateMonitoredPlateMutation({
-                    plate: row.original.plate,
-                    active: !row.original.active,
-                  })
-                }}
-              />
-            </div>
-          </Tooltip>
-        )
-      },
-    },
+    // {
+    //   accessorKey: 'active',
+    //   header: 'Status',
+    //   cell: ({ row }) => {
+    //     return (
+    //       <Tooltip
+    //         text={row.original.active ? 'Ativo' : 'Inativo'}
+    //         disabled={
+    //           (IsUpdatingLoading && plate === row.original.plate) ||
+    //           !profile ||
+    //           !profile?.is_admin
+    //         }
+    //         disabledText={notAllowed}
+    //         asChild
+    //       >
+    //         <div>
+    //           <Switch
+    //             id="active"
+    //             size="sm"
+    //             checked={row.original.active}
+    //             disabled={
+    //               (IsUpdatingLoading && plate === row.original.plate) ||
+    //               !profile ||
+    //               !profile?.is_admin
+    //             }
+    //             className="disabled:cursor-default"
+    //             onCheckedChange={() => {
+    //               setPlate(row.original.plate)
+    //               updateMonitoredPlateMutation({
+    //                 plate: row.original.plate,
+    //                 active: !row.original.active,
+    //               })
+    //             }}
+    //           />
+    //         </div>
+    //       </Tooltip>
+    //     )
+    //   },
+    // },
     {
       id: 'actions',
       header: () => (
@@ -166,9 +162,8 @@ export function MonitoredPlatesTable() {
             <Tooltip
               text={'Excluir'}
               disabled={
-                (IsUpdatingLoading && plate === row.original.plate) ||
-                !profile ||
-                !profile?.is_admin
+                // (IsUpdatingLoading && plate === row.original.plate) ||
+                !profile || !profile?.is_admin
               }
               disabledText={notAllowed}
               asChild
@@ -184,9 +179,8 @@ export function MonitoredPlatesTable() {
                   deleteAlertDisclosure.onOpen()
                 }}
                 disabled={
-                  (IsUpdatingLoading && plate === row.original.plate) ||
-                  !profile ||
-                  !profile?.is_admin
+                  // (IsUpdatingLoading && plate === row.original.plate) ||
+                  !profile || !profile?.is_admin
                 }
               >
                 <span className="sr-only">Excluir linha</span>
