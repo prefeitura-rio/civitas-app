@@ -56,9 +56,9 @@ export const sidebarItems: SideBarItem[] = [
         path: '/placas-monitoradas',
       },
       {
-        icon: 'TrafficCone',
-        title: 'Cadastro de Operações',
-        path: '/operacoes',
+        icon: 'Users',
+        title: 'Cadastro de Demandantes',
+        path: '/demandantes',
       },
       {
         icon: 'ScanEye',

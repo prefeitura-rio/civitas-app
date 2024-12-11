@@ -75,7 +75,7 @@ export function OperationsTable() {
               </Button>
             </Tooltip>
             <Tooltip
-              text="Editar"
+              text="Excluir"
               disabledText={notAllowed}
               disabled={!profile || !profile.is_admin}
               asChild

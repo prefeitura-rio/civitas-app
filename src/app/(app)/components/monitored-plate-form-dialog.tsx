@@ -19,13 +19,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import {
   type MonitoredPlateForm,
   monitoredPlateFormSchema,
 } from '@/contexts/monitored-plates-context'
 import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
+import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
@@ -33,6 +33,8 @@ import { getNotificationChannels } from '@/http/notification-channels/get-notifi
 import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
+
+import { OperationFormDialog } from '../demandantes/components/operation-dialogs/components/operation-form-dialog'
 
 interface MonitoredPlateDialogProps {
   isOpen: boolean
@@ -48,6 +50,8 @@ export function MonitoredPlateFormDialog({
   shouldFetchData = true,
 }: MonitoredPlateDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const { formDialogDisclosure } = useOperations()
+
   const {
     dialogInitialData: initialData,
     setDialogInitialData: setInitialData,
@@ -226,143 +230,169 @@ export function MonitoredPlateFormDialog({
   }, [isSubmitting, isPendingCreate, isPendingUpdate, isLoadingMonitoredPlate])
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {initialData && shouldFetchData
-              ? 'Atualizar placa monitorada'
-              : 'Monitorar nova placa'}
-          </DialogTitle>
-          <DialogDescription>
-            {initialData && shouldFetchData
-              ? 'Gerencie o monitoramento dessa placa.'
-              : 'Cadastre uma nova placa a ser monitorada.'}
-          </DialogDescription>
-        </DialogHeader>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-          <div className="flex flex-col gap-1">
-            <div className="flex gap-2">
-              <Label htmlFor="plate">Placa</Label>
-              <InputError message={errors.plate?.message} />
+    <>
+      <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {initialData && shouldFetchData
+                ? 'Atualizar placa monitorada'
+                : 'Monitorar nova placa'}
+            </DialogTitle>
+            <DialogDescription>
+              {initialData && shouldFetchData
+                ? 'Gerencie o monitoramento dessa placa.'
+                : 'Cadastre uma nova placa a ser monitorada.'}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label htmlFor="plate">Placa</Label>
+                <InputError message={errors.plate?.message} />
+              </div>
+              <Input
+                id="plate"
+                {...register('plate')}
+                type="text"
+                onChange={(e) =>
+                  setValue('plate', e.target.value.toUpperCase())
+                }
+                disabled={isLoading || !!initialData}
+              />
             </div>
-            <Input
-              id="plate"
-              {...register('plate')}
-              type="text"
-              onChange={(e) => setValue('plate', e.target.value.toUpperCase())}
-              disabled={isLoading || !!initialData}
-            />
-          </div>
 
-          <div className="flex flex-col gap-1">
-            <div className="flex gap-2">
-              <Label htmlFor="contactInfo">Contatos</Label>
-              <InputError message={errors.contactInfo?.message} />
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label htmlFor="contactInfo">Contatos</Label>
+                <InputError message={errors.contactInfo?.message} />
+              </div>
+              <Textarea
+                id="contactInfo"
+                {...register('contactInfo')}
+                disabled={isLoading}
+              />
             </div>
-            <Textarea
-              id="contactInfo"
-              {...register('contactInfo')}
-              disabled={isLoading}
-            />
-          </div>
 
-          <div className="flex flex-col gap-1">
-            <div className="flex gap-2">
-              <Label htmlFor="notes">Observações</Label>
-              <InputError message={errors.notes?.message} />
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label htmlFor="notes">Observações</Label>
+                <InputError message={errors.notes?.message} />
+              </div>
+              <Textarea
+                id="notes"
+                {...register('notes')}
+                disabled={isLoading}
+              />
             </div>
-            <Textarea id="notes" {...register('notes')} disabled={isLoading} />
-          </div>
 
-          <div className="flex flex-col gap-1">
-            <div className="flex gap-2">
-              <Label>Operação</Label>
-              <InputError message={errors.operation?.title?.message} />
-            </div>
-            <Controller
-              control={control}
-              name="operation.title"
-              render={({ field }) => (
-                <SelectWithSearch
-                  onSelect={(item) => {
-                    setValue('operation.title', item.label)
-                    setValue('operation.id', item.value)
-                  }}
-                  options={operations.map((item) => {
-                    return {
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label>Demandante</Label>
+                <InputError message={errors.operation?.title?.message} />
+              </div>
+              <Controller
+                control={control}
+                name="operation.title"
+                render={({ field }) => (
+                  <SelectWithSearch
+                    onSelect={(item) => {
+                      setValue('operation.title', item.label)
+                      setValue('operation.id', item.value)
+                    }}
+                    options={operations.map((item) => ({
                       label: item.title,
                       value: item.id,
+                    }))}
+                    disabled={isLoading}
+                    value={field.value}
+                    placeholder="Selecione uma operação"
+                    topAction={
+                      <div className="flex justify-center p-2">
+                        <Button
+                          variant="link"
+                          className="h-auto p-0"
+                          onClick={() => formDialogDisclosure.onOpen()}
+                        >
+                          Criar novo demandante
+                        </Button>
+                      </div>
                     }
-                  })}
-                  disabled={isLoading}
-                  value={field.value}
-                  placeholder="Selecione uma operação"
-                  // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
-                />
-              )}
-            />
-          </div>
 
-          <div className="flex flex-col gap-1">
-            <div className="flex gap-2">
-              <Label>Canal de notificação</Label>
-              <InputError message={errors.notificationChannels?.message} />
-            </div>
-            <Controller
-              control={control}
-              name="notificationChannels"
-              render={({ field }) => (
-                <MultipleSelector
-                  {...field}
-                  defaultOptions={(
-                    NotificationChannelResponse?.data.items || []
-                  ).map((item) => {
-                    return {
-                      label: item.title,
-                      value: item.id,
-                    }
-                  })}
-                  disabled={isLoading}
-                  placeholder="Selecione um canal"
-                  emptyIndicator={<p>Nenhum resultado encontrado.</p>}
-                />
-              )}
-            />
-          </div>
-
-          <Controller
-            control={control}
-            name="active"
-            render={({ field }) => {
-              return (
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="mapStyle"
-                    size="sm"
-                    checked={field.value}
-                    onCheckedChange={(checked) => setValue('active', checked)}
+                    // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
                   />
-                  {/* <span>Status: </span> */}
-                  <span>{field.value ? 'Ativo' : 'Inativo'}</span>
-                </div>
-              )
-            }}
-          />
+                )}
+              />
+            </div>
 
-          <div className="mt-4 flex w-full justify-end">
-            <Button type="submit" disabled={isLoading}>
-              {isPendingCreate || isPendingUpdate ? (
-                <Spinner />
-              ) : (
-                <span>
-                  {initialData && shouldFetchData ? 'Atualizar' : 'Adicionar'}
-                </span>
-              )}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label>Canal de notificação</Label>
+                <InputError message={errors.notificationChannels?.message} />
+              </div>
+              <Controller
+                control={control}
+                name="notificationChannels"
+                render={({ field }) => (
+                  <MultipleSelector
+                    {...field}
+                    defaultOptions={(
+                      NotificationChannelResponse?.data.items || []
+                    ).map((item) => {
+                      return {
+                        label: item.title,
+                        value: item.id,
+                      }
+                    })}
+                    disabled={isLoading}
+                    placeholder="Selecione um canal"
+                    emptyIndicator={<p>Nenhum resultado encontrado.</p>}
+                  />
+                )}
+              />
+            </div>
+
+            {/* <Controller
+              control={control}
+              name="active"
+              render={({ field }) => {
+                return (
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="mapStyle"
+                      size="sm"
+                      checked={field.value}
+                      onCheckedChange={(checked) => setValue('active', checked)}
+                    />
+                    <span>{field.value ? 'Ativo' : 'Inativo'}</span>
+                  </div>
+                )
+              }}
+            /> */}
+
+            <div className="mt-4 flex w-full justify-end">
+              <Button type="submit" disabled={isLoading}>
+                {isPendingCreate || isPendingUpdate ? (
+                  <Spinner />
+                ) : (
+                  <span>
+                    {initialData && shouldFetchData ? 'Atualizar' : 'Adicionar'}
+                  </span>
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <OperationFormDialog
+        isOpen={formDialogDisclosure.isOpen}
+        onClose={formDialogDisclosure.onClose}
+        onOpen={formDialogDisclosure.onOpen}
+      />
+    </>
   )
 }

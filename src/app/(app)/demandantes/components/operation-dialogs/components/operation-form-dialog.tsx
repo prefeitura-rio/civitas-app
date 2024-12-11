@@ -75,7 +75,7 @@ export function OperationFormDialog({
         queryClient.invalidateQueries({
           queryKey: ['operations'],
         })
-        toast.success(`Operação ${data.title} foi criada com sucesso.`)
+        toast.success(`Demandante ${data.title} criado com sucesso.`)
       },
       onError: () => {
         toast.error(genericErrorMessage)
@@ -138,7 +138,7 @@ export function OperationFormDialog({
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Criar Operação</DialogTitle>
+          <DialogTitle>Criar Demandante</DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-2" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
