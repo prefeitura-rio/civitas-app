@@ -11,7 +11,7 @@ export function OperationsHeader() {
 
   return (
     <div className="flex w-full justify-between">
-      <h2>Operações</h2>
+      <h2>Demandantes</h2>
       <Tooltip
         disabledText={notAllowed}
         disabled={!profile || !profile.is_admin}

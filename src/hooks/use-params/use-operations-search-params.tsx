@@ -24,7 +24,7 @@ export function useOperationsSearchParams(): UseOperationsSearchParamsReturn {
     z.coerce.number().parse(searchParams.get('size') ?? '10') || undefined
 
   function handlePaginate(index: number) {
-    router.replace(`operacoes?page=${index}`)
+    router.replace(`demandantes?page=${index}`)
   }
 
   return {
