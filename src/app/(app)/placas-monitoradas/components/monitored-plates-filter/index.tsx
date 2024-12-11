@@ -102,13 +102,13 @@ export function MonitoredPlatesFilter() {
           htmlFor="operationTitle"
           className="text-xs text-muted-foreground"
         >
-          Operação
+          Demandante
         </Label>
         <Input
           className="h-9 w-40"
           id="operationTitle"
           type="text"
-          // placeholder="Operação"
+          // placeholder="Demandante"
           {...register('operationTitle')}
         />
       </div>
