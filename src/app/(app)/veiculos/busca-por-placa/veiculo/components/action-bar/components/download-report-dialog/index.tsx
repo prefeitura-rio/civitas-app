@@ -1,3 +1,4 @@
+import { formatDate } from 'date-fns'
 import { Printer } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -17,10 +18,17 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useRadars } from '@/hooks/use-queries/use-radars'
+import { exportToCSV } from '@/utils/csv'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
+
+enum FileType {
+  'PDF' = 'PDF',
+  'CSV' = 'CSV',
+}
 
 export function DownloadReportDialog() {
   const {
@@ -28,6 +36,9 @@ export function DownloadReportDialog() {
       trips: { trips, isLoading: isLoadingTrips },
     },
   } = useMap()
+  const { formattedSearchParams } = useCarPathsSearchParams()
+  if (!formattedSearchParams)
+    throw new Error('formattedSearchParams is required')
   const { data: radars, isLoading: isLoadingRadars } = useRadars()
 
   const [open, setOpen] = useState(false)
@@ -38,6 +49,7 @@ export function DownloadReportDialog() {
   const [nPlates, setNPlates] = useState(10)
   const [showViagens, setShowViagens] = useState(false)
   const [showPlacasConjuntas, setShowPlacasConjuntas] = useState(false)
+  const [fileType, setFileType] = useState<FileType>(FileType.PDF)
 
   useEffect(() => {
     setFormType('viagens')
@@ -45,6 +57,7 @@ export function DownloadReportDialog() {
     setNPlates(10)
     setShowViagens(false)
     setShowPlacasConjuntas(false)
+    setFileType(FileType.PDF)
   }, [open])
 
   return (
@@ -94,6 +107,28 @@ export function DownloadReportDialog() {
                     />
                     <Label htmlFor="placas conjuntas">
                       Relatório de Placas Conjuntas
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <div className="flex gap-2">
+                <Label>Formato do arquivo:</Label>
+                <RadioGroup
+                  defaultValue={fileType}
+                  className="flex"
+                  value={fileType}
+                  onValueChange={(e) => setFileType(e as FileType)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value={FileType.PDF} id={FileType.PDF} />
+                    <Label htmlFor={FileType.PDF} className="cursor-pointer">
+                      PDF
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value={FileType.CSV} id={FileType.CSV} />
+                    <Label htmlFor={FileType.CSV} className="cursor-pointer">
+                      CSV
                     </Label>
                   </div>
                 </RadioGroup>
@@ -150,7 +185,40 @@ export function DownloadReportDialog() {
               <Button
                 onClick={() => {
                   if (formType === 'viagens') {
-                    setShowViagens(true)
+                    if (fileType === FileType.PDF) {
+                      setShowViagens(true)
+                    }
+                    if (fileType === FileType.CSV && trips) {
+                      console.log('lon: ', trips?.[0].points?.[0].from[0])
+                      console.log(
+                        'lat: ',
+                        trips?.[0].points?.[0].from[0]
+                          .toString()
+                          .replace('.', ','),
+                      )
+                      exportToCSV(
+                        `pontos_de_deteccao_${formattedSearchParams.plate}`,
+                        trips.flatMap((t, i) =>
+                          t.points.map((p, j) => ({
+                            'Índice Viagem': i + 1,
+                            'Índice Detecção': j + 1,
+                            'Data Hora': formatDate(
+                              p.startTime,
+                              'dd/MM/yyyy HH:mm:ss',
+                            ),
+                            Radar: p.cameraNumber,
+                            Latitude: p.from[1].toString().replace('.', ','),
+                            Longitude: p.from[0].toString().replace('.', ','),
+                            Bairro: p.district,
+                            Logradouro: p.location,
+                            Direção: p.direction,
+                            Velocidade: p.speed,
+                            Faixa: p.lane,
+                            'Alerta Placa Clonada': p.cloneAlert,
+                          })),
+                        ),
+                      )
+                    }
                   } else {
                     setShowPlacasConjuntas(true)
                   }
@@ -168,6 +236,7 @@ export function DownloadReportDialog() {
         setOpen={setOpen}
         nMinutes={nMinutes}
         nPlates={nPlates}
+        fileType={fileType}
       />
     </>
   )
