@@ -1,3 +1,5 @@
+'use server'
+
 import { api } from '@/lib/api'
 import type { GetReportsRequest } from '@/models/interfaces'
 import { formatReportsRequest } from '@/utils/format-reports-request'

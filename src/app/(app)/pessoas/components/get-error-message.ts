@@ -1,11 +1,12 @@
-import { isApiError } from '@/lib/api'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { isAxiosError } from 'axios'
+
+import { GENERIC_ERROR_MESSAGE } from '@/utils/error-handlers'
 
 export function getErrorMessage(
   error: Error,
   notFoundMessage = 'resultado não encontrado',
 ) {
-  if (isApiError(error)) {
+  if (isAxiosError(error)) {
     if (
       error.response?.data?.detail ===
       'Something unexpected happened to Cortex API'
@@ -25,7 +26,7 @@ export function getErrorMessage(
       return notFoundMessage
     }
 
-    return genericErrorMessage
+    return GENERIC_ERROR_MESSAGE
   }
-  return genericErrorMessage
+  return GENERIC_ERROR_MESSAGE
 }
