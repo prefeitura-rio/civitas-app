@@ -1,3 +1,5 @@
+'use server'
+
 import { api } from '@/lib/api'
 import type { NotificationChannel } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
@@ -22,5 +24,5 @@ export async function getNotificationChannels({
     },
   )
 
-  return response
+  return response.data
 }

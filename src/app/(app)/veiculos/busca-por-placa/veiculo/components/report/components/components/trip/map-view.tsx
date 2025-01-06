@@ -1,15 +1,16 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Image } from '@react-pdf/renderer'
 
-import { config } from '@/config'
+import { getEnv } from '@/env/server'
 import type { Point } from '@/models/entities'
 
 interface MapViewProps {
   points: Point[]
 }
 
-export function MapView({ points }: MapViewProps) {
-  const accessToken = config.mapboxAccessToken
+export async function MapView({ points }: MapViewProps) {
+  const env = await getEnv()
+  const accessToken = env.MAPBOX_ACCESS_TOKEN
   const mapStyle = 'mapbox/streets-v12'
   const mapWidth = '800'
   const mapHeight = '550'

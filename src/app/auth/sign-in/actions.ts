@@ -1,73 +1,123 @@
 'use server'
 
+import { isAxiosError } from 'axios'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
 
+import type { FormState } from '@/hooks/use-form-state'
 import { signIn } from '@/http/auth/sign-in'
-import { isApiError } from '@/lib/api'
-import { genericErrorMessage, isGrantError } from '@/utils/error-handlers'
+import {
+  ACCESS_TOKEN_COOKIE,
+  ACCESS_TOKEN_EXPIRATION_DATE_COOKIE,
+} from '@/lib/api'
+import { GENERIC_ERROR_MESSAGE, isGrantError } from '@/utils/error-handlers'
 
-const signInSchema = z.object({
+const signInFormSchema = z.object({
   username: z.string().min(1, { message: 'Campo obrigatório.' }),
   password: z.string().min(1, { message: 'Campo obrigatório.' }),
 })
 
+export type SignInForm = z.infer<typeof signInFormSchema>
+
+function treatError(err: unknown) {
+  // Log error
+  if (isAxiosError(err)) {
+    const data = '[REDACTED]'
+
+    const copy = {
+      ...err,
+      config: {
+        ...err.config,
+        data,
+      },
+      response: {
+        ...err.response,
+        config: {
+          ...err.response?.config,
+          data,
+        },
+      },
+    }
+
+    console.error(copy)
+  } else {
+    console.error(err)
+  }
+
+  let message = {
+    title: GENERIC_ERROR_MESSAGE,
+    description: null as string | null,
+  }
+
+  if (isGrantError(err)) {
+    message = {
+      title: 'Credenciais inválidas',
+      description: null,
+    }
+  }
+
+  return {
+    success: false,
+    message,
+  }
+}
+
 export async function signInAction(data: FormData) {
-  const result = signInSchema.safeParse(Object.fromEntries(data))
+  const result = signInFormSchema.safeParse(Object.fromEntries(data))
 
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors
 
-    return { success: false, message: null, errors }
+    return {
+      success: false,
+      errors,
+      message: {
+        title: 'Erro ao preencher formulário!',
+        description: 'Verifique os campos destacados.',
+      },
+    } as FormState
   }
 
   const { username, password } = result.data
 
   try {
-    const {
-      data: { access_token: accessToken, expires_in: expiresIn },
-    } = await signIn({
-      username,
-      password,
-    })
+    const { access_token: accessToken, expires_in: tokenExpireMinutes } =
+      await signIn({
+        username,
+        password,
+      })
 
-    cookies().set('token', accessToken, {
+    const expirationTime = Date.now() + 1000 * 60 * tokenExpireMinutes // In miliseconds
+
+    const cookieStore = await cookies()
+    cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
       path: '/',
-      maxAge: expiresIn,
+      expires: new Date(expirationTime),
     })
-  } catch (err) {
-    // Log error
-    if (isApiError(err)) {
-      const data = err.response?.config.data
-        .replace(/(?<=username=).*?(?=&)/, '[REDACTED]')
-        .replace(/(?<=password=).*/, '[REDACTED]')
 
-      const copy = {
-        ...err,
-        response: {
-          ...err.response,
-          config: {
-            ...err.response?.config,
-            data,
-          },
-        },
-      }
-
-      console.error(copy)
-    } else {
-      console.error(err)
-    }
-
-    const errorMessage = isGrantError(err)
-      ? 'Credenciais inválidas'
-      : genericErrorMessage
+    cookieStore.set(
+      ACCESS_TOKEN_EXPIRATION_DATE_COOKIE,
+      new Date(expirationTime).toISOString(),
+      {
+        path: '/',
+        expires: new Date(expirationTime),
+      },
+    )
 
     return {
-      success: false,
-      message: errorMessage,
-      errors: null,
-    }
-  }
+      success: true,
+      data: null,
+    } as FormState
+  } catch (err) {
+    const response = treatError(err)
 
-  return { success: true, message: null, errors: null }
+    return {
+      success: response.success,
+      message: {
+        title: response.message.description
+          ? `${response.message.title} ${response.message.description}`
+          : response.message.title,
+      },
+    } as FormState
+  }
 }

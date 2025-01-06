@@ -27,14 +27,13 @@ export function MonitoredPlatesTable() {
   // const [plate, setPlate] = useState<string>()
   const { data: profile, isLoading: isProfileLoading } = useProfile()
 
-  const { data: MonitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
-    useQuery({
-      queryKey,
-      queryFn: () =>
-        getMonitoredPlates({
-          ...formattedSearchParams,
-        }),
-    })
+  const { data, isLoading: isMonitoredPlatesLoading } = useQuery({
+    queryKey,
+    queryFn: () =>
+      getMonitoredPlates({
+        ...formattedSearchParams,
+      }),
+  })
 
   // const {
   //   mutateAsync: updateMonitoredPlateMutation,
@@ -45,8 +44,6 @@ export function MonitoredPlatesTable() {
   //     queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
   //   },
   // })
-
-  const data = MonitoredPlatesResponse?.data
 
   const columns: ColumnDef<MonitoredPlate>[] = [
     {
