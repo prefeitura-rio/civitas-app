@@ -6,7 +6,7 @@ steps:
       - "-c"
       - |
         echo "NEXT_PUBLIC_CIVITAS_API_URL=https://gw.dados.rio/civitas" > .env.production && \
-        echo "NEXT_PUBLIC_GW_API_URL=https://gw.dados.rio" > .env.production && \
+        echo "NEXT_PUBLIC_GW_API_URL=https://gw.dados.rio" >> .env.production && \
         echo "NEXT_PUBLIC_VISION_AI_URL=https://app.dados.rio/vision-ai" >> .env.production && \
         echo "MAPBOX_ACCESS_TOKEN=${_MAPBOX_ACCESS_TOKEN}" >> .env.production
   # Build the container image
