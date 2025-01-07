@@ -15,8 +15,8 @@ const clientEnv = {
 const _env = envSchema.safeParse(clientEnv)
 
 if (_env.success === false) {
-  console.error('❌ Variáveis de ambiente inválidas:', _env.error.format())
-  throw new Error('Variáveis de ambiente inválidas')
+  console.error('❌❌ Variáveis ambiente inválidas:', _env.error.format())
+  throw new Error('❌❌ Variáveis ambiente inválidas')
 }
 
 export const env = _env.data
