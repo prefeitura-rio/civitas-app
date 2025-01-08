@@ -26,7 +26,7 @@ import { createOperation } from '@/http/operations/create-operation'
 import { getOperation } from '@/http/operations/get-operation'
 import { updateOperation } from '@/http/operations/update-operation'
 import { queryClient } from '@/lib/react-query'
-import { GENERIC_ERROR_MESSAGE } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 interface OperationDialogProps {
   isOpen: boolean

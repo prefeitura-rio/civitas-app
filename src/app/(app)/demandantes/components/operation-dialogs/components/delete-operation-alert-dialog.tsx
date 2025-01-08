@@ -14,7 +14,7 @@ import {
 import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 import { deleteOperation } from '@/http/operations/delete-operation'
 import { queryClient } from '@/lib/react-query'
-import { GENERIC_ERROR_MESSAGE } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 interface DeleteOperationAlertDialogProps {
   isOpen: boolean

@@ -30,10 +30,13 @@ import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
-import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
+import { getNotificationChannels } from '@/http/notification-channels/monitored-plates/get-notification-channels'
 import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
-import { GENERIC_ERROR_MESSAGE, isConflictError } from '@/utils/error-handlers'
+import {
+  GENERIC_ERROR_MESSAGE,
+  isConflictError,
+} from '@/utils/others/error-handlers'
 
 import { OperationFormDialog } from '../demandantes/components/operation-dialogs/components/operation-form-dialog'
 

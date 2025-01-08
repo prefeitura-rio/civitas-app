@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Pagination } from '@/components/ui/pagination'
 import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
 import { getReports } from '@/http/reports/get-reports'
-import { GENERIC_ERROR_MESSAGE } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 import { ReportCard } from './components/report-card'
 

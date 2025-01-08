@@ -12,7 +12,7 @@ import {
   isForbiddenError,
   isTooManyRequests,
   isUnauthorizedError,
-} from '@/utils/error-handlers'
+} from '@/utils/others/error-handlers'
 
 export const COOKIES_PREFIX = '@ed-rio:civitas:'
 export const ACCESS_TOKEN_COOKIE = `${COOKIES_PREFIX}access_token`

@@ -22,7 +22,10 @@ import {
   type UseBusStopLayer,
   useBusStopLayer,
 } from '@/hooks/map-layers/use-bus-stop-layer'
-import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
+import {
+  type UseCameraLayer,
+  useCameraLayer,
+} from '@/hooks/map-layers/use-cameras'
 import {
   type UseCISPLayer,
   useCISPLayer,
@@ -52,7 +55,7 @@ interface MapContextProps {
   layers: {
     radars: UseRadarLayer
     trips: UseTrips
-    cameras: UseCameraCOR
+    cameras: UseCameraLayer
     agents: UseAgents
     fogoCruzado: UseFogoCruzadoIncidents
     waze: UseWazePoliceAlerts
@@ -102,7 +105,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
 
   const radars = useRadarLayer()
   const trips = useTrips({ setViewport })
-  const cameras = useCameraCOR()
+  const cameras = useCameraLayer()
   const agents = useAgents()
   const fogoCruzado = useFogoCruzadoIncidents()
   const waze = useWazePoliceAlerts()
