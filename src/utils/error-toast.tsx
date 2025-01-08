@@ -20,7 +20,7 @@ export function ErrorToast() {
   const grantErrorToast = getCookie(GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY)
   if (grantErrorToast) {
     deleteCookie(GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY)
-    toast.error(grantErrorToast)
+    toast.error(grantErrorToast, { duration: Infinity, id: 'expired_token' })
   }
 
   return null

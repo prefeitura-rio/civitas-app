@@ -3,6 +3,7 @@
 import { getCookie, setCookie } from 'cookies-next'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 import {
   ACCESS_TOKEN_COOKIE,
@@ -17,12 +18,15 @@ export default function LogoutTimeOut() {
 
   useEffect(() => {
     async function setLogoutTimeout() {
+      toast.dismiss('expired_token') // Fecha o toast de token expirado
+
       const token = await getCookie(ACCESS_TOKEN_COOKIE)
       const tokenExpiry = await getCookie(ACCESS_TOKEN_EXPIRATION_DATE_COOKIE)
 
       if (token && tokenExpiry) {
         const timeRemaining = Date.parse(tokenExpiry) - Date.now()
         if (timeRemaining > 0) {
+          // Faz logout imediatamente após o tempo de expiração do token
           const timeout = setTimeout(() => {
             setCookie(
               GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY,

@@ -8,7 +8,11 @@ import {
 import { redirect } from 'next/navigation'
 
 import { env } from '@/env/client'
-import { isTooManyRequests, isUnauthorizedError } from '@/utils/error-handlers'
+import {
+  isForbiddenError,
+  isTooManyRequests,
+  isUnauthorizedError,
+} from '@/utils/error-handlers'
 
 export const COOKIES_PREFIX = '@ed-rio:civitas:'
 export const ACCESS_TOKEN_COOKIE = `${COOKIES_PREFIX}access_token`
@@ -50,7 +54,7 @@ api.interceptors.response.use(
       cookieStore = serverCookies
     }
 
-    if (isUnauthorizedError(error)) {
+    if (isUnauthorizedError(error) || isForbiddenError(error)) {
       deleteCookie(ACCESS_TOKEN_COOKIE, { cookies: cookieStore })
       deleteCookie(ACCESS_TOKEN_EXPIRATION_DATE_COOKIE, {
         cookies: cookieStore,
