@@ -23,7 +23,7 @@ import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
 import { queryClient } from '@/lib/react-query'
-import { cortexRequestLimit } from '@/utils/cortex-limit'
+import { cortexRequestLimit } from '@/utils/constants'
 import { toQueryParams } from '@/utils/to-query-params'
 
 interface EnhancePlatesInfoProps {

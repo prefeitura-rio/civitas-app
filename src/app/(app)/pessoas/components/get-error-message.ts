@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios'
 
-import { GENERIC_ERROR_MESSAGE } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 export function getErrorMessage(
   error: Error,

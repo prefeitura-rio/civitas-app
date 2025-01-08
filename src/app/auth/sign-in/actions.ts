@@ -10,7 +10,10 @@ import {
   ACCESS_TOKEN_COOKIE,
   ACCESS_TOKEN_EXPIRATION_DATE_COOKIE,
 } from '@/lib/api'
-import { GENERIC_ERROR_MESSAGE, isGrantError } from '@/utils/error-handlers'
+import {
+  GENERIC_ERROR_MESSAGE,
+  isGrantError,
+} from '@/utils/others/error-handlers'
 
 const signInFormSchema = z.object({
   username: z.string().min(1, { message: 'Campo obrigatório.' }),
