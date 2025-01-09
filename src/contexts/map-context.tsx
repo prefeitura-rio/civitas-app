@@ -13,7 +13,7 @@ import {
   type UseAddressMarker,
   useAddressMarker,
 } from '@/hooks/map-layers/use-address-marker'
-import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
+import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agent-layer'
 import {
   type UseAISPLayer,
   useAISPLayer,
@@ -25,7 +25,8 @@ import {
 import {
   type UseCameraLayer,
   useCameraLayer,
-} from '@/hooks/map-layers/use-cameras'
+} from '@/hooks/map-layers/use-camera-layer'
+import { type UseTrips, useTrips } from '@/hooks/map-layers/use-car-trips-layer'
 import {
   type UseCISPLayer,
   useCISPLayer,
@@ -33,7 +34,7 @@ import {
 import {
   type UseFogoCruzadoIncidents,
   useFogoCruzadoIncidents,
-} from '@/hooks/map-layers/use-fogo-cruzado'
+} from '@/hooks/map-layers/use-fogo-cruzado-layer'
 import {
   type UseRadarLayer,
   useRadarLayer,
@@ -42,11 +43,10 @@ import {
   type UseSchoolLayer,
   useSchoolLayer,
 } from '@/hooks/map-layers/use-school-layer'
-import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
 import {
   type UseWazePoliceAlerts,
   useWazePoliceAlerts,
-} from '@/hooks/map-layers/use-waze-police-alerts'
+} from '@/hooks/map-layers/use-waze-police-alerts-layer'
 import type { SetViewportProps } from '@/models/utils'
 import { MapStyle } from '@/utils/get-map-style'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
