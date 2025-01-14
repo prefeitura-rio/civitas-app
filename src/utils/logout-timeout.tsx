@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   ACCESS_TOKEN_COOKIE,
   ACCESS_TOKEN_EXPIRATION_DATE_COOKIE,
-  GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY,
+  GRANT_ERROR_TOAST_COOKIE_KEY,
 } from '@/lib/api'
 import { queryClient } from '@/lib/react-query'
 import { logout } from '@/utils/logout'
@@ -29,7 +29,7 @@ export default function LogoutTimeOut() {
           // Faz logout imediatamente após o tempo de expiração do token
           const timeout = setTimeout(() => {
             setCookie(
-              GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY,
+              GRANT_ERROR_TOAST_COOKIE_KEY,
               'Sua sessão expirou. Por favor, faça login novamente.',
             )
             queryClient.clear()
@@ -40,7 +40,7 @@ export default function LogoutTimeOut() {
           return () => clearTimeout(timeout)
         } else {
           setCookie(
-            GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY,
+            GRANT_ERROR_TOAST_COOKIE_KEY,
             'Sua sessão expirou. Por favor, faça login novamente.',
           )
           queryClient.clear()
