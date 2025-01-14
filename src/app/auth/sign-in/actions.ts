@@ -84,13 +84,13 @@ export async function signInAction(data: FormData) {
   const { username, password } = result.data
 
   try {
-    const { access_token: accessToken, expires_in: tokenExpireSeconds } =
+    const { access_token: accessToken, expires_in: tokenExpireMinutes } =
       await signIn({
         username,
         password,
       })
 
-    const expirationTime = Date.now() + 1000 * tokenExpireSeconds // In miliseconds
+    const expirationTime = Date.now() + 60 * tokenExpireMinutes // In miliseconds
 
     const cookieStore = await cookies()
     cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
