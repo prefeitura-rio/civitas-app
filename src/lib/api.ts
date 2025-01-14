@@ -17,8 +17,8 @@ import {
 export const COOKIES_PREFIX = '@ed-rio:civitas:'
 export const ACCESS_TOKEN_COOKIE = `${COOKIES_PREFIX}access_token`
 export const ACCESS_TOKEN_EXPIRATION_DATE_COOKIE = `${COOKIES_PREFIX}access_token_expiration_date`
-export const TOO_MANY_REQUESTS_ERROR_TOAST_LOCAL_STORAGE_KEY = `${COOKIES_PREFIX}too_many_requests_error_toast`
-export const GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY = `${COOKIES_PREFIX}grant_error`
+export const TOO_MANY_REQUESTS_ERROR_TOAST_COOKIE_KEY = `${COOKIES_PREFIX}too_many_requests_error_toast`
+export const GRANT_ERROR_TOAST_COOKIE_KEY = `${COOKIES_PREFIX}grant_error`
 
 export const api = axios.create({
   baseURL: env.NEXT_PUBLIC_CIVITAS_API_URL,
@@ -61,7 +61,7 @@ api.interceptors.response.use(
       })
 
       setCookie(
-        GRANT_ERROR_TOAST_LOCAL_STORAGE_KEY,
+        GRANT_ERROR_TOAST_COOKIE_KEY,
         'Sua sessão expirou. Por favor, faça login novamente.',
         { cookies: cookieStore },
       )
@@ -74,7 +74,7 @@ api.interceptors.response.use(
 
     if (isTooManyRequests(error)) {
       setCookie(
-        TOO_MANY_REQUESTS_ERROR_TOAST_LOCAL_STORAGE_KEY,
+        TOO_MANY_REQUESTS_ERROR_TOAST_COOKIE_KEY,
         'Você realizou muitas requisições em um curto espaço de tempo. Aguarde alguns segundos e tente novamente.',
         { cookies: cookieStore },
       )
