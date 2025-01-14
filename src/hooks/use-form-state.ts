@@ -1,23 +1,10 @@
 import { FormEvent, useState, useTransition } from 'react'
 
-export type FormState =
-  | {
-      success: true
-      data: unknown | null
-    }
-  | (
-      | {
-          success: false
-          message: {
-            title: string
-            description: string | null
-          }
-        }
-      | {
-          success: false
-          errors: Record<string, string[]>
-        }
-    )
+interface FormState {
+  success: boolean
+  message: string | null
+  errors: Record<string, string[]> | null
+}
 
 export function useFormState(
   action: (data: FormData) => Promise<FormState>,
