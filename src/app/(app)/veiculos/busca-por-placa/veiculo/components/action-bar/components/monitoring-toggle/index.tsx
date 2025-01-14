@@ -1,6 +1,5 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
 import { Siren } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -12,6 +11,7 @@ import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-co
 import { useDisclosure } from '@/hooks/use-disclosure'
 import { useProfile } from '@/hooks/use-queries/use-profile'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
+import { isApiError } from '@/lib/api'
 import { notAllowed } from '@/utils/template-messages'
 
 import { DisableMonitoringAlertDialog } from './components/disable-monitoring-alert-dialog'
@@ -35,7 +35,7 @@ export function MonitoringToggle() {
         getMonitoredPlate({ plate: lastSearchParams?.plate || '' }),
       retry(failureCount, error) {
         if (
-          isAxiosError(error) &&
+          isApiError(error) &&
           error.response?.data.detail === 'Plate not found'
         ) {
           return false

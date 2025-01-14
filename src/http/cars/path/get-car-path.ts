@@ -1,5 +1,3 @@
-'use server'
-
 import { api } from '@/lib/api'
 import { formatCarPathResponse } from '@/utils/format-car-path-response'
 

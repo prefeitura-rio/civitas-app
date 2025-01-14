@@ -8,7 +8,7 @@ import { useEnhancedRadarsSearch } from '@/hooks/use-queries/use-enhanced-radars
 import { useRadarsSearch } from '@/hooks/use-queries/use-radars-search'
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import { useSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/use-search-by-radar-enhanced-result-dynamic-filter'
-import { cortexRequestLimit } from '@/utils/constants'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 
 import { ActionBar } from './components/action-bar'
 import { EnhancedDetectionsTable } from './components/enhanced-detections-table'
