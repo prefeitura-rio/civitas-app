@@ -14,7 +14,7 @@ import {
 import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
 import { deleteMonitoredPlate } from '@/http/cars/monitored/delete-monitored-plate'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 interface DeleteMonitoredPlateAlertDialogProps {
   isOpen: boolean
@@ -51,12 +51,12 @@ export function DeleteMonitoredPlateAlertDialog({
           success: (data) => {
             return `Placa ${data.data.plate} excluída com sucesso!`
           },
-          error: genericErrorMessage,
+          error: GENERIC_ERROR_MESSAGE,
         })
         await response
       }
     } catch (error) {
-      toast.error(genericErrorMessage)
+      toast.error(GENERIC_ERROR_MESSAGE)
     }
   }
 

@@ -141,6 +141,7 @@ export function DownloadReportDialog() {
                     </Label>
                     <div className="w-full space-y-2 pl-4 pr-2 pt-6">
                       <Slider
+                        unity="carros"
                         value={[nMinutes]}
                         onValueChange={(value) => {
                           setNMinutes(value[0])
@@ -162,6 +163,7 @@ export function DownloadReportDialog() {
                     </Label>
                     <div className="w-full space-y-2 pl-4 pr-2 pt-6">
                       <Slider
+                        unity="placas"
                         value={[nPlates]}
                         onValueChange={(value) => {
                           setNPlates(value[0])
@@ -189,13 +191,6 @@ export function DownloadReportDialog() {
                       setShowViagens(true)
                     }
                     if (fileType === FileType.CSV && trips) {
-                      console.log('lon: ', trips?.[0].points?.[0].from[0])
-                      console.log(
-                        'lat: ',
-                        trips?.[0].points?.[0].from[0]
-                          .toString()
-                          .replace('.', ','),
-                      )
                       exportToCSV(
                         `pontos_de_deteccao_${formattedSearchParams.plate}`,
                         trips.flatMap((t, i) =>

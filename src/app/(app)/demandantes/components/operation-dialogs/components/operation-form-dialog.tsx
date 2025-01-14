@@ -26,7 +26,7 @@ import { createOperation } from '@/http/operations/create-operation'
 import { getOperation } from '@/http/operations/get-operation'
 import { updateOperation } from '@/http/operations/update-operation'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 interface OperationDialogProps {
   isOpen: boolean
@@ -64,25 +64,25 @@ export function OperationFormDialog({
         })
       },
       onError: () => {
-        toast.error(genericErrorMessage)
+        toast.error(GENERIC_ERROR_MESSAGE)
       },
     })
 
   const { mutateAsync: updateOperationMutation, isPending: isPendingUpdate } =
     useMutation({
       mutationFn: updateOperation,
-      onSuccess: ({ data }) => {
+      onSuccess: ({ title }) => {
         queryClient.invalidateQueries({
           queryKey: ['operations'],
         })
-        toast.success(`Demandante ${data.title} criado com sucesso.`)
+        toast.success(`Demandante ${title} criado com sucesso.`)
       },
       onError: () => {
-        toast.error(genericErrorMessage)
+        toast.error(GENERIC_ERROR_MESSAGE)
       },
     })
 
-  const { data: operationResponse, isLoading: isLoadingOperation } = useQuery({
+  const { data: operation, isLoading: isLoadingOperation } = useQuery({
     queryKey: [`operations/${initialData?.id}`],
     queryFn: () => (initialData ? getOperation({ id: initialData?.id }) : null),
   })
@@ -114,12 +114,12 @@ export function OperationFormDialog({
   }
 
   useEffect(() => {
-    if (initialData && isOpen && !isLoading && operationResponse) {
-      setValue('title', operationResponse.data.title)
-      setValue('description', operationResponse.data.description)
+    if (initialData && isOpen && !isLoading && operation) {
+      setValue('title', operation.title)
+      setValue('description', operation.description)
       setIsLoading(false)
     }
-  }, [isOpen, isLoading, operationResponse])
+  }, [isOpen, isLoading, operation])
 
   useEffect(() => {
     if (

@@ -1,6 +1,8 @@
+'use server'
+
 import { v4 as uuidv4 } from 'uuid'
 
-import { config } from '@/config'
+import { getEnv } from '@/env/server'
 import { api } from '@/lib/api'
 
 interface SuggestionsResponse {
@@ -108,13 +110,15 @@ interface AddressResponse {
 }
 export async function searchAddress(query: string) {
   const sessionToken = uuidv4()
+  const env = await getEnv()
+  const accessToken = env.MAPBOX_ACCESS_TOKEN
 
   const suggestions = await api.get<SuggestionsResponse>(
-    `https://api.mapbox.com/search/searchbox/v1/suggest?q=${query}&language=pt&country=br&proximity=-43.47,-22.92957&types=address&session_token=${sessionToken}&access_token=${config.mapboxAccessToken}`,
+    `https://api.mapbox.com/search/searchbox/v1/suggest?q=${query}&language=pt&country=br&proximity=-43.47,-22.92957&types=address&session_token=${sessionToken}&access_token=${accessToken}`,
   )
 
   const address = await api.get<AddressResponse>(
-    `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestions.data.suggestions.at(0)?.mapbox_id}?&session_token=${sessionToken}&access_token=${config.mapboxAccessToken}`,
+    `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestions.data.suggestions.at(0)?.mapbox_id}?&session_token=${sessionToken}&access_token=${accessToken}`,
   )
 
   return address.data
