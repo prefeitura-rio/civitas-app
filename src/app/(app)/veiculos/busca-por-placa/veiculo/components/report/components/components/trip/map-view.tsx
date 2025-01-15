@@ -1,16 +1,15 @@
+'use client'
 /* eslint-disable jsx-a11y/alt-text */
 import { Image } from '@react-pdf/renderer'
 
-import { getEnv } from '@/env/server'
 import type { Point } from '@/models/entities'
 
 interface MapViewProps {
   points: Point[]
+  mapboxAccessToken: string
 }
 
-export async function MapView({ points }: MapViewProps) {
-  const env = await getEnv()
-  const accessToken = env.MAPBOX_ACCESS_TOKEN
+export function MapView({ points, mapboxAccessToken }: MapViewProps) {
   const mapStyle = 'mapbox/streets-v12'
   const mapWidth = '800'
   const mapHeight = '550'
@@ -43,7 +42,7 @@ export async function MapView({ points }: MapViewProps) {
 
   const viewport = points.length > 1 ? 'auto' : createViewport(points[0])
 
-  const mapboxUrl = `https://api.mapbox.com/styles/v1/${mapStyle}/static/${markers}/${viewport}/${mapWidth}x${mapHeight}?${points.length > 1 ? 'padding=50&' : ''}access_token=${accessToken}`
+  const mapboxUrl = `https://api.mapbox.com/styles/v1/${mapStyle}/static/${markers}/${viewport}/${mapWidth}x${mapHeight}?${points.length > 1 ? 'padding=50&' : ''}access_token=${mapboxAccessToken}`
 
   return <Image src={mapboxUrl} />
 }
