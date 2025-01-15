@@ -11,6 +11,7 @@ interface ReportTripProps {
   plate: string
   useImgCounter: () => number
   useTableCounter: () => number
+  mapboxAccessToken: string
 }
 
 Font.register({
@@ -26,7 +27,12 @@ Font.register({
   ],
 })
 
-export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
+export function ReportTrip({
+  trip,
+  plate,
+  useImgCounter,
+  mapboxAccessToken,
+}: ReportTripProps) {
   const hash = new Set<string>() // Conjunto de hash para armazenar as coordenadas dos pontos no chunk atual
   let mapPoints: Point[] = [] // Array para armazenar os pontos no chunk atual
   const tripChuncks: Point[][] = [] // Array para armazenar os chunks de pontos
@@ -95,7 +101,10 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
                 textAlign: 'center',
               }}
             >{`Viagem ${trip.index + 1}${tripChuncks.length > 1 ? ` - Parte ${index + 1} de ${tripChuncks.length}` : ''}:`}</Text>
-            <MapView points={tripChunck} />
+            <MapView
+              points={tripChunck}
+              mapboxAccessToken={mapboxAccessToken}
+            />
             <Text
               style={{
                 textAlign: 'center',
