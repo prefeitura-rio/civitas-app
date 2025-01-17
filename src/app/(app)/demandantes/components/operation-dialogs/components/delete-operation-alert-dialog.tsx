@@ -14,7 +14,7 @@ import {
 import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 import { deleteOperation } from '@/http/operations/delete-operation'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 interface DeleteOperationAlertDialogProps {
   isOpen: boolean
@@ -42,15 +42,15 @@ export function DeleteOperationAlertDialog({
         const response = deleteOperationMutation(onDeleteOperationProps.id)
         toast.promise(response, {
           loading: `Excluindo demandante ${onDeleteOperationProps?.title}...`,
-          success: (data) => {
-            return `Demandante ${data.data.title} excluído com sucesso!`
+          success: ({ title }) => {
+            return `Demandante ${title} excluído com sucesso!`
           },
-          error: genericErrorMessage,
+          error: GENERIC_ERROR_MESSAGE,
         })
         await response
       }
     } catch (error) {
-      toast.error(genericErrorMessage)
+      toast.error(GENERIC_ERROR_MESSAGE)
     }
   }
 

@@ -1,3 +1,5 @@
+'use client'
+
 import { PDFViewer } from '@react-pdf/renderer'
 
 import { DialogContent } from '@/components/ui/dialog'
@@ -7,7 +9,11 @@ import { useVehicle } from '@/hooks/use-queries/use-vehicle'
 
 import { ReportDocument } from '../../../../report/components/report-document'
 
-export function TripsReportDialogContent() {
+export function TripsReportDialogContent({
+  mapboxAccessToken,
+}: {
+  mapboxAccessToken: string
+}) {
   const {
     layers: {
       trips: { trips },
@@ -30,6 +36,7 @@ export function TripsReportDialogContent() {
             startTime: formattedSearchParams.from,
           }}
           vehicle={vehicle}
+          mapboxAccessToken={mapboxAccessToken}
         />
       </PDFViewer>
     </DialogContent>

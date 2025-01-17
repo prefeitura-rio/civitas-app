@@ -1,3 +1,5 @@
+'use server'
+
 import { api } from '@/lib/api'
 import type {
   BackendMonitoredPlate,
@@ -17,7 +19,7 @@ export interface CreateMonitoredPlateRequest
   notificationChannels: string[]
 }
 
-export function createMonitoredPlate({
+export async function createMonitoredPlate({
   plate,
   operationId,
   active,
@@ -26,7 +28,7 @@ export function createMonitoredPlate({
   additionalInfo,
   notificationChannels,
 }: CreateMonitoredPlateRequest) {
-  const response = api.post<BackendMonitoredPlate>('/cars/monitored', {
+  const response = await api.post<BackendMonitoredPlate>('/cars/monitored', {
     plate,
     operation_id: operationId,
     contact_info: contactInfo,
@@ -36,5 +38,5 @@ export function createMonitoredPlate({
     notification_channels: notificationChannels,
   })
 
-  return response
+  return response.data
 }

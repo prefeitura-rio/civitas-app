@@ -1,3 +1,5 @@
+'use server'
+
 import { api } from '@/lib/api'
 import type { BackendMonitoredPlate, MonitoredPlate } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
@@ -53,13 +55,8 @@ export async function getMonitoredPlates({
     } as MonitoredPlate
   })
 
-  const response = {
-    ...originalResponse,
-    data: {
-      ...originalResponse.data,
-      items,
-    },
+  return {
+    ...originalResponse.data,
+    items,
   }
-
-  return response
 }

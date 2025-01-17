@@ -1,3 +1,5 @@
+'use client'
+
 import { SearchX } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -19,7 +21,6 @@ export function ClearTripsButton() {
         variant="secondary"
         size="icon"
         onClick={() => {
-          console.log('clearSearch')
           clearSearch()
           router.push('/veiculos/busca-por-placa')
         }}
