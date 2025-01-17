@@ -1,3 +1,5 @@
+'use server'
+
 import { api } from '@/lib/api'
 import type { BackendRadar, Radar } from '@/models/entities'
 

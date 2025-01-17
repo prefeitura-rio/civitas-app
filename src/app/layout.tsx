@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'
 
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
+import { ErrorToast } from '@/utils/error-toast'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,7 +22,8 @@ export default function RootLayout({
   return (
     <html lang="pt" suppressHydrationWarning>
       <body className={cn(inter.className, 'overflow-y-hidden')}>
-        <Toaster duration={4000} />
+        <Toaster closeButton duration={4000} />
+        <ErrorToast />
         {children}
       </body>
     </html>
