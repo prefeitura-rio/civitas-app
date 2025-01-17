@@ -25,15 +25,13 @@ export function OperationsTable() {
   } = useOperations()
   const { data: profile } = useProfile()
 
-  const { data: response, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () =>
       getOperations({
         ...formattedSearchParams,
       }),
   })
-
-  const data = response?.data
 
   const columns: ColumnDef<Operation>[] = [
     {

@@ -1,4 +1,5 @@
 'use client'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
@@ -29,10 +30,13 @@ import { useOperations } from '@/hooks/use-contexts/use-operations-context'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
-import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
+import { getNotificationChannels } from '@/http/notification-channels/monitored-plates/get-notification-channels'
 import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
+import {
+  GENERIC_ERROR_MESSAGE,
+  isConflictError,
+} from '@/utils/others/error-handlers'
 
 import { OperationFormDialog } from '../demandantes/components/operation-dialogs/components/operation-form-dialog'
 
@@ -82,20 +86,20 @@ export function MonitoredPlateFormDialog({
     isPending: isPendingCreate,
   } = useMutation({
     mutationFn: createMonitoredPlate,
-    onSuccess: ({ data }) => {
+    onSuccess: ({ plate }) => {
       queryClient.invalidateQueries({
         queryKey: ['cars', 'monitored'],
       })
       queryClient.invalidateQueries({
-        queryKey: ['cars', 'monitored', data.plate],
+        queryKey: ['cars', 'monitored', plate],
       })
-      toast.success(`A placa ${data.plate} foi cadastrada com sucesso!`)
+      toast.success(`A placa ${plate} foi cadastrada com sucesso!`)
     },
     onError: (error, variables) => {
       if (isConflictError(error)) {
         toast.error(`A placa ${variables.plate} já existe`)
       } else {
-        toast.error(genericErrorMessage)
+        toast.error(GENERIC_ERROR_MESSAGE)
       }
     },
   })
@@ -105,20 +109,20 @@ export function MonitoredPlateFormDialog({
     isPending: isPendingUpdate,
   } = useMutation({
     mutationFn: updateMonitoredPlate,
-    onSuccess: ({ data }) => {
+    onSuccess: ({ plate }) => {
       queryClient.invalidateQueries({
-        queryKey: ['cars', 'monitored', data.plate],
+        queryKey: ['cars', 'monitored', plate],
       })
       queryClient.invalidateQueries({
         queryKey: ['cars', 'monitored'],
       })
-      toast.success(`A placa ${data.plate} foi atualizada com sucesso!`)
+      toast.success(`A placa ${plate} foi atualizada com sucesso!`)
     },
     onError: (error, variables) => {
       if (isConflictError(error)) {
         toast.error(`A placa ${variables.plate} já existe`)
       } else {
-        toast.error(genericErrorMessage)
+        toast.error(GENERIC_ERROR_MESSAGE)
       }
     },
   })
@@ -131,16 +135,16 @@ export function MonitoredPlateFormDialog({
     },
   )
 
-  const { data: operationsResponse } = useQuery({
+  const { data: operationsData } = useQuery({
     queryKey: ['operations'],
     queryFn: () => getOperations({ size: 100 }),
   })
-  const { data: NotificationChannelResponse } = useQuery({
+  const { data: notificationChannels } = useQuery({
     queryKey: ['notification-channels'],
     queryFn: () => getNotificationChannels({ size: 100 }),
   })
 
-  const operations = operationsResponse?.data.items || []
+  const operations = operationsData?.items || []
   function handleOnOpenChange(open: boolean) {
     if (open) {
       onOpen()
@@ -321,8 +325,6 @@ export function MonitoredPlateFormDialog({
                         </Button>
                       </div>
                     }
-
-                    // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
                   />
                 )}
               />
@@ -339,14 +341,14 @@ export function MonitoredPlateFormDialog({
                 render={({ field }) => (
                   <MultipleSelector
                     {...field}
-                    defaultOptions={(
-                      NotificationChannelResponse?.data.items || []
-                    ).map((item) => {
-                      return {
-                        label: item.title,
-                        value: item.id,
-                      }
-                    })}
+                    defaultOptions={(notificationChannels?.items || []).map(
+                      (item) => {
+                        return {
+                          label: item.title,
+                          value: item.id,
+                        }
+                      },
+                    )}
                     disabled={isLoading}
                     placeholder="Selecione um canal"
                     emptyIndicator={<p>Nenhum resultado encontrado.</p>}

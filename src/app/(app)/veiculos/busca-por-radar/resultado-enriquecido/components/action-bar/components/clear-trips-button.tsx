@@ -19,7 +19,6 @@ export function ClearTripsButton() {
         variant="secondary"
         size="icon"
         onClick={() => {
-          console.log('clearSearch')
           clearSearch()
           router.push('/veiculos/busca-por-radar')
         }}
