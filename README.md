@@ -23,3 +23,4 @@
 ## Scripts úteis
 - `type-check`: Lista erros de typescript em todo o projeto
 - `lint:fix`: Lista erros de lint
+
