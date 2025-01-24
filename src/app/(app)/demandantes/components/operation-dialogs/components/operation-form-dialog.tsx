@@ -26,7 +26,10 @@ import { createOperation } from '@/http/operations/create-operation'
 import { getOperation } from '@/http/operations/get-operation'
 import { updateOperation } from '@/http/operations/update-operation'
 import { queryClient } from '@/lib/react-query'
-import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
+import {
+  GENERIC_ERROR_MESSAGE,
+  isConflictError,
+} from '@/utils/others/error-handlers'
 
 interface OperationDialogProps {
   isOpen: boolean
@@ -63,8 +66,12 @@ export function OperationFormDialog({
           queryKey: ['operations'],
         })
       },
-      onError: () => {
-        toast.error(GENERIC_ERROR_MESSAGE)
+      onError: (error, variables) => {
+        if (isConflictError(error) || error.message.includes('409')) {
+          toast.error(`O demandante ${variables.title} já existe`)
+        } else {
+          toast.error(GENERIC_ERROR_MESSAGE)
+        }
       },
     })
 
