@@ -96,7 +96,7 @@ export function MonitoredPlateFormDialog({
       toast.success(`A placa ${plate} foi cadastrada com sucesso!`)
     },
     onError: (error, variables) => {
-      if (isConflictError(error)) {
+      if (isConflictError(error) || error.message.includes('409')) {
         toast.error(`A placa ${variables.plate} já existe`)
       } else {
         toast.error(GENERIC_ERROR_MESSAGE)
@@ -118,12 +118,8 @@ export function MonitoredPlateFormDialog({
       })
       toast.success(`A placa ${plate} foi atualizada com sucesso!`)
     },
-    onError: (error, variables) => {
-      if (isConflictError(error)) {
-        toast.error(`A placa ${variables.plate} já existe`)
-      } else {
-        toast.error(GENERIC_ERROR_MESSAGE)
-      }
+    onError: () => {
+      toast.error(GENERIC_ERROR_MESSAGE)
     },
   })
 
