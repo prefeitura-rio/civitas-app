@@ -33,10 +33,7 @@ import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-pla
 import { getNotificationChannels } from '@/http/notification-channels/monitored-plates/get-notification-channels'
 import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
-import {
-  GENERIC_ERROR_MESSAGE,
-  isConflictError,
-} from '@/utils/others/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 import { OperationFormDialog } from '../demandantes/components/operation-dialogs/components/operation-form-dialog'
 
@@ -86,21 +83,22 @@ export function MonitoredPlateFormDialog({
     isPending: isPendingCreate,
   } = useMutation({
     mutationFn: createMonitoredPlate,
-    onSuccess: ({ plate }) => {
-      queryClient.invalidateQueries({
-        queryKey: ['cars', 'monitored'],
-      })
-      queryClient.invalidateQueries({
-        queryKey: ['cars', 'monitored', plate],
-      })
-      toast.success(`A placa ${plate} foi cadastrada com sucesso!`)
-    },
-    onError: (error, variables) => {
-      if (isConflictError(error) || error.message.includes('409')) {
-        toast.error(`A placa ${variables.plate} já existe`)
+    onSuccess: (data) => {
+      if ('error' in data) {
+        toast.error(`A placa ${data.plate} já existe!`)
       } else {
-        toast.error(GENERIC_ERROR_MESSAGE)
+        // handle the success resp
+        queryClient.invalidateQueries({
+          queryKey: ['cars', 'monitored'],
+        })
+        queryClient.invalidateQueries({
+          queryKey: ['cars', 'monitored', data.plate],
+        })
+        toast.success(`A placa ${data.plate} foi cadastrada com sucesso!`)
       }
+    },
+    onError: () => {
+      toast.error(GENERIC_ERROR_MESSAGE)
     },
   })
 

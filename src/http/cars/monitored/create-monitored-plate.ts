@@ -6,6 +6,7 @@ import type {
   MonitoredPlate,
   Operation,
 } from '@/models/entities'
+import { isConflictError } from '@/utils/others/error-handlers'
 
 export interface CreateMonitoredPlateRequest
   extends Pick<MonitoredPlate, 'plate'>,
@@ -28,15 +29,22 @@ export async function createMonitoredPlate({
   additionalInfo,
   notificationChannels,
 }: CreateMonitoredPlateRequest) {
-  const response = await api.post<BackendMonitoredPlate>('/cars/monitored', {
-    plate,
-    operation_id: operationId,
-    contact_info: contactInfo,
-    notes,
-    active,
-    additional_info: additionalInfo,
-    notification_channels: notificationChannels,
-  })
+  try {
+    const response = await api.post<BackendMonitoredPlate>('/cars/monitored', {
+      plate,
+      operation_id: operationId,
+      contact_info: contactInfo,
+      notes,
+      active,
+      additional_info: additionalInfo,
+      notification_channels: notificationChannels,
+    })
 
-  return response.data
+    return response.data
+  } catch (error) {
+    if (isConflictError(error)) {
+      return { error: 'Conflict', plate }
+    }
+    throw error
+  }
 }
