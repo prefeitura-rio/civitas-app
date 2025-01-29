@@ -1,3 +1,6 @@
+'use server'
+
+import { getEnv } from '@/env/server'
 import { api } from '@/lib/api'
 
 interface SignInRequest {
@@ -12,8 +15,10 @@ export interface SignInResponse {
 }
 
 export async function signIn({ username, password }: SignInRequest) {
+  const env = await getEnv()
+
   const response = await api.post<SignInResponse>(
-    '/auth/token',
+    `${env.NEXT_PUBLIC_GW_API_URL}/auth/token`,
     {
       username,
       password,
@@ -25,5 +30,5 @@ export async function signIn({ username, password }: SignInRequest) {
     },
   )
 
-  return response
+  return response.data
 }

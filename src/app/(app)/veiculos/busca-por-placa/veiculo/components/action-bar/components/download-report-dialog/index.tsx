@@ -1,7 +1,10 @@
+'use client'
+
 import { formatDate } from 'date-fns'
 import { Printer } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,6 +20,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
+import { getEnv } from '@/env/server'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useRadars } from '@/hooks/use-queries/use-radars'
@@ -50,15 +54,24 @@ export function DownloadReportDialog() {
   const [showViagens, setShowViagens] = useState(false)
   const [showPlacasConjuntas, setShowPlacasConjuntas] = useState(false)
   const [fileType, setFileType] = useState<FileType>(FileType.PDF)
+  const [mapboxAccessToken, setMapboxAccessToken] = useState('')
 
   useEffect(() => {
-    setFormType('viagens')
-    setNMinutes(1)
-    setNPlates(10)
-    setShowViagens(false)
-    setShowPlacasConjuntas(false)
-    setFileType(FileType.PDF)
+    const init = async () => {
+      setFormType('viagens')
+      setNMinutes(1)
+      setNPlates(10)
+      setShowViagens(false)
+      setShowPlacasConjuntas(false)
+      setFileType(FileType.PDF)
+      const env = await getEnv()
+      setMapboxAccessToken(env.MAPBOX_ACCESS_TOKEN)
+    }
+    init()
   }, [open])
+
+  const disabled =
+    !trips || isLoadingTrips || !radars || isLoadingRadars || !mapboxAccessToken
 
   return (
     <>
@@ -69,10 +82,14 @@ export function DownloadReportDialog() {
               <Button
                 variant="secondary"
                 size="icon"
-                disabled={
-                  !trips || isLoadingTrips || !radars || isLoadingRadars
-                }
+                disabled={disabled}
+                className="relative"
               >
+                {disabled && (
+                  <div className="absolute right-0.5 top-0.5">
+                    <Spinner className="size-3 text-white" />
+                  </div>
+                )}
                 <Printer className="size-4 shrink-0" />
               </Button>
             </DialogTrigger>
@@ -141,6 +158,7 @@ export function DownloadReportDialog() {
                     </Label>
                     <div className="w-full space-y-2 pl-4 pr-2 pt-6">
                       <Slider
+                        unity="carros"
                         value={[nMinutes]}
                         onValueChange={(value) => {
                           setNMinutes(value[0])
@@ -162,6 +180,7 @@ export function DownloadReportDialog() {
                     </Label>
                     <div className="w-full space-y-2 pl-4 pr-2 pt-6">
                       <Slider
+                        unity="placas"
                         value={[nPlates]}
                         onValueChange={(value) => {
                           setNPlates(value[0])
@@ -189,13 +208,6 @@ export function DownloadReportDialog() {
                       setShowViagens(true)
                     }
                     if (fileType === FileType.CSV && trips) {
-                      console.log('lon: ', trips?.[0].points?.[0].from[0])
-                      console.log(
-                        'lat: ',
-                        trips?.[0].points?.[0].from[0]
-                          .toString()
-                          .replace('.', ','),
-                      )
                       exportToCSV(
                         `pontos_de_deteccao_${formattedSearchParams.plate}`,
                         trips.flatMap((t, i) =>
@@ -229,7 +241,9 @@ export function DownloadReportDialog() {
             </DialogFooter>
           </DialogContent>
         )}
-        {showViagens && <TripsReportDialogContent />}
+        {showViagens && (
+          <TripsReportDialogContent mapboxAccessToken={mapboxAccessToken} />
+        )}
       </Dialog>
       <JointPlatesReportDownloadProgressAlert
         open={showPlacasConjuntas}
