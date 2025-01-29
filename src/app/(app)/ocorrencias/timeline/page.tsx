@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Pagination } from '@/components/ui/pagination'
 import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
 import { getReports } from '@/http/reports/get-reports'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
 
 import { ReportCard } from './components/report-card'
 
@@ -33,7 +33,7 @@ export default function Timeline() {
             <Alert className="w-96" variant="destructive">
               <CircleAlert className="h-4 w-4" />
               <AlertTitle>Erro!</AlertTitle>
-              <AlertDescription>{genericErrorMessage}</AlertDescription>
+              <AlertDescription>{GENERIC_ERROR_MESSAGE}</AlertDescription>
             </Alert>
           </div>
         ) : data?.items?.length === 0 ? (

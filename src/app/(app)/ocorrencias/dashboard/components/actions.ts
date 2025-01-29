@@ -26,7 +26,6 @@ export async function getChartData({
   start,
   end,
 }: getChartDataProps) {
-  console.log({ timelineData })
   const auxData = timelineData.reduce((acc, cur) => {
     const date = formatDate(cur.date, 'dd/MM/y')
     return {
@@ -38,8 +37,6 @@ export async function getChartData({
     }
   }, {} as AuxData)
 
-  console.log({ auxData })
-
   const currentDate = new Date(start)
   const endDt = new Date(end)
   const chartData: ChartData[] = []
@@ -49,12 +46,6 @@ export async function getChartData({
 
     const counts = sources.reduce(
       (acc, cur) => {
-        if (date === '14/08/2024') {
-          console.log({ acc, cur, auxData })
-          console.log({ A: auxData[date] })
-          console.log({ B: auxData[date]?.[cur] })
-        }
-
         return {
           ...acc,
           [cur]: auxData[date]?.[cur] || 0,
@@ -62,10 +53,6 @@ export async function getChartData({
       },
       {} as { [source: string]: number },
     )
-
-    if (date === '14/08/2024') {
-      console.log({ counts })
-    }
 
     const entry: ChartData = {
       date,
@@ -75,7 +62,6 @@ export async function getChartData({
 
     currentDate.setDate(currentDate.getDate() + 1)
   }
-  console.log({ chartData })
 
   return chartData
 }

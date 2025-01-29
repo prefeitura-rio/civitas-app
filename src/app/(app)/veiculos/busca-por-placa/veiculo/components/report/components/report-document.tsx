@@ -1,3 +1,5 @@
+'use client'
+
 import { Document, Page, StyleSheet } from '@react-pdf/renderer'
 import React from 'react'
 
@@ -25,9 +27,15 @@ interface ReportProps {
   trips: Trip[]
   searchParams: GetCarPathRequest
   vehicle?: Vehicle
+  mapboxAccessToken: string
 }
 
-export function ReportDocument({ trips, searchParams, vehicle }: ReportProps) {
+export function ReportDocument({
+  trips,
+  searchParams,
+  vehicle,
+  mapboxAccessToken,
+}: ReportProps) {
   let imgCounter = 1
   let tableCounter = 1
 
@@ -66,6 +74,7 @@ export function ReportDocument({ trips, searchParams, vehicle }: ReportProps) {
                 plate={searchParams.plate}
                 useImgCounter={useImgCounter}
                 useTableCounter={useTableCounter}
+                mapboxAccessToken={mapboxAccessToken}
               />
               <ReportFooter />
             </Page>

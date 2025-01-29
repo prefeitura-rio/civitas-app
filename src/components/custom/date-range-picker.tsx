@@ -43,7 +43,11 @@ export function DatePickerWithRange({
   value,
   timePicker = true,
 }: DatePickerWithRangeProps) {
-  const initialMonth = new Date(2024, defaultMonth || new Date().getMonth(), 1)
+  const initialMonth = new Date(
+    new Date().getFullYear(),
+    defaultMonth ?? new Date().getMonth(),
+    1,
+  )
 
   function onSelect(newDateRange: DateRange | undefined) {
     const from =

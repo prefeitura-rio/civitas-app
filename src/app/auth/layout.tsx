@@ -5,14 +5,16 @@ import { redirect } from 'next/navigation'
 import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
-import { isAuthenticated } from '@/auth/auth'
+import { hasAccessToken } from '@/auth/auth'
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  if (isAuthenticated()) {
+  const isAuthenticated = await hasAccessToken()
+
+  if (isAuthenticated) {
     redirect('/')
   }
 

@@ -1,3 +1,5 @@
+'use server'
+
 import { api } from '@/lib/api'
 import type { MonitoredPlateHistoryItem } from '@/models/entities'
 import type { PaginationResponse } from '@/models/pagination'
