@@ -42,7 +42,7 @@ export const sidebarItems: SideBarItem[] = [
       {
         icon: 'Cctv',
         title: 'Status Infra dos Radares',
-        path: 'dashboards/status-infra-radares',
+        path: '/dashboards/status-infra-radares',
       },
     ],
   },
