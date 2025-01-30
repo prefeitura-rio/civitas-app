@@ -92,6 +92,7 @@ export function MonitoredPlateFormDialog({
       toast.success(`A placa ${data.plate} foi cadastrada com sucesso!`)
     },
     onError: (error, variables) => {
+      console.error('Error:', error)
       if (isConflictError(error)) {
         toast.error(`A placa ${variables.plate} já existe`)
       } else {
@@ -115,6 +116,7 @@ export function MonitoredPlateFormDialog({
       toast.success(`A placa ${data.plate} foi atualizada com sucesso!`)
     },
     onError: (error, variables) => {
+      console.error('Error2:', error)
       if (isConflictError(error)) {
         toast.error(`A placa ${variables.plate} já existe`)
       } else {
@@ -155,31 +157,33 @@ export function MonitoredPlateFormDialog({
   }
 
   async function onSubmit(props: MonitoredPlateForm) {
-    const notificationChannels = props.notificationChannels.map(
-      (item) => item.value,
-    )
-    if (initialData?.plate && shouldFetchData) {
-      await updateMonitoredPlateMutation({
-        plate: props.plate,
-        active: props.active,
-        contactInfo: props.contactInfo,
-        notes: props.notes,
-        operationId: props.operation.id,
-        notificationChannels,
-        // additionalInfo: props.additionalInfo,
-      })
-    } else {
-      await createMonitoredPlateMutation({
-        plate: props.plate,
-        active: true,
-        operationId: props.operation.id,
-        contactInfo: props.contactInfo,
-        notes: props.notes,
-        notificationChannels,
-        // additionalInfo: props.additionalInfo,
-      })
+    try {
+      const notificationChannels = props.notificationChannels.map(
+        (item) => item.value,
+      )
+      if (initialData?.plate && shouldFetchData) {
+        await updateMonitoredPlateMutation({
+          plate: props.plate,
+          active: props.active,
+          contactInfo: props.contactInfo,
+          notes: props.notes,
+          operationId: props.operation.id,
+          notificationChannels,
+        })
+      } else {
+        await createMonitoredPlateMutation({
+          plate: props.plate,
+          active: true,
+          operationId: props.operation.id,
+          contactInfo: props.contactInfo,
+          notes: props.notes,
+          notificationChannels,
+        })
+      }
+      handleOnOpenChange(false)
+    } catch (error) {
+      // Errors are already handled in the onError callback, so no need to do anything here
     }
-    handleOnOpenChange(false)
   }
 
   useEffect(() => {
