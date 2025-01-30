@@ -175,6 +175,7 @@ export function SearchByRadarForm() {
           render={({ field }) => (
             <div className="w-full space-y-2 pt-6">
               <Slider
+                unity="min"
                 value={field.value}
                 onValueChange={(value) => {
                   if (value[0] > 0) field.onChange([0, value[1]])
