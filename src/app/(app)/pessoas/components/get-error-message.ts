@@ -20,6 +20,9 @@ export function getErrorMessage(
     if (error.response?.status === 429) {
       return 'Você atingiu o limite de requisições à API do Córtex. Por favor, tente novamente mais tarde.'
     }
+    if (error.response?.status === 403) {
+      return 'Esta operação requer um CPF válido. Peça ao seu administrador para atualizar seu perfil.'
+    }
 
     if (error.response?.status === 404) {
       return notFoundMessage
