@@ -7,10 +7,14 @@ export function useProfile() {
     queryKey: ['users', 'me'],
     queryFn: async () => {
       const profile = await getProfile()
-      return {
-        ...profile,
-        is_admin: true,
+      if (profile) {
+        return {
+          ...profile,
+          is_admin: true,
+        }
       }
+
+      return profile
     },
   })
 }
