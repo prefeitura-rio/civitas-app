@@ -1,5 +1,3 @@
-'use server'
-
 import { api } from '@/lib/api'
 import type { BackendReport, Report } from '@/models/entities'
 import type { GetReportsRequest } from '@/models/interfaces'

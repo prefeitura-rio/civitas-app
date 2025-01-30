@@ -2,7 +2,6 @@
 import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { addMinutes, format } from 'date-fns'
 import {
   Info,
   MapPinIcon,
@@ -67,7 +66,6 @@ export function SearchByRadarForm() {
     control,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<RadarSearchFormData>({
     resolver: zodResolver(radarSearchSchema),
@@ -82,7 +80,7 @@ export function SearchByRadarForm() {
         }
       : {
           date: new Date(new Date().setSeconds(0, 0)),
-          duration: [-10, 0],
+          duration: [0, 5],
           radarIds: [],
           plate: '',
         },
@@ -174,38 +172,27 @@ export function SearchByRadarForm() {
         <Controller
           control={control}
           name="duration"
-          render={({ field }) => {
-            const selectedDate = watch('date') || new Date()
-            return (
-              <div className="w-full space-y-2 pt-6">
-                <Slider
-                  unity="min"
-                  value={field.value}
-                  onValueChange={(value) => {
-                    if (value[0] > 0) field.onChange([0, value[1]])
-                    else if (value[1] < 0) field.onChange([value[0], 0])
-                    else field.onChange(value)
-                  }}
-                  defaultValue={[0, 0]}
-                  max={60}
-                  min={-60}
-                  step={1}
-                  disabled={isSubmitting}
-                  labelFormatter={(val) =>
-                    `${format(addMinutes(selectedDate, val), 'HH:mm')}h`
-                  }
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>
-                    Min: {format(addMinutes(selectedDate, -60), 'HH:mm')}h
-                  </span>
-                  <span>
-                    Max: {format(addMinutes(selectedDate, 60), 'HH:mm')}h
-                  </span>
-                </div>
+          render={({ field }) => (
+            <div className="w-full space-y-2 pt-6">
+              <Slider
+                value={field.value}
+                onValueChange={(value) => {
+                  if (value[0] > 0) field.onChange([0, value[1]])
+                  else if (value[1] < 0) field.onChange([value[0], 0])
+                  else field.onChange(value)
+                }}
+                defaultValue={[5, 10]}
+                max={60}
+                min={-60}
+                step={1}
+                disabled={isSubmitting}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Min: -60min</span>
+                <span>Max: 60min</span>
               </div>
-            )
-          }}
+            </div>
+          )}
         />
 
         <div className="flex w-full flex-col">

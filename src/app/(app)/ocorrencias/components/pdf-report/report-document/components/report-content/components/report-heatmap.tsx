@@ -1,14 +1,13 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Image, Text, View } from '@react-pdf/renderer'
 
-import { getEnv } from '@/env/server'
+import { config } from '@/config'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 import { styles } from '../../styles'
 
-export async function ReportHeatmap() {
-  const env = await getEnv()
-  const accessToken = env.MAPBOX_ACCESS_TOKEN
+export function ReportHeatmap() {
+  const accessToken = config.mapboxAccessToken
   const mapStyle = 'mapbox/streets-v12'
   const mapWidth = '800'
   const mapHeight = '550'
