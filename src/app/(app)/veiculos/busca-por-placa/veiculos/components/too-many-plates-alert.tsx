@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { cortexRequestLimit } from '@/utils/constants'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 
 export function TooManyPlates() {
   const router = useRouter()

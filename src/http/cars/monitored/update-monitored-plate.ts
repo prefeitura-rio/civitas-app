@@ -1,5 +1,3 @@
-'use server'
-
 import { api } from '@/lib/api'
 import type { MonitoredPlate, Operation } from '@/models/entities'
 
@@ -12,7 +10,7 @@ interface UpdateMonitoredPlateRequest
   notificationChannels?: string[]
 }
 
-export async function updateMonitoredPlate({
+export function updateMonitoredPlate({
   plate,
   operationId,
   contactInfo,
@@ -21,7 +19,7 @@ export async function updateMonitoredPlate({
   additionalInfo,
   notificationChannels,
 }: UpdateMonitoredPlateRequest) {
-  const response = await api.put<MonitoredPlate>(`/cars/monitored/${plate}`, {
+  const response = api.put<MonitoredPlate>(`/cars/monitored/${plate}`, {
     plate,
     operation_id: operationId,
     active,
@@ -31,5 +29,5 @@ export async function updateMonitoredPlate({
     notification_channels: notificationChannels,
   })
 
-  return response.data
+  return response
 }

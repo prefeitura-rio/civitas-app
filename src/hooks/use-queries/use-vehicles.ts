@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { getVehicles } from '@/http/cars/plates/get-vehicles'
-import { cortexRequestLimit } from '@/utils/constants'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 
 export function useVehicles(plates: string[]) {
   return useQuery({

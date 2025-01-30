@@ -1,14 +1,12 @@
-import { getEnv } from '@/env/server'
+'use client'
 
 import { PlaygroundMap } from './components/map'
 
-export default async function Home() {
-  const env = await getEnv()
-
+export default function Home() {
   return (
     <div className="flex w-full">
       <div className="h-full w-full">
-        <PlaygroundMap mapboxAccessToken={env.MAPBOX_ACCESS_TOKEN} />
+        <PlaygroundMap />
       </div>
     </div>
   )

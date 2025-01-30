@@ -3,13 +3,20 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { FilterX, Search } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const activeOptions = ['all', 'true', 'false']
 
@@ -27,18 +34,21 @@ export function MonitoredPlatesFilter() {
   const router = useRouter()
   const pathName = usePathname()
 
-  const { register, handleSubmit, setValue, reset } = useForm<FilterForm>({
-    resolver: zodResolver(filterFormSchema),
-    defaultValues: {
-      active: 'all',
-    },
-  })
+  const { register, handleSubmit, setValue, reset, control } =
+    useForm<FilterForm>({
+      resolver: zodResolver(filterFormSchema),
+      defaultValues: {
+        active: 'all',
+      },
+    })
 
   useEffect(() => {
+    const pActive = searchParams.get('active')
     const pPlate = searchParams.get('plateContains')
     const pOperation = searchParams.get('operationTitle')
     const pChannel = searchParams.get('notificationChannelTitle')
 
+    if (pActive) setValue('active', pActive)
     if (pPlate) setValue('plateContains', pPlate)
     if (pOperation) setValue('operationTitle', pOperation)
     if (pChannel) setValue('notificationChannelTitle', pChannel)
@@ -46,6 +56,7 @@ export function MonitoredPlatesFilter() {
 
   function handleClearFilters() {
     reset()
+    setValue('active', 'all')
     router.replace(pathName)
   }
 
@@ -56,6 +67,9 @@ export function MonitoredPlatesFilter() {
     if (props.operationTitle) params.set('operationTitle', props.operationTitle)
     if (props.notificationChannelTitle)
       params.set('notificationChannelTitle', props.notificationChannelTitle)
+
+    if (props.active && props.active !== 'all')
+      params.set('active', props.active)
 
     router.replace(`${pathName}?${params.toString()}`)
   }
@@ -76,6 +90,7 @@ export function MonitoredPlatesFilter() {
           className="h-9 w-40"
           id="plateContains"
           type="text"
+          // placeholder="Placa"
           {...register('plateContains')}
           onChange={(e) =>
             setValue('plateContains', e.target.value.toUpperCase())
@@ -93,6 +108,7 @@ export function MonitoredPlatesFilter() {
           className="h-9 w-40"
           id="operationTitle"
           type="text"
+          // placeholder="Demandante"
           {...register('operationTitle')}
         />
       </div>
@@ -110,6 +126,29 @@ export function MonitoredPlatesFilter() {
           {...register('notificationChannelTitle')}
         />
       </div>
+      <Controller
+        control={control}
+        name="active"
+        render={({ field }) => (
+          <div>
+            <Label className="text-xs text-muted-foreground">Status</Label>
+            <Select
+              onValueChange={field.onChange}
+              defaultValue="all"
+              value={field.value}
+            >
+              <SelectTrigger className="h-9 w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="true">Ativo</SelectItem>
+                <SelectItem value="false">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      />
 
       <Button size="sm" variant="outline" type="submit" className="space-x-1">
         <Search className="h-4 w-4" />

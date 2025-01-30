@@ -2,6 +2,7 @@
 import { DeckGL } from '@deck.gl/react'
 import ReactMapGL from 'react-map-gl'
 
+import { config } from '@/config'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 
 import { SearchBox } from '../../veiculos/components/map/components/search-box'
@@ -14,7 +15,6 @@ export default function Map() {
     mapRef,
     viewport,
     setViewport,
-    mapboxAccessToken,
     layers: { reports, addressMarker },
   } = useReportsMap()
 
@@ -50,7 +50,7 @@ export default function Map() {
       >
         <ReactMapGL
           ref={mapRef}
-          mapboxAccessToken={mapboxAccessToken}
+          mapboxAccessToken={config.mapboxAccessToken}
           mapStyle={'mapbox://styles/mapbox/streets-v12'}
         />
         <div className="absolute-x-centered top-2 z-50 w-64">

@@ -28,7 +28,7 @@ export function SearchByPlateForm() {
   const router = useRouter()
   const {
     layers: {
-      trips: { getTrips, getPossiblePlates, isLoading: isLoadingTrips },
+      trips: { getTrips, getPossiblePlates },
     },
   } = useMap()
   const { formattedSearchParams } = useCarPathsSearchParams()
@@ -145,7 +145,7 @@ export function SearchByPlateForm() {
         </div>
 
         <div className="col-span-2 flex justify-end">
-          <Button type="submit" className="mt-4" disabled={isLoadingTrips}>
+          <Button type="submit" className="mt-4">
             <SearchIcon className="mr-2 h-4 w-4" />
             Buscar
           </Button>

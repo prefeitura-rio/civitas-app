@@ -1,5 +1,3 @@
-'use server'
-
 import { api } from '@/lib/api'
 import type { BackendRadar, Radar } from '@/models/entities'
 
@@ -20,9 +18,9 @@ export async function getRadars() {
       lat = item.latitude
       clusters[key] = 1
     } else {
+      clusters[key] += 1
       lon = item.longitude + 0.00001 * clusters[key]
       lat = item.latitude - 0.00001 * clusters[key]
-      clusters[key] += 1
     }
 
     const laneRegex = /- FX (\d+)/
