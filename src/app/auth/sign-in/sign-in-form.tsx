@@ -39,7 +39,12 @@ export default function SignInForm() {
 
       <div className="space-y-1">
         <Label htmlFor="username">Usuário</Label>
-        <Input name="username" type="text" id="username" />
+        <Input
+          name="username"
+          type="text"
+          id="username"
+          placeholder="123.456.789-00"
+        />
         {errors?.username && (
           <span className="ml-2 text-xs text-rose-600">
             {errors.username[0]}
@@ -55,6 +60,7 @@ export default function SignInForm() {
             type={passwordFieldType}
             id="password"
             name="password"
+            placeholder="**********"
           />
           <LucideIcon
             className="absolute bottom-[50%] right-1.5 top-[50%] size-5 translate-y-[-50%] cursor-pointer select-none text-muted-foreground"
