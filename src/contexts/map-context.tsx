@@ -13,7 +13,7 @@ import {
   type UseAddressMarker,
   useAddressMarker,
 } from '@/hooks/map-layers/use-address-marker'
-import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agent-layer'
+import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
 import {
   type UseAISPLayer,
   useAISPLayer,
@@ -22,11 +22,7 @@ import {
   type UseBusStopLayer,
   useBusStopLayer,
 } from '@/hooks/map-layers/use-bus-stop-layer'
-import {
-  type UseCameraLayer,
-  useCameraLayer,
-} from '@/hooks/map-layers/use-camera-layer'
-import { type UseTrips, useTrips } from '@/hooks/map-layers/use-car-trips-layer'
+import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
 import {
   type UseCISPLayer,
   useCISPLayer,
@@ -34,7 +30,7 @@ import {
 import {
   type UseFogoCruzadoIncidents,
   useFogoCruzadoIncidents,
-} from '@/hooks/map-layers/use-fogo-cruzado-layer'
+} from '@/hooks/map-layers/use-fogo-cruzado'
 import {
   type UseRadarLayer,
   useRadarLayer,
@@ -43,10 +39,11 @@ import {
   type UseSchoolLayer,
   useSchoolLayer,
 } from '@/hooks/map-layers/use-school-layer'
+import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
 import {
   type UseWazePoliceAlerts,
   useWazePoliceAlerts,
-} from '@/hooks/map-layers/use-waze-police-alerts-layer'
+} from '@/hooks/map-layers/use-waze-police-alerts'
 import type { SetViewportProps } from '@/models/utils'
 import { MapStyle } from '@/utils/get-map-style'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
@@ -55,7 +52,7 @@ interface MapContextProps {
   layers: {
     radars: UseRadarLayer
     trips: UseTrips
-    cameras: UseCameraLayer
+    cameras: UseCameraCOR
     agents: UseAgents
     fogoCruzado: UseFogoCruzadoIncidents
     waze: UseWazePoliceAlerts
@@ -105,7 +102,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
 
   const radars = useRadarLayer()
   const trips = useTrips({ setViewport })
-  const cameras = useCameraLayer()
+  const cameras = useCameraCOR()
   const agents = useAgents()
   const fogoCruzado = useFogoCruzadoIncidents()
   const waze = useWazePoliceAlerts()

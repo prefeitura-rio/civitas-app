@@ -22,7 +22,7 @@ import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remain
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
 import { queryClient } from '@/lib/react-query'
-import { cortexRequestLimit } from '@/utils/constants'
+import { cortexRequestLimit } from '@/utils/cortex-limit'
 import { toQueryParams } from '@/utils/to-query-params'
 
 interface EnhancePlatesInfoProps {

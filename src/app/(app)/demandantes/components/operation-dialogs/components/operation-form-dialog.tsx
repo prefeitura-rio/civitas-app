@@ -26,10 +26,7 @@ import { createOperation } from '@/http/operations/create-operation'
 import { getOperation } from '@/http/operations/get-operation'
 import { updateOperation } from '@/http/operations/update-operation'
 import { queryClient } from '@/lib/react-query'
-import {
-  GENERIC_ERROR_MESSAGE,
-  isConflictError,
-} from '@/utils/others/error-handlers'
+import { genericErrorMessage } from '@/utils/error-handlers'
 
 interface OperationDialogProps {
   isOpen: boolean
@@ -66,30 +63,26 @@ export function OperationFormDialog({
           queryKey: ['operations'],
         })
       },
-      onError: (error, variables) => {
-        if (isConflictError(error) || error.message.includes('409')) {
-          toast.error(`O demandante ${variables.title} já existe`)
-        } else {
-          toast.error(GENERIC_ERROR_MESSAGE)
-        }
+      onError: () => {
+        toast.error(genericErrorMessage)
       },
     })
 
   const { mutateAsync: updateOperationMutation, isPending: isPendingUpdate } =
     useMutation({
       mutationFn: updateOperation,
-      onSuccess: ({ title }) => {
+      onSuccess: ({ data }) => {
         queryClient.invalidateQueries({
           queryKey: ['operations'],
         })
-        toast.success(`Demandante ${title} criado com sucesso.`)
+        toast.success(`Demandante ${data.title} criado com sucesso.`)
       },
       onError: () => {
-        toast.error(GENERIC_ERROR_MESSAGE)
+        toast.error(genericErrorMessage)
       },
     })
 
-  const { data: operation, isLoading: isLoadingOperation } = useQuery({
+  const { data: operationResponse, isLoading: isLoadingOperation } = useQuery({
     queryKey: [`operations/${initialData?.id}`],
     queryFn: () => (initialData ? getOperation({ id: initialData?.id }) : null),
   })
@@ -121,12 +114,12 @@ export function OperationFormDialog({
   }
 
   useEffect(() => {
-    if (initialData && isOpen && !isLoading && operation) {
-      setValue('title', operation.title)
-      setValue('description', operation.description)
+    if (initialData && isOpen && !isLoading && operationResponse) {
+      setValue('title', operationResponse.data.title)
+      setValue('description', operationResponse.data.description)
       setIsLoading(false)
     }
-  }, [isOpen, isLoading, operation])
+  }, [isOpen, isLoading, operationResponse])
 
   useEffect(() => {
     if (

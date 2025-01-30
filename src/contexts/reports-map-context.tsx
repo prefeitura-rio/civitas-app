@@ -10,15 +10,11 @@ import {
 } from 'react'
 import type { MapRef } from 'react-map-gl'
 
-import { getEnv } from '@/env/server'
 import {
   type UseAddressMarker,
   useAddressMarker,
 } from '@/hooks/map-layers/use-address-marker'
-import {
-  type UseReports,
-  useReports,
-} from '@/hooks/map-layers/use-reports-layer'
+import { type UseReports, useReports } from '@/hooks/map-layers/use-reports'
 import type { SetViewportProps } from '@/models/utils'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -31,7 +27,6 @@ interface ReportsMapContextProps {
   setViewport: (props: SetViewportProps) => void
   deckRef: RefObject<DeckGLRef>
   mapRef: RefObject<MapRef>
-  mapboxAccessToken: string | undefined
 }
 
 export const ReportsMapContext = createContext({} as ReportsMapContextProps)
@@ -44,9 +39,6 @@ export function ReportsMapContextProvider({
   children,
 }: ReportsMapContextProviderProps) {
   const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
-  const [mapboxAccessToken, setMapboxAccessToken] = useState<
-    string | undefined
-  >(undefined)
 
   function setViewport(props: SetViewportProps) {
     setViewportState({
@@ -62,8 +54,6 @@ export function ReportsMapContextProvider({
   const reports = useReports()
   const addressMarker = useAddressMarker()
 
-  getEnv().then((env) => setMapboxAccessToken(env.MAPBOX_ACCESS_TOKEN))
-
   return (
     <ReportsMapContext.Provider
       value={{
@@ -75,7 +65,6 @@ export function ReportsMapContextProvider({
         setViewport,
         mapRef,
         deckRef,
-        mapboxAccessToken,
       }}
     >
       {children}
