@@ -141,7 +141,7 @@ export function DownloadReportDialog() {
                     </Label>
                     <div className="w-full space-y-2 pl-4 pr-2 pt-6">
                       <Slider
-                        unity="carros"
+                        unity="min"
                         value={[nMinutes]}
                         onValueChange={(value) => {
                           setNMinutes(value[0])
@@ -174,8 +174,8 @@ export function DownloadReportDialog() {
                         step={1}
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Min: 5</span>
-                        <span>Max: 50</span>
+                        <span>Min: 5 placas</span>
+                        <span>Max: 50 placas</span>
                       </div>
                     </div>
                   </div>
