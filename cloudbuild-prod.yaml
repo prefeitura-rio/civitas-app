@@ -5,7 +5,7 @@ steps:
     args:
       - "-c"
       - |
-         echo "NEXT_PUBLIC_CIVITAS_API_URL=https://api.civitas.rio" > .env.production && \
+        echo "NEXT_PUBLIC_CIVITAS_API_URL=https://api.civitas.rio" > .env.production && \
         echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoiZXNjcml0b3Jpb2RlZGFkb3MiLCJhIjoiY2t3bWdmcHpjMmJ2cTJucWJ4MGQ1Mm1kbiJ9.4hHJX-1pSevYoBbja7Pq4w" >> .env.production && \
         echo "NEXT_PUBLIC_VISION_AI_URL=http://app.dados.rio/vision-ai" >> .env.production
   # Build the container image
