@@ -13,6 +13,11 @@ interface VehicleInfoProps {
 export function VehicleInfo({ plate }: VehicleInfoProps) {
   const { data, error } = useVehicle(plate)
 
+  // If there is an error or no data, return null to render nothing
+  if (error || !data) {
+    return null
+  }
+
   const mainInfo = {
     'Marca/Modelo': data?.marcaModelo,
     Cor: data?.cor,
