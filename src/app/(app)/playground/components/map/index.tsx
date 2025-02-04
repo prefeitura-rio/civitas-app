@@ -10,13 +10,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { config } from '@/config'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
-export function PlaygroundMap({
-  mapboxAccessToken,
-}: {
-  mapboxAccessToken: string
-}) {
+// You need to replace this with your actual Mapbox access token
+mapboxgl.accessToken = config.mapboxAccessToken
+
+export function PlaygroundMap() {
   const mapContainer = useRef<HTMLDivElement | null>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const drawRef = useRef<MapboxDraw | null>(null)
@@ -32,9 +32,6 @@ export function PlaygroundMap({
 
   useEffect(() => {
     if (map.current) return // initialize map only once
-
-    mapboxgl.accessToken = mapboxAccessToken
-
     map.current = new mapboxgl.Map({
       container: mapContainer.current as HTMLElement,
       style: 'mapbox://styles/mapbox/streets-v11',
@@ -108,20 +105,15 @@ export function PlaygroundMap({
       return [['==', ['get', 'id'], featureId], color]
     })
 
-    const featureTypes = [
+    // Update colors for each feature type
+    ;[
       'gl-draw-polygon-stroke',
       'gl-draw-polygon-fill',
       'gl-draw-line',
       'gl-draw-point',
-    ]
-
-    // Update colors for each feature type
-    featureTypes.forEach((prefix: string) => {
-      const variants = ['cold', 'hot']
-
-      variants.forEach((state) => {
+    ].forEach((prefix) => {
+      ;['cold', 'hot'].forEach((state) => {
         const layerId = `${prefix}-inactive.${state}`
-
         if (map.current?.getLayer(layerId)) {
           map.current.setPaintProperty(
             layerId,

@@ -7,6 +7,7 @@ type MonitoredPlatesQueryKey = [
   plateContains?: string,
   operationTitle?: string,
   NotificationChannelTitle?: string,
+  active?: boolean,
   page?: number,
   size?: number,
 ]
@@ -15,6 +16,7 @@ export interface FormattedSearchParams {
   plateContains?: string
   operationTitle?: string
   notificationChannelTitle?: string
+  active?: boolean
   page?: number
   size?: number
 }
@@ -35,6 +37,9 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const notificationChannelTitle =
     searchParams.get('notificationChannelTitle') || undefined
 
+  const pActive = searchParams.get('active')
+  const active = pActive === null ? undefined : pActive === 'true'
+
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
 
@@ -44,6 +49,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     if (operationTitle) params.set('operationTitle', operationTitle)
     if (notificationChannelTitle)
       params.set('notificationChannelTitle', notificationChannelTitle)
+    if (typeof active !== 'undefined') params.set('active', String(active))
     if (page) params.set('page', index.toString())
     if (size) params.set('size', size.toString())
 
@@ -57,6 +63,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       plateContains,
       operationTitle,
       notificationChannelTitle,
+      active,
       page,
       size,
     },
@@ -66,6 +73,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       plateContains,
       operationTitle,
       notificationChannelTitle,
+      active,
       page,
       size,
     ],
