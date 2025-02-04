@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   getCarHint,
@@ -32,6 +32,7 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
   const [selectedTrip, setSelectedTripState] = useState<Trip | null>(null)
   const [lastSearchParams, setLastSearchParams] =
     useState<GetCarPathRequest | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   function clearSearch() {
     clearPossiblePlates()
@@ -99,9 +100,13 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
     },
   })
 
+  useEffect(() => {
+    setIsLoading(getTripsIsPending || getPossiblePlatesIsPending)
+  }, [getTripsIsPending, getPossiblePlatesIsPending])
+
   return {
     trips,
-    isLoading: getTripsIsPending || getPossiblePlatesIsPending,
+    isLoading,
     possiblePlates,
     getTrips,
     getPossiblePlates,
