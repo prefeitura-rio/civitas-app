@@ -1,18 +1,7 @@
 import '@/utils/string-extensions'
 
 import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
-import { formatDate } from 'date-fns'
 
-interface RadarReportCoverProps {
-  radarIds: string[]
-  location: string
-  latitude: number
-  longitude: number
-  fromDate: Date
-  toDate: Date
-  totalDetections: number
-  plate?: string
-}
 type BulletPoint = {
   value: string
   children?: BulletPoint[]
@@ -23,29 +12,20 @@ const bulletPoints: BulletPoint[] = [
     value: 'Parâmetros de busca:',
     children: [
       {
-        value: 'Equipamento ou área da busca:',
-        children: [
-          {
-            value:
-              'A determinação do local de busca é realizada por meio da seleção de um ou mais radares localizados em uma área específica, definida pelo solicitante. A análise é conduzida pelo sistema de forma automática utilizando apenas os dados dos radares selecionados.',
-          },
-        ],
-      },
-      {
         value: 'Intervalo de tempo:',
         children: [
           {
             value:
-              'O intervalo de tempo para a análise é determinado pelo solicitante da informação, com um limite de até uma hora(1h) por busca. Caso não haja especificação por parte do solicitante, a equipe operacional da CIVITAS aplicará um intervalo padrão de 1 hora(1h).',
+              'As buscas por placas conjuntas podem ser feitas até cinco minutos antes e cinco minutos depois da passagem da placa principal monitorada. A escolha dos parâmetros é feita pelo solicitante da informação. Quando não há informação sobre o período de busca na solicitação, o operador da Civitas utiliza o intervalo padrão definido nas diretrizes operacionais internas (três minutos antes e três minutos depois e de até 50 placas).',
           },
         ],
       },
       {
-        value: 'Quantidade de placas adjacentes:',
+        value: 'Quantidade de placas conjuntas por buscas:',
         children: [
           {
             value:
-              'Não há um limite máximo para o número de placas a serem detectadas dentro do intervalo de tempo selecionado. O sistema irá registrar todas as placas detectadas nos radares dentro do intervalo de tempo especificado, sem restrições de quantidade.',
+              'São identificadas no máximo 50 placas antes e 50 placas depois da placa principal monitorada.',
           },
         ],
       },
@@ -69,6 +49,27 @@ const bulletPoints: BulletPoint[] = [
     ],
   },
   {
+    value: 'Como ler o relatório:',
+    children: [
+      {
+        value:
+          'O relatório é disposto em duas partes. Na primeira parte, consta um ranking com a frequência com que cada placa conjunta aparece junto à placa monitorada durante o tempo determinado nas buscas. Nesta parte, as placas são classificadas de forma decrescente a partir da quantidade de vezes que passavam junto à placa monitorada.',
+      },
+      {
+        value:
+          'A segunda parte é composta por tabelas que apresentam em ordem cronológica todas as placas detectadas que passaram antes e depois da placa principal monitorada por grupo de radar.',
+      },
+      {
+        value:
+          'O relatório apresenta tabelas com linhas e colunas. A linha grifada em amarelo representa a placa principal monitorada na qual pretende-se buscar as placas conjuntas.',
+      },
+      {
+        value:
+          'Ao lado da listagem com cada placa, na coluna à direita, é apresentado a quantidade de vezes (ocorrências) que cada placa foi registrada em conjunto com a placa monitorada.',
+      },
+    ],
+  },
+  {
     value: 'Limitações do relatório:',
     children: [
       {
@@ -85,7 +86,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'Podem ocorrer problemas técnicos que inviabilizam a leitura do OCR de algumas placas, tais como: placas em mau estado de conservação, objetos obstruindo as câmeras de leitura, condições climáticas, períodos de inatividade do equipamento e outros.',
+              'A falta de registro de uma placa não significa, necessariamente, que o veículo não passou pelo local. A leitura de OCR pode ser inviabilizada em algumas circunstâncias, tais como: mau estado de conservação das placas, objetos obstruindo as câmeras de leitura, condições climáticas, período de inatividade do equipamento entre outros.',
           },
           {
             value:
@@ -94,11 +95,11 @@ const bulletPoints: BulletPoint[] = [
         ],
       },
       {
-        value: 'Casos de ausência de detecção (parcial ou total):',
+        value: 'Distância entre radares:',
         children: [
           {
             value:
-              'Há a possibilidade de inatividade de radares durante o período solicitado, o que pode resultar na ausência de registros de detecção. Essa inatividade pode ocorrer por diversos motivos técnicos, como falhas no fornecimento de energia, interrupções na comunicação de dados, problemas de calibração do equipamento, ou falhas no funcionamento do próprio radar. Quando um radar está inativo, ele não realiza a detecção das placas de veículos, resultando em lacunas nos dados.',
+              'O relatório não indica trajetos percorridos entre as detecções.',
           },
         ],
       },
@@ -209,60 +210,20 @@ const styles = StyleSheet.create({
   },
 })
 
-export function RadarReportCover({
-  radarIds,
-  latitude,
-  longitude,
-  location,
-  fromDate,
-  toDate,
-  totalDetections,
-  plate,
-}: RadarReportCoverProps) {
-  const commons = [
-    {
-      label: 'Localização:',
-      value: location,
-    },
-    {
-      label: 'Período analisado:',
-      value: `De ${formatDate(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${formatDate(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
-    },
-    {
-      label: 'Placa:',
-      value: plate,
-    },
-    {
-      label: 'Latitude:',
-      value: latitude,
-    },
-    {
-      label: 'Longitude:',
-      value: longitude,
-    },
-    {
-      label: 'Total de placas detectadas:',
-      value: totalDetections,
-    },
-    {
-      label: 'Radares:',
-      value: radarIds.join(', '),
-    },
-  ]
-
+export function CoverDisclaimer() {
   return (
     <View style={styles.container}>
       <Text style={styles.h1}>Informações gerais sobre o relatório</Text>
       <Text style={styles.bulletTitle}>Estrutura do relatório:</Text>
       <Text style={styles.normalBulletTitle}>
-        Este relatório apresenta os dados de passagens de veículos com base em
-        uma busca realizada por equipamento de radar ou por um conjunto desses
-        equipamentos em uma determinada localidade. As placas registradas são
-        organizadas em ordem cronológica e as buscas são feitas pelo sistema de
-        acordo com os parâmetros definidos pelo solicitante da informação, como
-        período de análise e localização dos radares considerados. Este
-        documento é gerado automaticamente pelo sistema, sem interferência
-        humana. Todo esse documento é auditável.
+        O relatório identifica placas de veículos que passaram junto a uma placa
+        principal monitorada (Placas conjuntas). A identificação é feita dentro
+        de um intervalo de tempo determinado pela investigação a partir dos
+        parâmetros de busca no sistema. O relatório também aponta a frequência
+        com que as placas conjuntas foram detectadas junto à placa principal
+        monitorada. A apresentação do resultado se dá por ordem decrescente de
+        passagens conjuntas. Este documento é gerado automaticamente pelo
+        sistema, sem interferência humana. Todo esse documento é auditável.
       </Text>
       {bulletPoints.map((topic, i) => (
         <View key={i}>
@@ -277,7 +238,8 @@ export function RadarReportCover({
                 <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
                 <Text
                   style={
-                    topic.value === 'Radares e localização:'
+                    topic.value === 'Radares e localização:' ||
+                    topic.value === 'Como ler o relatório:'
                       ? styles.normalBulletTitle
                       : styles.bulletTitle
                   }
@@ -315,17 +277,6 @@ export function RadarReportCover({
           ))}
         </View>
       ))}
-      <View style={styles.infos}>
-        {commons.map(
-          (item, index) =>
-            (item === undefined || item === null || item.value !== '') && (
-              <View key={index} style={styles.row}>
-                <Text style={styles.label}>{item.label}</Text>
-                <Text>{item.value}</Text>
-              </View>
-            ),
-        )}
-      </View>
     </View>
   )
 }
