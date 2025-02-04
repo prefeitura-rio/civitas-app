@@ -1,10 +1,8 @@
 import { cookies } from 'next/headers'
 
-import { ACCESS_TOKEN_COOKIE } from '@/lib/api'
-
 export default async function Page() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value
+  const cookieStore = cookies()
+  const token = cookieStore.get('token')?.value
 
   return (
     <iframe

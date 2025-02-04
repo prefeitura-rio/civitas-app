@@ -1,12 +1,11 @@
-import { isAxiosError } from 'axios'
-
-import { GENERIC_ERROR_MESSAGE } from '@/utils/others/error-handlers'
+import { isApiError } from '@/lib/api'
+import { genericErrorMessage } from '@/utils/error-handlers'
 
 export function getErrorMessage(
   error: Error,
   notFoundMessage = 'resultado não encontrado',
 ) {
-  if (isAxiosError(error)) {
+  if (isApiError(error)) {
     if (
       error.response?.data?.detail ===
       'Something unexpected happened to Cortex API'
@@ -21,12 +20,15 @@ export function getErrorMessage(
     if (error.response?.status === 429) {
       return 'Você atingiu o limite de requisições à API do Córtex. Por favor, tente novamente mais tarde.'
     }
+    if (error.response?.status === 403) {
+      return 'Esta operação requer um CPF válido. Peça ao seu administrador para atualizar seu perfil.'
+    }
 
     if (error.response?.status === 404) {
       return notFoundMessage
     }
 
-    return GENERIC_ERROR_MESSAGE
+    return genericErrorMessage
   }
-  return GENERIC_ERROR_MESSAGE
+  return genericErrorMessage
 }

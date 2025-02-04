@@ -7,7 +7,7 @@ import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import { getCameraCOR } from '@/http/cameras-cor/get-cameras-cor'
 import { CameraCOR } from '@/models/entities'
 
-export interface UseCameraLayer {
+export interface UseCameraCOR {
   data: CameraCOR[]
   failed: boolean
   layer: IconLayer<CameraCOR, object>
@@ -20,7 +20,7 @@ export interface UseCameraLayer {
   handleSelectObject: (camera: CameraCOR | null) => void
 }
 
-export function useCameraLayer(): UseCameraLayer {
+export function useCameraCOR(): UseCameraCOR {
   const [hoveredObject, setHoveredObject] =
     useState<PickingInfo<CameraCOR> | null>(null)
   const [isVisible, setIsVisible] = useState(false)
