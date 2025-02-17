@@ -28,3 +28,46 @@ export async function getNCarsBeforeAfter({
 
   return response.data
 }
+
+interface Ranking {
+  plate: string
+  count: number
+}
+
+interface GeneratePDFReportRequest {
+  reportData: DetectionGroup[]
+  params: {
+    plate: string
+    startTime: string
+    endTime: string
+    nMinutes: number
+    nPlates: number
+  }
+  ranking: Ranking[]
+}
+
+export async function generatePDFReport({
+  reportData,
+  params,
+  ranking,
+}: GeneratePDFReportRequest) {
+  const response = await api.post(
+    '/pdf/correlated-plates',
+    {
+      report_data: reportData,
+      params: {
+        plate: params.plate,
+        start_time: params.startTime,
+        end_time: params.endTime,
+        n_minutes: params.nMinutes,
+        n_plates: params.nPlates,
+      },
+      ranking,
+    },
+    {
+      responseType: 'blob',
+    },
+  )
+
+  return response.data
+}
