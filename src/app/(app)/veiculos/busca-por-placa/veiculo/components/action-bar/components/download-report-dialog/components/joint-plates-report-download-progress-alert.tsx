@@ -1,4 +1,3 @@
-import { pdf } from '@react-pdf/renderer'
 import { useQuery } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
 import React, { useEffect, useState } from 'react'
@@ -7,10 +6,9 @@ import { Spinner } from '@/components/custom/spinner'
 import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useNCarsBeforeAfter } from '@/hooks/use-queries/cars/use-n-before-after'
+import { generatePDFReport } from '@/http/cars/n-before-after/get-n-cars-before-after'
 import { exportToCSV } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
-
-import { ReportDocument } from '../../reports-by-detection-point/components/report/document'
 
 enum FileType {
   'PDF' = 'PDF',
@@ -57,20 +55,17 @@ export default function JointPlatesReportDownloadProgressAlert({
       nPlates,
     ],
     queryFn: async () => {
-      const doc = pdf(
-        <ReportDocument
-          params={{
-            plate: formattedSearchParams!.plate,
-            startTime: formattedSearchParams!.from,
-            endTime: formattedSearchParams!.to,
-            nMinutes,
-            nPlates,
-          }}
-          data={data!.groups}
-          ranking={data!.ranking}
-        />,
-      )
-      return doc.toBlob()
+      return generatePDFReport({
+        reportData: data!.groups,
+        params: {
+          plate: formattedSearchParams.plate,
+          startTime: formattedSearchParams.from,
+          endTime: formattedSearchParams.to,
+          nMinutes,
+          nPlates,
+        },
+        ranking: data!.ranking,
+      })
     },
     enabled: initialized2 && fileType === FileType.PDF,
   })
