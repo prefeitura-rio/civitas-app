@@ -7,6 +7,7 @@ import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionGroup, RadarDetection } from '@/models/entities'
 
 import { ReportEmptyResult } from '../../../../../report/components/components/report-empty-result'
+import { CoverDisclaimer } from './cover'
 
 interface ReportDocumentProps {
   data: DetectionGroup[]
@@ -35,6 +36,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    paddingTop: 20,
     // marginBottom: 12,
   },
   table: {
@@ -107,7 +109,7 @@ const rankingColumns = [
 ]
 
 export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
-  const reportTitle = 'Relatório de detecções conjuntas por radar'
+  const reportTitle = 'RELATÓRIO DE DETECÇÃO DE PLACAS CONJUNTAS'
   const totalDetections = data.reduce(
     (acc, group) => acc + group.total_detections,
     0,
@@ -174,7 +176,7 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         <ReportHeader title={reportTitle} />
-
+        <CoverDisclaimer />
         <Text style={styles.groupTitle}>Parâmetros Gerais</Text>
         <View style={paramsStyle.container}>
           {coverParams.map(
