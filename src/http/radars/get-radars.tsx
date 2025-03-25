@@ -4,7 +4,13 @@ import type { BackendRadar, Radar } from '@/models/entities'
 export async function getRadars() {
   const response = await api.get<BackendRadar[]>('/radars')
 
-  const filteredData = response.data.filter((item) => item.has_data === 'yes')
+  // First filter for has_data, then remove duplicates by codcet
+  const filteredData = response.data
+    .filter((item) => item.has_data === 'yes')
+    .filter(
+      (item, index, self) =>
+        index === self.findIndex((t) => t.codcet === item.codcet),
+    )
 
   const clusters: { [key: string]: number } = {}
 
