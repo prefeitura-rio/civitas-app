@@ -88,20 +88,38 @@ export interface RadarReportDocumentProps {
   }
 }
 
+// Function to remove duplicate detections
+const removeDuplicates = (detections: DetectionDTO[]) => {
+  const uniqueDetections = new Map<string, DetectionDTO>()
+  detections.forEach((detection) => {
+    const key = `${detection.timestamp}-${detection.plate}-${detection.cameraNumber}-${detection.lane}-${detection.speed}`
+    if (!uniqueDetections.has(key)) {
+      uniqueDetections.set(key, detection)
+    }
+  })
+  return Array.from(uniqueDetections.values())
+}
+
 export function RadarReportDocument({
   data,
   parameters,
 }: RadarReportDocumentProps) {
   const reportTitle = 'Relatório de detecção de placas por radar'
 
+  // Remove duplicates from each group's detections
+  const filteredData = data.map((group) => ({
+    ...group,
+    detections: removeDuplicates(group.detections),
+  }))
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <ReportHeader title={reportTitle} />
 
-        {data.map((group, i) => (
+        {filteredData.map((group, i) => (
           <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
-            {data.length > 1 && (
+            {filteredData.length > 1 && (
               <Text style={styles.groupTitle}>{`Grupo ${i + 1}`}</Text>
             )}
             <RadarReportCover
@@ -151,7 +169,7 @@ export function RadarReportDocument({
                     )
                   })}
                 </View>
-                {data.length > 1 ? (
+                {filteredData.length > 1 ? (
                   <Text
                     style={styles.tableCaption}
                   >{`Tabela ${i + 1}: Detecções do grupo ${i + 1}`}</Text>
