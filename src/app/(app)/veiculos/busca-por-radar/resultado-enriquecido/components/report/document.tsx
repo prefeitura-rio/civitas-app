@@ -168,7 +168,12 @@ export function RadarReportDocument({
                           >
                             {column.key === 'timestamp'
                               ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                              : row[column.key as keyof EnhancedDetectionDTO]}
+                              : column.key === 'plate' &&
+                                  row[
+                                    column.key as keyof EnhancedDetectionDTO
+                                  ] === ''
+                                ? '-------'
+                                : row[column.key as keyof EnhancedDetectionDTO]}
                           </Text>
                         ))}
                       </View>
