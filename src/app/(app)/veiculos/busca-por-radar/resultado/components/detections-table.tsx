@@ -28,7 +28,11 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
     {
       accessorKey: 'plate',
       header: () => <Label className="w-28">Placa</Label>,
-      cell: ({ row }) => <span>{row.getValue('plate')}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.getValue('plate') === '' ? '--------' : row.getValue('plate')}
+        </span>
+      ),
     },
     {
       accessorKey: 'cameraNumber',
