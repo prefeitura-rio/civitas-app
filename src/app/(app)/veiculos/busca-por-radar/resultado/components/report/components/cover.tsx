@@ -91,6 +91,10 @@ const bulletPoints: BulletPoint[] = [
             value:
               'O relatório não é exaustivo e a falta de registro de uma determinada placa não é determinante para comprovar que não houve a passagem naquela localidade.',
           },
+          {
+            value:
+              'Quando o radar não consegue, por qualquer razão, fazer a leitura completa ou parcial da placa, mas registra a passagem de um veículo, a linha na planilha será exibida com marcação tracejada ou conterá os caracteres parciais que puderam ser identificados pelo equipamento.',
+          },
         ],
       },
       {
