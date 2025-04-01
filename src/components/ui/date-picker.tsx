@@ -63,8 +63,12 @@ export function DatePicker({
           toDate={toDate}
           onSelect={(newDate) => {
             if (newDate && value) {
-              const newValue = new Date(value)
-              newValue.setDatePreservingTime(newDate)
+              // Create new date preserving the time from the original value
+              const newValue = new Date(newDate)
+              newValue.setHours(value.getHours())
+              newValue.setMinutes(value.getMinutes())
+              newValue.setSeconds(value.getSeconds())
+              newValue.setMilliseconds(value.getMilliseconds())
               onChange(newValue)
             } else {
               onChange(newDate)
