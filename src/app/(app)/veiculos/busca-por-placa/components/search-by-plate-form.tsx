@@ -6,11 +6,11 @@ import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { DatePickerWithRange } from '@/components/custom/date-range-picker'
 import { PlateWildcardsHelperInfo } from '@/components/custom/plate-wildcards-helper-info'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
@@ -36,6 +36,7 @@ export function SearchByPlateForm() {
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<WideSearchFormData>({
     resolver: zodResolver(wideSearchSchema),
@@ -58,6 +59,8 @@ export function SearchByPlateForm() {
         },
   })
 
+  const dateValues = watch('date')
+
   const onSubmit = (data: WideSearchFormData) => {
     const query = toQueryParams(data)
 
@@ -79,41 +82,65 @@ export function SearchByPlateForm() {
       router.push(`/veiculos/busca-por-placa/veiculo?${query.toString()}`)
     }
   }
+
   return (
     <Card className="w-full max-w-screen-md p-6">
-      {/* <CardHeader>
-        <CardDescription>
-          Consulte informações de um veículo e lugares onde ele foi detectado na
-          cidade do Rio de Janeiro.
-        </CardDescription>
-      </CardHeader>
-      <CardContent> */}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="grid w-full grid-cols-2 gap-x-8 gap-y-2"
       >
-        <div className="flex w-full items-center gap-2 overflow-hidden rounded-md border-r border-secondary">
-          <Controller
-            name="date"
-            control={control}
-            render={({ field }) => (
-              <DatePickerWithRange
-                placeholder="Selecione uma data"
-                className="w-full"
-                onChange={field.onChange}
-                fromDate={new Date(2024, 5, 1)}
-                toDate={new Date()}
-                value={field.value}
-                defaultValue={field.value}
-                defaultMonth={new Date().getMonth() - 1}
-              />
-            )}
-          />
-          {errors.date && (errors.date.to || errors.date?.from) && (
+        <div className="flex w-full flex-col gap-2 overflow-hidden">
+          <div className="flex items-center gap-2">
+            <Controller
+              name="date.from"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  type="datetime-local"
+                  value={field.value}
+                  onChange={(newDate) => {
+                    if (newDate) {
+                      field.onChange(newDate)
+                    }
+                  }}
+                  fromDate={new Date(2024, 5, 1)}
+                  toDate={dateValues?.to || new Date()}
+                  className="w-full"
+                />
+              )}
+            />
+          </div>
+          {errors.date?.from && (
             <span className="text-xs text-red-500">
-              {errors.date.message ||
-                errors.date.from?.message ||
-                errors.date.to?.message}
+              {errors.date.from.message}
+            </span>
+          )}
+        </div>
+
+        <div className="flex w-full flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Controller
+              name="date.to"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  type="datetime-local"
+                  value={field.value}
+                  onChange={(newDate) => {
+                    if (newDate) {
+                      field.onChange(newDate)
+                    }
+                  }}
+                  fromDate={dateValues?.from || new Date(2024, 5, 1)}
+                  toDate={new Date()}
+                  className="w-full"
+                />
+              )}
+            />
+          </div>
+          {errors.date?.to && (
+            <span className="text-xs text-red-500">
+              {errors.date.to.message}
             </span>
           )}
         </div>
@@ -151,7 +178,6 @@ export function SearchByPlateForm() {
           </Button>
         </div>
       </form>
-      {/* </CardContent> */}
     </Card>
   )
 }
