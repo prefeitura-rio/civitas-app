@@ -93,7 +93,7 @@ const bulletPoints: BulletPoint[] = [
           },
           {
             value:
-              'Quando o radar não consegue, por qualquer razão, fazer a leitura completa ou parcial da placa, mas registra a passagem de um veículo, a linha na planilha será exibida com marcação tracejada ou conterá os caracteres parciais que puderam ser identificados pelo equipamento.',
+              'Por razões técnicas, operacionais ou devido ao desgaste das placas, os radares podem não conseguir realizar a leitura completa do OCR. Nesses casos, duas situações podem ocorrer: (1) se o equipamento registrar a passagem do veículo e identificar parte da placa, a linha na planilha será exibida com marcação tracejada ou mostrará os caracteres parciais capturados; (2) se o radar registrar apenas a passagem do veículo, sem conseguir ler nenhum caractere da placa, a linha será exibida em branco na planilha.',
           },
         ],
       },
