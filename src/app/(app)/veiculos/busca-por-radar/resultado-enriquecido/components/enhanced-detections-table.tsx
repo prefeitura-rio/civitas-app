@@ -51,7 +51,11 @@ export function EnhancedDetectionsTable({
     {
       accessorKey: 'cameraNumber',
       header: () => <Label className="w-28">Radar</Label>,
-      cell: ({ row }) => <span>{row.getValue('cameraNumber')}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.getValue('plate') === '' ? '--------' : row.getValue('plate')}
+        </span>
+      ),
     },
     {
       accessorKey: 'location',
