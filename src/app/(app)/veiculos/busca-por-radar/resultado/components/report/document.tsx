@@ -162,7 +162,10 @@ export function RadarReportDocument({
                           >
                             {column.key === 'timestamp'
                               ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                              : row[column.key as keyof RadarDetection]}
+                              : column.key === 'plate' &&
+                                  row[column.key as keyof RadarDetection] === ''
+                                ? '-------'
+                                : row[column.key as keyof RadarDetection]}
                           </Text>
                         ))}
                       </View>
