@@ -1,4 +1,4 @@
-import Head from 'next/head'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -7,6 +7,14 @@ import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
 import { isAuthenticated } from '@/auth/auth'
+
+export const metadata: Metadata = {
+  title: 'CIVITAS',
+  description: 'Prefeitura do Rio de Janeiro',
+  verification: {
+    google: 'pD3XzBNLskqsw0Ov-xLZ05eX6wzzq8eXR_YG52xzqjU',
+  },
+}
 
 export default function AuthLayout({
   children,
@@ -19,12 +27,6 @@ export default function AuthLayout({
 
   return (
     <>
-      <Head>
-        <meta
-          name="google-site-verification"
-          content="pD3XzBNLskqsw0Ov-xLZ05eX6wzzq8eXR_YG52xzqjU"
-        />
-      </Head>
       <div className="min-h-screen px-4 pt-4">
         <div className="flex h-10 w-full items-center justify-start gap-8">
           <Image
