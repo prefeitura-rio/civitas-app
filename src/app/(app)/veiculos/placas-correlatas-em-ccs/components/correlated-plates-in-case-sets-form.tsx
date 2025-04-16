@@ -43,11 +43,14 @@ export function CorrelatedPlatesInCaseSetsForm() {
     RetrievePDFReportResponse['report_history']['body']
   > = stateParam ? JSON.parse(stateParam) : {}
 
-  const [rows, setRows] = useState<{ id: number }[]>(
-    prefilledData.requested_plates_data?.map((_, index) => ({
-      id: Date.now() + index,
-    })) || [{ id: Date.now() }, { id: Date.now() + 1 }, { id: Date.now() + 2 }],
-  )
+  // Ensure `requested_plates_data` is defined before mapping
+  const initialRows = prefilledData.requested_plates_data
+    ? prefilledData.requested_plates_data.map((_, index) => ({
+        id: Date.now() + index,
+      }))
+    : [{ id: Date.now() }, { id: Date.now() + 1 }, { id: Date.now() + 2 }]
+
+  const [rows, setRows] = useState<{ id: number }[]>(initialRows)
   const [nMinutes, setNMinutes] = useState<number>(prefilledData.n_minutes || 1)
   const [nPlates, setNPlates] = useState<number>(
     prefilledData.min_different_targets || 1,
@@ -70,8 +73,8 @@ export function CorrelatedPlatesInCaseSetsForm() {
         rows.map(() => ''),
       date:
         prefilledData.requested_plates_data?.map((data) => ({
-          from: new Date(data.start),
-          to: new Date(data.end),
+          from: data.start ? new Date(data.start) : new Date(),
+          to: data.end ? new Date(data.end) : new Date(),
         })) ||
         rows.map(() => ({
           from: new Date(
@@ -180,7 +183,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
                   render={({ field }) => (
                     <DatePicker
                       type="datetime-local"
-                      value={field.value}
+                      value={field.value || new Date()} // Ensure value is not undefined
                       onChange={(newDate) => {
                         if (newDate) {
                           field.onChange(newDate)
@@ -195,7 +198,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
                     />
                   )}
                 />
-                {errors.date?.[index]?.from && (
+                {errors.date?.[index]?.from?.message && (
                   <span className="text-xs text-red-500">
                     {errors.date[index].from.message}
                   </span>
@@ -208,7 +211,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
                   render={({ field }) => (
                     <DatePicker
                       type="datetime-local"
-                      value={field.value}
+                      value={field.value || new Date()} // Ensure value is not undefined
                       onChange={(newDate) => {
                         if (newDate) {
                           field.onChange(newDate)
@@ -384,7 +387,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
           formData.beforeAfter === 'both' ? undefined : formData.beforeAfter
         }
         fileType={fileType}
-        formData={formData}
+        formData={formData || {}} // Ensure formData is not undefined
       />
     </Card>
   )
