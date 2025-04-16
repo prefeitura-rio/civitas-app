@@ -222,7 +222,9 @@ export function CorrelatedPlatesInCaseSetsForm() {
                         }
                       }}
                       fromDate={
-                        formData.date?.[index]?.from || new Date(2024, 5, 1)
+                        formData.date && formData.date[index]?.from
+                          ? formData.date[index].from
+                          : new Date(2024, 5, 1)
                       }
                       toDate={new Date()}
                       className="w-full"
