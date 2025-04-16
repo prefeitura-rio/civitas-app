@@ -1,6 +1,7 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, RectangleEllipsis, Trash2 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
+import type { RetrievePDFReportResponse } from '@/http/cars/correlated-plates-in-case-sets/retrieve-pdf-report'
 import { dateRangeSchema, requiredPlateHintSchema } from '@/utils/zod-schemas'
 
 import JointPlatesInCaseSetsReportDownloadProgressAlert from '../../busca-por-placa/veiculo/components/action-bar/components/download-report-dialog/components/joint-plates-in-case-sets-report-download-progress-alert'
@@ -35,14 +37,22 @@ enum FileType {
 export type WideSearchFormData = z.infer<typeof wideSearchSchema>
 
 export function CorrelatedPlatesInCaseSetsForm() {
-  const [rows, setRows] = useState([
-    { id: Date.now() },
-    { id: Date.now() + 1 },
-    { id: Date.now() + 2 },
-  ])
-  const [nMinutes, setNMinutes] = useState(1)
-  const [nPlates, setNPlates] = useState(1)
-  const [showDownloadDialog, setShowDownloadDialog] = useState(false)
+  const searchParams = useSearchParams()
+  const stateParam = searchParams.get('state')
+  const prefilledData: Partial<
+    RetrievePDFReportResponse['report_history']['body']
+  > = stateParam ? JSON.parse(stateParam) : {}
+
+  const [rows, setRows] = useState<{ id: number }[]>(
+    prefilledData.requested_plates_data?.map((_, index) => ({
+      id: Date.now() + index,
+    })) || [{ id: Date.now() }, { id: Date.now() + 1 }, { id: Date.now() + 2 }],
+  )
+  const [nMinutes, setNMinutes] = useState<number>(prefilledData.n_minutes || 1)
+  const [nPlates, setNPlates] = useState<number>(
+    prefilledData.min_different_targets || 1,
+  )
+  const [showDownloadDialog, setShowDownloadDialog] = useState<boolean>(false)
   const [fileType] = useState<FileType>(FileType.PDF)
 
   const {
@@ -55,15 +65,22 @@ export function CorrelatedPlatesInCaseSetsForm() {
   } = useForm<WideSearchFormData>({
     resolver: zodResolver(wideSearchSchema),
     defaultValues: {
-      plate: rows.map(() => '') as [string, ...string[]], // Cast to tuple type
-      date: rows.map(() => ({
-        from: new Date(
-          new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
-        ),
-        to: new Date(new Date().setSeconds(0, 0)),
-      })) as [{ from: Date; to: Date }, ...Array<{ from: Date; to: Date }>],
-      vehicleTypes: [],
-      beforeAfter: 'both',
+      plate:
+        prefilledData.requested_plates_data?.map((data) => data.plate) ||
+        rows.map(() => ''),
+      date:
+        prefilledData.requested_plates_data?.map((data) => ({
+          from: new Date(data.start),
+          to: new Date(data.end),
+        })) ||
+        rows.map(() => ({
+          from: new Date(
+            new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
+          ),
+          to: new Date(new Date().setSeconds(0, 0)),
+        })),
+      vehicleTypes: prefilledData.vehicle_types || [],
+      beforeAfter: prefilledData.before_after || 'both',
     },
   })
   const formData = watch()
@@ -112,7 +129,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
       const newPlates = currentPlates.filter((_, i) => i !== index)
       const newDates = currentDates.filter((_, i) => i !== index)
 
-      // ppdate form values with type assertions
+      // update form values with type assertions
       setValue('plate', newPlates as [string, ...string[]])
       setValue(
         'date',
