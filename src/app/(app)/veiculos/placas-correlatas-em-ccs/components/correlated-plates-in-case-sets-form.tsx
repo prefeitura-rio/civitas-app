@@ -195,8 +195,16 @@ export function CorrelatedPlatesInCaseSetsForm() {
                           field.onChange(newDate)
                         }
                       }}
-                      fromDate={new Date(2024, 5, 1)}
-                      toDate={formData.date?.[index]?.to || new Date()}
+                      fromDate={
+                        formData.date && formData.date[index]?.from
+                          ? formData.date[index].from
+                          : new Date(2024, 5, 1)
+                      }
+                      toDate={
+                        formData.date && formData.date[index]?.to
+                          ? formData.date[index].to
+                          : new Date()
+                      }
                       className="w-full"
                       placeholder="Data início"
                     />
