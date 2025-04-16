@@ -32,7 +32,7 @@ export const sidebarItems: SideBarItem[] = [
       {
         icon: 'Waypoints',
         title: 'Placas Correlatas em CCs',
-        path: '/veiculos/placas-correlatas-em-ccs',
+        path: '/veiculos/placas-correlatas-em-ccs/genarate-report',
       },
     ],
   },

@@ -1,4 +1,5 @@
-import { CorrelatedPlatesInCaseSetsForm } from './components/correlated-plates-in-case-sets-form'
+import { PlacasCorrelatasEmCCsTabs } from '../components/search-tabs/placas-correlatas-em-ccs-tab'
+// import { CorrelatedPlatesInCaseSetsForm } from './components/correlated-plates-in-case-sets-form'
 
 export default function MapLayout({
   children,
@@ -7,7 +8,8 @@ export default function MapLayout({
 }>) {
   return (
     <div className="flex h-[calc(100%)] w-full flex-col items-center gap-2 overflow-y-scroll p-2">
-      <CorrelatedPlatesInCaseSetsForm />
+      <PlacasCorrelatasEmCCsTabs />
+      {/* <CorrelatedPlatesInCaseSetsForm /> */}
       {children}
     </div>
   )
