@@ -200,7 +200,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
                 />
                 {errors.date?.[index]?.from?.message && (
                   <span className="text-xs text-red-500">
-                    {errors.date[index].from.message}
+                    {errors.date?.[index]?.from?.message}
                   </span>
                 )}
               </div>
@@ -228,7 +228,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
                 />
                 {errors.date?.[index]?.to && (
                   <span className="text-xs text-red-500">
-                    {errors.date[index].to.message}
+                    {errors.date?.[index]?.to?.message}
                   </span>
                 )}
               </div>
