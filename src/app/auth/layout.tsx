@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   verification: {
     google: 'pD3XzBNLskqsw0Ov-xLZ05eX6wzzq8eXR_YG52xzqjU',
   },
+  robots: {
+    index: false,
+    follow: true,
+  },
 }
 
 export default function AuthLayout({
