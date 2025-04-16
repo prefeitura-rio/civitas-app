@@ -98,11 +98,9 @@ export function CorrelatedPlatesInCaseSetsForm() {
   const addNewRow = () => {
     const newId = Date.now()
     setRows([...rows, { id: newId }])
-    // get current values
-    const currentPlates = getValues('plate')
-    const currentDates = getValues('date')
+    const currentPlates = getValues('plate') || []
+    const currentDates = getValues('date') || []
 
-    // add new values with type assertion
     setValue('plate', [...currentPlates, ''] as [string, ...string[]])
     setValue('date', [
       ...currentDates,
@@ -118,18 +116,13 @@ export function CorrelatedPlatesInCaseSetsForm() {
   const removeRow = (id: number) => {
     const index = rows.findIndex((row) => row.id === id)
     if (index >= 0) {
-      // create new arrays without the removed item
       const newRows = rows.filter((_, i) => i !== index)
+      const currentPlates = getValues('plate') || []
+      const currentDates = getValues('date') || []
 
-      // get current form values
-      const currentPlates = getValues('plate')
-      const currentDates = getValues('date')
-
-      // remove the item at the specified index
       const newPlates = currentPlates.filter((_, i) => i !== index)
       const newDates = currentDates.filter((_, i) => i !== index)
 
-      // update form values with type assertions
       setValue('plate', newPlates as [string, ...string[]])
       setValue(
         'date',
@@ -138,8 +131,6 @@ export function CorrelatedPlatesInCaseSetsForm() {
           ...Array<{ from: Date; to: Date }>,
         ],
       )
-
-      // update the rows state
       setRows(newRows)
     }
   }
@@ -196,15 +187,9 @@ export function CorrelatedPlatesInCaseSetsForm() {
                         }
                       }}
                       fromDate={
-                        formData.date && formData.date[index]?.from
-                          ? formData.date[index].from
-                          : new Date(2024, 5, 1)
+                        formData.date?.[index]?.from || new Date(2024, 5, 1)
                       }
-                      toDate={
-                        formData.date && formData.date[index]?.to
-                          ? formData.date[index].to
-                          : new Date()
-                      }
+                      toDate={formData.date?.[index]?.to || new Date()}
                       className="w-full"
                       placeholder="Data início"
                     />
@@ -230,9 +215,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
                         }
                       }}
                       fromDate={
-                        formData.date && formData.date[index]?.from
-                          ? formData.date[index].from
-                          : new Date(2024, 5, 1)
+                        formData.date?.[index]?.from || new Date(2024, 5, 1)
                       }
                       toDate={new Date()}
                       className="w-full"
