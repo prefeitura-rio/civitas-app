@@ -84,100 +84,110 @@ export function SearchByPlateForm() {
   }
 
   return (
-    <Card className="w-full max-w-screen-md p-6">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid w-full grid-cols-2 gap-x-8 gap-y-2"
-      >
-        <div className="flex w-full flex-col gap-2 overflow-hidden">
-          <div className="flex items-center gap-2">
-            <Controller
-              name="date.from"
-              control={control}
-              render={({ field }) => (
-                <DatePicker
-                  type="datetime-local"
-                  value={field.value}
-                  onChange={(newDate) => {
-                    if (newDate) {
-                      field.onChange(newDate)
-                    }
-                  }}
-                  fromDate={new Date(2024, 5, 1)}
-                  toDate={dateValues?.to || new Date()}
-                  className="w-full"
-                />
-              )}
-            />
-          </div>
-          {errors.date?.from && (
-            <span className="text-xs text-red-500">
-              {errors.date.from.message}
-            </span>
-          )}
-        </div>
+    <>
+      <Card className="mb-2 w-full max-w-screen-md p-4">
+        <h1 className="text-lg font-bold">Buscar por Placa</h1>
+      </Card>
 
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Controller
-              name="date.to"
-              control={control}
-              render={({ field }) => (
-                <DatePicker
-                  type="datetime-local"
-                  value={field.value}
-                  onChange={(newDate) => {
-                    if (newDate) {
-                      field.onChange(newDate)
-                    }
-                  }}
-                  fromDate={dateValues?.from || new Date(2024, 5, 1)}
-                  toDate={new Date()}
-                  className="w-full"
-                />
-              )}
-            />
-          </div>
-          {errors.date?.to && (
-            <span className="text-xs text-red-500">
-              {errors.date.to.message}
-            </span>
-          )}
-        </div>
-
-        <div className="flex w-full items-center gap-2">
-          <div className="relative w-full">
-            <RectangleEllipsis className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-            <Controller
-              name="plate"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                  placeholder="Placa do Veículo"
-                  className="w-full pl-10 pr-8 dark:bg-gray-700 dark:text-white"
-                />
-              )}
-            />
-            <div className="absolute-y-centered right-2 flex items-center">
-              <Tooltip render={<PlateWildcardsHelperInfo />}>
-                <Info className="size-4 text-muted-foreground" />
-              </Tooltip>
+      <Card className="w-full max-w-screen-md p-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid w-full grid-cols-2 gap-x-8 gap-y-2"
+        >
+          <div className="flex w-full flex-col gap-2 overflow-hidden">
+            <div className="flex items-center gap-2">
+              <Controller
+                name="date.from"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    type="datetime-local"
+                    value={field.value}
+                    onChange={(newDate) => {
+                      if (newDate) {
+                        field.onChange(newDate)
+                      }
+                    }}
+                    fromDate={new Date(2024, 5, 1)}
+                    toDate={dateValues?.to || new Date()}
+                    className="w-full"
+                  />
+                )}
+              />
             </div>
+            {errors.date?.from && (
+              <span className="text-xs text-red-500">
+                {errors.date.from.message}
+              </span>
+            )}
           </div>
-          {errors.plate && (
-            <span className="text-xs text-red-500">{errors.plate.message}</span>
-          )}
-        </div>
 
-        <div className="col-span-2 flex justify-end">
-          <Button type="submit" className="mt-4">
-            <SearchIcon className="mr-2 h-4 w-4" />
-            Buscar
-          </Button>
-        </div>
-      </form>
-    </Card>
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Controller
+                name="date.to"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    type="datetime-local"
+                    value={field.value}
+                    onChange={(newDate) => {
+                      if (newDate) {
+                        field.onChange(newDate)
+                      }
+                    }}
+                    fromDate={dateValues?.from || new Date(2024, 5, 1)}
+                    toDate={new Date()}
+                    className="w-full"
+                  />
+                )}
+              />
+            </div>
+            {errors.date?.to && (
+              <span className="text-xs text-red-500">
+                {errors.date.to.message}
+              </span>
+            )}
+          </div>
+
+          <div className="flex w-full items-center gap-2">
+            <div className="relative w-full">
+              <RectangleEllipsis className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+              <Controller
+                name="plate"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value.toUpperCase())
+                    }
+                    placeholder="Placa do Veículo"
+                    className="w-full pl-10 pr-8 dark:bg-gray-700 dark:text-white"
+                  />
+                )}
+              />
+              <div className="absolute-y-centered right-2 flex items-center">
+                <Tooltip render={<PlateWildcardsHelperInfo />}>
+                  <Info className="size-4 text-muted-foreground" />
+                </Tooltip>
+              </div>
+            </div>
+            {errors.plate && (
+              <span className="text-xs text-red-500">
+                {errors.plate.message}
+              </span>
+            )}
+          </div>
+
+          <div className="col-span-2 flex justify-end">
+            <Button type="submit" className="mt-4">
+              <SearchIcon className="mr-2 h-4 w-4" />
+              Buscar
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </>
   )
 }
