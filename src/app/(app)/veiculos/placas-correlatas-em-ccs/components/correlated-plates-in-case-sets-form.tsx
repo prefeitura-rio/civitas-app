@@ -22,7 +22,7 @@ export const wideSearchSchema = z
     plate: z.array(requiredPlateHintSchema).nonempty(),
     date: z.array(dateRangeSchema).nonempty(),
     vehicleTypes: z.array(z.string()).optional(),
-    beforeAfter: z.enum(['before', 'after', 'both']).default('after'),
+    beforeAfter: z.enum(['before', 'after', 'both']).optional(),
   })
   .refine((data) => data.plate.length === data.date.length, {
     message: 'Plate and date arrays must have the same length',
@@ -41,7 +41,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
     { id: Date.now() + 2 },
   ])
   const [nMinutes, setNMinutes] = useState(1)
-  const [nPlates, setNPlates] = useState(5)
+  const [nPlates, setNPlates] = useState(1)
   const [showDownloadDialog, setShowDownloadDialog] = useState(false)
   const [fileType] = useState<FileType>(FileType.PDF)
 
@@ -63,13 +63,18 @@ export function CorrelatedPlatesInCaseSetsForm() {
         to: new Date(new Date().setSeconds(0, 0)),
       })) as [{ from: Date; to: Date }, ...Array<{ from: Date; to: Date }>],
       vehicleTypes: [],
-      beforeAfter: 'before',
+      beforeAfter: 'both',
     },
   })
   const formData = watch()
 
   const onSubmit = (data: WideSearchFormData) => {
-    console.log('Form submitted:', data)
+    const apiData = {
+      ...data,
+      beforeAfter: data.beforeAfter === 'both' ? undefined : data.beforeAfter,
+      vehicleTypes: data.vehicleTypes?.length ? data.vehicleTypes : undefined,
+    }
+    console.log('Form submitted:', apiData)
     setShowDownloadDialog(true)
   }
 
@@ -127,7 +132,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
         <Card className="p-4">
           <div className="flex flex-col gap-4 overflow-hidden">
-            <Label>Placas demandadas:</Label>
+            <Label>Placas demandadas: *</Label>
             <span className="h"></span>
           </div>
           {rows.map((row, index) => (
@@ -242,7 +247,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
 
         <Card className="p-4">
           <div className="space-y-2">
-            <Label>Intervalo de interesse ao redor das detecções:</Label>
+            <Label>Intervalo de interesse ao redor das detecções: *</Label>
             <div className="w-full space-y-2 pl-4 pr-2 pt-6">
               <Slider
                 unity="min"
@@ -251,18 +256,20 @@ export function CorrelatedPlatesInCaseSetsForm() {
                   setNMinutes(value[0])
                 }}
                 defaultValue={[nMinutes]}
-                max={5}
+                max={20}
                 min={1}
                 step={1}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Min: 1 min</span>
-                <span>Max: 5 min</span>
+                <span>Max: 20 min</span>
               </div>
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Quantidade mínima de placas de interesse diferentes:</Label>
+            <Label>
+              Quantidade mínima de placas de interesse diferentes: *
+            </Label>
             <div className="w-full space-y-2 pl-4 pr-2 pt-6">
               <Slider
                 unity="placas"
@@ -271,13 +278,13 @@ export function CorrelatedPlatesInCaseSetsForm() {
                   setNPlates(value[0])
                 }}
                 defaultValue={[nPlates]}
-                max={50}
-                min={5}
+                max={100}
+                min={1}
                 step={1}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Min: 5 placas</span>
-                <span>Max: 50 placas</span>
+                <span>Min: 1 placas</span>
+                <span>Max: 100 placas</span>
               </div>
             </div>
           </div>
@@ -293,9 +300,15 @@ export function CorrelatedPlatesInCaseSetsForm() {
                 render={({ field }) => (
                   <RadioGroup
                     className="flex w-full justify-between"
-                    value={field.value}
+                    value={field.value || 'both'}
                     onValueChange={field.onChange}
                   >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="both" />
+                      <Label className="cursor-pointer">
+                        Detecções Antes e Depois
+                      </Label>
+                    </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="before" />
                       <Label className="cursor-pointer">
@@ -307,10 +320,6 @@ export function CorrelatedPlatesInCaseSetsForm() {
                       <Label className="cursor-pointer">
                         Detecções posteriores
                       </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="both" />
-                      <Label className="cursor-pointer">Ambas</Label>
                     </div>
                   </RadioGroup>
                 )}
@@ -335,15 +344,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
                     }
                     defaultOptions={[
                       { label: 'Automóvel', value: 'automovel' },
-                      { label: 'Caminhão', value: 'caminhao' },
-                      {
-                        label: 'Caminhão / Ônibus',
-                        value: 'caminha_onibus',
-                      },
-                      { label: 'Ciclomotor', value: 'ciclomotor' },
                       { label: 'Indefinido', value: 'indefinido' },
-                      { label: 'Moto', value: 'moto' },
-                      { label: 'Ônibus', value: 'onibus' },
                     ]}
                     placeholder="Selecione os tipos de veículos"
                     emptyIndicator={<p>Nenhum resultado encontrado.</p>}
@@ -366,8 +367,12 @@ export function CorrelatedPlatesInCaseSetsForm() {
         setOpen={setShowDownloadDialog}
         nMinutes={nMinutes}
         minDifferentTargets={nPlates}
-        vehicleTypes={formData.vehicleTypes || []}
-        beforeAfter={formData.beforeAfter || 'after'}
+        vehicleTypes={
+          formData.vehicleTypes?.length ? formData.vehicleTypes : undefined
+        }
+        beforeAfter={
+          formData.beforeAfter === 'both' ? undefined : formData.beforeAfter
+        }
         fileType={fileType}
         formData={formData}
       />
