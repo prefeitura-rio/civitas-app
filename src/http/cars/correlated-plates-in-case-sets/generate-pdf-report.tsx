@@ -11,8 +11,8 @@ interface GeneratePDFReportRequest {
   requestedPlatesData: RequestedPlateData[]
   nMinutes: number
   minDifferentTargets: number
-  vehicleTypes: string[]
-  beforeAfter: 'before' | 'after' | 'both'
+  vehicleTypes?: string[]
+  beforeAfter?: 'before' | 'after' | 'both'
 }
 
 export async function generatePDFReport({

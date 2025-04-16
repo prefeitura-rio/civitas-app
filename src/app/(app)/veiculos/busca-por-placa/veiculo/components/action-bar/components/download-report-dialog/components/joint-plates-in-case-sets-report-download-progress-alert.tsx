@@ -17,8 +17,8 @@ interface DownloadReportsButtonProps {
   setOpen: (open: boolean) => void
   nMinutes: number
   minDifferentTargets: number
-  vehicleTypes: string[]
-  beforeAfter: 'before' | 'after' | 'both'
+  vehicleTypes: string[] | undefined
+  beforeAfter: 'before' | 'after' | 'both' | undefined
   fileType: FileType
   formData: WideSearchFormData
 }
