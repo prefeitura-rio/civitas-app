@@ -143,7 +143,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
         <Card className="p-4">
           <div className="flex flex-col gap-4 overflow-hidden">
-            <Label>Placas demandadas: *</Label>
+            <Label>Placas demandadas:</Label>
             <span className="h"></span>
           </div>
           {rows.map((row, index) => (
@@ -260,7 +260,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
 
         <Card className="p-4">
           <div className="space-y-2">
-            <Label>Intervalo de interesse ao redor das detecções: *</Label>
+            <Label>Intervalo de interesse ao redor das detecções:</Label>
             <div className="w-full space-y-2 pl-4 pr-2 pt-6">
               <Slider
                 unity="min"
@@ -280,9 +280,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>
-              Quantidade mínima de placas de interesse diferentes: *
-            </Label>
+            <Label>Quantidade mínima de placas de interesse diferentes:</Label>
             <div className="w-full space-y-2 pl-4 pr-2 pt-6">
               <Slider
                 unity="placas"
