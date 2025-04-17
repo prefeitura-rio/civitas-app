@@ -117,7 +117,7 @@ export function SearchByRadarForm() {
   return (
     <>
       <Card className="mb-0 w-full max-w-screen-md p-4">
-        <h1 className="text-lg font-bold">Buscar por Radar</h1>
+        <h1 className="text-lg font-bold">Busca por Radar</h1>
       </Card>
 
       <Card className="flex w-full max-w-screen-md flex-col p-6">
