@@ -305,7 +305,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
 
         <Card className="p-4">
           <div className="space-y-2">
-            <Label>Detecções anteriores, posteriores ou ambas:</Label>
+            <Label>Detecções antes, depois ou ambas:</Label>
             <div className="w-full">
               <Controller
                 control={control}
@@ -319,20 +319,16 @@ export function CorrelatedPlatesInCaseSetsForm() {
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="both" />
                       <Label className="cursor-pointer">
-                        Detecções Antes e Depois
+                        Detecções antes e depois
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="before" />
-                      <Label className="cursor-pointer">
-                        Detecções anteriores
-                      </Label>
+                      <Label className="cursor-pointer">Detecções antes</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="after" />
-                      <Label className="cursor-pointer">
-                        Detecções posteriores
-                      </Label>
+                      <Label className="cursor-pointer">Detecções depois</Label>
                     </div>
                   </RadioGroup>
                 )}

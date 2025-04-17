@@ -86,7 +86,7 @@ export function SearchByPlateForm() {
   return (
     <>
       <Card className="mb-2 w-full max-w-screen-md p-4">
-        <h1 className="text-lg font-bold">Buscar por Placa</h1>
+        <h1 className="text-lg font-bold">Busca por Placa</h1>
       </Card>
 
       <Card className="w-full max-w-screen-md p-6">
