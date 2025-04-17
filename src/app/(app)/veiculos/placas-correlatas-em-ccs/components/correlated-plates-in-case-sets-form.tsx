@@ -51,9 +51,9 @@ export function CorrelatedPlatesInCaseSetsForm() {
     : [{ id: Date.now() }, { id: Date.now() + 1 }, { id: Date.now() + 2 }]
 
   const [rows, setRows] = useState<{ id: number }[]>(initialRows)
-  const [nMinutes, setNMinutes] = useState<number>(prefilledData.n_minutes || 1)
+  const [nMinutes, setNMinutes] = useState<number>(prefilledData.n_minutes || 3)
   const [nPlates, setNPlates] = useState<number>(
-    prefilledData.min_different_targets || 1,
+    prefilledData.min_different_targets || 2,
   )
   const [showDownloadDialog, setShowDownloadDialog] = useState<boolean>(false)
   const [fileType] = useState<FileType>(FileType.PDF)
