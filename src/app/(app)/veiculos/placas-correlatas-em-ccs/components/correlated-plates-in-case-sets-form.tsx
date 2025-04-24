@@ -15,9 +15,20 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
 import type { RetrievePDFReportResponse } from '@/http/cars/correlated-plates-in-case-sets/retrieve-pdf-report'
-import { dateRangeSchema, requiredPlateHintSchema } from '@/utils/zod-schemas'
+import { requiredPlateHintSchema } from '@/utils/zod-schemas'
 
 import JointPlatesInCaseSetsReportDownloadProgressAlert from '../../busca-por-placa/veiculo/components/action-bar/components/download-report-dialog/components/joint-plates-in-case-sets-report-download-progress-alert'
+
+// dateRangeSchema to ensure start <= end
+const dateRangeSchema = z
+  .object({
+    from: z.date(),
+    to: z.date(),
+  })
+  .refine((data) => !data.from || !data.to || data.from <= data.to, {
+    message: 'A data de início não pode ser posterior à data de fim.',
+    path: ['from'],
+  })
 
 export const wideSearchSchema = z
   .object({
@@ -57,6 +68,9 @@ export function CorrelatedPlatesInCaseSetsForm() {
   )
   const [showDownloadDialog, setShowDownloadDialog] = useState<boolean>(false)
   const [fileType] = useState<FileType>(FileType.PDF)
+
+  const today = new Date()
+  today.setHours(23, 59, 59, 999)
 
   const {
     handleSubmit,
@@ -183,16 +197,14 @@ export function CorrelatedPlatesInCaseSetsForm() {
                   render={({ field }) => (
                     <DatePicker
                       type="datetime-local"
-                      value={field.value || new Date()} // Ensure value is not undefined
+                      value={field.value || new Date()}
                       onChange={(newDate) => {
                         if (newDate) {
                           field.onChange(newDate)
                         }
                       }}
-                      fromDate={
-                        formData.date?.[index]?.from || new Date(2024, 5, 1)
-                      }
-                      toDate={formData.date?.[index]?.to || new Date()}
+                      fromDate={undefined} // Allow any past date
+                      toDate={formData.date?.[index]?.to || today}
                       className="w-full"
                       placeholder="Data início"
                     />
@@ -211,16 +223,14 @@ export function CorrelatedPlatesInCaseSetsForm() {
                   render={({ field }) => (
                     <DatePicker
                       type="datetime-local"
-                      value={field.value || new Date()} // Ensure value is not undefined
+                      value={field.value || new Date()}
                       onChange={(newDate) => {
                         if (newDate) {
                           field.onChange(newDate)
                         }
                       }}
-                      fromDate={
-                        formData.date?.[index]?.from || new Date(2024, 5, 1)
-                      }
-                      toDate={new Date()}
+                      fromDate={formData.date?.[index]?.from || undefined}
+                      toDate={today}
                       className="w-full"
                       placeholder="Data fim"
                     />
