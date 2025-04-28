@@ -1,12 +1,12 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, RectangleEllipsis, Trash2 } from 'lucide-react'
+import { Info, Plus, RectangleEllipsis, Trash2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import MultipleSelector from '@/components/custom/multiselect-with-search'
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
+import { Switch } from '@/components/ui/switch'
 import type { RetrievePDFReportResponse } from '@/http/cars/correlated-plates-in-case-sets/retrieve-pdf-report'
 import { requiredPlateHintSchema } from '@/utils/zod-schemas'
 
@@ -34,7 +35,7 @@ export const wideSearchSchema = z
   .object({
     plate: z.array(requiredPlateHintSchema).nonempty(),
     date: z.array(dateRangeSchema).nonempty(),
-    vehicleTypes: z.array(z.string()).optional(),
+    keep_buses: z.boolean().optional(),
     beforeAfter: z.enum(['before', 'after', 'both']).optional(),
   })
   .refine((data) => data.plate.length === data.date.length, {
@@ -96,7 +97,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
           ),
           to: new Date(new Date().setSeconds(0, 0)),
         })),
-      vehicleTypes: prefilledData.vehicle_types || [],
+      keep_buses: prefilledData.keep_buses ?? false,
       beforeAfter: prefilledData.before_after || 'both',
     },
   })
@@ -106,7 +107,6 @@ export function CorrelatedPlatesInCaseSetsForm() {
     const apiData = {
       ...data,
       beforeAfter: data.beforeAfter === 'both' ? undefined : data.beforeAfter,
-      vehicleTypes: data.vehicleTypes?.length ? data.vehicleTypes : undefined,
     }
     console.log('Form submitted:', apiData)
     setShowDownloadDialog(true)
@@ -347,25 +347,31 @@ export function CorrelatedPlatesInCaseSetsForm() {
 
         <Card className="p-4">
           <div className="space-y-2">
-            <Label>Tipos de Veículos:</Label>
+            <div className="flex items-center gap-2">
+              <Label>Manter ônibus nos resultados?</Label>
+              <Tooltip
+                text="Filtra apenas os ônibus da prefeitura (base da smtr)"
+                side="right"
+              >
+                <Info className="size-4 text-muted-foreground" />
+              </Tooltip>
+            </div>
             <div className="flex flex-col gap-1">
               <Controller
                 control={control}
-                name="vehicleTypes"
+                name="keep_buses"
                 render={({ field }) => (
-                  <MultipleSelector
-                    {...field}
-                    value={field.value?.map((v) => ({ label: v, value: v }))}
-                    onChange={(selected) =>
-                      field.onChange(selected.map((option) => option.value))
-                    }
-                    defaultOptions={[
-                      { label: 'Automóvel', value: 'automovel' },
-                      { label: 'Indefinido', value: 'indefinido' },
-                    ]}
-                    placeholder="Selecione os tipos de veículos"
-                    emptyIndicator={<p>Nenhum resultado encontrado.</p>}
-                  />
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      id="keep_buses_switch"
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                      size="sm"
+                    />
+                    <Label htmlFor="keep_buses_switch" className="text-xs">
+                      {field.value ? 'Sim' : 'Não'}
+                    </Label>
+                  </div>
                 )}
               />
             </div>
@@ -384,9 +390,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
         setOpen={setShowDownloadDialog}
         nMinutes={nMinutes}
         minDifferentTargets={nPlates}
-        vehicleTypes={
-          formData.vehicleTypes?.length ? formData.vehicleTypes : undefined
-        }
+        keepBuses={formData.keep_buses}
         beforeAfter={
           formData.beforeAfter === 'both' ? undefined : formData.beforeAfter
         }
