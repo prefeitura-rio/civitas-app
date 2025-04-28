@@ -1,6 +1,6 @@
 // ok 2
 import { useQuery } from '@tanstack/react-query'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 import type { WideSearchFormData } from '@/app/(app)/veiculos/placas-correlatas-em-ccs/components/correlated-plates-in-case-sets-form'
 import { Spinner } from '@/components/custom/spinner'
@@ -17,7 +17,7 @@ interface DownloadReportsButtonProps {
   setOpen: (open: boolean) => void
   nMinutes: number
   minDifferentTargets: number
-  vehicleTypes: string[] | undefined
+  keepBuses: boolean | undefined
   beforeAfter: 'before' | 'after' | 'both' | undefined
   fileType: FileType
   formData: WideSearchFormData
@@ -28,7 +28,7 @@ export default function JointPlatesInCaseSetsReportDownloadProgressAlert({
   setOpen,
   nMinutes,
   minDifferentTargets,
-  vehicleTypes,
+  keepBuses,
   beforeAfter,
   fileType,
   formData,
@@ -38,7 +38,7 @@ export default function JointPlatesInCaseSetsReportDownloadProgressAlert({
       'generate-pdf-report',
       nMinutes,
       minDifferentTargets,
-      vehicleTypes,
+      keepBuses,
       beforeAfter,
       formData,
     ],
@@ -67,7 +67,7 @@ export default function JointPlatesInCaseSetsReportDownloadProgressAlert({
         requestedPlatesData,
         nMinutes,
         minDifferentTargets,
-        vehicleTypes,
+        keepBuses,
         beforeAfter,
       })
     },

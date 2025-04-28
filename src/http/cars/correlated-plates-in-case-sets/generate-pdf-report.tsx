@@ -11,7 +11,7 @@ interface GeneratePDFReportRequest {
   requestedPlatesData: RequestedPlateData[]
   nMinutes: number
   minDifferentTargets: number
-  vehicleTypes?: string[]
+  keepBuses?: boolean
   beforeAfter?: 'before' | 'after' | 'both'
 }
 
@@ -19,7 +19,7 @@ export async function generatePDFReport({
   requestedPlatesData,
   nMinutes,
   minDifferentTargets,
-  vehicleTypes,
+  keepBuses,
   beforeAfter,
 }: GeneratePDFReportRequest) {
   const response = await api.post(
@@ -29,7 +29,7 @@ export async function generatePDFReport({
       n_minutes: nMinutes,
       n_plates: 1000000000, // hardcoded as per requirements
       min_different_targets: minDifferentTargets,
-      vehicle_types: vehicleTypes,
+      keep_buses: keepBuses,
       before_after: beforeAfter,
       report_title: 'Relatório de identificação de veículos', // hardcoded as per requirements
     },
