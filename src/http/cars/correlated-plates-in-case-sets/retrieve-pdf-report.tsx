@@ -12,7 +12,7 @@ export interface RetrievePDFReportResponse {
       n_minutes: number
       before_after: 'before' | 'after' | 'both'
       report_title: string
-      vehicle_types: string[]
+      keep_buses?: boolean
       min_different_targets: number
       requested_plates_data: {
         plate: string
