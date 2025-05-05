@@ -136,7 +136,7 @@ export function MonitoredPlatesFilter() {
           htmlFor="notificationChannelTitle"
           className="text-xs text-muted-foreground"
         >
-          Cana de notificação
+          Canal de notificação
         </Label>
         <Input
           className="h-9 w-40"
@@ -148,7 +148,7 @@ export function MonitoredPlatesFilter() {
       <div className="flex flex-col space-y-1">
         <div className="flex items-center space-x-2">
           <div className="flex flex-col">
-            <Label className="text-xs text-muted-foreground">
+            <Label className="mb-0.5 text-xs text-muted-foreground">
               Data de criação, de:
             </Label>
             <DatePicker
@@ -165,7 +165,7 @@ export function MonitoredPlatesFilter() {
             />
           </div>
           <div className="flex flex-col">
-            <Label className="text-xs text-muted-foreground">Até:</Label>
+            <Label className="mb-0.5 text-xs text-muted-foreground">Até:</Label>
             <DatePicker
               value={createdAtTo}
               onChange={(date) => {
