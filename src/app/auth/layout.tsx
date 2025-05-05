@@ -40,10 +40,10 @@ export default function AuthLayout({
       </div>
       <span className="mb-4 block w-full text-center text-xs text-muted-foreground">
         Copyright ©{' '}
-        <Link href="https://www.dados.rio/" className="underline">
-          Escritório de Dados do Rio de Janeiro
+        <Link href="https://www.iplan.rio/" className="underline">
+          IplanRio
         </Link>{' '}
-        2024.
+        2025.
       </span>
     </div>
   )
