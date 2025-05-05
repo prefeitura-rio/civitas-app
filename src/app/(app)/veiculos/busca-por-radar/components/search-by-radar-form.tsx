@@ -12,7 +12,7 @@ import {
   XCircleIcon,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -82,7 +82,7 @@ export function SearchByRadarForm() {
         }
       : {
           date: new Date(new Date().setSeconds(0, 0)),
-          duration: [-10, 0],
+          duration: [-60, 60],
           radarIds: [],
           plate: '',
         },
@@ -186,8 +186,8 @@ export function SearchByRadarForm() {
                       else field.onChange(value)
                     }}
                     defaultValue={[0, 0]}
-                    max={60}
-                    min={-60}
+                    max={150}
+                    min={-150}
                     step={1}
                     disabled={isSubmitting}
                     labelFormatter={(val) =>
@@ -196,10 +196,10 @@ export function SearchByRadarForm() {
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>
-                      Min: {format(addMinutes(selectedDate, -60), 'HH:mm')}h
+                      Min: {format(addMinutes(selectedDate, -150), 'HH:mm')}h
                     </span>
                     <span>
-                      Max: {format(addMinutes(selectedDate, 60), 'HH:mm')}h
+                      Max: {format(addMinutes(selectedDate, 150), 'HH:mm')}h
                     </span>
                   </div>
                 </div>
