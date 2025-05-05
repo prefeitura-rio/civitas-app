@@ -348,7 +348,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
         <Card className="p-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Label>Manter ônibus nos resultados?</Label>
+              <Label>Manter ônibus municipais nos resultados?</Label>
               <Tooltip
                 text="Filtra apenas os ônibus da prefeitura (base da smtr)"
                 side="right"
