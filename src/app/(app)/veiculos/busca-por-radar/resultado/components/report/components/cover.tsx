@@ -91,6 +91,10 @@ const bulletPoints: BulletPoint[] = [
             value:
               'O relatório não é exaustivo e a falta de registro de uma determinada placa não é determinante para comprovar que não houve a passagem naquela localidade.',
           },
+          {
+            value:
+              'Por razões técnicas, operacionais ou devido ao desgaste das placas, os radares podem não conseguir realizar a leitura completa do OCR. Nesses casos, duas situações podem ocorrer: (1) se o equipamento registrar a passagem do veículo e identificar parte da placa, a linha na planilha será exibida com marcação tracejada ou mostrará os caracteres parciais capturados; (2) se o radar registrar apenas a passagem do veículo, sem conseguir ler nenhum caractere da placa, a linha será exibida em branco na planilha.',
+          },
         ],
       },
       {
