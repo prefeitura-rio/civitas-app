@@ -2,12 +2,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FilterX, Search } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -25,6 +26,8 @@ const filterFormSchema = z.object({
   operationTitle: z.string().optional(),
   notificationChannelTitle: z.string().optional(),
   active: z.enum([activeOptions[0], ...activeOptions]),
+  createdAtFrom: z.string().optional(),
+  createdAtTo: z.string().optional(),
 })
 
 type FilterForm = z.infer<typeof filterFormSchema>
@@ -42,21 +45,35 @@ export function MonitoredPlatesFilter() {
       },
     })
 
+  const [createdAtFrom, setCreatedAtFrom] = useState<Date | undefined>()
+  const [createdAtTo, setCreatedAtTo] = useState<Date | undefined>()
+
   useEffect(() => {
     const pActive = searchParams.get('active')
     const pPlate = searchParams.get('plateContains')
     const pOperation = searchParams.get('operationTitle')
     const pChannel = searchParams.get('notificationChannelTitle')
+    const pCreatedAtFrom = searchParams.get('createdAtFrom')
+    const pCreatedAtTo = searchParams.get('createdAtTo')
 
     if (pActive) setValue('active', pActive)
     if (pPlate) setValue('plateContains', pPlate)
     if (pOperation) setValue('operationTitle', pOperation)
     if (pChannel) setValue('notificationChannelTitle', pChannel)
+    if (pCreatedAtFrom) {
+      setValue('createdAtFrom', pCreatedAtFrom)
+      setCreatedAtFrom(new Date(pCreatedAtFrom))
+    }
+    if (pCreatedAtTo) {
+      setValue('createdAtTo', pCreatedAtTo)
+      setCreatedAtTo(new Date(pCreatedAtTo))
+    }
   }, [])
-
   function handleClearFilters() {
     reset()
     setValue('active', 'all')
+    setCreatedAtFrom(undefined)
+    setCreatedAtTo(undefined)
     router.replace(pathName)
   }
 
@@ -70,6 +87,8 @@ export function MonitoredPlatesFilter() {
 
     if (props.active && props.active !== 'all')
       params.set('active', props.active)
+    if (props.createdAtFrom) params.set('createdAtFrom', props.createdAtFrom)
+    if (props.createdAtTo) params.set('createdAtTo', props.createdAtTo)
 
     router.replace(`${pathName}?${params.toString()}`)
   }
@@ -117,7 +136,7 @@ export function MonitoredPlatesFilter() {
           htmlFor="notificationChannelTitle"
           className="text-xs text-muted-foreground"
         >
-          Cana de notificação
+          Canal de notificação
         </Label>
         <Input
           className="h-9 w-40"
@@ -125,6 +144,43 @@ export function MonitoredPlatesFilter() {
           type="text"
           {...register('notificationChannelTitle')}
         />
+      </div>
+      <div className="flex flex-col space-y-1">
+        <div className="flex items-center space-x-2">
+          <div className="flex flex-col">
+            <Label className="mb-0.5 text-xs text-muted-foreground">
+              Data de criação, de:
+            </Label>
+            <DatePicker
+              value={createdAtFrom}
+              onChange={(date) => {
+                setCreatedAtFrom(date)
+                setValue(
+                  'createdAtFrom',
+                  date instanceof Date ? date.toISOString() : undefined,
+                )
+              }}
+              type="datetime-local"
+              className="h-9 w-48"
+            />
+          </div>
+          <div className="flex flex-col">
+            <Label className="mb-0.5 text-xs text-muted-foreground">Até:</Label>
+            <DatePicker
+              value={createdAtTo}
+              onChange={(date) => {
+                setCreatedAtTo(date)
+                setValue(
+                  'createdAtTo',
+                  date instanceof Date ? date.toISOString() : undefined,
+                )
+              }}
+              type="datetime-local"
+              className="h-9 w-48"
+              fromDate={createdAtFrom}
+            />
+          </div>
+        </div>
       </div>
       <Controller
         control={control}

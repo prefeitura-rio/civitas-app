@@ -12,7 +12,7 @@ import {
   XCircleIcon,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -82,7 +82,7 @@ export function SearchByRadarForm() {
         }
       : {
           date: new Date(new Date().setSeconds(0, 0)),
-          duration: [-10, 0],
+          duration: [-60, 60],
           radarIds: [],
           plate: '',
         },
@@ -115,197 +115,199 @@ export function SearchByRadarForm() {
   }, [radars])
 
   return (
-    <Card className="flex w-full max-w-screen-md flex-col p-6">
-      {/* <CardHeader className="">
-        <CardTitle className="">Formulário de Busca por Radar</CardTitle>
-        <CardDescription>
-          Consulte os veículos detectados por um ou mais radares num determinado
-          período.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className=""> */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-2 gap-x-8 gap-y-2"
-      >
-        <div className="flex w-full flex-col">
-          <Controller
-            control={control}
-            name="date"
-            render={({ field }) => (
-              <DatePicker
-                className="w-full"
-                value={field.value}
-                onChange={field.onChange}
-                type="datetime-local"
-                disabled={isSubmitting}
-                fromDate={new Date(2024, 5, 1)}
-                toDate={new Date()}
-              />
-            )}
-          />
-          <InputError message={errors.date?.message} />
-        </div>
+    <>
+      <Card className="mb-0 w-full max-w-screen-md p-4">
+        <h1 className="text-lg font-bold">Busca por Radar</h1>
+      </Card>
 
-        <div className="flex w-full flex-col">
-          <div className="relative w-full">
-            <RectangleEllipsis className="absolute left-3 top-1/2 size-4 -translate-y-1/2 transform text-gray-400" />
+      <Card className="flex w-full max-w-screen-md flex-col p-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid grid-cols-2 gap-x-8 gap-y-2"
+        >
+          <div className="flex w-full flex-col">
             <Controller
-              name="plate"
               control={control}
+              name="date"
               render={({ field }) => (
-                <Input
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                  placeholder="Placa do Veículo (opcional)"
-                  className="w-full pl-10 pr-8 dark:bg-gray-700 dark:text-white"
+                <DatePicker
+                  className="w-full"
+                  value={field.value}
+                  onChange={field.onChange}
+                  type="datetime-local"
+                  disabled={isSubmitting}
+                  fromDate={new Date(2024, 5, 1)}
+                  toDate={new Date()}
                 />
               )}
             />
-            <div className="absolute-y-centered right-2 flex items-center">
-              <Tooltip render={<PlateWildcardsHelperInfo />}>
-                <Info className="size-4 text-muted-foreground" />
-              </Tooltip>
-            </div>
+            <InputError message={errors.date?.message} />
           </div>
-          <InputError message={errors.plate?.message} />
-        </div>
 
-        <Controller
-          control={control}
-          name="duration"
-          render={({ field }) => {
-            const selectedDate = watch('date') || new Date()
-            return (
-              <div className="w-full space-y-2 pt-6">
-                <Slider
-                  unity="min"
-                  value={field.value}
-                  onValueChange={(value) => {
-                    if (value[0] > 0) field.onChange([0, value[1]])
-                    else if (value[1] < 0) field.onChange([value[0], 0])
-                    else field.onChange(value)
-                  }}
-                  defaultValue={[0, 0]}
-                  max={60}
-                  min={-60}
-                  step={1}
-                  disabled={isSubmitting}
-                  labelFormatter={(val) =>
-                    `${format(addMinutes(selectedDate, val), 'HH:mm')}h`
-                  }
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>
-                    Min: {format(addMinutes(selectedDate, -60), 'HH:mm')}h
-                  </span>
-                  <span>
-                    Max: {format(addMinutes(selectedDate, 60), 'HH:mm')}h
-                  </span>
-                </div>
-              </div>
-            )
-          }}
-        />
-
-        <div className="flex w-full flex-col">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full">
-                <MapPinIcon className="mr-2 size-4 shrink-0" />
-                Radares ({selectedObjects.length})
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              sideOffset={2}
-              className="max-h-96 w-80 overflow-y-auto"
-            >
-              <div className="space-y-4">
-                <div className="flex space-x-2">
+          <div className="flex w-full flex-col">
+            <div className="relative w-full">
+              <RectangleEllipsis className="absolute left-3 top-1/2 size-4 -translate-y-1/2 transform text-gray-400" />
+              <Controller
+                name="plate"
+                control={control}
+                render={({ field }) => (
                   <Input
-                    ref={radarSearchInputRef}
-                    placeholder="Código do Radar"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value.toUpperCase())
+                    }
+                    placeholder="Placa do Veículo (opcional)"
+                    className="w-full pl-10 pr-8 dark:bg-gray-700 dark:text-white"
                   />
-                  <Button
-                    onClick={() => {
-                      const radar = radars?.find(
-                        (item) =>
-                          item.cameraNumber ===
-                            radarSearchInputRef.current?.value ||
-                          item.cetRioCode ===
-                            radarSearchInputRef.current?.value,
-                      )
-                      if (radar) {
-                        if (
-                          !selectedObjects.find(
-                            (item) => item.cameraNumber === radar.cameraNumber,
-                          )
-                        ) {
-                          setSelectedObjects((prev) => [radar, ...prev])
-                        }
-                        radarSearchInputRef.current!.value = ''
-                        setViewport({
-                          longitude: radar.longitude,
-                          latitude: radar.latitude,
-                          zoom: 20,
-                        })
-                      }
+                )}
+              />
+              <div className="absolute-y-centered right-2 flex items-center">
+                <Tooltip render={<PlateWildcardsHelperInfo />}>
+                  <Info className="size-4 text-muted-foreground" />
+                </Tooltip>
+              </div>
+            </div>
+            <InputError message={errors.plate?.message} />
+          </div>
+
+          <Controller
+            control={control}
+            name="duration"
+            render={({ field }) => {
+              const selectedDate = watch('date') || new Date()
+              return (
+                <div className="w-full space-y-2 pt-6">
+                  <Slider
+                    unity="min"
+                    value={field.value}
+                    onValueChange={(value) => {
+                      if (value[0] > 0) field.onChange([0, value[1]])
+                      else if (value[1] < 0) field.onChange([value[0], 0])
+                      else field.onChange(value)
                     }}
-                  >
-                    Adicionar
-                  </Button>
+                    defaultValue={[0, 0]}
+                    max={150}
+                    min={-150}
+                    step={1}
+                    disabled={isSubmitting}
+                    labelFormatter={(val) =>
+                      `${format(addMinutes(selectedDate, val), 'HH:mm')}h`
+                    }
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>
+                      Min: {format(addMinutes(selectedDate, -150), 'HH:mm')}h
+                    </span>
+                    <span>
+                      Max: {format(addMinutes(selectedDate, 150), 'HH:mm')}h
+                    </span>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  {selectedObjects.map((radar) => (
-                    <div
-                      key={radar.cameraNumber}
-                      className="flex items-center justify-between rounded bg-secondary p-2"
+              )
+            }}
+          />
+
+          <div className="flex w-full flex-col">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <MapPinIcon className="mr-2 size-4 shrink-0" />
+                  Radares ({selectedObjects.length})
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                sideOffset={2}
+                className="max-h-96 w-80 overflow-y-auto"
+              >
+                <div className="space-y-4">
+                  <div className="flex space-x-2">
+                    <Input
+                      ref={radarSearchInputRef}
+                      placeholder="Código do Radar"
+                    />
+                    <Button
+                      onClick={() => {
+                        const radar = radars?.find(
+                          (item) =>
+                            item.cameraNumber ===
+                              radarSearchInputRef.current?.value ||
+                            item.cetRioCode ===
+                              radarSearchInputRef.current?.value,
+                        )
+                        if (radar) {
+                          if (
+                            !selectedObjects.find(
+                              (item) =>
+                                item.cameraNumber === radar.cameraNumber,
+                            )
+                          ) {
+                            setSelectedObjects((prev) => [radar, ...prev])
+                          }
+                          radarSearchInputRef.current!.value = ''
+                          setViewport({
+                            longitude: radar.longitude,
+                            latitude: radar.latitude,
+                            zoom: 20,
+                          })
+                        }
+                      }}
                     >
-                      <div>
-                        <div className="font-medium">{radar.cameraNumber}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {radar.location}
+                      Adicionar
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedObjects.map((radar) => (
+                      <div
+                        key={radar.cameraNumber}
+                        className="flex items-center justify-between rounded bg-secondary p-2"
+                      >
+                        <div>
+                          <div className="font-medium">
+                            {radar.cameraNumber}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {radar.location}
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setViewport({
+                                longitude: radar.longitude,
+                                latitude: radar.latitude,
+                                zoom: 20,
+                              })
+                            }}
+                          >
+                            <NavigationIcon className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSelectObject(radar)}
+                          >
+                            <XCircleIcon className="size-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setViewport({
-                              longitude: radar.longitude,
-                              latitude: radar.latitude,
-                              zoom: 20,
-                            })
-                          }}
-                        >
-                          <NavigationIcon className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSelectObject(radar)}
-                        >
-                          <XCircleIcon className="size-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <InputError message={errors.radarIds?.message} />
-        </div>
+              </PopoverContent>
+            </Popover>
+            <InputError message={errors.radarIds?.message} />
+          </div>
 
-        <div className="col-span-2 flex justify-end">
-          <Button type="submit" className="mt-4">
-            <SearchIcon className="mr-2 size-4" />
-            Buscar
-          </Button>
-        </div>
-      </form>
-      {/* </CardContent> */}
-    </Card>
+          <div className="col-span-2 flex justify-end">
+            <Button type="submit" className="mt-4">
+              <SearchIcon className="mr-2 size-4" />
+              Buscar
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </>
   )
 }
