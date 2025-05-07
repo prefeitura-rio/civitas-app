@@ -10,8 +10,6 @@ type MonitoredPlatesQueryKey = [
   active?: boolean,
   page?: number,
   size?: number,
-  createdAtFrom?: string,
-  createdAtTo?: string,
 ]
 
 export interface FormattedSearchParams {
@@ -21,8 +19,6 @@ export interface FormattedSearchParams {
   active?: boolean
   page?: number
   size?: number
-  createdAtFrom?: string
-  createdAtTo?: string
 }
 interface UseMonitoredPlatesSearchParamsReturn {
   searchParams: URLSearchParams
@@ -47,9 +43,6 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
 
-  const createdAtFrom = searchParams.get('createdAtFrom') || undefined
-  const createdAtTo = searchParams.get('createdAtTo') || undefined
-
   function handlePaginate(index: number) {
     const params = new URLSearchParams(searchParams.toString())
     if (plateContains) params.set('plateContains', plateContains)
@@ -73,8 +66,6 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       active,
       page,
       size,
-      createdAtFrom,
-      createdAtTo,
     },
     queryKey: [
       'cars',
@@ -85,8 +76,6 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       active,
       page,
       size,
-      createdAtFrom,
-      createdAtTo,
     ],
   }
 }
