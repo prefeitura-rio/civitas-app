@@ -6,7 +6,7 @@ import {
 import { MapContextProvider } from '@/contexts/map-context'
 
 import { Map } from './components/map'
-// import { SearchTabs } from './components/search-tabs'
+import { SearchTabs } from './components/search-tabs'
 
 export default function MapLayout({
   children,
@@ -22,7 +22,7 @@ export default function MapLayout({
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel minSize={25} defaultSize={50}>
-            {/* <SearchTabs /> */}
+            <SearchTabs />
             {children}
           </ResizablePanel>
         </ResizablePanelGroup>
