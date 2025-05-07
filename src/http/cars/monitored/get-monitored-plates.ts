@@ -9,8 +9,6 @@ interface GetMonitoredPlatesRequest extends PaginationRequest {
   notificationChannelTitle?: string
   plateContains?: string
   active?: boolean
-  createdAtFrom?: string
-  createdAtTo?: string
 }
 
 export interface GetMonitoredPlatesResponse extends PaginationResponse {
@@ -30,26 +28,19 @@ export async function getMonitoredPlates({
   plateContains,
   page,
   size,
-  createdAtFrom,
-  createdAtTo,
 }: GetMonitoredPlatesRequest) {
-  const searchParams = new URLSearchParams()
-  if (operationId) searchParams.set('operation_id', operationId)
-  if (operationTitle) searchParams.set('operation_title', operationTitle)
-  if (notificationChannelId)
-    searchParams.set('notification_channel_id', notificationChannelId)
-  if (notificationChannelTitle)
-    searchParams.set('notification_channel_title', notificationChannelTitle)
-  if (plateContains) searchParams.set('plate_contains', plateContains)
-  if (typeof active !== 'undefined') searchParams.set('active', String(active))
-  if (page) searchParams.set('page', String(page))
-  if (size) searchParams.set('size', String(size))
-  if (createdAtFrom) searchParams.set('start_time_create', createdAtFrom)
-  if (createdAtTo) searchParams.set('end_time_create', createdAtTo)
-
-  const originalResponse = await api.get<OriginalResponse>(
-    `cars/monitored?${searchParams.toString()}`,
-  )
+  const originalResponse = await api.get<OriginalResponse>('cars/monitored', {
+    params: {
+      operation_id: operationId,
+      operation_title: operationTitle,
+      active,
+      plate_contains: plateContains,
+      notification_channel_id: notificationChannelId,
+      notification_channel_title: notificationChannelTitle,
+      page,
+      size,
+    },
+  })
 
   const items = originalResponse.data.items.map((item) => {
     return {
