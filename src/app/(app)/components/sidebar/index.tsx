@@ -37,7 +37,7 @@ export function Sidebar() {
 
           <div>
             <SidebarButton icon="Home" title="Início" path="/" primary />
-            {/* <Separator className="my-4" /> */}
+            <Separator className="my-4" />
           </div>
 
           <Accordion
