@@ -24,7 +24,6 @@ interface DatePickerProps {
   fromDate?: Date
   toDate?: Date
   disabled?: boolean
-  placeholder?: string
 }
 
 export function DatePicker({
@@ -35,7 +34,6 @@ export function DatePicker({
   fromDate,
   toDate,
   disabled = false,
-  placeholder = 'Escolha uma data', // Default placeholder
 }: DatePickerProps) {
   return (
     <Popover>
@@ -53,7 +51,7 @@ export function DatePicker({
           {value ? (
             format(value, 'dd MMM, y HH:mm')
           ) : (
-            <span>{placeholder}</span>
+            <span>Escolha uma data</span>
           )}
         </Button>
       </PopoverTrigger>
