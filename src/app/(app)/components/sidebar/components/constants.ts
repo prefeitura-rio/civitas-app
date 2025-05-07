@@ -18,7 +18,23 @@ export const sidebarItems: SideBarItem[] = [
   {
     icon: 'Car',
     title: 'Veículos',
-    path: '/veiculos',
+    modules: [
+      {
+        icon: 'Cctv',
+        title: 'Busca por Radar',
+        path: '/veiculos/busca-por-radar',
+      },
+      {
+        icon: 'RectangleEllipsis',
+        title: 'Busca por Placa',
+        path: '/veiculos/busca-por-placa',
+      },
+      {
+        icon: 'Waypoints',
+        title: 'Placas Correlatas em CCs',
+        path: '/veiculos/placas-correlatas-em-ccs/genarate-report',
+      },
+    ],
   },
   {
     icon: 'Users',
