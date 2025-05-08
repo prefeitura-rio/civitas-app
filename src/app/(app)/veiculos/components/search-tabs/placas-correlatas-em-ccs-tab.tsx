@@ -76,24 +76,30 @@ export function PlacasCorrelatasEmCCsTabs() {
           }
         >
           <History className="size-5 shrink-0" />
-          <span>Recuperar Relatório</span>
+          <span>Recuperar parâmetros de relatório existente</span>
         </div>
       </div>
       {initialSearchType === SearchType.READ && (
-        <Card className="mb-2 flex w-full max-w-screen-md flex-col items-end gap-2 p-4">
-          <Input
-            value={reportId}
-            onChange={(e) => setReportId(e.target.value)}
-            placeholder="Digite o ID do Relatório"
-          />
-          <Button
-            onClick={handleRetrieveReport}
-            className="mt-2"
-            disabled={!reportId || loading}
-          >
-            Buscar Relatório
-          </Button>
-        </Card>
+        <>
+          <Card className="mb-2 flex w-full max-w-screen-md flex-col items-end gap-2 p-4">
+            <Input
+              value={reportId}
+              onChange={(e) => setReportId(e.target.value)}
+              placeholder="Digite o ID do relatório existente"
+            />
+            <Button
+              onClick={handleRetrieveReport}
+              className="mt-2"
+              disabled={!reportId || loading}
+            >
+              Recuperar Parâmetros
+            </Button>
+          </Card>
+          <span className="max-w-md text-center text-sm text-muted-foreground">
+            Informe o ID de um relatório existente para recuperar os mesmos
+            parâmetros deste relatório gerado anteriormente.
+          </span>
+        </>
       )}
       <AlertDialog open={open}>
         <AlertDialogContent>
