@@ -1,9 +1,18 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Info, Plus, RectangleEllipsis, Trash2 } from 'lucide-react'
+import {
+  CirclePlus,
+  FileSpreadsheet,
+  FilterX,
+  Info,
+  RectangleEllipsis,
+  Trash2,
+} from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
+import Papa from 'papaparse'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { Tooltip } from '@/components/custom/tooltip'
@@ -13,12 +22,19 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Separator } from '@/components/ui/separator'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import type { RetrievePDFReportResponse } from '@/http/cars/correlated-plates-in-case-sets/retrieve-pdf-report'
 import { requiredPlateHintSchema } from '@/utils/zod-schemas'
 
 import JointPlatesInCaseSetsReportDownloadProgressAlert from '../../busca-por-placa/veiculo/components/action-bar/components/download-report-dialog/components/joint-plates-in-case-sets-report-download-progress-alert'
+
+interface CsvRow {
+  plate: string
+  from: string
+  to: string
+}
 
 // dateRangeSchema to ensure start <= end
 const dateRangeSchema = z
@@ -51,6 +67,8 @@ export type WideSearchFormData = z.infer<typeof wideSearchSchema>
 export function CorrelatedPlatesInCaseSetsForm() {
   const searchParams = useSearchParams()
   const stateParam = searchParams.get('state')
+  const vehicleTypesParam = searchParams.get('vehicle_types')
+  const isCsvDisabled = !!vehicleTypesParam
   const prefilledData: Partial<
     RetrievePDFReportResponse['report_history']['body']
   > = stateParam ? JSON.parse(stateParam) : {}
@@ -60,7 +78,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
     ? prefilledData.requested_plates_data.map((_, index) => ({
         id: Date.now() + index,
       }))
-    : [{ id: Date.now() }, { id: Date.now() + 1 }, { id: Date.now() + 2 }]
+    : [{ id: Date.now() }, { id: Date.now() + 1 }]
 
   const [rows, setRows] = useState<{ id: number }[]>(initialRows)
   const [nMinutes, setNMinutes] = useState<number>(prefilledData.n_minutes || 3)
@@ -88,14 +106,40 @@ export function CorrelatedPlatesInCaseSetsForm() {
         rows.map(() => ''),
       date:
         prefilledData.requested_plates_data?.map((data) => ({
-          from: data.start ? new Date(data.start) : new Date(),
-          to: data.end ? new Date(data.end) : new Date(),
+          from: data.start
+            ? (() => {
+                const d = new Date(data.start)
+                d.setHours(0, 0, 0, 0)
+                return d
+              })()
+            : (() => {
+                const d = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)
+                d.setHours(0, 0, 0, 0)
+                return d
+              })(),
+          to: data.end
+            ? (() => {
+                const d = new Date(data.end)
+                d.setHours(23, 59, 0, 0)
+                return d
+              })()
+            : (() => {
+                const d = new Date()
+                d.setHours(23, 59, 0, 0)
+                return d
+              })(),
         })) ||
         rows.map(() => ({
-          from: new Date(
-            new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
-          ),
-          to: new Date(new Date().setSeconds(0, 0)),
+          from: (() => {
+            const d = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)
+            d.setHours(0, 0, 0, 0)
+            return d
+          })(),
+          to: (() => {
+            const d = new Date()
+            d.setHours(23, 59, 0, 0)
+            return d
+          })(),
         })),
       keep_buses: prefilledData.keep_buses ?? false,
       beforeAfter: prefilledData.before_after || 'both',
@@ -152,13 +196,48 @@ export function CorrelatedPlatesInCaseSetsForm() {
     }
   }
 
+  const handleClearPlates = () => {
+    setRows([{ id: Date.now() }, { id: Date.now() + 1 }])
+    setValue('plate', ['', ''] as [string, ...string[]])
+    setValue('date', [
+      {
+        from: new Date(
+          new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
+        ),
+        to: new Date(new Date().setSeconds(0, 0)),
+      },
+      {
+        from: new Date(
+          new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
+        ),
+        to: new Date(new Date().setSeconds(0, 0)),
+      },
+    ] as [{ from: Date; to: Date }, { from: Date; to: Date }])
+  }
+
   return (
     <Card className="w-full border-none bg-transparent p-0 pb-4 shadow-none">
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
         <Card className="p-4">
-          <div className="flex flex-col gap-4 overflow-hidden">
+          <div className="flex items-center justify-between gap-4 overflow-hidden pb-4">
             <Label>Placas demandadas:</Label>
-            <span className="h"></span>
+            <div className="flex items-center gap-2">
+              <Tooltip
+                text="Limpar placas"
+                className="bg-secondary"
+                asChild
+                side="left"
+              >
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  type="button"
+                  onClick={handleClearPlates}
+                >
+                  <FilterX className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+            </div>
           </div>
           {rows.map((row, index) => (
             <div
@@ -244,7 +323,7 @@ export function CorrelatedPlatesInCaseSetsForm() {
               </div>
 
               <div className="flex items-center">
-                {index > 1 && (
+                {index > 0 && (
                   <Button
                     type="button"
                     onClick={() => removeRow(row.id)}
@@ -253,19 +332,113 @@ export function CorrelatedPlatesInCaseSetsForm() {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
-                {(index === 1 || index === 0) && <span className="pl-4" />}
+                {index === 0 && <span className="pl-4" />}
               </div>
             </div>
           ))}
           <div className="mt-4 flex justify-center">
-            <Button
-              type="button"
-              onClick={addNewRow}
-              className="flex items-center bg-transparent p-0 text-muted-foreground hover:bg-transparent"
+            <Tooltip
+              text="Adicionar nova linha"
+              className="bg-secondary"
+              asChild
+              side="right"
             >
-              <Plus className="h-6 w-6" />
-            </Button>
+              <Button
+                type="button"
+                onClick={addNewRow}
+                className="flex items-center bg-transparent p-0 text-muted-foreground hover:bg-transparent"
+              >
+                <CirclePlus className="h-6 w-6" />
+              </Button>
+            </Tooltip>
           </div>
+          <div className="relative my-2 flex w-full items-center justify-center pb-1.5">
+            <Separator className="max-w-[200px] flex-1 bg-secondary" />
+            <span className="mx-4 select-none text-xs text-muted-foreground">
+              ou
+            </span>
+            <Separator className="max-w-[200px] flex-1 bg-secondary" />
+          </div>
+          {/* CSV Upload Section */}
+          <Card
+            className={`mt-4 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 bg-gray-800 p-4 transition-colors ${isCsvDisabled ? 'pointer-events-none cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-primary'}`}
+          >
+            <label
+              htmlFor="csv-upload"
+              className={`flex w-full flex-col items-center ${isCsvDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-200">
+                <FileSpreadsheet className="h-5 w-5 text-white" />
+                Importar de CSV
+              </span>
+              <span className="mb-2 text-xs text-gray-500">
+                Clique para importar um arquivo CSV com as placas demandadas.
+              </span>
+              <input
+                id="csv-upload"
+                type="file"
+                accept=".csv"
+                className="hidden"
+                disabled={isCsvDisabled}
+                onChange={async (e) => {
+                  if (isCsvDisabled) return
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results: Papa.ParseResult<CsvRow>) => {
+                      // Expecting columns: plate, from, to
+                      const data = results.data
+                      if (!Array.isArray(data) || data.length === 0) {
+                        toast.error('CSV vazio ou inválido.')
+                        e.target.value = ''
+                        return
+                      }
+                      // Validate and map
+                      const plates: string[] = []
+                      const dates: { from: Date; to: Date }[] = []
+                      for (const row of data) {
+                        if (!row.plate || !row.from || !row.to) {
+                          toast.error(
+                            'Cada linha deve conter as colunas: plate, from, to.',
+                          )
+                          e.target.value = ''
+                          return
+                        }
+                        const fromDate = new Date(row.from)
+                        const toDate = new Date(row.to)
+                        if (
+                          isNaN(fromDate.getTime()) ||
+                          isNaN(toDate.getTime())
+                        ) {
+                          toast.error('Datas inválidas no CSV.')
+                          e.target.value = ''
+                          return
+                        }
+                        plates.push(row.plate.toUpperCase())
+                        dates.push({ from: fromDate, to: toDate })
+                      }
+                      setRows(plates.map((_, i) => ({ id: Date.now() + i })))
+                      setValue('plate', plates as [string, ...string[]])
+                      setValue(
+                        'date',
+                        dates as [
+                          { from: Date; to: Date },
+                          ...Array<{ from: Date; to: Date }>,
+                        ],
+                      )
+                      e.target.value = '' // Reset file input so same file can be uploaded again
+                    },
+                    error: () => {
+                      toast.error('Erro ao processar o CSV.')
+                      e.target.value = '' // Reset file input on error as well
+                    },
+                  })
+                }}
+              />
+            </label>
+          </Card>
         </Card>
 
         <Card className="p-4">
