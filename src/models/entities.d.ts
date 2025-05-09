@@ -12,6 +12,8 @@ export type Point = {
   speed: number
   secondsToNextPoint: number | null
   cloneAlert: boolean
+  latitude?: number
+  longitude?: number
 }
 
 export type Trip = {
