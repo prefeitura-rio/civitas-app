@@ -149,10 +149,16 @@ export function TripTable({ points }: TripTableProps) {
                 <Text>{`${location}, ${district}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
               </View>
               <View style={styles.latitude}>
-                <Text>{item.latitude}</Text>
+                <Text>
+                  {item.latitude !== undefined ? item.latitude.toFixed(6) : ''}
+                </Text>
               </View>
               <View style={styles.longitude}>
-                <Text>{item.longitude}</Text>
+                <Text>
+                  {item.longitude !== undefined
+                    ? item.longitude.toFixed(6)
+                    : ''}
+                </Text>
               </View>
               <View style={styles.data}>
                 <Text>{format(item.startTime, 'dd/MM/yyyy')}</Text>
