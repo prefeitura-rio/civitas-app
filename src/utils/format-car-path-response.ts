@@ -37,6 +37,8 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
           lane,
           secondsToNextPoint: point.seconds_to_next_point,
           cloneAlert: false,
+          latitude: point.latitude,
+          longitude: point.longitude,
         }
 
         if (newPoint.to && newPoint.endTime) {
