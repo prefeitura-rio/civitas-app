@@ -239,103 +239,106 @@ export function CorrelatedPlatesInCaseSetsForm() {
               </Tooltip>
             </div>
           </div>
-          {rows.map((row, index) => (
-            <div
-              key={row.id}
-              className="mb-2 grid w-full grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto]"
-            >
-              <div className="flex w-full items-center gap-2">
-                <div className="relative w-full">
-                  <RectangleEllipsis className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+          {/* scrollable input rows */}
+          <div className="max-h-72 overflow-y-auto pr-1">
+            {rows.map((row, index) => (
+              <div
+                key={row.id}
+                className="mb-2 grid w-full grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto]"
+              >
+                <div className="flex w-full items-center gap-2">
+                  <div className="relative w-full">
+                    <RectangleEllipsis className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                    <Controller
+                      name={`plate.${index}`}
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(e.target.value.toUpperCase())
+                          }
+                          placeholder="Placa do Veículo"
+                          className="w-full pl-10 pr-4 dark:bg-gray-700 dark:text-white"
+                        />
+                      )}
+                    />
+                  </div>
+                  {errors.plate && (
+                    <span className="text-xs text-red-500">
+                      {errors.plate.message}
+                    </span>
+                  )}
+                </div>
+                <div className="flex w-full flex-col gap-2">
                   <Controller
-                    name={`plate.${index}`}
+                    name={`date.${index}.from`}
                     control={control}
-                    defaultValue=""
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(e.target.value.toUpperCase())
-                        }
-                        placeholder="Placa do Veículo"
-                        className="w-full pl-10 pr-4 dark:bg-gray-700 dark:text-white"
+                      <DatePicker
+                        type="datetime-local"
+                        value={field.value || new Date()}
+                        onChange={(newDate) => {
+                          if (newDate) {
+                            field.onChange(newDate)
+                          }
+                        }}
+                        fromDate={undefined} // Allow any past date
+                        toDate={formData.date?.[index]?.to || today}
+                        className="w-full"
+                        placeholder="Data início"
                       />
                     )}
                   />
+                  {errors.date?.[index]?.from?.message && (
+                    <span className="text-xs text-red-500">
+                      {errors.date?.[index]?.from?.message}
+                    </span>
+                  )}
                 </div>
-                {errors.plate && (
-                  <span className="text-xs text-red-500">
-                    {errors.plate.message}
-                  </span>
-                )}
-              </div>
-              <div className="flex w-full flex-col gap-2">
-                <Controller
-                  name={`date.${index}.from`}
-                  control={control}
-                  render={({ field }) => (
-                    <DatePicker
-                      type="datetime-local"
-                      value={field.value || new Date()}
-                      onChange={(newDate) => {
-                        if (newDate) {
-                          field.onChange(newDate)
-                        }
-                      }}
-                      fromDate={undefined} // Allow any past date
-                      toDate={formData.date?.[index]?.to || today}
-                      className="w-full"
-                      placeholder="Data início"
-                    />
+                <div className="flex w-full flex-col gap-2">
+                  <Controller
+                    name={`date.${index}.to`}
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        type="datetime-local"
+                        value={field.value || new Date()}
+                        onChange={(newDate) => {
+                          if (newDate) {
+                            field.onChange(newDate)
+                          }
+                        }}
+                        fromDate={formData.date?.[index]?.from || undefined}
+                        toDate={today}
+                        className="w-full"
+                        placeholder="Data fim"
+                      />
+                    )}
+                  />
+                  {errors.date?.[index]?.to && (
+                    <span className="text-xs text-red-500">
+                      {errors.date?.[index]?.to?.message}
+                    </span>
                   )}
-                />
-                {errors.date?.[index]?.from?.message && (
-                  <span className="text-xs text-red-500">
-                    {errors.date?.[index]?.from?.message}
-                  </span>
-                )}
-              </div>
-              <div className="flex w-full flex-col gap-2">
-                <Controller
-                  name={`date.${index}.to`}
-                  control={control}
-                  render={({ field }) => (
-                    <DatePicker
-                      type="datetime-local"
-                      value={field.value || new Date()}
-                      onChange={(newDate) => {
-                        if (newDate) {
-                          field.onChange(newDate)
-                        }
-                      }}
-                      fromDate={formData.date?.[index]?.from || undefined}
-                      toDate={today}
-                      className="w-full"
-                      placeholder="Data fim"
-                    />
-                  )}
-                />
-                {errors.date?.[index]?.to && (
-                  <span className="text-xs text-red-500">
-                    {errors.date?.[index]?.to?.message}
-                  </span>
-                )}
-              </div>
+                </div>
 
-              <div className="flex items-center">
-                {index > 0 && (
-                  <Button
-                    type="button"
-                    onClick={() => removeRow(row.id)}
-                    className="flex items-center bg-transparent p-0 text-red-500 hover:bg-transparent"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-                {index === 0 && <span className="pl-4" />}
+                <div className="flex items-center">
+                  {index > 0 && (
+                    <Button
+                      type="button"
+                      onClick={() => removeRow(row.id)}
+                      className="flex items-center bg-transparent p-0 text-red-500 hover:bg-transparent"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {index === 0 && <span className="pl-4" />}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
           <div className="mt-4 flex justify-center">
             <Tooltip
               text="Adicionar nova linha"
