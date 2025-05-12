@@ -62,6 +62,7 @@
     "framer-motion": "^11.18.2",
     "geojson": "^0.5.0",
     "hyphen": "^1.10.6",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.395.0",
     "mapbox-gl": "^3.9.4",
     "next": "14.2.4",
