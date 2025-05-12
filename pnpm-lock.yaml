@@ -143,9 +143,6 @@ dependencies:
   hyphen:
     specifier: ^1.10.6
     version: 1.10.6
-  jszip:
-    specifier: ^3.10.1
-    version: 3.10.1
   lucide-react:
     specifier: ^0.395.0
     version: 0.395.0(react@18.3.1)
@@ -7328,7 +7325,6 @@ packages:
 
   /eslint-config-prettier@9.1.0(eslint@8.57.1):
     resolution: {integrity: sha512-NSWl5BFQWEPi1j4TjVNItzYV7dZXZ+wP6I6ZhrBGpChQhZRUaElihE9uRRkcbRnNb76UMKDF3r+WTmNcGPKsqw==}
-    hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
     dependencies:
@@ -9699,7 +9695,6 @@ packages:
   /next@14.2.4(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-R8/V7vugY+822rsQGQCjoLhMuC9oFj9SOi4Cl4b2wjDrseD0LRZ10W7R6Czo4w9ZznVSshKjuIomsRjvm9EKJQ==}
     engines: {node: '>=18.17.0'}
-    hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
       '@playwright/test': ^1.41.2
