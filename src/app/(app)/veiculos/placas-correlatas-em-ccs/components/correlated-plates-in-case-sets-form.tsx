@@ -2,6 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CirclePlus,
+  DownloadIcon,
   FileSpreadsheet,
   FilterX,
   Info,
@@ -454,6 +455,17 @@ export function CorrelatedPlatesInCaseSetsForm() {
               />
             </label>
           </Card>
+          <div className="flex justify-end pt-2">
+            <a
+              href="/placas-correlatas-em-ccs-template.csv"
+              download
+              className="cursor-pointer text-xs text-gray-500 hover:underline"
+            >
+              <div className="flex flex-row items-center gap-2 pt-2">
+                <DownloadIcon className="h-4 w-4"></DownloadIcon>CSV template
+              </div>
+            </a>
+          </div>
         </Card>
 
         <Card className="p-4">
