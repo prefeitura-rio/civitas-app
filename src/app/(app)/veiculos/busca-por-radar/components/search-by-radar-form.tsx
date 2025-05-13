@@ -202,6 +202,34 @@ export function SearchByRadarForm() {
                       Max: {format(addMinutes(selectedDate, 150), 'HH:mm')}h
                     </span>
                   </div>
+                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                    <span>
+                      {(() => {
+                        const min = field.value?.[0] ?? 0
+                        const abs = Math.abs(min)
+                        const sign = min > 0 ? '+' : min < 0 ? '-' : ''
+                        if (abs >= 60) {
+                          const h = Math.floor(abs / 60)
+                          const m = abs % 60
+                          return `(${sign}${h}h${m > 0 ? ` ${m}min` : ''})`
+                        }
+                        return `(${sign}${abs}min)`
+                      })()}
+                    </span>
+                    <span>
+                      {(() => {
+                        const max = field.value?.[1] ?? 0
+                        const abs = Math.abs(max)
+                        const sign = max > 0 ? '+' : max < 0 ? '-' : ''
+                        if (abs >= 60) {
+                          const h = Math.floor(abs / 60)
+                          const m = abs % 60
+                          return `(${sign}${h}h${m > 0 ? ` ${m}min` : ''})`
+                        }
+                        return `(${sign}${abs}min)`
+                      })()}
+                    </span>
+                  </div>
                 </div>
               )
             }}
