@@ -6,12 +6,10 @@ import type { WideSearchFormData } from '@/app/(app)/veiculos/placas-correlatas-
 import { Spinner } from '@/components/custom/spinner'
 import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import {
-  generatePDFReport,
-  type ReportResponse,
-} from '@/http/cars/correlated-plates-in-case-sets/generate-pdf-report'
+import { generatePDFReport } from '@/http/cars/correlated-plates-in-case-sets/generate-pdf-report'
 import { downloadFile } from '@/utils/download-file'
 
+// Define the ReportResponse type locally
 interface ReportResponse {
   blob: Blob
   filename: string
