@@ -167,10 +167,16 @@ export function CorrelatedPlatesInCaseSetsForm() {
     setValue('date', [
       ...currentDates,
       {
-        from: new Date(
-          new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
-        ),
-        to: new Date(new Date().setSeconds(0, 0)),
+        from: (() => {
+          const d = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)
+          d.setHours(0, 0, 0, 0)
+          return d
+        })(),
+        to: (() => {
+          const d = new Date()
+          d.setHours(23, 59, 0, 0)
+          return d
+        })(),
       },
     ] as [{ from: Date; to: Date }, ...Array<{ from: Date; to: Date }>])
   }
