@@ -1,4 +1,6 @@
 // generate-pdf-report.tsx
+import JSZip from 'jszip'
+
 import { api } from '@/lib/api'
 
 interface RequestedPlateData {
@@ -37,5 +39,38 @@ export async function generatePDFReport({
       responseType: 'blob', // Important for file downloads
     },
   )
-  return response.data
+
+  const contentType = response.headers['content-type']
+
+  if (contentType.includes('application/zip')) {
+    // Handle ZIP file
+    const zip = await JSZip.loadAsync(response.data)
+
+    // Find the .pdf file in the ZIP
+    const pdfFile = Object.keys(zip.files).find((filename) =>
+      filename.toLowerCase().endsWith('.pdf'),
+    )
+
+    if (!pdfFile) throw new Error('No .pdf file found in the ZIP.')
+
+    const blob = await zip.file(pdfFile)?.async('blob')
+    if (!blob) throw new Error('Failed to extract .pdf from ZIP.')
+
+    return { blob, filename: pdfFile }
+  } else if (contentType.includes('application/pdf')) {
+    // Direct PDF response
+    const disposition = response.headers['content-disposition']
+    let filename = 'relatorio_placas_correlacionadas.pdf'
+
+    if (disposition && disposition.indexOf('filename=') !== -1) {
+      const fileNameMatch = disposition.match(/filename="?([^"]+)"?/)
+      if (fileNameMatch.length > 1) {
+        filename = fileNameMatch[1]
+      }
+    }
+
+    return { blob: response.data, filename }
+  } else {
+    throw new Error('Unsupported content type: ' + contentType)
+  }
 }
