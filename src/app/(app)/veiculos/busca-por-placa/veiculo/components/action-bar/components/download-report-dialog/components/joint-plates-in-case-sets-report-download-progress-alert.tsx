@@ -10,9 +10,13 @@ import { generatePDFReport } from '@/http/cars/correlated-plates-in-case-sets/ge
 import { downloadFile } from '@/utils/download-file'
 
 // Define the ReportResponse type locally
-interface ReportResponse {
+interface ReportFile {
   blob: Blob
   filename: string
+}
+interface ReportResponse {
+  pdf?: ReportFile
+  html?: ReportFile
 }
 
 enum FileType {
@@ -81,7 +85,8 @@ export default function JointPlatesInCaseSetsReportDownloadProgressAlert({
 
   useEffect(() => {
     if (data && !isPending && open && !isError) {
-      downloadFile(data.blob, data.filename)
+      if (data.pdf) downloadFile(data.pdf.blob, data.pdf.filename)
+      if (data.html) downloadFile(data.html.blob, data.html.filename)
       setOpen(false)
     }
   }, [data, isPending, open, isError, setOpen])

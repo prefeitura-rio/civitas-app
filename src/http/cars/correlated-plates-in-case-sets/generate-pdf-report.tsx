@@ -46,17 +46,31 @@ export async function generatePDFReport({
     // Handle ZIP file
     const zip = await JSZip.loadAsync(response.data)
 
-    // Find the .pdf file in the ZIP
+    // Find the .pdf and .html files in the ZIP
     const pdfFile = Object.keys(zip.files).find((filename) =>
       filename.toLowerCase().endsWith('.pdf'),
     )
+    const htmlFile = Object.keys(zip.files).find((filename) =>
+      filename.toLowerCase().endsWith('.html'),
+    )
 
-    if (!pdfFile) throw new Error('No .pdf file found in the ZIP.')
+    let pdfBlob: Blob | undefined
+    let htmlBlob: Blob | undefined
 
-    const blob = await zip.file(pdfFile)?.async('blob')
-    if (!blob) throw new Error('Failed to extract .pdf from ZIP.')
+    if (pdfFile) {
+      pdfBlob = await zip.file(pdfFile)?.async('blob')
+    }
+    if (htmlFile) {
+      htmlBlob = await zip.file(htmlFile)?.async('blob')
+    }
 
-    return { blob, filename: pdfFile }
+    if (!pdfBlob && !htmlBlob)
+      throw new Error('No .pdf or .html file found in the ZIP.')
+
+    return {
+      pdf: pdfBlob ? { blob: pdfBlob, filename: pdfFile! } : undefined,
+      html: htmlBlob ? { blob: htmlBlob, filename: htmlFile! } : undefined,
+    }
   } else if (contentType.includes('application/pdf')) {
     // Direct PDF response
     const disposition = response.headers['content-disposition']
@@ -69,7 +83,7 @@ export async function generatePDFReport({
       }
     }
 
-    return { blob: response.data, filename }
+    return { pdf: { blob: response.data, filename }, html: undefined }
   } else {
     throw new Error('Unsupported content type: ' + contentType)
   }
