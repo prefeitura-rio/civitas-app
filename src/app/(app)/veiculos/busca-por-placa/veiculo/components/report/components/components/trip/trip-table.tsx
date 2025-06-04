@@ -14,39 +14,61 @@ Font.registerHyphenationCallback((word) => [word])
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    border: 1,
+    borderWidth: 1,
     borderColor: 'black',
     marginTop: -1,
     fontSize: 11,
   },
   index: {
     textAlign: 'center',
-    borderRight: 1,
-    width: '9%',
+    borderRightWidth: 1,
+    borderColor: 'black',
+    width: '7%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
   },
   location: {
-    borderRight: 1,
-    width: '39%',
+    borderRightWidth: 1,
+    borderColor: 'black',
+    width: '29%',
     paddingHorizontal: 4,
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
     textAlign: 'justify',
   },
+  latitude: {
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderColor: 'black',
+    width: '12%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
+  longitude: {
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderColor: 'black',
+    width: '12%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
   data: {
     textAlign: 'center',
-    borderRight: 1,
-    width: '13%',
+    borderRightWidth: 1,
+    borderColor: 'black',
+    width: '12%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
   },
   time: {
     textAlign: 'center',
-    borderRight: 1,
+    borderRightWidth: 1,
+    borderColor: 'black',
     width: '7%',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -54,15 +76,16 @@ const styles = StyleSheet.create({
   },
   speed: {
     textAlign: 'center',
-    borderRight: 1,
-    width: '19%',
+    borderRightWidth: 1,
+    borderColor: 'black',
+    width: '10%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
   },
   radar: {
     textAlign: 'center',
-    width: '13%',
+    width: '11%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
@@ -78,6 +101,12 @@ export function TripTable({ points }: TripTableProps) {
         </View>
         <View style={styles.location}>
           <Text>Local (via, logradouro)</Text>
+        </View>
+        <View style={styles.latitude}>
+          <Text>Latitude</Text>
+        </View>
+        <View style={styles.longitude}>
+          <Text>Longitude</Text>
         </View>
         <View style={styles.data}>
           <Text>Data</Text>
@@ -118,6 +147,18 @@ export function TripTable({ points }: TripTableProps) {
               </View>
               <View style={styles.location}>
                 <Text>{`${location}, ${district}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
+              </View>
+              <View style={styles.latitude}>
+                <Text>
+                  {item.latitude !== undefined ? item.latitude.toFixed(6) : ''}
+                </Text>
+              </View>
+              <View style={styles.longitude}>
+                <Text>
+                  {item.longitude !== undefined
+                    ? item.longitude.toFixed(6)
+                    : ''}
+                </Text>
               </View>
               <View style={styles.data}>
                 <Text>{format(item.startTime, 'dd/MM/yyyy')}</Text>
