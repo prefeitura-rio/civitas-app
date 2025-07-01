@@ -9,7 +9,7 @@ export type DetectionDTO = {
   plate: string
   timestamp: string
   speed: number
-  cameraNumber: string
+  cetRioCode: string
   location: string
   lane: string
 }
@@ -35,14 +35,14 @@ export function useRadarsSearch() {
       const selectedRadars =
         radars?.filter(
           (radar) =>
-            radarIds.includes(radar.cameraNumber) ||
+            radarIds.includes(radar.cetRioCode) ||
             (radar.cetRioCode && radarIds.includes(radar?.cetRioCode)),
         ) || []
 
       const detections = await Promise.all(
         selectedRadars.map(async (radar) => {
           const detections = await getCarsByRadar({
-            radar: radar.cameraNumber,
+            radar: radar.cetRioCode,
             startTime,
             endTime,
             plateHint,
@@ -51,7 +51,7 @@ export function useRadarsSearch() {
           const joinedData = detections.map((detection) => {
             return {
               ...detection, // plate, timestamp, speed
-              cameraNumber: radar.cameraNumber,
+              cetRioCode: radar.cetRioCode,
               lane: radar.lane || '',
               location: radar.location?.replace(/- FX \d+/, '') || 'N/A',
             } as DetectionDTO

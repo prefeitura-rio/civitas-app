@@ -17,16 +17,9 @@ export function RadarInfo({
       <h4>Radar OCR</h4>
       <Separator className="mb-4 mt-1 bg-secondary" />
       <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-2">
-          <div className="flex flex-col">
-            <Label>Número Câmera</Label>
-            <Value>{pickingInfo.object?.cameraNumber}</Value>
-          </div>
-
-          <div className="flex flex-col">
-            <Label>Código CET-Rio</Label>
-            <Value>{pickingInfo.object?.cetRioCode}</Value>
-          </div>
+        <div className="flex flex-col">
+          <Label>Código CET-Rio</Label>
+          <Value>{pickingInfo.object?.cetRioCode}</Value>
         </div>
 
         <div className="flex flex-col">
@@ -59,7 +52,6 @@ export function RadarInfo({
           <div className="flex flex-col gap-2">
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                {/* <Calendar className="size-4 shrink-0" /> */}
                 <History className={cn('size-4 shrink-0')} />
                 <Label>Última detecção</Label>
               </div>

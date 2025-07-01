@@ -51,7 +51,7 @@ export function EnhancePlatesInfo({
       throw new Error('formattedSearchParams is required')
 
     // Get unique radarIds
-    const allRadarIds = data?.map((item) => item.cameraNumber)
+    const allRadarIds = data?.map((item) => item.cetRioCode)
     const radarIds = [...new Set(allRadarIds)]
 
     const params = {
