@@ -208,7 +208,7 @@ export function DownloadReportDialog() {
                               p.startTime,
                               'dd/MM/yyyy HH:mm:ss',
                             ),
-                            Radar: p.cameraNumber,
+                            Radar: p.cetRioCode,
                             Latitude: p.from[1].toString().replace('.', ','),
                             Longitude: p.from[0].toString().replace('.', ','),
                             Bairro: p.district,
