@@ -69,7 +69,7 @@ const columns = [
   { title: 'Marca/Modelo', width: '20%', key: 'brandModel' },
   { title: 'Cor', width: '13%', key: 'color' },
   { title: 'Ano Modelo', width: '10%', key: 'modelYear' },
-  { title: 'Radar', width: '13%', key: 'cameraNumber' },
+  { title: 'Radar', width: '13%', key: 'cetRioCode' },
   { title: 'Faixa', width: '7%', key: 'lane' },
   { title: 'Velocidade [Km/h]', width: '12%', key: 'speed' },
 ]
@@ -96,7 +96,7 @@ export interface RadarReportDocumentProps {
 const removeDuplicates = (detections: EnhancedDetectionDTO[]) => {
   const uniqueDetections = new Map<string, EnhancedDetectionDTO>()
   detections.forEach((detection) => {
-    const key = `${detection.timestamp}-${detection.plate}-${detection.cameraNumber}-${detection.lane}-${detection.speed}`
+    const key = `${detection.timestamp}-${detection.plate}-${detection.cetRioCode}-${detection.lane}-${detection.speed}`
     if (!uniqueDetections.has(key)) {
       uniqueDetections.set(key, detection)
     }
@@ -132,7 +132,7 @@ export function RadarReportDocument({
               latitude={group.radars[0].latitude}
               longitude={group.radars[0].longitude}
               location={group.location}
-              radarIds={group.radars.map((r) => r.cameraNumber)}
+              radarIds={group.radars.map((r) => r.cetRioCode)}
               totalDetections={group.detections.length}
               brandModels={parameters.brandModels}
               colors={parameters.colors}

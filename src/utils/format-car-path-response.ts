@@ -26,7 +26,7 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
         const newPoint: Point = {
           index,
           startTime: point.datahora,
-          cameraNumber: point.camera_numero,
+          cetRioCode: point.codcet,
           from,
           to,
           endTime: points.at(index + 1)?.datahora,
