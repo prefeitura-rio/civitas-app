@@ -97,7 +97,7 @@ const paramsStyle = StyleSheet.create({
 const detectionColumns = [
   { title: 'Data e Hora', width: '23%', key: 'timestamp' },
   { title: 'Placa', width: '14%', key: 'plate' },
-  { title: 'Radar', width: '14%', key: 'camera_numero' },
+  { title: 'Radar', width: '14%', key: 'codcet' },
   { title: 'Faixa', width: '9%', key: 'lane' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
   { title: 'Nº de ocorrências', width: '20%', key: 'count' },

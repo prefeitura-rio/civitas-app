@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 const columns = [
   { title: 'Data e Hora', width: '25%', key: 'timestamp' },
   { title: 'Placa', width: '15%', key: 'plate' },
-  { title: 'Radar', width: '15%', key: 'cameraNumber' },
+  { title: 'Radar', width: '15%', key: 'cetRioCode' },
   { title: 'Faixa', width: '10%', key: 'lane' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
 ]
@@ -92,7 +92,7 @@ export interface RadarReportDocumentProps {
 const removeDuplicates = (detections: DetectionDTO[]) => {
   const uniqueDetections = new Map<string, DetectionDTO>()
   detections.forEach((detection) => {
-    const key = `${detection.timestamp}-${detection.plate}-${detection.cameraNumber}-${detection.lane}-${detection.speed}`
+    const key = `${detection.timestamp}-${detection.plate}-${detection.cetRioCode}-${detection.lane}-${detection.speed}`
     if (!uniqueDetections.has(key)) {
       uniqueDetections.set(key, detection)
     }
@@ -128,7 +128,7 @@ export function RadarReportDocument({
               latitude={group.radars[0].latitude}
               longitude={group.radars[0].longitude}
               location={group.location}
-              radarIds={group.radars.map((r) => r.cameraNumber)}
+              radarIds={group.radars.map((r) => r.cetRioCode)}
               totalDetections={group.detections.length}
               plate={parameters.plate}
             />

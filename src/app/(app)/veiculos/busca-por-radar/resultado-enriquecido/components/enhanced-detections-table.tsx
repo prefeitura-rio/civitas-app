@@ -49,7 +49,7 @@ export function EnhancedDetectionsTable({
       cell: ({ row }) => <span>{row.getValue('modelYear')}</span>,
     },
     {
-      accessorKey: 'cameraNumber',
+      accessorKey: 'cetRioCode',
       header: () => <Label className="w-28">Radar</Label>,
       cell: ({ row }) => (
         <span>

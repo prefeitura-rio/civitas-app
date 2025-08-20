@@ -9,7 +9,7 @@ export interface GetCarPathRequest {
 
 export interface Point {
   datahora: string
-  camera_numero: string
+  codcet: string
   latitude: number
   longitude: number
   bairro: string

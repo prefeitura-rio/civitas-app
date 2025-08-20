@@ -4,7 +4,7 @@ export type Point = {
   startTime: string
   to?: [longitude: number, latitude: number]
   endTime?: string
-  cameraNumber: string
+  cetRioCode: string
   district: string | null
   location: string | null
   direction: string | null
@@ -118,7 +118,6 @@ export type CameraCOR = {
 
 export type BackendRadar = {
   codcet: string | null
-  camera_numero: string
   latitude: number
   longitude: number
   locequip: string | null
@@ -132,8 +131,7 @@ export type BackendRadar = {
 }
 
 export type Radar = {
-  cetRioCode: string | null
-  cameraNumber: string
+  cetRioCode: string
   latitude: number
   longitude: number
   location: string | null
@@ -646,7 +644,7 @@ export type DetectionGroup = {
   detections: {
     timestamp: string
     plate: string
-    camera_numero: string
+    codcet: string
     lane: string
     speed: number
     count: number
