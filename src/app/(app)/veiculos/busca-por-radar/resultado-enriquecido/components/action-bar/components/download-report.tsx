@@ -118,8 +118,7 @@ export function DownloadReport({
 
     const selectedRadars = radars.filter((radar) =>
       formattedSearchParams.radarIds.some(
-        (radarId) =>
-          radarId === radar.cameraNumber || radarId === radar.cetRioCode,
+        (radarId) => radarId === radar.cetRioCode,
       ),
     )
 
@@ -142,9 +141,7 @@ export function DownloadReport({
 
         // Adiciona as detecções ao objeto
         const detections = data.filter(
-          (detection) =>
-            detection.cameraNumber === radar.cameraNumber ||
-            detection.cameraNumber === radar.cetRioCode,
+          (detection) => detection.cetRioCode === radar.cetRioCode,
         )
         acc[location].detections.push(...detections)
         return acc
@@ -196,7 +193,7 @@ export function DownloadReport({
       // Get unique radarIds
       const radarIds = groupedData
         .map((group) => {
-          const radarIds = group.radars.map((radar) => radar.cameraNumber)
+          const radarIds = group.radars.map((radar) => radar.cetRioCode)
           return radarIds
         })
         .flat()

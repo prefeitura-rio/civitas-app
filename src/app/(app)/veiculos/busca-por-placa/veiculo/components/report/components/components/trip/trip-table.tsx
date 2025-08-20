@@ -170,7 +170,7 @@ export function TripTable({ points }: TripTableProps) {
                 <Text>{item.speed.toFixed(0)}</Text>
               </View>
               <View style={styles.radar}>
-                <Text>{item.cameraNumber}</Text>
+                <Text>{item.cetRioCode}</Text>
               </View>
             </View>
 

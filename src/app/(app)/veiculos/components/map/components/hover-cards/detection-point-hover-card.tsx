@@ -115,7 +115,7 @@ export function DetectionPointHoverCard({
                   <Cctv className="size-4 shrink-0" />
                   <Label>Radar</Label>
                 </div>
-                <Value>{hoveredObject.object.cameraNumber}</Value>
+                <Value>{hoveredObject.object.cetRioCode}</Value>
               </div>
 
               <div className="flex flex-col">

@@ -120,7 +120,7 @@ export default function JointPlatesReportDownloadProgressAlert({
             'Total Detecções Grupo': g.total_detections,
             'Data e Hora Detecção': d.timestamp,
             Placa: d.plate,
-            Radar: d.camera_numero,
+            Radar: d.codcet,
             Faixa: d.lane,
             'Velocidade (km/h)': d.speed,
             'Nº Ocorrências': d.count,

@@ -16,7 +16,7 @@ export async function getCarsByRadar({
 }: GetCarsByRadarRequest) {
   const response = await api.get<RadarDetection[]>('/cars/radar', {
     params: {
-      radar,
+      codcet: radar,
       start_time: startTime,
       end_time: endTime,
       plate_hint: plateHint,
