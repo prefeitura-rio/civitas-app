@@ -137,14 +137,10 @@ export function Map() {
           setViewport={setViewport}
           onSubmit={(props) => {
             const id = props.address
+            const trimmedId = id.replace(/^0+/, '')
             const radar = radars?.find((r) => {
-              const trimmedCameraNumber = r.cameraNumber.replace(/^0+/, '')
               const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
-              const trimmedId = id.replace(/^0+/, '')
-              return (
-                trimmedCameraNumber === trimmedId ||
-                trimmedCetRioCode === trimmedId
-              )
+              return trimmedCetRioCode === trimmedId
             })
             if (radar) {
               setViewport({

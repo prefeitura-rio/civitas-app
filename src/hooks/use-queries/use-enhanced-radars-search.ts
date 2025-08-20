@@ -12,7 +12,7 @@ export type EnhancedDetectionDTO = {
   brandModel: string
   color: string
   modelYear: string
-  cameraNumber: string
+  cetRioCode: string
   location: string
   lane: string
 }

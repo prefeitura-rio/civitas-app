@@ -96,7 +96,7 @@ export function SearchByRadarForm() {
   useEffect(() => {
     setValue(
       'radarIds',
-      selectedObjects.map((radar) => radar.cameraNumber),
+      selectedObjects.map((radar) => radar.cetRioCode),
     )
   }, [selectedObjects])
 
@@ -104,10 +104,8 @@ export function SearchByRadarForm() {
     if (radars && formattedSearchParams && selectedObjects.length === 0) {
       const ids = formattedSearchParams.radarIds
 
-      const selectedRadars = radars.filter(
-        (radar) =>
-          ids.includes(radar.cameraNumber) ||
-          (radar.cetRioCode && ids.includes(radar.cetRioCode)),
+      const selectedRadars = radars.filter((radar) =>
+        ids.includes(radar.cetRioCode),
       )
 
       setSelectedObjects(selectedRadars)
@@ -251,22 +249,19 @@ export function SearchByRadarForm() {
                   <div className="flex space-x-2">
                     <Input
                       ref={radarSearchInputRef}
-                      placeholder="Código do Radar"
+                      placeholder="Código CET-RIO"
                     />
                     <Button
                       onClick={() => {
                         const radar = radars?.find(
                           (item) =>
-                            item.cameraNumber ===
-                              radarSearchInputRef.current?.value ||
                             item.cetRioCode ===
-                              radarSearchInputRef.current?.value,
+                            radarSearchInputRef.current?.value,
                         )
                         if (radar) {
                           if (
                             !selectedObjects.find(
-                              (item) =>
-                                item.cameraNumber === radar.cameraNumber,
+                              (item) => item.cetRioCode === radar.cetRioCode,
                             )
                           ) {
                             setSelectedObjects((prev) => [radar, ...prev])
@@ -286,13 +281,11 @@ export function SearchByRadarForm() {
                   <div className="space-y-2">
                     {selectedObjects.map((radar) => (
                       <div
-                        key={radar.cameraNumber}
+                        key={radar.cetRioCode}
                         className="flex items-center justify-between rounded bg-secondary p-2"
                       >
                         <div>
-                          <div className="font-medium">
-                            {radar.cameraNumber}
-                          </div>
+                          <div className="font-medium">{radar.cetRioCode}</div>
                           <div className="text-sm text-muted-foreground">
                             {radar.location}
                           </div>

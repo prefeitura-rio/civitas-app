@@ -29,13 +29,9 @@ export function useRadarLayer(): UseRadarLayer {
   const { data } = useRadars()
 
   function handleSelectObject(radar: Radar) {
-    if (
-      selectedObjects.find((item) => item.cameraNumber === radar.cameraNumber)
-    ) {
+    if (selectedObjects.find((item) => item.cetRioCode === radar.cetRioCode)) {
       setSelectedObjects(
-        selectedObjects.filter(
-          (item) => item.cameraNumber !== radar.cameraNumber,
-        ),
+        selectedObjects.filter((item) => item.cetRioCode !== radar.cetRioCode),
       )
     } else {
       setSelectedObjects([radar, ...selectedObjects])
@@ -79,14 +75,14 @@ export function useRadarLayer(): UseRadarLayer {
     },
     getIcon: (d) => {
       if (
-        selectedObjects.find((item) => item.cameraNumber === d.cameraNumber) &&
+        selectedObjects.find((item) => item.cetRioCode === d.cetRioCode) &&
         d.activeInLast24Hours
       ) {
         return 'highlighted'
       }
 
       if (
-        selectedObjects.find((item) => item.cameraNumber === d.cameraNumber) &&
+        selectedObjects.find((item) => item.cetRioCode === d.cetRioCode) &&
         !d.activeInLast24Hours
       ) {
         return 'disabled-highlighted'

@@ -36,7 +36,6 @@ export async function getRadars() {
 
     return {
       district: item.bairro,
-      cameraNumber: item.camera_numero,
       cetRioCode: item.codcet,
       latitude: lat,
       longitude: lon,

@@ -35,9 +35,9 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       ),
     },
     {
-      accessorKey: 'cameraNumber',
+      accessorKey: 'cetRioCode',
       header: () => <Label className="w-28">Radar</Label>,
-      cell: ({ row }) => <span>{row.getValue('cameraNumber')}</span>,
+      cell: ({ row }) => <span>{row.getValue('cetRioCode')}</span>,
     },
     {
       accessorKey: 'location',
