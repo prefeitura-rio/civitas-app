@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom'
 
-// Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter() {
     return {
@@ -20,7 +19,6 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
-// Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props) => {
@@ -29,7 +27,6 @@ jest.mock('next/image', () => ({
   },
 }))
 
-// Mock mapbox-gl
 jest.mock('mapbox-gl', () => ({
   Map: jest.fn(() => ({
     on: jest.fn(),
@@ -45,8 +42,6 @@ jest.mock('mapbox-gl', () => ({
   AttributionControl: jest.fn(),
 }))
 
-// Global test setup
 beforeEach(() => {
-  // Clear all mocks before each test
   jest.clearAllMocks()
 })
