@@ -1,4 +1,5 @@
 import { formatDate } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import type { PickingInfo } from 'deck.gl'
 import { Calendar, MapPin, ThumbsUp } from 'lucide-react'
 
@@ -32,7 +33,11 @@ export function WazePoliceAlertInfo({
                 <Label>Data e Hora</Label>
               </div>
               <Value>
-                {formatDate(pickingInfo.object.timestamp, "dd/MM/y 'às' HH:mm")}
+                {formatDate(
+                  pickingInfo.object.timestamp,
+                  "dd/MM/y 'às' HH:mm",
+                  { locale: ptBR },
+                )}
               </Value>
             </div>
           )}

@@ -2,6 +2,7 @@ import '@/utils/string-extensions'
 
 import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 interface RadarReportCoverProps {
   radarIds: string[]
@@ -230,7 +231,7 @@ export function RadarReportCover({
     },
     {
       label: 'Período analisado:',
-      value: `De ${formatDate(fromDate, 'dd/MM/yyyy HH:mm:ss')} até ${formatDate(toDate, 'dd/MM/yyyy HH:mm:ss')}`,
+      value: `De ${formatDate(fromDate, 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })} até ${formatDate(toDate, 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}`,
     },
     {
       label: 'Placa:',

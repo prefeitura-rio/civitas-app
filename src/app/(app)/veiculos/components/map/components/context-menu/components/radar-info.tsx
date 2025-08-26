@@ -1,4 +1,5 @@
 import { formatDate } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import type { PickingInfo } from 'deck.gl'
 import { AlertTriangle, Building, History, MapPin } from 'lucide-react'
 
@@ -59,6 +60,7 @@ export function RadarInfo({
                 {formatDate(
                   pickingInfo.object?.lastDetectionTime,
                   "dd/MM/y 'às' HH:mm:ss",
+                  { locale: ptBR },
                 )}
               </Value>
             </div>

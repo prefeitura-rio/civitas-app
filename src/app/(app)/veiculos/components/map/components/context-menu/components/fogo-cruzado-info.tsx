@@ -1,4 +1,5 @@
 import { formatDate } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import type { PickingInfo } from 'deck.gl'
 
 import { Label } from '@/components/custom/typography'
@@ -12,7 +13,9 @@ export function FogoCruzadoInfo({
 }) {
   const simpleFields = {
     Data: pickingInfo?.object?.date
-      ? formatDate(pickingInfo?.object?.date, 'dd/MM/yyyy HH:mm')
+      ? formatDate(pickingInfo?.object?.date, 'dd/MM/yyyy HH:mm', {
+          locale: ptBR,
+        })
       : undefined,
     Endereço: pickingInfo?.object?.address,
     Bairro: pickingInfo?.object?.neighborhood.name,
@@ -76,7 +79,7 @@ export function FogoCruzadoInfo({
           : item.situation,
     Circunstâncias: item.circumstances.map((item) => item.name).join(', '),
     'Data da Morte': item?.deathDate
-      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm')
+      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm', { locale: ptBR })
       : item.deathDate,
   }))
 

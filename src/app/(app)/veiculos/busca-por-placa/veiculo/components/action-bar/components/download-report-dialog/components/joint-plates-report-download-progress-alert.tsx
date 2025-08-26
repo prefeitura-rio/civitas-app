@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import React, { useEffect, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
@@ -104,14 +105,17 @@ export default function JointPlatesReportDownloadProgressAlert({
                 new Date(formattedSearchParams.from).getTime() + diff / 2,
               ),
               'dd/MM/yyyy HH:mm:ss',
+              { locale: ptBR },
             ),
             'Início Período Analisado': formatDate(
               g.start_time,
               'dd/MM/yyyy HH:mm:ss',
+              { locale: ptBR },
             ),
             'Fim Período Analisado': formatDate(
               g.end_time,
               'dd/MM/yyyy HH:mm:ss',
+              { locale: ptBR },
             ),
             Radares: g.radars.join(', '),
             Latitude: g.latitude.toString().replace('.', ','),

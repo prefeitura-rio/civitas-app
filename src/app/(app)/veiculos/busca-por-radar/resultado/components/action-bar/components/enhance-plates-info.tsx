@@ -1,5 +1,6 @@
 'use client'
 import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { WandSparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -134,7 +135,7 @@ export function EnhancePlatesInfo({
               <div>
                 <Label>Reposição às </Label>
                 <span className="text-muted-foreground">
-                  {format(resetDate, 'HH:mm:ss')}
+                  {format(resetDate, 'HH:mm:ss', { locale: ptBR })}
                 </span>
               </div>
             )}

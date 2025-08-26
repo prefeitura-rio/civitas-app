@@ -1,5 +1,6 @@
 'use client'
 import { formatDate } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import type { PickingInfo } from 'deck.gl'
 import {
   AlertTriangle,
@@ -104,6 +105,7 @@ export function DetectionPointHoverCard({
                   {formatDate(
                     hoveredObject.object.startTime,
                     "dd/MM/y 'às' HH:mm:ss",
+                    { locale: ptBR },
                   )}
                 </Value>
               </div>

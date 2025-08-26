@@ -1,4 +1,5 @@
 import { formatDate } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { Printer } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -207,6 +208,7 @@ export function DownloadReportDialog() {
                             'Data Hora': formatDate(
                               p.startTime,
                               'dd/MM/yyyy HH:mm:ss',
+                              { locale: ptBR },
                             ),
                             Radar: p.cetRioCode,
                             Latitude: p.from[1].toString().replace('.', ','),

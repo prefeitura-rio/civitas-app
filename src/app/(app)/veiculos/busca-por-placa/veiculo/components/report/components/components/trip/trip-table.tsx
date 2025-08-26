@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Font, Image, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 import alert from '@/assets/triangle-alert.png'
 import type { Point } from '@/models/entities'
@@ -164,7 +165,7 @@ export function TripTable({ points }: TripTableProps) {
                 <Text>{format(item.startTime, 'dd/MM/yyyy')}</Text>
               </View>
               <View style={styles.time}>
-                <Text>{format(item.startTime, 'HH:mm')}</Text>
+                <Text>{format(item.startTime, 'HH:mm', { locale: ptBR })}</Text>
               </View>
               <View style={styles.speed}>
                 <Text>{item.speed.toFixed(0)}</Text>

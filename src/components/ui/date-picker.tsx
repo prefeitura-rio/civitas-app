@@ -1,6 +1,7 @@
 'use client'
 
 import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -51,7 +52,7 @@ export function DatePicker({
         >
           <CalendarIcon className="mr-2 size-4 shrink-0" />
           {value ? (
-            format(value, 'dd MMM, y HH:mm')
+            format(value, 'dd MMM, y HH:mm', { locale: ptBR })
           ) : (
             <span>{placeholder}</span>
           )}
@@ -63,6 +64,7 @@ export function DatePicker({
           selected={value}
           fromDate={fromDate}
           toDate={toDate}
+          locale={ptBR}
           onSelect={(newDate) => {
             if (newDate && value) {
               // Create new date preserving the time from the original value
