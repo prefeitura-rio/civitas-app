@@ -37,6 +37,7 @@ export function FogoCruzadoInfo({
       .join(', '),
     Massacre: pickingInfo?.object?.contextInfo.massacre ? 'Sim' : 'Não',
     'Unidade Policial': pickingInfo?.object?.contextInfo.policeUnit,
+  }
   const victims = pickingInfo?.object?.victims.map((item) => ({
     Situação:
       item.situation === 'Dead'
@@ -69,6 +70,7 @@ export function FogoCruzadoInfo({
     'Data da Morte': item?.deathDate
       ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm', { locale: dateConfig.locale })
       : item.deathDate,
+  }))
   const empty = ['Não se aplica', 'Sem identificação', 'Não identificado']
   return (
     <div className="h-full w-full">
