@@ -11,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { dateConfig } from '@/lib/date-config'
 import { cn } from '@/lib/utils'
 
 import { TimePicker } from '../custom/time-picker'
@@ -51,7 +52,7 @@ export function DatePicker({
         >
           <CalendarIcon className="mr-2 size-4 shrink-0" />
           {value ? (
-            format(value, 'dd MMM, y HH:mm')
+            format(value, 'dd MMM, y HH:mm', { locale: dateConfig.locale })
           ) : (
             <span>{placeholder}</span>
           )}
@@ -63,6 +64,7 @@ export function DatePicker({
           selected={value}
           fromDate={fromDate}
           toDate={toDate}
+          locale={dateConfig.locale}
           onSelect={(newDate) => {
             if (newDate && value) {
               // Create new date preserving the time from the original value
