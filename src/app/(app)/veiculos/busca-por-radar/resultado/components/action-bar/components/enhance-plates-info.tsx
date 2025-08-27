@@ -1,10 +1,10 @@
 'use client'
 import { format } from 'date-fns'
-
 import { dateConfig } from '@/lib/date-config'
 import { WandSparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,12 +26,14 @@ import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-
 import { queryClient } from '@/lib/react-query'
 import { cortexRequestLimit } from '@/utils/cortex-limit'
 import { toQueryParams } from '@/utils/to-query-params'
+
 interface EnhancePlatesInfoProps {
   isLoading: boolean
   plates: string[]
   filters: UseSearchByRadarResultDynamicFilter
   data: DetectionDTO[] | undefined
 }
+
 export function EnhancePlatesInfo({
   isLoading,
   plates,
@@ -41,14 +43,18 @@ export function EnhancePlatesInfo({
   const [isOpen, setIsOpen] = useState(false)
   const { formattedSearchParams } = useCarRadarSearchParams()
   const router = useRouter()
+
   const [resetDate, setResetDate] = useState<Date | null>(null)
+
   function handleEnhancement() {
     const { selectedPlate } = filters
     if (!formattedSearchParams)
       throw new Error('formattedSearchParams is required')
+
     // Get unique radarIds
     const allRadarIds = data?.map((item) => item.cetRioCode)
     const radarIds = [...new Set(allRadarIds)]
+
     const params = {
       date: formattedSearchParams.date,
       duration: formattedSearchParams.duration,
@@ -56,12 +62,15 @@ export function EnhancePlatesInfo({
       radarIds,
     }
     const query = toQueryParams(params)
+
     router.push(
       `/veiculos/busca-por-radar/resultado-enriquecido?${query.toString()}`,
     )
   }
+
   const { data: remainingCredits } = useCortexRemainingCredits()
   const { data: creditsRequired } = useVehiclesCreditsRequired(plates)
+
   useEffect(() => {
     if ((remainingCredits?.remaining_credit || 0) < cortexRequestLimit) {
       const date = new Date(
@@ -70,14 +79,20 @@ export function EnhancePlatesInfo({
       setResetDate(date)
     } else {
       setResetDate(null)
+    }
   }, [remainingCredits])
+
   function handleDialogOpen(open: boolean) {
     if (open) {
       queryClient.invalidateQueries({
         queryKey: ['users', 'cortex-remaining-credits'],
       })
       setIsOpen(true)
+    } else {
       setIsOpen(false)
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogOpen}>
       <Tooltip asChild text="Enriquecer resultado">
@@ -108,8 +123,12 @@ export function EnhancePlatesInfo({
               {remainingCredits?.remaining_credit} de 90
             </span>
           </div>
+          <div>
             <Label>Crédito necessário: </Label>
+            <span className="text-muted-foreground">
               {creditsRequired?.credits}
+            </span>
+          </div>
           {resetDate &&
             remainingCredits &&
             remainingCredits.remaining_credit < cortexRequestLimit && (
@@ -131,8 +150,15 @@ export function EnhancePlatesInfo({
                   crédito necessário para o enriquecimento ou aguarde o horário
                   de reposição dos seus créditos.
                 </p>
+              </div>
             ) : (
+              <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
+                <p className="pl-6 -indent-6 text-muted-foreground">
+                  ⚠️ Você não possui crédito suficiente para enriquecer esse
+                  resultado. Restrinja a sua consulta a fim de diminuir o
                   crédito necessário para o enriquecimento.
+                </p>
+              </div>
             ))}
         </div>
         <DialogFooter>
@@ -152,3 +178,4 @@ export function EnhancePlatesInfo({
       </DialogContent>
     </Dialog>
   )
+}

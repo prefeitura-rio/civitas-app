@@ -1,9 +1,9 @@
 'use client'
 import { format } from 'date-fns'
-
 import { dateConfig } from '@/lib/date-config'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+
 import { getErrorMessage } from '@/app/(app)/pessoas/components/get-error-message'
 import { Spinner } from '@/components/custom/spinner'
 import {
@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
   Card,
   CardContent,
   CardDescription,
@@ -28,11 +29,14 @@ import { useVehicles } from '@/hooks/use-queries/use-vehicles'
 import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
 import { useSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/use-search-by-plate-enhanced-result-dynamic-filter'
 import { cortexRequestLimit } from '@/utils/cortex-limit'
+
 import { Filter } from './components/filter'
 import { TooManyPlates } from './components/too-many-plates-alert'
 import { VehicleList } from './components/vehicle-list'
+
 export default function Veiculos() {
   const [isLoading, setIsLoading] = useState(true)
+
   const {
     layers: {
       trips: {
@@ -44,15 +48,20 @@ export default function Veiculos() {
   } = useMap()
   const { formattedSearchParams } = useCarPathsSearchParams()
   const router = useRouter()
+
   const { data: remainingCredits } = useCortexRemainingCredits()
   const { data: creditsRequired } = useVehiclesCreditsRequired(
     possiblePlates || [],
   )
+
+  const {
     data: vehicles,
     isLoading: isVehiclesLoading,
     error,
   } = useVehicles(possiblePlates || [])
+
   const filters = useSearchByPlateEnhancedResultDynamicFilter({
+    data: vehicles,
   })
   const { filteredData } = filters
   useEffect(() => {
@@ -64,6 +73,7 @@ export default function Veiculos() {
       })
     }
   }, [])
+
   if (
     (possiblePlates && possiblePlates.length > cortexRequestLimit) ||
     (remainingCredits &&
@@ -72,6 +82,7 @@ export default function Veiculos() {
   ) {
     return <TooManyPlates />
   }
+
   if (!formattedSearchParams) {
     return (
       <AlertDialog open={true}>
@@ -93,9 +104,14 @@ export default function Veiculos() {
         </AlertDialogContent>
       </AlertDialog>
     )
+  }
+
+  useEffect(() => {
     if (!isVehiclesLoading && !isPossiblePlatesLoading) {
       setIsLoading(false)
+    }
   }, [isVehiclesLoading, isPossiblePlatesLoading])
+
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
@@ -117,11 +133,16 @@ export default function Veiculos() {
         {filteredData && (
           <div className="flex w-full">
             <VehicleList data={filteredData} isLoading={isLoading} />
+          </div>
+        )}
         {error && (
           <div className="flex justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
             <span className="pl-6 -indent-6 text-sm text-muted-foreground">
               {`⚠️ Não foi possível retornar informações a respeito desse veículo. ${getErrorMessage(error)}`}
             </span>
+          </div>
+        )}
       </CardContent>
     </Card>
+  )
 }

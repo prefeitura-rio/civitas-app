@@ -1,8 +1,8 @@
 import { formatDate } from 'date-fns'
-
 import { dateConfig } from '@/lib/date-config'
 import { Printer } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,12 +22,15 @@ import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useRadars } from '@/hooks/use-queries/use-radars'
 import { exportToCSV } from '@/utils/csv'
+
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
+
 enum FileType {
   'PDF' = 'PDF',
   'CSV' = 'CSV',
 }
+
 export function DownloadReportDialog() {
   const {
     layers: {
@@ -38,6 +41,7 @@ export function DownloadReportDialog() {
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
   const { data: radars, isLoading: isLoadingRadars } = useRadars()
+
   const [open, setOpen] = useState(false)
   const [formType, setFormType] = useState<'viagens' | 'placas conjuntas'>(
     'viagens',
@@ -47,6 +51,7 @@ export function DownloadReportDialog() {
   const [showViagens, setShowViagens] = useState(false)
   const [showPlacasConjuntas, setShowPlacasConjuntas] = useState(false)
   const [fileType, setFileType] = useState<FileType>(FileType.PDF)
+
   useEffect(() => {
     setFormType('viagens')
     setNMinutes(1)
@@ -55,6 +60,7 @@ export function DownloadReportDialog() {
     setShowPlacasConjuntas(false)
     setFileType(FileType.PDF)
   }, [open])
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -95,31 +101,45 @@ export function DownloadReportDialog() {
                       Relatório de Pontos de Detecção (viagens)
                     </Label>
                   </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem
                       value="placas conjuntas"
                       id="placas conjuntas"
                     />
                     <Label htmlFor="placas conjuntas">
                       Relatório de Placas Conjuntas
+                    </Label>
+                  </div>
                 </RadioGroup>
               </div>
               <div className="flex gap-2">
                 <Label>Formato do arquivo:</Label>
+                <RadioGroup
                   defaultValue={fileType}
                   className="flex"
                   value={fileType}
                   onValueChange={(e) => setFileType(e as FileType)}
+                >
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value={FileType.PDF} id={FileType.PDF} />
                     <Label htmlFor={FileType.PDF} className="cursor-pointer">
                       PDF
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value={FileType.CSV} id={FileType.CSV} />
                     <Label htmlFor={FileType.CSV} className="cursor-pointer">
                       CSV
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
               {formType === 'placas conjuntas' && (
                 <>
                   <div className="space-y-2">
                     <Label>
                       Intervalo de interesse ao redor das detecções:
+                    </Label>
                     <div className="w-full space-y-2 pl-4 pr-2 pt-6">
                       <Slider
                         unity="min"
@@ -137,20 +157,35 @@ export function DownloadReportDialog() {
                         <span>Max: 5 min</span>
                       </div>
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>
                       Número máximo de placas ao redor das detecções:
+                    </Label>
+                    <div className="w-full space-y-2 pl-4 pr-2 pt-6">
+                      <Slider
                         unity="placas"
                         value={[nPlates]}
+                        onValueChange={(value) => {
                           setNPlates(value[0])
+                        }}
                         defaultValue={[nPlates]}
                         max={50}
                         min={5}
+                        step={1}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
                         <span>Min: 5 placas</span>
                         <span>Max: 50 placas</span>
+                      </div>
+                    </div>
+                  </div>
                 </>
               )}
             </div>
             <DialogFooter className="gap-2">
               <DialogClose>Cancelar</DialogClose>
+              <Button
                 onClick={() => {
                   if (formType === 'viagens') {
                     if (fileType === FileType.PDF) {
@@ -186,10 +221,15 @@ export function DownloadReportDialog() {
                             'Alerta Placa Clonada': p.cloneAlert,
                           })),
                         ),
+                      )
+                    }
                   } else {
                     setShowPlacasConjuntas(true)
+                  }
                 }}
+              >
                 Gerar relatório
+              </Button>
             </DialogFooter>
           </DialogContent>
         )}
@@ -203,3 +243,5 @@ export function DownloadReportDialog() {
         fileType={fileType}
       />
     </>
+  )
+}

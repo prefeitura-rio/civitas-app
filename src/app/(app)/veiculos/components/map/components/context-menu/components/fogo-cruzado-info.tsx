@@ -1,5 +1,4 @@
 import { formatDate } from 'date-fns'
-
 import { dateConfig } from '@/lib/date-config'
 import type { PickingInfo } from 'deck.gl'
 

@@ -1,20 +1,18 @@
 /* eslint-disable no-extend-native */
-import { dateConfig } from '@/lib/date-config'
-
 Date.prototype.setMaxTime = function (): Date {
-  this.setHours(dateConfig.maxTime.hours)
-  this.setMinutes(dateConfig.maxTime.minutes)
-  this.setSeconds(dateConfig.maxTime.seconds)
-  this.setMilliseconds(dateConfig.maxTime.milliseconds)
+  this.setHours(23)
+  this.setMinutes(59)
+  this.setSeconds(59)
+  this.setMilliseconds(999)
 
   return this
 }
 
 Date.prototype.setMinTime = function (): Date {
-  this.setHours(dateConfig.defaultTime.hours)
-  this.setMinutes(dateConfig.defaultTime.minutes)
-  this.setSeconds(dateConfig.defaultTime.seconds)
-  this.setMilliseconds(dateConfig.defaultTime.milliseconds)
+  this.setHours(0)
+  this.setMinutes(0)
+  this.setSeconds(0)
+  this.setMilliseconds(0)
 
   return this
 }

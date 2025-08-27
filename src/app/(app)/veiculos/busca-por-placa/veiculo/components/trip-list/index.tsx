@@ -1,20 +1,24 @@
 import { format } from 'date-fns'
-
 import { dateConfig } from '@/lib/date-config'
 import React from 'react'
+
 import { Spinner } from '@/components/custom/spinner'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+
 import { TripCard } from './components/trip-card'
 import { VehicleInfo } from './components/vehicle-info'
+
 export function TripList() {
   const {
     layers: {
       trips: { trips, lastSearchParams, isLoading },
     },
   } = useMap()
+
   if (!lastSearchParams) return null
+
   return (
     <Card className="w-full p-6">
       {isLoading ? (
@@ -33,9 +37,11 @@ export function TripList() {
                 {`${format(lastSearchParams.startTime, 'dd MMM, y HH:mm', { locale: dateConfig.locale })} - ${format(lastSearchParams.endTime, 'dd MMM, y HH:mm', { locale: dateConfig.locale })}`}
               </span>
             </div>
+
             <div className="h-[calc(100%)]">
               <VehicleInfo plate={lastSearchParams.plate} />
               <Separator className="my-3 bg-muted" />
+
               {trips.length === 0 ? (
                 <div className="flex h-full w-full justify-center pt-6">
                   <span className="text-muted-foreground">
@@ -48,6 +54,7 @@ export function TripList() {
                     const startLocation = trip.points[0]
                     const endLocation = trip.points[trip.points.length - 1]
                     const cloneAlert = trip.cloneAlert
+
                     return (
                       <li key={index}>
                         <TripCard
@@ -62,6 +69,7 @@ export function TripList() {
                   })}
                 </ul>
               )}
+            </div>
           </div>
         )
       )}

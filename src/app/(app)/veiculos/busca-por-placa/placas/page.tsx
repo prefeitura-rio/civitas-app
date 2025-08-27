@@ -1,9 +1,9 @@
 'use client'
 import { format } from 'date-fns'
-
 import { dateConfig } from '@/lib/date-config'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo } from 'react'
+
 import { Spinner } from '@/components/custom/spinner'
 import {
   AlertDialog,
@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
   Card,
   CardContent,
   CardDescription,
@@ -23,24 +24,31 @@ import {
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
+
 import { ActionBar } from './components/action-bar'
 import { Filter } from './components/filter'
 import { PlateList } from './components/plate-list'
+
 export default function Veiculos() {
   const {
     layers: {
       trips: { isLoading, getPossiblePlates, possiblePlates },
     },
   } = useMap()
+
   const { formattedSearchParams } = useCarPathsSearchParams()
   const router = useRouter()
+
   const data = useMemo(() => {
     return possiblePlates?.map((plate) => ({ plate })) || []
   }, [possiblePlates])
+
   const filters = useSearchByPlateResultDynamicFilter({
     data,
   })
+
   const { filteredData } = filters
+
   useEffect(() => {
     if (formattedSearchParams && !isLoading) {
       getPossiblePlates({
@@ -50,6 +58,7 @@ export default function Veiculos() {
       })
     }
   }, [])
+
   if (!formattedSearchParams) {
     return (
       <AlertDialog open={true}>
@@ -70,6 +79,7 @@ export default function Veiculos() {
       </AlertDialog>
     )
   }
+
   return (
     <div className="flex w-full flex-col items-center gap-4">
       <ActionBar
@@ -99,6 +109,8 @@ export default function Veiculos() {
           {filteredData && (
             <div className="flex w-full">
               <PlateList data={filteredData} isLoading={isLoading} />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
