@@ -1,9 +1,8 @@
-import '@/utils/string-extensions'
-
 import { Circle, MapPin, Speech } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
 import type { Report } from '@/models/entities'
+import { capitalizeFirstLetter } from '@/utils/string-extensions'
 
 interface ReportCard {}
 
@@ -17,7 +16,7 @@ export function ReportCard(props: Report) {
             <div className="flex flex-col">
               <span className="text-sm leading-3.5">Local</span>
               <span className="block text-sm text-muted-foreground">
-                {props.location?.capitalizeFirstLetter()}
+                {capitalizeFirstLetter(props.location || '')}
               </span>
             </div>
           </div>

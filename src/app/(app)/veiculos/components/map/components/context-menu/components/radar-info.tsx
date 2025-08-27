@@ -1,10 +1,10 @@
 import { formatDate } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import type { PickingInfo } from 'deck.gl'
 import { AlertTriangle, Building, History, MapPin } from 'lucide-react'
 
 import { Label, Value } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
+import { dateConfig } from '@/lib/date-config'
 import { cn } from '@/lib/utils'
 import type { Radar } from '@/models/entities'
 

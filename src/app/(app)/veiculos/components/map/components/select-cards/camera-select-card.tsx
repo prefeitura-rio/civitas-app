@@ -1,7 +1,6 @@
 'use client'
 
 /* eslint-disable @next/next/no-img-element */
-import '@/utils/string-extensions'
 
 import { Fullscreen, X } from 'lucide-react'
 import Link from 'next/link'
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { CameraCOR } from '@/models/entities'
+import { capitalizeFirstLetter } from '@/utils/string-extensions'
 
 interface CameraSelectCardProps {
   selectedObject: CameraCOR | null
@@ -50,7 +50,7 @@ export function CameraSelectCard({
               {selectedObject?.code}
             </span>
           </CardTitle>
-          <CardDescription className="text-xs">{`${selectedObject?.location.capitalizeFirstLetter()} - ${selectedObject?.zone.capitalizeFirstLetter()}`}</CardDescription>
+          <CardDescription className="text-xs">{`${capitalizeFirstLetter(selectedObject?.location || '')} - ${capitalizeFirstLetter(selectedObject?.zone || '')}`}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4">
           <div className="relative w-full">

@@ -2,6 +2,7 @@ import '@/utils/string-extensions'
 
 import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
+
 import { dateConfig } from '@/lib/date-config'
 
 interface RadarReportCoverProps {
