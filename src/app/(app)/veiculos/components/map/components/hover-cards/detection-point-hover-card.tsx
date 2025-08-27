@@ -1,6 +1,5 @@
 'use client'
 import { formatDate } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import type { PickingInfo } from 'deck.gl'
 import {
   AlertTriangle,
@@ -16,6 +15,7 @@ import React, { type Dispatch, type SetStateAction } from 'react'
 import { MapHoverCard } from '@/components/custom/map-hover-card'
 import { Label, Value } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
+import { dateConfig } from '@/lib/date-config'
 import type { Point } from '@/models/entities'
 import { haversineDistance } from '@/utils/haversine-distance'
 

@@ -1,10 +1,10 @@
 import { formatDate } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import type { PickingInfo } from 'deck.gl'
 import { Calendar, MapPin, ThumbsUp } from 'lucide-react'
 
 import { Label, Value } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
+import { dateConfig } from '@/lib/date-config'
 import type { WazeAlert } from '@/models/entities'
 
 export function WazePoliceAlertInfo({

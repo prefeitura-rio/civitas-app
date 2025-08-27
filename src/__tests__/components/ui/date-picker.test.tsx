@@ -7,7 +7,9 @@ import { dateConfig } from '@/lib/date-config'
 
 // Mock do react-day-picker para evitar problemas com locale
 jest.mock('react-day-picker', () => ({
-  DayPicker: ({ locale, ...props }: any) => (
+  DayPicker: (
+    { locale, ...props }: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  ) => (
     <div data-testid="day-picker" data-locale={locale?.code || 'en'} {...props}>
       Mocked DayPicker
     </div>

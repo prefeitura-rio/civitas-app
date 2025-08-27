@@ -1,9 +1,9 @@
 import { formatDate } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import type { PickingInfo } from 'deck.gl'
 
 import { Label } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
+import { dateConfig } from '@/lib/date-config'
 import type { FogoCruzadoIncident } from '@/models/entities'
 
 export function FogoCruzadoInfo({
@@ -79,7 +79,9 @@ export function FogoCruzadoInfo({
           : item.situation,
     Circunstâncias: item.circumstances.map((item) => item.name).join(', '),
     'Data da Morte': item?.deathDate
-      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm', { locale: dateConfig.locale })
+      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm', {
+          locale: dateConfig.locale,
+        })
       : item.deathDate,
   }))
 

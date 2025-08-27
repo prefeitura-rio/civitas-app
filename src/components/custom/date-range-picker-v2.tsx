@@ -1,5 +1,4 @@
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import * as React from 'react'
 import { DateRange } from 'react-day-picker'
@@ -12,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { dateConfig } from '@/lib/date-config'
 import { cn } from '@/lib/utils'
 
 interface DateRangePickerProps {
@@ -108,7 +108,7 @@ export function DateRangePicker({
             selected={dateRange}
             onSelect={handleDateRangeSelect}
             numberOfMonths={2}
-            locale={ptBR}
+            locale={dateConfig.locale}
             fromDate={minDate}
             toDate={maxDate}
           />
