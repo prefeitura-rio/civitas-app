@@ -1,7 +1,8 @@
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import { UseFormSetValue } from 'react-hook-form'
 import { z } from 'zod'
+
+import { dateConfig } from '@/lib/date-config'
 
 const zodAny = z.any()
 export type ZodAnyType = z.infer<typeof zodAny>
@@ -25,7 +26,9 @@ function handleSetValue(
     if (value?.toString() ?? '') {
       setValue(
         key,
-        format(new Date(`${value}`), 'yyyy-MM-dd HH:mm', { locale: dateConfig.locale }),
+        format(new Date(`${value}`), 'yyyy-MM-dd HH:mm', {
+          locale: dateConfig.locale,
+        }),
         {
           shouldValidate: false,
         },

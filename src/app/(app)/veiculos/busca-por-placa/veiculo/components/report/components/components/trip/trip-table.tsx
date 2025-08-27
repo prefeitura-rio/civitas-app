@@ -1,10 +1,11 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Font, Image, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 
 import alert from '@/assets/triangle-alert.png'
+import { dateConfig } from '@/lib/date-config'
 import type { Point } from '@/models/entities'
+import { capitalizeFirstLetter } from '@/utils/string-extensions'
 
 interface TripTableProps {
   points: Point[]
@@ -124,9 +125,9 @@ export function TripTable({ points }: TripTableProps) {
       </View>
 
       {points.map((item) => {
-        const location = item.location?.capitalizeFirstLetter()
-        const direction = item.direction?.capitalizeFirstLetter()
-        const district = item.district?.capitalizeFirstLetter()
+        const location = capitalizeFirstLetter(item.location || '')
+        const direction = capitalizeFirstLetter(item.direction || '')
+        const district = capitalizeFirstLetter(item.district || '')
 
         return (
           <>
@@ -165,7 +166,11 @@ export function TripTable({ points }: TripTableProps) {
                 <Text>{format(item.startTime, 'dd/MM/yyyy')}</Text>
               </View>
               <View style={styles.time}>
-                <Text>{format(item.startTime, 'HH:mm', { locale: dateConfig.locale })}</Text>
+                <Text>
+                  {format(item.startTime, 'HH:mm', {
+                    locale: dateConfig.locale,
+                  })}
+                </Text>
               </View>
               <View style={styles.speed}>
                 <Text>{item.speed.toFixed(0)}</Text>
