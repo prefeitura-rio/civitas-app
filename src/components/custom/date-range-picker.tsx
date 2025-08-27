@@ -82,16 +82,34 @@ export function DatePickerWithRange({
           to.setMinutes(oldMinutesTo)
         }
       } else {
-        // Seta hora mínima (from) e máxima (to)
+        // Seta hora mínima (from) e máxima (to) usando dateConfig
         if (from) {
-          from.setMinTime()
+          from.setHours(dateConfig.defaultTime.hours)
+          from.setMinutes(dateConfig.defaultTime.minutes)
+          from.setSeconds(dateConfig.defaultTime.seconds)
+          from.setMilliseconds(dateConfig.defaultTime.milliseconds)
         }
 
         if (to) {
-          if (to.setMinTime().getTime() === new Date().setMinTime().getTime()) {
-            to.setCurrentTime()
+          const today = new Date()
+          today.setHours(dateConfig.defaultTime.hours)
+          today.setMinutes(dateConfig.defaultTime.minutes)
+          today.setSeconds(dateConfig.defaultTime.seconds)
+          today.setMilliseconds(dateConfig.defaultTime.milliseconds)
+
+          if (to.getTime() === today.getTime()) {
+            // Se é hoje, usa hora atual
+            const now = new Date()
+            to.setHours(now.getHours())
+            to.setMinutes(now.getMinutes())
+            to.setSeconds(now.getSeconds())
+            to.setMilliseconds(now.getMilliseconds())
           } else {
-            to.setMaxTime()
+            // Se não é hoje, usa hora máxima (23:59:59)
+            to.setHours(23)
+            to.setMinutes(59)
+            to.setSeconds(59)
+            to.setMilliseconds(999)
           }
         }
       }
