@@ -132,7 +132,7 @@ export function TripCard({
 
       {/* Second row: Districts */}
       <div className="flex w-full items-center gap-2 pl-20 text-muted-foreground">
-        <span>{capitalizeFirstLetter(startLocation.district)}</span>
+        <span>{capitalizeFirstLetter(startLocation.district || '')}</span>
         {totalIndexes > 0 && (
           <>
             <div className="flex gap-2">
@@ -144,7 +144,7 @@ export function TripCard({
                 </>
               )}
             </div>
-            <span>{capitalizeFirstLetter(endLocation.district)}</span>
+            <span>{capitalizeFirstLetter(endLocation.district || '')}</span>
           </>
         )}
       </div>
