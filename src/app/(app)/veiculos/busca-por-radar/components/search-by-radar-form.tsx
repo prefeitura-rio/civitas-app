@@ -3,7 +3,6 @@ import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addMinutes, format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import {
   Info,
   MapPinIcon,
@@ -32,6 +31,7 @@ import {
 } from '@/components/ui/popover'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { dateConfig } from '@/lib/date-config'
 import { toQueryParams } from '@/utils/to-query-params'
 import { optionalPlateHintSchema } from '@/utils/zod-schemas'
 

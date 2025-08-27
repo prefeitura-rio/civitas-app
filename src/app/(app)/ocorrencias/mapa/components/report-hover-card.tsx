@@ -1,5 +1,3 @@
-import '@/utils/string-extensions'
-
 import { useQuery } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
 import { Circle } from 'lucide-react'
@@ -8,6 +6,7 @@ import { MapHoverCard } from '@/components/custom/map-hover-card'
 import { Spinner } from '@/components/custom/spinner'
 import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
 import { getReports } from '@/http/reports/get-reports'
+import { capitalizeFirstLetter } from '@/utils/string-extensions'
 
 export function ReportHoverCard() {
   const {
@@ -85,7 +84,7 @@ export function ReportHoverCard() {
               {data.typeAndSubtype.map((item) => (
                 <>
                   <li className="list-inside list-disc">
-                    {item.type.capitalizeFirstLetter()}
+                    {capitalizeFirstLetter(item.type)}
                   </li>
                   <ul>
                     {item.subtype.map((subtype, index) => (
@@ -94,7 +93,7 @@ export function ReportHoverCard() {
                         className="list- ml-4 flex list-inside items-start gap-2"
                       >
                         <Circle className="mt-1.5 size-1" />
-                        <span>{subtype.capitalizeFirstLetter()}</span>
+                        <span>{capitalizeFirstLetter(subtype)}</span>
                       </li>
                     ))}
                   </ul>

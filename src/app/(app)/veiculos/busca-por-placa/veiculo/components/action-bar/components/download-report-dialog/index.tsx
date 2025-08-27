@@ -1,5 +1,4 @@
 import { formatDate } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import { Printer } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -21,6 +20,7 @@ import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useRadars } from '@/hooks/use-queries/use-radars'
+import { dateConfig } from '@/lib/date-config'
 import { exportToCSV } from '@/utils/csv'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
