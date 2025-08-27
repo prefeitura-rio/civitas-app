@@ -118,8 +118,52 @@ pnpm run test -- --testPathPatterns="date"
 pnpm run test -- --testPathPatterns="date-picker"
 ```
 
-## 🏗️ Scripts Disponíveis
+## 🏗️ Comandos Disponíveis
 
+### 🎯 Makefile (Recomendado)
+```bash
+# Ver todos os comandos disponíveis
+make help
+
+# Desenvolvimento
+make install          # Instalar dependências
+make dev              # Iniciar servidor de desenvolvimento
+make build            # Build para produção
+make test             # Executar testes
+make lint             # Executar linting
+make clean            # Limpar arquivos temporários
+
+# Deploy
+make deploy-staging   # Deploy para staging
+make deploy-prod      # Deploy para produção
+
+# Rollback
+make rollback-staging tag=staging-3.2.0-20241201-143022
+make rollback-prod tag=prod-3.2.0-20241201-143022
+
+# Versão
+make bump-patch       # Incrementar patch (3.2.0 -> 3.2.1)
+make bump-minor       # Incrementar minor (3.2.0 -> 3.3.0)
+make bump-major       # Incrementar major (3.2.0 -> 4.0.0)
+make bump-custom v=3.3.0  # Versão específica
+
+# Monitoramento
+make list-tags        # Listar tags disponíveis
+make status-staging   # Status do deployment staging
+make status-prod      # Status do deployment produção
+make health-staging   # Health check staging
+make health-prod      # Health check produção
+make logs-staging     # Logs recentes staging
+make logs-prod        # Logs recentes produção
+
+# Comandos de conveniência
+make quick-deploy     # Deploy rápido para staging
+make quick-rollback   # Rollback rápido
+make version          # Mostrar versão atual
+make info             # Informações do projeto
+```
+
+### 📜 Scripts Diretos (Alternativo)
 ```bash
 # Desenvolvimento
 pnpm run dev          # Inicia servidor de desenvolvimento
@@ -220,17 +264,6 @@ Verifique se o `.env.local` tem:
 NEXT_PUBLIC_CIVITAS_API_URL="http://localhost:8080"  # COM http://
 ```
 
-#### Testes com warnings
-Os warnings React já estão suprimidos no `jest.setup.js`.
-
-## 📊 Métricas
-
-- **📁 Total de arquivos**: 180+ arquivos
-- **📝 Linhas de código**: 15,000+ linhas
-- **🧪 Testes**: 72+ testes passando
-- **📦 Dependências**: 50+ packages
-- **🚀 Build time**: ~2-3 minutos
-- **⚡ Performance**: Lighthouse score 90+
 
 ## 🤝 Contribuição
 
