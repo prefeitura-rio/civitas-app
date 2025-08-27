@@ -1,5 +1,4 @@
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import { UseFormSetValue } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -23,13 +22,9 @@ function handleSetValue(
     keyLowerCased.includes('dataterminoprevisto')
   ) {
     if (value?.toString() ?? '') {
-      setValue(
-        key,
-        format(new Date(`${value}`), 'yyyy-MM-dd HH:mm', { locale: dateConfig.locale }),
-        {
-          shouldValidate: false,
-        },
-      )
+      setValue(key, format(new Date(`${value}`), 'yyyy-MM-dd HH:mm'), {
+        shouldValidate: false,
+      })
     }
   } else if (
     keyLowerCased.includes('data') ||

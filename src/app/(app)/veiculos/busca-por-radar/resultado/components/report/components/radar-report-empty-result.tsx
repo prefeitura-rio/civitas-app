@@ -1,6 +1,6 @@
 import { Font, Text } from '@react-pdf/renderer'
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
+import { ptBR } from 'date-fns/locale'
 import React from 'react'
 
 // Register the font
@@ -19,10 +19,10 @@ export function RadarReportEmptyResult({
   toDate,
 }: ReportEmptyResultProps) {
   const from = format(fromDate, "d 'de' MMMM 'de' y 'às' HH:mm:ss", {
-    locale: dateConfig.locale,
+    locale: ptBR,
   })
   const to = format(toDate, "d 'de' MMMM 'de' y 'às' HH:mm:ss", {
-    locale: dateConfig.locale,
+    locale: ptBR,
   })
 
   return (

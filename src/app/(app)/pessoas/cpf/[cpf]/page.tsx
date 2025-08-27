@@ -2,7 +2,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
+import { ptBR } from 'date-fns/locale'
 import { Briefcase, Calendar, Flag, Home, Phone, User } from 'lucide-react'
 import mapboxgl from 'mapbox-gl'
 import { useEffect, useRef } from 'react'
@@ -266,7 +266,7 @@ export default function Pessoa({ params: { cpf } }: PessoaProps) {
                   value={format(
                     new Date(data.dataAtualizacao),
                     "dd/MM/yyyy 'às' HH:mm",
-                    { locale: dateConfig.locale },
+                    { locale: ptBR },
                   )}
                 />
               </CardContent>

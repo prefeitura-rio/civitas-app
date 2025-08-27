@@ -4,7 +4,6 @@ import { Calendar, MapPin, ThumbsUp } from 'lucide-react'
 
 import { Label, Value } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
-import { dateConfig } from '@/lib/date-config'
 import type { WazeAlert } from '@/models/entities'
 
 export function WazePoliceAlertInfo({
@@ -33,11 +32,7 @@ export function WazePoliceAlertInfo({
                 <Label>Data e Hora</Label>
               </div>
               <Value>
-                {formatDate(
-                  pickingInfo.object.timestamp,
-                  "dd/MM/y 'às' HH:mm",
-                  { locale: dateConfig.locale },
-                )}
+                {formatDate(pickingInfo.object.timestamp, "dd/MM/y 'às' HH:mm")}
               </Value>
             </div>
           )}
