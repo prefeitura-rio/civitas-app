@@ -42,6 +42,27 @@ jest.mock('mapbox-gl', () => ({
   AttributionControl: jest.fn(),
 }))
 
+// Suprimir warnings específicos do React durante os testes
+const originalError = console.error
+beforeAll(() => {
+  console.error = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('Warning: React does not recognize') ||
+        args[0].includes('Warning: validateDOMNesting') ||
+        args[0].includes('initialFocus') ||
+        args[0].includes('validateProperty'))
+    ) {
+      return
+    }
+    originalError.call(console, ...args)
+  }
+})
+
+afterAll(() => {
+  console.error = originalError
+})
+
 beforeEach(() => {
   jest.clearAllMocks()
 })
