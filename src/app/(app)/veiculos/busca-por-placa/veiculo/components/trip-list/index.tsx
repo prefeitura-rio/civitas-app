@@ -1,11 +1,11 @@
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import React from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { dateConfig } from '@/lib/date-config'
 
 import { TripCard } from './components/trip-card'
 import { VehicleInfo } from './components/vehicle-info'
@@ -34,7 +34,7 @@ export function TripList() {
                 <span className="code-highlight">{lastSearchParams.plate}</span>
               </h4>
               <span className="text-sm text-muted-foreground">
-                {`${format(lastSearchParams.startTime, 'dd MMM, y HH:mm', { locale: ptBR })} - ${format(lastSearchParams.endTime, 'dd MMM, y HH:mm', { locale: ptBR })}`}
+                {`${format(lastSearchParams.startTime, 'dd MMM, y HH:mm', { locale: dateConfig.locale })} - ${format(lastSearchParams.endTime, 'dd MMM, y HH:mm', { locale: dateConfig.locale })}`}
               </span>
             </div>
 
