@@ -1,19 +1,13 @@
+// Importar extensões de Date para garantir que sejam carregadas nos testes
+import './src/utils/date-extensions'
+import './src/utils/string-extensions'
 import '@testing-library/jest-dom'
 
-// Suppress console.error for cleaner test output
-const originalError = console.error
+// Silenciar completamente console.error durante os testes para limpar a saída
 beforeAll(() => {
-  console.error = (...args) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render is no longer supported')
-    ) {
-      return
-    }
-    originalError.call(console, ...args)
-  }
+  console.error = jest.fn()
 })
 
 afterAll(() => {
-  console.error = originalError
+  jest.restoreAllMocks()
 })
