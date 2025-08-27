@@ -8,7 +8,7 @@ steps:
         corepack enable && \
         corepack prepare pnpm@9.15.2 --activate && \
         pnpm install --frozen-lockfile && \
-        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPattern="src/__tests__"
+        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPatterns="src/__tests__"
 
   # Check if version changed and create tag if needed
   - name: "node:20-alpine"
