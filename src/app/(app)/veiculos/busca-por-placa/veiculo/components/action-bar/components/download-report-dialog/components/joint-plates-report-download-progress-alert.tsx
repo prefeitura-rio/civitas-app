@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
+import { dateConfig } from '@/lib/date-config'
 import React, { useEffect, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
@@ -7,7 +8,6 @@ import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useNCarsBeforeAfter } from '@/hooks/use-queries/cars/use-n-before-after'
 import { generatePDFReport } from '@/http/cars/n-before-after/get-n-cars-before-after'
-import { dateConfig } from '@/lib/date-config'
 import { exportToCSV } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
 

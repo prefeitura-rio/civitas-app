@@ -1,10 +1,10 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
+import { dateConfig } from '@/lib/date-config'
 
 import { RadarReportEmptyResult } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/report/components/radar-report-empty-result'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
-import { dateConfig } from '@/lib/date-config'
 import type { DetectionGroup, RadarDetection } from '@/models/entities'
 
 import { ReportEmptyResult } from '../../../../../report/components/components/report-empty-result'

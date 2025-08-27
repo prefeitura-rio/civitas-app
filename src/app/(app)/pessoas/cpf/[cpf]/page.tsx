@@ -2,6 +2,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { format } from 'date-fns'
+import { dateConfig } from '@/lib/date-config'
 import { Briefcase, Calendar, Flag, Home, Phone, User } from 'lucide-react'
 import mapboxgl from 'mapbox-gl'
 import { useEffect, useRef } from 'react'
@@ -12,7 +13,6 @@ import { config } from '@/config'
 import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
 import { usePeople } from '@/hooks/use-queries/use-people'
 import { searchAddress } from '@/http/mapbox/search-address'
-import { dateConfig } from '@/lib/date-config'
 
 import { getErrorMessage } from '../../components/get-error-message'
 

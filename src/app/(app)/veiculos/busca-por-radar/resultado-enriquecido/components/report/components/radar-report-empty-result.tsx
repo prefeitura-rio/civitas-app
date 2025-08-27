@@ -1,8 +1,7 @@
 import { Font, Text } from '@react-pdf/renderer'
 import { format } from 'date-fns'
-import React from 'react'
-
 import { dateConfig } from '@/lib/date-config'
+import React from 'react'
 
 // Register the font
 Font.register({

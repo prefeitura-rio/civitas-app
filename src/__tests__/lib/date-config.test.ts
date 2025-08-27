@@ -29,7 +29,7 @@ describe('dateConfig', () => {
       dateTime: 'dd MMM, y HH:mm',
       date: 'dd/MM/yyyy',
       time: 'HH:mm',
-      full: "EEEE, dd 'de' MMMM 'de' yyyy",
+      full: 'EEEE, dd \'de\' MMMM \'de\' yyyy',
     })
   })
 
