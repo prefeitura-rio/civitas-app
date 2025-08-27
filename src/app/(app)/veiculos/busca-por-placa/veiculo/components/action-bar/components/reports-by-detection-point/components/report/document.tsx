@@ -1,5 +1,6 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
+import { dateConfig } from '@/lib/date-config'
 
 import { RadarReportEmptyResult } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/report/components/radar-report-empty-result'
 import { ReportFooter } from '@/components/custom/report-footer'
@@ -122,7 +123,7 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
     },
     {
       label: 'Período analisado:',
-      value: `De ${format(params.startTime, 'dd/MM/yyyy HH:mm:ss')} até ${format(params.endTime, 'dd/MM/yyyy HH:mm:ss')}`,
+      value: `De ${format(params.startTime, 'dd/MM/yyyy HH:mm:ss', { locale: dateConfig.locale })} até ${format(params.endTime, 'dd/MM/yyyy HH:mm:ss', { locale: dateConfig.locale })}`,
     },
     {
       label: 'Limite de placas antes e depois:',
@@ -147,11 +148,13 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
     return [
       {
         label: 'Data e hora da detecção da placa monitorada:',
-        value: format(monitoredPlateTimeStamp, 'dd/MM/yyyy HH:mm:ss'),
+        value: format(monitoredPlateTimeStamp, 'dd/MM/yyyy HH:mm:ss', {
+          locale: dateConfig.locale,
+        }),
       },
       {
         label: 'Período analisado:',
-        value: `De ${format(data.start_time, 'dd/MM/yyyy HH:mm:ss')} até ${format(data.end_time, 'dd/MM/yyyy HH:mm:ss')}`,
+        value: `De ${format(data.start_time, 'dd/MM/yyyy HH:mm:ss', { locale: dateConfig.locale })} até ${format(data.end_time, 'dd/MM/yyyy HH:mm:ss', { locale: dateConfig.locale })}`,
       },
       {
         label: 'Radares:',
@@ -314,7 +317,11 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
                                 }}
                               >
                                 {column.key === 'timestamp'
-                                  ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
+                                  ? format(
+                                      row.timestamp,
+                                      'dd/MM/yyyy HH:mm:ss',
+                                      { locale: dateConfig.locale },
+                                    )
                                   : row[column.key as keyof RadarDetection]}
                               </Text>
                             ))}

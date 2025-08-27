@@ -1,4 +1,14 @@
 steps:
+  # Install dependencies and run tests
+  - name: "node:20-alpine"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        corepack enable && \
+        corepack prepare pnpm@9.15.2 --activate && \
+        pnpm install --frozen-lockfile && \
+        pnpm run test -- --passWithNoTests --watchAll=false --coverage=false
   # Create the .env file
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"

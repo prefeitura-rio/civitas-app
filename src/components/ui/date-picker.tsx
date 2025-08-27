@@ -11,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { dateConfig } from '@/lib/date-config'
 import { cn } from '@/lib/utils'
 
 import { TimePicker } from '../custom/time-picker'
@@ -51,7 +52,9 @@ export function DatePicker({
         >
           <CalendarIcon className="mr-2 size-4 shrink-0" />
           {value ? (
-            format(value, 'dd MMM, y HH:mm')
+            format(value, dateConfig.formats.dateTime, {
+              locale: dateConfig.locale,
+            })
           ) : (
             <span>{placeholder}</span>
           )}
@@ -63,14 +66,24 @@ export function DatePicker({
           selected={value}
           fromDate={fromDate}
           toDate={toDate}
+          locale={dateConfig.locale}
           onSelect={(newDate) => {
-            if (newDate && value) {
-              // Create new date preserving the time from the original value
+            if (newDate) {
+              // Create new date with default time (00:00) or preserve existing time
               const newValue = new Date(newDate)
-              newValue.setHours(value.getHours())
-              newValue.setMinutes(value.getMinutes())
-              newValue.setSeconds(value.getSeconds())
-              newValue.setMilliseconds(value.getMilliseconds())
+              if (value) {
+                // Preserve existing time
+                newValue.setHours(value.getHours())
+                newValue.setMinutes(value.getMinutes())
+                newValue.setSeconds(value.getSeconds())
+                newValue.setMilliseconds(value.getMilliseconds())
+              } else {
+                // Set default time (00:00)
+                newValue.setHours(dateConfig.defaultTime.hours)
+                newValue.setMinutes(dateConfig.defaultTime.minutes)
+                newValue.setSeconds(dateConfig.defaultTime.seconds)
+                newValue.setMilliseconds(dateConfig.defaultTime.milliseconds)
+              }
               onChange(newValue)
             } else {
               onChange(newDate)
