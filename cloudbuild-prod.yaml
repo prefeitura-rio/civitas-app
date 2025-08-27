@@ -1,4 +1,12 @@
 steps:
+  # Install dependencies and run tests
+  - name: "node:18"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        npm ci && \
+        npm run test -- --passWithNoTests --watchAll=false --coverage=false
   # Create the .env file
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
