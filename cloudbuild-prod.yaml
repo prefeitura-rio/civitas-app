@@ -1,7 +1,7 @@
 steps:
   # Install dependencies and run tests
   - name: "node:20-alpine"
-    entrypoint: "bash"
+    entrypoint: "sh"
     args:
       - "-c"
       - |
@@ -12,7 +12,7 @@ steps:
 
   # Check if version changed and create tag if needed
   - name: "node:20-alpine"
-    entrypoint: "bash"
+    entrypoint: "sh"
     args:
       - "-c"
       - |
