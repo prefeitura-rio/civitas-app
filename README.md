@@ -133,7 +133,7 @@ pnpm type-check
 4. Verifique o linting: `pnpm lint`
 5. Abra um Pull Request
 
-## 📄 Licença
+---
 
-Este projeto é privado e pertence à Prefeitura do Rio de Janeiro.
+**Desenvolvido com ❤️ pela equipe da Prefeitura do Rio de Janeiro**
 
