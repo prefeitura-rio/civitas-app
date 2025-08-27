@@ -74,6 +74,14 @@ export function DatePicker({
               newValue.setSeconds(value.getSeconds())
               newValue.setMilliseconds(value.getMilliseconds())
               onChange(newValue)
+            } else if (newDate) {
+              // Create new date with default time (00:00)
+              const newValue = new Date(newDate)
+              newValue.setHours(dateConfig.defaultTime.hours)
+              newValue.setMinutes(dateConfig.defaultTime.minutes)
+              newValue.setSeconds(dateConfig.defaultTime.seconds)
+              newValue.setMilliseconds(dateConfig.defaultTime.milliseconds)
+              onChange(newValue)
             } else {
               onChange(newDate)
             }
