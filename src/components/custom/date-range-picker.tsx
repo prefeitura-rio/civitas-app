@@ -105,11 +105,11 @@ export function DatePickerWithRange({
             to.setSeconds(now.getSeconds())
             to.setMilliseconds(now.getMilliseconds())
           } else {
-            // Se não é hoje, usa hora máxima (23:59:59)
-            to.setHours(23)
-            to.setMinutes(59)
-            to.setSeconds(59)
-            to.setMilliseconds(999)
+            // Se não é hoje, usa hora máxima (23:59:59) 
+            to.setHours(dateConfig.maxTime.hours)
+            to.setMinutes(dateConfig.maxTime.minutes)
+            to.setSeconds(dateConfig.maxTime.seconds)
+            to.setMilliseconds(dateConfig.maxTime.milliseconds)
           }
         }
       }

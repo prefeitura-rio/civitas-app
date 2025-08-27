@@ -20,6 +20,16 @@ export const dateConfig = {
   },
 
   /**
+   * Horário máximo para date pickers (23:59:59.999)
+   */
+  maxTime: {
+    hours: 23,
+    minutes: 59,
+    seconds: 59,
+    milliseconds: 999,
+  },
+
+  /**
    * Formatos de data comuns
    */
   formats: {

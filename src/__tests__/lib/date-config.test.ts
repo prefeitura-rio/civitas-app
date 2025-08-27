@@ -15,6 +15,15 @@ describe('dateConfig', () => {
     })
   })
 
+  it('should define max time as 23:59:59.999', () => {
+    expect(dateConfig.maxTime).toEqual({
+      hours: 23,
+      minutes: 59,
+      seconds: 59,
+      milliseconds: 999,
+    })
+  })
+
   it('should define common date formats', () => {
     expect(dateConfig.formats).toEqual({
       dateTime: 'dd MMM, y HH:mm',
