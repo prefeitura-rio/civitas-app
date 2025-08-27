@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -32,6 +32,7 @@ describe('DatePickerWithRange', () => {
   it('should render with Portuguese placeholder', () => {
     render(
       <DatePickerWithRange
+        value={undefined}
         onChange={mockOnChange}
         placeholder="Selecione um período"
       />,
