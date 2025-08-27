@@ -1,5 +1,6 @@
 'use client'
 import { format } from 'date-fns'
+import { dateConfig } from '@/lib/date-config'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo } from 'react'
 
@@ -23,7 +24,6 @@ import {
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
 import { useSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
-import { dateConfig } from '@/lib/date-config'
 
 import { ActionBar } from './components/action-bar'
 import { Filter } from './components/filter'

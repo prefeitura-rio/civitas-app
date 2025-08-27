@@ -1,8 +1,8 @@
 import { format } from 'date-fns'
+import { dateConfig } from '@/lib/date-config'
 
 import { CardDescription, CardHeader } from '@/components/ui/card'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import { dateConfig } from '@/lib/date-config'
 
 export function Header() {
   const { formattedSearchParams } = useCarRadarSearchParams()

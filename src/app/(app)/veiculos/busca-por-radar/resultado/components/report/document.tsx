@@ -1,11 +1,11 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
+import { dateConfig } from '@/lib/date-config'
 import React from 'react'
 
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
-import { dateConfig } from '@/lib/date-config'
 import type { Radar, RadarDetection } from '@/models/entities'
 
 import { RadarReportCover } from './components/cover'

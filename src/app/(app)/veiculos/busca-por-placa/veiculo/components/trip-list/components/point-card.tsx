@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMap } from '@/hooks/use-contexts/use-map-context'
 import type { Point } from '@/models/entities'
 import { haversineDistance } from '@/utils/haversine-distance'
-import { capitalizeFirstLetter } from '@/utils/string-extensions'
 
 interface PointCardProps {
   point: Point
@@ -71,16 +70,14 @@ export function PointCard({ point }: PointCardProps) {
                   <ul className="list-decoration">
                     <li>
                       <span className="text-muted-foreground">Origem: </span>
-                      <span>{capitalizeFirstLetter(point.district || '')}</span>
+                      <span>{point.district?.capitalizeFirstLetter()}</span>
                     </li>
                     <li>
                       <span className="text-muted-foreground">Destino: </span>
                       <span>
-                        {points.at(point.index + 1)?.district
-                          ? capitalizeFirstLetter(
-                              points.at(point.index + 1)?.district || '',
-                            )
-                          : ''}
+                        {points
+                          .at(point.index + 1)
+                          ?.district?.capitalizeFirstLetter()}
                       </span>
                     </li>
                     <li>
@@ -120,10 +117,10 @@ export function PointCard({ point }: PointCardProps) {
       )}
       <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
       <div className="ml-1.5 flex flex-col truncate">
-        <Tooltip text={capitalizeFirstLetter(point.location || '')}>
+        <Tooltip text={point.location?.capitalizeFirstLetter()}>
           <div className="truncate">
             <span className="truncate">
-              {capitalizeFirstLetter(point.location || '')}
+              {point.location?.capitalizeFirstLetter()}
             </span>
           </div>
         </Tooltip>
@@ -131,13 +128,13 @@ export function PointCard({ point }: PointCardProps) {
           Posição {point.index + 1}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {capitalizeFirstLetter(point.district || '')}
+          {point.district?.capitalizeFirstLetter()}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
           {`${point.speed} Km/h`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {`Sentido ${capitalizeFirstLetter(point.direction || '')}`}
+          {`Sentido ${point.direction?.capitalizeFirstLetter()}`}
         </span>
       </div>
     </div>
