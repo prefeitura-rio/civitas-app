@@ -1,16 +1,14 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import React from 'react'
 
+import { dateConfig } from '@/lib/date-config'
+import React from 'react'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
 import type { Radar, RadarDetection } from '@/models/entities'
-
 import { RadarReportCover } from './components/cover'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result'
-
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Times-Roman',
@@ -22,49 +20,26 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   groupTitle: {
-    fontFamily: 'Times-Roman',
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 12,
-  },
   table: {
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
     marginTop: 20,
-  },
   tableRow: {
-    display: 'flex',
     flexDirection: 'row',
-  },
   tableCaption: {
-    textAlign: 'center',
-    fontWeight: 'bold',
     marginTop: 4,
-  },
   tableHeader: {
-    fontFamily: 'Times-Roman',
-    textAlign: 'center',
-    fontWeight: 'bold',
     border: 1,
     borderColor: 'black',
-    alignItems: 'center',
     marginTop: -1,
     marginRight: -1,
     paddingTop: 2,
-  },
   tableData: {
-    textAlign: 'center',
-    border: 1,
-    borderColor: 'black',
-    alignItems: 'center',
-    marginTop: -1,
-    marginRight: -1,
-    paddingTop: 2,
-  },
 })
-
 const columns = [
   { title: 'Data e Hora', width: '25%', key: 'timestamp' },
   { title: 'Placa', width: '15%', key: 'plate' },
@@ -72,13 +47,11 @@ const columns = [
   { title: 'Faixa', width: '10%', key: 'lane' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
 ]
-
 export type GroupedDetection = {
   location: string
   radars: Radar[]
   detections: DetectionDTO[]
 }
-
 export interface RadarReportDocumentProps {
   data: GroupedDetection[]
   parameters: {
@@ -87,8 +60,6 @@ export interface RadarReportDocumentProps {
     radarIds: string[]
     plate?: string
   }
-}
-
 // Function to remove duplicate detections
 const removeDuplicates = (detections: DetectionDTO[]) => {
   const uniqueDetections = new Map<string, DetectionDTO>()
@@ -99,25 +70,20 @@ const removeDuplicates = (detections: DetectionDTO[]) => {
     }
   })
   return Array.from(uniqueDetections.values())
-}
-
 export function RadarReportDocument({
   data,
   parameters,
 }: RadarReportDocumentProps) {
   const reportTitle = 'Relatório de detecção de placas por radar'
-
   // Remove duplicates from each group's detections
   const filteredData = data.map((group) => ({
     ...group,
     detections: removeDuplicates(group.detections),
   }))
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <ReportHeader title={reportTitle} />
-
         {filteredData.map((group, i) => (
           <View key={i + 1} style={{ marginTop: i > 0 ? 60 : 0 }}>
             {filteredData.length > 1 && (
@@ -149,7 +115,6 @@ export function RadarReportDocument({
                       </Text>
                     ))}
                   </View>
-
                   {group.detections.map((row, i) => {
                     return (
                       <View key={i} style={styles.tableRow} wrap={false}>
@@ -163,7 +128,7 @@ export function RadarReportDocument({
                           >
                             {column.key === 'timestamp'
                               ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss', {
-                                  locale: ptBR,
+                                  locale: dateConfig.locale,
                                 })
                               : column.key === 'plate' &&
                                   row[column.key as keyof RadarDetection] === ''
@@ -180,8 +145,6 @@ export function RadarReportDocument({
                     style={styles.tableCaption}
                   >{`Tabela ${i + 1}: Detecções do grupo ${i + 1}`}</Text>
                 ) : (
-                  <Text
-                    style={styles.tableCaption}
                   >{`Tabela ${i + 1}: Detecções`}</Text>
                 )}
               </>
@@ -190,12 +153,9 @@ export function RadarReportDocument({
                 fromDate={parameters.from}
                 toDate={parameters.to}
               />
-            )}
           </View>
         ))}
-
         <ReportFooter />
       </Page>
     </Document>
   )
-}

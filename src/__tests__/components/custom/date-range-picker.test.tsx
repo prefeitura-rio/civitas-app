@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
 import { DatePickerWithRange } from '@/components/custom/date-range-picker'
+import { dateConfig } from '@/lib/date-config'
 
 // Mock do react-day-picker
 jest.mock('react-day-picker', () => ({
@@ -51,10 +51,10 @@ describe('DatePickerWithRange', () => {
     )
 
     const fromFormatted = format(testRange.from, 'dd MMM, y HH:mm', {
-      locale: ptBR,
+      locale: dateConfig.locale,
     })
     const toFormatted = format(testRange.to, 'dd MMM, y HH:mm', {
-      locale: ptBR,
+      locale: dateConfig.locale,
     })
 
     expect(
@@ -69,7 +69,7 @@ describe('DatePickerWithRange', () => {
     ).toBeInTheDocument()
   })
 
-  it('should pass ptBR locale to Calendar component', async () => {
+  it('should pass dateConfig.locale locale to Calendar component', async () => {
     render(<DatePickerWithRange value={testRange} onChange={mockOnChange} />)
 
     // Clica no botão para abrir o calendário
@@ -99,9 +99,11 @@ describe('DatePickerWithRange', () => {
 
     // Verifica se os meses estão em português
     const fromFormatted = format(testRangeJune.from, 'dd MMM, y', {
-      locale: ptBR,
+      locale: dateConfig.locale,
     })
-    const toFormatted = format(testRangeJune.to, 'dd MMM, y', { locale: ptBR })
+    const toFormatted = format(testRangeJune.to, 'dd MMM, y', {
+      locale: dateConfig.locale,
+    })
 
     // Deve conter 'jun' (junho em português)
     expect(fromFormatted).toContain('jun')
@@ -117,8 +119,12 @@ describe('DatePickerWithRange', () => {
       />,
     )
 
-    const fromFormatted = format(testRange.from, 'dd MMM, y', { locale: ptBR })
-    const toFormatted = format(testRange.to, 'dd MMM, y', { locale: ptBR })
+    const fromFormatted = format(testRange.from, 'dd MMM, y', {
+      locale: dateConfig.locale,
+    })
+    const toFormatted = format(testRange.to, 'dd MMM, y', {
+      locale: dateConfig.locale,
+    })
 
     expect(
       screen.getByText(
@@ -147,7 +153,7 @@ describe('DatePickerWithRange', () => {
     )
 
     const fromFormatted = format(singleDateRange.from, 'dd MMM, y HH:mm', {
-      locale: ptBR,
+      locale: dateConfig.locale,
     })
     expect(
       screen.getByText(

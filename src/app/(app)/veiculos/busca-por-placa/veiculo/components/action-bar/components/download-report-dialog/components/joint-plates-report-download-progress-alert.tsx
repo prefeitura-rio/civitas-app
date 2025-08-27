@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import React, { useEffect, useState } from 'react'
 
+import { dateConfig } from '@/lib/date-config'
+import React, { useEffect, useState } from 'react'
 import { Spinner } from '@/components/custom/spinner'
 import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog'
 import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
@@ -10,20 +10,16 @@ import { useNCarsBeforeAfter } from '@/hooks/use-queries/cars/use-n-before-after
 import { generatePDFReport } from '@/http/cars/n-before-after/get-n-cars-before-after'
 import { exportToCSV } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
-
 enum FileType {
   'PDF' = 'PDF',
   'CSV' = 'CSV',
 }
-
 interface DownloadReportsByDetectionPointButtonProps {
   open: boolean
   setOpen: (open: boolean) => void
   nMinutes: number
   nPlates: number
   fileType: FileType
-}
-
 export default function JointPlatesReportDownloadProgressAlert({
   open,
   setOpen,
@@ -36,7 +32,6 @@ export default function JointPlatesReportDownloadProgressAlert({
   const [initialized2, setInitialized2] = useState(false)
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
-
   const { data, isPending } = useNCarsBeforeAfter({
     plate: formattedSearchParams.plate,
     startTime: formattedSearchParams.from,
@@ -45,7 +40,6 @@ export default function JointPlatesReportDownloadProgressAlert({
     nPlates,
     enabled: initialized,
   })
-
   const { data: doc, isPending: isGeneratingDocument } = useQuery({
     queryKey: [
       'cars-before-after',
@@ -69,15 +63,12 @@ export default function JointPlatesReportDownloadProgressAlert({
       })
     },
     enabled: initialized2 && fileType === FileType.PDF,
-  })
-
   useEffect(() => {
     if (open) {
       setInitialized(true)
     }
     if (open && data && !isPending) {
       setInitialized2(true)
-    }
     if (
       open &&
       data &&
@@ -88,12 +79,10 @@ export default function JointPlatesReportDownloadProgressAlert({
     ) {
       downloadFile(doc, `placas_conjuntas_${formattedSearchParams.plate}.pdf`)
       setOpen(false)
-    }
     if (open && data && !isPending && fileType === FileType.CSV) {
       const diff =
         new Date(formattedSearchParams.to).getTime() -
         new Date(formattedSearchParams.from).getTime()
-
       exportToCSV(
         `placas_conjuntas_${formattedSearchParams.plate}`,
         data.groups.flatMap((g, i) =>
@@ -105,18 +94,12 @@ export default function JointPlatesReportDownloadProgressAlert({
                 new Date(formattedSearchParams.from).getTime() + diff / 2,
               ),
               'dd/MM/yyyy HH:mm:ss',
-              { locale: ptBR },
+              { locale: dateConfig.locale },
             ),
             'Início Período Analisado': formatDate(
               g.start_time,
-              'dd/MM/yyyy HH:mm:ss',
-              { locale: ptBR },
-            ),
             'Fim Período Analisado': formatDate(
               g.end_time,
-              'dd/MM/yyyy HH:mm:ss',
-              { locale: ptBR },
-            ),
             Radares: g.radars.join(', '),
             Latitude: g.latitude.toString().replace('.', ','),
             Longitude: g.longitude.toString().replace('.', ','),
@@ -131,18 +114,12 @@ export default function JointPlatesReportDownloadProgressAlert({
           })),
         ),
       )
-      exportToCSV(
         `placas_conjuntas_${formattedSearchParams.plate}_ranking`,
         data.ranking.map((r) => ({
           Placa: r.plate,
           Contagem: r.count,
         })),
-      )
-
-      setOpen(false)
-    }
   }, [isPending, data, open, isGeneratingDocument, doc])
-
   return (
     <div>
       <AlertDialog open={open}>
@@ -157,4 +134,3 @@ export default function JointPlatesReportDownloadProgressAlert({
       </AlertDialog>
     </div>
   )
-}

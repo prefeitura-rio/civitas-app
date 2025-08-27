@@ -1,11 +1,10 @@
 import { formatDate } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import type { PickingInfo } from 'deck.gl'
 
+import { dateConfig } from '@/lib/date-config'
+import type { PickingInfo } from 'deck.gl'
 import { Label } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
 import type { FogoCruzadoIncident } from '@/models/entities'
-
 export function FogoCruzadoInfo({
   pickingInfo,
 }: {
@@ -14,7 +13,7 @@ export function FogoCruzadoInfo({
   const simpleFields = {
     Data: pickingInfo?.object?.date
       ? formatDate(pickingInfo?.object?.date, 'dd/MM/yyyy HH:mm', {
-          locale: ptBR,
+          locale: dateConfig.locale,
         })
       : undefined,
     Endereço: pickingInfo?.object?.address,
@@ -27,7 +26,6 @@ export function FogoCruzadoInfo({
     'Presença de Agentes': pickingInfo?.object?.agentPresence ? 'Sim' : 'Não',
     'Registros Relacionados': pickingInfo?.object?.relatedRecord,
   }
-
   const contextFields = {
     'Motivo Principal': pickingInfo?.object?.contextInfo.mainReason.name,
     'Motivos Complementares':
@@ -39,8 +37,6 @@ export function FogoCruzadoInfo({
       .join(', '),
     Massacre: pickingInfo?.object?.contextInfo.massacre ? 'Sim' : 'Não',
     'Unidade Policial': pickingInfo?.object?.contextInfo.policeUnit,
-  }
-
   const victims = pickingInfo?.object?.victims.map((item) => ({
     Situação:
       item.situation === 'Dead'
@@ -67,24 +63,13 @@ export function FogoCruzadoInfo({
     'Status do Agente': item.agentStatus?.name,
     Unidade: item.unit,
   }))
-
   const animalVictims = pickingInfo?.object?.animalVictims.map((item) => ({
     Nome: item.name,
     'Tipo de Animal': item.animalType,
-    Situação:
-      item.situation === 'Dead'
-        ? 'Morta'
-        : item.situation === 'Wounded'
-          ? 'Ferida'
-          : item.situation,
-    Circunstâncias: item.circumstances.map((item) => item.name).join(', '),
     'Data da Morte': item?.deathDate
-      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm', { locale: ptBR })
+      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm', { locale: dateConfig.locale })
       : item.deathDate,
-  }))
-
   const empty = ['Não se aplica', 'Sem identificação', 'Não identificado']
-
   return (
     <div className="h-full w-full">
       <h4>Ocorrência do Fogo Cruzado</h4>
@@ -111,28 +96,9 @@ export function FogoCruzadoInfo({
             )}
           </div>
         </div>
-
-        <div>
           <span className="mb-1 block text-lg font-medium">Contexto:</span>
-          <div className="space-y-1 pl-4">
             {Object.entries(contextFields).map(
-              ([key, value], index) =>
-                value &&
                 !empty.includes(value) && (
-                  <div key={index} className="flex gap-2">
-                    <Label className="text-sm font-medium leading-4">
-                      {key}:
-                    </Label>
-                    <span className="text-sm leading-4 text-muted-foreground">
-                      {value}
-                    </span>
-                  </div>
-                ),
-            )}
-          </div>
-        </div>
-
-        <div>
           <span className="mb-1 block text-lg font-medium">{`Vítimas Humanas (${victims?.length}):`}</span>
           <div className="space-y-2 pl-4">
             {victims?.map((victim, index) => (
@@ -154,33 +120,8 @@ export function FogoCruzadoInfo({
                 )}
               </div>
             ))}
-          </div>
-        </div>
-
-        <div>
           <span className="mb-1 block text-lg font-medium">{`Vítimas Animais (${animalVictims?.length}):`}</span>
-          <div className="space-y-2 pl-4">
             {animalVictims?.map((victim, index) => (
-              <div key={index}>
-                <div>{`Vítima ${index + 1}:`}</div>
-                {Object.entries(victim).map(
-                  ([key, value], index) =>
-                    value &&
-                    !empty.includes(value.toString()) && (
-                      <div key={index} className="flex gap-2 pl-4">
-                        <Label className="text-sm font-medium leading-4">
-                          {key}:
-                        </Label>
-                        <span className="text-sm leading-4 text-muted-foreground">
-                          {value}
-                        </span>
-                      </div>
-                    ),
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )

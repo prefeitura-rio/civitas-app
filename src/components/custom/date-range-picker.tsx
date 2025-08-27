@@ -3,7 +3,6 @@
 import '@/utils/date-extensions'
 
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { CalendarIcon } from 'lucide-react'
 import * as React from 'react'
 import { DateRange } from 'react-day-picker'
@@ -16,6 +15,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
+import { dateConfig } from '@/lib/date-config'
 import { cn } from '@/lib/utils'
 
 import { TimePicker } from './time-picker'
@@ -57,18 +57,26 @@ export function DatePickerWithRange({
         newDateRange && newDateRange?.to ? new Date(newDateRange.to) : undefined
 
       if (timePicker) {
-        // Preserva hora e minuto selecionados
+        // Preserva hora e minuto selecionados ou usa horário padrão (00:00)
         if (from) {
-          const oldHoursFrom = value?.from ? value.from.getHours() : 0
-          const oldMinutesFrom = value?.from ? value.from.getMinutes() : 0
+          const oldHoursFrom = value?.from
+            ? value.from.getHours()
+            : dateConfig.defaultTime.hours
+          const oldMinutesFrom = value?.from
+            ? value.from.getMinutes()
+            : dateConfig.defaultTime.minutes
 
           from.setHours(oldHoursFrom)
           from.setMinutes(oldMinutesFrom)
         }
 
         if (to) {
-          const oldHoursTo = value?.to ? value.to.getHours() : 0
-          const oldMinutesTo = value?.to ? value.to.getMinutes() : 0
+          const oldHoursTo = value?.to
+            ? value.to.getHours()
+            : dateConfig.defaultTime.hours
+          const oldMinutesTo = value?.to
+            ? value.to.getMinutes()
+            : dateConfig.defaultTime.minutes
 
           to.setHours(oldHoursTo)
           to.setMinutes(oldMinutesTo)
@@ -117,7 +125,7 @@ export function DatePickerWithRange({
                     value.from,
                     timePicker ? 'dd MMM, y HH:mm' : 'dd MMM, y',
                     {
-                      locale: ptBR,
+                      locale: dateConfig.locale,
                     },
                   )}{' '}
                   -{' '}
@@ -125,7 +133,7 @@ export function DatePickerWithRange({
                     value.to,
                     timePicker ? 'dd MMM, y HH:mm' : 'dd MMM, y',
                     {
-                      locale: ptBR,
+                      locale: dateConfig.locale,
                     },
                   )}
                 </>
@@ -134,7 +142,7 @@ export function DatePickerWithRange({
                   value.from,
                   timePicker ? 'dd MMM, y HH:mm' : 'dd MMM, y',
                   {
-                    locale: ptBR,
+                    locale: dateConfig.locale,
                   },
                 )
               )
@@ -152,7 +160,7 @@ export function DatePickerWithRange({
             fromDate={fromDate}
             toDate={toDate}
             onSelect={onSelect}
-            locale={ptBR}
+            locale={dateConfig.locale}
             numberOfMonths={2}
           />
           {timePicker && (

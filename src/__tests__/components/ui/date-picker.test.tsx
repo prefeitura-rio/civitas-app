@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
 import { DatePicker } from '@/components/ui/date-picker'
+import { dateConfig } from '@/lib/date-config'
 
 // Mock do react-day-picker para evitar problemas com locale
 jest.mock('react-day-picker', () => ({
@@ -37,11 +37,13 @@ describe('DatePicker', () => {
   it('should format date with Portuguese locale', () => {
     render(<DatePicker value={testDate} onChange={mockOnChange} />)
 
-    const expectedFormat = format(testDate, 'dd MMM, y HH:mm', { locale: ptBR })
+    const expectedFormat = format(testDate, 'dd MMM, y HH:mm', {
+      locale: dateConfig.locale,
+    })
     expect(screen.getByText(expectedFormat)).toBeInTheDocument()
   })
 
-  it('should pass ptBR locale to Calendar component', async () => {
+  it('should pass dateConfig.locale locale to Calendar component', async () => {
     render(<DatePicker value={testDate} onChange={mockOnChange} />)
 
     // Clica no botão para abrir o calendário
@@ -80,7 +82,9 @@ describe('DatePicker', () => {
     render(<DatePicker value={testDate} onChange={mockOnChange} />)
 
     // Verifica se a data está formatada em português
-    const formattedDate = format(testDate, 'dd MMM, y HH:mm', { locale: ptBR })
+    const formattedDate = format(testDate, 'dd MMM, y HH:mm', {
+      locale: dateConfig.locale,
+    })
     expect(screen.getByText(formattedDate)).toBeInTheDocument()
 
     // Deve mostrar o mês em português (jun.)
@@ -108,5 +112,15 @@ describe('DatePicker', () => {
     )
 
     expect(screen.getByText(customPlaceholder)).toBeInTheDocument()
+  })
+
+  it('should use dateConfig for default time values', () => {
+    expect(dateConfig.defaultTime.hours).toBe(0)
+    expect(dateConfig.defaultTime.minutes).toBe(0)
+    expect(dateConfig.defaultTime.seconds).toBe(0)
+    expect(dateConfig.defaultTime.milliseconds).toBe(0)
+
+    expect(dateConfig.locale).toBeDefined()
+    expect(dateConfig.locale.code).toBe('pt-BR')
   })
 })

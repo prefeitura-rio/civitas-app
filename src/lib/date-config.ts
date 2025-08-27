@@ -1,0 +1,31 @@
+import { ptBR } from 'date-fns/locale'
+
+/**
+ * Configurações centralizadas para formatação de datas
+ */
+export const dateConfig = {
+  /**
+   * Locale português brasileiro para date-fns
+   */
+  locale: ptBR,
+
+  /**
+   * Horário padrão para date pickers (00:00)
+   */
+  defaultTime: {
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  },
+
+  /**
+   * Formatos de data comuns
+   */
+  formats: {
+    dateTime: 'dd MMM, y HH:mm',
+    date: 'dd/MM/yyyy',
+    time: 'HH:mm',
+    full: "EEEE, dd 'de' MMMM 'de' yyyy",
+  },
+} as const

@@ -3,7 +3,7 @@ import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addMinutes, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { dateConfig } from '@/lib/date-config'
 import {
   Info,
   MapPinIcon,
@@ -16,7 +16,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
-
 import { Slider } from '@/components/custom/double-slider'
 import { InputError } from '@/components/custom/input-error'
 import { PlateWildcardsHelperInfo } from '@/components/custom/plate-wildcards-helper-info'
@@ -25,7 +24,6 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -34,7 +32,6 @@ import { useMap } from '@/hooks/use-contexts/use-map-context'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
 import { toQueryParams } from '@/utils/to-query-params'
 import { optionalPlateHintSchema } from '@/utils/zod-schemas'
-
 export const radarSearchSchema = z.object({
   date: z.date({ message: 'Campo obrigatório' }),
   duration: z.array(z.coerce.number()),
@@ -43,15 +40,11 @@ export const radarSearchSchema = z.object({
     .array(z.string(), { message: 'Campo obrigatório 2' })
     .min(1, { message: 'Campo obrigatório' }),
 })
-
 export type RadarSearchFormData = z.infer<typeof radarSearchSchema>
-
 export function SearchByRadarForm() {
   const radarSearchInputRef = useRef<HTMLInputElement | null>(null)
   const router = useRouter()
-
   const { formattedSearchParams } = useCarRadarSearchParams()
-
   const {
     layers: {
       radars: {
@@ -63,8 +56,6 @@ export function SearchByRadarForm() {
     },
     setViewport,
   } = useMap()
-
-  const {
     control,
     handleSubmit,
     setValue,
@@ -88,37 +79,29 @@ export function SearchByRadarForm() {
           plate: '',
         },
   })
-
   const onSubmit = (data: RadarSearchFormData) => {
     const query = toQueryParams(data)
     router.push(`/veiculos/busca-por-radar/resultado?${query.toString()}`)
   }
-
   useEffect(() => {
     setValue(
       'radarIds',
       selectedObjects.map((radar) => radar.cetRioCode),
     )
   }, [selectedObjects])
-
-  useEffect(() => {
     if (radars && formattedSearchParams && selectedObjects.length === 0) {
       const ids = formattedSearchParams.radarIds
-
       const selectedRadars = radars.filter((radar) =>
         ids.includes(radar.cetRioCode),
       )
-
       setSelectedObjects(selectedRadars)
     }
   }, [radars])
-
   return (
     <>
       <Card className="mb-0 w-full max-w-screen-md p-4">
         <h1 className="text-lg font-bold">Busca por Radar</h1>
       </Card>
-
       <Card className="flex w-full max-w-screen-md flex-col p-6">
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -142,8 +125,6 @@ export function SearchByRadarForm() {
             />
             <InputError message={errors.date?.message} />
           </div>
-
-          <div className="flex w-full flex-col">
             <div className="relative w-full">
               <RectangleEllipsis className="absolute left-3 top-1/2 size-4 -translate-y-1/2 transform text-gray-400" />
               <Controller
@@ -167,8 +148,6 @@ export function SearchByRadarForm() {
               </div>
             </div>
             <InputError message={errors.plate?.message} />
-          </div>
-
           <Controller
             control={control}
             name="duration"
@@ -190,27 +169,19 @@ export function SearchByRadarForm() {
                     step={1}
                     disabled={isSubmitting}
                     labelFormatter={(val) =>
-                      `${format(addMinutes(selectedDate, val), 'HH:mm', { locale: ptBR })}h`
-                    }
-                  />
+                      `${format(addMinutes(selectedDate, val), 'HH:mm', { locale: dateConfig.locale })}h`
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>
                       Min:{' '}
                       {format(addMinutes(selectedDate, -150), 'HH:mm', {
-                        locale: ptBR,
+                        locale: dateConfig.locale,
                       })}
                       h
                     </span>
-                    <span>
                       Max:{' '}
                       {format(addMinutes(selectedDate, 150), 'HH:mm', {
-                        locale: ptBR,
-                      })}
-                      h
-                    </span>
                   </div>
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                    <span>
                       {(() => {
                         const min = field.value?.[0] ?? 0
                         const abs = Math.abs(min)
@@ -222,27 +193,13 @@ export function SearchByRadarForm() {
                         }
                         return `(${sign}${abs}min)`
                       })()}
-                    </span>
-                    <span>
-                      {(() => {
                         const max = field.value?.[1] ?? 0
                         const abs = Math.abs(max)
                         const sign = max > 0 ? '+' : max < 0 ? '-' : ''
-                        if (abs >= 60) {
-                          const h = Math.floor(abs / 60)
-                          const m = abs % 60
-                          return `(${sign}${h}h${m > 0 ? ` ${m}min` : ''})`
-                        }
-                        return `(${sign}${abs}min)`
-                      })()}
-                    </span>
-                  </div>
                 </div>
               )
             }}
           />
-
-          <div className="flex w-full flex-col">
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full">
@@ -281,12 +238,10 @@ export function SearchByRadarForm() {
                             latitude: radar.latitude,
                             zoom: 20,
                           })
-                        }
                       }}
                     >
                       Adicionar
                     </Button>
-                  </div>
                   <div className="space-y-2">
                     {selectedObjects.map((radar) => (
                       <div
@@ -313,31 +268,19 @@ export function SearchByRadarForm() {
                           >
                             <NavigationIcon className="size-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
                             onClick={() => handleSelectObject(radar)}
-                          >
                             <XCircleIcon className="size-4" />
-                          </Button>
-                        </div>
                       </div>
                     ))}
-                  </div>
-                </div>
               </PopoverContent>
             </Popover>
             <InputError message={errors.radarIds?.message} />
-          </div>
-
           <div className="col-span-2 flex justify-end">
             <Button type="submit" className="mt-4">
               <SearchIcon className="mr-2 size-4" />
               Buscar
             </Button>
-          </div>
         </form>
-      </Card>
     </>
   )
 }
