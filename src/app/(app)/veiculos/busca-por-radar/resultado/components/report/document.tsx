@@ -1,6 +1,5 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import React from 'react'
 
 import { ReportFooter } from '@/components/custom/report-footer'
@@ -162,9 +161,7 @@ export function RadarReportDocument({
                             }}
                           >
                             {column.key === 'timestamp'
-                              ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss', {
-                                  locale: dateConfig.locale,
-                                })
+                              ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
                               : column.key === 'plate' &&
                                   row[column.key as keyof RadarDetection] === ''
                                 ? '-------'

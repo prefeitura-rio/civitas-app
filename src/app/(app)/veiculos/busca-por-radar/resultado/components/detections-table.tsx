@@ -1,6 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import { ArrowUpRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -23,11 +22,7 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       accessorKey: 'timestamp',
       header: () => <Label>Data e Hora</Label>,
       cell: ({ row }) => (
-        <span>
-          {formatDate(row.getValue('timestamp'), 'dd/MM/y HH:mm:ss', {
-            locale: dateConfig.locale,
-          })}
-        </span>
+        <span>{formatDate(row.getValue('timestamp'), 'dd/MM/y HH:mm:ss')}</span>
       ),
     },
     {

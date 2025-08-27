@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
+import { ptBR } from 'date-fns/locale'
 import React from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
@@ -34,7 +34,7 @@ export function TripList() {
                 <span className="code-highlight">{lastSearchParams.plate}</span>
               </h4>
               <span className="text-sm text-muted-foreground">
-                {`${format(lastSearchParams.startTime, 'dd MMM, y HH:mm', { locale: dateConfig.locale })} - ${format(lastSearchParams.endTime, 'dd MMM, y HH:mm', { locale: dateConfig.locale })}`}
+                {`${format(lastSearchParams.startTime, 'dd MMM, y HH:mm', { locale: ptBR })} - ${format(lastSearchParams.endTime, 'dd MMM, y HH:mm', { locale: ptBR })}`}
               </span>
             </div>
 

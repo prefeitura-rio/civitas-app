@@ -15,7 +15,6 @@ import React, { type Dispatch, type SetStateAction } from 'react'
 import { MapHoverCard } from '@/components/custom/map-hover-card'
 import { Label, Value } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
-import { dateConfig } from '@/lib/date-config'
 import type { Point } from '@/models/entities'
 import { haversineDistance } from '@/utils/haversine-distance'
 
@@ -105,7 +104,6 @@ export function DetectionPointHoverCard({
                   {formatDate(
                     hoveredObject.object.startTime,
                     "dd/MM/y 'às' HH:mm:ss",
-                    { locale: dateConfig.locale },
                   )}
                 </Value>
               </div>

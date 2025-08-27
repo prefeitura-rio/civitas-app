@@ -3,7 +3,6 @@ import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addMinutes, format } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import {
   Info,
   MapPinIcon,
@@ -190,23 +189,15 @@ export function SearchByRadarForm() {
                     step={1}
                     disabled={isSubmitting}
                     labelFormatter={(val) =>
-                      `${format(addMinutes(selectedDate, val), 'HH:mm', { locale: dateConfig.locale })}h`
+                      `${format(addMinutes(selectedDate, val), 'HH:mm')}h`
                     }
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>
-                      Min:{' '}
-                      {format(addMinutes(selectedDate, -150), 'HH:mm', {
-                        locale: dateConfig.locale,
-                      })}
-                      h
+                      Min: {format(addMinutes(selectedDate, -150), 'HH:mm')}h
                     </span>
                     <span>
-                      Max:{' '}
-                      {format(addMinutes(selectedDate, 150), 'HH:mm', {
-                        locale: dateConfig.locale,
-                      })}
-                      h
+                      Max: {format(addMinutes(selectedDate, 150), 'HH:mm')}h
                     </span>
                   </div>
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">

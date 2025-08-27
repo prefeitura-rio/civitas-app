@@ -1,6 +1,3 @@
-// Jest DOM matchers
-import '@testing-library/jest-dom'
-
 interface Date {
   setMaxTime(): Date
   setMinTime(): Date

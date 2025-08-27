@@ -1,7 +1,6 @@
 import '@/utils/string-extensions'
 
 import { formatDate } from 'date-fns'
-import { dateConfig } from '@/lib/date-config'
 import type { Dispatch, SetStateAction } from 'react'
 
 import {
@@ -23,7 +22,7 @@ export function FogoCruzadoSelectCard({
 }: FogoCruzadoSelectionCardProps) {
   const simpleFields = {
     Data: selectedObject?.date
-      ? formatDate(selectedObject?.date, 'dd/MM/yyyy HH:mm', { locale: dateConfig.locale })
+      ? formatDate(selectedObject?.date, 'dd/MM/yyyy HH:mm')
       : undefined,
     Endereço: selectedObject?.address,
     Bairro: selectedObject?.neighborhood.name,
@@ -86,7 +85,7 @@ export function FogoCruzadoSelectCard({
           : item.situation,
     Circunstâncias: item.circumstances.map((item) => item.name).join(', '),
     'Data da Morte': item?.deathDate
-      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm', { locale: dateConfig.locale })
+      ? formatDate(item.deathDate, 'dd/MM/yyyy HH:mm')
       : item.deathDate,
   }))
 
