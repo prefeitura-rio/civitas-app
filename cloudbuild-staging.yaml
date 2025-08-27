@@ -8,7 +8,7 @@ steps:
         corepack enable && \
         corepack prepare pnpm@9.15.2 --activate && \
         pnpm install --frozen-lockfile && \
-        pnpm run test -- --passWithNoTests --watchAll=false --coverage=false
+        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPattern="src/__tests__"
   # Create the .env file
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
