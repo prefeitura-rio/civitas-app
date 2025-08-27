@@ -10,6 +10,12 @@ Script para fazer rollback de deployments para versões anteriores.
 ### 🏷️ `manage-tags.sh` - Gerenciamento de Tags
 Script para listar, gerenciar e monitorar tags e deployments.
 
+### 📦 `version-check.sh` - Verificação de Versão
+Script para verificar se a versão do package.json mudou e só fazer deploy se mudou.
+
+### 🚀 `bump-version.sh` - Atualização de Versão
+Script para atualizar versão no package.json e trigger deploy automático.
+
 ## 🔄 Rollback
 
 ### Uso Básico
@@ -51,6 +57,58 @@ Script para listar, gerenciar e monitorar tags e deployments.
 ```bash
 ./scripts/manage-tags.sh [comando] [opções]
 ```
+
+## 📦 Verificação de Versão
+
+### Uso Básico
+```bash
+./scripts/version-check.sh [ambiente]
+```
+
+### Exemplos
+```bash
+# Verificar se deve fazer deploy para staging
+./scripts/version-check.sh staging
+
+# Verificar se deve fazer deploy para produção
+./scripts/version-check.sh prod
+```
+
+### Funcionalidades
+- ✅ **Lê versão** do package.json
+- ✅ **Compara** com última tag do ambiente
+- ✅ **Cria tag** se versão mudou
+- ✅ **Só faz deploy** se versão mudou
+- ✅ **Previne deploys** desnecessários
+
+## 🚀 Atualização de Versão
+
+### Uso Básico
+```bash
+./scripts/bump-version.sh [tipo] [ambiente] [versão_custom]
+```
+
+### Exemplos
+```bash
+# Incrementar patch (3.2.0 -> 3.2.1)
+./scripts/bump-version.sh patch staging
+
+# Incrementar minor (3.2.0 -> 3.3.0)
+./scripts/bump-version.sh minor prod
+
+# Incrementar major (3.2.0 -> 4.0.0)
+./scripts/bump-version.sh major prod
+
+# Definir versão específica
+./scripts/bump-version.sh custom 3.3.0 staging
+```
+
+### Funcionalidades
+- ✅ **Atualiza versão** no package.json
+- ✅ **Cria commit** automático
+- ✅ **Faz push** para origin
+- ✅ **Trigger deploy** automático
+- ✅ **Confirmação** antes do deploy
 
 ### Comandos Disponíveis
 
@@ -98,9 +156,15 @@ Script para listar, gerenciar e monitorar tags e deployments.
 ### Tags Automáticas
 O pipeline agora cria automaticamente:
 
-1. **Tag com timestamp**: `prod-20241201-143022`
+1. **Tag com versão**: `prod-3.2.0-20241201-143022`
 2. **Tag latest**: `latest`
 3. **Tag com commit SHA**: `abc123def456`
+
+### Deploy Inteligente
+- **Só faz deploy** se versão do package.json mudou
+- **Previne deploys** desnecessários
+- **Tags organizadas** por versão e ambiente
+- **Histórico completo** de versões
 
 ### Armazenamento de Histórico
 - **Google Cloud Storage**: `gs://datario-deployments/prod/`
@@ -122,7 +186,7 @@ O pipeline agora cria automaticamente:
 ### 2. Escolher Versão Alvo
 ```bash
 # Por tag
-./scripts/rollback.sh prod prod-20241201-143022
+./scripts/rollback.sh prod prod-3.2.0-20241201-143022
 
 # Por commit
 ./scripts/rollback.sh prod abc123def456
@@ -130,6 +194,31 @@ O pipeline agora cria automaticamente:
 # Rollback rápido
 ./scripts/rollback.sh prod undo
 ```
+
+## 🚀 Como Fazer Deploy
+
+### 1. Atualizar Versão
+```bash
+# Patch (bugfix)
+./scripts/bump-version.sh patch staging
+
+# Minor (nova feature)
+./scripts/bump-version.sh minor prod
+
+# Major (breaking change)
+./scripts/bump-version.sh major prod
+
+# Versão específica
+./scripts/bump-version.sh custom 3.3.0 staging
+```
+
+### 2. Deploy Automático
+- ✅ **Versão atualizada** no package.json
+- ✅ **Commit criado** automaticamente
+- ✅ **Push enviado** para origin
+- ✅ **Cloud Build** executado automaticamente
+- ✅ **Tag criada** com versão e timestamp
+- ✅ **Aplicação deployada** no ambiente
 
 ### 3. Confirmar Rollback
 O script pedirá confirmação antes de executar.

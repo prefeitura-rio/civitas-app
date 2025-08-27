@@ -10,6 +10,18 @@ steps:
         pnpm install --frozen-lockfile && \
         pnpm run test -- --passWithNoTests --watchAll=false --coverage=false
 
+  # Check if version changed and create tag if needed
+  - name: "node:20-alpine"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        # Tornar script executável
+        chmod +x scripts/version-check.sh && \
+        # Executar verificação de versão
+        ./scripts/version-check.sh prod
+    id: "version-check"
+
   # Create the .env file
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
@@ -40,17 +52,6 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"]
 
-  # Create Git tag for this deployment
-  - name: "gcr.io/cloud-builders/git"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        git config --global user.email "cloudbuild@datario.com" && \
-        git config --global user.name "Cloud Build" && \
-        git tag -a "prod-$(date +%Y%m%d-%H%M%S)" -m "Production deployment $(date +%Y-%m-%d %H:%M:%S) - Commit: $COMMIT_SHA" && \
-        git push origin "prod-$(date +%Y%m%d-%H%M%S)"
-
   # Save deployment info for rollback
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
@@ -63,6 +64,7 @@ steps:
         echo "Image Tag: gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA" >> deployment-info.txt && \
         echo "Git Tag: prod-$(date +%Y%m%d-%H%M%S)" >> deployment-info.txt && \
         echo "Branch: $BRANCH_NAME" >> deployment-info.txt && \
+        echo "Package Version: $(node -p "require('./package.json').version")" >> deployment-info.txt && \
         gsutil cp deployment-info.txt gs://$PROJECT_ID-deployments/prod/deployment-info-$(date +%Y%m%d-%H%M%S).txt
 
   # Kustomize: set the image in the kustomization.yaml file
@@ -111,3 +113,7 @@ artifacts:
   objects:
     location: "gs://$PROJECT_ID-deployments/prod/"
     paths: ["deployment-info.txt"]
+
+# Only run if version check passed (step succeeded)
+options:
+  logging: CLOUD_LOGGING_ONLY
