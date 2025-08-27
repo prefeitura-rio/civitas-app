@@ -54,6 +54,7 @@ import {
   useTimeFieldState,
 } from 'react-stately'
 
+import { LocaleProvider } from '@/components/providers/i18n-provider'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -378,51 +379,53 @@ const DateTimePicker = React.forwardRef<
     }
   }, [state.value, onJsDateChange])
   return (
-    <div
-      {...groupProps}
-      ref={divRef}
-      className={cn(
-        groupProps.className,
-        'flex items-center rounded-md border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
-      )}
-    >
-      <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            {...buttonProps}
-            variant="ghost"
-            className="border-r"
-            disabled={props.isDisabled}
-            onClick={() => {
-              state.setOpen(true)
-            }}
-          >
-            <CalendarIcon className="h-5 w-5" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent ref={contentRef} className="w-full">
-          <div {...dialogProps} className="space-y-3">
-            <Calendar {...calendarProps} />
-            {state.hasTime && (
-              <TimeField
-                value={state.timeValue}
-                onChange={(value) => state.setTimeValue(value as TimeValue)}
-              />
+    <LocaleProvider>
+      <div
+        {...groupProps}
+        ref={divRef}
+        className={cn(
+          groupProps.className,
+          'flex items-center rounded-md border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+        )}
+      >
+        <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
+          <PopoverTrigger asChild>
+            <Button
+              {...buttonProps}
+              variant="ghost"
+              className="border-r"
+              disabled={props.isDisabled}
+              onClick={() => {
+                state.setOpen(true)
+              }}
+            >
+              <CalendarIcon className="h-5 w-5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent ref={contentRef} className="w-full">
+            <div {...dialogProps} className="space-y-3">
+              <Calendar {...calendarProps} />
+              {state.hasTime && (
+                <TimeField
+                  value={state.timeValue}
+                  onChange={(value) => state.setTimeValue(value as TimeValue)}
+                />
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <DateField {...fieldProps} value={currentValue()} />
+        <div className={cn('-ml-2 mr-2 h-5 w-5', !showClearButton && 'hidden')}>
+          <X
+            className={cn(
+              'h-5 w-5 cursor-pointer text-primary/30',
+              !jsDatetime && 'hidden',
             )}
-          </div>
-        </PopoverContent>
-      </Popover>
-      <DateField {...fieldProps} value={currentValue()} />
-      <div className={cn('-ml-2 mr-2 h-5 w-5', !showClearButton && 'hidden')}>
-        <X
-          className={cn(
-            'h-5 w-5 cursor-pointer text-primary/30',
-            !jsDatetime && 'hidden',
-          )}
-          onClick={() => setJsDatetime(null)}
-        />
+            onClick={() => setJsDatetime(null)}
+          />
+        </div>
       </div>
-    </div>
+    </LocaleProvider>
   )
 })
 

@@ -1,6 +1,6 @@
 'use client'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { dateConfig } from '@/lib/date-config'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo } from 'react'
 
@@ -96,7 +96,7 @@ export default function Veiculos() {
             </span>
           </CardTitle>
           <CardDescription className="">
-            {`${format(formattedSearchParams.from, 'dd MMM, y HH:mm', { locale: ptBR })} - ${format(formattedSearchParams.to, 'dd MMM, y HH:mm', { locale: ptBR })}`}
+            {`${format(formattedSearchParams.from, 'dd MMM, y HH:mm', { locale: dateConfig.locale })} - ${format(formattedSearchParams.to, 'dd MMM, y HH:mm', { locale: dateConfig.locale })}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
