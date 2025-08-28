@@ -14,7 +14,7 @@ const mockSetIsAISPVisible = jest.fn()
 const mockSetIsCISPVisible = jest.fn()
 const mockSetIsSchoolsVisible = jest.fn()
 const mockSetIsBusStopsVisible = jest.fn()
-const mockSetMapStyle = jest.fn()
+// const mockSetMapStyle = jest.fn()
 
 jest.mock('@/hooks/map-layers/use-radar-layer', () => ({
   useRadarLayer: () => ({
