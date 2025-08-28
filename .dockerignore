@@ -34,3 +34,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+
+# cache
+.cache
+.parcel-cache
+
+# test files
+src/__tests__/
+**/*.test.*
+**/*.spec.*
+
+# documentation
+README.md
+docs/

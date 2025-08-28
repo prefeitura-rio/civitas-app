@@ -36,8 +36,10 @@ describe('useRadarsSearch', () => {
 
   const mockSearchParams = {
     radarIds: ['RADAR001', 'RADAR002'],
-    date: '2024-01-15T10:00:00.000Z',
-    duration: [0, 60], // 0 a 60 minutos
+    date: {
+      from: '2024-01-15T10:00:00.000Z',
+      to: '2024-01-15T15:00:00.000Z',
+    },
     plate: 'ABC1234',
   }
 

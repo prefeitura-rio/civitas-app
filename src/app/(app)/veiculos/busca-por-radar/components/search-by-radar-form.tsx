@@ -2,7 +2,6 @@
 import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { addMinutes, format } from 'date-fns'
 import {
   Info,
   MapPinIcon,
@@ -67,22 +66,21 @@ export function SearchByRadarForm() {
     control,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<RadarSearchFormData>({
     resolver: zodResolver(radarSearchSchema),
     defaultValues: formattedSearchParams
       ? {
-          date: formattedSearchParams.date
-            ? new Date(formattedSearchParams.date)
-            : undefined,
-          duration: formattedSearchParams.duration,
+          date: formattedSearchParams.date.from
+            ? new Date(formattedSearchParams.date.from)
+            : new Date(new Date().setSeconds(0, 0)),
+          duration: [0, 60], // Padrão de 1 hora
           plate: formattedSearchParams.plate,
           radarIds: formattedSearchParams.radarIds,
         }
       : {
           date: new Date(new Date().setSeconds(0, 0)),
-          duration: [-60, 60],
+          duration: [0, 60], // Padrão de 1 hora
           radarIds: [],
           plate: '',
         },
@@ -172,61 +170,82 @@ export function SearchByRadarForm() {
             control={control}
             name="duration"
             render={({ field }) => {
-              const selectedDate = watch('date') || new Date()
               return (
                 <div className="w-full space-y-2 pt-6">
                   <Slider
                     unity="min"
                     value={field.value}
                     onValueChange={(value) => {
-                      if (value[0] > 0) field.onChange([0, value[1]])
-                      else if (value[1] < 0) field.onChange([value[0], 0])
-                      else field.onChange(value)
+                      // Verificar se a diferença entre os valores não excede 5 horas (300 minutos)
+                      const timeDiff = Math.abs(value[1] - value[0])
+                      if (timeDiff > 300) {
+                        // Se exceder, ajustar o valor
+                        if (
+                          value[0] > field.value[0] ||
+                          value[1] < field.value[1]
+                        ) {
+                          // Se moveu o início para frente ou fim para trás, manter o ajuste
+                          field.onChange(value)
+                        } else {
+                          // Se moveu para exceder 5h, limitar
+                          const mid = Math.round((value[0] + value[1]) / 2)
+                          field.onChange([
+                            Math.round(mid - 150),
+                            Math.round(mid + 150),
+                          ])
+                        }
+                      } else {
+                        field.onChange(value)
+                      }
                     }}
-                    defaultValue={[0, 0]}
-                    max={150}
-                    min={-150}
+                    defaultValue={[0, 300]} // 5 horas padrão
+                    max={1439} // 23:59 (1440 minutos - 1)
+                    min={0} // 00:00
                     step={1}
                     disabled={isSubmitting}
-                    labelFormatter={(val) =>
-                      `${format(addMinutes(selectedDate, val), 'HH:mm')}h`
-                    }
+                    labelFormatter={(val) => {
+                      const hours = Math.floor(val / 60)
+                      const minutes = val % 60
+                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+                    }}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>
-                      Min: {format(addMinutes(selectedDate, -150), 'HH:mm')}h
-                    </span>
-                    <span>
-                      Max: {format(addMinutes(selectedDate, 150), 'HH:mm')}h
-                    </span>
+                    <span>Min: 00:00h</span>
+                    <span>Max: 23:59h</span>
                   </div>
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                     <span>
                       {(() => {
-                        const min = field.value?.[0] ?? 0
-                        const abs = Math.abs(min)
-                        const sign = min > 0 ? '+' : min < 0 ? '-' : ''
-                        if (abs >= 60) {
-                          const h = Math.floor(abs / 60)
-                          const m = abs % 60
-                          return `(${sign}${h}h${m > 0 ? ` ${m}min` : ''})`
-                        }
-                        return `(${sign}${abs}min)`
+                        const min = Math.round(field.value?.[0] ?? 0)
+                        const hours = Math.floor(min / 60)
+                        const minutes = min % 60
+                        return `(${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`
                       })()}
                     </span>
                     <span>
                       {(() => {
-                        const max = field.value?.[1] ?? 0
-                        const abs = Math.abs(max)
-                        const sign = max > 0 ? '+' : max < 0 ? '-' : ''
-                        if (abs >= 60) {
-                          const h = Math.floor(abs / 60)
-                          const m = abs % 60
-                          return `(${sign}${h}h${m > 0 ? ` ${m}min` : ''})`
-                        }
-                        return `(${sign}${abs}min)`
+                        const max = Math.round(field.value?.[1] ?? 0)
+                        const hours = Math.floor(max / 60)
+                        const minutes = max % 60
+                        return `(${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`
                       })()}
                     </span>
+                  </div>
+                  <div className="text-center text-xs text-blue-600">
+                    Intervalo:{' '}
+                    {Math.round(
+                      Math.abs(
+                        (field.value?.[1] ?? 0) - (field.value?.[0] ?? 0),
+                      ),
+                    )}{' '}
+                    min
+                    {Math.abs(
+                      (field.value?.[1] ?? 0) - (field.value?.[0] ?? 0),
+                    ) > 300 && (
+                      <span className="block text-red-500">
+                        ⚠️ Máximo de 5 horas permitido
+                      </span>
+                    )}
                   </div>
                 </div>
               )
