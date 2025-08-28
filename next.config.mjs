@@ -8,9 +8,7 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   // Optimize build performance
   swcMinify: true,
-  experimental: {
-    optimizeCss: true,
-  },
+
   // Reduce bundle size
   compress: true,
   poweredByHeader: false,
