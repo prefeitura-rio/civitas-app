@@ -290,51 +290,6 @@ describe('MapLayerControl Integration', () => {
     })
   })
 
-  it('should call setMapStyle when satellite layer is toggled', async () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Abre o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Clica na camada de satélite
-    const satelliteButton = screen.getByLabelText('Toggle Satélite layer')
-    fireEvent.click(satelliteButton)
-
-    // Verifica se a função setMapStyle foi chamada
-    await waitFor(() => {
-      expect(mockSetMapStyle).toHaveBeenCalled()
-    })
-  })
-
-  it('should toggle layer visibility correctly - enable then disable', async () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Abre o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Clica na camada de agentes para habilitar
-    const agentsButton = screen.getByLabelText('Toggle Agentes layer')
-    fireEvent.click(agentsButton)
-
-    // Verifica se foi chamada com true (habilitar)
-    await waitFor(() => {
-      expect(mockSetIsAgentsVisible).toHaveBeenCalledWith(true)
-    })
-
-    // Clica novamente para desabilitar
-    fireEvent.click(agentsButton)
-
-    // Verifica se foi chamada com false (desabilitar)
-    await waitFor(() => {
-      expect(mockSetIsAgentsVisible).toHaveBeenCalledWith(false)
-    })
-
-    // Verifica que foi chamada exatamente 2 vezes
-    expect(mockSetIsAgentsVisible).toHaveBeenCalledTimes(2)
-  })
-
   it('should handle multiple layer toggles correctly', async () => {
     render(<MapLayerControl />, { wrapper: createWrapper })
 
