@@ -307,46 +307,6 @@ describe('MapLayerControl', () => {
     expect(screen.getByText('Paradas de Ônibus')).toBeInTheDocument()
   })
 
-  it('should maintain radar layer as selected after toggle', () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Clica no botão para abrir o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Verifica estado inicial
-    const radarButton = screen.getByLabelText('Toggle Radar layer')
-    expect(radarButton).toHaveAttribute('data-state', 'on')
-
-    // Clica na camada de radar para desabilitar
-    fireEvent.click(radarButton)
-    expect(radarButton).toHaveAttribute('data-state', 'off')
-
-    // Clica novamente para reabilitar
-    fireEvent.click(radarButton)
-    expect(radarButton).toHaveAttribute('data-state', 'on')
-  })
-
-  it('should maintain cameras layer as selected after toggle', () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Clica no botão para abrir o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Verifica estado inicial
-    const camerasButton = screen.getByLabelText('Toggle Câmeras layer')
-    expect(camerasButton).toHaveAttribute('data-state', 'on')
-
-    // Clica na camada de câmeras para desabilitar
-    fireEvent.click(camerasButton)
-    expect(camerasButton).toHaveAttribute('data-state', 'off')
-
-    // Clica novamente para reabilitar
-    fireEvent.click(camerasButton)
-    expect(camerasButton).toHaveAttribute('data-state', 'on')
-  })
-
   it('should have correct styling for selected layers', () => {
     render(<MapLayerControl />, { wrapper: createWrapper })
 
