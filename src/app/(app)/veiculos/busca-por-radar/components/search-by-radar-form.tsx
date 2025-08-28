@@ -188,8 +188,11 @@ export function SearchByRadarForm() {
                           field.onChange(value)
                         } else {
                           // Se moveu para exceder 5h, limitar
-                          const mid = (value[0] + value[1]) / 2
-                          field.onChange([mid - 150, mid + 150])
+                          const mid = Math.round((value[0] + value[1]) / 2)
+                          field.onChange([
+                            Math.round(mid - 150),
+                            Math.round(mid + 150),
+                          ])
                         }
                       } else {
                         field.onChange(value)
@@ -213,7 +216,7 @@ export function SearchByRadarForm() {
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                     <span>
                       {(() => {
-                        const min = field.value?.[0] ?? 0
+                        const min = Math.round(field.value?.[0] ?? 0)
                         const hours = Math.floor(min / 60)
                         const minutes = min % 60
                         return `(${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`
@@ -221,7 +224,7 @@ export function SearchByRadarForm() {
                     </span>
                     <span>
                       {(() => {
-                        const max = field.value?.[1] ?? 0
+                        const max = Math.round(field.value?.[1] ?? 0)
                         const hours = Math.floor(max / 60)
                         const minutes = max % 60
                         return `(${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`
@@ -230,8 +233,10 @@ export function SearchByRadarForm() {
                   </div>
                   <div className="text-center text-xs text-blue-600">
                     Intervalo:{' '}
-                    {Math.abs(
-                      (field.value?.[1] ?? 0) - (field.value?.[0] ?? 0),
+                    {Math.round(
+                      Math.abs(
+                        (field.value?.[1] ?? 0) - (field.value?.[0] ?? 0),
+                      ),
                     )}{' '}
                     min
                     {Math.abs(
