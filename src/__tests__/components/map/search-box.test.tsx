@@ -18,6 +18,8 @@ describe('SearchBox', () => {
   const mockSetAddressMarker = jest.fn()
   const mockSetIsVisible = jest.fn()
   const mockSetViewport = jest.fn()
+  const defaultPlaceholder =
+    'Pesquise um endereço ou coordenadas (ex: -22.808889, -43.413889)'
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -76,14 +78,12 @@ describe('SearchBox', () => {
         setAddressMarker={mockSetAddressMarker}
         setIsVisible={mockSetIsVisible}
         setViewport={mockSetViewport}
-        placeHolder="Pesquise um endereço"
+        placeHolder={defaultPlaceholder}
       />,
       { wrapper: createWrapper },
     )
 
-    expect(
-      screen.getByPlaceholderText('Pesquise um endereço'),
-    ).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(defaultPlaceholder)).toBeInTheDocument()
   })
 
   it('should display suggestions with latitude and longitude when typing', async () => {
@@ -104,7 +104,7 @@ describe('SearchBox', () => {
       { wrapper: createWrapper },
     )
 
-    const input = screen.getByPlaceholderText('Pesquise um endereço')
+    const input = screen.getByPlaceholderText(defaultPlaceholder)
 
     // Foca no input para abrir as sugestões
     fireEvent.focus(input)
@@ -150,7 +150,7 @@ describe('SearchBox', () => {
       { wrapper: createWrapper },
     )
 
-    const input = screen.getByPlaceholderText('Pesquise um endereço')
+    const input = screen.getByPlaceholderText(defaultPlaceholder)
 
     // Foca no input para abrir as sugestões
     fireEvent.focus(input)
@@ -217,7 +217,7 @@ describe('SearchBox', () => {
       { wrapper: createWrapper },
     )
 
-    const input = screen.getByPlaceholderText('Pesquise um endereço')
+    const input = screen.getByPlaceholderText(defaultPlaceholder)
     fireEvent.focus(input)
     await user.type(input, 'Test')
 
@@ -246,7 +246,7 @@ describe('SearchBox', () => {
       { wrapper: createWrapper },
     )
 
-    const input = screen.getByPlaceholderText('Pesquise um endereço')
+    const input = screen.getByPlaceholderText(defaultPlaceholder)
     fireEvent.focus(input)
     await user.type(input, 'NonExistentAddress')
 
@@ -275,7 +275,7 @@ describe('SearchBox', () => {
       { wrapper: createWrapper },
     )
 
-    const input = screen.getByPlaceholderText('Pesquise um endereço')
+    const input = screen.getByPlaceholderText(defaultPlaceholder)
     const clearButton = screen.getByRole('button')
 
     fireEvent.focus(input)
@@ -292,5 +292,120 @@ describe('SearchBox', () => {
 
     // Verifica se setIsVisible foi chamado com false
     expect(mockSetIsVisible).toHaveBeenCalledWith(false)
+  })
+
+  it('should accept coordinates as input and perform reverse geocoding', async () => {
+    const user = userEvent.setup()
+    const mockReverseResponse: FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            full_address:
+              'Rua Cândida, Paiol, Nilópolis - Rio de Janeiro, Brazil',
+            coordinates: {
+              latitude: -22.808889,
+              longitude: -43.413889,
+            },
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [-43.413889, -22.808889],
+          },
+        },
+      ],
+    }
+
+    // Mock da função getReversePlaces
+    const mockGetReversePlaces = jest
+      .fn()
+      .mockResolvedValue(mockReverseResponse)
+    jest.doMock('@/http/mapbox/get-reverse-places', () => ({
+      getReversePlaces: mockGetReversePlaces,
+    }))
+
+    render(
+      <SearchBox
+        isVisible={true}
+        setAddressMarker={mockSetAddressMarker}
+        setIsVisible={mockSetIsVisible}
+        setViewport={mockSetViewport}
+      />,
+      { wrapper: createWrapper },
+    )
+
+    const input = screen.getByPlaceholderText(defaultPlaceholder)
+    fireEvent.focus(input)
+
+    // Digita coordenadas
+    await user.type(input, '-22.808889, -43.413889')
+
+    await waitFor(() => {
+      expect(mockGetReversePlaces).toHaveBeenCalledWith(-22.808889, -43.413889)
+    })
+  })
+
+  it('should accept coordinates with different formats', async () => {
+    const user = userEvent.setup()
+    const mockReverseResponse: FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            full_address: 'Test Address',
+            coordinates: {
+              latitude: -22.808889,
+              longitude: -43.413889,
+            },
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [-43.413889, -22.808889],
+          },
+        },
+      ],
+    }
+
+    const mockGetReversePlaces = jest
+      .fn()
+      .mockResolvedValue(mockReverseResponse)
+    jest.doMock('@/http/mapbox/get-reverse-places', () => ({
+      getReversePlaces: mockGetReversePlaces,
+    }))
+
+    render(
+      <SearchBox
+        isVisible={true}
+        setAddressMarker={mockSetAddressMarker}
+        setIsVisible={mockSetIsVisible}
+        setViewport={mockSetViewport}
+      />,
+      { wrapper: createWrapper },
+    )
+
+    const input = screen.getByPlaceholderText(defaultPlaceholder)
+    fireEvent.focus(input)
+
+    // Testa diferentes formatos de coordenadas
+    const coordinateFormats = [
+      '-22.808889, -43.413889', // Com vírgula e espaço
+      '-22.808889,-43.413889', // Com vírgula sem espaço
+      '-22.808889 -43.413889', // Apenas espaço
+      '-22.808889; -43.413889', // Com ponto e vírgula
+    ]
+
+    for (const format of coordinateFormats) {
+      await user.clear(input)
+      await user.type(input, format)
+
+      await waitFor(() => {
+        expect(mockGetReversePlaces).toHaveBeenCalledWith(
+          -22.808889,
+          -43.413889,
+        )
+      })
+    }
   })
 })
