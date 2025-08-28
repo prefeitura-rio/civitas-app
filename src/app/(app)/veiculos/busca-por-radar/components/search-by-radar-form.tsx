@@ -73,16 +73,16 @@ export function SearchByRadarForm() {
     resolver: zodResolver(radarSearchSchema),
     defaultValues: formattedSearchParams
       ? {
-          date: formattedSearchParams.date
-            ? new Date(formattedSearchParams.date)
-            : undefined,
-          duration: formattedSearchParams.duration,
+          date: formattedSearchParams.date.from
+            ? new Date(formattedSearchParams.date.from)
+            : new Date(new Date().setSeconds(0, 0)),
+          duration: [0, 60], // Padrão de 1 hora
           plate: formattedSearchParams.plate,
           radarIds: formattedSearchParams.radarIds,
         }
       : {
           date: new Date(new Date().setSeconds(0, 0)),
-          duration: [-60, 60],
+          duration: [0, 60], // Padrão de 1 hora
           radarIds: [],
           plate: '',
         },
@@ -179,9 +179,24 @@ export function SearchByRadarForm() {
                     unity="min"
                     value={field.value}
                     onValueChange={(value) => {
-                      if (value[0] > 0) field.onChange([0, value[1]])
-                      else if (value[1] < 0) field.onChange([value[0], 0])
-                      else field.onChange(value)
+                      // Verificar se a diferença entre os valores não excede 5 horas (300 minutos)
+                      const timeDiff = Math.abs(value[1] - value[0])
+                      if (timeDiff > 300) {
+                        // Se exceder, ajustar o valor
+                        if (
+                          value[0] > field.value[0] ||
+                          value[1] < field.value[1]
+                        ) {
+                          // Se moveu o início para frente ou fim para trás, manter o ajuste
+                          field.onChange(value)
+                        } else {
+                          // Se moveu para exceder 5h, limitar
+                          const mid = (value[0] + value[1]) / 2
+                          field.onChange([mid - 150, mid + 150])
+                        }
+                      } else {
+                        field.onChange(value)
+                      }
                     }}
                     defaultValue={[0, 0]}
                     max={150}
@@ -227,6 +242,20 @@ export function SearchByRadarForm() {
                         return `(${sign}${abs}min)`
                       })()}
                     </span>
+                  </div>
+                  <div className="text-center text-xs text-blue-600">
+                    Intervalo:{' '}
+                    {Math.abs(
+                      (field.value?.[1] ?? 0) - (field.value?.[0] ?? 0),
+                    )}{' '}
+                    min
+                    {Math.abs(
+                      (field.value?.[1] ?? 0) - (field.value?.[0] ?? 0),
+                    ) > 300 && (
+                      <span className="block text-red-500">
+                        ⚠️ Máximo de 5 horas permitido
+                      </span>
+                    )}
                   </div>
                 </div>
               )

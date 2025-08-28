@@ -183,12 +183,8 @@ export function DownloadReport({
       // Download PDF
       const groupedData = groupData(selectedData)
 
-      const from = new Date(formattedSearchParams.date).addMinutes(
-        formattedSearchParams.duration[0] * -1,
-      )
-      const to = new Date(formattedSearchParams.date).addMinutes(
-        formattedSearchParams.duration[1],
-      )
+      const from = new Date(formattedSearchParams.date.from)
+      const to = new Date(formattedSearchParams.date.to)
 
       // Get unique radarIds
       const radarIds = groupedData
