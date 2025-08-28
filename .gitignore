@@ -6,6 +6,12 @@
 .pnp.js
 .yarn/install-state.gz
 
+# package manager lock files (only ignore npm lock since we use pnpm)
+package-lock.json
+
+# temporary files
+/tmp
+
 # testing
 /coverage
 

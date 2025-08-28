@@ -1,8 +1,8 @@
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
 import { CardDescription, CardHeader } from '@/components/ui/card'
 import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { dateConfig } from '@/lib/date-config'
 
 export function Header() {
   const { formattedSearchParams } = useCarRadarSearchParams()
@@ -22,7 +22,7 @@ export function Header() {
           Radares: {radarIds.join(', ')}
         </span>
         <span className="text-sm text-muted-foreground">
-          {`De ${format(from, 'dd MMM, y HH:mm', { locale: ptBR })} a ${format(to, 'dd MMM, y HH:mm', { locale: ptBR })}`}
+          {`De ${format(from, 'dd MMM, y HH:mm', { locale: dateConfig.locale })} a ${format(to, 'dd MMM, y HH:mm', { locale: dateConfig.locale })}`}
         </span>
         {plateHint && (
           <span className="block text-sm text-muted-foreground">
