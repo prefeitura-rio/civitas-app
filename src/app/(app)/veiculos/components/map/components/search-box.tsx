@@ -106,15 +106,16 @@ export function SearchBox({
           )}
         >
           {suggestions.map((item, index) => {
+            const coordinates = item.properties?.coordinates
+            const lon = Number(coordinates?.longitude)
+            const lat = Number(coordinates?.latitude)
+
             return (
               <div
                 key={index}
                 className="rounded-lg p-2 hover:cursor-default hover:bg-accent"
                 onMouseDown={() => {
                   setValue('address', item.properties?.full_address)
-                  const coordinates = item.properties?.coordinates
-                  const lon = Number(coordinates?.longitude)
-                  const lat = Number(coordinates?.latitude)
                   setViewport({
                     zoom: 14.15,
                     longitude: lon,
@@ -128,7 +129,14 @@ export function SearchBox({
                   setSuggestions([])
                 }}
               >
-                <span>{item.properties?.full_address}</span>
+                <div className="flex flex-col">
+                  <span className="font-medium">
+                    {item.properties?.full_address}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Lat: {lat.toFixed(6)}, Lon: {lon.toFixed(6)}
+                  </span>
+                </div>
               </div>
             )
           })}
