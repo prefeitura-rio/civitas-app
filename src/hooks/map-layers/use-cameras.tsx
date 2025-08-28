@@ -23,7 +23,7 @@ export interface UseCameraCOR {
 export function useCameraCOR(): UseCameraCOR {
   const [hoveredObject, setHoveredObject] =
     useState<PickingInfo<CameraCOR> | null>(null)
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [selectedObject, setSelectedObject] = useState<CameraCOR | null>(null)
 
   const { data, isLoading } = useQuery({
