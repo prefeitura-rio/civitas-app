@@ -203,7 +203,7 @@ export function SearchByRadarForm() {
                     labelFormatter={(val) => {
                       const hours = Math.floor(val / 60)
                       const minutes = val % 60
-                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}h`
+                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
                     }}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
@@ -214,27 +214,17 @@ export function SearchByRadarForm() {
                     <span>
                       {(() => {
                         const min = field.value?.[0] ?? 0
-                        const abs = Math.abs(min)
-                        const sign = min > 0 ? '+' : min < 0 ? '-' : ''
-                        if (abs >= 60) {
-                          const h = Math.floor(abs / 60)
-                          const m = abs % 60
-                          return `(${sign}${h}h${m > 0 ? ` ${m}min` : ''})`
-                        }
-                        return `(${sign}${abs}min)`
+                        const hours = Math.floor(min / 60)
+                        const minutes = min % 60
+                        return `(${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`
                       })()}
                     </span>
                     <span>
                       {(() => {
                         const max = field.value?.[1] ?? 0
-                        const abs = Math.abs(max)
-                        const sign = max > 0 ? '+' : max < 0 ? '-' : ''
-                        if (abs >= 60) {
-                          const h = Math.floor(abs / 60)
-                          const m = abs % 60
-                          return `(${sign}${h}h${m > 0 ? ` ${m}min` : ''})`
-                        }
-                        return `(${sign}${abs}min)`
+                        const hours = Math.floor(max / 60)
+                        const minutes = max % 60
+                        return `(${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`
                       })()}
                     </span>
                   </div>
