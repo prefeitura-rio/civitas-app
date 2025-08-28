@@ -10,12 +10,8 @@ export function Header() {
   if (!formattedSearchParams) return null
 
   const radarIds = formattedSearchParams.radarIds
-  const from = new Date(formattedSearchParams.date)
-    .addMinutes(formattedSearchParams.duration[0])
-    .toISOString()
-  const to = new Date(formattedSearchParams.date)
-    .addMinutes(formattedSearchParams.duration[1])
-    .toISOString()
+  const from = new Date(formattedSearchParams.date.from).toISOString()
+  const to = new Date(formattedSearchParams.date.to).toISOString()
   const plateHint = formattedSearchParams.plate
 
   return (

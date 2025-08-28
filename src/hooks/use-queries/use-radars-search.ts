@@ -21,12 +21,8 @@ export function useRadarsSearch() {
   if (!formattedSearchParams) throw new Error('Missing search params')
 
   const radarIds = formattedSearchParams.radarIds
-  const startTime = new Date(formattedSearchParams.date)
-    .addMinutes(formattedSearchParams.duration[0])
-    .toISOString()
-  const endTime = new Date(formattedSearchParams.date)
-    .addMinutes(formattedSearchParams.duration[1])
-    .toISOString()
+  const startTime = new Date(formattedSearchParams.date.from).toISOString()
+  const endTime = new Date(formattedSearchParams.date.to).toISOString()
   const plateHint = formattedSearchParams.plate
 
   return useQuery({
