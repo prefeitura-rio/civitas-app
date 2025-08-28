@@ -55,8 +55,10 @@ export function EnhancePlatesInfo({
     const radarIds = [...new Set(allRadarIds)]
 
     const params = {
-      date: formattedSearchParams.date,
-      duration: formattedSearchParams.duration,
+      date: {
+        from: formattedSearchParams.date.from,
+        to: formattedSearchParams.date.to,
+      },
       plate: selectedPlate || formattedSearchParams.plate,
       radarIds,
     }

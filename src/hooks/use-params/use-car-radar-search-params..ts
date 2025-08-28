@@ -4,8 +4,10 @@ import { radarSearchSchema } from '@/app/(app)/veiculos/components/validationSch
 
 export interface FormattedSearchParams {
   plate?: string
-  date: string
-  duration: number[]
+  date: {
+    from: string
+    to: string
+  }
   radarIds: string[]
 }
 
@@ -22,25 +24,30 @@ export function useCarRadarSearchParams(): UseCarPathsSearchParamsReturn {
 
   try {
     const plate = searchParams.get('plate') || undefined
-    const date = searchParams.get('date')
-    const duration = searchParams.getAll('duration')
+    const dateFrom = searchParams.get('date.from')
+    const dateTo = searchParams.get('date.to')
     const radarIds = searchParams.getAll('radarIds')
 
-    if (date === null || duration.length !== 2 || radarIds.length === 0) {
+    if (dateFrom === null || dateTo === null || radarIds.length === 0) {
       throw new Error('Invalid search parameters')
     }
 
     const params = {
       plate,
-      date: new Date(date),
-      duration,
+      date: {
+        from: new Date(dateFrom),
+        to: new Date(dateTo),
+      },
       radarIds,
     }
     const result = radarSearchSchema.parse(params)
 
     const formattedSearchParams = {
       ...result,
-      date: result.date.toISOString(),
+      date: {
+        from: result.date.from.toISOString(),
+        to: result.date.to.toISOString(),
+      },
     }
 
     const queryKey: CarPathsQueryKey = ['cars', 'radar', formattedSearchParams]
