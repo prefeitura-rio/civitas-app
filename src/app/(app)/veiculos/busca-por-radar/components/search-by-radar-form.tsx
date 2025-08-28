@@ -2,7 +2,6 @@
 import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { addMinutes, format } from 'date-fns'
 import {
   Info,
   MapPinIcon,
@@ -67,7 +66,6 @@ export function SearchByRadarForm() {
     control,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<RadarSearchFormData>({
     resolver: zodResolver(radarSearchSchema),
@@ -172,7 +170,6 @@ export function SearchByRadarForm() {
             control={control}
             name="duration"
             render={({ field }) => {
-              const selectedDate = watch('date') || new Date()
               return (
                 <div className="w-full space-y-2 pt-6">
                   <Slider
@@ -198,22 +195,20 @@ export function SearchByRadarForm() {
                         field.onChange(value)
                       }
                     }}
-                    defaultValue={[0, 0]}
-                    max={150}
-                    min={-150}
+                    defaultValue={[0, 300]} // 5 horas padrão
+                    max={1439} // 23:59 (1440 minutos - 1)
+                    min={0} // 00:00
                     step={1}
                     disabled={isSubmitting}
-                    labelFormatter={(val) =>
-                      `${format(addMinutes(selectedDate, val), 'HH:mm')}h`
-                    }
+                    labelFormatter={(val) => {
+                      const hours = Math.floor(val / 60)
+                      const minutes = val % 60
+                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}h`
+                    }}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>
-                      Min: {format(addMinutes(selectedDate, -150), 'HH:mm')}h
-                    </span>
-                    <span>
-                      Max: {format(addMinutes(selectedDate, 150), 'HH:mm')}h
-                    </span>
+                    <span>Min: 00:00h</span>
+                    <span>Max: 23:59h</span>
                   </div>
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                     <span>
