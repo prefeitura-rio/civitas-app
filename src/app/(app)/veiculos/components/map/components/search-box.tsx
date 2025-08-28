@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { getPlaces } from '@/http/mapbox/get-places'
+import { getReversePlaces } from '@/http/mapbox/get-reverse-places'
 import { cn } from '@/lib/utils'
 import type { AddressMarker, SetViewportProps } from '@/models/utils'
+import { parseCoordinates } from '@/utils/coordinate-parser'
 
 const searchFormSchema = z.object({
   address: z.string().min(1),
@@ -33,7 +35,7 @@ export function SearchBox({
   setIsVisible,
   setViewport,
   onSubmit,
-  placeHolder = 'Pesquise um endereço',
+  placeHolder = 'Pesquise um endereço ou coordenadas (ex: -22.808889, -43.413889)',
 }: SearchBoxProps) {
   const [suggestions, setSuggestions] = useState<Feature[]>([])
   const [openSuggestions, setOpenSuggestions] = useState(false)
@@ -48,17 +50,34 @@ export function SearchBox({
   useEffect(() => {
     const getData = async (query: string) => {
       try {
-        const data = await getPlaces(query)
-        const places = data.features
-        setSuggestions(places)
+        // Verifica se o input são coordenadas
+        const coordinates = parseCoordinates(query)
+
+        if (coordinates) {
+          // Se são coordenadas, faz reverse geocoding
+          const data = await getReversePlaces(
+            coordinates.latitude,
+            coordinates.longitude,
+          )
+          const places = data.features
+          setSuggestions(places)
+        } else {
+          // Se não são coordenadas, faz busca normal
+          const data = await getPlaces(query)
+          const places = data.features
+          setSuggestions(places)
+        }
       } catch (error) {
         console.error(error)
         setSuggestions([])
       }
     }
 
-    const encodedQuery = encodeURIComponent(address)
-    getData(encodedQuery)
+    if (address && address.trim().length > 0) {
+      getData(address)
+    } else {
+      setSuggestions([])
+    }
   }, [address])
 
   return (
