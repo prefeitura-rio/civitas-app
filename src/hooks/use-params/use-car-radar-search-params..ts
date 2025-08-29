@@ -24,30 +24,29 @@ export function useCarRadarSearchParams(): UseCarPathsSearchParamsReturn {
 
   try {
     const plate = searchParams.get('plate') || undefined
-    const dateFrom = searchParams.get('date.from')
-    const dateTo = searchParams.get('date.to')
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
     const radarIds = searchParams.getAll('radarIds')
 
-    if (dateFrom === null || dateTo === null || radarIds.length === 0) {
+    if (startDate === null || endDate === null || radarIds.length === 0) {
       throw new Error('Invalid search parameters')
     }
 
     const params = {
       plate,
-      date: {
-        from: new Date(dateFrom),
-        to: new Date(dateTo),
-      },
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       radarIds,
     }
     const result = radarSearchSchema.parse(params)
 
     const formattedSearchParams = {
-      ...result,
+      plate: result.plate,
       date: {
-        from: result.date.from.toISOString(),
-        to: result.date.to.toISOString(),
+        from: result.startDate.toISOString(),
+        to: result.endDate.toISOString(),
       },
+      radarIds: result.radarIds,
     }
 
     const queryKey: CarPathsQueryKey = ['cars', 'radar', formattedSearchParams]
