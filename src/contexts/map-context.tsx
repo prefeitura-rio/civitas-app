@@ -12,38 +12,38 @@ import type { MapRef } from 'react-map-gl'
 import {
   type UseAddressMarker,
   useAddressMarker,
-} from '@/hooks/map-layers/use-address-marker'
-import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
+} from '@/hooks/mapLayers/use-address-marker'
+import { type UseAgents, useAgents } from '@/hooks/mapLayers/use-agents'
 import {
   type UseAISPLayer,
   useAISPLayer,
-} from '@/hooks/map-layers/use-AISP-layer'
+} from '@/hooks/mapLayers/use-AISP-layer'
 import {
   type UseBusStopLayer,
   useBusStopLayer,
-} from '@/hooks/map-layers/use-bus-stop-layer'
-import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
+} from '@/hooks/mapLayers/use-bus-stop-layer'
+import { type UseCameraCOR, useCameraCOR } from '@/hooks/mapLayers/use-cameras'
 import {
   type UseCISPLayer,
   useCISPLayer,
-} from '@/hooks/map-layers/use-CISP-layer'
+} from '@/hooks/mapLayers/use-CISP-layer'
 import {
   type UseFogoCruzadoIncidents,
   useFogoCruzadoIncidents,
-} from '@/hooks/map-layers/use-fogo-cruzado'
+} from '@/hooks/mapLayers/use-fogo-cruzado'
 import {
   type UseRadarLayer,
   useRadarLayer,
-} from '@/hooks/map-layers/use-radar-layer'
+} from '@/hooks/mapLayers/use-radar-layer'
 import {
   type UseSchoolLayer,
   useSchoolLayer,
-} from '@/hooks/map-layers/use-school-layer'
-import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
+} from '@/hooks/mapLayers/use-school-layer'
+import { type UseTrips, useTrips } from '@/hooks/mapLayers/use-trips'
 import {
   type UseWazePoliceAlerts,
   useWazePoliceAlerts,
-} from '@/hooks/map-layers/use-waze-police-alerts'
+} from '@/hooks/mapLayers/use-waze-police-alerts'
 import type { SetViewportProps } from '@/models/utils'
 import { MapStyle } from '@/utils/get-map-style'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'

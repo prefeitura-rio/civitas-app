@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
+import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
 import { getTimelineReports } from '@/http/reports/dashboard/get-timeline'
 
 export function useReportsTimeline() {

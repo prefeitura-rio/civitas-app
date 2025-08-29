@@ -18,7 +18,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
+import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
 import { getTopSubtypes } from '@/http/reports/dashboard/get-top-subtypes'
 import { cn } from '@/lib/utils'
 

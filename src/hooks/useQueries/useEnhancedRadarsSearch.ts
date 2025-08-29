@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getVehicles } from '@/http/cars/plates/get-vehicles'
 
-import { useCarRadarSearchParams } from '../use-params/use-car-radar-search-params.'
-import { useRadarsSearch } from './use-radars-search'
+import { useCarRadarSearchParams } from '../useParams/useCarRadarSearchParams'
+import { useRadarsSearch } from './useRadarsSearch'
 
 export type EnhancedDetectionDTO = {
   plate: string

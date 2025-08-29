@@ -4,7 +4,7 @@ import React from 'react'
 import { Spinner } from '@/components/custom/spinner'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import { dateConfig } from '@/lib/date-config'
 
 import { TripCard } from './components/trip-card'
