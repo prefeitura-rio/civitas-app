@@ -1,7 +1,13 @@
 import type { PickingInfo } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
-import { type Dispatch, type SetStateAction, useState } from 'react'
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react'
 
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import { getCameraCOR } from '@/http/cameras-cor/get-cameras-cor'
@@ -37,53 +43,57 @@ export function useCameraCOR(): UseCameraCOR {
     refetchOnWindowFocus: false,
   })
 
-  function handleSelectObject(
-    camera: CameraCOR | null,
-    clearRadar?: () => void,
-  ) {
-    if (camera === null || selectedObject?.code === camera.code) {
-      setSelectedObject(null)
-    } else {
-      // Limpa o radar selecionado se existir
-      if (clearRadar) {
-        clearRadar()
+  const handleSelectObject = useCallback(
+    (camera: CameraCOR | null, clearRadar?: () => void) => {
+      if (camera === null || selectedObject?.code === camera.code) {
+        setSelectedObject(null)
+      } else {
+        // Limpa o radar selecionado se existir
+        if (clearRadar) {
+          clearRadar()
+        }
+        setSelectedObject(camera)
       }
-      setSelectedObject(camera)
-    }
-  }
+    },
+    [selectedObject?.code, setSelectedObject],
+  )
 
-  const layer = new IconLayer<CameraCOR>({
-    id: 'cameras',
-    data,
-    pickable: true,
-    getSize: 24,
-    autoHighlight: true,
-    highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
-    visible: isVisible,
-    iconAtlas: cameraIconAtlas.src,
-    iconMapping: {
-      default: {
-        x: 0,
-        y: 0,
-        width: 48,
-        height: 48,
-        mask: false,
-      },
-      highlighted: {
-        x: 48,
-        y: 0,
-        width: 48,
-        height: 48,
-        mask: false,
-      },
-    },
-    getIcon: (d) => {
-      if (selectedObject?.code === d.code) {
-        return 'highlighted'
-      } else return 'default'
-    },
-    getPosition: (info) => [info.longitude, info.latitude],
-  })
+  const layer = useMemo(
+    () =>
+      new IconLayer<CameraCOR>({
+        id: 'cameras',
+        data,
+        pickable: true,
+        getSize: 24,
+        autoHighlight: true,
+        highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
+        visible: isVisible,
+        iconAtlas: cameraIconAtlas.src,
+        iconMapping: {
+          default: {
+            x: 0,
+            y: 0,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
+          highlighted: {
+            x: 48,
+            y: 0,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
+        },
+        getIcon: (d) => {
+          if (selectedObject?.code === d.code) {
+            return 'highlighted'
+          } else return 'default'
+        },
+        getPosition: (info) => [info.longitude, info.latitude],
+      }),
+    [data, selectedObject?.code, isVisible],
+  )
 
   return {
     data: data || [],

@@ -3,7 +3,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { type Deck, DeckGL } from 'deck.gl'
-import { type MouseEvent, useEffect, useRef } from 'react'
+import { type MouseEvent, useCallback, useEffect, useMemo, useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useMap } from '@/hooks/useContexts/use-map-context'
@@ -68,49 +68,70 @@ export function Map() {
     setDeckRef(deckRef.current)
   }, [])
 
-  const mapLayers = [
-    ...AISPLayer,
-    ...CISPLayer,
-    cameraLayer,
-    radarLayer,
-    wazeLayer,
-    fogoCruzadoLayer,
-    agentsLayer,
-    ...tripLayers,
-    addressLayer,
-    schoolsLayer,
-    busStopsLayer,
-  ]
+  const mapLayers = useMemo(
+    () => [
+      ...AISPLayer,
+      ...CISPLayer,
+      cameraLayer,
+      radarLayer,
+      wazeLayer,
+      fogoCruzadoLayer,
+      agentsLayer,
+      ...tripLayers,
+      addressLayer,
+      schoolsLayer,
+      busStopsLayer,
+    ],
+    [
+      AISPLayer,
+      CISPLayer,
+      cameraLayer,
+      radarLayer,
+      wazeLayer,
+      fogoCruzadoLayer,
+      agentsLayer,
+      tripLayers,
+      addressLayer,
+      schoolsLayer,
+      busStopsLayer,
+    ],
+  )
 
-  function onRightClick(e: MouseEvent) {
-    e.preventDefault()
-    const y = e.clientY
-    const x = e.clientX - 56
-    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
-    setContextMenuPickingInfo(info || null)
-    setOpenContextMenu(!!info)
-  }
+  const onRightClick = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault()
+      const y = e.clientY
+      const x = e.clientX - 56
+      const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+      setContextMenuPickingInfo(info || null)
+      setOpenContextMenu(!!info)
+    },
+    [setContextMenuPickingInfo, setOpenContextMenu],
+  )
 
-  function onLeftClick(e: MouseEvent) {
-    e.preventDefault()
-    const y = e.clientY
-    const x = e.clientX - 56
-    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+  const onLeftClick = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault()
+      const y = e.clientY
+      const x = e.clientX - 56
+      const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-    if (info?.layer?.id === 'radars' && info.object) {
-      // Seleciona o radar e limpa a câmera
-      selectRadar(info.object as Radar)
-      // Limpa a câmera selecionada
-      setSelectedCamera(null)
-    }
+      if (info?.layer?.id === 'radars' && info.object) {
+        // Seleciona o radar e limpa a câmera
+        selectRadar(info.object as Radar)
+        // Limpa a câmera selecionada
+        setSelectedCamera(null)
+      }
 
-    if (info?.layer?.id === 'cameras' && info.object) {
-      // Seleciona a câmera e limpa o radar
-      selectCamera(info.object as CameraCOR)
-      // Limpa o radar selecionado
-      setSelectedRadar(null)
-    }
-  }
+      if (info?.layer?.id === 'cameras' && info.object) {
+        // Seleciona a câmera e limpa o radar
+        selectCamera(info.object as CameraCOR)
+        // Limpa o radar selecionado
+        setSelectedRadar(null)
+      }
+    },
+    [selectRadar, selectCamera, setSelectedCamera, setSelectedRadar],
+  )
 
   return (
     <div
@@ -143,34 +164,37 @@ export function Map() {
           setIsVisible={setIsAddressVisible}
           setAddressMarker={setAddressMarker}
           setViewport={setViewport}
-          onSubmit={(props) => {
-            const id = props.address
-            const trimmedId = id.replace(/^0+/, '')
-            const radar = radars?.find((r) => {
-              const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
-              return trimmedCetRioCode === trimmedId
-            })
-            if (radar) {
-              setViewport({
-                latitude: radar.latitude,
-                longitude: radar.longitude,
-                zoom: 20,
-              })
-              return
-            }
-            const camera = cameras?.find((c) => {
-              const trimmedCode = c.code.replace(/^0+/, '')
+          onSubmit={useCallback(
+            (props) => {
+              const id = props.address
               const trimmedId = id.replace(/^0+/, '')
-              return trimmedCode === trimmedId
-            })
-            if (camera) {
-              setViewport({
-                latitude: camera.latitude,
-                longitude: camera.longitude,
-                zoom: 20,
+              const radar = radars?.find((r) => {
+                const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
+                return trimmedCetRioCode === trimmedId
               })
-            }
-          }}
+              if (radar) {
+                setViewport({
+                  latitude: radar.latitude,
+                  longitude: radar.longitude,
+                  zoom: 20,
+                })
+                return
+              }
+              const camera = cameras?.find((c) => {
+                const trimmedCode = c.code.replace(/^0+/, '')
+                const trimmedId = id.replace(/^0+/, '')
+                return trimmedCode === trimmedId
+              })
+              if (camera) {
+                setViewport({
+                  latitude: camera.latitude,
+                  longitude: camera.longitude,
+                  zoom: 20,
+                })
+              }
+            },
+            [radars, cameras, setViewport],
+          )}
         />
       </div>
       <SelectionCards />
