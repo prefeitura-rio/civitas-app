@@ -17,7 +17,11 @@ export interface UseCameraCOR {
   hoveredObject: PickingInfo<CameraCOR> | null
   setHoveredObject: Dispatch<SetStateAction<PickingInfo<CameraCOR> | null>>
   selectedObject: CameraCOR | null
-  handleSelectObject: (camera: CameraCOR | null) => void
+  setSelectedObject: Dispatch<SetStateAction<CameraCOR | null>>
+  handleSelectObject: (
+    camera: CameraCOR | null,
+    clearRadar?: () => void,
+  ) => void
 }
 
 export function useCameraCOR(): UseCameraCOR {
@@ -33,10 +37,17 @@ export function useCameraCOR(): UseCameraCOR {
     refetchOnWindowFocus: false,
   })
 
-  function handleSelectObject(camera: CameraCOR | null) {
+  function handleSelectObject(
+    camera: CameraCOR | null,
+    clearRadar?: () => void,
+  ) {
     if (camera === null || selectedObject?.code === camera.code) {
       setSelectedObject(null)
     } else {
+      // Limpa o radar selecionado se existir
+      if (clearRadar) {
+        clearRadar()
+      }
       setSelectedObject(camera)
     }
   }
@@ -84,6 +95,7 @@ export function useCameraCOR(): UseCameraCOR {
     hoveredObject,
     setHoveredObject,
     selectedObject,
+    setSelectedObject,
     handleSelectObject,
   }
 }

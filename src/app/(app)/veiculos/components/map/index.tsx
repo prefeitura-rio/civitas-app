@@ -96,11 +96,23 @@ export function Map() {
     const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
     if (info?.layer?.id === 'radars' && info.object) {
-      selectRadar(info.object as Radar)
+      // Limpa a câmera selecionada quando um radar é selecionado
+      const {
+        layers: {
+          cameras: { setSelectedObject: setSelectedCamera },
+        },
+      } = useMap()
+      selectRadar(info.object as Radar, () => setSelectedCamera(null))
     }
 
     if (info?.layer?.id === 'cameras' && info.object) {
-      selectCamera(info.object as CameraCOR)
+      // Limpa o radar selecionado quando uma câmera é selecionada
+      const {
+        layers: {
+          radars: { setSelectedObject: setSelectedRadar },
+        },
+      } = useMap()
+      selectCamera(info.object as CameraCOR, () => setSelectedRadar(null))
     }
   }
 
