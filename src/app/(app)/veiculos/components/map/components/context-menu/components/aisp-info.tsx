@@ -34,7 +34,7 @@ export function AISPInfo({
   const { object } = pickingInfo
   const {
     layers: {
-      radars: { setSelectedObjects: setSelectedRadars, data: radars },
+      radars: { setSelectedObject: setSelectedRadars, data: radars },
     },
   } = useMap()
 
@@ -51,11 +51,14 @@ export function AISPInfo({
       return false
     })
 
-    setSelectedRadars(radarsInThePolygon || [])
+    // Seleciona apenas o primeiro radar encontrado na área
+    if (radarsInThePolygon && radarsInThePolygon.length > 0) {
+      setSelectedRadars(radarsInThePolygon[0])
+    }
   }
 
   function removeAllRadars() {
-    setSelectedRadars([])
+    setSelectedRadars(null)
   }
 
   return (

@@ -13,17 +13,17 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import type { CameraCOR } from '@/models/entities'
+import type { Radar } from '@/models/entities'
 
-interface CameraSelectCardProps {
-  selectedObject: CameraCOR | null
-  setSelectedObject: (value: CameraCOR | null) => void
+interface RadarSelectCardProps {
+  selectedObject: Radar | null
+  setSelectedObject: (value: Radar | null) => void
 }
 
-export function CameraSelectCard({
+export function RadarSelectCard({
   selectedObject,
   setSelectedObject,
-}: CameraSelectCardProps) {
+}: RadarSelectCardProps) {
   return (
     <Card
       className={cn(
@@ -43,29 +43,29 @@ export function CameraSelectCard({
         </Button>
         <CardHeader className="px-4 py-4">
           <CardTitle className="text-md text-center tracking-tighter">
-            Câmera{' '}
+            Radar{' '}
             <span className="font-extrabold text-primary">
-              {selectedObject?.code}
+              {selectedObject?.cetRioCode}
             </span>
           </CardTitle>
-          <CardDescription className="text-xs">{`${selectedObject?.location.capitalizeFirstLetter()} - ${selectedObject?.zone.capitalizeFirstLetter()}`}</CardDescription>
+          <CardDescription className="text-xs">{`${selectedObject?.location?.capitalizeFirstLetter() || ''} - ${selectedObject?.district?.capitalizeFirstLetter() || ''}`}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4">
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Código:</span>
-              <span className="font-medium">{selectedObject?.code}</span>
+              <span className="font-medium">{selectedObject?.cetRioCode}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Localização:</span>
               <span className="font-medium">
-                {selectedObject?.location.capitalizeFirstLetter()}
+                {selectedObject?.location?.capitalizeFirstLetter() || 'N/A'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Zona:</span>
+              <span className="text-muted-foreground">Bairro:</span>
               <span className="font-medium">
-                {selectedObject?.zone.capitalizeFirstLetter()}
+                {selectedObject?.district?.capitalizeFirstLetter() || 'N/A'}
               </span>
             </div>
             <div className="flex justify-between">
@@ -80,18 +80,33 @@ export function CameraSelectCard({
                 {selectedObject?.longitude?.toFixed(6)}
               </span>
             </div>
-            {selectedObject?.streamingUrl && (
-              <div className="pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    window.open(selectedObject?.streamingUrl, '_blank')
-                  }}
-                >
-                  Abrir Streaming
-                </Button>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Empresa:</span>
+              <span className="font-medium">
+                {selectedObject?.company || 'N/A'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ativo 24h:</span>
+              <span
+                className={cn(
+                  'font-medium',
+                  selectedObject?.activeInLast24Hours
+                    ? 'text-emerald-600'
+                    : 'text-rose-600',
+                )}
+              >
+                {selectedObject?.activeInLast24Hours ? 'Sim' : 'Não'}
+              </span>
+            </div>
+            {selectedObject?.lastDetectionTime && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Última detecção:</span>
+                <span className="font-medium">
+                  {new Date(selectedObject.lastDetectionTime).toLocaleString(
+                    'pt-BR',
+                  )}
+                </span>
               </div>
             )}
           </div>
