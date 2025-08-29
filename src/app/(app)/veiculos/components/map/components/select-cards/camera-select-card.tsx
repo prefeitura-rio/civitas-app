@@ -68,6 +68,18 @@ export function CameraSelectCard({
                 {selectedObject?.zone.capitalizeFirstLetter()}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Latitude:</span>
+              <span className="font-medium">
+                {selectedObject?.latitude?.toFixed(6)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Longitude:</span>
+              <span className="font-medium">
+                {selectedObject?.longitude?.toFixed(6)}
+              </span>
+            </div>
             {selectedObject?.streamingUrl && (
               <div className="pt-2">
                 <Button

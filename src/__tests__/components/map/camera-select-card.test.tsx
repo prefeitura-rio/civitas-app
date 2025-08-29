@@ -31,7 +31,7 @@ describe('CameraSelectCard', () => {
     code: 'CAM002',
     location: 'botafogo',
     zone: 'zona sul',
-    streamingUrl: undefined,
+    streamingUrl: '',
     longitude: -43.1729,
     latitude: -22.9068,
   }
@@ -78,6 +78,15 @@ describe('CameraSelectCard', () => {
       expect(screen.getByText('Centro')).toBeInTheDocument()
       expect(screen.getByText('Zona:')).toBeInTheDocument()
       expect(screen.getByText('Zona Sul')).toBeInTheDocument()
+    })
+
+    it('deve exibir latitude e longitude da câmera', () => {
+      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
+
+      expect(screen.getByText('Latitude:')).toBeInTheDocument()
+      expect(screen.getByText('-22.906800')).toBeInTheDocument()
+      expect(screen.getByText('Longitude:')).toBeInTheDocument()
+      expect(screen.getByText('-43.172900')).toBeInTheDocument()
     })
 
     it('deve exibir o código da câmera na seção de informações', () => {
