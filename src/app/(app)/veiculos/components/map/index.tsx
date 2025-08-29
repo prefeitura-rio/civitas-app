@@ -66,7 +66,7 @@ export function Map() {
     setDeckRef(deckRef.current)
   }, [])
 
-  const layers = [
+  const mapLayers = [
     ...AISPLayer,
     ...CISPLayer,
     cameraLayer,
@@ -96,23 +96,13 @@ export function Map() {
     const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
     if (info?.layer?.id === 'radars' && info.object) {
-      // Limpa a câmera selecionada quando um radar é selecionado
-      const {
-        layers: {
-          cameras: { setSelectedObject: setSelectedCamera },
-        },
-      } = useMap()
-      selectRadar(info.object as Radar, () => setSelectedCamera(null))
+      // Simplesmente seleciona o radar sem lógica de limpeza por enquanto
+      selectRadar(info.object as Radar)
     }
 
     if (info?.layer?.id === 'cameras' && info.object) {
-      // Limpa o radar selecionado quando uma câmera é selecionada
-      const {
-        layers: {
-          radars: { setSelectedObject: setSelectedRadar },
-        },
-      } = useMap()
-      selectCamera(info.object as CameraCOR, () => setSelectedRadar(null))
+      // Simplesmente seleciona a câmera sem lógica de limpeza por enquanto
+      selectCamera(info.object as CameraCOR)
     }
   }
 
@@ -127,7 +117,7 @@ export function Map() {
         initialViewState={viewport}
         controller
         onResize={() => mapRef.current?.resize()}
-        layers={layers}
+        layers={mapLayers}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
         getCursor={({ isDragging, isHovering }) => {
           if (isDragging) return 'grabbing'
