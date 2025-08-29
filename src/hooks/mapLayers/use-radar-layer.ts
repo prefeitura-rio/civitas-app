@@ -29,8 +29,12 @@ export function useRadarLayer(): UseRadarLayer {
   const { data } = useRadars()
 
   function handleSelectObject(radar: Radar, clearCamera?: () => void) {
+    console.log('🎯 Selecionando radar:', radar.cetRioCode, {
+      currentSelected: selectedObject?.cetRioCode,
+    })
     // Se o radar já está selecionado, deseleciona
     if (selectedObject?.cetRioCode === radar.cetRioCode) {
+      console.log('🔄 Deselecionando radar:', radar.cetRioCode)
       setSelectedObject(null)
     } else {
       // Limpa a câmera selecionada se existir
@@ -38,6 +42,7 @@ export function useRadarLayer(): UseRadarLayer {
         clearCamera()
       }
       // Seleciona apenas o novo radar (substitui o anterior)
+      console.log('✅ Radar selecionado:', radar.cetRioCode)
       setSelectedObject(radar)
     }
   }

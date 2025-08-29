@@ -2,6 +2,7 @@ import { useMap } from '@/hooks/useContexts/use-map-context'
 
 import { CameraSelectCard } from '../select-cards/camera-select-card'
 import { FogoCruzadoSelectCard } from '../select-cards/fogo-cruzado-select-card'
+import { RadarSelectCard } from '../select-cards/radar-select-card'
 
 export function SelectionCards() {
   const {
@@ -10,10 +11,10 @@ export function SelectionCards() {
         selectedObject: selectedCamera,
         handleSelectObject: setSelectedCamera,
       },
-      // radars: {
-      //   selectedObject: selectedRadar,
-      //   handleSelectObject: setSelectedRadar,
-      // },
+      radars: {
+        selectedObject: selectedRadar,
+        setSelectedObject: setSelectedRadar,
+      },
       fogoCruzado: {
         selectedObject: selectedFogoCruzado,
         setSelectedObject: setSelectedFogoCruzado,
@@ -27,28 +28,11 @@ export function SelectionCards() {
         selectedObject={selectedCamera}
         setSelectedObject={setSelectedCamera}
       />
-      {/* Temporariamente comentado até resolver os problemas de tipo
       <RadarSelectCard
         selectedObject={selectedRadar}
-        setSelectedObject={(radar: any) => {
-          if (radar === null) {
-            // Se for null, limpa a seleção
-            setSelectedRadar(null)
-          } else {
-            // Se for um radar, seleciona ele e limpa a câmera
-            setSelectedRadar(radar, () => {
-              // Limpa a câmera selecionada quando um radar é selecionado
-              const {
-                layers: {
-                  cameras: { setSelectedObject: setSelectedCamera },
-                },
-              } = useMap()
-              setSelectedCamera(null)
-            })
-          }
-        }}
+        setSelectedObject={setSelectedRadar}
       />
-      */}
+      {/* Debug: {selectedRadar ? `Radar selecionado: ${selectedRadar.cetRioCode}` : 'Nenhum radar selecionado'} */}
       <FogoCruzadoSelectCard
         selectedObject={selectedFogoCruzado}
         setSelectedObject={setSelectedFogoCruzado}
