@@ -23,7 +23,13 @@ export function useRadarLayer(): UseRadarLayer {
   const [hoveredObject, setHoveredObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
-  const [selectedObject, setSelectedObject] = useState<Radar | null>(null)
+  const [selectedObject, setSelectedObjectState] = useState<Radar | null>(null)
+
+  // Wrapper para debug
+  const setSelectedObject = (radar: Radar | null) => {
+    console.log('🔧 setSelectedObject chamado:', radar?.cetRioCode || 'null')
+    setSelectedObjectState(radar)
+  }
   const [isVisible, setIsVisible] = useState(true)
 
   const { data } = useRadars()
@@ -46,6 +52,12 @@ export function useRadarLayer(): UseRadarLayer {
       setSelectedObject(radar)
     }
   }
+
+  // Debug: Log quando selectedObject muda
+  console.log(
+    '🔄 useRadarLayer - selectedObject atual:',
+    selectedObject?.cetRioCode || 'null',
+  )
 
   const layer = new IconLayer<Radar>({
     id: 'radars',
