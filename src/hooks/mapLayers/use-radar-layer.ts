@@ -14,7 +14,7 @@ export interface UseRadarLayer {
   setHoveredObject: (value: PickingInfo<Radar> | null) => void
   isVisible: boolean
   setIsVisible: (value: boolean) => void
-  handleSelectObject: (radar: Radar) => void
+  handleSelectObject: (radar: Radar, clearCamera?: () => void) => void
   selectedObject: Radar | null
   setSelectedObject: (radar: Radar | null) => void
 }
@@ -28,11 +28,15 @@ export function useRadarLayer(): UseRadarLayer {
 
   const { data } = useRadars()
 
-  function handleSelectObject(radar: Radar) {
+  function handleSelectObject(radar: Radar, clearCamera?: () => void) {
     // Se o radar já está selecionado, deseleciona
     if (selectedObject?.cetRioCode === radar.cetRioCode) {
       setSelectedObject(null)
     } else {
+      // Limpa a câmera selecionada se existir
+      if (clearCamera) {
+        clearCamera()
+      }
       // Seleciona apenas o novo radar (substitui o anterior)
       setSelectedObject(radar)
     }
