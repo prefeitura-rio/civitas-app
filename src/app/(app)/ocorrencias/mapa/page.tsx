@@ -3,7 +3,7 @@ import { DeckGL } from '@deck.gl/react'
 import ReactMapGL from 'react-map-gl'
 
 import { config } from '@/config'
-import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
+import { useReportsMap } from '@/hooks/useContexts/use-reports-map-context'
 
 import { SearchBox } from '../../veiculos/components/map/components/search-box'
 import { MapActions } from './components/map-actions'

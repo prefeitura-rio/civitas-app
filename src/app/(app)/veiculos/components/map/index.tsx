@@ -6,7 +6,7 @@ import { type Deck, DeckGL } from 'deck.gl'
 import { type MouseEvent, useEffect, useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { CameraCOR, Radar } from '@/models/entities'
 import { getMapStyle } from '@/utils/get-map-style'
 

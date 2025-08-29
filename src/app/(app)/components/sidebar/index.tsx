@@ -6,7 +6,7 @@ import { Accordion } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useProfile } from '@/hooks/use-queries/use-profile'
+import { useProfile } from '@/hooks/useQueries/useProfile'
 import { queryClient } from '@/lib/react-query'
 import { logout } from '@/utils/logout'
 

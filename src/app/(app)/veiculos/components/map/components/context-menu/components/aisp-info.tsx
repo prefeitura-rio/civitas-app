@@ -5,7 +5,7 @@ import { Building, Phone, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { AISP } from '@/models/entities'
 
 const InfoItem = ({

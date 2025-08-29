@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { Point } from '@/models/entities'
 
 import { PointCard } from './point-card'

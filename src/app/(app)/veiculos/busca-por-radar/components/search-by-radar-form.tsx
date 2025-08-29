@@ -14,6 +14,10 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import {
+  RadarSearchFormData,
+  radarSearchSchema,
+} from '@/app/(app)/veiculos/components/validationSchemas'
 import { InputError } from '@/components/custom/input-error'
 import { PlateWildcardsHelperInfo } from '@/components/custom/plate-wildcards-helper-info'
 import { Tooltip } from '@/components/custom/tooltip'
@@ -26,14 +30,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 import { toQueryParams } from '@/utils/to-query-params'
-
-import {
-  RadarSearchFormData,
-  radarSearchSchema,
-} from '../../components/validationSchemas'
 
 export function SearchByRadarForm() {
   const radarSearchInputRef = useRef<HTMLInputElement | null>(null)
@@ -41,7 +40,12 @@ export function SearchByRadarForm() {
   const [timeValidation, setTimeValidation] = useState<{
     isValid: boolean
     message: string
-  } | null>(null)
+    duration: number
+  }>({
+    isValid: true,
+    message: '',
+    duration: 0,
+  })
 
   const { formattedSearchParams } = useCarRadarSearchParams()
 
@@ -87,33 +91,46 @@ export function SearchByRadarForm() {
   const startDate = watch('startDate')
   const endDate = watch('endDate')
 
+  // Validar tempo em tempo real
   useEffect(() => {
     if (startDate && endDate) {
       const timeDiff = endDate.getTime() - startDate.getTime()
-      const maxTimeDiff = 5 * 60 * 60 * 1000 // 5 horas em milissegundos
+      const isValid = timeDiff > 0 && timeDiff <= 5 * 60 * 60 * 1000 // 5 horas
 
-      if (endDate <= startDate) {
-        setTimeValidation({
-          isValid: false,
-          message: 'Data de fim deve ser posterior à data de início',
-        })
-      } else if (timeDiff > maxTimeDiff) {
-        setTimeValidation({
-          isValid: false,
-          message: 'Intervalo máximo de 5 horas excedido',
-        })
-      } else {
-        setTimeValidation({
-          isValid: true,
-          message: 'Intervalo válido',
-        })
-      }
+      const hours = Math.floor(timeDiff / (1000 * 60 * 60))
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
+
+      setTimeValidation({
+        isValid,
+        message: isValid
+          ? `${hours}h ${minutes}min`
+          : timeDiff <= 0
+            ? 'A data/hora de fim deve ser posterior à data/hora de início'
+            : `Máximo de 5 horas permitido (atual: ${hours}h ${minutes}min)`,
+        duration: timeDiff,
+      })
     }
   }, [startDate, endDate])
 
   const onSubmit = (data: RadarSearchFormData) => {
-    const query = toQueryParams(data)
-    router.push(`/veiculos/busca-por-radar/resultado?${query.toString()}`)
+    console.log('Form data:', data)
+
+    const queryData = {
+      startDate: data.startDate,
+      endDate: data.endDate,
+      plate: data.plate,
+      radarIds: data.radarIds,
+    }
+
+    console.log('Query data:', queryData)
+
+    const query = toQueryParams(queryData)
+    console.log('Query string:', query.toString())
+
+    const url = `/veiculos/busca-por-radar/resultado?${query.toString()}`
+    console.log('Final URL:', url)
+
+    router.push(url)
   }
 
   useEffect(() => {
@@ -147,6 +164,9 @@ export function SearchByRadarForm() {
           className="grid grid-cols-2 gap-x-8 gap-y-2"
         >
           <div className="flex w-full flex-col">
+            <label className="mb-2 text-sm font-medium text-muted-foreground">
+              Data/Hora de Início
+            </label>
             <Controller
               control={control}
               name="startDate"
@@ -166,29 +186,46 @@ export function SearchByRadarForm() {
           </div>
 
           <div className="flex w-full flex-col">
+            <label className="mb-2 text-sm font-medium text-muted-foreground">
+              Data/Hora de Fim
+            </label>
             <Controller
               control={control}
               name="endDate"
               render={({ field }) => (
-                <DatePicker
-                  className="w-full"
-                  value={field.value}
-                  onChange={field.onChange}
-                  type="datetime-local"
-                  disabled={isSubmitting}
-                  fromDate={new Date(2024, 5, 1)}
-                  toDate={new Date()}
-                />
+                <div className="relative">
+                  <DatePicker
+                    className={`w-full ${
+                      !timeValidation.isValid && timeValidation.duration > 0
+                        ? 'border-red-500/50 focus:border-red-500'
+                        : timeValidation.isValid && timeValidation.duration > 0
+                          ? 'border-blue-500/50 focus:border-blue-500'
+                          : ''
+                    }`}
+                    value={field.value}
+                    onChange={field.onChange}
+                    type="datetime-local"
+                    disabled={isSubmitting}
+                    fromDate={new Date(2024, 5, 1)}
+                    toDate={new Date()}
+                  />
+                  {timeValidation.duration > 0 && (
+                    <div className="absolute -bottom-6 right-0 text-xs">
+                      {timeValidation.isValid ? (
+                        <span className="text-blue-400">
+                          ✓ {timeValidation.message}
+                        </span>
+                      ) : (
+                        <span className="text-red-400">
+                          ⚠ {timeValidation.message}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             />
             <InputError message={errors.endDate?.message} />
-            {timeValidation && (
-              <div
-                className={`text-xs ${timeValidation.isValid ? 'text-green-600' : 'text-red-500'}`}
-              >
-                {timeValidation.message}
-              </div>
-            )}
           </div>
 
           <div className="flex w-full flex-col">
@@ -306,7 +343,11 @@ export function SearchByRadarForm() {
           </div>
 
           <div className="col-span-2 flex justify-end">
-            <Button type="submit" className="mt-4">
+            <Button
+              type="submit"
+              className="mt-4"
+              disabled={isSubmitting || !timeValidation.isValid}
+            >
               <SearchIcon className="mr-2 size-4" />
               Buscar
             </Button>

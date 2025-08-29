@@ -5,7 +5,7 @@ import { type Dispatch, type SetStateAction, useState } from 'react'
 import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Radar } from '@/models/entities'
 
-import { useRadars } from '../use-queries/use-radars'
+import { useRadars } from '../useQueries/useRadars'
 
 export interface UseRadarLayer {
   data: Radar[] | undefined

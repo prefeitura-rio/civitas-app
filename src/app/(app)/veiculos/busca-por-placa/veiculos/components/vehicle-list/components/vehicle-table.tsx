@@ -6,7 +6,7 @@ import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
-import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
+import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import type { Vehicle } from '@/models/entities'
 import { toQueryParams } from '@/utils/to-query-params'
 

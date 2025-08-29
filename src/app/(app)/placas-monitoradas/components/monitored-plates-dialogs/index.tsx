@@ -1,6 +1,6 @@
 'use client'
 
-import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
+import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 
 import { MonitoredPlateFormDialog } from '../../../components/monitored-plate-form-dialog'
 import { DeleteMonitoredPlateAlertDialog } from './components/delete-monitored-plate-alert-dialog'
