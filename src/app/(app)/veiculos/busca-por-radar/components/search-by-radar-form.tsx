@@ -76,13 +76,13 @@ export function SearchByRadarForm() {
             : new Date(new Date().setSeconds(0, 0)),
           endDate: formattedSearchParams.date.to
             ? new Date(formattedSearchParams.date.to)
-            : new Date(new Date().setSeconds(0, 0) + 60 * 60 * 1000), // +1 hora
+            : new Date(new Date().setSeconds(0, 0) + 5 * 60 * 60 * 1000), // +5 horas
           plate: formattedSearchParams.plate,
           radarIds: formattedSearchParams.radarIds,
         }
       : {
           startDate: new Date(new Date().setSeconds(0, 0)),
-          endDate: new Date(new Date().setSeconds(0, 0) + 60 * 60 * 1000), // +1 hora
+          endDate: new Date(new Date().setSeconds(0, 0) + 5 * 60 * 60 * 1000), // +5 horas
           radarIds: [],
           plate: '',
         },
@@ -90,6 +90,14 @@ export function SearchByRadarForm() {
 
   const startDate = watch('startDate')
   const endDate = watch('endDate')
+
+  // Ajustar automaticamente endDate quando startDate mudar
+  useEffect(() => {
+    if (startDate) {
+      const newEndDate = new Date(startDate.getTime() + 5 * 60 * 60 * 1000) // +5 horas
+      setValue('endDate', newEndDate)
+    }
+  }, [startDate, setValue])
 
   // Validar tempo em tempo real
   useEffect(() => {
