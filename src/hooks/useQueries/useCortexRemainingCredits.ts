@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getCortexRemainingCredits } from '@/http/user/get-cortex-rmaining-credits'
 
-import { useProfile } from './use-profile'
+import { useProfile } from './useProfile'
 
 export function useCortexRemainingCredits() {
   const { data: profile } = useProfile()

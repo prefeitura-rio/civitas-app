@@ -1,4 +1,4 @@
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 
 import { CameraSelectCard } from '../select-cards/camera-select-card'
 import { FogoCruzadoSelectCard } from '../select-cards/fogo-cruzado-select-card'

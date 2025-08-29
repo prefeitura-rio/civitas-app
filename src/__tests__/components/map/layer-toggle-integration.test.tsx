@@ -16,7 +16,7 @@ const mockSetIsSchoolsVisible = jest.fn()
 const mockSetIsBusStopsVisible = jest.fn()
 // const mockSetMapStyle = jest.fn()
 
-jest.mock('@/hooks/map-layers/use-radar-layer', () => ({
+jest.mock('@/hooks/mapLayers/use-radar-layer', () => ({
   useRadarLayer: () => ({
     isVisible: true, // Radar deve estar visível por padrão
     setIsVisible: mockSetIsRadarVisible,
@@ -25,7 +25,7 @@ jest.mock('@/hooks/map-layers/use-radar-layer', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-cameras', () => ({
+jest.mock('@/hooks/mapLayers/use-cameras', () => ({
   useCameraCOR: () => ({
     isVisible: true, // Camada de câmeras deve estar visível por padrão
     setIsVisible: mockSetIsCameraVisible,
@@ -34,7 +34,7 @@ jest.mock('@/hooks/map-layers/use-cameras', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-agents', () => ({
+jest.mock('@/hooks/mapLayers/use-agents', () => ({
   useAgents: () => ({
     isVisible: false, // Agentes NÃO deve estar visível por padrão
     setIsVisible: mockSetIsAgentsVisible,
@@ -43,7 +43,7 @@ jest.mock('@/hooks/map-layers/use-agents', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-fogo-cruzado', () => ({
+jest.mock('@/hooks/mapLayers/use-fogo-cruzado', () => ({
   useFogoCruzadoIncidents: () => ({
     isVisible: false, // Fogo Cruzado NÃO deve estar visível por padrão
     setIsVisible: mockSetIsFogoCruzadoVisible,
@@ -52,7 +52,7 @@ jest.mock('@/hooks/map-layers/use-fogo-cruzado', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-waze-police-alerts', () => ({
+jest.mock('@/hooks/mapLayers/use-waze-police-alerts', () => ({
   useWazePoliceAlerts: () => ({
     isVisible: false, // Waze NÃO deve estar visível por padrão
     setIsVisible: mockSetIsWazeVisible,
@@ -61,7 +61,7 @@ jest.mock('@/hooks/map-layers/use-waze-police-alerts', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-AISP-layer', () => ({
+jest.mock('@/hooks/mapLayers/use-AISP-layer', () => ({
   useAISPLayer: () => ({
     isVisible: false, // AISP NÃO deve estar visível por padrão
     setIsVisible: mockSetIsAISPVisible,
@@ -70,7 +70,7 @@ jest.mock('@/hooks/map-layers/use-AISP-layer', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-CISP-layer', () => ({
+jest.mock('@/hooks/mapLayers/use-CISP-layer', () => ({
   useCISPLayer: () => ({
     isVisible: false, // CISP NÃO deve estar visível por padrão
     setIsVisible: mockSetIsCISPVisible,
@@ -79,7 +79,7 @@ jest.mock('@/hooks/map-layers/use-CISP-layer', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-school-layer', () => ({
+jest.mock('@/hooks/mapLayers/use-school-layer', () => ({
   useSchoolLayer: () => ({
     isVisible: false, // Escolas NÃO deve estar visível por padrão
     setIsVisible: mockSetIsSchoolsVisible,
@@ -88,7 +88,7 @@ jest.mock('@/hooks/map-layers/use-school-layer', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-bus-stop-layer', () => ({
+jest.mock('@/hooks/mapLayers/use-bus-stop-layer', () => ({
   useBusStopLayer: () => ({
     isVisible: false, // Paradas de ônibus NÃO deve estar visível por padrão
     setIsVisible: mockSetIsBusStopsVisible,
@@ -97,14 +97,14 @@ jest.mock('@/hooks/map-layers/use-bus-stop-layer', () => ({
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-trips', () => ({
+jest.mock('@/hooks/mapLayers/use-trips', () => ({
   useTrips: () => ({
     data: [],
     layer: {},
   }),
 }))
 
-jest.mock('@/hooks/map-layers/use-address-marker', () => ({
+jest.mock('@/hooks/mapLayers/use-address-marker', () => ({
   useAddressMarker: () => ({
     data: null,
     layer: {},

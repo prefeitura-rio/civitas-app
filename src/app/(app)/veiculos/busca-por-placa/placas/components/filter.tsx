@@ -1,5 +1,5 @@
 import { Input } from '@/components/ui/input'
-import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
+import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/useSearchByPlateResultDynamicFilter'
 
 interface FilterProps {
   filters: UseSearchByPlateResultDynamicFilter
