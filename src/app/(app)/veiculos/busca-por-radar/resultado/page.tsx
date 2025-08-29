@@ -2,9 +2,9 @@
 
 import { Spinner } from '@/components/custom/spinner'
 import { Card, CardContent } from '@/components/ui/card'
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import { useRadarsSearch } from '@/hooks/use-queries/use-radars-search'
-import { useSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
+import { useRadarsSearch } from '@/hooks/useQueries/useRadarsSearch'
+import { useSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 
 import { ActionBar } from './components/action-bar'
 import { DetectionsTable } from './components/detections-table'

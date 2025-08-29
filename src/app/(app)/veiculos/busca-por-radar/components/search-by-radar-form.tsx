@@ -30,8 +30,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 import { toQueryParams } from '@/utils/to-query-params'
 
 export function SearchByRadarForm() {

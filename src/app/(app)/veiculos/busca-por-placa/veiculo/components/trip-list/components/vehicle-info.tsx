@@ -5,7 +5,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Label } from '@/components/ui/label'
-import { useVehicle } from '@/hooks/use-queries/use-vehicle'
+import { useVehicle } from '@/hooks/useQueries/use-vehicle'
 
 interface VehicleInfoProps {
   plate: string

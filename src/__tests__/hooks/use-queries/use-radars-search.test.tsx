@@ -1,14 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
 
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import { useRadars } from '@/hooks/use-queries/use-radars'
-import { useRadarsSearch } from '@/hooks/use-queries/use-radars-search'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
+import { useRadars } from '@/hooks/useQueries/useRadars'
+import { useRadarsSearch } from '@/hooks/useQueries/useRadarsSearch'
 
 // Mock das dependências
 jest.mock('@/http/cars/radar/get-cars-by-radar')
-jest.mock('@/hooks/use-params/use-car-radar-search-params.')
-jest.mock('@/hooks/use-queries/use-radars')
+jest.mock('@/hooks/useParams/useCarRadarSearchParams')
+jest.mock('@/hooks/useQueries/useRadars')
 
 const mockUseCarRadarSearchParams =
   useCarRadarSearchParams as jest.MockedFunction<typeof useCarRadarSearchParams>

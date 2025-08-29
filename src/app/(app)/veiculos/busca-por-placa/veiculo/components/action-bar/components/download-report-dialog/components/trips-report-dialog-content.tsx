@@ -1,9 +1,9 @@
 import { PDFViewer } from '@react-pdf/renderer'
 
 import { DialogContent } from '@/components/ui/dialog'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
-import { useVehicle } from '@/hooks/use-queries/use-vehicle'
+import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
+import { useVehicle } from '@/hooks/useQueries/use-vehicle'
 
 import { ReportDocument } from '../../../../report/components/report-document'
 
