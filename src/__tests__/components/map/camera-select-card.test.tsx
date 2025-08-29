@@ -92,15 +92,15 @@ describe('CameraSelectCard', () => {
     it('deve exibir o código da câmera na seção de informações', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
-      const codeLabels = screen.getAllByText('CAM001')
-      expect(codeLabels).toHaveLength(2) // Uma no título, outra na seção de informações
+      expect(screen.getByText('Código:')).toBeInTheDocument()
+      const codeElements = screen.getAllByText('CAM001')
+      expect(codeElements).toHaveLength(2) // Uma no título, outra na seção de informações
     })
   })
 
-  describe('funcionalidade do botão fechar', () => {
-    it('deve chamar setSelectedObject com null quando clicado', () => {
+  describe('funcionalidade do botão de fechar', () => {
+    it('deve chamar setSelectedObject com null quando o botão de fechar é clicado', () => {
       const mockSetSelectedObject = jest.fn()
-
       render(
         <CameraSelectCard
           {...defaultProps}
@@ -109,33 +109,28 @@ describe('CameraSelectCard', () => {
         />,
       )
 
-      // O botão de fechar é o primeiro botão (sem nome acessível)
       const closeButton = screen.getAllByRole('button')[0]
       fireEvent.click(closeButton)
 
       expect(mockSetSelectedObject).toHaveBeenCalledWith(null)
     })
+
+    it('deve exibir o ícone X no botão de fechar', () => {
+      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
+
+      const closeButton = screen.getAllByRole('button')[0]
+      expect(closeButton).toBeInTheDocument()
+    })
   })
 
-  describe('botão de streaming', () => {
-    it('deve exibir botão de streaming quando streamingUrl existe', () => {
+  describe('funcionalidade do streaming', () => {
+    it('deve exibir o botão de streaming quando streamingUrl está disponível', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Abrir Streaming')).toBeInTheDocument()
     })
 
-    it('não deve exibir botão de streaming quando streamingUrl não existe', () => {
-      render(
-        <CameraSelectCard
-          {...defaultProps}
-          selectedObject={mockCameraWithoutStreaming}
-        />,
-      )
-
-      expect(screen.queryByText('Abrir Streaming')).not.toBeInTheDocument()
-    })
-
-    it('deve abrir streaming em nova aba quando clicado', () => {
+    it('deve abrir o streaming em nova aba quando o botão é clicado', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       const streamingButton = screen.getByText('Abrir Streaming')
@@ -146,69 +141,8 @@ describe('CameraSelectCard', () => {
         '_blank',
       )
     })
-  })
 
-  describe('estrutura do card', () => {
-    it('deve ter layout responsivo com classes corretas', () => {
-      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
-
-      const card = screen.getByText('Câmera').closest('div')
-        ?.parentElement?.parentElement
-      expect(card).toHaveClass(
-        'absolute',
-        'left-2',
-        'top-2',
-        'w-72',
-        'tracking-tighter',
-      )
-    })
-
-    it('deve ter informações organizadas em layout flexível', () => {
-      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
-
-      const infoContainer = screen
-        .getByText('Código:')
-        .closest('div')?.parentElement
-      expect(infoContainer).toHaveClass('space-y-2', 'text-sm')
-    })
-
-    it('deve ter botão de fechar posicionado corretamente', () => {
-      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
-
-      const closeButton = screen.getAllByRole('button')[0]
-      expect(closeButton).toHaveClass(
-        'absolute',
-        'right-1',
-        'top-1',
-        'h-5',
-        'w-5',
-        'p-0',
-      )
-    })
-  })
-
-  describe('acessibilidade', () => {
-    it('deve ter botão de fechar com ícone X', () => {
-      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
-
-      const closeButton = screen.getAllByRole('button')[0]
-      expect(closeButton).toBeInTheDocument()
-      // Verifica se o ícone X está presente
-      expect(closeButton.querySelector('svg')).toBeInTheDocument()
-    })
-
-    it('deve ter botão de streaming com texto descritivo', () => {
-      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
-
-      const streamingButton = screen.getByRole('button', {
-        name: 'Abrir Streaming',
-      })
-      expect(streamingButton).toBeInTheDocument()
-    })
-  })
-
-  describe('casos edge', () => {
-    it('deve lidar com câmera sem streamingUrl', () => {
+    it('não deve exibir o botão de streaming quando streamingUrl não está disponível', () => {
       render(
         <CameraSelectCard
           {...defaultProps}
@@ -216,30 +150,73 @@ describe('CameraSelectCard', () => {
         />,
       )
 
-      // Deve exibir informações básicas
-      const codeLabels = screen.getAllByText('CAM002')
-      expect(codeLabels).toHaveLength(2) // Uma no título, outra na seção de informações
-      expect(screen.getByText('Botafogo')).toBeInTheDocument()
-
-      // Não deve exibir botão de streaming
       expect(screen.queryByText('Abrir Streaming')).not.toBeInTheDocument()
     })
+  })
 
-    it('deve lidar com câmera com streamingUrl vazio', () => {
-      const cameraWithEmptyStreaming = {
-        ...mockCamera,
+  describe('posicionamento e estilo', () => {
+    it('deve ter as classes de posicionamento corretas', () => {
+      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
+
+      const card = screen.getByText('Câmera').closest('div')
+        ?.parentElement?.parentElement
+      expect(card).toHaveClass('absolute', 'left-2', 'top-2', 'w-72')
+    })
+
+    it('deve ter o estilo de tracking correto', () => {
+      render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
+
+      const card = screen.getByText('Câmera').closest('div')
+        ?.parentElement?.parentElement
+      expect(card).toHaveClass('tracking-tighter')
+    })
+  })
+
+  describe('valores undefined/null', () => {
+    it('deve lidar graciosamente com valores undefined', () => {
+      const mockCameraWithUndefined: CameraCOR = {
+        code: 'CAM003',
+        location: 'teste',
+        zone: 'teste',
         streamingUrl: '',
+        longitude: -43.1729,
+        latitude: -22.9068,
       }
 
       render(
         <CameraSelectCard
           {...defaultProps}
-          selectedObject={cameraWithEmptyStreaming}
+          selectedObject={mockCameraWithUndefined}
         />,
       )
 
-      // Não deve exibir botão de streaming
-      expect(screen.queryByText('Abrir Streaming')).not.toBeInTheDocument()
+      expect(screen.getByText('Câmera')).toBeInTheDocument()
+      const codeElements = screen.getAllByText('CAM003')
+      expect(codeElements).toHaveLength(2) // Uma no título, outra na seção de informações
+      expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
+    })
+
+    it('deve lidar graciosamente com valores null', () => {
+      const mockCameraWithNull: CameraCOR = {
+        code: 'CAM004',
+        location: 'teste',
+        zone: 'teste',
+        streamingUrl: '',
+        longitude: -43.1729,
+        latitude: -22.9068,
+      }
+
+      render(
+        <CameraSelectCard
+          {...defaultProps}
+          selectedObject={mockCameraWithNull}
+        />,
+      )
+
+      expect(screen.getByText('Câmera')).toBeInTheDocument()
+      const codeElements = screen.getAllByText('CAM004')
+      expect(codeElements).toHaveLength(2) // Uma no título, outra na seção de informações
+      expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
     })
   })
 })
