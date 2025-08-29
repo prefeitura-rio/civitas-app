@@ -52,9 +52,9 @@ export function SearchByRadarForm() {
   const {
     layers: {
       radars: {
-        selectedObjects,
+        selectedObject,
         handleSelectObject,
-        setSelectedObjects,
+        setSelectedObject,
         data: radars,
       },
     },
@@ -142,23 +142,22 @@ export function SearchByRadarForm() {
   }
 
   useEffect(() => {
-    setValue(
-      'radarIds',
-      selectedObjects.map((radar) => radar.cetRioCode),
-    )
-  }, [selectedObjects])
+    setValue('radarIds', selectedObject ? [selectedObject.cetRioCode] : [])
+  }, [selectedObject, setValue])
 
   useEffect(() => {
-    if (radars && formattedSearchParams && selectedObjects.length === 0) {
+    if (radars && formattedSearchParams && !selectedObject) {
       const ids = formattedSearchParams.radarIds
 
-      const selectedRadars = radars.filter((radar) =>
+      const selectedRadar = radars.find((radar) =>
         ids.includes(radar.cetRioCode),
       )
 
-      setSelectedObjects(selectedRadars)
+      if (selectedRadar) {
+        setSelectedObject(selectedRadar)
+      }
     }
-  }, [radars])
+  }, [radars, formattedSearchParams, selectedObject, setSelectedObject])
 
   return (
     <>
@@ -267,7 +266,7 @@ export function SearchByRadarForm() {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full">
                   <MapPinIcon className="mr-2 size-4 shrink-0" />
-                  Radares ({selectedObjects.length})
+                  Radares ({selectedObject ? 1 : 0})
                 </Button>
               </PopoverTrigger>
               <PopoverContent
@@ -288,12 +287,8 @@ export function SearchByRadarForm() {
                             radarSearchInputRef.current?.value,
                         )
                         if (radar) {
-                          if (
-                            !selectedObjects.find(
-                              (item) => item.cetRioCode === radar.cetRioCode,
-                            )
-                          ) {
-                            setSelectedObjects((prev) => [radar, ...prev])
+                          if (selectedObject?.cetRioCode !== radar.cetRioCode) {
+                            setSelectedObject(radar)
                           }
                           radarSearchInputRef.current!.value = ''
                           setViewport({
@@ -308,15 +303,17 @@ export function SearchByRadarForm() {
                     </Button>
                   </div>
                   <div className="space-y-2">
-                    {selectedObjects.map((radar) => (
+                    {selectedObject && (
                       <div
-                        key={radar.cetRioCode}
+                        key={selectedObject.cetRioCode}
                         className="flex items-center justify-between rounded bg-secondary p-2"
                       >
                         <div>
-                          <div className="font-medium">{radar.cetRioCode}</div>
+                          <div className="font-medium">
+                            {selectedObject.cetRioCode}
+                          </div>
                           <div className="text-sm text-muted-foreground">
-                            {radar.location}
+                            {selectedObject.location}
                           </div>
                         </div>
                         <div className="flex space-x-2">
@@ -325,8 +322,8 @@ export function SearchByRadarForm() {
                             size="sm"
                             onClick={() => {
                               setViewport({
-                                longitude: radar.longitude,
-                                latitude: radar.latitude,
+                                longitude: selectedObject.longitude,
+                                latitude: selectedObject.latitude,
                                 zoom: 20,
                               })
                             }}
@@ -336,13 +333,13 @@ export function SearchByRadarForm() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleSelectObject(radar)}
+                            onClick={() => handleSelectObject(selectedObject)}
                           >
                             <XCircleIcon className="size-4" />
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </PopoverContent>

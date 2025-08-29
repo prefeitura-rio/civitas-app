@@ -1,6 +1,6 @@
 'use client'
 import { IconLayer, type PickingInfo } from 'deck.gl'
-import { type Dispatch, type SetStateAction, useState } from 'react'
+import { useState } from 'react'
 
 import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Radar } from '@/models/entities'
@@ -15,26 +15,26 @@ export interface UseRadarLayer {
   isVisible: boolean
   setIsVisible: (value: boolean) => void
   handleSelectObject: (radar: Radar) => void
-  selectedObjects: Radar[]
-  setSelectedObjects: Dispatch<SetStateAction<Radar[]>>
+  selectedObject: Radar | null
+  setSelectedObject: (radar: Radar | null) => void
 }
 
 export function useRadarLayer(): UseRadarLayer {
   const [hoveredObject, setHoveredObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
-  const [selectedObjects, setSelectedObjects] = useState<Radar[]>([])
+  const [selectedObject, setSelectedObject] = useState<Radar | null>(null)
   const [isVisible, setIsVisible] = useState(true)
 
   const { data } = useRadars()
 
   function handleSelectObject(radar: Radar) {
-    if (selectedObjects.find((item) => item.cetRioCode === radar.cetRioCode)) {
-      setSelectedObjects(
-        selectedObjects.filter((item) => item.cetRioCode !== radar.cetRioCode),
-      )
+    // Se o radar já está selecionado, deseleciona
+    if (selectedObject?.cetRioCode === radar.cetRioCode) {
+      setSelectedObject(null)
     } else {
-      setSelectedObjects([radar, ...selectedObjects])
+      // Seleciona apenas o novo radar (substitui o anterior)
+      setSelectedObject(radar)
     }
   }
 
@@ -75,14 +75,14 @@ export function useRadarLayer(): UseRadarLayer {
     },
     getIcon: (d) => {
       if (
-        selectedObjects.find((item) => item.cetRioCode === d.cetRioCode) &&
+        selectedObject?.cetRioCode === d.cetRioCode &&
         d.activeInLast24Hours
       ) {
         return 'highlighted'
       }
 
       if (
-        selectedObjects.find((item) => item.cetRioCode === d.cetRioCode) &&
+        selectedObject?.cetRioCode === d.cetRioCode &&
         !d.activeInLast24Hours
       ) {
         return 'disabled-highlighted'
@@ -120,7 +120,7 @@ export function useRadarLayer(): UseRadarLayer {
     isVisible,
     setIsVisible,
     handleSelectObject,
-    selectedObjects,
-    setSelectedObjects,
+    selectedObject,
+    setSelectedObject,
   }
 }
