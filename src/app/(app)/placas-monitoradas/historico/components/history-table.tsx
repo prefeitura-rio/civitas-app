@@ -5,7 +5,7 @@ import { formatDate } from 'date-fns'
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
 import { useMonitoredPlatesHistorySearchParams } from '@/hooks/useParams/useMonitoredPlatesHistorySearchParams'
-import { useMonitoredPlatesHistory } from '@/hooks/useQueries/cars/monitored/use-monitored-plates-history'
+import { useMonitoredPlatesHistory } from '@/hooks/useQueries/cars/monitored/useMonitoredPlatesHistory'
 import type { MonitoredPlateHistoryItem } from '@/models/entities'
 
 export function HistoryTable() {

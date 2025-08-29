@@ -14,7 +14,7 @@ import {
 import type { Report } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
 
-import { useReportsSearchParams } from '../use-params/use-reports-search-params'
+import { useReportsSearchParams } from '../useParams/useReportsSearchParams'
 
 interface ClusterIcon extends Report {
   position: Coordinates

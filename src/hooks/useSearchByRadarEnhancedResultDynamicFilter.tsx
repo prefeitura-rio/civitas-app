@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import type { EnhancedDetectionDTO } from './use-queries/use-enhanced-radars-search'
+import type { EnhancedDetectionDTO } from './useQueries/useEnhancedRadarsSearch'
 
 interface UseRadarsDynamicFilterProps {
   data: EnhancedDetectionDTO[] | undefined

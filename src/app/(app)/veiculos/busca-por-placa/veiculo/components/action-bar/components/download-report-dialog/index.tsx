@@ -19,7 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
-import { useRadars } from '@/hooks/useQueries/use-radars'
+import { useRadars } from '@/hooks/useQueries/useRadars'
 import { exportToCSV } from '@/utils/csv'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'

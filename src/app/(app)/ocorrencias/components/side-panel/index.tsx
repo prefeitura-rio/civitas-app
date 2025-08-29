@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
-import { useReportFilterOptions } from '@/hooks/useQueries/reports/use-report-filter-options'
+import { useReportFilterOptions } from '@/hooks/useQueries/reports/useReportFilterOptions'
 import { cn } from '@/lib/utils'
 import type { GetReportsRequest } from '@/models/interfaces'
 
