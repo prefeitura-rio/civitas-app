@@ -27,11 +27,13 @@ export function Map() {
         layer: radarLayer,
         data: radars,
         handleSelectObject: selectRadar,
+        setSelectedObject: setSelectedRadar,
       },
       cameras: {
         layer: cameraLayer,
         data: cameras,
         handleSelectObject: selectCamera,
+        setSelectedObject: setSelectedCamera,
       },
       agents: { layer: agentsLayer },
       fogoCruzado: { layer: fogoCruzadoLayer },
@@ -96,13 +98,17 @@ export function Map() {
     const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
     if (info?.layer?.id === 'radars' && info.object) {
-      // Simplesmente seleciona o radar sem lógica de limpeza por enquanto
+      // Seleciona o radar e limpa a câmera
       selectRadar(info.object as Radar)
+      // Limpa a câmera selecionada
+      setSelectedCamera(null)
     }
 
     if (info?.layer?.id === 'cameras' && info.object) {
-      // Simplesmente seleciona a câmera sem lógica de limpeza por enquanto
+      // Seleciona a câmera e limpa o radar
       selectCamera(info.object as CameraCOR)
+      // Limpa o radar selecionado
+      setSelectedRadar(null)
     }
   }
 
