@@ -30,7 +30,19 @@ describe('useCarRadarSearchParams', () => {
       }
     })
 
-    return searchParams
+    // Converter para ReadonlyURLSearchParams simulando o comportamento do Next.js
+    return {
+      get: (name: string) => searchParams.get(name),
+      getAll: (name: string) => searchParams.getAll(name),
+      has: (name: string) => searchParams.has(name),
+      entries: () => searchParams.entries(),
+      keys: () => searchParams.keys(),
+      values: () => searchParams.values(),
+      forEach: (callback: (value: string, key: string, parent: any) => void) =>
+        searchParams.forEach(callback),
+      toString: () => searchParams.toString(),
+      size: searchParams.size,
+    } as any
   }
 
   describe('parâmetros válidos', () => {
