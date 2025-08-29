@@ -48,7 +48,6 @@ export function useCameraCOR(): UseCameraCOR {
       if (camera === null || selectedObject?.code === camera.code) {
         setSelectedObject(null)
       } else {
-        // Limpa o radar selecionado se existir
         if (clearRadar) {
           clearRadar()
         }

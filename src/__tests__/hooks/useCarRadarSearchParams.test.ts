@@ -30,7 +30,8 @@ describe('useCarRadarSearchParams', () => {
       }
     })
 
-    return searchParams
+    // Usar as any para evitar problemas de tipo complexos
+    return searchParams as any
   }
 
   describe('parâmetros válidos', () => {
