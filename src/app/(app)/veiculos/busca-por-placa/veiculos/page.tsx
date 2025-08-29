@@ -21,12 +21,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
-import { useCortexRemainingCredits } from '@/hooks/use-queries/use-cortex-remaining-credits'
-import { useVehicles } from '@/hooks/use-queries/use-vehicles'
-import { useVehiclesCreditsRequired } from '@/hooks/use-queries/use-vehicles-credits-required'
-import { useSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/use-search-by-plate-enhanced-result-dynamic-filter'
+import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
+import { useVehicles } from '@/hooks/useQueries/use-vehicles'
+import { useCortexRemainingCredits } from '@/hooks/useQueries/useCortexRemainingCredits'
+import { useVehiclesCreditsRequired } from '@/hooks/useQueries/useVehiclesCreditsRequired'
+import { useSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/useSearchByPlateEnhancedResultDynamicFilter'
 import { dateConfig } from '@/lib/date-config'
 import { cortexRequestLimit } from '@/utils/cortex-limit'
 

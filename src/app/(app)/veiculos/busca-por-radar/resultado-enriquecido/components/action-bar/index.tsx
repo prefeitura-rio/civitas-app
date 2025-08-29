@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card'
-import type { EnhancedDetectionDTO } from '@/hooks/use-queries/use-enhanced-radars-search'
-import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/use-search-by-radar-enhanced-result-dynamic-filter'
+import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
+import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/useSearchByRadarEnhancedResultDynamicFilter'
 
 import { ClearTripsButton } from './components/clear-trips-button'
 import { DownloadReport } from './components/download-report'

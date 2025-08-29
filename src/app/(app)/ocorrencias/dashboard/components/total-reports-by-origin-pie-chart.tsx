@@ -18,7 +18,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-import { useReportsTimeline } from '@/hooks/use-queries/reports/use-reports-timeline'
+import { useReportsTimeline } from '@/hooks/useQueries/reports/use-reports-timeline'
 import { cn } from '@/lib/utils'
 
 type ChartData = {

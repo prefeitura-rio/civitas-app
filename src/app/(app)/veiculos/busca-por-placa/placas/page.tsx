@@ -20,9 +20,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
-import { useSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
+import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
+import { useSearchByPlateResultDynamicFilter } from '@/hooks/useSearchByPlateResultDynamicFilter'
 import { dateConfig } from '@/lib/date-config'
 
 import { ActionBar } from './components/action-bar'

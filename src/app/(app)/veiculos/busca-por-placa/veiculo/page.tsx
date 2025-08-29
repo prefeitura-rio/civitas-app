@@ -11,8 +11,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import { useCarPathsSearchParams } from '@/hooks/use-params/use-car-paths-search-params'
+import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 
 import { ActionBar } from './components/action-bar'
 import { TripList } from './components/trip-list'

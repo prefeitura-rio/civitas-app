@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 
 import { CardDescription, CardHeader } from '@/components/ui/card'
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 import { dateConfig } from '@/lib/date-config'
 
 export function Header() {

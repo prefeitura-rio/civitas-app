@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { useSearchParams } from 'next/navigation'
 
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 
 // Mock do next/navigation
 jest.mock('next/navigation', () => ({

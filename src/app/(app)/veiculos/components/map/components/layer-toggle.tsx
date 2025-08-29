@@ -24,7 +24,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Toggle } from '@/components/ui/toggle'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import { MapStyle } from '@/utils/get-map-style'
 
 type Layer = {

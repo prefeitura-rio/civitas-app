@@ -4,8 +4,8 @@ import { formatDate } from 'date-fns'
 
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
-import { useMonitoredPlatesHistorySearchParams } from '@/hooks/use-params/use-monitored-plates-history-search-params'
-import { useMonitoredPlatesHistory } from '@/hooks/use-queries/cars/monitored/use-monitored-plates-history'
+import { useMonitoredPlatesHistorySearchParams } from '@/hooks/useParams/useMonitoredPlatesHistorySearchParams'
+import { useMonitoredPlatesHistory } from '@/hooks/useQueries/cars/monitored/use-monitored-plates-history'
 import type { MonitoredPlateHistoryItem } from '@/models/entities'
 
 export function HistoryTable() {
