@@ -24,10 +24,6 @@ export function RadarSelectCard({
   selectedObject,
   setSelectedObject,
 }: RadarSelectCardProps) {
-  console.log('🔍 RadarSelectCard renderizando:', {
-    selectedObject: selectedObject?.cetRioCode || 'null',
-  })
-
   return (
     <Card
       className={cn(
