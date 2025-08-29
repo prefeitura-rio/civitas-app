@@ -16,6 +16,14 @@ export function calculateTooltipAbsolutePosition(
   const width = cardWidth || TOOLTIP_DEFAULT_WIDTH
   const height = cardHeight || TOOLTIP_DEFAULT_HEIGHT
 
+  // Se for um radar, posicionar no canto superior esquerdo (igual ao popup da câmera)
+  if (pickingInfo.layer?.id === 'radars') {
+    return {
+      top: 8, // 8px do topo (igual ao left-2 top-2 da câmera)
+      left: 8 + SIDEBAR_WIDTH, // 8px da esquerda + largura da sidebar
+    }
+  }
+
   const x = pickingInfo.x
   const y = pickingInfo.y
   const viewportWidth = pickingInfo.viewport!.width
