@@ -22,8 +22,8 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
-import { useReportFilterOptions } from '@/hooks/useQueries/reports/use-report-filter-options'
-import { useReportsTimeline } from '@/hooks/useQueries/reports/use-reports-timeline'
+import { useReportFilterOptions } from '@/hooks/useQueries/reports/useReportFilterOptions'
+import { useReportsTimeline } from '@/hooks/useQueries/reports/useReportsTimeline'
 import { cn } from '@/lib/utils'
 
 import { type ChartData, getChartData } from './actions'

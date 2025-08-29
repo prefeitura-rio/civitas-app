@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import type { DetectionDTO } from './use-queries/use-radars-search'
+import type { DetectionDTO } from './useQueries/useRadarsSearch'
 
 interface UseRadarsDynamicFilterProps {
   data: DetectionDTO[] | undefined

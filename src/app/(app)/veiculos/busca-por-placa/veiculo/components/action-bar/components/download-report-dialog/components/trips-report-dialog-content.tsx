@@ -3,7 +3,7 @@ import { PDFViewer } from '@react-pdf/renderer'
 import { DialogContent } from '@/components/ui/dialog'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
-import { useVehicle } from '@/hooks/useQueries/use-vehicle'
+import { useVehicle } from '@/hooks/useQueries/useVehicle'
 
 import { ReportDocument } from '../../../../report/components/report-document'
 

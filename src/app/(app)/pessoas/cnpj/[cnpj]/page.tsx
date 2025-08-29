@@ -19,7 +19,7 @@ import { useEffect, useRef } from 'react'
 import { Spinner } from '@/components/custom/spinner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { config } from '@/config'
-import { useCompany } from '@/hooks/useQueries/use-company'
+import { useCompany } from '@/hooks/useQueries/useCompany'
 import { useCortexRemainingCredits } from '@/hooks/useQueries/useCortexRemainingCredits'
 import { searchAddress } from '@/http/mapbox/search-address'
 

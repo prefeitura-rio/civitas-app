@@ -2,7 +2,7 @@
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { useOperations } from '@/hooks/useContexts/use-operations-context'
-import { useProfile } from '@/hooks/useQueries/use-profile'
+import { useProfile } from '@/hooks/useQueries/useProfile'
 import { notAllowed } from '@/utils/template-messages'
 
 export function OperationsHeader() {
