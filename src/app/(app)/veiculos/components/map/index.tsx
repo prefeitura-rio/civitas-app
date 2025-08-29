@@ -17,6 +17,10 @@ import { MapLayerControl } from './components/layer-toggle'
 import { SearchBox } from './components/search-box'
 import { SelectionCards } from './components/select-cards'
 
+interface SearchSubmitProps {
+  address: string
+}
+
 export function Map() {
   const deckRef = useRef<Deck | null>(null)
   const mapRef = useRef<MapRef | null>(null)
@@ -66,7 +70,7 @@ export function Map() {
   useEffect(() => {
     setMapRef(mapRef.current)
     setDeckRef(deckRef.current)
-  }, [])
+  }, [setMapRef, setDeckRef])
 
   const mapLayers = useMemo(
     () => [
@@ -97,7 +101,7 @@ export function Map() {
     ],
   )
 
-  const onRightClick = useCallback(
+  const handleRightClick = useCallback(
     (e: MouseEvent) => {
       e.preventDefault()
       const y = e.clientY
@@ -109,7 +113,7 @@ export function Map() {
     [setContextMenuPickingInfo, setOpenContextMenu],
   )
 
-  const onLeftClick = useCallback(
+  const handleLeftClick = useCallback(
     (e: MouseEvent) => {
       e.preventDefault()
       const y = e.clientY
@@ -117,27 +121,83 @@ export function Map() {
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
       if (info?.layer?.id === 'radars' && info.object) {
-        // Seleciona o radar e limpa a câmera
         selectRadar(info.object as Radar)
-        // Limpa a câmera selecionada
         setSelectedCamera(null)
       }
 
       if (info?.layer?.id === 'cameras' && info.object) {
-        // Seleciona a câmera e limpa o radar
         selectCamera(info.object as CameraCOR)
-        // Limpa o radar selecionado
         setSelectedRadar(null)
       }
     },
     [selectRadar, selectCamera, setSelectedCamera, setSelectedRadar],
   )
 
+  const handleSearchSubmit = useCallback(
+    (props: SearchSubmitProps) => {
+      const { address } = props
+      const trimmedAddress = address.replace(/^0+/, '')
+
+      // Buscar radar
+      const radar = radars?.find((r) => {
+        const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
+        return trimmedCetRioCode === trimmedAddress
+      })
+
+      if (radar) {
+        setViewport({
+          latitude: radar.latitude,
+          longitude: radar.longitude,
+          zoom: 20,
+        })
+        return
+      }
+
+      // Buscar câmera
+      const camera = cameras?.find((c) => {
+        const trimmedCode = c.code.replace(/^0+/, '')
+        return trimmedCode === trimmedAddress
+      })
+
+      if (camera) {
+        setViewport({
+          latitude: camera.latitude,
+          longitude: camera.longitude,
+          zoom: 20,
+        })
+      }
+    },
+    [radars, cameras, setViewport],
+  )
+
+  const handleViewStateChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (e: { viewState: any }) => {
+      setViewport({ ...e.viewState })
+    },
+    [setViewport],
+  )
+
+  const getCursor = useCallback(
+    ({
+      isDragging,
+      isHovering,
+    }: {
+      isDragging: boolean
+      isHovering: boolean
+    }) => {
+      if (isDragging) return 'grabbing'
+      if (isHovering) return 'pointer'
+      return 'grab'
+    },
+    [],
+  )
+
   return (
     <div
       className="relative h-full w-full overflow-hidden"
-      onContextMenu={onRightClick}
-      onClick={onLeftClick}
+      onContextMenu={handleRightClick}
+      onClick={handleLeftClick}
     >
       <DeckGL
         ref={deckRef}
@@ -145,12 +205,8 @@ export function Map() {
         controller
         onResize={() => mapRef.current?.resize()}
         layers={mapLayers}
-        onViewStateChange={(e) => setViewport({ ...e.viewState })}
-        getCursor={({ isDragging, isHovering }) => {
-          if (isDragging) return 'grabbing'
-          if (isHovering) return 'pointer'
-          return 'grab'
-        }}
+        onViewStateChange={handleViewStateChange}
+        getCursor={getCursor}
       >
         <MapGl
           ref={mapRef}
@@ -158,48 +214,21 @@ export function Map() {
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
+
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox
           isVisible={isAddressVisible}
           setIsVisible={setIsAddressVisible}
           setAddressMarker={setAddressMarker}
           setViewport={setViewport}
-          onSubmit={useCallback(
-            (props) => {
-              const id = props.address
-              const trimmedId = id.replace(/^0+/, '')
-              const radar = radars?.find((r) => {
-                const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
-                return trimmedCetRioCode === trimmedId
-              })
-              if (radar) {
-                setViewport({
-                  latitude: radar.latitude,
-                  longitude: radar.longitude,
-                  zoom: 20,
-                })
-                return
-              }
-              const camera = cameras?.find((c) => {
-                const trimmedCode = c.code.replace(/^0+/, '')
-                const trimmedId = id.replace(/^0+/, '')
-                return trimmedCode === trimmedId
-              })
-              if (camera) {
-                setViewport({
-                  latitude: camera.latitude,
-                  longitude: camera.longitude,
-                  zoom: 20,
-                })
-              }
-            },
-            [radars, cameras, setViewport],
-          )}
+          onSubmit={handleSearchSubmit}
         />
       </div>
+
       <SelectionCards />
       <HoverCards />
       <MapLayerControl />
+
       <ContextMenu
         open={openContextMenu}
         onOpenChange={setOpenContextMenu}

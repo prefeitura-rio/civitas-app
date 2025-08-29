@@ -34,11 +34,9 @@ export function useRadarLayer(): UseRadarLayer {
       if (selectedObject?.cetRioCode === radar.cetRioCode) {
         setSelectedObject(null)
       } else {
-        // Limpa a câmera selecionada se existir
         if (clearCamera) {
           clearCamera()
         }
-        // Seleciona apenas o novo radar (substitui o anterior)
         setSelectedObject(radar)
       }
     },
