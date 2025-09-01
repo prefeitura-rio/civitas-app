@@ -2,7 +2,7 @@
 import { format } from 'date-fns'
 import { WandSparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
@@ -45,7 +45,7 @@ export function EnhancePlatesInfo({
 
   const [resetDate, setResetDate] = useState<Date | null>(null)
 
-  function handleEnhancement() {
+  const handleEnhancement = useCallback(() => {
     const { selectedPlate } = filters
     if (!formattedSearchParams)
       throw new Error('formattedSearchParams is required')
@@ -67,7 +67,7 @@ export function EnhancePlatesInfo({
     router.push(
       `/veiculos/busca-por-radar/resultado-enriquecido?${query.toString()}`,
     )
-  }
+  }, [filters, formattedSearchParams, data, router])
 
   const { data: remainingCredits } = useCortexRemainingCredits()
   const { data: creditsRequired } = useVehiclesCreditsRequired(plates)
@@ -83,7 +83,7 @@ export function EnhancePlatesInfo({
     }
   }, [remainingCredits])
 
-  function handleDialogOpen(open: boolean) {
+  const handleDialogOpen = useCallback((open: boolean) => {
     if (open) {
       queryClient.invalidateQueries({
         queryKey: ['users', 'cortex-remaining-credits'],
@@ -92,7 +92,42 @@ export function EnhancePlatesInfo({
     } else {
       setIsOpen(false)
     }
-  }
+  }, [])
+
+  const isInsufficientCredits = useMemo(() => {
+    return (
+      remainingCredits &&
+      creditsRequired &&
+      remainingCredits.remaining_credit < creditsRequired.credits
+    )
+  }, [remainingCredits, creditsRequired])
+
+  const warningMessage = useMemo(() => {
+    if (!isInsufficientCredits) return null
+
+    if (creditsRequired && creditsRequired.credits < 90) {
+      return (
+        <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
+          <p className="pl-6 -indent-6 text-muted-foreground">
+            ⚠️ Você não possui crédito suficiente para enriquecer esse
+            resultado. Restrinja a sua consulta a fim de diminuir o crédito
+            necessário para o enriquecimento ou aguarde o horário de reposição
+            dos seus créditos.
+          </p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
+        <p className="pl-6 -indent-6 text-muted-foreground">
+          ⚠️ Você não possui crédito suficiente para enriquecer esse resultado.
+          Restrinja a sua consulta a fim de diminuir o crédito necessário para o
+          enriquecimento.
+        </p>
+      </div>
+    )
+  }, [isInsufficientCredits, creditsRequired])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogOpen}>
@@ -140,27 +175,7 @@ export function EnhancePlatesInfo({
                 </span>
               </div>
             )}
-          {remainingCredits &&
-            creditsRequired &&
-            remainingCredits.remaining_credit < creditsRequired.credits &&
-            (creditsRequired.credits < 90 ? (
-              <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
-                <p className="pl-6 -indent-6 text-muted-foreground">
-                  ⚠️ Você não possui crédito suficiente para enriquecer esse
-                  resultado. Restrinja a sua consulta a fim de diminuir o
-                  crédito necessário para o enriquecimento ou aguarde o horário
-                  de reposição dos seus créditos.
-                </p>
-              </div>
-            ) : (
-              <div className="mt-4 rounded-lg border-l-2 border-yellow-500 bg-secondary px-3 py-2">
-                <p className="pl-6 -indent-6 text-muted-foreground">
-                  ⚠️ Você não possui crédito suficiente para enriquecer esse
-                  resultado. Restrinja a sua consulta a fim de diminuir o
-                  crédito necessário para o enriquecimento.
-                </p>
-              </div>
-            ))}
+          {warningMessage}
         </div>
         <DialogFooter>
           <DialogClose asChild>
