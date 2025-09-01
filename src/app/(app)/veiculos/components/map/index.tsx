@@ -21,6 +21,11 @@ interface SearchSubmitProps {
   address: string
 }
 
+type CursorParams = {
+  isDragging: boolean
+  isHovering: boolean
+}
+
 export function Map() {
   const deckRef = useRef<Deck | null>(null)
   const mapRef = useRef<MapRef | null>(null)
@@ -178,20 +183,12 @@ export function Map() {
     [setViewport],
   )
 
-  const getCursor = useCallback(
-    ({
-      isDragging,
-      isHovering,
-    }: {
-      isDragging: boolean
-      isHovering: boolean
-    }) => {
-      if (isDragging) return 'grabbing'
-      if (isHovering) return 'pointer'
-      return 'grab'
-    },
-    [],
-  )
+  const getCursor = useCallback((params: CursorParams) => {
+    const { isDragging, isHovering } = params
+    if (isDragging) return 'grabbing'
+    if (isHovering) return 'pointer'
+    return 'grab'
+  }, [])
 
   return (
     <div
