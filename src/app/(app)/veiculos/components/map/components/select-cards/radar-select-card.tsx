@@ -66,75 +66,63 @@ export function RadarSelectCard({
           <CardDescription className="text-xs">{`${selectedObject?.location?.capitalizeFirstLetter() || ''} - ${selectedObject?.district?.capitalizeFirstLetter() || ''}`}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Código:</span>
-              <span className="font-medium">{selectedObject?.cetRioCode}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Localização:</span>
-              <span className="font-medium">
-                {selectedObject?.location?.capitalizeFirstLetter() || 'N/A'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Bairro:</span>
-              <span className="font-medium">
-                {selectedObject?.district?.capitalizeFirstLetter() || 'N/A'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Latitude:</span>
-              <span className="font-medium">
-                {selectedObject?.latitude?.toFixed(6)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Longitude:</span>
-              <span className="font-medium">
-                {selectedObject?.longitude?.toFixed(6)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Empresa:</span>
-              <span className="font-medium">
-                {selectedObject?.company || 'N/A'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ativo 24h:</span>
-              <span
-                className={cn(
-                  'font-medium',
-                  selectedObject?.activeInLast24Hours
-                    ? 'text-emerald-600'
-                    : 'text-rose-600',
-                )}
-              >
-                {selectedObject?.activeInLast24Hours ? 'Sim' : 'Não'}
-              </span>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-xs text-muted-foreground">
+                  Localização:
+                </span>
+                <div className="font-medium">
+                  {selectedObject?.location?.capitalizeFirstLetter() || 'N/A'}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground">Bairro:</span>
+                <div className="font-medium">
+                  {selectedObject?.district?.capitalizeFirstLetter() || 'N/A'}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground">Empresa:</span>
+                <div className="font-medium">
+                  {selectedObject?.company || 'N/A'}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground">Status:</span>
+                <div
+                  className={cn(
+                    'text-sm font-medium',
+                    selectedObject?.activeInLast24Hours
+                      ? 'text-emerald-600'
+                      : 'text-rose-600',
+                  )}
+                >
+                  {selectedObject?.activeInLast24Hours ? 'Ativo' : 'Inativo'}
+                </div>
+              </div>
             </div>
             {selectedObject?.lastDetectionTime && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Última detecção:</span>
-                <span className="font-medium">
+              <div>
+                <span className="text-xs text-muted-foreground">
+                  Última detecção:
+                </span>
+                <div className="text-sm font-medium">
                   {new Date(selectedObject.lastDetectionTime).toLocaleString(
                     'pt-BR',
                   )}
-                </span>
+                </div>
               </div>
             )}
-            <div className="pt-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleZoomToRadar}
-              >
-                <MapPin className="mr-2 h-4 w-4" />
-                Focar no Radar
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={handleZoomToRadar}
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              Focar no Radar
+            </Button>
           </div>
         </CardContent>
       </div>

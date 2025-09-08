@@ -38,6 +38,7 @@ export function Map() {
         layer: radarLayer,
         data: radars,
         handleSelectObject: selectRadar,
+        handleMultiSelectObject: multiSelectRadar,
         setSelectedObject: setSelectedRadar,
       },
       cameras: {
@@ -72,9 +73,6 @@ export function Map() {
     openContextMenu,
     setContextMenuPickingInfo,
     setOpenContextMenu,
-    multipleSelectedRadars,
-    setMultipleSelectedRadars,
-    isMultiSelectMode,
   } = useMap()
 
   useEffect(() => {
@@ -118,11 +116,10 @@ export function Map() {
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      // Seleção de radares e câmeras com botão direito
+      // Seleção INDIVIDUAL de radar com botão direito (popup + zoom)
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
-        selectRadar(radar)
-        setSelectedCamera(null)
+        selectRadar(radar, () => setSelectedCamera(null))
         // Zoom automático para o radar selecionado
         setViewport({
           latitude: radar.latitude,
@@ -187,30 +184,21 @@ export function Map() {
         return
       }
 
-      // Se estiver no modo de seleção múltipla, permitir seleção de radares com botão esquerdo
-      if (isMultiSelectMode) {
-        const y = e.clientY
-        const x = e.clientX - 56
-        const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+      // Seleção MÚLTIPLA de radares com botão esquerdo (para input)
+      const y = e.clientY
+      const x = e.clientX - 56
+      const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-        if (info?.layer?.id === 'radars' && info.object) {
-          const radar = info.object as Radar
-          const radarId = radar.cetRioCode
-
-          // Adicionar ou remover radar da seleção múltipla
-          const updatedRadars = multipleSelectedRadars.includes(radarId)
-            ? multipleSelectedRadars.filter((id) => id !== radarId) // Remove se já está selecionado
-            : [...multipleSelectedRadars, radarId] // Adiciona se não está selecionado
-
-          setMultipleSelectedRadars(updatedRadars)
-        }
+      if (info?.layer?.id === 'radars' && info.object) {
+        const radar = info.object as Radar
+        multiSelectRadar(radar)
       }
 
       // Reset das variáveis
       isDragging.current = false
       mouseDownPosition.current = null
     },
-    [isMultiSelectMode, multipleSelectedRadars, setMultipleSelectedRadars],
+    [multiSelectRadar],
   )
 
   const handleSearchSubmit = useCallback(
