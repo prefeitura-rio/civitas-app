@@ -73,6 +73,7 @@ export function Map() {
     openContextMenu,
     setContextMenuPickingInfo,
     setOpenContextMenu,
+    zoomToLocation,
   } = useMap()
 
   useEffect(() => {
@@ -120,12 +121,8 @@ export function Map() {
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
         selectRadar(radar, () => setSelectedCamera(null))
-        // Zoom automático para o radar selecionado
-        setViewport({
-          latitude: radar.latitude,
-          longitude: radar.longitude,
-          zoom: 18,
-        })
+        // Zoom inteligente que respeita o zoom manual do usuário
+        zoomToLocation(radar.latitude, radar.longitude, 18)
         return
       }
 
@@ -133,12 +130,8 @@ export function Map() {
         const camera = info.object as CameraCOR
         selectCamera(camera)
         setSelectedRadar(null)
-        // Zoom automático para a câmera selecionada
-        setViewport({
-          latitude: camera.latitude,
-          longitude: camera.longitude,
-          zoom: 18,
-        })
+        // Zoom inteligente que respeita o zoom manual do usuário
+        zoomToLocation(camera.latitude, camera.longitude, 18)
         return
       }
 
@@ -153,7 +146,7 @@ export function Map() {
       selectCamera,
       setSelectedCamera,
       setSelectedRadar,
-      setViewport,
+      zoomToLocation,
     ],
   )
 

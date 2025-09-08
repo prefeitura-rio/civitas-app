@@ -79,6 +79,16 @@ interface MapContextProps {
   setMultipleSelectedRadars: (radars: string[]) => void
   isMultiSelectMode: boolean
   setIsMultiSelectMode: (enabled: boolean) => void
+  // Sistema de histórico de viewport para zoom
+  previousViewport: MapViewState | null
+  setPreviousViewport: (viewport: MapViewState | null) => void
+  zoomToLocation: (
+    latitude: number,
+    longitude: number,
+    zoom?: number,
+    forceZoom?: boolean,
+  ) => void
+  restorePreviousViewport: () => void
 }
 
 export const MapContext = createContext({} as MapContextProps)
@@ -100,6 +110,10 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
     string[]
   >([])
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
+  // Sistema de histórico de viewport para zoom
+  const [previousViewport, setPreviousViewport] = useState<MapViewState | null>(
+    null,
+  )
 
   function setViewport(props: SetViewportProps) {
     setViewportState({
@@ -108,6 +122,39 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
       transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
       transitionDuration: 'auto',
     })
+  }
+
+  // Função inteligente para zoom que respeita o zoom manual do usuário
+  function zoomToLocation(
+    latitude: number,
+    longitude: number,
+    zoom: number = 18,
+    forceZoom: boolean = false,
+  ) {
+    const currentZoom = viewport.zoom || 0
+
+    // Se o usuário já está com zoom maior que o zoom automático, não força o zoom
+    // A menos que forceZoom seja true
+    if (!forceZoom && currentZoom > zoom) {
+      return
+    }
+
+    // Salva o viewport atual antes de fazer zoom automático
+    setPreviousViewport(viewport)
+
+    setViewport({
+      latitude,
+      longitude,
+      zoom,
+    })
+  }
+
+  // Função para restaurar o viewport anterior
+  function restorePreviousViewport() {
+    if (previousViewport) {
+      setViewport(previousViewport)
+      setPreviousViewport(null)
+    }
   }
 
   const radars = useRadarLayer(multipleSelectedRadars)
@@ -154,6 +201,10 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
         setMultipleSelectedRadars,
         isMultiSelectMode,
         setIsMultiSelectMode,
+        previousViewport,
+        setPreviousViewport,
+        zoomToLocation,
+        restorePreviousViewport,
       }}
     >
       {children}
