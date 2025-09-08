@@ -133,9 +133,17 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   ) {
     const currentZoom = viewport.zoom || 0
 
+    console.log('zoomToLocation called:', {
+      currentZoom,
+      targetZoom: zoom,
+      forceZoom,
+      willZoom: forceZoom || currentZoom <= zoom,
+    })
+
     // Se o usuário já está com zoom maior que o zoom automático, não força o zoom
     // A menos que forceZoom seja true
     if (!forceZoom && currentZoom > zoom) {
+      console.log('Zoom skipped - user has higher zoom')
       return
     }
 
