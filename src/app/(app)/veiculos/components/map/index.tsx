@@ -29,6 +29,8 @@ type CursorParams = {
 export function Map() {
   const deckRef = useRef<Deck | null>(null)
   const mapRef = useRef<MapRef | null>(null)
+  const mouseDownPosition = useRef<{ x: number; y: number } | null>(null)
+  const isDragging = useRef(false)
 
   const {
     layers: {
@@ -112,30 +114,84 @@ export function Map() {
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+
+      // Não abrir menu de contexto para radares e câmeras
+      if (info?.layer?.id === 'radars' || info?.layer?.id === 'cameras') {
+        return
+      }
+
       setContextMenuPickingInfo(info || null)
       setOpenContextMenu(!!info)
     },
     [setContextMenuPickingInfo, setOpenContextMenu],
   )
 
+  const handleMouseDown = useCallback((e: MouseEvent) => {
+    mouseDownPosition.current = { x: e.clientX, y: e.clientY }
+    isDragging.current = false
+  }, [])
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (mouseDownPosition.current) {
+      const deltaX = Math.abs(e.clientX - mouseDownPosition.current.x)
+      const deltaY = Math.abs(e.clientY - mouseDownPosition.current.y)
+      // Se moveu mais de 5 pixels, considera como drag
+      if (deltaX > 5 || deltaY > 5) {
+        isDragging.current = true
+      }
+    }
+  }, [])
+
   const handleLeftClick = useCallback(
     (e: MouseEvent) => {
       e.preventDefault()
+
+      // Se estava arrastando, não processar como clique
+      if (isDragging.current) {
+        isDragging.current = false
+        mouseDownPosition.current = null
+        return
+      }
+
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
       if (info?.layer?.id === 'radars' && info.object) {
-        selectRadar(info.object as Radar)
+        const radar = info.object as Radar
+        selectRadar(radar)
         setSelectedCamera(null)
+        // Zoom automático para o radar selecionado
+        setViewport({
+          latitude: radar.latitude,
+          longitude: radar.longitude,
+          zoom: 18,
+        })
       }
 
       if (info?.layer?.id === 'cameras' && info.object) {
-        selectCamera(info.object as CameraCOR)
+        const camera = info.object as CameraCOR
+        selectCamera(camera)
         setSelectedRadar(null)
+        // Zoom automático para a câmera selecionada
+        setViewport({
+          latitude: camera.latitude,
+          longitude: camera.longitude,
+          zoom: 18,
+        })
       }
+
+      // Reset das variáveis
+      isDragging.current = false
+      mouseDownPosition.current = null
     },
-    [selectRadar, selectCamera, setSelectedCamera, setSelectedRadar],
+    [
+      selectRadar,
+      selectCamera,
+      setSelectedCamera,
+      setSelectedRadar,
+      setViewport,
+    ],
   )
 
   const handleSearchSubmit = useCallback(
@@ -175,6 +231,8 @@ export function Map() {
     [radars, cameras, setViewport],
   )
 
+  const mapStyleValue = useMemo(() => getMapStyle(mapStyle), [mapStyle])
+
   const handleViewStateChange = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: { viewState: any }) => {
@@ -194,6 +252,8 @@ export function Map() {
     <div
       className="relative h-full w-full overflow-hidden"
       onContextMenu={handleRightClick}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
       onClick={handleLeftClick}
     >
       <DeckGL
@@ -207,7 +267,7 @@ export function Map() {
       >
         <MapGl
           ref={mapRef}
-          mapStyle={getMapStyle(mapStyle)}
+          mapStyle={mapStyleValue}
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
