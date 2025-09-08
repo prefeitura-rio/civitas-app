@@ -15,8 +15,11 @@ export interface UseRadarLayer {
   isVisible: boolean
   setIsVisible: (value: boolean) => void
   handleSelectObject: (radar: Radar, clearCamera?: () => void) => void
+  handleMultiSelectObject: (radar: Radar) => void
   selectedObject: Radar | null
   setSelectedObject: (radar: Radar | null) => void
+  selectedObjects: Radar[]
+  setSelectedObjects: (radars: Radar[] | ((prev: Radar[]) => Radar[])) => void
   multipleSelectedRadars?: string[]
 }
 
@@ -27,13 +30,14 @@ export function useRadarLayer(
     null,
   )
   const [selectedObject, setSelectedObject] = useState<Radar | null>(null)
+  const [selectedObjects, setSelectedObjects] = useState<Radar[]>([])
   const [isVisible, setIsVisible] = useState(true)
 
   const { data } = useRadars()
 
   const handleSelectObject = useCallback(
     (radar: Radar, clearCamera?: () => void) => {
-      // Se o radar já está selecionado, deseleciona
+      // APENAS seleção individual (para clique direito + popup)
       if (selectedObject?.cetRioCode === radar.cetRioCode) {
         setSelectedObject(null)
       } else {
@@ -44,6 +48,24 @@ export function useRadarLayer(
       }
     },
     [selectedObject?.cetRioCode, setSelectedObject],
+  )
+
+  const handleMultiSelectObject = useCallback(
+    (radar: Radar) => {
+      // APENAS seleção múltipla (para clique esquerdo + input)
+      if (
+        selectedObjects.find((item) => item.cetRioCode === radar.cetRioCode)
+      ) {
+        setSelectedObjects(
+          selectedObjects.filter(
+            (item) => item.cetRioCode !== radar.cetRioCode,
+          ),
+        )
+      } else {
+        setSelectedObjects([radar, ...selectedObjects])
+      }
+    },
+    [selectedObjects, setSelectedObjects],
   )
 
   const layer = useMemo(
@@ -85,7 +107,9 @@ export function useRadarLayer(
         },
         getIcon: (d) => {
           const isSelected = selectedObject?.cetRioCode === d.cetRioCode
-          const isMultiSelected = multipleSelectedRadars.includes(d.cetRioCode)
+          const isMultiSelected = selectedObjects.find(
+            (item) => item.cetRioCode === d.cetRioCode,
+          )
 
           if ((isSelected || isMultiSelected) && d.activeInLast24Hours) {
             return 'highlighted'
@@ -118,7 +142,13 @@ export function useRadarLayer(
         autoHighlight: true,
         highlightColor: [249, 115, 22],
       }),
-    [data, selectedObject?.cetRioCode, isVisible, multipleSelectedRadars],
+    [
+      data,
+      selectedObject?.cetRioCode,
+      selectedObjects,
+      isVisible,
+      multipleSelectedRadars,
+    ],
   )
 
   return {
@@ -129,8 +159,11 @@ export function useRadarLayer(
     isVisible,
     setIsVisible,
     handleSelectObject,
+    handleMultiSelectObject,
     selectedObject,
     setSelectedObject,
+    selectedObjects,
+    setSelectedObjects,
     multipleSelectedRadars,
   }
 }
