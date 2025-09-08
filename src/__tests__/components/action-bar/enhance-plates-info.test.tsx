@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 
 import { EnhancePlatesInfo } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/action-bar/components/enhance-plates-info'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
