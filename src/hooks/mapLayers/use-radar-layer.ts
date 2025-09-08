@@ -17,9 +17,12 @@ export interface UseRadarLayer {
   handleSelectObject: (radar: Radar, clearCamera?: () => void) => void
   selectedObject: Radar | null
   setSelectedObject: (radar: Radar | null) => void
+  multipleSelectedRadars?: string[]
 }
 
-export function useRadarLayer(): UseRadarLayer {
+export function useRadarLayer(
+  multipleSelectedRadars: string[] = [],
+): UseRadarLayer {
   const [hoveredObject, setHoveredObject] = useState<PickingInfo<Radar> | null>(
     null,
   )
@@ -81,17 +84,14 @@ export function useRadarLayer(): UseRadarLayer {
           },
         },
         getIcon: (d) => {
-          if (
-            selectedObject?.cetRioCode === d.cetRioCode &&
-            d.activeInLast24Hours
-          ) {
+          const isSelected = selectedObject?.cetRioCode === d.cetRioCode
+          const isMultiSelected = multipleSelectedRadars.includes(d.cetRioCode)
+
+          if ((isSelected || isMultiSelected) && d.activeInLast24Hours) {
             return 'highlighted'
           }
 
-          if (
-            selectedObject?.cetRioCode === d.cetRioCode &&
-            !d.activeInLast24Hours
-          ) {
+          if ((isSelected || isMultiSelected) && !d.activeInLast24Hours) {
             return 'disabled-highlighted'
           }
 
@@ -118,7 +118,7 @@ export function useRadarLayer(): UseRadarLayer {
         autoHighlight: true,
         highlightColor: [249, 115, 22],
       }),
-    [data, selectedObject?.cetRioCode, isVisible],
+    [data, selectedObject?.cetRioCode, isVisible, multipleSelectedRadars],
   )
 
   return {
@@ -131,5 +131,6 @@ export function useRadarLayer(): UseRadarLayer {
     handleSelectObject,
     selectedObject,
     setSelectedObject,
+    multipleSelectedRadars,
   }
 }

@@ -72,6 +72,9 @@ export function Map() {
     openContextMenu,
     setContextMenuPickingInfo,
     setOpenContextMenu,
+    multipleSelectedRadars,
+    setMultipleSelectedRadars,
+    isMultiSelectMode,
   } = useMap()
 
   useEffect(() => {
@@ -115,15 +118,46 @@ export function Map() {
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      // Não abrir menu de contexto para radares e câmeras
-      if (info?.layer?.id === 'radars' || info?.layer?.id === 'cameras') {
+      // Seleção de radares e câmeras com botão direito
+      if (info?.layer?.id === 'radars' && info.object) {
+        const radar = info.object as Radar
+        selectRadar(radar)
+        setSelectedCamera(null)
+        // Zoom automático para o radar selecionado
+        setViewport({
+          latitude: radar.latitude,
+          longitude: radar.longitude,
+          zoom: 18,
+        })
         return
       }
 
+      if (info?.layer?.id === 'cameras' && info.object) {
+        const camera = info.object as CameraCOR
+        selectCamera(camera)
+        setSelectedRadar(null)
+        // Zoom automático para a câmera selecionada
+        setViewport({
+          latitude: camera.latitude,
+          longitude: camera.longitude,
+          zoom: 18,
+        })
+        return
+      }
+
+      // Menu de contexto para outros elementos
       setContextMenuPickingInfo(info || null)
       setOpenContextMenu(!!info)
     },
-    [setContextMenuPickingInfo, setOpenContextMenu],
+    [
+      setContextMenuPickingInfo,
+      setOpenContextMenu,
+      selectRadar,
+      selectCamera,
+      setSelectedCamera,
+      setSelectedRadar,
+      setViewport,
+    ],
   )
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
@@ -153,45 +187,30 @@ export function Map() {
         return
       }
 
-      const y = e.clientY
-      const x = e.clientX - 56
-      const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+      // Se estiver no modo de seleção múltipla, permitir seleção de radares com botão esquerdo
+      if (isMultiSelectMode) {
+        const y = e.clientY
+        const x = e.clientX - 56
+        const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      if (info?.layer?.id === 'radars' && info.object) {
-        const radar = info.object as Radar
-        selectRadar(radar)
-        setSelectedCamera(null)
-        // Zoom automático para o radar selecionado
-        setViewport({
-          latitude: radar.latitude,
-          longitude: radar.longitude,
-          zoom: 18,
-        })
-      }
+        if (info?.layer?.id === 'radars' && info.object) {
+          const radar = info.object as Radar
+          const radarId = radar.cetRioCode
 
-      if (info?.layer?.id === 'cameras' && info.object) {
-        const camera = info.object as CameraCOR
-        selectCamera(camera)
-        setSelectedRadar(null)
-        // Zoom automático para a câmera selecionada
-        setViewport({
-          latitude: camera.latitude,
-          longitude: camera.longitude,
-          zoom: 18,
-        })
+          // Adicionar ou remover radar da seleção múltipla
+          const updatedRadars = multipleSelectedRadars.includes(radarId)
+            ? multipleSelectedRadars.filter((id) => id !== radarId) // Remove se já está selecionado
+            : [...multipleSelectedRadars, radarId] // Adiciona se não está selecionado
+
+          setMultipleSelectedRadars(updatedRadars)
+        }
       }
 
       // Reset das variáveis
       isDragging.current = false
       mouseDownPosition.current = null
     },
-    [
-      selectRadar,
-      selectCamera,
-      setSelectedCamera,
-      setSelectedRadar,
-      setViewport,
-    ],
+    [isMultiSelectMode, multipleSelectedRadars, setMultipleSelectedRadars],
   )
 
   const handleSearchSubmit = useCallback(
