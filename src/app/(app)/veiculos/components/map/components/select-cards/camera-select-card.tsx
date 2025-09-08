@@ -2,7 +2,7 @@
 
 import '@/utils/string-extensions'
 
-import { MapPin, X } from 'lucide-react'
+import { MapPin, RotateCcw, X } from 'lucide-react'
 import { useCallback } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -26,17 +26,23 @@ export function CameraSelectCard({
   selectedObject,
   setSelectedObject,
 }: CameraSelectCardProps) {
-  const { setViewport } = useMap()
+  const { zoomToLocation, restorePreviousViewport, previousViewport } = useMap()
 
   const handleZoomToCamera = useCallback(() => {
     if (selectedObject) {
-      setViewport({
-        latitude: selectedObject.latitude,
-        longitude: selectedObject.longitude,
-        zoom: 18,
-      })
+      // Força o zoom mesmo se o usuário já estiver com zoom maior
+      zoomToLocation(
+        selectedObject.latitude,
+        selectedObject.longitude,
+        18,
+        true,
+      )
     }
-  }, [selectedObject, setViewport])
+  }, [selectedObject, zoomToLocation])
+
+  const handleRestorePreviousViewport = useCallback(() => {
+    restorePreviousViewport()
+  }, [restorePreviousViewport])
   return (
     <Card
       className={cn(
@@ -94,15 +100,27 @@ export function CameraSelectCard({
               </span>
             </div>
             <div className="pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleZoomToCamera}
-              >
-                <MapPin className="mr-2 h-4 w-4" />
-                Focar na Câmera
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={handleZoomToCamera}
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Focar na Câmera
+                </Button>
+                {previousViewport && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRestorePreviousViewport}
+                    title="Voltar ao zoom anterior"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
             {selectedObject?.streamingUrl && (
               <div className="pt-2">
