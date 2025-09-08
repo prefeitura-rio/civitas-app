@@ -2,7 +2,8 @@
 
 import '@/utils/string-extensions'
 
-import { X } from 'lucide-react'
+import { MapPin, X } from 'lucide-react'
+import { useCallback } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import { cn } from '@/lib/utils'
 import type { Radar } from '@/models/entities'
 
@@ -24,10 +26,25 @@ export function RadarSelectCard({
   selectedObject,
   setSelectedObject,
 }: RadarSelectCardProps) {
+  const { setViewport } = useMap()
+
+  const handleZoomToRadar = useCallback(() => {
+    if (selectedObject) {
+      setViewport({
+        latitude: selectedObject.latitude,
+        longitude: selectedObject.longitude,
+        zoom: 18,
+      })
+    }
+  }, [selectedObject, setViewport])
+
+  const handleCloseCard = useCallback(() => {
+    setSelectedObject(null)
+  }, [setSelectedObject])
   return (
     <Card
       className={cn(
-        'absolute left-2 top-2 w-72 tracking-tighter',
+        'absolute right-2 top-2 w-72 tracking-tighter',
         !selectedObject ? 'hidden' : '',
       )}
     >
@@ -35,9 +52,7 @@ export function RadarSelectCard({
         <Button
           variant="outline"
           className="absolute right-1 top-1 h-5 w-5 p-0"
-          onClick={() => {
-            setSelectedObject(null)
-          }}
+          onClick={handleCloseCard}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -109,6 +124,17 @@ export function RadarSelectCard({
                 </span>
               </div>
             )}
+            <div className="pt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleZoomToRadar}
+              >
+                <MapPin className="mr-2 h-4 w-4" />
+                Focar no Radar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </div>
