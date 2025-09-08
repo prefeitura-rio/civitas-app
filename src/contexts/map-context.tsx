@@ -74,6 +74,11 @@ interface MapContextProps {
   setOpenContextMenu: (open: boolean) => void
   contextMenuPickingInfo: PickingInfo | null
   setContextMenuPickingInfo: (info: PickingInfo | null) => void
+  // Seleção múltipla de radares para busca
+  multipleSelectedRadars: string[]
+  setMultipleSelectedRadars: (radars: string[]) => void
+  isMultiSelectMode: boolean
+  setIsMultiSelectMode: (enabled: boolean) => void
 }
 
 export const MapContext = createContext({} as MapContextProps)
@@ -90,6 +95,11 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const [openContextMenu, setOpenContextMenu] = useState(false)
   const [contextMenuPickingInfo, setContextMenuPickingInfo] =
     useState<PickingInfo | null>(null)
+  // Estados para seleção múltipla de radares
+  const [multipleSelectedRadars, setMultipleSelectedRadars] = useState<
+    string[]
+  >([])
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
 
   function setViewport(props: SetViewportProps) {
     setViewportState({
@@ -100,7 +110,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
     })
   }
 
-  const radars = useRadarLayer()
+  const radars = useRadarLayer(multipleSelectedRadars)
   const trips = useTrips({ setViewport })
   const cameras = useCameraCOR()
   const agents = useAgents()
@@ -140,6 +150,10 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
         setOpenContextMenu,
         contextMenuPickingInfo,
         setContextMenuPickingInfo,
+        multipleSelectedRadars,
+        setMultipleSelectedRadars,
+        isMultiSelectMode,
+        setIsMultiSelectMode,
       }}
     >
       {children}

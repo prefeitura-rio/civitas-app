@@ -12,6 +12,7 @@ import {
 } from '@/app/(app)/veiculos/components/validationSchemas'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 import { toQueryParams } from '@/utils/to-query-params'
 
@@ -31,6 +32,11 @@ const MAX_DATE = new Date()
 export function SearchByRadarForm() {
   const router = useRouter()
   const { formattedSearchParams } = useCarRadarSearchParams()
+  const {
+    multipleSelectedRadars,
+    setMultipleSelectedRadars,
+    setIsMultiSelectMode,
+  } = useMap()
 
   const [timeValidation, setTimeValidation] = useState<TimeValidation>({
     isValid: true,
@@ -65,6 +71,30 @@ export function SearchByRadarForm() {
 
   const startDate = watch('startDate')
   const endDate = watch('endDate')
+  const currentRadarIds = watch('radarIds')
+
+  // Habilitar modo de seleção múltipla quando o componente montar
+  useEffect(() => {
+    setIsMultiSelectMode(true)
+    return () => {
+      setIsMultiSelectMode(false)
+      setMultipleSelectedRadars([])
+    }
+  }, [setIsMultiSelectMode, setMultipleSelectedRadars])
+
+  // Sincronizar radares selecionados no mapa com o formulário
+  useEffect(() => {
+    if (multipleSelectedRadars.length > 0) {
+      setValue('radarIds', multipleSelectedRadars)
+    }
+  }, [multipleSelectedRadars, setValue])
+
+  // Sincronizar radares do formulário com o contexto do mapa
+  useEffect(() => {
+    if (currentRadarIds && Array.isArray(currentRadarIds)) {
+      setMultipleSelectedRadars(currentRadarIds)
+    }
+  }, [currentRadarIds, setMultipleSelectedRadars])
 
   // Ajustar automaticamente endDate quando startDate mudar
   useEffect(() => {
