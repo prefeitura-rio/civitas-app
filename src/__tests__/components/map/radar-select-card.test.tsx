@@ -129,7 +129,8 @@ describe('RadarSelectCard', () => {
       />,
     )
 
-    const closeButton = screen.getByRole('button')
+    // Encontrar o botão de fechar pela classe CSS específica
+    const closeButton = screen.getByRole('button', { name: '' })
     fireEvent.click(closeButton)
 
     expect(mockSetSelectedObject).toHaveBeenCalledWith(null)
@@ -138,17 +139,17 @@ describe('RadarSelectCard', () => {
   it('deve ter botão de fechar com ícone X', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    const closeButton = screen.getByRole('button')
+    const closeButton = screen.getByRole('button', { name: '' })
     expect(closeButton).toBeInTheDocument()
     expect(closeButton).toHaveClass('h-5', 'w-5', 'p-0')
   })
 
-  it('deve ter posicionamento absoluto no canto superior esquerdo', () => {
+  it('deve ter posicionamento absoluto no canto superior direito', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const card = screen.getByText('Radar').closest('div')
       ?.parentElement?.parentElement
-    expect(card).toHaveClass('absolute', 'left-2', 'top-2')
+    expect(card).toHaveClass('absolute', 'right-2', 'top-2')
   })
 
   it('deve ter largura fixa de 72 (w-72)', () => {
