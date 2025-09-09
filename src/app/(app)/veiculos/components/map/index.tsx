@@ -38,6 +38,7 @@ export function Map() {
         layer: radarLayer,
         data: radars,
         handleSelectObject: selectRadar,
+        handleMultiSelectObject: multiSelectRadar,
         setSelectedObject: setSelectedRadar,
       },
       cameras: {
@@ -72,6 +73,7 @@ export function Map() {
     openContextMenu,
     setContextMenuPickingInfo,
     setOpenContextMenu,
+    zoomToLocation,
   } = useMap()
 
   useEffect(() => {
@@ -115,15 +117,37 @@ export function Map() {
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      // Não abrir menu de contexto para radares e câmeras
-      if (info?.layer?.id === 'radars' || info?.layer?.id === 'cameras') {
+      // Seleção INDIVIDUAL de radar com botão direito (popup + zoom)
+      if (info?.layer?.id === 'radars' && info.object) {
+        const radar = info.object as Radar
+        selectRadar(radar, () => setSelectedCamera(null))
+        // Zoom inteligente que respeita o zoom manual do usuário
+        zoomToLocation(radar.latitude, radar.longitude, 18)
         return
       }
 
+      if (info?.layer?.id === 'cameras' && info.object) {
+        const camera = info.object as CameraCOR
+        selectCamera(camera)
+        setSelectedRadar(null)
+        // Zoom inteligente que respeita o zoom manual do usuário
+        zoomToLocation(camera.latitude, camera.longitude, 18)
+        return
+      }
+
+      // Menu de contexto para outros elementos
       setContextMenuPickingInfo(info || null)
       setOpenContextMenu(!!info)
     },
-    [setContextMenuPickingInfo, setOpenContextMenu],
+    [
+      setContextMenuPickingInfo,
+      setOpenContextMenu,
+      selectRadar,
+      selectCamera,
+      setSelectedCamera,
+      setSelectedRadar,
+      zoomToLocation,
+    ],
   )
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
@@ -153,20 +177,14 @@ export function Map() {
         return
       }
 
+      // Seleção MÚLTIPLA de radares com botão esquerdo (para input)
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
-        selectRadar(radar)
-        setSelectedCamera(null)
-        // Zoom automático para o radar selecionado
-        setViewport({
-          latitude: radar.latitude,
-          longitude: radar.longitude,
-          zoom: 18,
-        })
+        multiSelectRadar(radar)
       }
 
       if (info?.layer?.id === 'cameras' && info.object) {
@@ -185,13 +203,7 @@ export function Map() {
       isDragging.current = false
       mouseDownPosition.current = null
     },
-    [
-      selectRadar,
-      selectCamera,
-      setSelectedCamera,
-      setSelectedRadar,
-      setViewport,
-    ],
+    [multiSelectRadar],
   )
 
   const handleSearchSubmit = useCallback(

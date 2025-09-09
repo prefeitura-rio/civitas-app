@@ -2,16 +2,25 @@
 import '@/utils/date-extensions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { MapPinIcon, NavigationIcon, XCircleIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import {
   type RadarSearchFormData,
   radarSearchSchema,
 } from '@/app/(app)/veiculos/components/validationSchemas'
+import { InputError } from '@/components/custom/input-error'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 import { toQueryParams } from '@/utils/to-query-params'
 
@@ -29,8 +38,20 @@ const MIN_DATE = new Date(2024, 5, 1)
 const MAX_DATE = new Date()
 
 export function SearchByRadarForm() {
+  const radarSearchInputRef = useRef<HTMLInputElement | null>(null)
   const router = useRouter()
   const { formattedSearchParams } = useCarRadarSearchParams()
+  const {
+    layers: {
+      radars: {
+        selectedObjects,
+        handleSelectObject,
+        setSelectedObjects,
+        data: radars,
+      },
+    },
+    setViewport,
+  } = useMap()
 
   const [timeValidation, setTimeValidation] = useState<TimeValidation>({
     isValid: true,
@@ -65,6 +86,32 @@ export function SearchByRadarForm() {
 
   const startDate = watch('startDate')
   const endDate = watch('endDate')
+
+  // Sincronizar radares selecionados no mapa com o formulário
+  useEffect(() => {
+    setValue(
+      'radarIds',
+      selectedObjects.map((radar) => radar.cetRioCode),
+    )
+  }, [selectedObjects, setValue])
+
+  // Sincronizar radares do formulário com o contexto do mapa (ao carregar da URL)
+  useEffect(() => {
+    if (radars && formattedSearchParams && selectedObjects.length === 0) {
+      const ids = formattedSearchParams.radarIds
+
+      const selectedRadars = radars.filter((radar) =>
+        ids.includes(radar.cetRioCode),
+      )
+
+      setSelectedObjects(selectedRadars)
+    }
+  }, [
+    radars,
+    formattedSearchParams,
+    selectedObjects.length,
+    setSelectedObjects,
+  ])
 
   // Ajustar automaticamente endDate quando startDate mudar
   useEffect(() => {
@@ -151,15 +198,96 @@ export function SearchByRadarForm() {
             errors={errors}
           />
 
-          <InputField
-            name="radarIds"
-            label="Radar"
-            placeholder="Digite o código do radar"
-            isRadarIds={true}
-            control={control}
-            isSubmitting={isSubmitting}
-            errors={errors}
-          />
+          <div className="flex w-full flex-col">
+            <label className="mb-2 text-sm font-medium text-muted-foreground">
+              Radares
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <MapPinIcon className="mr-2 size-4 shrink-0" />
+                  Radares ({selectedObjects.length})
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                sideOffset={2}
+                className="max-h-96 w-80 overflow-y-auto"
+              >
+                <div className="space-y-4">
+                  <div className="flex space-x-2">
+                    <Input
+                      ref={radarSearchInputRef}
+                      placeholder="Código CET-RIO"
+                    />
+                    <Button
+                      onClick={() => {
+                        const radar = radars?.find(
+                          (item) =>
+                            item.cetRioCode ===
+                            radarSearchInputRef.current?.value,
+                        )
+                        if (radar) {
+                          if (
+                            !selectedObjects.find(
+                              (item) => item.cetRioCode === radar.cetRioCode,
+                            )
+                          ) {
+                            setSelectedObjects((prev) => [radar, ...prev])
+                          }
+                          radarSearchInputRef.current!.value = ''
+                          setViewport({
+                            longitude: radar.longitude,
+                            latitude: radar.latitude,
+                            zoom: 20,
+                          })
+                        }
+                      }}
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedObjects.map((radar) => (
+                      <div
+                        key={radar.cetRioCode}
+                        className="flex items-center justify-between rounded bg-secondary p-2"
+                      >
+                        <div>
+                          <div className="font-medium">{radar.cetRioCode}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {radar.location}
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setViewport({
+                                longitude: radar.longitude,
+                                latitude: radar.latitude,
+                                zoom: 20,
+                              })
+                            }}
+                          >
+                            <NavigationIcon className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSelectObject(radar)}
+                          >
+                            <XCircleIcon className="size-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <InputError message={errors.radarIds?.message} />
+          </div>
 
           <div className="col-span-2 mt-4 flex justify-end">
             <Button type="submit" disabled={isSubmitting}>
