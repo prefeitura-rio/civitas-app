@@ -43,6 +43,10 @@ export function CameraSelectCard({
   const handleRestorePreviousViewport = useCallback(() => {
     restorePreviousViewport()
   }, [restorePreviousViewport])
+
+  const handleCloseCard = useCallback(() => {
+    setSelectedObject(null)
+  }, [setSelectedObject])
   return (
     <Card
       className={cn(
@@ -54,9 +58,7 @@ export function CameraSelectCard({
         <Button
           variant="outline"
           className="absolute right-1 top-1 h-5 w-5 p-0"
-          onClick={() => {
-            setSelectedObject(null)
-          }}
+          onClick={handleCloseCard}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -126,16 +128,13 @@ export function CameraSelectCard({
                 </Button>
               )}
             </div>
-
             {selectedObject?.streamingUrl && (
               <div className="pt-2">
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  onClick={() => {
-                    window.open(selectedObject?.streamingUrl, '_blank')
-                  }}
+                  onClick={handleOpenStreaming}
                 >
                   Abrir Streaming
                 </Button>

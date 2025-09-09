@@ -187,6 +187,18 @@ export function Map() {
         multiSelectRadar(radar)
       }
 
+      if (info?.layer?.id === 'cameras' && info.object) {
+        const camera = info.object as CameraCOR
+        selectCamera(camera)
+        setSelectedRadar(null)
+        // Zoom automático para a câmera selecionada
+        setViewport({
+          latitude: camera.latitude,
+          longitude: camera.longitude,
+          zoom: 18,
+        })
+      }
+
       // Reset das variáveis
       isDragging.current = false
       mouseDownPosition.current = null
