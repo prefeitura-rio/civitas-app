@@ -64,19 +64,19 @@ export function RadarSelectCard({
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardHeader className="px-4 py-4">
+        <CardHeader className="px-4 py-3">
           <CardTitle className="text-md text-center tracking-tighter">
             Radar OCR
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <div className="space-y-4 text-sm">
-            <div className="flex flex-col">
+          <div className="space-y-3 text-sm">
+            <div className="flex flex-col space-y-1">
               <span className="text-muted-foreground">Código CET-Rio</span>
               <span className="font-medium">{selectedObject?.cetRioCode}</span>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-1">
                 <MapPin className="size-3.5 shrink-0" />
                 <span className="text-muted-foreground">Localização</span>
@@ -87,17 +87,17 @@ export function RadarSelectCard({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col">
+              <div className="flex flex-col space-y-1">
                 <span className="text-muted-foreground">Latitude</span>
                 <span className="font-medium">{selectedObject?.latitude}</span>
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col space-y-1">
                 <span className="text-muted-foreground">Longitude</span>
                 <span className="font-medium">{selectedObject?.longitude}</span>
               </div>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-1">
                 <Building className="size-4 shrink-0" />
                 <span className="text-muted-foreground">Empresa</span>
@@ -107,7 +107,7 @@ export function RadarSelectCard({
 
             {selectedObject?.lastDetectionTime && (
               <>
-                <div className="flex flex-col">
+                <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-1">
                     <History className="size-4 shrink-0" />
                     <span className="text-muted-foreground">
@@ -122,7 +122,7 @@ export function RadarSelectCard({
                   </span>
                 </div>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col space-y-1">
                   <span className="text-muted-foreground">
                     Ativo nas últimas 24 horas
                   </span>
@@ -150,7 +150,7 @@ export function RadarSelectCard({
               </div>
             )}
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <Button
                 variant="outline"
                 size="sm"

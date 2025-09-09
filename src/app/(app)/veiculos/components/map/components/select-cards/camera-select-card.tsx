@@ -68,20 +68,20 @@ export function CameraSelectCard({
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardHeader className="px-4 py-4">
+        <CardHeader className="px-4 py-3">
           <CardTitle className="text-md text-center tracking-tighter">
             Câmera
           </CardTitle>
           <CardDescription className="text-xs">{`${selectedObject?.location.capitalizeFirstLetter()} - ${selectedObject?.zone.capitalizeFirstLetter()}`}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <div className="space-y-4 text-sm">
-            <div className="flex flex-col">
+          <div className="space-y-3 text-sm">
+            <div className="flex flex-col space-y-1">
               <span className="text-muted-foreground">Código</span>
               <span className="font-medium">{selectedObject?.code}</span>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-1">
                 <MapPin className="size-3.5 shrink-0" />
                 <span className="text-muted-foreground">Localização</span>
@@ -91,7 +91,7 @@ export function CameraSelectCard({
               </span>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-1">
               <span className="text-muted-foreground">Zona</span>
               <span className="font-medium">
                 {selectedObject?.zone.capitalizeFirstLetter()}
@@ -99,13 +99,13 @@ export function CameraSelectCard({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col">
+              <div className="flex flex-col space-y-1">
                 <span className="text-muted-foreground">Latitude</span>
                 <span className="font-medium">
                   {selectedObject?.latitude?.toFixed(6)}
                 </span>
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col space-y-1">
                 <span className="text-muted-foreground">Longitude</span>
                 <span className="font-medium">
                   {selectedObject?.longitude?.toFixed(6)}
@@ -113,7 +113,7 @@ export function CameraSelectCard({
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <Button
                 variant="outline"
                 size="sm"
