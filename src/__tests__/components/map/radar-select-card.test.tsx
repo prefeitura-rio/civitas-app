@@ -102,7 +102,7 @@ describe('RadarSelectCard', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     // O componente usa toLocaleString('pt-BR') que converte UTC para fuso horário local
-    // Como o mock tem '2024-01-15T10:30:00Z', o horário será convertido
+    // Como o mock tem '2024-01-15T10:30:00Z', o horário será convertido para 07:30:00 (UTC-3)
     expect(screen.getByText('Última detecção')).toBeInTheDocument()
     // Verificar se algum horário está sendo exibido (sem especificar o horário exato)
     expect(screen.getByText('15/01/2024 às 07:30:00')).toBeInTheDocument()
