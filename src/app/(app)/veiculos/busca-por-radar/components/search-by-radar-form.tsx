@@ -199,6 +199,9 @@ export function SearchByRadarForm() {
           />
 
           <div className="flex w-full flex-col">
+            <label className="mb-2 text-sm font-medium text-muted-foreground">
+              Radares
+            </label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full">
