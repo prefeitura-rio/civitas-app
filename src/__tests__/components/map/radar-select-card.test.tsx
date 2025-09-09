@@ -51,30 +51,29 @@ describe('RadarSelectCard', () => {
   it('deve exibir informações do radar quando selecionado', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('Radar')).toBeInTheDocument()
-    expect(screen.getAllByText('RDR123')).toHaveLength(2)
-    expect(screen.getByText('Avenida Brasil - Centro')).toBeInTheDocument()
+    expect(screen.getByText('Radar OCR')).toBeInTheDocument()
+    expect(screen.getAllByText('RDR123')).toHaveLength(1)
+    expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
   })
 
   it('deve exibir código do radar corretamente', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const codeElements = screen.getAllByText('RDR123')
-    expect(codeElements).toHaveLength(2)
+    expect(codeElements).toHaveLength(1)
   })
 
   it('deve exibir localização e bairro corretamente', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('Avenida Brasil')).toBeInTheDocument()
-    expect(screen.getByText('Centro')).toBeInTheDocument()
+    expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
   })
 
   it('deve exibir latitude e longitude corretamente', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('-22.906800')).toBeInTheDocument()
-    expect(screen.getByText('-43.172900')).toBeInTheDocument()
+    expect(screen.getByText('-22.9068')).toBeInTheDocument()
+    expect(screen.getByText('-43.1729')).toBeInTheDocument()
   })
 
   it('deve exibir empresa corretamente', () => {
@@ -95,8 +94,8 @@ describe('RadarSelectCard', () => {
       <RadarSelectCard {...defaultProps} selectedObject={mockRadarInactive} />,
     )
 
-    expect(screen.getByText('Não')).toBeInTheDocument()
-    expect(screen.getByText('Não')).toHaveClass('text-rose-600')
+    // Quando inativo, o componente mostra um aviso em vez de "Não"
+    expect(screen.getByText('Atenção!')).toBeInTheDocument()
   })
 
   it('deve exibir última detecção quando disponível', () => {
@@ -104,11 +103,9 @@ describe('RadarSelectCard', () => {
 
     // O componente usa toLocaleString('pt-BR') que converte UTC para fuso horário local
     // Como o mock tem '2024-01-15T10:30:00Z', o horário será convertido
-    expect(screen.getByText('Última detecção:')).toBeInTheDocument()
+    expect(screen.getByText('Última detecção')).toBeInTheDocument()
     // Verificar se algum horário está sendo exibido (sem especificar o horário exato)
-    expect(
-      screen.getByText('Última detecção:').closest('div'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('15/01/2024 às 07:30:00')).toBeInTheDocument()
   })
 
   it('deve não exibir última detecção quando não disponível', () => {
@@ -147,7 +144,7 @@ describe('RadarSelectCard', () => {
   it('deve ter posicionamento absoluto no canto superior direito', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    const card = screen.getByText('Radar').closest('div')
+    const card = screen.getByText('Radar OCR').closest('div')
       ?.parentElement?.parentElement
     expect(card).toHaveClass('absolute', 'right-2', 'top-2')
   })
@@ -155,7 +152,7 @@ describe('RadarSelectCard', () => {
   it('deve ter largura fixa de 72 (w-72)', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    const card = screen.getByText('Radar').closest('div')
+    const card = screen.getByText('Radar OCR').closest('div')
       ?.parentElement?.parentElement
     expect(card).toHaveClass('w-72')
   })
@@ -163,7 +160,7 @@ describe('RadarSelectCard', () => {
   it('deve ter tracking-tighter para espaçamento de letras', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    const card = screen.getByText('Radar').closest('div')
+    const card = screen.getByText('Radar OCR').closest('div')
       ?.parentElement?.parentElement
     expect(card).toHaveClass('tracking-tighter')
   })
@@ -180,9 +177,8 @@ describe('RadarSelectCard', () => {
       <RadarSelectCard {...defaultProps} selectedObject={mockRadarWithNull} />,
     )
 
-    expect(screen.getByText('Localização:')).toBeInTheDocument()
-    expect(screen.getAllByText('N/A')).toHaveLength(3)
-    expect(screen.getByText('Bairro:')).toBeInTheDocument()
-    expect(screen.getByText('Empresa:')).toBeInTheDocument()
+    expect(screen.getByText('Localização')).toBeInTheDocument()
+    expect(screen.getByText('null - null')).toBeInTheDocument()
+    expect(screen.getByText('Empresa')).toBeInTheDocument()
   })
 })

@@ -74,6 +74,21 @@ interface MapContextProps {
   setOpenContextMenu: (open: boolean) => void
   contextMenuPickingInfo: PickingInfo | null
   setContextMenuPickingInfo: (info: PickingInfo | null) => void
+  // Seleção múltipla de radares para busca
+  multipleSelectedRadars: string[]
+  setMultipleSelectedRadars: (radars: string[]) => void
+  isMultiSelectMode: boolean
+  setIsMultiSelectMode: (enabled: boolean) => void
+  // Sistema de histórico de viewport para zoom
+  previousViewport: MapViewState | null
+  setPreviousViewport: (viewport: MapViewState | null) => void
+  zoomToLocation: (
+    latitude: number,
+    longitude: number,
+    zoom?: number,
+    forceZoom?: boolean,
+  ) => void
+  restorePreviousViewport: () => void
 }
 
 export const MapContext = createContext({} as MapContextProps)
@@ -90,6 +105,15 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const [openContextMenu, setOpenContextMenu] = useState(false)
   const [contextMenuPickingInfo, setContextMenuPickingInfo] =
     useState<PickingInfo | null>(null)
+  // Estados para seleção múltipla de radares
+  const [multipleSelectedRadars, setMultipleSelectedRadars] = useState<
+    string[]
+  >([])
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
+  // Sistema de histórico de viewport para zoom
+  const [previousViewport, setPreviousViewport] = useState<MapViewState | null>(
+    null,
+  )
 
   function setViewport(props: SetViewportProps) {
     setViewportState({
@@ -100,7 +124,48 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
     })
   }
 
-  const radars = useRadarLayer()
+  // Função inteligente para zoom que respeita o zoom manual do usuário
+  function zoomToLocation(
+    latitude: number,
+    longitude: number,
+    zoom: number = 18,
+    forceZoom: boolean = false,
+  ) {
+    const currentZoom = viewport.zoom || 0
+
+    console.log('zoomToLocation called:', {
+      currentZoom,
+      targetZoom: zoom,
+      forceZoom,
+      willZoom: forceZoom || currentZoom <= zoom,
+    })
+
+    // Se o usuário já está com zoom maior que o zoom automático, não força o zoom
+    // A menos que forceZoom seja true
+    if (!forceZoom && currentZoom > zoom) {
+      console.log('Zoom skipped - user has higher zoom')
+      return
+    }
+
+    // Salva o viewport atual antes de fazer zoom automático
+    setPreviousViewport(viewport)
+
+    setViewport({
+      latitude,
+      longitude,
+      zoom,
+    })
+  }
+
+  // Função para restaurar o viewport anterior
+  function restorePreviousViewport() {
+    if (previousViewport) {
+      setViewport(previousViewport)
+      setPreviousViewport(null)
+    }
+  }
+
+  const radars = useRadarLayer(multipleSelectedRadars)
   const trips = useTrips({ setViewport })
   const cameras = useCameraCOR()
   const agents = useAgents()
@@ -140,6 +205,14 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
         setOpenContextMenu,
         contextMenuPickingInfo,
         setContextMenuPickingInfo,
+        multipleSelectedRadars,
+        setMultipleSelectedRadars,
+        isMultiSelectMode,
+        setIsMultiSelectMode,
+        previousViewport,
+        setPreviousViewport,
+        zoomToLocation,
+        restorePreviousViewport,
       }}
     >
       {children}
