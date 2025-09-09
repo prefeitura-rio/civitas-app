@@ -47,6 +47,12 @@ export function CameraSelectCard({
   const handleCloseCard = useCallback(() => {
     setSelectedObject(null)
   }, [setSelectedObject])
+
+  const handleOpenStreaming = useCallback(() => {
+    if (selectedObject?.streamingUrl) {
+      window.open(selectedObject.streamingUrl, '_blank')
+    }
+  }, [selectedObject?.streamingUrl])
   return (
     <Card
       className={cn(

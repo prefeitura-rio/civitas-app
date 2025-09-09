@@ -66,35 +66,35 @@ describe('CameraSelectCard', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
-      // Verifica se o código aparece no título (primeira ocorrência)
+      // Verifica se o código aparece na seção de informações
       const codeElements = screen.getAllByText('CAM001')
-      expect(codeElements).toHaveLength(2) // Uma no título, outra na seção de informações
+      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
     })
 
     it('deve exibir localização e zona da câmera', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
-      expect(screen.getByText('Localização:')).toBeInTheDocument()
+      expect(screen.getByText('Localização')).toBeInTheDocument()
       expect(screen.getByText('Centro')).toBeInTheDocument()
-      expect(screen.getByText('Zona:')).toBeInTheDocument()
+      expect(screen.getByText('Zona')).toBeInTheDocument()
       expect(screen.getByText('Zona Sul')).toBeInTheDocument()
     })
 
     it('deve exibir latitude e longitude da câmera', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
-      expect(screen.getByText('Latitude:')).toBeInTheDocument()
+      expect(screen.getByText('Latitude')).toBeInTheDocument()
       expect(screen.getByText('-22.906800')).toBeInTheDocument()
-      expect(screen.getByText('Longitude:')).toBeInTheDocument()
+      expect(screen.getByText('Longitude')).toBeInTheDocument()
       expect(screen.getByText('-43.172900')).toBeInTheDocument()
     })
 
     it('deve exibir o código da câmera na seção de informações', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
-      expect(screen.getByText('Código:')).toBeInTheDocument()
+      expect(screen.getByText('Código')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM001')
-      expect(codeElements).toHaveLength(2) // Uma no título, outra na seção de informações
+      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
     })
   })
 
@@ -192,7 +192,7 @@ describe('CameraSelectCard', () => {
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM003')
-      expect(codeElements).toHaveLength(2) // Uma no título, outra na seção de informações
+      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
       expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
     })
 
@@ -215,7 +215,7 @@ describe('CameraSelectCard', () => {
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM004')
-      expect(codeElements).toHaveLength(2) // Uma no título, outra na seção de informações
+      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
       expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
     })
   })
