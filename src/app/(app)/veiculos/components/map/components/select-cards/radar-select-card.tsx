@@ -149,7 +149,6 @@ export function RadarSelectCard({
                 </div>
               )}
 
-              {/* Botões de ação - mantendo os elementos de UI existentes */}
               <div className="flex gap-2 pt-2">
                 <Button
                   variant="outline"
