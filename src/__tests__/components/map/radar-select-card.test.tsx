@@ -94,7 +94,6 @@ describe('RadarSelectCard', () => {
       <RadarSelectCard {...defaultProps} selectedObject={mockRadarInactive} />,
     )
 
-    // Quando inativo, o componente mostra um aviso em vez de "Não"
     expect(screen.getByText('Atenção!')).toBeInTheDocument()
   })
 
@@ -128,7 +127,6 @@ describe('RadarSelectCard', () => {
       />,
     )
 
-    // Encontrar o botão de fechar pela classe CSS específica
     const closeButton = screen.getByRole('button', { name: '' })
     fireEvent.click(closeButton)
 
