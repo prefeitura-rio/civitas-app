@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { Radar } from '@/models/entities'
+import { useMapStore } from '@/stores/use-map-store'
 
 interface UseRadarSyncProps {
   selectedObjects: Radar[]
-  setSelectedObjects: (radars: Radar[] | ((prev: Radar[]) => Radar[])) => void
   radars: Radar[] | undefined
   formattedSearchParams: {
     radarIds: string[]
@@ -16,11 +16,20 @@ interface UseRadarSyncProps {
 
 export function useRadarSync({
   selectedObjects,
-  setSelectedObjects,
   radars,
   formattedSearchParams,
   setValue,
 }: UseRadarSyncProps) {
+  const setMultipleSelectedRadars = useMapStore(
+    (state) => state.setMultipleSelectedRadars,
+  )
+  const multipleSelectedRadars = useMapStore(
+    (state) => state.multipleSelectedRadars,
+  )
+
+  // Flag para evitar resseleção quando usuário está fazendo mudanças manuais
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+
   useEffect(() => {
     console.log('🔄 useRadarSync - setValue effect triggered', {
       selectedObjectsCount: selectedObjects.length,
@@ -32,34 +41,62 @@ export function useRadarSync({
     )
   }, [selectedObjects, setValue])
 
+  // Efeito principal: sincronizar URL com Zustand store apenas no carregamento inicial
   useEffect(() => {
-    console.log('🔄 useRadarSync - setSelectedObjects effect triggered', {
+    // Verificar se multipleSelectedRadars é um array válido
+    if (!Array.isArray(multipleSelectedRadars)) {
+      return // Exit early se não for um array válido
+    }
+
+    console.log('🔄 useRadarSync - URL to Zustand sync effect triggered', {
       hasRadars: !!radars,
       radarsCount: radars?.length,
       hasFormattedSearchParams: !!formattedSearchParams,
-      selectedObjectsLength: selectedObjects.length,
-      formattedSearchParamsRadarIds: formattedSearchParams?.radarIds,
+      currentStoreRadarsCount: multipleSelectedRadars.length,
+      currentStoreRadars: multipleSelectedRadars,
+      urlRadarIds: formattedSearchParams?.radarIds,
+      isInitialLoad,
     })
-    
-    if (radars && formattedSearchParams && selectedObjects.length === 0) {
-      const ids = formattedSearchParams.radarIds || []
-      console.log('🎯 useRadarSync - About to sync radars from URL', { ids })
 
-      const selectedRadars = radars.filter((radar) =>
-        ids.includes(radar.cetRioCode),
-      )
-      
-      console.log('🎯 useRadarSync - Found radars to select', {
-        selectedRadarsCount: selectedRadars.length,
-        selectedRadarIds: selectedRadars.map(r => r.cetRioCode),
+    // Apenas sincronizar no carregamento inicial para evitar loops
+    if (!isInitialLoad) {
+      console.log('🚫 useRadarSync - Skipping URL sync - not initial load')
+      return
+    }
+
+    if (
+      radars &&
+      formattedSearchParams &&
+      formattedSearchParams.radarIds?.length > 0
+    ) {
+      const urlRadarIds = formattedSearchParams.radarIds
+
+      console.log('🎯 useRadarSync - Syncing URL radars to Zustand store (initial)', {
+        urlRadarIds,
+        currentStoreRadars: multipleSelectedRadars,
       })
 
-      setSelectedObjects(selectedRadars)
+      // Atualizar diretamente o store Zustand
+      setMultipleSelectedRadars(urlRadarIds)
+      setIsInitialLoad(false)
+    } else if (
+      formattedSearchParams &&
+      formattedSearchParams.radarIds?.length === 0 &&
+      Array.isArray(multipleSelectedRadars) &&
+      multipleSelectedRadars.length > 0
+    ) {
+      console.log('🧹 useRadarSync - Clearing store because URL has no radars (initial)')
+      setMultipleSelectedRadars([])
+      setIsInitialLoad(false)
+    } else if (radars && formattedSearchParams) {
+      // Mark as loaded even if no radars
+      setIsInitialLoad(false)
     }
   }, [
     radars,
     formattedSearchParams,
-    selectedObjects.length,
-    setSelectedObjects,
+    multipleSelectedRadars,
+    setMultipleSelectedRadars,
+    isInitialLoad,
   ])
 }
