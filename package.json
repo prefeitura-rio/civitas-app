@@ -17,8 +17,7 @@
     "test:coverage:watch": "jest --coverage --watch",
     "test:coverage:html": "jest --coverage --coverageReporters=html",
     "test:coverage:lcov": "jest --coverage --coverageReporters=lcov",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
+    "test:e2e": "playwright test --headed --reporter=list",
     "test:e2e:debug": "playwright test --debug",
     "prepare": "husky"
   },
@@ -113,6 +112,7 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/uuid": "^10.0.0",
+    "dotenv": "^17.2.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.23",
     "eslint-plugin-react": "^7.37.4",

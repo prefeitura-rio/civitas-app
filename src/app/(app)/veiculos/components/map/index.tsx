@@ -161,7 +161,7 @@ export function Map() {
     }
   }, [])
 
-  const handleMouseUp = useCallback((e: MouseEvent) => {
+  const handleMouseUp = useCallback(() => {
     isDragging.current = false
     mouseDownPosition.current = null
   }, [])

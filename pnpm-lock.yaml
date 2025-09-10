@@ -262,6 +262,9 @@ devDependencies:
   '@types/uuid':
     specifier: ^10.0.0
     version: 10.0.0
+  dotenv:
+    specifier: ^17.2.2
+    version: 17.2.2
   eslint:
     specifier: ^8.57.1
     version: 8.57.1
@@ -8528,6 +8531,11 @@ packages:
       '@babel/runtime': 7.28.3
       csstype: 3.1.3
     dev: false
+
+  /dotenv@17.2.2:
+    resolution: {integrity: sha512-Sf2LSQP+bOlhKWWyhFsn0UsfdK/kCWRv1iuA2gXAwt3dyNabr6QSj00I2V10pidqz69soatm9ZwZvpQMTIOd5Q==}
+    engines: {node: '>=12'}
+    dev: true
 
   /draco3d@1.5.7:
     resolution: {integrity: sha512-m6WCKt/erDXcw+70IJXnG7M3awwQPAsZvJGX5zY7beBqpELw6RDGkYVU0W43AFxye4pDZ5i2Lbyc/NNGqwjUVQ==}
