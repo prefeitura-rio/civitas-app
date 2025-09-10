@@ -11,10 +11,12 @@ jest.mock('next/navigation', () => ({
 const mockSetSelectedObjects = jest.fn()
 const mockSetViewport = jest.fn()
 
-const mockUseMap = jest.fn()
+const mockUseMapLayers = jest.fn()
+const mockUseMapStore = jest.fn()
 
-jest.mock('@/hooks/useContexts/use-map-context', () => ({
-  useMap: () => mockUseMap(),
+jest.mock('@/stores/use-map-store', () => ({
+  useMapLayers: () => mockUseMapLayers(),
+  useMapStore: (selector: any) => mockUseMapStore(selector),
 }))
 
 jest.mock('@/hooks/useParams/useCarRadarSearchParams', () => ({
@@ -61,16 +63,15 @@ describe('SearchByRadarForm', () => {
   })
 
   it('deve exibir lista de radares selecionados', () => {
-    mockUseMap.mockReturnValue({
-      layers: {
-        radars: {
-          selectedObjects: [mockRadar, mockRadar2],
-          setSelectedObjects: mockSetSelectedObjects,
-          data: [mockRadar, mockRadar2],
-        },
+    mockUseMapLayers.mockReturnValue({
+      radars: {
+        selectedObjects: [mockRadar, mockRadar2],
+        setSelectedObjects: mockSetSelectedObjects,
+        data: [mockRadar, mockRadar2],
       },
-      setViewport: mockSetViewport,
     })
+
+    mockUseMapStore.mockReturnValue(mockSetViewport)
 
     render(<SearchByRadarForm />)
 
@@ -85,16 +86,15 @@ describe('SearchByRadarForm', () => {
   })
 
   it('deve exibir contador correto de radares selecionados', () => {
-    mockUseMap.mockReturnValue({
-      layers: {
-        radars: {
-          selectedObjects: [mockRadar, mockRadar2],
-          setSelectedObjects: mockSetSelectedObjects,
-          data: [mockRadar, mockRadar2],
-        },
+    mockUseMapLayers.mockReturnValue({
+      radars: {
+        selectedObjects: [mockRadar, mockRadar2],
+        setSelectedObjects: mockSetSelectedObjects,
+        data: [mockRadar, mockRadar2],
       },
-      setViewport: mockSetViewport,
     })
+
+    mockUseMapStore.mockReturnValue(mockSetViewport)
 
     render(<SearchByRadarForm />)
 
@@ -102,16 +102,15 @@ describe('SearchByRadarForm', () => {
   })
 
   it('deve renderizar o formulário sem erros', () => {
-    mockUseMap.mockReturnValue({
-      layers: {
-        radars: {
-          selectedObjects: [],
-          setSelectedObjects: mockSetSelectedObjects,
-          data: [],
-        },
+    mockUseMapLayers.mockReturnValue({
+      radars: {
+        selectedObjects: [],
+        setSelectedObjects: mockSetSelectedObjects,
+        data: [],
       },
-      setViewport: mockSetViewport,
     })
+
+    mockUseMapStore.mockReturnValue(mockSetViewport)
 
     render(<SearchByRadarForm />)
 

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Radar } from '@/models/entities'
+import { useMapStore } from '@/stores/use-map-store'
 
 import { useRadars } from '../useQueries/useRadars'
 
@@ -30,10 +31,35 @@ export function useRadarLayer(
     null,
   )
   const [selectedObject, setSelectedObject] = useState<Radar | null>(null)
-  const [selectedObjects, setSelectedObjects] = useState<Radar[]>([])
   const [isVisible, setIsVisible] = useState(true)
 
   const { data } = useRadars()
+
+  // Usar o estado global do Zustand para seleção múltipla
+  const setMultipleSelectedRadars = useMapStore(
+    (state) => state.setMultipleSelectedRadars,
+  )
+
+  // Calcular selectedObjects baseado nos códigos selecionados
+  const selectedObjects = useMemo(() => {
+    if (!data || !multipleSelectedRadars.length) return []
+    return data.filter((radar) =>
+      multipleSelectedRadars.includes(radar.cetRioCode),
+    )
+  }, [data, multipleSelectedRadars])
+
+  // Função para atualizar selectedObjects via Zustand
+  const setSelectedObjects = useCallback(
+    (radarsOrUpdater: Radar[] | ((prev: Radar[]) => Radar[])) => {
+      const newRadars =
+        typeof radarsOrUpdater === 'function'
+          ? radarsOrUpdater(selectedObjects)
+          : radarsOrUpdater
+      const newCodes = newRadars.map((radar) => radar.cetRioCode)
+      setMultipleSelectedRadars(newCodes)
+    },
+    [selectedObjects, setMultipleSelectedRadars],
+  )
 
   const handleSelectObject = useCallback(
     (radar: Radar, clearCamera?: () => void) => {
@@ -53,19 +79,20 @@ export function useRadarLayer(
   const handleMultiSelectObject = useCallback(
     (radar: Radar) => {
       // APENAS seleção múltipla (para clique esquerdo + input)
-      if (
-        selectedObjects.find((item) => item.cetRioCode === radar.cetRioCode)
-      ) {
-        setSelectedObjects(
-          selectedObjects.filter(
-            (item) => item.cetRioCode !== radar.cetRioCode,
-          ),
-        )
-      } else {
-        setSelectedObjects([radar, ...selectedObjects])
-      }
+      // ❗ IMPORTANTE: Usar função de atualização para obter o estado mais recente
+      setMultipleSelectedRadars((currentCodes) => {
+        const radarCode = radar.cetRioCode
+
+        if (currentCodes.includes(radarCode)) {
+          // Remove o radar se já está selecionado
+          return currentCodes.filter((code) => code !== radarCode)
+        } else {
+          // Adiciona o radar se não está selecionado
+          return [radarCode, ...currentCodes]
+        }
+      })
     },
-    [selectedObjects, setSelectedObjects],
+    [setMultipleSelectedRadars],
   )
 
   const layer = useMemo(

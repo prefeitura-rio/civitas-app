@@ -154,7 +154,7 @@ dependencies:
     version: 3.14.0
   next:
     specifier: 14.2.4
-    version: 14.2.4(@babel/core@7.28.3)(react-dom@18.3.1)(react@18.3.1)
+    version: 14.2.4(@babel/core@7.28.3)(@playwright/test@1.55.0)(react-dom@18.3.1)(react@18.3.1)
   next-themes:
     specifier: ^0.3.0
     version: 0.3.0(react-dom@18.3.1)(react@18.3.1)
@@ -212,11 +212,17 @@ dependencies:
   zod:
     specifier: ^3.24.1
     version: 3.25.76
+  zustand:
+    specifier: ^5.0.8
+    version: 5.0.8(@types/react@18.3.23)(react@18.3.1)
 
 devDependencies:
   '@next/eslint-plugin-next':
     specifier: ^14.2.23
     version: 14.2.32
+  '@playwright/test':
+    specifier: ^1.55.0
+    version: 1.55.0
   '@rocketseat/eslint-config':
     specifier: ^2.2.2
     version: 2.2.2(eslint@8.57.1)(typescript@5.9.2)
@@ -315,6 +321,7 @@ packages:
 
   /@arcgis/components-utils@4.33.15:
     resolution: {integrity: sha512-NiMoWWfacFyVsNTyJQPtx854Uh/Cw3CB4ZeMghJN1aiq+wpqGcG5SC/fPoWVVtj3Oo5epW4+SvG2PWeX6XGjVw==}
+    deprecated: This version is no longer supported. Upgrade to @latest
     dependencies:
       tslib: 2.8.1
     dev: false
@@ -332,6 +339,7 @@ packages:
 
   /@arcgis/lumina@4.33.15:
     resolution: {integrity: sha512-SqeMaKQVUCL7peQa6huTbWU4Krh/ahJ0kVjsL8W00cqJNDS5hRMuRSqs2v8vYG2sXqZlqe72k/8eOOTqLnxk/A==}
+    deprecated: This version is no longer supported. Upgrade to @latest
     dependencies:
       '@arcgis/components-utils': 4.33.15
       '@lit-labs/ssr': 3.3.1
@@ -2361,6 +2369,13 @@ packages:
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     dev: true
+
+  /@playwright/test@1.55.0:
+    resolution: {integrity: sha512-04IXzPwHrW69XusN/SIdDdKZBzMfOT9UNT/YiJit/xpy2VuAoB8NHc8Aplb96zsWDddLnbkPL3TsmrS04ZU2xQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dependencies:
+      playwright: 1.55.0
 
   /@polymer/polymer@3.5.2:
     resolution: {integrity: sha512-fWwImY/UH4bb2534DVSaX+Azs2yKg8slkMBHOyGeU2kKx7Xmxp6Lee0jP8p6B3d7c1gFUPB2Z976dTUtX81pQA==}
@@ -9540,6 +9555,13 @@ packages:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
     dev: true
 
+  /fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+    requiresBuild: true
+    optional: true
+
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -11926,7 +11948,7 @@ packages:
       react-dom: 18.3.1(react@18.3.1)
     dev: false
 
-  /next@14.2.4(@babel/core@7.28.3)(react-dom@18.3.1)(react@18.3.1):
+  /next@14.2.4(@babel/core@7.28.3)(@playwright/test@1.55.0)(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-R8/V7vugY+822rsQGQCjoLhMuC9oFj9SOi4Cl4b2wjDrseD0LRZ10W7R6Czo4w9ZznVSshKjuIomsRjvm9EKJQ==}
     engines: {node: '>=18.17.0'}
     hasBin: true
@@ -11945,6 +11967,7 @@ packages:
         optional: true
     dependencies:
       '@next/env': 14.2.4
+      '@playwright/test': 1.55.0
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
       caniuse-lite: 1.0.30001735
@@ -12313,6 +12336,20 @@ packages:
     dependencies:
       find-up: 4.1.0
     dev: true
+
+  /playwright-core@1.55.0:
+    resolution: {integrity: sha512-GvZs4vU3U5ro2nZpeiwyb0zuFaqb9sUiAJuyrWpcGouD8y9/HLgGbNRjIph7zU9D3hnPaisMl9zG9CgFi/biIg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  /playwright@1.55.0:
+    resolution: {integrity: sha512-sdCWStblvV1YU909Xqx0DhOjPZE4/5lJsIS84IfN9dAZfcl/CIZ5O8l3o0j7hPMjDvqoTF8ZUcc+i/GL5erstA==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dependencies:
+      playwright-core: 1.55.0
+    optionalDependencies:
+      fsevents: 2.3.2
 
   /point-in-polygon-hao@1.2.4:
     resolution: {integrity: sha512-x2pcvXeqhRHlNRdhLs/tgFapAbSSe86wa/eqmj1G6pWftbEs5aVRJhRGM6FYSUERKu0PjekJzMq0gsI2XyiclQ==}
@@ -14477,6 +14514,28 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
+
+  /zustand@5.0.8(@types/react@18.3.23)(react@18.3.1):
+    resolution: {integrity: sha512-gyPKpIaxY9XcO2vSMrLbiER7QMAMGOQZVRdJ6Zi782jkbzZygq5GI9nG8g+sMgitRtndwaBSl7uiqC49o1SSiw==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
+    dependencies:
+      '@types/react': 18.3.23
+      react: 18.3.1
+    dev: false
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
