@@ -117,9 +117,19 @@ export function Map() {
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
+      console.log('🖱️ Map - Right click detected', {
+        x, y,
+        layerId: info?.layer?.id,
+        objectType: info?.object ? typeof info.object : 'none',
+        radarCode: info?.layer?.id === 'radars' && info.object ? (info.object as Radar).cetRioCode : 'none',
+      })
+
       // Seleção INDIVIDUAL de radar com botão direito (popup + zoom)
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
+        console.log('🖱️ Map - Right click on radar, calling selectRadar', {
+          radarCode: radar.cetRioCode,
+        })
         selectRadar(radar, () => setSelectedCamera(null))
         // Zoom inteligente que respeita o zoom manual do usuário
         zoomToLocation(radar.latitude, radar.longitude, 18)
@@ -172,6 +182,7 @@ export function Map() {
 
       // Se estava arrastando, não processar como clique
       if (isDragging.current) {
+        console.log('🖱️ Map - Left click ignored (was dragging)')
         isDragging.current = false
         mouseDownPosition.current = null
         return
@@ -182,8 +193,18 @@ export function Map() {
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
+      console.log('🖱️ Map - Left click detected', {
+        x, y,
+        layerId: info?.layer?.id,
+        objectType: info?.object ? typeof info.object : 'none',
+        radarCode: info?.layer?.id === 'radars' && info.object ? (info.object as Radar).cetRioCode : 'none',
+      })
+
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
+        console.log('🖱️ Map - Left click on radar, calling multiSelectRadar', {
+          radarCode: radar.cetRioCode,
+        })
         multiSelectRadar(radar)
       }
 

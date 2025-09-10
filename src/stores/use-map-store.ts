@@ -109,6 +109,13 @@ export const useMapStore = create<MapStore>()(
           ? multipleSelectedRadarsOrUpdater(currentRadars)
           : multipleSelectedRadarsOrUpdater
 
+      console.log('🏪 Zustand Store - setMultipleSelectedRadars called', {
+        isFunction: typeof multipleSelectedRadarsOrUpdater === 'function',
+        currentRadars,
+        newRadars,
+        changed: JSON.stringify(currentRadars) !== JSON.stringify(newRadars),
+      })
+
       set({ multipleSelectedRadars: newRadars })
     },
     isMultiSelectMode: false,

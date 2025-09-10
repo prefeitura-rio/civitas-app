@@ -22,6 +22,10 @@ export function useRadarSync({
   setValue,
 }: UseRadarSyncProps) {
   useEffect(() => {
+    console.log('🔄 useRadarSync - setValue effect triggered', {
+      selectedObjectsCount: selectedObjects.length,
+      selectedObjectsIds: selectedObjects.map((radar) => radar.cetRioCode),
+    })
     setValue(
       'radarIds',
       selectedObjects.map((radar) => radar.cetRioCode),
@@ -29,12 +33,26 @@ export function useRadarSync({
   }, [selectedObjects, setValue])
 
   useEffect(() => {
+    console.log('🔄 useRadarSync - setSelectedObjects effect triggered', {
+      hasRadars: !!radars,
+      radarsCount: radars?.length,
+      hasFormattedSearchParams: !!formattedSearchParams,
+      selectedObjectsLength: selectedObjects.length,
+      formattedSearchParamsRadarIds: formattedSearchParams?.radarIds,
+    })
+    
     if (radars && formattedSearchParams && selectedObjects.length === 0) {
       const ids = formattedSearchParams.radarIds || []
+      console.log('🎯 useRadarSync - About to sync radars from URL', { ids })
 
       const selectedRadars = radars.filter((radar) =>
         ids.includes(radar.cetRioCode),
       )
+      
+      console.log('🎯 useRadarSync - Found radars to select', {
+        selectedRadarsCount: selectedRadars.length,
+        selectedRadarIds: selectedRadars.map(r => r.cetRioCode),
+      })
 
       setSelectedObjects(selectedRadars)
     }

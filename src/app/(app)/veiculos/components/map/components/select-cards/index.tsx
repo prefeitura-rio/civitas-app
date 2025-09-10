@@ -1,4 +1,4 @@
-import { useMapLayers } from '@/stores/use-map-store'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 
 import { CameraSelectCard } from '../select-cards/camera-select-card'
 import { FogoCruzadoSelectCard } from '../select-cards/fogo-cruzado-select-card'
@@ -6,19 +6,21 @@ import { RadarSelectCard } from '../select-cards/radar-select-card'
 
 export function SelectionCards() {
   const {
-    cameras: {
-      selectedObject: selectedCamera,
-      handleSelectObject: setSelectedCamera,
+    layers: {
+      cameras: {
+        selectedObject: selectedCamera,
+        handleSelectObject: setSelectedCamera,
+      },
+      radars: {
+        selectedObject: selectedRadar,
+        setSelectedObject: setSelectedRadar,
+      },
+      fogoCruzado: {
+        selectedObject: selectedFogoCruzado,
+        setSelectedObject: setSelectedFogoCruzado,
+      },
     },
-    radars: {
-      selectedObject: selectedRadar,
-      setSelectedObject: setSelectedRadar,
-    },
-    fogoCruzado: {
-      selectedObject: selectedFogoCruzado,
-      setSelectedObject: setSelectedFogoCruzado,
-    },
-  } = useMapLayers()
+  } = useMap()
 
   return (
     <>

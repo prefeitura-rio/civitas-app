@@ -63,10 +63,18 @@ export function useRadarLayer(
 
   const handleSelectObject = useCallback(
     (radar: Radar, clearCamera?: () => void) => {
+      console.log('🎯 useRadarLayer - handleSelectObject called', {
+        radarCode: radar.cetRioCode,
+        currentSelected: selectedObject?.cetRioCode,
+        willDeselect: selectedObject?.cetRioCode === radar.cetRioCode,
+      })
+
       // APENAS seleção individual (para clique direito + popup)
       if (selectedObject?.cetRioCode === radar.cetRioCode) {
+        console.log('🚫 useRadarLayer - Deselecting radar', radar.cetRioCode)
         setSelectedObject(null)
       } else {
+        console.log('✅ useRadarLayer - Selecting radar', radar.cetRioCode)
         if (clearCamera) {
           clearCamera()
         }
@@ -78,21 +86,46 @@ export function useRadarLayer(
 
   const handleMultiSelectObject = useCallback(
     (radar: Radar) => {
+      console.log('🎯 useRadarLayer - handleMultiSelectObject called', {
+        radarCode: radar.cetRioCode,
+        currentSelectedCount: selectedObjects.length,
+        currentSelectedIds: selectedObjects.map((r) => r.cetRioCode),
+        isAlreadySelected: !!selectedObjects.find(
+          (item) => item.cetRioCode === radar.cetRioCode,
+        ),
+      })
+
       // APENAS seleção múltipla (para clique esquerdo + input)
       // ❗ IMPORTANTE: Usar função de atualização para obter o estado mais recente
       setMultipleSelectedRadars((currentCodes) => {
         const radarCode = radar.cetRioCode
 
         if (currentCodes.includes(radarCode)) {
-          // Remove o radar se já está selecionado
-          return currentCodes.filter((code) => code !== radarCode)
+          console.log('🚫 useRadarLayer - Removing from multi-selection', {
+            radarCode,
+            beforeCount: currentCodes.length,
+          })
+          const newCodes = currentCodes.filter((code) => code !== radarCode)
+          console.log('🚫 useRadarLayer - After removal', {
+            afterCount: newCodes.length,
+            afterCodes: newCodes,
+          })
+          return newCodes
         } else {
-          // Adiciona o radar se não está selecionado
-          return [radarCode, ...currentCodes]
+          console.log('✅ useRadarLayer - Adding to multi-selection', {
+            radarCode,
+            beforeCount: currentCodes.length,
+          })
+          const newCodes = [radarCode, ...currentCodes]
+          console.log('✅ useRadarLayer - After addition', {
+            afterCount: newCodes.length,
+            afterCodes: newCodes,
+          })
+          return newCodes
         }
       })
     },
-    [setMultipleSelectedRadars],
+    [setMultipleSelectedRadars, selectedObjects],
   )
 
   const layer = useMemo(

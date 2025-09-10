@@ -36,7 +36,6 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
     MAX_DATE,
   } = useRadarSearchForm({
     selectedObjects,
-    setSelectedObjects,
     radars: radarsData,
     formattedSearchParams,
   })
