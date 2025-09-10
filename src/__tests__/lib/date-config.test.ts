@@ -34,7 +34,6 @@ describe('dateConfig', () => {
   })
 
   it('should be available for import throughout the application', () => {
-    // Verifica se a configuração é exportada corretamente
     expect(typeof dateConfig).toBe('object')
     expect(dateConfig.locale).toBeTruthy()
     expect(dateConfig.defaultTime).toBeTruthy()

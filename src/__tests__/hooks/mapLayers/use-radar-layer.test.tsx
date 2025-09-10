@@ -151,7 +151,6 @@ describe('useRadarLayer', () => {
     })
     expect(result.current.selectedObject).toEqual(mockRadar)
 
-    // Depois desseleciona
     act(() => {
       result.current.handleSelectObject(mockRadar)
     })

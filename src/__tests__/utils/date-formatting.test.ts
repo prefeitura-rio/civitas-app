@@ -3,14 +3,14 @@ import { format, formatDate } from 'date-fns'
 import { dateConfig } from '@/lib/date-config'
 
 describe('Date Formatting with pt-BR locale', () => {
-  const testDate = new Date(2024, 5, 15, 14, 30, 45) // 15 de junho de 2024, 14:30:45
+  const testDate = new Date(2024, 5, 15, 14, 30, 45)
 
   describe('format function with dateConfig.locale locale', () => {
     it('should format date with Portuguese months', () => {
       const result = format(testDate, 'dd MMM, y HH:mm', {
         locale: dateConfig.locale,
       })
-      expect(result).toContain('jun') // junho em português
+      expect(result).toContain('jun')
       expect(result).toContain('15')
       expect(result).toContain('2024')
       expect(result).toContain('14:30')
@@ -27,8 +27,8 @@ describe('Date Formatting with pt-BR locale', () => {
       const result = format(testDate, 'EEEE, dd MMMM yyyy', {
         locale: dateConfig.locale,
       })
-      expect(result).toContain('sábado') // sábado em português
-      expect(result).toContain('junho') // junho completo em português
+      expect(result).toContain('sábado')
+      expect(result).toContain('junho')
     })
 
     it('should format time correctly', () => {
@@ -70,32 +70,32 @@ describe('Date Formatting with pt-BR locale', () => {
 
   describe('Edge cases', () => {
     it('should handle start of year', () => {
-      const newYearDate = new Date(2024, 0, 1, 0, 0, 0) // 1 de janeiro de 2024
+      const newYearDate = new Date(2024, 0, 1, 0, 0, 0)
       const result = format(newYearDate, 'dd MMM, y', {
         locale: dateConfig.locale,
       })
-      expect(result).toContain('jan') // janeiro em português
+      expect(result).toContain('jan')
       expect(result).toContain('01')
       expect(result).toContain('2024')
     })
 
     it('should handle end of year', () => {
-      const endYearDate = new Date(2024, 11, 31, 23, 59, 59) // 31 de dezembro de 2024
+      const endYearDate = new Date(2024, 11, 31, 23, 59, 59)
       const result = format(endYearDate, 'dd MMM, y HH:mm', {
         locale: dateConfig.locale,
       })
-      expect(result).toContain('dez') // dezembro em português
+      expect(result).toContain('dez')
       expect(result).toContain('31')
       expect(result).toContain('2024')
       expect(result).toContain('23:59')
     })
 
     it('should handle leap year', () => {
-      const leapDate = new Date(2024, 1, 29, 12, 0, 0) // 29 de fevereiro de 2024 (ano bissexto)
+      const leapDate = new Date(2024, 1, 29, 12, 0, 0)
       const result = format(leapDate, 'dd MMM, y', {
         locale: dateConfig.locale,
       })
-      expect(result).toContain('fev') // fevereiro em português
+      expect(result).toContain('fev')
       expect(result).toContain('29')
       expect(result).toContain('2024')
     })
@@ -103,13 +103,13 @@ describe('Date Formatting with pt-BR locale', () => {
 
   describe('Portuguese weekdays and months', () => {
     const weekdays = [
-      { date: new Date(2024, 5, 10), expected: 'segunda-feira' }, // Segunda
-      { date: new Date(2024, 5, 11), expected: 'terça-feira' }, // Terça
-      { date: new Date(2024, 5, 12), expected: 'quarta-feira' }, // Quarta
-      { date: new Date(2024, 5, 13), expected: 'quinta-feira' }, // Quinta
-      { date: new Date(2024, 5, 14), expected: 'sexta-feira' }, // Sexta
-      { date: new Date(2024, 5, 15), expected: 'sábado' }, // Sábado
-      { date: new Date(2024, 5, 16), expected: 'domingo' }, // Domingo
+      { date: new Date(2024, 5, 10), expected: 'segunda-feira' },
+      { date: new Date(2024, 5, 11), expected: 'terça-feira' },
+      { date: new Date(2024, 5, 12), expected: 'quarta-feira' },
+      { date: new Date(2024, 5, 13), expected: 'quinta-feira' },
+      { date: new Date(2024, 5, 14), expected: 'sexta-feira' },
+      { date: new Date(2024, 5, 15), expected: 'sábado' },
+      { date: new Date(2024, 5, 16), expected: 'domingo' },
     ]
 
     weekdays.forEach(({ date, expected }) => {

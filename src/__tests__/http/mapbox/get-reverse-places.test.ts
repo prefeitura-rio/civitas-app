@@ -3,11 +3,9 @@ import type { FeatureCollection } from 'geojson'
 
 import { getReversePlaces } from '@/http/mapbox/get-reverse-places'
 
-// Mock do axios
 jest.mock('axios')
 const mockedAxios = axios as jest.Mocked<typeof axios>
 
-// Mock da config
 jest.mock('@/config', () => ({
   config: {
     mapboxAccessToken: 'test-token',
@@ -48,12 +46,10 @@ describe('getReversePlaces', () => {
 
     const result = await getReversePlaces(latitude, longitude)
 
-    // Verifica se a chamada da API foi feita corretamente
     expect(mockedAxios.get).toHaveBeenCalledWith(
       'https://api.mapbox.com/search/geocode/v6/reverse?longitude=-43.413889&latitude=-22.808889&access_token=test-token',
     )
 
-    // Verifica se o resultado é retornado corretamente
     expect(result).toEqual(mockResponse)
   })
 

@@ -3,7 +3,6 @@ import { useSearchParams } from 'next/navigation'
 
 import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 
-// Mock do next/navigation
 jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(),
 }))
@@ -30,11 +29,10 @@ describe('useCarRadarSearchParams', () => {
       }
     })
 
-    // Usar as any para evitar problemas de tipo complexos
     return searchParams as any
   }
 
-  describe('parâmetros válidos', () => {
+  describe('valid parameters', () => {
     it('should return correctly formatted parameters', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
@@ -96,7 +94,7 @@ describe('useCarRadarSearchParams', () => {
     })
   })
 
-  describe('parâmetros inválidos', () => {
+  describe('invalid parameters', () => {
     it('should return null when startDate is missing', () => {
       const mockParams = createMockSearchParams({
         endDate: '2024-01-15T12:00:00.000Z',

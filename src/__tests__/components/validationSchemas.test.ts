@@ -8,7 +8,7 @@ describe('radarSearchSchema', () => {
     radarIds: ['RADAR001'],
   }
 
-  describe('validação de datas', () => {
+  describe('date validation', () => {
     it('should accept valid 2 hour interval', () => {
       const data = {
         ...baseValidData,
@@ -111,7 +111,7 @@ describe('radarSearchSchema', () => {
     })
   })
 
-  describe('validação de placa', () => {
+  describe('plate validation', () => {
     it('should accept valid plate', () => {
       const data = {
         ...baseValidData,
@@ -167,7 +167,7 @@ describe('radarSearchSchema', () => {
     })
   })
 
-  describe('validação de radares', () => {
+  describe('radar validation', () => {
     it('should accept array with one radar', () => {
       const data = {
         ...baseValidData,
@@ -203,7 +203,7 @@ describe('radarSearchSchema', () => {
     })
   })
 
-  describe('validação de campos obrigatórios', () => {
+  describe('required fields validation', () => {
     it('should reject when startDate is missing', () => {
       const data = {
         endDate: new Date('2024-01-15T12:00:00Z'),

@@ -43,7 +43,7 @@ describe('CameraSelectCard', () => {
     jest.clearAllMocks()
   })
 
-  describe('renderização', () => {
+  describe('rendering', () => {
     it('should be hidden when no camera is selected', () => {
       render(<CameraSelectCard {...defaultProps} />)
 
@@ -96,7 +96,7 @@ describe('CameraSelectCard', () => {
     })
   })
 
-  describe('funcionalidade do botão de fechar', () => {
+  describe('close button functionality', () => {
     it('should call setSelectedObject with null when close button is clicked', () => {
       const mockSetSelectedObject = jest.fn()
       render(

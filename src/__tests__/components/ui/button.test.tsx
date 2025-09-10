@@ -178,7 +178,6 @@ describe('Button Component', () => {
     render(<Button autoFocus>Auto Focus Button</Button>)
 
     const button = screen.getByRole('button')
-    // O autoFocus pode não ser renderizado como atributo em alguns casos
     expect(button).toBeInTheDocument()
   })
 

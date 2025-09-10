@@ -30,7 +30,7 @@ describe('Date Extensions', () => {
       const result = setMaxTime(testDate)
 
       expect(result.getFullYear()).toBe(2024)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getDate()).toBe(15)
     })
 
@@ -66,7 +66,7 @@ describe('Date Extensions', () => {
       const result = setMinTime(testDate)
 
       expect(result.getFullYear()).toBe(2024)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getDate()).toBe(15)
     })
 
@@ -102,7 +102,7 @@ describe('Date Extensions', () => {
       const result = setCurrentTime(testDate)
 
       expect(result.getFullYear()).toBe(2024)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getDate()).toBe(15)
     })
 
@@ -126,11 +126,11 @@ describe('Date Extensions', () => {
 
   describe('setDatePreservingTime', () => {
     it('should set new date while preserving time', () => {
-      const newDate = new Date(2024, 5, 20) // 20 de junho de 2024 (mês 5 = junho)
-      const result = setDatePreservingTime(newDate, testDate) // Use time from testDate (10:30:45.123)
+      const newDate = new Date(2024, 5, 20)
+      const result = setDatePreservingTime(newDate, testDate)
 
       expect(result.getFullYear()).toBe(2024)
-      expect(result.getMonth()).toBe(5) // Junho
+      expect(result.getMonth()).toBe(5)
       expect(result.getDate()).toBe(20)
       expect(result.getHours()).toBe(10)
       expect(result.getMinutes()).toBe(30)
@@ -164,7 +164,7 @@ describe('Date Extensions', () => {
       const result = addDays(testDate, 5)
 
       expect(result.getDate()).toBe(20)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getFullYear()).toBe(2024)
     })
 
@@ -172,7 +172,7 @@ describe('Date Extensions', () => {
       const result = addDays(testDate, -3)
 
       expect(result.getDate()).toBe(12)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getFullYear()).toBe(2024)
     })
 
@@ -180,7 +180,7 @@ describe('Date Extensions', () => {
       const result = addDays(testDate, 20)
 
       expect(result.getDate()).toBe(4)
-      expect(result.getMonth()).toBe(1) // Fevereiro
+      expect(result.getMonth()).toBe(1)
       expect(result.getFullYear()).toBe(2024)
     })
 
@@ -237,7 +237,7 @@ describe('Date Extensions', () => {
       const result = addHours(testDate, 3)
 
       expect(result.getFullYear()).toBe(2024)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getDate()).toBe(15)
     })
 
@@ -285,7 +285,7 @@ describe('Date Extensions', () => {
       const result = addMinutes(testDate, 45)
 
       expect(result.getFullYear()).toBe(2024)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getDate()).toBe(15)
     })
 
@@ -311,7 +311,7 @@ describe('Date Extensions', () => {
       const result = addDays(leapYearDate, 1)
 
       expect(result.getDate()).toBe(29)
-      expect(result.getMonth()).toBe(1) // Fevereiro
+      expect(result.getMonth()).toBe(1)
       expect(result.getFullYear()).toBe(2024)
     })
 
@@ -320,7 +320,7 @@ describe('Date Extensions', () => {
       const result = addDays(yearEndDate, 1)
 
       expect(result.getDate()).toBe(1)
-      expect(result.getMonth()).toBe(0) // Janeiro
+      expect(result.getMonth()).toBe(0)
       expect(result.getFullYear()).toBe(2025)
     })
 

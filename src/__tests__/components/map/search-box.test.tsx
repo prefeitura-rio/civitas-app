@@ -29,7 +29,6 @@ describe('SearchBox', () => {
       },
     })
 
-    // Reset dos mocks
     jest.clearAllMocks()
   })
 
