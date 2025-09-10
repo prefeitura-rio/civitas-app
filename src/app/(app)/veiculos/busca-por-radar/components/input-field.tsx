@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input'
 
 interface InputFieldProps {
   name: 'plate' | 'radarIds'
-  label: string
   placeholder: string
   isRadarIds?: boolean
   control: any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -15,7 +14,6 @@ interface InputFieldProps {
 
 export function InputField({
   name,
-  label,
   placeholder,
   isRadarIds = false,
   control,
@@ -49,9 +47,6 @@ export function InputField({
 
   return (
     <div className="flex w-full flex-col">
-      <label className="mb-2 text-sm font-medium text-muted-foreground">
-        {label}
-      </label>
       <Controller
         control={control}
         name={name}
