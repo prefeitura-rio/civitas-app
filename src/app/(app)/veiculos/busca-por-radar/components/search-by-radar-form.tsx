@@ -43,12 +43,7 @@ export function SearchByRadarForm() {
   const { formattedSearchParams } = useCarRadarSearchParams()
   const {
     layers: {
-      radars: {
-        selectedObjects,
-        handleSelectObject,
-        setSelectedObjects,
-        data: radars,
-      },
+      radars: { selectedObjects, setSelectedObjects, data: radars },
     },
     setViewport,
   } = useMap()
@@ -275,7 +270,14 @@ export function SearchByRadarForm() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleSelectObject(radar)}
+                            onClick={() => {
+                              setSelectedObjects((prev) =>
+                                prev.filter(
+                                  (item) =>
+                                    item.cetRioCode !== radar.cetRioCode,
+                                ),
+                              )
+                            }}
                           >
                             <XCircleIcon className="size-4" />
                           </Button>
