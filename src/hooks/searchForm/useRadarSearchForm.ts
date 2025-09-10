@@ -36,19 +36,22 @@ export function useRadarSearchForm({
 }: UseRadarSearchFormProps) {
   const router = useRouter()
 
-  const defaultValues = useMemo(
-    () => ({
+  const defaultValues = useMemo(() => {
+    const now = new Date()
+    const nowRounded = new Date(now.setSeconds(0, 0))
+    const fiveHoursAgo = new Date(nowRounded.getTime() - FIVE_HOURS_MS)
+
+    return {
       startDate: formattedSearchParams?.date?.from
         ? new Date(formattedSearchParams.date.from)
-        : new Date(new Date().setSeconds(0, 0)),
+        : fiveHoursAgo,
       endDate: formattedSearchParams?.date?.to
         ? new Date(formattedSearchParams.date.to)
-        : new Date(new Date().setSeconds(0, 0) + FIVE_HOURS_MS),
+        : nowRounded,
       plate: formattedSearchParams?.plate || '',
       radarIds: formattedSearchParams?.radarIds || [],
-    }),
-    [formattedSearchParams],
-  )
+    }
+  }, [formattedSearchParams])
 
   const {
     control,

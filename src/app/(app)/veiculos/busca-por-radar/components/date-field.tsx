@@ -4,7 +4,6 @@ import { DatePicker } from '@/components/ui/date-picker'
 
 interface DateFieldProps {
   name: 'startDate' | 'endDate'
-  label: string
   showValidation?: boolean
   control: any // eslint-disable-line @typescript-eslint/no-explicit-any
   isSubmitting: boolean
@@ -20,7 +19,6 @@ interface DateFieldProps {
 
 export function DateField({
   name,
-  label,
   showValidation = false,
   control,
   isSubmitting,
@@ -31,9 +29,6 @@ export function DateField({
 }: DateFieldProps) {
   return (
     <div className="flex w-full flex-col">
-      <label className="mb-2 text-sm font-medium text-muted-foreground">
-        {label}
-      </label>
       <Controller
         control={control}
         name={name}
