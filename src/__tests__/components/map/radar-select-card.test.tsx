@@ -94,17 +94,13 @@ describe('RadarSelectCard', () => {
       <RadarSelectCard {...defaultProps} selectedObject={mockRadarInactive} />,
     )
 
-    // Quando inativo, o componente mostra um aviso em vez de "Não"
     expect(screen.getByText('Atenção!')).toBeInTheDocument()
   })
 
   it('deve exibir última detecção quando disponível', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    // O componente usa toLocaleString('pt-BR') que converte UTC para fuso horário local
-    // Como o mock tem '2024-01-15T10:30:00Z', o horário será convertido
     expect(screen.getByText('Última detecção')).toBeInTheDocument()
-    // Verificar se algum horário está sendo exibido (flexível para diferentes fusos horários)
     expect(
       screen.getByText(/15\/01\/2024 às \d{2}:\d{2}:\d{2}/),
     ).toBeInTheDocument()
@@ -128,7 +124,6 @@ describe('RadarSelectCard', () => {
       />,
     )
 
-    // Encontrar o botão de fechar pela classe CSS específica
     const closeButton = screen.getByRole('button', { name: '' })
     fireEvent.click(closeButton)
 

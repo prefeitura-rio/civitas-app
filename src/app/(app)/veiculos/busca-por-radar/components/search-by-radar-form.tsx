@@ -57,7 +57,6 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
         >
           <DateField
             name="startDate"
-            label="Data/Hora de Início"
             control={control}
             isSubmitting={isSubmitting}
             errors={errors}
@@ -67,7 +66,6 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
 
           <DateField
             name="endDate"
-            label="Data/Hora de Fim"
             showValidation={true}
             control={control}
             isSubmitting={isSubmitting}
@@ -79,7 +77,6 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
 
           <InputField
             name="plate"
-            label="Placa"
             placeholder="Digite a placa do veículo"
             control={control}
             isSubmitting={isSubmitting}
@@ -87,9 +84,6 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
           />
 
           <div className="flex w-full flex-col">
-            <label className="mb-2 text-sm font-medium text-muted-foreground">
-              Radares
-            </label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full">

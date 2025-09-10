@@ -28,7 +28,7 @@ export function useTimeValidation(
     const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
 
     const message = isValid
-      ? `${hours}h ${minutes}min`
+      ? ''
       : timeDiff <= 0
         ? 'A data/hora de fim deve ser posterior à data/hora de início'
         : `Máximo de 5 horas permitido (atual: ${hours}h ${minutes}min)`
