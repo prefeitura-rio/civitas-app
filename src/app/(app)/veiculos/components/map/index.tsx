@@ -112,40 +112,15 @@ export function Map() {
 
   const handleRightClick = useCallback(
     (e: MouseEvent) => {
-      console.log('🖱️ Map - RIGHT CLICK HANDLER CALLED!', {
-        button: e.button,
-        buttons: e.buttons,
-        type: e.type,
-        target: e.target,
-        currentTarget: e.currentTarget,
-      })
       e.preventDefault()
       e.stopPropagation()
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      console.log('🖱️ Map - Right click detected', {
-        x,
-        y,
-        layerId: info?.layer?.id,
-        objectType: info?.object ? typeof info.object : 'none',
-        hasRadarLayer: info?.layer?.id === 'radars',
-        hasObject: !!info?.object,
-        radarCode:
-          info?.layer?.id === 'radars' && info.object
-            ? (info.object as Radar).cetRioCode
-            : 'none',
-      })
-
-      // Seleção INDIVIDUAL de radar com botão direito (popup + zoom)
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
-        console.log('🖱️ Map - Right click on radar, calling selectRadar', {
-          radarCode: radar.cetRioCode,
-        })
         selectRadar(radar, () => setSelectedCamera(null))
-        // Zoom inteligente que respeita o zoom manual do usuário
         zoomToLocation(radar.latitude, radar.longitude, 18)
         return
       }
@@ -154,12 +129,9 @@ export function Map() {
         const camera = info.object as CameraCOR
         selectCamera(camera)
         setSelectedRadar(null)
-        // Zoom inteligente que respeita o zoom manual do usuário
         zoomToLocation(camera.latitude, camera.longitude, 18)
         return
       }
-
-      // Menu de contexto para outros elementos
       setContextMenuPickingInfo(info || null)
       setOpenContextMenu(!!info)
     },
@@ -175,12 +147,6 @@ export function Map() {
   )
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
-    console.log('🖱️ Map - MOUSE DOWN DETECTED!', {
-      button: e.button,
-      buttons: e.buttons,
-      type: e.type,
-    })
-    
     mouseDownPosition.current = { x: e.clientX, y: e.clientY }
     isDragging.current = false
   }, [])
@@ -189,7 +155,6 @@ export function Map() {
     if (mouseDownPosition.current) {
       const deltaX = Math.abs(e.clientX - mouseDownPosition.current.x)
       const deltaY = Math.abs(e.clientY - mouseDownPosition.current.y)
-      // Se moveu mais de 5 pixels, considera como drag
       if (deltaX > 5 || deltaY > 5) {
         isDragging.current = true
       }
@@ -197,12 +162,6 @@ export function Map() {
   }, [])
 
   const handleMouseUp = useCallback((e: MouseEvent) => {
-    console.log('🖱️ Map - onMouseUp triggered', {
-      button: e.button,
-      buttons: e.buttons,
-      type: e.type,
-    })
-
     isDragging.current = false
     mouseDownPosition.current = null
   }, [])
@@ -211,35 +170,17 @@ export function Map() {
     (e: MouseEvent) => {
       e.preventDefault()
 
-      // Se estava arrastando, não processar como clique
       if (isDragging.current) {
-        console.log('🖱️ Map - Left click ignored (was dragging)')
         isDragging.current = false
         mouseDownPosition.current = null
         return
       }
-
-      // Seleção MÚLTIPLA de radares com botão esquerdo (para input)
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      console.log('🖱️ Map - Left click detected', {
-        x,
-        y,
-        layerId: info?.layer?.id,
-        objectType: info?.object ? typeof info.object : 'none',
-        radarCode:
-          info?.layer?.id === 'radars' && info.object
-            ? (info.object as Radar).cetRioCode
-            : 'none',
-      })
-
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
-        console.log('🖱️ Map - Left click on radar, calling multiSelectRadar', {
-          radarCode: radar.cetRioCode,
-        })
         multiSelectRadar(radar)
       }
 
@@ -247,7 +188,6 @@ export function Map() {
         const camera = info.object as CameraCOR
         selectCamera(camera)
         setSelectedRadar(null)
-        // Zoom automático para a câmera selecionada
         setViewport({
           latitude: camera.latitude,
           longitude: camera.longitude,
@@ -255,7 +195,6 @@ export function Map() {
         })
       }
 
-      // Reset das variáveis
       isDragging.current = false
       mouseDownPosition.current = null
     },
