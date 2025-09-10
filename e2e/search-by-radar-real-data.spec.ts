@@ -45,10 +45,13 @@ test.describe('Busca por Radar - Teste Completo', () => {
         console.log('📝 Preenchendo credenciais...')
         if (!process.env.TEST_USER || !process.env.TEST_PASSWORD) {
           console.log('❌ Credenciais não encontradas no .env.test')
-          test.skip(true, 'TEST_USER e TEST_PASSWORD devem estar definidos no .env.test')
+          test.skip(
+            true,
+            'TEST_USER e TEST_PASSWORD devem estar definidos no .env.test',
+          )
           return
         }
-        
+
         await userInput.fill(process.env.TEST_USER)
         await passwordInput.fill(process.env.TEST_PASSWORD)
 
