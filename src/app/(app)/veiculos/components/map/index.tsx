@@ -112,16 +112,30 @@ export function Map() {
 
   const handleRightClick = useCallback(
     (e: MouseEvent) => {
+      console.log('🖱️ Map - RIGHT CLICK HANDLER CALLED!', {
+        button: e.button,
+        buttons: e.buttons,
+        type: e.type,
+        target: e.target,
+        currentTarget: e.currentTarget,
+      })
       e.preventDefault()
+      e.stopPropagation()
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
       console.log('🖱️ Map - Right click detected', {
-        x, y,
+        x,
+        y,
         layerId: info?.layer?.id,
         objectType: info?.object ? typeof info.object : 'none',
-        radarCode: info?.layer?.id === 'radars' && info.object ? (info.object as Radar).cetRioCode : 'none',
+        hasRadarLayer: info?.layer?.id === 'radars',
+        hasObject: !!info?.object,
+        radarCode:
+          info?.layer?.id === 'radars' && info.object
+            ? (info.object as Radar).cetRioCode
+            : 'none',
       })
 
       // Seleção INDIVIDUAL de radar com botão direito (popup + zoom)
@@ -161,6 +175,12 @@ export function Map() {
   )
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
+    console.log('🖱️ Map - MOUSE DOWN DETECTED!', {
+      button: e.button,
+      buttons: e.buttons,
+      type: e.type,
+    })
+    
     mouseDownPosition.current = { x: e.clientX, y: e.clientY }
     isDragging.current = false
   }, [])
@@ -174,6 +194,17 @@ export function Map() {
         isDragging.current = true
       }
     }
+  }, [])
+
+  const handleMouseUp = useCallback((e: MouseEvent) => {
+    console.log('🖱️ Map - onMouseUp triggered', {
+      button: e.button,
+      buttons: e.buttons,
+      type: e.type,
+    })
+
+    isDragging.current = false
+    mouseDownPosition.current = null
   }, [])
 
   const handleLeftClick = useCallback(
@@ -194,10 +225,14 @@ export function Map() {
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
       console.log('🖱️ Map - Left click detected', {
-        x, y,
+        x,
+        y,
         layerId: info?.layer?.id,
         objectType: info?.object ? typeof info.object : 'none',
-        radarCode: info?.layer?.id === 'radars' && info.object ? (info.object as Radar).cetRioCode : 'none',
+        radarCode:
+          info?.layer?.id === 'radars' && info.object
+            ? (info.object as Radar).cetRioCode
+            : 'none',
       })
 
       if (info?.layer?.id === 'radars' && info.object) {
@@ -287,6 +322,7 @@ export function Map() {
       onContextMenu={handleRightClick}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
       onClick={handleLeftClick}
     >
       <DeckGL
