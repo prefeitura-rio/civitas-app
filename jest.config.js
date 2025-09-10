@@ -9,7 +9,7 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jsdom',
-  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/', '<rootDir>/e2e/'],
   transformIgnorePatterns: [
     'node_modules/(?!(@mapbox|@deck\\.gl|@loaders\\.gl|@luma\\.gl|deck\\.gl|mapbox-gl)/)',
   ],

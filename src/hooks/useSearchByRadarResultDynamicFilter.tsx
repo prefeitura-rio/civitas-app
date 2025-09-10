@@ -32,11 +32,10 @@ export function useSearchByRadarResultDynamicFilter({
   const [locationOptions, setLocationOptions] = useState<string[]>([])
 
   function filterByPlate(detections: DetectionDTO[], plate: string) {
+    if (!plate) return detections
+
     // Transforma caracteres minúsculos em maiúsculos
     const upperCasePlate = plate.toUpperCase()
-    setSelectedPlate(upperCasePlate)
-
-    if (!plate) return detections
 
     if (!plate.includes('*')) {
       return detections.filter((detection) =>
@@ -51,8 +50,6 @@ export function useSearchByRadarResultDynamicFilter({
   }
 
   function filterByLocation(detections: DetectionDTO[], locations: string[]) {
-    setSelectedLocations(locations)
-
     if (locations.length === 0) return detections
 
     return detections.filter((detection) =>
@@ -61,8 +58,6 @@ export function useSearchByRadarResultDynamicFilter({
   }
 
   function filterByRadar(detections: DetectionDTO[], radars: string[]) {
-    setSelectedRadars(radars)
-
     if (radars.length === 0) return detections
 
     return detections.filter((detection) =>
