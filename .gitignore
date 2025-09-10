@@ -18,6 +18,7 @@ package-lock.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/e2e-results/
 
 # next.js
 /.next/
