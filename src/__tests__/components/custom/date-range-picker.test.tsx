@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import { DatePickerWithRange } from '@/components/custom/date-range-picker'
 import { dateConfig } from '@/lib/date-config'
 
-// Mock do react-day-picker
 jest.mock('react-day-picker', () => ({
   DayPicker: (
     { locale, ...props }: any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -23,8 +22,8 @@ jest.mock('react-day-picker', () => ({
 describe('DatePickerWithRange', () => {
   const mockOnChange = jest.fn()
   const testRange = {
-    from: new Date(2024, 0, 15, 9, 0), // 15 de janeiro de 2024, 09:00
-    to: new Date(2024, 0, 20, 18, 0), // 20 de janeiro de 2024, 18:00
+    from: new Date(2024, 0, 15, 9, 0),
+    to: new Date(2024, 0, 20, 18, 0),
   }
 
   beforeEach(() => {
@@ -74,11 +73,9 @@ describe('DatePickerWithRange', () => {
   it('should pass dateConfig.locale locale to Calendar component', async () => {
     render(<DatePickerWithRange value={testRange} onChange={mockOnChange} />)
 
-    // Clica no botão para abrir o calendário
     const dateButton = screen.getByRole('button')
     await userEvent.click(dateButton)
 
-    // Verifica se o DayPicker recebeu o locale pt-BR
     await waitFor(() => {
       const dayPicker = screen.getByTestId('day-picker-range')
       expect(dayPicker).toHaveAttribute('data-locale', 'pt-BR')
@@ -87,8 +84,8 @@ describe('DatePickerWithRange', () => {
 
   it('should show Portuguese months in date range', () => {
     const testRangeJune = {
-      from: new Date(2024, 5, 10, 9, 0), // 10 de junho de 2024
-      to: new Date(2024, 5, 15, 18, 0), // 15 de junho de 2024
+      from: new Date(2024, 5, 10, 9, 0),
+      to: new Date(2024, 5, 15, 18, 0),
     }
 
     render(
@@ -99,7 +96,6 @@ describe('DatePickerWithRange', () => {
       />,
     )
 
-    // Verifica se os meses estão em português
     const fromFormatted = format(testRangeJune.from, 'dd MMM, y', {
       locale: dateConfig.locale,
     })
@@ -107,7 +103,6 @@ describe('DatePickerWithRange', () => {
       locale: dateConfig.locale,
     })
 
-    // Deve conter 'jun' (junho em português)
     expect(fromFormatted).toContain('jun')
     expect(toFormatted).toContain('jun')
   })
@@ -173,11 +168,9 @@ describe('DatePickerWithRange', () => {
       />,
     )
 
-    // Clica no botão para abrir o calendário
     const dateButton = screen.getByRole('button')
     await userEvent.click(dateButton)
 
-    // Verifica se os labels em português estão presentes
     await waitFor(() => {
       expect(screen.getByText('Início:')).toBeInTheDocument()
     })

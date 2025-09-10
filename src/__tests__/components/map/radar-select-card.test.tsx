@@ -41,14 +41,14 @@ describe('RadarSelectCard', () => {
     jest.clearAllMocks()
   })
 
-  it('deve estar oculto quando nenhum radar está selecionado', () => {
+  it('should be hidden when no radar is selected', () => {
     render(<RadarSelectCard {...defaultProps} />)
 
     const card = screen.queryByText('Radar RDR123')
     expect(card).not.toBeInTheDocument()
   })
 
-  it('deve exibir informações do radar quando selecionado', () => {
+  it('should display radar information when selected', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     expect(screen.getByText('Radar OCR')).toBeInTheDocument()
@@ -56,40 +56,40 @@ describe('RadarSelectCard', () => {
     expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
   })
 
-  it('deve exibir código do radar corretamente', () => {
+  it('should display radar code correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const codeElements = screen.getAllByText('RDR123')
     expect(codeElements).toHaveLength(1)
   })
 
-  it('deve exibir localização e bairro corretamente', () => {
+  it('should display location and district correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
   })
 
-  it('deve exibir latitude e longitude corretamente', () => {
+  it('should display latitude and longitude correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     expect(screen.getByText('-22.9068')).toBeInTheDocument()
     expect(screen.getByText('-43.1729')).toBeInTheDocument()
   })
 
-  it('deve exibir empresa corretamente', () => {
+  it('should display company correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     expect(screen.getByText('CET-Rio')).toBeInTheDocument()
   })
 
-  it('deve exibir status ativo 24h como "Sim" quando true', () => {
+  it('should display active 24h status as "Yes" when true', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     expect(screen.getByText('Sim')).toBeInTheDocument()
     expect(screen.getByText('Sim')).toHaveClass('text-emerald-600')
   })
 
-  it('deve exibir status ativo 24h como "Não" quando false', () => {
+  it('should display active 24h status as "No" when false', () => {
     render(
       <RadarSelectCard {...defaultProps} selectedObject={mockRadarInactive} />,
     )
@@ -97,7 +97,7 @@ describe('RadarSelectCard', () => {
     expect(screen.getByText('Atenção!')).toBeInTheDocument()
   })
 
-  it('deve exibir última detecção quando disponível', () => {
+  it('should display last detection when available', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     expect(screen.getByText('Última detecção')).toBeInTheDocument()
@@ -106,7 +106,7 @@ describe('RadarSelectCard', () => {
     ).toBeInTheDocument()
   })
 
-  it('deve não exibir última detecção quando não disponível', () => {
+  it('should not display last detection when not available', () => {
     render(
       <RadarSelectCard {...defaultProps} selectedObject={mockRadarInactive} />,
     )
@@ -114,7 +114,7 @@ describe('RadarSelectCard', () => {
     expect(screen.queryByText('Última detecção:')).not.toBeInTheDocument()
   })
 
-  it('deve chamar setSelectedObject(null) quando botão de fechar for clicado', () => {
+  it('should call setSelectedObject(null) when close button is clicked', () => {
     const mockSetSelectedObject = jest.fn()
     render(
       <RadarSelectCard
@@ -130,7 +130,7 @@ describe('RadarSelectCard', () => {
     expect(mockSetSelectedObject).toHaveBeenCalledWith(null)
   })
 
-  it('deve ter botão de fechar com ícone X', () => {
+  it('should have close button with X icon', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const closeButton = screen.getByRole('button', { name: '' })
@@ -138,7 +138,7 @@ describe('RadarSelectCard', () => {
     expect(closeButton).toHaveClass('h-5', 'w-5', 'p-0')
   })
 
-  it('deve ter posicionamento absoluto no canto superior direito', () => {
+  it('should have absolute positioning in top right corner', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const card = screen.getByText('Radar OCR').closest('div')
@@ -146,7 +146,7 @@ describe('RadarSelectCard', () => {
     expect(card).toHaveClass('absolute', 'right-2', 'top-2')
   })
 
-  it('deve ter largura fixa de 72 (w-72)', () => {
+  it('should have fixed width of 72 (w-72)', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const card = screen.getByText('Radar OCR').closest('div')
@@ -154,7 +154,7 @@ describe('RadarSelectCard', () => {
     expect(card).toHaveClass('w-72')
   })
 
-  it('deve ter tracking-tighter para espaçamento de letras', () => {
+  it('should have tracking-tighter for letter spacing', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const card = screen.getByText('Radar OCR').closest('div')
@@ -162,7 +162,7 @@ describe('RadarSelectCard', () => {
     expect(card).toHaveClass('tracking-tighter')
   })
 
-  it('deve lidar com valores undefined/null graciosamente', () => {
+  it('should handle undefined/null values gracefully', () => {
     const mockRadarWithNull = {
       ...mockRadar,
       location: null,

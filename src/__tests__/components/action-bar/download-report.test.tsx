@@ -5,7 +5,6 @@ import { DownloadReport } from '@/app/(app)/veiculos/busca-por-radar/resultado/c
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 
-// Mock das dependências
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -51,7 +50,6 @@ jest.mock('@/utils/download-file', () => ({
   downloadFile: jest.fn(),
 }))
 
-// Mock completo do @react-pdf/renderer
 jest.mock('@react-pdf/renderer', () => ({
   pdf: jest.fn(() => ({
     toBlob: jest.fn().mockResolvedValue(new Blob()),
@@ -69,7 +67,6 @@ jest.mock('@react-pdf/renderer', () => ({
   Document: 'Document',
 }))
 
-// Mock data
 const mockDetection: DetectionDTO = {
   plate: 'ABC1234',
   timestamp: '2024-01-15T10:00:00Z',
@@ -91,7 +88,6 @@ const mockFilters: UseSearchByRadarResultDynamicFilter = {
   locationOptions: ['Local Teste'],
 }
 
-// Wrapper para QueryClient
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -106,7 +102,7 @@ const createWrapper = () => {
 }
 
 describe('DownloadReport', () => {
-  it('deve renderizar o botão de download corretamente', () => {
+  it('should render download button correctly', () => {
     render(
       <DownloadReport
         data={[mockDetection]}
@@ -116,12 +112,11 @@ describe('DownloadReport', () => {
       { wrapper: createWrapper() },
     )
 
-    // O botão tem um ícone de download, então podemos encontrá-lo assim
     const button = screen.getByRole('button')
     expect(button).toBeInTheDocument()
   })
 
-  it('deve abrir o dialog ao clicar no botão', () => {
+  it('should open dialog when button is clicked', () => {
     render(
       <DownloadReport
         data={[mockDetection]}
@@ -137,7 +132,7 @@ describe('DownloadReport', () => {
     expect(screen.getByText('Relatório de Busca por Radar')).toBeInTheDocument()
   })
 
-  it('deve mostrar opções de formato de arquivo', () => {
+  it('should show file format options', () => {
     render(
       <DownloadReport
         data={[mockDetection]}
@@ -155,7 +150,7 @@ describe('DownloadReport', () => {
     expect(screen.getByLabelText('CSV')).toBeInTheDocument()
   })
 
-  it('deve mostrar opções de filtros dinâmicos', () => {
+  it('should show dynamic filter options', () => {
     render(
       <DownloadReport
         data={[mockDetection]}
@@ -173,7 +168,7 @@ describe('DownloadReport', () => {
     expect(screen.getByLabelText('Não')).toBeInTheDocument()
   })
 
-  it('deve alterar o tipo de arquivo ao selecionar', () => {
+  it('should change file type when selected', () => {
     render(
       <DownloadReport
         data={[mockDetection]}
@@ -189,11 +184,10 @@ describe('DownloadReport', () => {
     const csvRadio = screen.getByLabelText('CSV')
     fireEvent.click(csvRadio)
 
-    // Verifica se o radio foi clicado
     expect(csvRadio).toBeInTheDocument()
   })
 
-  it('deve alterar a opção de filtros ao selecionar', () => {
+  it('should change filter option when selected', () => {
     render(
       <DownloadReport
         data={[mockDetection]}
@@ -209,11 +203,10 @@ describe('DownloadReport', () => {
     const naoRadio = screen.getByLabelText('Não')
     fireEvent.click(naoRadio)
 
-    // Verifica se o radio foi clicado
     expect(naoRadio).toBeInTheDocument()
   })
 
-  it('deve desabilitar o botão quando loading', () => {
+  it('should disable button when loading', () => {
     render(
       <DownloadReport
         data={[mockDetection]}
@@ -227,7 +220,7 @@ describe('DownloadReport', () => {
     expect(button).toBeDisabled()
   })
 
-  it('deve fechar o dialog ao clicar em cancelar', () => {
+  it('should close dialog when cancel is clicked', () => {
     render(
       <DownloadReport
         data={[mockDetection]}

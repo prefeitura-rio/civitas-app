@@ -1,7 +1,7 @@
 import { toQueryParams } from '@/utils/to-query-params'
 
 describe('toQueryParams', () => {
-  it('deve converter objeto simples para URLSearchParams', () => {
+  it('should convert simple object to URLSearchParams', () => {
     const data = {
       name: 'test',
       value: '123',
@@ -13,7 +13,7 @@ describe('toQueryParams', () => {
     expect(result.get('value')).toBe('123')
   })
 
-  it('deve converter arrays para múltiplos parâmetros', () => {
+  it('should convert arrays to multiple parameters', () => {
     const data = {
       items: ['item1', 'item2', 'item3'],
     }
@@ -23,7 +23,7 @@ describe('toQueryParams', () => {
     expect(result.getAll('items')).toEqual(['item1', 'item2', 'item3'])
   })
 
-  it('deve converter datas para ISO string', () => {
+  it('should convert dates to ISO string', () => {
     const date = new Date('2024-01-15T10:00:00.000Z')
     const data = {
       startDate: date,
@@ -34,7 +34,7 @@ describe('toQueryParams', () => {
     expect(result.get('startDate')).toBe('2024-01-15T10:00:00.000Z')
   })
 
-  it('deve converter objetos aninhados com datas', () => {
+  it('should convert nested objects with dates', () => {
     const startDate = new Date('2024-01-15T10:00:00.000Z')
     const endDate = new Date('2024-01-15T12:00:00.000Z')
 
@@ -55,7 +55,7 @@ describe('toQueryParams', () => {
     expect(result.getAll('radarIds')).toEqual(['RADAR001', 'RADAR002'])
   })
 
-  it('deve converter objetos aninhados com tipos primitivos', () => {
+  it('should convert nested objects with primitive types', () => {
     const data = {
       config: {
         enabled: true,
@@ -71,7 +71,7 @@ describe('toQueryParams', () => {
     expect(result.get('name')).toBe('test')
   })
 
-  it('deve ignorar valores falsy', () => {
+  it('should ignore falsy values', () => {
     const data = {
       name: '',
       value: null,
@@ -87,7 +87,7 @@ describe('toQueryParams', () => {
     expect(result.get('valid')).toBe('ok')
   })
 
-  it('deve converter dados do formulário de busca por radar corretamente', () => {
+  it('should convert radar search form data correctly', () => {
     const startDate = new Date('2024-01-15T10:00:00.000Z')
     const endDate = new Date('2024-01-15T12:00:00.000Z')
 
@@ -106,7 +106,7 @@ describe('toQueryParams', () => {
     expect(result.getAll('radarIds')).toEqual(['RADAR001', 'RADAR002'])
   })
 
-  it('deve gerar string de query válida', () => {
+  it('should generate valid query string', () => {
     const startDate = new Date('2024-01-15T10:00:00.000Z')
     const endDate = new Date('2024-01-15T12:00:00.000Z')
 

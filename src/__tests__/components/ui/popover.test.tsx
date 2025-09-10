@@ -22,7 +22,6 @@ describe('Popover Component', () => {
     )
 
     expect(screen.getByText('Open Popover')).toBeInTheDocument()
-    // PopoverContent is not rendered when closed
   })
 
   it('should handle open state', () => {
@@ -78,7 +77,6 @@ describe('Popover Component', () => {
     )
 
     expect(screen.getByText('Trigger')).toHaveClass('custom-trigger')
-    // PopoverContent is not rendered when closed
   })
 
   it('should handle data attributes', () => {
@@ -90,7 +88,6 @@ describe('Popover Component', () => {
     )
 
     expect(screen.getByTestId('trigger')).toBeInTheDocument()
-    // PopoverContent is not rendered when closed
   })
 
   it('should handle aria attributes', () => {
@@ -102,7 +99,6 @@ describe('Popover Component', () => {
     )
 
     expect(screen.getByLabelText('Trigger button')).toBeInTheDocument()
-    // PopoverContent is not rendered when closed
   })
 
   it('should handle children as function', () => {
@@ -114,7 +110,6 @@ describe('Popover Component', () => {
     )
 
     expect(screen.getByText('Function Trigger')).toBeInTheDocument()
-    // PopoverContent is not rendered when closed
   })
 
   it('should handle empty content', () => {

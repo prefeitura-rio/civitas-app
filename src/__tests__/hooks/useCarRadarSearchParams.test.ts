@@ -35,7 +35,7 @@ describe('useCarRadarSearchParams', () => {
   }
 
   describe('parâmetros válidos', () => {
-    it('deve retornar parâmetros formatados corretamente', () => {
+    it('should return correctly formatted parameters', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         endDate: '2024-01-15T12:00:00.000Z',
@@ -63,7 +63,7 @@ describe('useCarRadarSearchParams', () => {
       ])
     })
 
-    it('deve funcionar sem placa (opcional)', () => {
+    it('should work without plate (optional)', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         endDate: '2024-01-15T12:00:00.000Z',
@@ -80,7 +80,7 @@ describe('useCarRadarSearchParams', () => {
       ])
     })
 
-    it('deve funcionar com placa vazia', () => {
+    it('should work with empty plate', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         endDate: '2024-01-15T12:00:00.000Z',
@@ -97,7 +97,7 @@ describe('useCarRadarSearchParams', () => {
   })
 
   describe('parâmetros inválidos', () => {
-    it('deve retornar null quando startDate está faltando', () => {
+    it('should return null when startDate is missing', () => {
       const mockParams = createMockSearchParams({
         endDate: '2024-01-15T12:00:00.000Z',
         radarIds: ['RADAR001'],
@@ -111,7 +111,7 @@ describe('useCarRadarSearchParams', () => {
       expect(result.current.queryKey).toEqual(['cars', 'radar', null])
     })
 
-    it('deve retornar null quando endDate está faltando', () => {
+    it('should return null when endDate is missing', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         radarIds: ['RADAR001'],
@@ -125,7 +125,7 @@ describe('useCarRadarSearchParams', () => {
       expect(result.current.queryKey).toEqual(['cars', 'radar', null])
     })
 
-    it('deve retornar null quando radarIds está vazio', () => {
+    it('should return null when radarIds is empty', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         endDate: '2024-01-15T12:00:00.000Z',
@@ -140,7 +140,7 @@ describe('useCarRadarSearchParams', () => {
       expect(result.current.queryKey).toEqual(['cars', 'radar', null])
     })
 
-    it('deve retornar null quando radarIds não existe', () => {
+    it('should return null when radarIds does not exist', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         endDate: '2024-01-15T12:00:00.000Z',
@@ -154,7 +154,7 @@ describe('useCarRadarSearchParams', () => {
       expect(result.current.queryKey).toEqual(['cars', 'radar', null])
     })
 
-    it('deve retornar null quando as datas são inválidas', () => {
+    it('should return null when dates are invalid', () => {
       const mockParams = createMockSearchParams({
         startDate: 'invalid-date',
         endDate: '2024-01-15T12:00:00.000Z',
@@ -169,7 +169,7 @@ describe('useCarRadarSearchParams', () => {
       expect(result.current.queryKey).toEqual(['cars', 'radar', null])
     })
 
-    it('deve retornar null quando o intervalo excede 5 horas', () => {
+    it('should return null when interval exceeds 5 hours', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         endDate: '2024-01-15T16:00:00.000Z', // 6 horas depois
@@ -186,7 +186,7 @@ describe('useCarRadarSearchParams', () => {
   })
 
   describe('URLSearchParams', () => {
-    it('deve retornar os searchParams originais', () => {
+    it('should return original searchParams', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
         endDate: '2024-01-15T12:00:00.000Z',

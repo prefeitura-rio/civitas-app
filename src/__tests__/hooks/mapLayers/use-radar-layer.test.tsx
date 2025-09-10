@@ -56,7 +56,7 @@ describe('useRadarLayer', () => {
     jest.clearAllMocks()
   })
 
-  it('deve retornar estrutura correta do hook', () => {
+  it('should return correct hook structure', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current).toHaveProperty('data')
@@ -70,19 +70,19 @@ describe('useRadarLayer', () => {
     expect(result.current).toHaveProperty('setSelectedObject')
   })
 
-  it('deve inicializar com selectedObject como null', () => {
+  it('should initialize with selectedObject as null', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.selectedObject).toBeNull()
   })
 
-  it('deve inicializar com isVisible como true', () => {
+  it('should initialize with isVisible as true', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.isVisible).toBe(true)
   })
 
-  it('deve permitir alterar isVisible', () => {
+  it('should allow changing isVisible', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     act(() => {
@@ -92,7 +92,7 @@ describe('useRadarLayer', () => {
     expect(result.current.isVisible).toBe(false)
   })
 
-  it('deve permitir alterar hoveredObject', () => {
+  it('should allow changing hoveredObject', () => {
     const { result } = renderHook(() => useRadarLayer())
     const mockPickingInfo = { object: { cetRioCode: 'RDR123' } } as any
 
@@ -103,7 +103,7 @@ describe('useRadarLayer', () => {
     expect(result.current.hoveredObject).toBe(mockPickingInfo)
   })
 
-  it('deve selecionar radar quando handleSelectObject é chamado com radar diferente', () => {
+  it('should select radar when handleSelectObject is called with different radar', () => {
     const { result } = renderHook(() => useRadarLayer())
     const mockRadar: Radar = {
       cetRioCode: 'RDR123',
@@ -128,7 +128,7 @@ describe('useRadarLayer', () => {
     expect(result.current.selectedObject).toEqual(mockRadar)
   })
 
-  it('deve desselecionar radar quando handleSelectObject é chamado com mesmo radar', () => {
+  it('should deselect radar when handleSelectObject is called with same radar', () => {
     const { result } = renderHook(() => useRadarLayer())
     const mockRadar: Radar = {
       cetRioCode: 'RDR123',
@@ -158,7 +158,7 @@ describe('useRadarLayer', () => {
     expect(result.current.selectedObject).toBeNull()
   })
 
-  it('deve chamar clearCamera quando fornecido', () => {
+  it('should call clearCamera when provided', () => {
     const { result } = renderHook(() => useRadarLayer())
     const mockRadar: Radar = {
       cetRioCode: 'RDR123',
@@ -184,13 +184,13 @@ describe('useRadarLayer', () => {
     expect(mockClearCamera).toHaveBeenCalled()
   })
 
-  it('deve criar layer com configurações corretas', () => {
+  it('should create layer with correct settings', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve criar layer com dados corretos', () => {
+  it('should create layer with correct data', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.data).toHaveLength(2)
@@ -198,31 +198,31 @@ describe('useRadarLayer', () => {
     expect(result.current.data?.[1]?.cetRioCode).toBe('RDR456')
   })
 
-  it('deve criar layer com iconMapping correto', () => {
+  it('should create layer with correct iconMapping', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve criar layer com getIcon function', () => {
+  it('should create layer with getIcon function', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve criar layer com getPosition function', () => {
+  it('should create layer with getPosition function', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve criar layer com getColor function', () => {
+  it('should create layer with getColor function', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve retornar dados corretos do useRadars', () => {
+  it('should return correct data from useRadars', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.data).toHaveLength(2)
@@ -230,7 +230,7 @@ describe('useRadarLayer', () => {
     expect(result.current.data?.[1]?.cetRioCode).toBe('RDR456')
   })
 
-  it('deve manter referência estável das funções entre renders', () => {
+  it('should maintain stable function references between renders', () => {
     const { result, rerender } = renderHook(() => useRadarLayer())
 
     const firstRender = {

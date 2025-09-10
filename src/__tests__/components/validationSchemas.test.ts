@@ -9,7 +9,7 @@ describe('radarSearchSchema', () => {
   }
 
   describe('validação de datas', () => {
-    it('deve aceitar intervalo válido de 2 horas', () => {
+    it('should accept valid 2 hour interval', () => {
       const data = {
         ...baseValidData,
         startDate: new Date('2024-01-15T10:00:00Z'),
@@ -20,7 +20,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve aceitar intervalo válido de exatamente 5 horas', () => {
+    it('should accept valid interval of exactly 5 hours', () => {
       const data = {
         ...baseValidData,
         startDate: new Date('2024-01-15T10:00:00Z'),
@@ -31,7 +31,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve rejeitar quando data de fim é anterior à data de início', () => {
+    it('should reject when end date is before start date', () => {
       const data = {
         ...baseValidData,
         startDate: new Date('2024-01-15T12:00:00Z'),
@@ -48,7 +48,7 @@ describe('radarSearchSchema', () => {
       }
     })
 
-    it('deve rejeitar quando data de fim é igual à data de início', () => {
+    it('should reject when end date equals start date', () => {
       const data = {
         ...baseValidData,
         startDate: new Date('2024-01-15T10:00:00Z'),
@@ -65,7 +65,7 @@ describe('radarSearchSchema', () => {
       }
     })
 
-    it('deve rejeitar intervalo maior que 5 horas', () => {
+    it('should reject interval greater than 5 hours', () => {
       const data = {
         ...baseValidData,
         startDate: new Date('2024-01-15T10:00:00Z'),
@@ -82,7 +82,7 @@ describe('radarSearchSchema', () => {
       }
     })
 
-    it('deve aceitar intervalo que transborda para o dia seguinte (dentro do limite)', () => {
+    it('should accept interval that overflows to next day (within limit)', () => {
       const data = {
         ...baseValidData,
         startDate: new Date('2024-01-15T23:00:00Z'),
@@ -93,7 +93,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve rejeitar intervalo que transborda para o dia seguinte (acima do limite)', () => {
+    it('should reject interval that overflows to next day (above limit)', () => {
       const data = {
         ...baseValidData,
         startDate: new Date('2024-01-15T23:00:00Z'),
@@ -112,7 +112,7 @@ describe('radarSearchSchema', () => {
   })
 
   describe('validação de placa', () => {
-    it('deve aceitar placa válida', () => {
+    it('should accept valid plate', () => {
       const data = {
         ...baseValidData,
         plate: 'ABC1234',
@@ -122,7 +122,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve aceitar placa com wildcard', () => {
+    it('should accept plate with wildcard', () => {
       const data = {
         ...baseValidData,
         plate: 'ABC*234',
@@ -132,7 +132,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve aceitar placa vazia (opcional)', () => {
+    it('should accept empty plate (optional)', () => {
       const data = {
         ...baseValidData,
         plate: '',
@@ -142,7 +142,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve aceitar placa undefined (opcional)', () => {
+    it('should accept undefined plate (optional)', () => {
       const data = {
         ...baseValidData,
         plate: undefined,
@@ -152,7 +152,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve rejeitar placa inválida', () => {
+    it('should reject invalid plate', () => {
       const data = {
         ...baseValidData,
         plate: 'INVALID',
@@ -168,7 +168,7 @@ describe('radarSearchSchema', () => {
   })
 
   describe('validação de radares', () => {
-    it('deve aceitar array com um radar', () => {
+    it('should accept array with one radar', () => {
       const data = {
         ...baseValidData,
         radarIds: ['RADAR001'],
@@ -178,7 +178,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve aceitar array com múltiplos radares', () => {
+    it('should accept array with multiple radars', () => {
       const data = {
         ...baseValidData,
         radarIds: ['RADAR001', 'RADAR002', 'RADAR003'],
@@ -188,7 +188,7 @@ describe('radarSearchSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('deve rejeitar array vazio', () => {
+    it('should reject empty array', () => {
       const data = {
         ...baseValidData,
         radarIds: [],
@@ -204,7 +204,7 @@ describe('radarSearchSchema', () => {
   })
 
   describe('validação de campos obrigatórios', () => {
-    it('deve rejeitar quando startDate está faltando', () => {
+    it('should reject when startDate is missing', () => {
       const data = {
         endDate: new Date('2024-01-15T12:00:00Z'),
         plate: 'ABC1234',
@@ -221,7 +221,7 @@ describe('radarSearchSchema', () => {
       }
     })
 
-    it('deve rejeitar quando endDate está faltando', () => {
+    it('should reject when endDate is missing', () => {
       const data = {
         startDate: new Date('2024-01-15T10:00:00Z'),
         plate: 'ABC1234',

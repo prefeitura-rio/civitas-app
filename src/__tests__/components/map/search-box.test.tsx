@@ -6,7 +6,6 @@ import type { Feature, FeatureCollection } from 'geojson'
 import { SearchBox } from '@/app/(app)/veiculos/components/map/components/search-box'
 import { getPlaces } from '@/http/mapbox/get-places'
 
-// Mock da função getPlaces
 jest.mock('@/http/mapbox/get-places', () => ({
   getPlaces: jest.fn(),
 }))
@@ -106,10 +105,8 @@ describe('SearchBox', () => {
 
     const input = screen.getByPlaceholderText(defaultPlaceholder)
 
-    // Foca no input para abrir as sugestões
     fireEvent.focus(input)
 
-    // Digita algo para triggerar a busca
     await user.type(input, 'Rua Cândida')
 
     await waitFor(() => {
@@ -152,10 +149,8 @@ describe('SearchBox', () => {
 
     const input = screen.getByPlaceholderText(defaultPlaceholder)
 
-    // Foca no input para abrir as sugestões
     fireEvent.focus(input)
 
-    // Digita algo para triggerar a busca
     await user.type(input, 'Rua Cândida')
 
     await waitFor(() => {
@@ -165,20 +160,17 @@ describe('SearchBox', () => {
       fireEvent.mouseDown(firstSuggestion)
     })
 
-    // Verifica se setViewport foi chamado com as coordenadas corretas
     expect(mockSetViewport).toHaveBeenCalledWith({
       zoom: 14.15,
       longitude: -43.413889,
       latitude: -22.808889,
     })
 
-    // Verifica se setAddressMarker foi chamado com as coordenadas corretas
     expect(mockSetAddressMarker).toHaveBeenCalledWith({
       longitude: -43.413889,
       latitude: -22.808889,
     })
 
-    // Verifica se setIsVisible foi chamado
     expect(mockSetIsVisible).toHaveBeenCalledWith(true)
   })
 
@@ -251,7 +243,6 @@ describe('SearchBox', () => {
     await user.type(input, 'NonExistentAddress')
 
     await waitFor(() => {
-      // Não deve mostrar nenhuma sugestão
       expect(screen.queryByText(/Lat:/)).not.toBeInTheDocument()
       expect(screen.queryByText(/Lon:/)).not.toBeInTheDocument()
     })
@@ -287,10 +278,8 @@ describe('SearchBox', () => {
       ).toBeInTheDocument()
     })
 
-    // Clica no botão X
     await user.click(clearButton)
 
-    // Verifica se setIsVisible foi chamado com false
     expect(mockSetIsVisible).toHaveBeenCalledWith(false)
   })
 })

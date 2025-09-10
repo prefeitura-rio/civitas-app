@@ -3,14 +3,12 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { CameraSelectCard } from '@/app/(app)/veiculos/components/map/components/select-cards/camera-select-card'
 import type { CameraCOR } from '@/models/entities'
 
-// Mock do utils
 jest.mock('@/utils/string-extensions', () => ({
   capitalizeFirstLetter: jest.fn(
     (str: string) => str.charAt(0).toUpperCase() + str.slice(1),
   ),
 }))
 
-// Mock do window.open
 const mockWindowOpen = jest.fn()
 Object.defineProperty(window, 'open', {
   value: mockWindowOpen,
@@ -46,7 +44,7 @@ describe('CameraSelectCard', () => {
   })
 
   describe('renderização', () => {
-    it('deve estar oculto quando não há câmera selecionada', () => {
+    it('should be hidden when no camera is selected', () => {
       render(<CameraSelectCard {...defaultProps} />)
 
       const card = screen.getByText('Câmera').closest('div')
@@ -54,7 +52,7 @@ describe('CameraSelectCard', () => {
       expect(card).toHaveClass('hidden')
     })
 
-    it('deve exibir quando uma câmera está selecionada', () => {
+    it('should display when a camera is selected', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       const card = screen.getByText('Câmera').closest('div')
@@ -62,16 +60,16 @@ describe('CameraSelectCard', () => {
       expect(card).not.toHaveClass('hidden')
     })
 
-    it('deve exibir o código da câmera corretamente no título', () => {
+    it('should display camera code correctly in title', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
-      // Verifica se o código aparece na seção de informações
+
       const codeElements = screen.getAllByText('CAM001')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
     })
 
-    it('deve exibir localização e zona da câmera', () => {
+    it('should display camera location and zone', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Localização')).toBeInTheDocument()
@@ -80,7 +78,7 @@ describe('CameraSelectCard', () => {
       expect(screen.getByText('Zona Sul')).toBeInTheDocument()
     })
 
-    it('deve exibir latitude e longitude da câmera', () => {
+    it('should display camera latitude and longitude', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Latitude')).toBeInTheDocument()
@@ -89,17 +87,17 @@ describe('CameraSelectCard', () => {
       expect(screen.getByText('-43.172900')).toBeInTheDocument()
     })
 
-    it('deve exibir o código da câmera na seção de informações', () => {
+    it('should display camera code in information section', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Código')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM001')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
     })
   })
 
   describe('funcionalidade do botão de fechar', () => {
-    it('deve chamar setSelectedObject com null quando o botão de fechar é clicado', () => {
+    it('should call setSelectedObject with null when close button is clicked', () => {
       const mockSetSelectedObject = jest.fn()
       render(
         <CameraSelectCard
@@ -115,7 +113,7 @@ describe('CameraSelectCard', () => {
       expect(mockSetSelectedObject).toHaveBeenCalledWith(null)
     })
 
-    it('deve exibir o ícone X no botão de fechar', () => {
+    it('should display X icon in close button', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       const closeButton = screen.getAllByRole('button')[0]
@@ -124,13 +122,13 @@ describe('CameraSelectCard', () => {
   })
 
   describe('funcionalidade do streaming', () => {
-    it('deve exibir o botão de streaming quando streamingUrl está disponível', () => {
+    it('should display streaming button when streamingUrl is available', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Abrir Streaming')).toBeInTheDocument()
     })
 
-    it('deve abrir o streaming em nova aba quando o botão é clicado', () => {
+    it('should open streaming in new tab when button is clicked', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       const streamingButton = screen.getByText('Abrir Streaming')
@@ -155,7 +153,7 @@ describe('CameraSelectCard', () => {
   })
 
   describe('posicionamento e estilo', () => {
-    it('deve ter as classes de posicionamento corretas', () => {
+    it('should have correct positioning classes', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       const card = screen.getByText('Câmera').closest('div')
@@ -163,7 +161,7 @@ describe('CameraSelectCard', () => {
       expect(card).toHaveClass('absolute', 'left-2', 'top-2', 'w-72')
     })
 
-    it('deve ter o estilo de tracking correto', () => {
+    it('should have correct tracking style', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       const card = screen.getByText('Câmera').closest('div')
@@ -173,7 +171,7 @@ describe('CameraSelectCard', () => {
   })
 
   describe('valores undefined/null', () => {
-    it('deve lidar graciosamente com valores undefined', () => {
+    it('should handle undefined values gracefully', () => {
       const mockCameraWithUndefined: CameraCOR = {
         code: 'CAM003',
         location: 'teste',
@@ -192,11 +190,11 @@ describe('CameraSelectCard', () => {
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM003')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
       expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
     })
 
-    it('deve lidar graciosamente com valores null', () => {
+    it('should handle null values gracefully', () => {
       const mockCameraWithNull: CameraCOR = {
         code: 'CAM004',
         location: 'teste',
@@ -215,7 +213,7 @@ describe('CameraSelectCard', () => {
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM004')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
       expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
     })
   })

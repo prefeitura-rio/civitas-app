@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 
 import { DatePicker } from '@/components/ui/date-picker'
 
-// Mock do Calendar para evitar problemas de renderização
 jest.mock('@/components/ui/calendar', () => ({
   Calendar: ({
     mode,
@@ -42,7 +41,6 @@ jest.mock('@/components/ui/calendar', () => ({
   ),
 }))
 
-// Mock do Popover para evitar problemas de renderização
 jest.mock('@/components/ui/popover', () => ({
   Popover: ({ children, open }: any) => (
     <div data-testid="popover" data-open={open}>
@@ -57,7 +55,6 @@ jest.mock('@/components/ui/popover', () => ({
   ),
 }))
 
-// Mock do Button para evitar problemas de renderização
 jest.mock('@/components/ui/button', () => ({
   Button: ({ children, variant, size, ...props }: any) => (
     <button
@@ -71,7 +68,6 @@ jest.mock('@/components/ui/button', () => ({
   ),
 }))
 
-// Mock do Input para evitar problemas de renderização
 jest.mock('@/components/ui/input', () => ({
   Input: ({ value, onChange, placeholder, ...props }: any) => (
     <input
@@ -99,7 +95,6 @@ describe('DatePicker Component', () => {
     expect(screen.getByTestId('popover')).toBeInTheDocument()
     expect(screen.getByTestId('popover-trigger')).toBeInTheDocument()
     expect(screen.getByTestId('button')).toBeInTheDocument()
-    // O DatePicker usa um botão, não um input separado
   })
 
   it('should display selected date in button', () => {
@@ -107,7 +102,7 @@ describe('DatePicker Component', () => {
     render(<DatePicker value={selectedDate} onChange={mockOnChange} />)
 
     const button = screen.getByTestId('button')
-    // A data é exibida com hora, então vamos verificar se contém a data correta
+
     expect(button).toHaveTextContent(/jan, 2024/)
   })
 
@@ -175,10 +170,8 @@ describe('DatePicker Component', () => {
     const initialDate = new Date('2024-01-15')
     render(<DatePicker value={initialDate} onChange={mockOnChange} />)
 
-    // Simular seleção de uma nova data
     const calendar = screen.getByTestId('calendar')
 
-    // Como o mock não suporta interação real, vamos testar a estrutura
     expect(calendar).toBeInTheDocument()
     expect(screen.getByTestId('day-1')).toBeInTheDocument()
     expect(screen.getByTestId('day-15')).toBeInTheDocument()
@@ -193,7 +186,6 @@ describe('DatePicker Component', () => {
     const button = screen.getByTestId('button')
     await user.click(button)
 
-    // O popover deve estar visível após o clique
     expect(screen.getByTestId('popover')).toBeInTheDocument()
   })
 
@@ -206,7 +198,6 @@ describe('DatePicker Component', () => {
     const button = screen.getByTestId('button')
     await user.click(button)
 
-    // Verificar se o popover está aberto
     expect(screen.getByTestId('popover-content')).toBeInTheDocument()
   })
 

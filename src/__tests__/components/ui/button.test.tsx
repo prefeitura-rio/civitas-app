@@ -249,7 +249,7 @@ describe('Button Component', () => {
     render(<Button>{true}</Button>)
 
     const button = screen.getByRole('button')
-    // O React renderiza boolean como string vazia
+
     expect(button).toHaveTextContent('')
   })
 

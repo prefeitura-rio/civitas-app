@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { Calendar } from '@/components/ui/calendar'
 import { dateConfig } from '@/lib/date-config'
 
-// Mock do react-day-picker para evitar problemas de renderização
 jest.mock('react-day-picker', () => ({
   DayPicker: ({
     mode,
@@ -19,7 +18,6 @@ jest.mock('react-day-picker', () => ({
     classNames,
     ...props
   }: any) => {
-    // Função helper para extrair data selecionada
     const getSelectedData = () => {
       if (!selected) return 'none'
       if (Array.isArray(selected)) {
@@ -301,7 +299,7 @@ describe('Calendar Component', () => {
     render(<Calendar mode="single" onSelect={mockOnSelect} initialFocus />)
 
     const calendar = screen.getByTestId('calendar')
-    // O initialFocus é passado como prop, não como atributo
+
     expect(calendar).toBeInTheDocument()
   })
 

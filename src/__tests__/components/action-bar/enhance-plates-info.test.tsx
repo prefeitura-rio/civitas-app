@@ -5,7 +5,6 @@ import { EnhancePlatesInfo } from '@/app/(app)/veiculos/busca-por-radar/resultad
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 
-// Mock simples das dependências
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -48,7 +47,6 @@ jest.mock('@/lib/react-query', () => ({
   },
 }))
 
-// Mock do componente real
 jest.mock(
   '@/app/(app)/veiculos/busca-por-radar/resultado/components/action-bar/components/enhance-plates-info',
   () => ({
@@ -64,7 +62,6 @@ jest.mock(
   }),
 )
 
-// Mock data
 const mockDetection: DetectionDTO = {
   plate: 'ABC1234',
   timestamp: '2024-01-15T10:00:00Z',
@@ -86,7 +83,6 @@ const mockFilters: UseSearchByRadarResultDynamicFilter = {
   locationOptions: ['Local Teste'],
 }
 
-// Wrapper para QueryClient
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -101,7 +97,7 @@ const createWrapper = () => {
 }
 
 describe('EnhancePlatesInfo', () => {
-  it('deve renderizar com as props corretas', () => {
+  it('should render with correct props', () => {
     render(
       <EnhancePlatesInfo
         isLoading={false}
@@ -120,7 +116,7 @@ describe('EnhancePlatesInfo', () => {
     expect(screen.getByText('Enriquecer Resultado')).toBeInTheDocument()
   })
 
-  it('deve renderizar com loading ativo', () => {
+  it('should render with active loading', () => {
     render(
       <EnhancePlatesInfo
         isLoading={true}
@@ -134,7 +130,7 @@ describe('EnhancePlatesInfo', () => {
     expect(screen.getByText('Loading: true')).toBeInTheDocument()
   })
 
-  it('deve renderizar sem placas', () => {
+  it('should render without plates', () => {
     render(
       <EnhancePlatesInfo
         isLoading={false}
