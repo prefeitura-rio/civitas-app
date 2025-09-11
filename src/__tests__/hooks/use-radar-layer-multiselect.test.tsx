@@ -76,7 +76,7 @@ describe('useRadarLayer - Multi-selection bug', () => {
     })
   })
 
-  it('deve reproduzir o bug: selecionar 4+ radares, desselecionar alguns, resselecionar', () => {
+  it('should reproduce bug: select 4+ radars, deselect some, reselect', () => {
     const { result, rerender } = renderHook(() =>
       useRadarLayer(mockMultipleSelectedRadars),
     )
@@ -156,7 +156,7 @@ describe('useRadarLayer - Multi-selection bug', () => {
     console.log('🧪 Teste concluído - verificando se não há seleções espúrias')
   })
 
-  it('deve verificar se selectedObjects é calculado corretamente', () => {
+  it('should verify if selectedObjects is calculated correctly', () => {
     // Simular alguns radares já selecionados
     mockMultipleSelectedRadars = ['0540461121', '0540461123']
 
@@ -172,7 +172,7 @@ describe('useRadarLayer - Multi-selection bug', () => {
     ])
   })
 
-  it('deve verificar se o estado não muda quando não deveria', () => {
+  it('should verify if state does not change when it should not', () => {
     mockMultipleSelectedRadars = ['0540461121', '0540461122']
 
     const { result, rerender } = renderHook(() =>
