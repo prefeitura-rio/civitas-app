@@ -91,14 +91,14 @@ describe('SelectionCards', () => {
     } as any)
   })
 
-  it('deve renderizar sem erros', () => {
+  it('should render without errors', () => {
     render(<SelectionCards />)
     expect(screen.getByTestId('camera-select-card')).toBeInTheDocument()
     expect(screen.getByTestId('radar-select-card')).toBeInTheDocument()
     expect(screen.getByTestId('fogo-cruzado-select-card')).toBeInTheDocument()
   })
 
-  it('deve exibir estado "selected" quando objetos estão selecionados', () => {
+  it('should display "selected" state when objects are selected', () => {
     mockUseMap.mockReturnValue({
       layers: {
         cameras: {
@@ -187,7 +187,7 @@ describe('SelectionCards', () => {
     expect(screen.getByText('FogoCruzado: selected')).toBeInTheDocument()
   })
 
-  it('deve exibir estado "not selected" quando objetos não estão selecionados', () => {
+  it('should display "not selected" state when objects are not selected', () => {
     render(<SelectionCards />)
 
     expect(screen.getByText('Camera: not selected')).toBeInTheDocument()
@@ -198,21 +198,18 @@ describe('SelectionCards', () => {
   it('deve passar props corretas para CameraSelectCard', () => {
     render(<SelectionCards />)
 
-    // Verificar se o componente foi renderizado
     expect(screen.getByTestId('camera-select-card')).toBeInTheDocument()
   })
 
   it('deve passar props corretas para RadarSelectCard', () => {
     render(<SelectionCards />)
 
-    // Verificar se o componente foi renderizado
     expect(screen.getByTestId('radar-select-card')).toBeInTheDocument()
   })
 
   it('deve passar props corretas para FogoCruzadoSelectCard', () => {
     render(<SelectionCards />)
 
-    // Verificar se o componente foi renderizado
     expect(screen.getByTestId('fogo-cruzado-select-card')).toBeInTheDocument()
   })
 

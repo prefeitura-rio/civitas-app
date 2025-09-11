@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { Calendar } from '@/components/ui/calendar'
 import { dateConfig } from '@/lib/date-config'
 
-// Mock do react-day-picker para evitar problemas de renderização
 jest.mock('react-day-picker', () => ({
   DayPicker: ({
     mode,

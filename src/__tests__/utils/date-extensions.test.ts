@@ -127,7 +127,7 @@ describe('Date Extensions', () => {
   describe('setDatePreservingTime', () => {
     it('should set new date while preserving time', () => {
       const newDate = new Date(2024, 5, 20) // 20 de junho de 2024 (mês 5 = junho)
-      const result = setDatePreservingTime(newDate, testDate) // Use time from testDate (10:30:45.123)
+      const result = setDatePreservingTime(newDate, testDate)
 
       expect(result.getFullYear()).toBe(2024)
       expect(result.getMonth()).toBe(5) // Junho

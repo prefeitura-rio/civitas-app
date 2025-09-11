@@ -35,12 +35,10 @@ export function useRadarLayer(
 
   const { data } = useRadars()
 
-  // Usar o estado global do Zustand para seleção múltipla
   const setMultipleSelectedRadars = useMapStore(
     (state) => state.setMultipleSelectedRadars,
   )
 
-  // Calcular selectedObjects baseado nos códigos selecionados
   const selectedObjects = useMemo(() => {
     if (!data || !multipleSelectedRadars.length) return []
     return data.filter((radar) =>
@@ -48,7 +46,6 @@ export function useRadarLayer(
     )
   }, [data, multipleSelectedRadars])
 
-  // Função para atualizar selectedObjects via Zustand
   const setSelectedObjects = useCallback(
     (radarsOrUpdater: Radar[] | ((prev: Radar[]) => Radar[])) => {
       const newRadars =

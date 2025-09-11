@@ -6,7 +6,6 @@ import type { Feature, FeatureCollection } from 'geojson'
 import { SearchBox } from '@/app/(app)/veiculos/components/map/components/search-box'
 import { getPlaces } from '@/http/mapbox/get-places'
 
-// Mock da função getPlaces
 jest.mock('@/http/mapbox/get-places', () => ({
   getPlaces: jest.fn(),
 }))
@@ -30,7 +29,6 @@ describe('SearchBox', () => {
       },
     })
 
-    // Reset dos mocks
     jest.clearAllMocks()
   })
 
