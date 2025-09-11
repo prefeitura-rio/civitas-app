@@ -187,18 +187,6 @@ export function Map() {
         multiSelectRadar(radar)
       }
 
-      // Câmeras só podem ser selecionadas com o botão direito do mouse
-      // if (info?.layer?.id === 'cameras' && info.object) {
-      //   const camera = info.object as CameraCOR
-      //   selectCamera(camera)
-      //   setSelectedRadar(null)
-      //   setViewport({
-      //     latitude: camera.latitude,
-      //     longitude: camera.longitude,
-      //     zoom: 18,
-      //   })
-      // }
-
       // Reset drag state
       isDragging.current = false
       mouseDownPosition.current = null
