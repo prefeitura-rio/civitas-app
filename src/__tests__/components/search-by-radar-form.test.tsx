@@ -62,7 +62,7 @@ describe('SearchByRadarForm', () => {
     ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
   })
 
-  it('deve exibir lista de radares selecionados', () => {
+  it('should display list of selected radars', () => {
     mockUseMapLayers.mockReturnValue({
       radars: {
         selectedObjects: [mockRadar, mockRadar2],
@@ -85,7 +85,7 @@ describe('SearchByRadarForm', () => {
     ).toBeInTheDocument()
   })
 
-  it('deve exibir contador correto de radares selecionados', () => {
+  it('should display correct count of selected radars', () => {
     mockUseMapLayers.mockReturnValue({
       radars: {
         selectedObjects: [mockRadar, mockRadar2],
@@ -101,7 +101,7 @@ describe('SearchByRadarForm', () => {
     expect(screen.getByText('Radares (2)')).toBeInTheDocument()
   })
 
-  it('deve renderizar o formulário sem erros', () => {
+  it('should render form without errors', () => {
     mockUseMapLayers.mockReturnValue({
       radars: {
         selectedObjects: [],
