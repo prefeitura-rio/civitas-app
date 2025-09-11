@@ -68,45 +68,53 @@ export function RadarSelectCard({
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardHeader className="px-4 py-3">
-          <CardTitle className="text-md text-center tracking-tighter">
+        <CardHeader className="border-b px-4 py-3">
+          <CardTitle className="text-left text-sm font-semibold tracking-tighter">
             Radar OCR
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 pb-4">
+        <CardContent className="px-4 py-3">
           <div className="space-y-3 text-sm">
             <div className="flex flex-col space-y-1">
-              <span className="text-muted-foreground">Código CET-Rio</span>
-              <span className="font-medium">{selectedObject?.cetRioCode}</span>
+              <span className="text-sm font-medium">Código CET-Rio</span>
+              <span className="break-all text-sm text-muted-foreground">
+                {selectedObject?.cetRioCode}
+              </span>
             </div>
 
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-1">
-                <MapPin className="size-3.5 shrink-0" />
-                <span className="text-muted-foreground">Localização</span>
+                <MapPin className="size-4 shrink-0" />
+                <span className="text-sm font-medium">Localização</span>
               </div>
-              <span className="font-medium">
+              <span className="text-sm text-muted-foreground">
                 {`${selectedObject?.location} - ${selectedObject?.district}`}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col space-y-1">
-                <span className="text-muted-foreground">Latitude</span>
-                <span className="font-medium">{selectedObject?.latitude}</span>
+                <span className="text-sm font-medium">Latitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {selectedObject?.latitude}
+                </span>
               </div>
               <div className="flex flex-col space-y-1">
-                <span className="text-muted-foreground">Longitude</span>
-                <span className="font-medium">{selectedObject?.longitude}</span>
+                <span className="text-sm font-medium">Longitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {selectedObject?.longitude}
+                </span>
               </div>
             </div>
 
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-1">
                 <Building className="size-4 shrink-0" />
-                <span className="text-muted-foreground">Empresa</span>
+                <span className="text-sm font-medium">Empresa</span>
               </div>
-              <span className="font-medium">{selectedObject?.company}</span>
+              <span className="text-sm text-muted-foreground">
+                {selectedObject?.company}
+              </span>
             </div>
 
             {selectedObject?.lastDetectionTime && (
@@ -114,11 +122,9 @@ export function RadarSelectCard({
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-1">
                     <History className="size-4 shrink-0" />
-                    <span className="text-muted-foreground">
-                      Última detecção
-                    </span>
+                    <span className="text-sm font-medium">Última detecção</span>
                   </div>
-                  <span className="font-medium">
+                  <span className="text-sm text-muted-foreground">
                     {formatDate(
                       selectedObject?.lastDetectionTime,
                       "dd/MM/y 'às' HH:mm:ss",
@@ -127,23 +133,23 @@ export function RadarSelectCard({
                 </div>
 
                 <div className="flex flex-col space-y-1">
-                  <span className="text-muted-foreground">
+                  <span className="text-sm font-medium">
                     Ativo nas últimas 24 horas
                   </span>
                   {selectedObject?.activeInLast24Hours ? (
-                    <span className="font-medium text-emerald-600">Sim</span>
+                    <span className="text-sm text-emerald-600">Sim</span>
                   ) : (
-                    <span className="font-medium text-rose-600">Não</span>
+                    <span className="text-sm text-rose-600">Não</span>
                   )}
                 </div>
               </>
             )}
 
             {!selectedObject?.activeInLast24Hours && (
-              <div className="border-l-4 border-yellow-600 bg-secondary p-2">
+              <div className="border-l-4 border-yellow-600 bg-secondary p-1.5">
                 <div className="flex items-start">
-                  <AlertTriangle className="mr-2 mt-1 h-6 w-6 text-yellow-400" />
-                  <p className="text-sm text-gray-300">
+                  <AlertTriangle className="mr-1.5 mt-0.5 h-4 w-4 text-yellow-400" />
+                  <p className="text-xs text-gray-300">
                     <span className="font-bold text-yellow-400">Atenção!</span>{' '}
                     Radares são considerados inativos se não enviarem dados há
                     mais de 24 horas. No entanto, essa informação não é
@@ -154,7 +160,7 @@ export function RadarSelectCard({
               </div>
             )}
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
