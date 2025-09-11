@@ -3,14 +3,12 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { CameraSelectCard } from '@/app/(app)/veiculos/components/map/components/select-cards/camera-select-card'
 import type { CameraCOR } from '@/models/entities'
 
-// Mock do utils
 jest.mock('@/utils/string-extensions', () => ({
   capitalizeFirstLetter: jest.fn(
     (str: string) => str.charAt(0).toUpperCase() + str.slice(1),
   ),
 }))
 
-// Mock do window.open
 const mockWindowOpen = jest.fn()
 Object.defineProperty(window, 'open', {
   value: mockWindowOpen,
@@ -66,9 +64,8 @@ describe('CameraSelectCard', () => {
       render(<CameraSelectCard {...defaultProps} selectedObject={mockCamera} />)
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
-      // Verifica se o código aparece na seção de informações
       const codeElements = screen.getAllByText('CAM001')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
     })
 
     it('should display camera location and zone', () => {
@@ -94,7 +91,7 @@ describe('CameraSelectCard', () => {
 
       expect(screen.getByText('Código')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM001')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
     })
   })
 
@@ -192,7 +189,7 @@ describe('CameraSelectCard', () => {
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM003')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
       expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
     })
 
@@ -215,7 +212,7 @@ describe('CameraSelectCard', () => {
 
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM004')
-      expect(codeElements).toHaveLength(1) // Apenas na seção de informações
+      expect(codeElements).toHaveLength(1)
       expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
     })
   })

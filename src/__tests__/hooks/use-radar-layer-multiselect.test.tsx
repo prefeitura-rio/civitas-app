@@ -4,10 +4,8 @@ import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
 import type { Radar } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
-// Mock do store
 jest.mock('@/stores/use-map-store')
 
-// Mock dos radares
 jest.mock('@/hooks/useQueries/useRadars', () => ({
   useRadars: () => ({
     data: [
@@ -81,7 +79,6 @@ describe('useRadarLayer - Multi-selection bug', () => {
       useRadarLayer(mockMultipleSelectedRadars),
     )
 
-    // Passo 1: Selecionar 4 radares
     const radars = [
       { cetRioCode: '0540461121' } as Radar,
       { cetRioCode: '0540461122' } as Radar,
@@ -89,19 +86,13 @@ describe('useRadarLayer - Multi-selection bug', () => {
       { cetRioCode: '0540461124' } as Radar,
     ]
 
-    console.log('🧪 Teste: Selecionando 4 radares iniciais')
-
-    // Simular seleção dos 4 radares
     act(() => {
       radars.forEach((radar) => {
         result.current.handleMultiSelectObject(radar)
       })
     })
 
-    // Verificar chamadas para o store - agora são funções de atualização
     expect(mockSetMultipleSelectedRadars).toHaveBeenCalledTimes(4)
-
-    // Verificar se as funções de atualização funcionam corretamente
     const calls = mockSetMultipleSelectedRadars.mock.calls
     let currentState: string[] = []
 
@@ -119,7 +110,6 @@ describe('useRadarLayer - Multi-selection bug', () => {
       '0540461121',
     ])
 
-    // Passo 2: Simular que os radares estão selecionados no store
     mockMultipleSelectedRadars = [
       '0540461124',
       '0540461123',
@@ -128,43 +118,31 @@ describe('useRadarLayer - Multi-selection bug', () => {
     ]
     rerender()
 
-    console.log('🧪 Teste: Dessselecionando radar 0540461122')
-
-    // Passo 3: Dessselecionar um radar (0540461122)
     act(() => {
       result.current.handleMultiSelectObject({
         cetRioCode: '0540461122',
       } as Radar)
     })
 
-    // Passo 4: Simular estado após remoção
     mockMultipleSelectedRadars = ['0540461124', '0540461123', '0540461121']
     rerender()
 
-    console.log('🧪 Teste: Resselecionando radar 0540461125 (novo)')
-
-    // Passo 5: Selecionar um radar diferente (0540461125)
     act(() => {
       result.current.handleMultiSelectObject({
         cetRioCode: '0540461125',
       } as Radar)
     })
 
-    // Verificar que houve 6 chamadas no total (4 iniciais + 1 remoção + 1 adição)
     expect(mockSetMultipleSelectedRadars).toHaveBeenCalledTimes(6)
-
-    console.log('🧪 Teste concluído - verificando se não há seleções espúrias')
   })
 
   it('should verify if selectedObjects is calculated correctly', () => {
-    // Simular alguns radares já selecionados
     mockMultipleSelectedRadars = ['0540461121', '0540461123']
 
     const { result } = renderHook(() =>
       useRadarLayer(mockMultipleSelectedRadars),
     )
 
-    // Verificar se selectedObjects tem exatamente os radares esperados
     expect(result.current.selectedObjects).toHaveLength(2)
     expect(result.current.selectedObjects.map((r) => r.cetRioCode)).toEqual([
       '0540461121',
@@ -181,10 +159,8 @@ describe('useRadarLayer - Multi-selection bug', () => {
 
     const initialSelectedObjects = result.current.selectedObjects
 
-    // Re-renderizar sem mudanças no estado
     rerender()
 
-    // Verificar se os objetos têm os mesmos dados (conteúdo igual)
     expect(result.current.selectedObjects).toStrictEqual(initialSelectedObjects)
   })
 })

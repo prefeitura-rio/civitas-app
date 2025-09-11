@@ -198,21 +198,18 @@ describe('SelectionCards', () => {
   it('deve passar props corretas para CameraSelectCard', () => {
     render(<SelectionCards />)
 
-    // Verificar se o componente foi renderizado
     expect(screen.getByTestId('camera-select-card')).toBeInTheDocument()
   })
 
   it('deve passar props corretas para RadarSelectCard', () => {
     render(<SelectionCards />)
 
-    // Verificar se o componente foi renderizado
     expect(screen.getByTestId('radar-select-card')).toBeInTheDocument()
   })
 
   it('deve passar props corretas para FogoCruzadoSelectCard', () => {
     render(<SelectionCards />)
 
-    // Verificar se o componente foi renderizado
     expect(screen.getByTestId('fogo-cruzado-select-card')).toBeInTheDocument()
   })
 
