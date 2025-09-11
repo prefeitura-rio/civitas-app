@@ -12,6 +12,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Allow fake token for E2E tests
+  if (token === 'fake-test-token-for-e2e') {
+    console.log('🧪 Middleware - Allowing E2E test token')
+    return NextResponse.next()
+  }
+
   // Redirect to /auth/sign-in if no token is found and the path is not /auth/*
   if (!token) {
     return NextResponse.redirect(new URL('/auth/sign-in', request.url))

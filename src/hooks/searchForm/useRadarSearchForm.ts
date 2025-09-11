@@ -19,7 +19,6 @@ const MAX_DATE = new Date()
 
 interface UseRadarSearchFormProps {
   selectedObjects: Radar[]
-  setSelectedObjects: (radars: Radar[] | ((prev: Radar[]) => Radar[])) => void
   radars: Radar[] | undefined
   formattedSearchParams: {
     radarIds: string[]
@@ -30,7 +29,6 @@ interface UseRadarSearchFormProps {
 
 export function useRadarSearchForm({
   selectedObjects,
-  setSelectedObjects,
   radars,
   formattedSearchParams,
 }: UseRadarSearchFormProps) {
@@ -71,7 +69,6 @@ export function useRadarSearchForm({
 
   useRadarSync({
     selectedObjects,
-    setSelectedObjects,
     radars,
     formattedSearchParams,
     setValue: setValue as (name: string, value: string[]) => void,

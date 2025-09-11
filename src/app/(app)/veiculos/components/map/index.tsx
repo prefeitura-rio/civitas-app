@@ -113,15 +113,14 @@ export function Map() {
   const handleRightClick = useCallback(
     (e: MouseEvent) => {
       e.preventDefault()
+      e.stopPropagation()
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      // Seleção INDIVIDUAL de radar com botão direito (popup + zoom)
       if (info?.layer?.id === 'radars' && info.object) {
         const radar = info.object as Radar
         selectRadar(radar, () => setSelectedCamera(null))
-        // Zoom inteligente que respeita o zoom manual do usuário
         zoomToLocation(radar.latitude, radar.longitude, 18)
         return
       }
@@ -130,12 +129,9 @@ export function Map() {
         const camera = info.object as CameraCOR
         selectCamera(camera)
         setSelectedRadar(null)
-        // Zoom inteligente que respeita o zoom manual do usuário
         zoomToLocation(camera.latitude, camera.longitude, 18)
         return
       }
-
-      // Menu de contexto para outros elementos
       setContextMenuPickingInfo(info || null)
       setOpenContextMenu(!!info)
     },
@@ -159,25 +155,26 @@ export function Map() {
     if (mouseDownPosition.current) {
       const deltaX = Math.abs(e.clientX - mouseDownPosition.current.x)
       const deltaY = Math.abs(e.clientY - mouseDownPosition.current.y)
-      // Se moveu mais de 5 pixels, considera como drag
       if (deltaX > 5 || deltaY > 5) {
         isDragging.current = true
       }
     }
   }, [])
 
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false
+    mouseDownPosition.current = null
+  }, [])
+
   const handleLeftClick = useCallback(
     (e: MouseEvent) => {
       e.preventDefault()
 
-      // Se estava arrastando, não processar como clique
       if (isDragging.current) {
         isDragging.current = false
         mouseDownPosition.current = null
         return
       }
-
-      // Seleção MÚLTIPLA de radares com botão esquerdo (para input)
       const y = e.clientY
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
@@ -191,7 +188,6 @@ export function Map() {
         const camera = info.object as CameraCOR
         selectCamera(camera)
         setSelectedRadar(null)
-        // Zoom automático para a câmera selecionada
         setViewport({
           latitude: camera.latitude,
           longitude: camera.longitude,
@@ -199,7 +195,6 @@ export function Map() {
         })
       }
 
-      // Reset das variáveis
       isDragging.current = false
       mouseDownPosition.current = null
     },
@@ -266,6 +261,7 @@ export function Map() {
       onContextMenu={handleRightClick}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
       onClick={handleLeftClick}
     >
       <DeckGL

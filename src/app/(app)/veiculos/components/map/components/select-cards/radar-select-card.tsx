@@ -15,9 +15,9 @@ import { useCallback } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { cn } from '@/lib/utils'
 import type { Radar } from '@/models/entities'
+import { useMapStore } from '@/stores/use-map-store'
 
 interface RadarSelectCardProps {
   selectedObject: Radar | null
@@ -28,7 +28,11 @@ export function RadarSelectCard({
   selectedObject,
   setSelectedObject,
 }: RadarSelectCardProps) {
-  const { zoomToLocation, restorePreviousViewport, previousViewport } = useMap()
+  const zoomToLocation = useMapStore((state) => state.zoomToLocation)
+  const restorePreviousViewport = useMapStore(
+    (state) => state.restorePreviousViewport,
+  )
+  const previousViewport = useMapStore((state) => state.previousViewport)
 
   const handleZoomToRadar = useCallback(() => {
     if (selectedObject) {

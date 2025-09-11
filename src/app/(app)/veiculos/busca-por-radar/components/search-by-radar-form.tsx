@@ -13,8 +13,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useRadarSearchForm } from '@/hooks/searchForm'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
+import { useMapLayers, useMapStore } from '@/stores/use-map-store'
 
 import { DateField } from './date-field'
 import { InputField } from './input-field'
@@ -22,12 +22,9 @@ import { SelectedRadarsList } from './selected-radars-list'
 
 export const SearchByRadarForm = memo(function SearchByRadarForm() {
   const { formattedSearchParams } = useCarRadarSearchParams()
-  const {
-    layers: {
-      radars: { selectedObjects, setSelectedObjects, data: radars },
-    },
-    setViewport,
-  } = useMap()
+  const { radars } = useMapLayers()
+  const setViewport = useMapStore((state) => state.setViewport)
+  const { selectedObjects, setSelectedObjects, data: radarsData } = radars
 
   const {
     control,
@@ -39,8 +36,7 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
     MAX_DATE,
   } = useRadarSearchForm({
     selectedObjects,
-    setSelectedObjects,
-    radars,
+    radars: radarsData,
     formattedSearchParams,
   })
 
@@ -97,7 +93,7 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
               >
                 <SelectedRadarsList
                   selectedObjects={selectedObjects}
-                  radars={radars}
+                  radars={radarsData}
                   setSelectedObjects={setSelectedObjects}
                   setViewport={setViewport}
                 />

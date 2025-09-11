@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { Radar } from '@/models/entities'
+import { useMapStore } from '@/stores/use-map-store'
 
 interface UseRadarSyncProps {
   selectedObjects: Radar[]
-  setSelectedObjects: (radars: Radar[] | ((prev: Radar[]) => Radar[])) => void
   radars: Radar[] | undefined
   formattedSearchParams: {
     radarIds: string[]
@@ -16,11 +16,19 @@ interface UseRadarSyncProps {
 
 export function useRadarSync({
   selectedObjects,
-  setSelectedObjects,
   radars,
   formattedSearchParams,
   setValue,
 }: UseRadarSyncProps) {
+  const setMultipleSelectedRadars = useMapStore(
+    (state) => state.setMultipleSelectedRadars,
+  )
+  const multipleSelectedRadars = useMapStore(
+    (state) => state.multipleSelectedRadars,
+  )
+
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+
   useEffect(() => {
     setValue(
       'radarIds',
@@ -29,19 +37,39 @@ export function useRadarSync({
   }, [selectedObjects, setValue])
 
   useEffect(() => {
-    if (radars && formattedSearchParams && selectedObjects.length === 0) {
-      const ids = formattedSearchParams.radarIds || []
+    if (!Array.isArray(multipleSelectedRadars)) {
+      return
+    }
 
-      const selectedRadars = radars.filter((radar) =>
-        ids.includes(radar.cetRioCode),
-      )
+    if (!isInitialLoad) {
+      return
+    }
 
-      setSelectedObjects(selectedRadars)
+    if (
+      radars &&
+      formattedSearchParams &&
+      formattedSearchParams.radarIds?.length > 0
+    ) {
+      const urlRadarIds = formattedSearchParams.radarIds
+
+      setMultipleSelectedRadars(urlRadarIds)
+      setIsInitialLoad(false)
+    } else if (
+      formattedSearchParams &&
+      formattedSearchParams.radarIds?.length === 0 &&
+      Array.isArray(multipleSelectedRadars) &&
+      multipleSelectedRadars.length > 0
+    ) {
+      setMultipleSelectedRadars([])
+      setIsInitialLoad(false)
+    } else if (radars && formattedSearchParams) {
+      setIsInitialLoad(false)
     }
   }, [
     radars,
     formattedSearchParams,
-    selectedObjects.length,
-    setSelectedObjects,
+    multipleSelectedRadars,
+    setMultipleSelectedRadars,
+    isInitialLoad,
   ])
 }
