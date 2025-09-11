@@ -103,7 +103,6 @@ describe('useRadarsSearch', () => {
       wrapper: createWrapper,
     })
 
-    // Query deve estar habilitada mas sem dados
     expect(result.current.data).toBeUndefined()
   })
 })
