@@ -5,17 +5,14 @@ import { RadarSelectCard } from '@/app/(app)/veiculos/components/map/components/
 import type { CameraCOR, Radar } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
-// Mock do Zustand store
 jest.mock('@/stores/use-map-store', () => ({
   useMapStore: jest.fn(),
 }))
 
 const mockUseMapStore = jest.mocked(useMapStore)
 
-// Mock das string extensions
 jest.mock('@/utils/string-extensions', () => ({}))
 
-// Dados de mock
 const mockRadar: Radar = {
   cetRioCode: '123456',
   latitude: -22.9068,
@@ -43,7 +40,6 @@ const mockCamera: CameraCOR = {
 
 describe('Select Cards Layout Snapshots', () => {
   beforeEach(() => {
-    // Mock das funções do store
     mockUseMapStore.mockImplementation((selector) => {
       const state = {
         zoomToLocation: jest.fn(),
@@ -156,7 +152,6 @@ describe('Select Cards Layout Snapshots', () => {
         />,
       )
 
-      // Verificar classes de alinhamento nos títulos
       const radarTitle = radarContainer.querySelector('h3')
       const cameraTitle = cameraContainer.querySelector('h3')
 
@@ -179,7 +174,6 @@ describe('Select Cards Layout Snapshots', () => {
         />,
       )
 
-      // Verificar se headers têm border-b
       const radarHeader = radarContainer.querySelector(
         '[class*="border-b"]',
       ) as HTMLElement
@@ -206,13 +200,11 @@ describe('Select Cards Layout Snapshots', () => {
         />,
       )
 
-      // Verificar se labels têm text-sm font-medium
       const radarLabels = radarContainer.querySelectorAll('.font-medium')
       const cameraLabels = cameraContainer.querySelectorAll('.font-medium')
 
       radarLabels.forEach((label) => {
         if (!label.textContent?.includes('Ativo nas últimas')) {
-          // Excluir os spans de sim/não que não são labels
           expect(label).toHaveClass('text-sm')
         }
       })
@@ -237,7 +229,6 @@ describe('Select Cards Layout Snapshots', () => {
         />,
       )
 
-      // Verificar CardHeader com py-3
       const radarHeader = radarContainer.querySelector('[class*="py-3"]')
       const cameraHeader = cameraContainer.querySelector('[class*="py-3"]')
 

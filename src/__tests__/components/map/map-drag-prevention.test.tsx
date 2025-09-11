@@ -4,12 +4,10 @@ import { Map } from '@/app/(app)/veiculos/components/map'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { Radar } from '@/models/entities'
 
-// Mock do hook useMap
 jest.mock('@/hooks/useContexts/use-map-context', () => ({
   useMap: jest.fn(),
 }))
 
-// Mock do DeckGL e MapGL
 jest.mock('deck.gl', () => ({
   DeckGL: ({ children, ...props }: any) => (
     <div data-testid="deck-gl" {...props}>
@@ -23,7 +21,6 @@ jest.mock('react-map-gl', () => ({
   default: (props: any) => <div data-testid="map-gl" {...props} />,
 }))
 
-// Mock dos componentes filhos
 jest.mock(
   '@/app/(app)/veiculos/components/map/components/select-cards',
   () => ({
@@ -55,7 +52,6 @@ jest.mock(
 
 const mockUseMap = jest.mocked(useMap)
 
-// Mock do radar para testes
 const mockRadar: Radar = {
   cetRioCode: '123456',
   latitude: -22.9068,
@@ -147,7 +143,6 @@ describe('Map - Drag Prevention', () => {
     const { container } = render(<Map />)
     const mapContainer = container.firstChild as HTMLElement
 
-    // Verificar se o container tem as classes esperadas
     expect(mapContainer).toHaveClass(
       'relative',
       'h-full',
@@ -160,7 +155,6 @@ describe('Map - Drag Prevention', () => {
     const { container } = render(<Map />)
     const mapContainer = container.firstChild as HTMLElement
 
-    // Testar sequência de eventos de drag sem verificar lógica específica
     expect(() => {
       fireEvent.mouseDown(mapContainer, { clientX: 100, clientY: 100 })
       fireEvent.mouseMove(mapContainer, { clientX: 120, clientY: 120 })
@@ -173,7 +167,6 @@ describe('Map - Drag Prevention', () => {
     const { container } = render(<Map />)
     const mapContainer = container.firstChild as HTMLElement
 
-    // Testar sequência de eventos de click sem verificar lógica específica
     expect(() => {
       fireEvent.mouseDown(mapContainer, { clientX: 100, clientY: 100 })
       fireEvent.mouseUp(mapContainer, { clientX: 100, clientY: 100 })
@@ -182,16 +175,12 @@ describe('Map - Drag Prevention', () => {
   })
 
   it('deve ter refs configurados para detecção de drag', () => {
-    // Este teste verifica se os refs necessários são criados
-    // A lógica específica é testada na aplicação real
     expect(() => {
       render(<Map />)
     }).not.toThrow()
   })
 
   it('deve ter threshold configurado para detecção de movimento', () => {
-    // Teste que verifica se a implementação contém a lógica de threshold
-    // Sem testar a lógica específica que pode ser complexa de mockar
     const { container } = render(<Map />)
     const mapContainer = container.firstChild as HTMLElement
 

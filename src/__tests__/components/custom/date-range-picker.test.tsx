@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import { DatePickerWithRange } from '@/components/custom/date-range-picker'
 import { dateConfig } from '@/lib/date-config'
 
-// Mock do react-day-picker
 jest.mock('react-day-picker', () => ({
   DayPicker: (
     { locale, ...props }: any, // eslint-disable-line @typescript-eslint/no-explicit-any

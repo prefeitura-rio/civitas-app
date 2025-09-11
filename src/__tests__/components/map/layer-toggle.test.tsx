@@ -4,7 +4,6 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MapLayerControl } from '@/app/(app)/veiculos/components/map/components/layer-toggle'
 import { MapContextProvider } from '@/contexts/map-context'
 
-// Mock dos hooks de camadas
 jest.mock('@/hooks/mapLayers/use-radar-layer', () => ({
   useRadarLayer: () => ({
     isVisible: true, // Radar deve estar visível por padrão
