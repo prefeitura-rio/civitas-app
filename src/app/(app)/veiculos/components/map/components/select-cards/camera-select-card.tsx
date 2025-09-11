@@ -72,52 +72,56 @@ export function CameraSelectCard({
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardHeader className="px-4 py-3">
-          <CardTitle className="text-md text-center tracking-tighter">
+        <CardHeader className="border-b px-4 py-3">
+          <CardTitle className="text-left text-sm font-semibold tracking-tighter">
             Câmera
           </CardTitle>
-          <CardDescription className="text-xs">{`${selectedObject?.location.capitalizeFirstLetter()} - ${selectedObject?.zone.capitalizeFirstLetter()}`}</CardDescription>
         </CardHeader>
-        <CardContent className="px-4 pb-4">
+        <div className="px-4 py-2">
+          <CardDescription className="text-xs">{`${selectedObject?.location.capitalizeFirstLetter()} - ${selectedObject?.zone.capitalizeFirstLetter()}`}</CardDescription>
+        </div>
+        <CardContent className="px-4 py-3">
           <div className="space-y-3 text-sm">
             <div className="flex flex-col space-y-1">
-              <span className="text-muted-foreground">Código</span>
-              <span className="font-medium">{selectedObject?.code}</span>
+              <span className="text-sm font-medium">Código</span>
+              <span className="text-sm text-muted-foreground">
+                {selectedObject?.code}
+              </span>
             </div>
 
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-1">
-                <MapPin className="size-3.5 shrink-0" />
-                <span className="text-muted-foreground">Localização</span>
+                <MapPin className="size-4 shrink-0" />
+                <span className="text-sm font-medium">Localização</span>
               </div>
-              <span className="font-medium">
+              <span className="text-sm text-muted-foreground">
                 {selectedObject?.location.capitalizeFirstLetter()}
               </span>
             </div>
 
             <div className="flex flex-col space-y-1">
-              <span className="text-muted-foreground">Zona</span>
-              <span className="font-medium">
+              <span className="text-sm font-medium">Zona</span>
+              <span className="text-sm text-muted-foreground">
                 {selectedObject?.zone.capitalizeFirstLetter()}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col space-y-1">
-                <span className="text-muted-foreground">Latitude</span>
-                <span className="font-medium">
+                <span className="text-sm font-medium">Latitude</span>
+                <span className="text-sm text-muted-foreground">
                   {selectedObject?.latitude?.toFixed(6)}
                 </span>
               </div>
               <div className="flex flex-col space-y-1">
-                <span className="text-muted-foreground">Longitude</span>
-                <span className="font-medium">
+                <span className="text-sm font-medium">Longitude</span>
+                <span className="text-sm text-muted-foreground">
                   {selectedObject?.longitude?.toFixed(6)}
                 </span>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"

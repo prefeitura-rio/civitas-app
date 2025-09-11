@@ -4,8 +4,8 @@ import { expect, test } from '@playwright/test'
  * Teste completo de busca por radar - do login até validação final
  * Garante que toda a funcionalidade continua funcionando
  */
-test.describe('Busca por Radar - Teste Completo', () => {
-  test('deve executar fluxo completo: seleção → busca → validação', async ({
+test.describe('Radar Search - Complete Test', () => {
+  test('should execute complete flow: selection → search → validation', async ({
     page,
   }) => {
     // STEP 1: Configura autenticação e navega para busca por radar

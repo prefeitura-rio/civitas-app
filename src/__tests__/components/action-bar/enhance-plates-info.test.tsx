@@ -5,7 +5,6 @@ import { EnhancePlatesInfo } from '@/app/(app)/veiculos/busca-por-radar/resultad
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 
-// Mock simples das dependências
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -48,7 +47,6 @@ jest.mock('@/lib/react-query', () => ({
   },
 }))
 
-// Mock do componente real
 jest.mock(
   '@/app/(app)/veiculos/busca-por-radar/resultado/components/action-bar/components/enhance-plates-info',
   () => ({
@@ -64,7 +62,6 @@ jest.mock(
   }),
 )
 
-// Mock data
 const mockDetection: DetectionDTO = {
   plate: 'ABC1234',
   timestamp: '2024-01-15T10:00:00Z',

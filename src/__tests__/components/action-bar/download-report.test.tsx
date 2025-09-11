@@ -5,7 +5,6 @@ import { DownloadReport } from '@/app/(app)/veiculos/busca-por-radar/resultado/c
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 
-// Mock das dependências
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -51,7 +50,6 @@ jest.mock('@/utils/download-file', () => ({
   downloadFile: jest.fn(),
 }))
 
-// Mock completo do @react-pdf/renderer
 jest.mock('@react-pdf/renderer', () => ({
   pdf: jest.fn(() => ({
     toBlob: jest.fn().mockResolvedValue(new Blob()),
@@ -69,7 +67,6 @@ jest.mock('@react-pdf/renderer', () => ({
   Document: 'Document',
 }))
 
-// Mock data
 const mockDetection: DetectionDTO = {
   plate: 'ABC1234',
   timestamp: '2024-01-15T10:00:00Z',

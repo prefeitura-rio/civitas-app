@@ -3,11 +3,9 @@ import type { FeatureCollection } from 'geojson'
 
 import { getReversePlaces } from '@/http/mapbox/get-reverse-places'
 
-// Mock do axios
 jest.mock('axios')
 const mockedAxios = axios as jest.Mocked<typeof axios>
 
-// Mock da config
 jest.mock('@/config', () => ({
   config: {
     mapboxAccessToken: 'test-token',

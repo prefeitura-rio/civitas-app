@@ -48,52 +48,6 @@ export default function Pessoa({ params: { cpf } }: PessoaProps) {
   const remainingCredits = cortexRemainingCredits?.remaining_credit
   const timeUntilReset = cortexRemainingCredits?.time_until_reset
 
-  // console.log(cpf)
-  // const error = null
-  // const isLoading = false
-  // const data = {
-  //   anoExercicioOcupacao: '2023',
-  //   anoObito: '',
-  //   bairro: 'Centro',
-  //   cep: '12345-678',
-  //   complementoLogradouro: 'Apto 101',
-  //   dataAtualizacao: '2024-09-27T18:44:09.563Z',
-  //   dataNascimento: '1985-05-15',
-  //   ddd: '11',
-  //   id: 1,
-  //   identificadorResidenteExterior: 'N',
-  //   indicadorEstrangeiro: 'N',
-  //   indicadorMoradorEstrangeiro: false,
-  //   indiceNacionalPessoas: [
-  //     {
-  //       id: 1,
-  //       metodo: 'Censo',
-  //       qtd: 1,
-  //     },
-  //   ],
-  //   latitudeAproximadaLocal: -23.55052,
-  //   logradouro: 'Rua das Flores',
-  //   longitudeAproximadaLocal: -46.633308,
-  //   municipio: 'São Paulo',
-  //   municipioNaturalidade: 'São Paulo',
-  //   naturezaOcupacao: 'Engenheiro de Software',
-  //   nomeCompleto: 'João da Silva',
-  //   nomeMae: 'Maria da Silva',
-  //   nomeSocial: 'João',
-  //   numeroCPF: '123.456.789-00',
-  //   numeroLogradouro: '100',
-  //   ocupacaoPrincipal: 'Desenvolvedor',
-  //   paisNascimento: 'Brasil',
-  //   paisResidencia: 'Brasil',
-  //   regiaoFiscal: 'Sudeste',
-  //   sexo: 'Masculino',
-  //   situacaoCadastral: 'Regular',
-  //   telefone: '11987654321',
-  //   tipoLogradouro: 'Rua',
-  //   tituloEleitor: '123456789012',
-  //   uf: 'SP',
-  //   ufNaturalidade: 'SP',
-  // }
 
   useEffect(() => {
     async function initializeMap() {
