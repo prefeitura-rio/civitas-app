@@ -3,7 +3,6 @@ import { useSearchParams } from 'next/navigation'
 
 import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
 
-// Mock do next/navigation
 jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(),
 }))
@@ -30,7 +29,6 @@ describe('useCarRadarSearchParams', () => {
       }
     })
 
-    // Usar as any para evitar problemas de tipo complexos
     return searchParams as any
   }
 
@@ -172,7 +170,7 @@ describe('useCarRadarSearchParams', () => {
     it('should return null when interval exceeds 5 hours', () => {
       const mockParams = createMockSearchParams({
         startDate: '2024-01-15T10:00:00.000Z',
-        endDate: '2024-01-15T16:00:00.000Z', // 6 horas depois
+        endDate: '2024-01-15T16:00:00.000Z',
         radarIds: ['RADAR001'],
       })
 
