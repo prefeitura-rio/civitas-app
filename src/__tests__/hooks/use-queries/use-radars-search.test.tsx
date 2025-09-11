@@ -5,7 +5,6 @@ import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchPara
 import { useRadars } from '@/hooks/useQueries/useRadars'
 import { useRadarsSearch } from '@/hooks/useQueries/useRadarsSearch'
 
-// Mock das dependências
 jest.mock('@/http/cars/radar/get-cars-by-radar')
 jest.mock('@/hooks/useParams/useCarRadarSearchParams')
 jest.mock('@/hooks/useQueries/useRadars')
@@ -26,7 +25,6 @@ describe('useRadarsSearch', () => {
       },
     })
 
-    // Reset dos mocks
     jest.clearAllMocks()
   })
 

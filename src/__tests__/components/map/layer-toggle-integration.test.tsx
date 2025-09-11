@@ -4,7 +4,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MapLayerControl } from '@/app/(app)/veiculos/components/map/components/layer-toggle'
 import { MapContextProvider } from '@/contexts/map-context'
 
-// Mock dos hooks de camadas com comportamento real
 const mockSetIsRadarVisible = jest.fn()
 const mockSetIsCameraVisible = jest.fn()
 const mockSetIsAgentsVisible = jest.fn()
@@ -123,7 +122,6 @@ describe('MapLayerControl Integration', () => {
       },
     })
 
-    // Reset de todos os mocks
     jest.clearAllMocks()
   })
 
@@ -330,7 +328,6 @@ describe('MapLayerControl Integration', () => {
     const button = screen.getByText('Camadas')
     fireEvent.click(button)
 
-    // Lista de todas as camadas para testar
     const layerTests = [
       { button: 'Toggle Radar layer', mock: mockSetIsRadarVisible },
       { button: 'Toggle Câmeras layer', mock: mockSetIsCameraVisible },
@@ -355,7 +352,6 @@ describe('MapLayerControl Integration', () => {
       },
     ]
 
-    // Testa cada camada
     for (const { button: buttonLabel, mock } of layerTests) {
       const layerButton = screen.getByLabelText(buttonLabel)
       fireEvent.click(layerButton)
