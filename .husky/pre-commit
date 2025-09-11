@@ -1,2 +1,20 @@
-npx lint-staged
+#!/usr/bin/env sh
+
+# Load nvm if available
+if [ -f ~/.nvm/nvm.sh ]; then
+  . ~/.nvm/nvm.sh
+  nvm use
+fi
+
+# Try to find node in common locations
+if command -v node >/dev/null 2>&1; then
+  ./node_modules/.bin/lint-staged
+elif [ -f /opt/homebrew/bin/node ]; then
+  PATH="/opt/homebrew/bin:$PATH" ./node_modules/.bin/lint-staged
+elif [ -f /usr/local/bin/node ]; then
+  PATH="/usr/local/bin:$PATH" ./node_modules/.bin/lint-staged
+else
+  echo "Node.js not found. Skipping lint-staged."
+  exit 0
+fi
 
