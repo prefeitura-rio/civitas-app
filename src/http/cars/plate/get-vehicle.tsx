@@ -53,7 +53,6 @@ import type { Vehicle } from '@/models/entities'
 //     indicadorVeiculoLicenciadoCirculacao: '',
 //     indicadorVeiculoNacional: true,
 export async function getVehicle(plate: string) {
-
   const response = await api.get<Vehicle>(`/cars/plate/${plate}`)
   return response.data
 }
