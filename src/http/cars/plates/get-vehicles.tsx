@@ -59,7 +59,6 @@ export async function getVehicles(plates: string[]) {
   //   const dummyData = getDummyVehicles(plates)
   //   return dummyData
   // }
-
   const response = await api.post<Vehicle[]>('/cars/plates', {
     plates,
     raise_for_errors: false,
