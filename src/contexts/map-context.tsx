@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import {
-  FlyToInterpolator,
-  type MapViewState,
-  type PickingInfo,
-} from '@deck.gl/core'
+import { type MapViewState, type PickingInfo } from '@deck.gl/core'
 import type { DeckGLRef } from 'deck.gl'
-import { createContext, type ReactNode, useState } from 'react'
+import { createContext, type ReactNode } from 'react'
 import type { MapRef } from 'react-map-gl'
 
 import {
@@ -45,8 +41,8 @@ import {
   useWazePoliceAlerts,
 } from '@/hooks/mapLayers/use-waze-police-alerts'
 import type { SetViewportProps } from '@/models/utils'
+import { useMapStore } from '@/stores/use-map-store'
 import { MapStyle } from '@/utils/get-map-style'
-import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 interface MapContextProps {
   layers: {
@@ -97,74 +93,43 @@ interface MapContextProviderProps {
   children: ReactNode
 }
 
+// Context compatível que usa Zustand por baixo dos panos
 export function MapContextProvider({ children }: MapContextProviderProps) {
-  const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
-  const [mapStyle, setMapStyle] = useState<MapStyle>(MapStyle.Map)
-  const [mapRef, setMapRef] = useState<MapRef | null>(null)
-  const [deckRef, setDeckRef] = useState<DeckGLRef | null>(null)
-  const [openContextMenu, setOpenContextMenu] = useState(false)
-  const [contextMenuPickingInfo, setContextMenuPickingInfo] =
-    useState<PickingInfo | null>(null)
-  // Estados para seleção múltipla de radares
-  const [multipleSelectedRadars, setMultipleSelectedRadars] = useState<
-    string[]
-  >([])
-  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
-  // Sistema de histórico de viewport para zoom
-  const [previousViewport, setPreviousViewport] = useState<MapViewState | null>(
-    null,
+  // Estados do Zustand
+  const viewport = useMapStore((state) => state.viewport)
+  const setViewport = useMapStore((state) => state.setViewport)
+  const mapStyle = useMapStore((state) => state.mapStyle)
+  const setMapStyle = useMapStore((state) => state.setMapStyle)
+  const mapRef = useMapStore((state) => state.mapRef)
+  const setMapRef = useMapStore((state) => state.setMapRef)
+  const deckRef = useMapStore((state) => state.deckRef)
+  const setDeckRef = useMapStore((state) => state.setDeckRef)
+  const openContextMenu = useMapStore((state) => state.openContextMenu)
+  const setOpenContextMenu = useMapStore((state) => state.setOpenContextMenu)
+  const contextMenuPickingInfo = useMapStore(
+    (state) => state.contextMenuPickingInfo,
+  )
+  const setContextMenuPickingInfo = useMapStore(
+    (state) => state.setContextMenuPickingInfo,
+  )
+  const multipleSelectedRadars = useMapStore(
+    (state) => state.multipleSelectedRadars,
+  )
+  const setMultipleSelectedRadars = useMapStore(
+    (state) => state.setMultipleSelectedRadars,
+  )
+  const isMultiSelectMode = useMapStore((state) => state.isMultiSelectMode)
+  const setIsMultiSelectMode = useMapStore(
+    (state) => state.setIsMultiSelectMode,
+  )
+  const previousViewport = useMapStore((state) => state.previousViewport)
+  const setPreviousViewport = useMapStore((state) => state.setPreviousViewport)
+  const zoomToLocation = useMapStore((state) => state.zoomToLocation)
+  const restorePreviousViewport = useMapStore(
+    (state) => state.restorePreviousViewport,
   )
 
-  function setViewport(props: SetViewportProps) {
-    setViewportState({
-      ...viewport,
-      ...props,
-      transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-      transitionDuration: 'auto',
-    })
-  }
-
-  // Função inteligente para zoom que respeita o zoom manual do usuário
-  function zoomToLocation(
-    latitude: number,
-    longitude: number,
-    zoom: number = 18,
-    forceZoom: boolean = false,
-  ) {
-    const currentZoom = viewport.zoom || 0
-
-    console.log('zoomToLocation called:', {
-      currentZoom,
-      targetZoom: zoom,
-      forceZoom,
-      willZoom: forceZoom || currentZoom <= zoom,
-    })
-
-    // Se o usuário já está com zoom maior que o zoom automático, não força o zoom
-    // A menos que forceZoom seja true
-    if (!forceZoom && currentZoom > zoom) {
-      console.log('Zoom skipped - user has higher zoom')
-      return
-    }
-
-    // Salva o viewport atual antes de fazer zoom automático
-    setPreviousViewport(viewport)
-
-    setViewport({
-      latitude,
-      longitude,
-      zoom,
-    })
-  }
-
-  // Função para restaurar o viewport anterior
-  function restorePreviousViewport() {
-    if (previousViewport) {
-      setViewport(previousViewport)
-      setPreviousViewport(null)
-    }
-  }
-
+  // Layers usando hooks tradicionais
   const radars = useRadarLayer(multipleSelectedRadars)
   const trips = useTrips({ setViewport })
   const cameras = useCameraCOR()
