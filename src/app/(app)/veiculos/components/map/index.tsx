@@ -6,6 +6,7 @@ import { type Deck, DeckGL } from 'deck.gl'
 import { type MouseEvent, useCallback, useEffect, useMemo, useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
+import { MapSizeMonitor } from '@/components/custom/map-size-monitor'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { CameraCOR, Radar } from '@/models/entities'
 import { getMapStyle } from '@/utils/get-map-style'
@@ -257,6 +258,8 @@ export function Map() {
       onMouseUp={handleMouseUp}
       onClick={handleLeftClick}
     >
+      <MapSizeMonitor />
+
       <DeckGL
         ref={deckRef}
         initialViewState={viewport}
@@ -282,6 +285,9 @@ export function Map() {
           onSubmit={handleSearchSubmit}
         />
       </div>
+
+      {/* Debug das dimensões - remover em produção */}
+      {/* <ViewportDebug /> */}
 
       <SelectionCards />
       <HoverCards />
