@@ -30,7 +30,7 @@ export function SelectionCards() {
   const radarInfoMode = useMapStore((state) => state.radarInfoMode)
   const setRadarInfoMode = useMapStore((state) => state.setRadarInfoMode)
 
-  const marginTop = useMemo(() => (mapWidth < 854 ? 'mt-12' : ''), [mapWidth])
+  const marginTop = useMemo(() => (mapWidth < 1060 ? 'mt-12' : ''), [mapWidth])
 
   return (
     <>

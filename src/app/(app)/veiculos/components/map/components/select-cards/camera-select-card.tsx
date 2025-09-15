@@ -61,7 +61,7 @@ export function CameraSelectCard({
   return (
     <Card
       className={cn(
-        'absolute left-2 top-2 w-72 tracking-tighter',
+        'absolute left-2 top-2 w-72 w-[400px] tracking-tighter',
         !selectedObject ? 'hidden' : '',
         className,
       )}
