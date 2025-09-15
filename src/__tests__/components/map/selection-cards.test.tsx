@@ -94,7 +94,8 @@ describe('SelectionCards', () => {
   it('should render without errors', () => {
     render(<SelectionCards />)
     expect(screen.getByTestId('camera-select-card')).toBeInTheDocument()
-    expect(screen.getByTestId('radar-select-card')).toBeInTheDocument()
+    const radarCards = screen.getAllByTestId('radar-select-card')
+    expect(radarCards).toHaveLength(2) // Normal radar card + info mode radar card
     expect(screen.getByTestId('fogo-cruzado-select-card')).toBeInTheDocument()
   })
 
@@ -191,7 +192,8 @@ describe('SelectionCards', () => {
     render(<SelectionCards />)
 
     expect(screen.getByText('Camera: not selected')).toBeInTheDocument()
-    expect(screen.getByText('Radar: not selected')).toBeInTheDocument()
+    const radarElements = screen.getAllByText('Radar: not selected')
+    expect(radarElements).toHaveLength(2) // Normal radar card + info mode radar card
     expect(screen.getByText('FogoCruzado: not selected')).toBeInTheDocument()
   })
 
@@ -204,7 +206,8 @@ describe('SelectionCards', () => {
   it('deve passar props corretas para RadarSelectCard', () => {
     render(<SelectionCards />)
 
-    expect(screen.getByTestId('radar-select-card')).toBeInTheDocument()
+    const radarCards = screen.getAllByTestId('radar-select-card')
+    expect(radarCards).toHaveLength(2) // Normal radar card + info mode radar card
   })
 
   it('deve passar props corretas para FogoCruzadoSelectCard', () => {
@@ -257,7 +260,8 @@ describe('SelectionCards', () => {
     render(<SelectionCards />)
 
     expect(screen.getByText('Camera: not selected')).toBeInTheDocument()
-    expect(screen.getByText('Radar: not selected')).toBeInTheDocument()
+    const radarElements = screen.getAllByText('Radar: not selected')
+    expect(radarElements).toHaveLength(2) // Normal radar card + info mode radar card
     expect(screen.getByText('FogoCruzado: not selected')).toBeInTheDocument()
   })
 })

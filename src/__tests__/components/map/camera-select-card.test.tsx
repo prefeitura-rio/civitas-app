@@ -157,7 +157,7 @@ describe('CameraSelectCard', () => {
 
       const card = screen.getByText('Câmera').closest('div')
         ?.parentElement?.parentElement
-      expect(card).toHaveClass('absolute', 'left-2', 'top-2', 'w-72')
+      expect(card).toHaveClass('absolute', 'left-2', 'top-2', 'w-[400px]')
     })
 
     it('should have correct tracking style', () => {
@@ -190,7 +190,8 @@ describe('CameraSelectCard', () => {
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM003')
       expect(codeElements).toHaveLength(1)
-      expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
+      const testeElements = screen.getAllByText('Teste')
+      expect(testeElements.length).toBeGreaterThanOrEqual(2) // Location and Zone fields
     })
 
     it('should handle null values gracefully', () => {
@@ -213,7 +214,8 @@ describe('CameraSelectCard', () => {
       expect(screen.getByText('Câmera')).toBeInTheDocument()
       const codeElements = screen.getAllByText('CAM004')
       expect(codeElements).toHaveLength(1)
-      expect(screen.getByText('Teste - Teste')).toBeInTheDocument()
+      const testeElements = screen.getAllByText('Teste')
+      expect(testeElements.length).toBeGreaterThanOrEqual(2) // Location and Zone fields
     })
   })
 })

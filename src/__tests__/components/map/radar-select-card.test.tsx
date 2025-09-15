@@ -138,20 +138,20 @@ describe('RadarSelectCard', () => {
     expect(closeButton).toHaveClass('h-5', 'w-5', 'p-0')
   })
 
-  it('should have absolute positioning in top right corner', () => {
+  it('should have absolute positioning in top left corner', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const card = screen.getByText('Radar OCR').closest('div')
       ?.parentElement?.parentElement
-    expect(card).toHaveClass('absolute', 'right-2', 'top-2')
+    expect(card).toHaveClass('absolute', 'left-2', 'top-2')
   })
 
-  it('should have fixed width of 72 (w-72)', () => {
+  it('should have fixed width of 400px (w-[400px])', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
     const card = screen.getByText('Radar OCR').closest('div')
       ?.parentElement?.parentElement
-    expect(card).toHaveClass('w-72')
+    expect(card).toHaveClass('w-[400px]')
   })
 
   it('should have tracking-tighter for letter spacing', () => {

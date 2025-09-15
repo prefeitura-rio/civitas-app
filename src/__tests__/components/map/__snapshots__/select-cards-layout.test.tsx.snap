@@ -2,7 +2,7 @@
 
 exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o layout compacto do camera card com streaming: camera-card-com-streaming 1`] = `
 <div
-  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-72 tracking-tighter"
+  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-[400px] tracking-tighter"
 >
   <div
     class="relative"
@@ -38,15 +38,6 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
       >
         Câmera
       </h3>
-    </div>
-    <div
-      class="px-4 py-2"
-    >
-      <p
-        class="text-muted-foreground text-xs"
-      >
-        Copacabana Palace - Zona Sul
-      </p>
     </div>
     <div
       class="p-6 px-4 py-3"
@@ -224,7 +215,7 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
 
 exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o layout compacto do camera card sem streaming: camera-card-sem-streaming 1`] = `
 <div
-  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-72 tracking-tighter"
+  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-[400px] tracking-tighter"
 >
   <div
     class="relative"
@@ -260,15 +251,6 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
       >
         Câmera
       </h3>
-    </div>
-    <div
-      class="px-4 py-2"
-    >
-      <p
-        class="text-muted-foreground text-xs"
-      >
-        Copacabana Palace - Zona Sul
-      </p>
     </div>
     <div
       class="p-6 px-4 py-3"
@@ -437,7 +419,7 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
 
 exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o layout quando não há objeto selecionado: camera-card-null 1`] = `
 <div
-  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-72 tracking-tighter hidden"
+  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-[400px] tracking-tighter hidden"
 >
   <div
     class="relative"
@@ -473,15 +455,6 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
       >
         Câmera
       </h3>
-    </div>
-    <div
-      class="px-4 py-2"
-    >
-      <p
-        class="text-muted-foreground text-xs"
-      >
-        undefined - undefined
-      </p>
     </div>
     <div
       class="p-6 px-4 py-3"
@@ -640,7 +613,7 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
 
 exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layout compacto do radar card com radar ativo: radar-card-ativo 1`] = `
 <div
-  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute right-2 top-2 w-72 tracking-tighter"
+  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-[400px] tracking-tighter"
 >
   <div
     class="relative"
@@ -953,7 +926,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
 
 exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layout compacto do radar card com radar inativo: radar-card-inativo 1`] = `
 <div
-  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute right-2 top-2 w-72 tracking-tighter"
+  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-[400px] tracking-tighter"
 >
   <div
     class="relative"
@@ -1307,7 +1280,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
 
 exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layout quando não há objeto selecionado: radar-card-null 1`] = `
 <div
-  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute right-2 top-2 w-72 tracking-tighter hidden"
+  class="rounded-lg border bg-card text-card-foreground shadow-sm absolute left-2 top-2 w-[400px] tracking-tighter hidden"
 >
   <div
     class="relative"

@@ -7,6 +7,13 @@ import '@testing-library/jest-dom'
 process.env.NEXT_PUBLIC_CIVITAS_API_URL = 'http://localhost:3000'
 process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN = 'test-mapbox-token'
 
+// Mock do ResizeObserver para testes
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}))
+
 // Silenciar completamente console.error durante os testes para limpar a saída
 beforeAll(() => {
   console.error = jest.fn()

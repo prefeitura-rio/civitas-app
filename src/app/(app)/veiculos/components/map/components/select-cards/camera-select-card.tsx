@@ -6,13 +6,7 @@ import { MapPin, RotateCcw, X } from 'lucide-react'
 import { useCallback } from 'react'
 
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { CameraCOR } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
