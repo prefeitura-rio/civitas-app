@@ -20,6 +20,7 @@ import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
 import { useSchoolLayer } from '@/hooks/mapLayers/use-school-layer'
 import { useTrips } from '@/hooks/mapLayers/use-trips'
 import { useWazePoliceAlerts } from '@/hooks/mapLayers/use-waze-police-alerts'
+import type { Radar } from '@/models/entities'
 import type { SetViewportProps } from '@/models/utils'
 import { MapStyle } from '@/utils/get-map-style'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
@@ -64,6 +65,9 @@ interface MapStore {
     forceZoom?: boolean,
   ) => void
   restorePreviousViewport: () => void
+
+  radarInfoMode: Radar | null
+  setRadarInfoMode: (radar: Radar | null) => void
 }
 
 export const useMapStore = create<MapStore>()(
@@ -158,6 +162,10 @@ export const useMapStore = create<MapStore>()(
         setPreviousViewport(null)
       }
     },
+
+    // Radar Info Mode
+    radarInfoMode: null,
+    setRadarInfoMode: (radarInfoMode) => set({ radarInfoMode }),
   })),
 )
 

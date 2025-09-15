@@ -22,11 +22,19 @@ import { useMapStore } from '@/stores/use-map-store'
 interface RadarSelectCardProps {
   selectedObject: Radar | null
   setSelectedObject: (value: Radar | null) => void
+  className?: string
+  infoMode?: boolean
+  infoObject?: Radar | null
+  setInfoObject?: (value: Radar | null) => void
 }
 
 export function RadarSelectCard({
   selectedObject,
   setSelectedObject,
+  className,
+  infoMode = false,
+  infoObject,
+  setInfoObject,
 }: RadarSelectCardProps) {
   const zoomToLocation = useMapStore((state) => state.zoomToLocation)
   const restorePreviousViewport = useMapStore(
@@ -34,30 +42,30 @@ export function RadarSelectCard({
   )
   const previousViewport = useMapStore((state) => state.previousViewport)
 
+  const radarData = infoMode ? infoObject : selectedObject
+  const setRadarData = infoMode ? setInfoObject : setSelectedObject
+
   const handleZoomToRadar = useCallback(() => {
-    if (selectedObject) {
-      // Força o zoom mesmo se o usuário já estiver com zoom maior
-      zoomToLocation(
-        selectedObject.latitude,
-        selectedObject.longitude,
-        18,
-        true,
-      )
+    if (radarData) {
+      zoomToLocation(radarData.latitude, radarData.longitude, 18, true)
     }
-  }, [selectedObject, zoomToLocation])
+  }, [radarData, zoomToLocation])
 
   const handleRestorePreviousViewport = useCallback(() => {
     restorePreviousViewport()
   }, [restorePreviousViewport])
 
   const handleCloseCard = useCallback(() => {
-    setSelectedObject(null)
-  }, [setSelectedObject])
+    if (setRadarData) {
+      setRadarData(null)
+    }
+  }, [setRadarData])
   return (
     <Card
       className={cn(
-        'absolute right-2 top-2 w-72 tracking-tighter',
-        !selectedObject ? 'hidden' : '',
+        'absolute left-2 top-2 w-72 w-[400px] tracking-tighter',
+        !radarData ? 'hidden' : '',
+        className,
       )}
     >
       <div className="relative">
@@ -70,7 +78,7 @@ export function RadarSelectCard({
         </Button>
         <CardHeader className="border-b px-4 py-3">
           <CardTitle className="text-left text-sm font-semibold tracking-tighter">
-            Radar OCR
+            {infoMode ? 'Informações do Radar' : 'Radar OCR'}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
@@ -78,7 +86,7 @@ export function RadarSelectCard({
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium">Código CET-Rio</span>
               <span className="break-all text-sm text-muted-foreground">
-                {selectedObject?.cetRioCode}
+                {radarData?.cetRioCode}
               </span>
             </div>
 
@@ -88,7 +96,7 @@ export function RadarSelectCard({
                 <span className="text-sm font-medium">Localização</span>
               </div>
               <span className="text-sm text-muted-foreground">
-                {`${selectedObject?.location} - ${selectedObject?.district}`}
+                {`${radarData?.location} - ${radarData?.district}`}
               </span>
             </div>
 
@@ -96,13 +104,13 @@ export function RadarSelectCard({
               <div className="flex flex-col space-y-1">
                 <span className="text-sm font-medium">Latitude</span>
                 <span className="break-all text-sm text-muted-foreground">
-                  {selectedObject?.latitude}
+                  {radarData?.latitude}
                 </span>
               </div>
               <div className="flex flex-col space-y-1">
                 <span className="text-sm font-medium">Longitude</span>
                 <span className="break-all text-sm text-muted-foreground">
-                  {selectedObject?.longitude}
+                  {radarData?.longitude}
                 </span>
               </div>
             </div>
@@ -113,11 +121,11 @@ export function RadarSelectCard({
                 <span className="text-sm font-medium">Empresa</span>
               </div>
               <span className="text-sm text-muted-foreground">
-                {selectedObject?.company}
+                {radarData?.company}
               </span>
             </div>
 
-            {selectedObject?.lastDetectionTime && (
+            {radarData?.lastDetectionTime && (
               <>
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-1">
@@ -126,7 +134,7 @@ export function RadarSelectCard({
                   </div>
                   <span className="text-sm text-muted-foreground">
                     {formatDate(
-                      selectedObject?.lastDetectionTime,
+                      radarData?.lastDetectionTime,
                       "dd/MM/y 'às' HH:mm:ss",
                     )}
                   </span>
@@ -136,7 +144,7 @@ export function RadarSelectCard({
                   <span className="text-sm font-medium">
                     Ativo nas últimas 24 horas
                   </span>
-                  {selectedObject?.activeInLast24Hours ? (
+                  {radarData?.activeInLast24Hours ? (
                     <span className="text-sm text-emerald-600">Sim</span>
                   ) : (
                     <span className="text-sm text-rose-600">Não</span>
@@ -145,7 +153,7 @@ export function RadarSelectCard({
               </>
             )}
 
-            {!selectedObject?.activeInLast24Hours && (
+            {!radarData?.activeInLast24Hours && (
               <div className="border-l-4 border-yellow-600 bg-secondary p-1.5">
                 <div className="flex items-start">
                   <AlertTriangle className="mr-1.5 mt-0.5 h-4 w-4 text-yellow-400" />
