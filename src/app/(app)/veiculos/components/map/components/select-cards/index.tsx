@@ -13,7 +13,6 @@ import { RadarSelectCard } from '../select-cards/radar-select-card'
 export function SelectionCards() {
   const { width: mapWidth } = useMapSize()
 
-  // Direct hook usage instead of context
   const multipleSelectedRadars = useMapStore(
     (state) => state.multipleSelectedRadars,
   )
