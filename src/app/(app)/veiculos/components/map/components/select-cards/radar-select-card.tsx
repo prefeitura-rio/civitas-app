@@ -57,7 +57,7 @@ export function RadarSelectCard({
   return (
     <Card
       className={cn(
-        'absolute right-2 top-2 w-72 tracking-tighter',
+        'absolute left-2 top-2 w-72 tracking-tighter',
         !selectedObject ? 'hidden' : '',
         className,
       )}

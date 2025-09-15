@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { useMapSize } from '@/hooks/use-map-size'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 
@@ -24,17 +26,19 @@ export function SelectionCards() {
     },
   } = useMap()
 
+  const marginTop = useMemo(() => (mapWidth < 854 ? 'mt-12' : ''), [mapWidth])
+
   return (
     <>
       <CameraSelectCard
         selectedObject={selectedCamera}
         setSelectedObject={setSelectedCamera}
-        className={mapWidth < 854 ? 'mt-12' : ''}
+        className={marginTop}
       />
       <RadarSelectCard
         selectedObject={selectedRadar}
         setSelectedObject={setSelectedRadar}
-        className={mapWidth < 1010 ? 'mt-12' : ''}
+        className={marginTop}
       />
       {/* Debug: {selectedRadar ? `Radar selecionado: ${selectedRadar.cetRioCode}` : 'Nenhum radar selecionado'} */}
       <FogoCruzadoSelectCard
