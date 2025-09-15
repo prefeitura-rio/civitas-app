@@ -20,13 +20,13 @@ import { useMapStore } from '@/stores/use-map-store'
 interface CameraSelectCardProps {
   selectedObject: CameraCOR | null
   setSelectedObject: (value: CameraCOR | null) => void
-  style?: React.CSSProperties | undefined
+  className?: string
 }
 
 export function CameraSelectCard({
   selectedObject,
   setSelectedObject,
-  style,
+  className,
 }: CameraSelectCardProps) {
   const zoomToLocation = useMapStore((state) => state.zoomToLocation)
   const restorePreviousViewport = useMapStore(
@@ -36,7 +36,6 @@ export function CameraSelectCard({
 
   const handleZoomToCamera = useCallback(() => {
     if (selectedObject) {
-      // Força o zoom mesmo se o usuário já estiver com zoom maior
       zoomToLocation(
         selectedObject.latitude,
         selectedObject.longitude,
@@ -64,8 +63,8 @@ export function CameraSelectCard({
       className={cn(
         'absolute left-2 top-2 w-72 tracking-tighter',
         !selectedObject ? 'hidden' : '',
+        className,
       )}
-      style={style}
     >
       <div className="relative">
         <Button

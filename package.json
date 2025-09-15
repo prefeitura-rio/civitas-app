@@ -100,6 +100,7 @@
     "@next/eslint-plugin-next": "^14.2.23",
     "@playwright/test": "^1.55.0",
     "@rocketseat/eslint-config": "^2.2.2",
+    "@tailwindcss/container-queries": "^0.1.1",
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

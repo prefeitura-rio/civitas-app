@@ -1,14 +1,12 @@
-import { useMemo } from 'react'
-
+import { useMapSize } from '@/hooks/use-map-size'
 import { useMap } from '@/hooks/useContexts/use-map-context'
-import { useViewportStore } from '@/stores/viewport-store'
 
 import { CameraSelectCard } from '../select-cards/camera-select-card'
 import { FogoCruzadoSelectCard } from '../select-cards/fogo-cruzado-select-card'
 import { RadarSelectCard } from '../select-cards/radar-select-card'
 
 export function SelectionCards() {
-  const { mapWidth } = useViewportStore()
+  const { width: mapWidth } = useMapSize()
   const {
     layers: {
       cameras: {
@@ -26,26 +24,17 @@ export function SelectionCards() {
     },
   } = useMap()
 
-  const { minCameraMapWidthToMovePopup, minRadarMapWidthToMovePopup } =
-    useMemo(() => {
-      const minCameraMapWidthToMovePopup =
-        mapWidth < 854 ? { marginTop: '48px' } : {}
-      const minRadarMapWidthToMovePopup =
-        mapWidth < 1010 ? { marginTop: '48px' } : {}
-      return { minCameraMapWidthToMovePopup, minRadarMapWidthToMovePopup }
-    }, [mapWidth])
-
   return (
     <>
       <CameraSelectCard
         selectedObject={selectedCamera}
         setSelectedObject={setSelectedCamera}
-        style={minCameraMapWidthToMovePopup}
+        className={mapWidth < 854 ? 'mt-12' : ''}
       />
       <RadarSelectCard
         selectedObject={selectedRadar}
         setSelectedObject={setSelectedRadar}
-        style={minRadarMapWidthToMovePopup}
+        className={mapWidth < 1010 ? 'mt-12' : ''}
       />
       {/* Debug: {selectedRadar ? `Radar selecionado: ${selectedRadar.cetRioCode}` : 'Nenhum radar selecionado'} */}
       <FogoCruzadoSelectCard

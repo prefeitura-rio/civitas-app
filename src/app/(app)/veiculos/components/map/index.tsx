@@ -156,7 +156,7 @@ export function Map() {
     if (mouseDownPosition.current) {
       const deltaX = Math.abs(e.clientX - mouseDownPosition.current.x)
       const deltaY = Math.abs(e.clientY - mouseDownPosition.current.y)
-      // Aumentar threshold para 10 pixels para melhor detecção de drag
+
       if (deltaX > 10 || deltaY > 10) {
         isDragging.current = true
       }
@@ -172,7 +172,6 @@ export function Map() {
     (e: MouseEvent) => {
       e.preventDefault()
 
-      // Se foi um drag, não executar lógica de seleção
       if (isDragging.current) {
         isDragging.current = false
         mouseDownPosition.current = null
@@ -188,7 +187,6 @@ export function Map() {
         multiSelectRadar(radar)
       }
 
-      // Reset drag state
       isDragging.current = false
       mouseDownPosition.current = null
     },
@@ -200,7 +198,6 @@ export function Map() {
       const { address } = props
       const trimmedAddress = address.replace(/^0+/, '')
 
-      // Buscar radar
       const radar = radars?.find((r) => {
         const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
         return trimmedCetRioCode === trimmedAddress
@@ -215,7 +212,6 @@ export function Map() {
         return
       }
 
-      // Buscar câmera
       const camera = cameras?.find((c) => {
         const trimmedCode = c.code.replace(/^0+/, '')
         return trimmedCode === trimmedAddress
@@ -285,9 +281,6 @@ export function Map() {
           onSubmit={handleSearchSubmit}
         />
       </div>
-
-      {/* Debug das dimensões - remover em produção */}
-      {/* <ViewportDebug /> */}
 
       <SelectionCards />
       <HoverCards />

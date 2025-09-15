@@ -22,13 +22,13 @@ import { useMapStore } from '@/stores/use-map-store'
 interface RadarSelectCardProps {
   selectedObject: Radar | null
   setSelectedObject: (value: Radar | null) => void
-  style?: React.CSSProperties | undefined
+  className?: string
 }
 
 export function RadarSelectCard({
   selectedObject,
   setSelectedObject,
-  style,
+  className,
 }: RadarSelectCardProps) {
   const zoomToLocation = useMapStore((state) => state.zoomToLocation)
   const restorePreviousViewport = useMapStore(
@@ -59,8 +59,8 @@ export function RadarSelectCard({
       className={cn(
         'absolute right-2 top-2 w-72 tracking-tighter',
         !selectedObject ? 'hidden' : '',
+        className,
       )}
-      style={style}
     >
       <div className="relative">
         <Button
