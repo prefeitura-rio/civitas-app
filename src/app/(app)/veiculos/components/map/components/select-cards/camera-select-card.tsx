@@ -79,9 +79,6 @@ export function CameraSelectCard({
             Câmera
           </CardTitle>
         </CardHeader>
-        <div className="px-4 py-2">
-          <CardDescription className="text-xs">{`${selectedObject?.location.capitalizeFirstLetter()} - ${selectedObject?.zone.capitalizeFirstLetter()}`}</CardDescription>
-        </div>
         <CardContent className="px-4 py-3">
           <div className="space-y-3 text-sm">
             <div className="flex flex-col space-y-1">
