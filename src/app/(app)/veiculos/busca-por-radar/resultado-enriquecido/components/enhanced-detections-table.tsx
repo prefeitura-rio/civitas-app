@@ -7,7 +7,7 @@ import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
-import type { EnhancedDetectionDTO } from '@/hooks/use-queries/use-enhanced-radars-search'
+import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
 
 interface DetectionsTableProps {
   data: EnhancedDetectionDTO[]

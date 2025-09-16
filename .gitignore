@@ -6,8 +6,19 @@
 .pnp.js
 .yarn/install-state.gz
 
+# package manager lock files (only ignore npm lock since we use pnpm)
+package-lock.json
+
+# temporary files
+/tmp
+
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/e2e-results/
 
 # next.js
 /.next/
@@ -28,9 +39,11 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.test
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+claude.md

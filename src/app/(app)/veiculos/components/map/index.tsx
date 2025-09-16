@@ -3,12 +3,16 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { type Deck, DeckGL } from 'deck.gl'
-import { type MouseEvent, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
-import { useMap } from '@/hooks/use-contexts/use-map-context'
-import type { CameraCOR, Radar } from '@/models/entities'
-import { getMapStyle } from '@/utils/get-map-style'
+import { MapSizeMonitor } from '@/components/custom/map-size-monitor'
+import { useMapLayers } from '@/hooks/maps/use-map-layers'
+import { useMapSearch } from '@/hooks/maps/use-map-search'
+import { useMapState } from '@/hooks/maps/use-map-state'
+import { useMouseInteractions } from '@/hooks/maps/use-mouse-interactions'
+import { useSelectionManagement } from '@/hooks/maps/use-selection-management'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { ContextMenu } from './components/context-menu'
@@ -22,152 +26,79 @@ export function Map() {
   const mapRef = useRef<MapRef | null>(null)
 
   const {
-    layers: {
-      radars: {
-        layer: radarLayer,
-        data: radars,
-        handleSelectObject: selectRadar,
-      },
-      cameras: {
-        layer: cameraLayer,
-        data: cameras,
-        handleSelectObject: selectCamera,
-      },
-      agents: { layer: agentsLayer },
-      fogoCruzado: { layer: fogoCruzadoLayer },
-      waze: { layer: wazeLayer },
-      trips: { layers: tripLayers },
-      address: {
-        layerStates: {
-          isVisible: isAddressVisible,
-          setIsVisible: setIsAddressVisible,
-          setAddressMarker,
-        },
-        layer: addressLayer,
-      },
-      AISP: { layers: AISPLayer },
-      CISP: { layers: CISPLayer },
-      schools: { layers: schoolsLayer },
-      busStops: { layers: busStopsLayer },
-    },
-    viewport,
-    setViewport,
-    mapStyle,
-    setMapRef,
-    setDeckRef,
     contextMenuPickingInfo,
     openContextMenu,
     setContextMenuPickingInfo,
     setOpenContextMenu,
+    zoomToLocation,
   } = useMap()
 
-  useEffect(() => {
-    setMapRef(mapRef.current)
-    setDeckRef(deckRef.current)
-  }, [])
+  const mapState = useMapState({ mapRef, deckRef })
+  const mapLayers = useMapLayers()
+  const mapSearch = useMapSearch({
+    radars: mapLayers.radars,
+    cameras: mapLayers.cameras,
+    setViewport: mapState.setViewport,
+  })
 
-  const layers = [
-    ...AISPLayer,
-    ...CISPLayer,
-    cameraLayer,
-    radarLayer,
-    wazeLayer,
-    fogoCruzadoLayer,
-    agentsLayer,
-    ...tripLayers,
-    addressLayer,
-    schoolsLayer,
-    busStopsLayer,
-  ]
+  const mouseInteractions = useMouseInteractions({
+    deckRef,
+    multiSelectRadar: mapLayers.multiSelectRadar,
+    selectCamera: mapLayers.selectCamera,
+    setSelectedRadar: mapLayers.setSelectedRadar,
+    setSelectedCamera: mapLayers.setSelectedCamera,
+    setContextMenuPickingInfo,
+    setOpenContextMenu,
+    zoomToLocation,
+  })
 
-  function onRightClick(e: MouseEvent) {
-    e.preventDefault()
-    const y = e.clientY
-    const x = e.clientX - 56
-    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
-    setContextMenuPickingInfo(info || null)
-    setOpenContextMenu(!!info)
-  }
-
-  function onLeftClick(e: MouseEvent) {
-    e.preventDefault()
-    const y = e.clientY
-    const x = e.clientX - 56
-    const info = deckRef.current?.pickObject({ x, y, radius: 0 })
-
-    if (info?.layer?.id === 'radars' && info.object) {
-      selectRadar(info.object as Radar)
-    }
-
-    if (info?.layer?.id === 'cameras' && info.object) {
-      selectCamera(info.object as CameraCOR)
-    }
-  }
+  useSelectionManagement({
+    selectedRadar: mapLayers.selectedRadar,
+    selectedCamera: mapLayers.selectedCamera,
+    setSelectedCamera: mapLayers.setSelectedCamera,
+  })
 
   return (
     <div
       className="relative h-full w-full overflow-hidden"
-      onContextMenu={onRightClick}
-      onClick={onLeftClick}
+      onContextMenu={mouseInteractions.handleRightClick}
+      onMouseDown={mouseInteractions.handleMouseDown}
+      onMouseMove={mouseInteractions.handleMouseMove}
+      onMouseUp={mouseInteractions.handleMouseUp}
+      onClick={mouseInteractions.handleLeftClick}
     >
+      <MapSizeMonitor />
+
       <DeckGL
         ref={deckRef}
-        initialViewState={viewport}
+        initialViewState={mapState.viewport}
         controller
         onResize={() => mapRef.current?.resize()}
-        layers={layers}
-        onViewStateChange={(e) => setViewport({ ...e.viewState })}
-        getCursor={({ isDragging, isHovering }) => {
-          if (isDragging) return 'grabbing'
-          if (isHovering) return 'pointer'
-          return 'grab'
-        }}
+        layers={mapLayers.mapLayers}
+        onViewStateChange={mapState.handleViewStateChange}
+        getCursor={mapState.getCursor}
       >
         <MapGl
           ref={mapRef}
-          mapStyle={getMapStyle(mapStyle)}
+          mapStyle={mapState.mapStyleValue}
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
+
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox
-          isVisible={isAddressVisible}
-          setIsVisible={setIsAddressVisible}
-          setAddressMarker={setAddressMarker}
-          setViewport={setViewport}
-          onSubmit={(props) => {
-            const id = props.address
-            const trimmedId = id.replace(/^0+/, '')
-            const radar = radars?.find((r) => {
-              const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
-              return trimmedCetRioCode === trimmedId
-            })
-            if (radar) {
-              setViewport({
-                latitude: radar.latitude,
-                longitude: radar.longitude,
-                zoom: 20,
-              })
-              return
-            }
-            const camera = cameras?.find((c) => {
-              const trimmedCode = c.code.replace(/^0+/, '')
-              const trimmedId = id.replace(/^0+/, '')
-              return trimmedCode === trimmedId
-            })
-            if (camera) {
-              setViewport({
-                latitude: camera.latitude,
-                longitude: camera.longitude,
-                zoom: 20,
-              })
-            }
-          }}
+          isVisible={mapLayers.isAddressVisible}
+          setIsVisible={mapLayers.setIsAddressVisible}
+          setAddressMarker={mapLayers.setAddressMarker}
+          setViewport={mapState.setViewport}
+          onSubmit={mapSearch.handleSearchSubmit}
         />
       </div>
+
       <SelectionCards />
       <HoverCards />
       <MapLayerControl />
+
       <ContextMenu
         open={openContextMenu}
         onOpenChange={setOpenContextMenu}

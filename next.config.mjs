@@ -6,6 +6,12 @@ import remarkGfm from 'remark-gfm'
 const nextConfig = {
   output: 'standalone',
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  // Optimize build performance
+  swcMinify: true,
+
+  // Reduce bundle size
+  compress: true,
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {

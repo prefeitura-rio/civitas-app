@@ -1,52 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import {
-  FlyToInterpolator,
-  type MapViewState,
-  type PickingInfo,
-} from '@deck.gl/core'
+import { type MapViewState, type PickingInfo } from '@deck.gl/core'
 import type { DeckGLRef } from 'deck.gl'
-import { createContext, type ReactNode, useState } from 'react'
+import { createContext, type ReactNode } from 'react'
 import type { MapRef } from 'react-map-gl'
 
 import {
   type UseAddressMarker,
   useAddressMarker,
-} from '@/hooks/map-layers/use-address-marker'
-import { type UseAgents, useAgents } from '@/hooks/map-layers/use-agents'
+} from '@/hooks/mapLayers/use-address-marker'
+import { type UseAgents, useAgents } from '@/hooks/mapLayers/use-agents'
 import {
   type UseAISPLayer,
   useAISPLayer,
-} from '@/hooks/map-layers/use-AISP-layer'
+} from '@/hooks/mapLayers/use-AISP-layer'
 import {
   type UseBusStopLayer,
   useBusStopLayer,
-} from '@/hooks/map-layers/use-bus-stop-layer'
-import { type UseCameraCOR, useCameraCOR } from '@/hooks/map-layers/use-cameras'
+} from '@/hooks/mapLayers/use-bus-stop-layer'
+import { type UseCameraCOR, useCameraCOR } from '@/hooks/mapLayers/use-cameras'
 import {
   type UseCISPLayer,
   useCISPLayer,
-} from '@/hooks/map-layers/use-CISP-layer'
+} from '@/hooks/mapLayers/use-CISP-layer'
 import {
   type UseFogoCruzadoIncidents,
   useFogoCruzadoIncidents,
-} from '@/hooks/map-layers/use-fogo-cruzado'
+} from '@/hooks/mapLayers/use-fogo-cruzado'
 import {
   type UseRadarLayer,
   useRadarLayer,
-} from '@/hooks/map-layers/use-radar-layer'
+} from '@/hooks/mapLayers/use-radar-layer'
 import {
   type UseSchoolLayer,
   useSchoolLayer,
-} from '@/hooks/map-layers/use-school-layer'
-import { type UseTrips, useTrips } from '@/hooks/map-layers/use-trips'
+} from '@/hooks/mapLayers/use-school-layer'
+import { type UseTrips, useTrips } from '@/hooks/mapLayers/use-trips'
 import {
   type UseWazePoliceAlerts,
   useWazePoliceAlerts,
-} from '@/hooks/map-layers/use-waze-police-alerts'
+} from '@/hooks/mapLayers/use-waze-police-alerts'
 import type { SetViewportProps } from '@/models/utils'
+import { useMapStore } from '@/stores/use-map-store'
 import { MapStyle } from '@/utils/get-map-style'
-import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 interface MapContextProps {
   layers: {
@@ -74,6 +70,21 @@ interface MapContextProps {
   setOpenContextMenu: (open: boolean) => void
   contextMenuPickingInfo: PickingInfo | null
   setContextMenuPickingInfo: (info: PickingInfo | null) => void
+  // Seleção múltipla de radares para busca
+  multipleSelectedRadars: string[]
+  setMultipleSelectedRadars: (radars: string[]) => void
+  isMultiSelectMode: boolean
+  setIsMultiSelectMode: (enabled: boolean) => void
+  // Sistema de histórico de viewport para zoom
+  previousViewport: MapViewState | null
+  setPreviousViewport: (viewport: MapViewState | null) => void
+  zoomToLocation: (
+    latitude: number,
+    longitude: number,
+    zoom?: number,
+    forceZoom?: boolean,
+  ) => void
+  restorePreviousViewport: () => void
 }
 
 export const MapContext = createContext({} as MapContextProps)
@@ -82,25 +93,44 @@ interface MapContextProviderProps {
   children: ReactNode
 }
 
+// Context compatível que usa Zustand por baixo dos panos
 export function MapContextProvider({ children }: MapContextProviderProps) {
-  const [viewport, setViewportState] = useState<MapViewState>(INITIAL_VIEW_PORT)
-  const [mapStyle, setMapStyle] = useState<MapStyle>(MapStyle.Map)
-  const [mapRef, setMapRef] = useState<MapRef | null>(null)
-  const [deckRef, setDeckRef] = useState<DeckGLRef | null>(null)
-  const [openContextMenu, setOpenContextMenu] = useState(false)
-  const [contextMenuPickingInfo, setContextMenuPickingInfo] =
-    useState<PickingInfo | null>(null)
+  // Estados do Zustand
+  const viewport = useMapStore((state) => state.viewport)
+  const setViewport = useMapStore((state) => state.setViewport)
+  const mapStyle = useMapStore((state) => state.mapStyle)
+  const setMapStyle = useMapStore((state) => state.setMapStyle)
+  const mapRef = useMapStore((state) => state.mapRef)
+  const setMapRef = useMapStore((state) => state.setMapRef)
+  const deckRef = useMapStore((state) => state.deckRef)
+  const setDeckRef = useMapStore((state) => state.setDeckRef)
+  const openContextMenu = useMapStore((state) => state.openContextMenu)
+  const setOpenContextMenu = useMapStore((state) => state.setOpenContextMenu)
+  const contextMenuPickingInfo = useMapStore(
+    (state) => state.contextMenuPickingInfo,
+  )
+  const setContextMenuPickingInfo = useMapStore(
+    (state) => state.setContextMenuPickingInfo,
+  )
+  const multipleSelectedRadars = useMapStore(
+    (state) => state.multipleSelectedRadars,
+  )
+  const setMultipleSelectedRadars = useMapStore(
+    (state) => state.setMultipleSelectedRadars,
+  )
+  const isMultiSelectMode = useMapStore((state) => state.isMultiSelectMode)
+  const setIsMultiSelectMode = useMapStore(
+    (state) => state.setIsMultiSelectMode,
+  )
+  const previousViewport = useMapStore((state) => state.previousViewport)
+  const setPreviousViewport = useMapStore((state) => state.setPreviousViewport)
+  const zoomToLocation = useMapStore((state) => state.zoomToLocation)
+  const restorePreviousViewport = useMapStore(
+    (state) => state.restorePreviousViewport,
+  )
 
-  function setViewport(props: SetViewportProps) {
-    setViewportState({
-      ...viewport,
-      ...props,
-      transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-      transitionDuration: 'auto',
-    })
-  }
-
-  const radars = useRadarLayer()
+  // Layers usando hooks tradicionais
+  const radars = useRadarLayer(multipleSelectedRadars)
   const trips = useTrips({ setViewport })
   const cameras = useCameraCOR()
   const agents = useAgents()
@@ -140,6 +170,14 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
         setOpenContextMenu,
         contextMenuPickingInfo,
         setContextMenuPickingInfo,
+        multipleSelectedRadars,
+        setMultipleSelectedRadars,
+        isMultiSelectMode,
+        setIsMultiSelectMode,
+        previousViewport,
+        setPreviousViewport,
+        zoomToLocation,
+        restorePreviousViewport,
       }}
     >
       {children}
