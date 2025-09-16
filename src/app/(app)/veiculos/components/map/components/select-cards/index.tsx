@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 
+import { useCameraCOR } from '@/hooks/mapLayers/use-cameras'
+import { useFogoCruzadoIncidents } from '@/hooks/mapLayers/use-fogo-cruzado'
+import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
 import { useMapSize } from '@/hooks/use-map-size'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useMapStore } from '@/stores/use-map-store'
 
 import { CameraSelectCard } from '../select-cards/camera-select-card'
@@ -10,22 +12,13 @@ import { RadarSelectCard } from '../select-cards/radar-select-card'
 
 export function SelectionCards() {
   const { width: mapWidth } = useMapSize()
-  const {
-    layers: {
-      cameras: {
-        selectedObject: selectedCamera,
-        handleSelectObject: setSelectedCamera,
-      },
-      radars: {
-        selectedObject: selectedRadar,
-        setSelectedObject: setSelectedRadar,
-      },
-      fogoCruzado: {
-        selectedObject: selectedFogoCruzado,
-        setSelectedObject: setSelectedFogoCruzado,
-      },
-    },
-  } = useMap()
+
+  const multipleSelectedRadars = useMapStore(
+    (state) => state.multipleSelectedRadars,
+  )
+  const cameras = useCameraCOR()
+  const radars = useRadarLayer(multipleSelectedRadars)
+  const fogoCruzado = useFogoCruzadoIncidents()
 
   const radarInfoMode = useMapStore((state) => state.radarInfoMode)
   const setRadarInfoMode = useMapStore((state) => state.setRadarInfoMode)
@@ -35,14 +28,14 @@ export function SelectionCards() {
   return (
     <>
       <CameraSelectCard
-        selectedObject={selectedCamera}
-        setSelectedObject={setSelectedCamera}
+        selectedObject={cameras.selectedObject}
+        setSelectedObject={cameras.setSelectedObject}
         className={marginTop}
       />
 
       <RadarSelectCard
-        selectedObject={selectedRadar}
-        setSelectedObject={setSelectedRadar}
+        selectedObject={radars.selectedObject}
+        setSelectedObject={radars.setSelectedObject}
         className={marginTop}
       />
 
@@ -55,8 +48,8 @@ export function SelectionCards() {
         className={marginTop}
       />
       <FogoCruzadoSelectCard
-        selectedObject={selectedFogoCruzado}
-        setSelectedObject={setSelectedFogoCruzado}
+        selectedObject={fogoCruzado.selectedObject}
+        setSelectedObject={fogoCruzado.setSelectedObject}
       />
     </>
   )

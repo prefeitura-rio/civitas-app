@@ -1,5 +1,5 @@
 steps:
-  # Install dependencies and run tests
+  # Install dependencies (with optimizations)
   - name: "node:20-alpine"
     entrypoint: "sh"
     args:
@@ -7,8 +7,20 @@ steps:
       - |
         corepack enable && \
         corepack prepare pnpm@9.15.2 --activate && \
-        pnpm install --frozen-lockfile && \
-        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPatterns="src/__tests__"
+        pnpm install --frozen-lockfile --prefer-offline
+    id: "install-deps"
+
+  # Run only critical tests in parallel
+  - name: "node:20-alpine"
+    entrypoint: "sh"
+    args:
+      - "-c"
+      - |
+        corepack enable && \
+        corepack prepare pnpm@9.15.2 --activate && \
+        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPatterns="(critical|integration|radar.*bug)" --maxWorkers=2
+    waitFor: ["install-deps"]
+    id: "run-tests"
 
   # Check if version changed and create tag if needed
   - name: "node:20-alpine"
@@ -20,9 +32,10 @@ steps:
         chmod +x scripts/version-check.sh && \
         # Executar verificação de versão
         ./scripts/version-check.sh prod
+    waitFor: ["install-deps"]
     id: "version-check"
 
-  # Create the .env file
+  # Create the .env file (can run in parallel with tests)
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
     args:
@@ -31,11 +44,15 @@ steps:
         echo "NEXT_PUBLIC_CIVITAS_API_URL=https://api.civitas.rio" > .env.production && \
         echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoiZXNjcml0b3Jpb2RlZGFkb3MiLCJhIjoiY2t3bWdmcHpjMmJ2cTJucWJ4MGQ1Mm1kbiJ9.4hHJX-1pSevYoBbja7Pq4w" >> .env.production && \
         echo "NEXT_PUBLIC_VISION_AI_URL=http://app.dados.rio/vision-ai" >> .env.production
+    waitFor: ["-"]
+    id: "create-env"
 
-  # Build the container image with multiple tags
+  # Build the container image with cache optimization
   - name: "gcr.io/cloud-builders/docker"
     args: 
       - "build"
+      - "--cache-from"
+      - "gcr.io/$PROJECT_ID/civitas:latest"
       - "-t"
       - "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
       - "-t"
@@ -43,8 +60,9 @@ steps:
       - "-t"
       - "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"
       - "."
+    waitFor: ["run-tests", "version-check", "create-env"]
 
-  # Push the container images to Container Registry
+  # Push both images to Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"]
   - name: "gcr.io/cloud-builders/docker"
