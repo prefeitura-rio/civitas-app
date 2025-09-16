@@ -6,7 +6,7 @@ import { Tooltip } from '@/components/custom/tooltip'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
+import { useReportsMap } from '@/hooks/useContexts/use-reports-map-context'
 import { cn } from '@/lib/utils'
 
 interface Switches {

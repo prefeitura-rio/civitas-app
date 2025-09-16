@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { getPlaces } from '@/http/mapbox/get-places'
+import { getReversePlaces } from '@/http/mapbox/get-reverse-places'
 import { cn } from '@/lib/utils'
 import type { AddressMarker, SetViewportProps } from '@/models/utils'
+import { parseCoordinates } from '@/utils/coordinate-parser'
 
 const searchFormSchema = z.object({
   address: z.string().min(1),
@@ -33,7 +35,7 @@ export function SearchBox({
   setIsVisible,
   setViewport,
   onSubmit,
-  placeHolder = 'Pesquise um endereço',
+  placeHolder = 'Pesquise um endereço ou coordenadas (ex: -22.808889, -43.413889)',
 }: SearchBoxProps) {
   const [suggestions, setSuggestions] = useState<Feature[]>([])
   const [openSuggestions, setOpenSuggestions] = useState(false)
@@ -48,17 +50,34 @@ export function SearchBox({
   useEffect(() => {
     const getData = async (query: string) => {
       try {
-        const data = await getPlaces(query)
-        const places = data.features
-        setSuggestions(places)
+        // Verifica se o input são coordenadas
+        const coordinates = parseCoordinates(query)
+
+        if (coordinates) {
+          // Se são coordenadas, faz reverse geocoding
+          const data = await getReversePlaces(
+            coordinates.latitude,
+            coordinates.longitude,
+          )
+          const places = data.features
+          setSuggestions(places)
+        } else {
+          // Se não são coordenadas, faz busca normal
+          const data = await getPlaces(query)
+          const places = data.features
+          setSuggestions(places)
+        }
       } catch (error) {
         console.error(error)
         setSuggestions([])
       }
     }
 
-    const encodedQuery = encodeURIComponent(address)
-    getData(encodedQuery)
+    if (address && address.trim().length > 0) {
+      getData(address)
+    } else {
+      setSuggestions([])
+    }
   }, [address])
 
   return (
@@ -106,15 +125,16 @@ export function SearchBox({
           )}
         >
           {suggestions.map((item, index) => {
+            const coordinates = item.properties?.coordinates
+            const lon = Number(coordinates?.longitude)
+            const lat = Number(coordinates?.latitude)
+
             return (
               <div
                 key={index}
                 className="rounded-lg p-2 hover:cursor-default hover:bg-accent"
                 onMouseDown={() => {
                   setValue('address', item.properties?.full_address)
-                  const coordinates = item.properties?.coordinates
-                  const lon = Number(coordinates?.longitude)
-                  const lat = Number(coordinates?.latitude)
                   setViewport({
                     zoom: 14.15,
                     longitude: lon,
@@ -128,7 +148,14 @@ export function SearchBox({
                   setSuggestions([])
                 }}
               >
-                <span>{item.properties?.full_address}</span>
+                <div className="flex flex-col">
+                  <span className="font-medium">
+                    {item.properties?.full_address}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Lat: {lat.toFixed(6)}, Lon: {lon.toFixed(6)}
+                  </span>
+                </div>
               </div>
             )
           })}

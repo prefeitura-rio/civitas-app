@@ -3,7 +3,7 @@
 // import { pdf } from '@react-pdf/renderer'
 import { pdf } from '@react-pdf/renderer'
 import { Download } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
@@ -19,10 +19,10 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import { useRadars } from '@/hooks/use-queries/use-radars'
-import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
-import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
+import { useRadars } from '@/hooks/useQueries/useRadars'
+import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
+import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
 
@@ -60,83 +60,77 @@ export function DownloadReport({
 
   const { data: radars } = useRadars()
 
-  function groupData(data: DetectionDTO[]) {
-    if (!radars) throw new Error('radars is required')
-    if (!formattedSearchParams)
-      throw new Error('formattedSearchParams is required')
+  const groupData = useCallback(
+    (data: DetectionDTO[]) => {
+      if (!radars) throw new Error('radars is required')
+      if (!formattedSearchParams)
+        throw new Error('formattedSearchParams is required')
 
-    const selectedRadars = radars.filter((radar) =>
-      formattedSearchParams.radarIds.some(
-        (radarId) => radarId === radar.cetRioCode,
-      ),
-    )
+      const selectedRadars = radars.filter((radar) =>
+        formattedSearchParams.radarIds.some(
+          (radarId) => radarId === radar.cetRioCode,
+        ),
+      )
 
-    const groupedData = selectedRadars.reduce(
-      (acc, radar) => {
-        // Remove "faixa" da localização
-        const location = radar.location?.replace(/- FX \d+/, '') || 'N/A'
+      const groupedData = selectedRadars.reduce(
+        (acc, radar) => {
+          // Remove "faixa" da localização
+          const location = radar.location?.replace(/- FX \d+/, '') || 'N/A'
 
-        // Se não existir a localização, cria um novo objeto
-        if (!acc[location]) {
-          acc[location] = {
-            location,
-            radars: [],
-            detections: [],
+          // Se não existir a localização, cria um novo objeto
+          if (!acc[location]) {
+            acc[location] = {
+              location,
+              radars: [],
+              detections: [],
+            }
           }
-        }
-        // Adiciona o radar ao objeto
-        acc[location].radars.push(radar)
+          // Adiciona o radar ao objeto
+          acc[location].radars.push(radar)
 
-        // Adiciona as detecções ao objeto
-        const detections = data.filter(
-          (detection) => detection.cetRioCode === radar.cetRioCode,
+          // Adiciona as detecções ao objeto
+          const detections = data.filter(
+            (detection) => detection.cetRioCode === radar.cetRioCode,
+          )
+          acc[location].detections.push(...detections)
+          return acc
+        },
+        {} as {
+          [key: string]: GroupedDetection
+        },
+      )
+
+      Object.values(groupedData).forEach((group) => {
+        group.detections.sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
         )
-        acc[location].detections.push(...detections)
-        return acc
-      },
-      {} as {
-        [key: string]: GroupedDetection
-      },
-    )
+      })
 
-    Object.values(groupedData).forEach((group) => {
-      group.detections.sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      )
-    })
+      return Object.values(groupedData) as GroupedDetection[]
+    },
+    [radars, formattedSearchParams],
+  )
 
-    Object.values(groupedData).forEach((group) => {
-      group.detections.sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      )
-    })
+  const selectedData = useMemo(
+    () => (applyFilters === ApplyFilters.Sim ? filters.filteredData : data),
+    [applyFilters, filters.filteredData, data],
+  )
 
-    return Object.values(groupedData) as GroupedDetection[]
-  }
-
-  async function handleDownload() {
+  const handleDownload = useCallback(async () => {
     if (!filters.filteredData) throw new Error('filteredData is required')
     if (!formattedSearchParams)
       throw new Error('formattedSearchParams is required')
 
-    const selectedData =
-      applyFilters === ApplyFilters.Sim ? filters.filteredData : data
-
     if (fileType === 'CSV') {
       // Download CSV
-      exportToCSV('busca_por_radar', selectedData)
+      exportToCSV('busca_por_radar', selectedData || [])
     } else {
       // Download PDF
-      const groupedData = groupData(selectedData)
+      const groupedData = groupData(selectedData || [])
 
-      const from = new Date(formattedSearchParams.date).addMinutes(
-        formattedSearchParams.duration[0],
-      )
-      const to = new Date(formattedSearchParams.date).addMinutes(
-        formattedSearchParams.duration[1],
-      )
+      const from = new Date(formattedSearchParams.date.from)
+      const to = new Date(formattedSearchParams.date.to)
 
       // Get unique radarIds
       const radarIds = groupedData
@@ -160,7 +154,24 @@ export function DownloadReport({
 
       downloadFile(blob, 'busca_por_radar.pdf')
     }
-  }
+  }, [
+    filters.filteredData,
+    formattedSearchParams,
+    fileType,
+    selectedData,
+    groupData,
+    filters.selectedPlate,
+  ])
+
+  const handleFileTypeChange = useCallback(
+    (value: string) => setFileType(value as FileType),
+    [],
+  )
+
+  const handleApplyFiltersChange = useCallback(
+    (value: string) => setApplyFilters(value as ApplyFilters),
+    [],
+  )
 
   return (
     <Dialog>
@@ -189,7 +200,7 @@ export function DownloadReport({
               defaultValue={fileType}
               className="flex"
               value={fileType}
-              onValueChange={(e) => setFileType(e as FileType)}
+              onValueChange={handleFileTypeChange}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value={FileType.PDF} id={FileType.PDF} />
@@ -211,7 +222,7 @@ export function DownloadReport({
               defaultValue={applyFilters}
               className="flex"
               value={applyFilters}
-              onValueChange={(e) => setApplyFilters(e as ApplyFilters)}
+              onValueChange={handleApplyFiltersChange}
             >
               <Tooltip text="Em breve">
                 <div className="flex items-center space-x-2">

@@ -1,4 +1,4 @@
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 
 import { DetectionPointHoverCard } from './detection-point-hover-card'
 

@@ -7,7 +7,7 @@ import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
-import type { DetectionDTO } from '@/hooks/use-queries/use-radars-search'
+import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 
 interface DetectionsTableProps {
   data: DetectionDTO[]

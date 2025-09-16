@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 
 export function ClearTripsButton() {
   const {

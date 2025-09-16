@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card'
-import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/use-search-by-plate-result-dynamic-filter'
+import type { UseSearchByPlateResultDynamicFilter } from '@/hooks/useSearchByPlateResultDynamicFilter'
 
 import { ClearTripsButton } from '../../../veiculo/components/action-bar/components/clear-trips-button'
 import { EnhancePlatesInfo } from './components/enhance-plates-info'

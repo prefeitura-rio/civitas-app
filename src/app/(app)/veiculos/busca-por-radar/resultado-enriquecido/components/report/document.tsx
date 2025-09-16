@@ -4,7 +4,7 @@ import React from 'react'
 
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
-import type { EnhancedDetectionDTO } from '@/hooks/use-queries/use-enhanced-radars-search'
+import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
 import type { Radar } from '@/models/entities'
 
 import { RadarReportCover } from './components/cover'

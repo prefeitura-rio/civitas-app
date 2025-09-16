@@ -3,14 +3,11 @@ import { useRouter } from 'next/navigation'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMapLayers } from '@/stores/use-map-store'
 
 export function ClearTripsButton() {
-  const {
-    layers: {
-      trips: { clearSearch },
-    },
-  } = useMap()
+  const { trips } = useMapLayers()
+  const { clearSearch } = trips
   const router = useRouter()
 
   return (

@@ -18,10 +18,10 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { useCarRadarSearchParams } from '@/hooks/use-params/use-car-radar-search-params.'
-import type { EnhancedDetectionDTO } from '@/hooks/use-queries/use-enhanced-radars-search'
-import { useRadars } from '@/hooks/use-queries/use-radars'
-import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/use-search-by-radar-enhanced-result-dynamic-filter'
+import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
+import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
+import { useRadars } from '@/hooks/useQueries/useRadars'
+import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/useSearchByRadarEnhancedResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
 
@@ -183,12 +183,8 @@ export function DownloadReport({
       // Download PDF
       const groupedData = groupData(selectedData)
 
-      const from = new Date(formattedSearchParams.date).addMinutes(
-        formattedSearchParams.duration[0] * -1,
-      )
-      const to = new Date(formattedSearchParams.date).addMinutes(
-        formattedSearchParams.duration[1],
-      )
+      const from = new Date(formattedSearchParams.date.from)
+      const to = new Date(formattedSearchParams.date.to)
 
       // Get unique radarIds
       const radarIds = groupedData

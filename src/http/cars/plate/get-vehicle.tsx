@@ -170,7 +170,6 @@ export async function getVehicle(plate: string) {
   //   const dummyData = getDummyVehicle(plate)
   //   return dummyData
   // }
-
   const response = await api.get<Vehicle>(`/cars/plate/${plate}`)
   return response.data
 }

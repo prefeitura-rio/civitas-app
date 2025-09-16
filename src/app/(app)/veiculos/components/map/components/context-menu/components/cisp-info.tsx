@@ -5,7 +5,7 @@ import { Phone, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { useMap } from '@/hooks/use-contexts/use-map-context'
+import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { CISP } from '@/models/entities'
 
 const InfoItem = ({
@@ -34,7 +34,7 @@ export function CISPInfo({
   const { object } = pickingInfo
   const {
     layers: {
-      radars: { setSelectedObjects: setSelectedRadars, data: radars },
+      radars: { setSelectedObject: setSelectedRadars, data: radars },
       AISP: {
         features: { features: aisps },
       },
@@ -59,11 +59,14 @@ export function CISPInfo({
       return false
     })
 
-    setSelectedRadars(radarsInThePolygon || [])
+    // Seleciona apenas o primeiro radar encontrado na área
+    if (radarsInThePolygon && radarsInThePolygon.length > 0) {
+      setSelectedRadars(radarsInThePolygon[0])
+    }
   }
 
   function removeAllRadars() {
-    setSelectedRadars([])
+    setSelectedRadars(null)
   }
 
   const aisp = aisps.find(

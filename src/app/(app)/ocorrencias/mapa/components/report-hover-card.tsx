@@ -6,7 +6,7 @@ import { Circle } from 'lucide-react'
 
 import { MapHoverCard } from '@/components/custom/map-hover-card'
 import { Spinner } from '@/components/custom/spinner'
-import { useReportsMap } from '@/hooks/use-contexts/use-reports-map-context'
+import { useReportsMap } from '@/hooks/useContexts/use-reports-map-context'
 import { getReports } from '@/http/reports/get-reports'
 
 export function ReportHoverCard() {

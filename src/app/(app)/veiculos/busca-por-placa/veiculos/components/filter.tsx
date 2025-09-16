@@ -1,6 +1,6 @@
 import { MultiSelectWithSearch } from '@/components/custom/multi-select-with-search'
 import { Input } from '@/components/ui/input'
-import type { UseSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/use-search-by-plate-enhanced-result-dynamic-filter'
+import type { UseSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/useSearchByPlateEnhancedResultDynamicFilter'
 
 interface FilterProps {
   filters: UseSearchByPlateEnhancedResultDynamicFilter

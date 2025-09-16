@@ -144,6 +144,11 @@ export const MultiSelectWithSearch = React.forwardRef<
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false)
     const [isAnimating, setIsAnimating] = React.useState(false)
 
+    // Sincronizar estado interno com defaultValue quando ele mudar
+    React.useEffect(() => {
+      setSelectedValues(defaultValue)
+    }, [defaultValue])
+
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>,
     ) => {

@@ -1,6 +1,6 @@
 import { MultiSelectWithSearch } from '@/components/custom/multi-select-with-search'
 import { Input } from '@/components/ui/input'
-import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/use-search-by-radar-result-dynamic-filter'
+import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 
 interface FilterProps {
   radarIds: string[]

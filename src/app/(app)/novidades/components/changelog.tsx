@@ -19,6 +19,190 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '15 de Setembro de 2025',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Busca por coordenadas no mapa',
+        content: (
+          <>
+            <p>
+              Agora é possível pesquisar locais digitando coordenadas
+              diretamente na caixa de busca do mapa. Esta funcionalidade oferece
+              maior precisão para localizar pontos específicos na cidade.
+            </p>
+            <Image
+              src="/changelog/september_15_2025/changelog_lat_lon.png"
+              alt="Exemplo de busca por coordenadas mostrando sugestões de endereços com coordenadas"
+              width={400}
+              height={300}
+              className="mb-4"
+            />
+            <p>A busca por coordenadas aceita diferentes formatos:</p>
+            <ul>
+              <li>
+                <code>lat,lon</code> (separadas por vírgula)
+              </li>
+              <li>
+                <code>lat lon</code> (separadas por espaço)
+              </li>
+              <li>
+                <code>lat; lon</code> (separadas por ponto e vírgula)
+              </li>
+            </ul>
+            <p>
+              Além disso, as sugestões de endereço agora também exibem as
+              coordenadas correspondentes de cada local, facilitando a
+              identificação precisa dos pontos de interesse.
+            </p>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Melhorias na interação com câmeras e radares',
+        content: (
+          <>
+            <p>
+              A experiência de interação com câmeras e radares no mapa foi
+              completamente reformulada para oferecer maior usabilidade e
+              organização:
+            </p>
+            <div className="flex gap-2">
+              <MapPinned className="mb-4 mt-6 size-6" />
+              <h4>Zoom Inteligente</h4>
+            </div>
+            <p>
+              Ao clicar em uma câmera ou radar, o mapa automaticamente aplica
+              zoom no local selecionado, proporcionando uma visualização mais
+              detalhada da área.
+            </p>
+            <div className="flex gap-2">
+              <LayoutDashboard className="mb-4 mt-6 size-6" />
+              <h4>Interface Reorganizada</h4>
+            </div>
+            <ul>
+              <li>
+                <strong>Popups melhorados:</strong> As informações de câmeras e
+                radares são exibidas em cartões mais organizados e com layout
+                mais limpo
+              </li>
+              <li>
+                <strong>Posicionamento fixo:</strong> Os cartões de informação
+                ficam sempre nos mesmos locais da tela - câmeras no canto
+                superior esquerdo e radares no superior direito
+              </li>
+              <li>
+                <strong>Seleção exclusiva:</strong> Selecionar uma câmera
+                automaticamente desmarca radares selecionados e vice-versa,
+                evitando conflitos na visualização
+              </li>
+              <li>
+                <strong>Botão voltar:</strong> Após aplicar zoom, é possível
+                retornar facilmente para a visualização anterior
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Busca por radar aprimorada',
+        content: (
+          <>
+            <p>
+              A funcionalidade de busca por radar recebeu melhorias
+              significativas para tornar a experiência mais intuitiva e
+              eficiente:
+            </p>
+            <Image
+              src="/changelog/september_15_2025/radar_search.gif"
+              alt="Demonstração da nova interface de busca por radar com seleção de período em português"
+              width={800}
+              height={600}
+              className="mb-4"
+            />
+            <ul>
+              <li>
+                <strong>Seleção de período simplificada:</strong> Agora é
+                possível escolher data e hora de início e fim da busca
+                diretamente, sem a necessidade de cálculos manuais
+              </li>
+              <li>
+                <strong>Validação automática:</strong> O sistema garante que o
+                período de busca não exceda 5 horas, evitando consultas
+                demoradas
+              </li>
+              <li>
+                <strong>Ajuste automático de horário:</strong> Quando você
+                altera a data inicial, o horário final se ajusta automaticamente
+                para +5 horas, mantendo sempre um período válido
+              </li>
+              <li>
+                <strong>Interface em português:</strong> Todos os calendários e
+                seletores de data estão agora em português brasileiro
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Melhorias nas camadas do mapa e experiência geral',
+        content: (
+          <>
+            <p>
+              Diversas melhorias foram implementadas para tornar a aplicação
+              mais intuitiva e performática:
+            </p>
+            <div className="flex gap-2">
+              <MapPinned className="mb-4 mt-6 size-6" />
+              <h4>Camadas do Mapa</h4>
+            </div>
+            <ul>
+              <li>
+                <strong>Câmeras visíveis por padrão:</strong> As câmeras agora
+                aparecem automaticamente quando você abre o mapa, eliminando a
+                necessidade de ativação manual
+              </li>
+              <li>
+                <strong>Interface reorganizada:</strong> Layout das camadas do
+                mapa mais intuitivo e fácil de usar
+              </li>
+            </ul>
+            <div className="flex gap-2">
+              <LayoutDashboard className="mb-4 mt-6 size-6" />
+              <h4>Experiência do Usuário</h4>
+            </div>
+            <ul>
+              <li>
+                <strong>Streaming simplificado:</strong> O botão "Abrir
+                Streaming" das câmeras agora abre em nova aba, mantendo o
+                contexto da aplicação principal
+              </li>
+              <li>
+                <strong>Coordenadas visíveis:</strong> Latitude e longitude são
+                exibidas nos detalhes das câmeras para referência precisa
+              </li>
+              <li>
+                <strong>Performance otimizada:</strong> Aplicação mais rápida e
+                responsiva com melhorias na arquitetura do código
+              </li>
+              <li>
+                <strong>Localização completa:</strong> Todos os seletores de
+                data e calendários em português brasileiro
+              </li>
+              <li>
+                <strong>Layout redesenhado:</strong> Popups com layout vertical
+                mais limpo para informações de câmeras e radares
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '04 de Setembro de 2024',
     subCards: [
       {

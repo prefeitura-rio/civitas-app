@@ -47,6 +47,11 @@ import type { Vehicle } from '@/models/entities'
 //     especie: 'PASSAGEIRO',
 //     flagAtivo: true,
 //     grupoVeiculo: 'AUTOS',
+//     mesFabricacaoVeiculo: 'JUNHO',
+//     municipioPlaca: 'SAO GONCALO',
+//     nomeArrendatario: '',
+//     nomePossuidor: 'ALLAN RIBEIRO DO NASCIMENTO',
+//     nomeProprietario: 'ALLAN RIBEIRO DO NASCIMENTO',
 //     id: 108242960,
 //     identificadorUnicoVeiculo: '2018301142889BG1849',
 //     indicadorRemarcacaoChassi: true,
@@ -97,11 +102,6 @@ import type { Vehicle } from '@/models/entities'
 //     lotacao: '5',
 //     marcaModelo: 'CHEV/TRACKER 12T A PR',
 //     mesAnoValidadeLicenciamento: 92023,
-//     mesFabricacaoVeiculo: 'JUNHO',
-//     municipioPlaca: 'SAO GONCALO',
-//     nomeArrendatario: '',
-//     nomePossuidor: 'ALLAN RIBEIRO DO NASCIMENTO',
-//     nomeProprietario: 'ALLAN RIBEIRO DO NASCIMENTO',
 //     numeroCRV: '233745810724',
 //     numeroCaixaCambio: 'R9352B8136',
 //     numeroCarroceria: '',
@@ -200,7 +200,6 @@ export async function getVehicles(plates: string[]) {
   //   const dummyData = getDummyVehicles(plates)
   //   return dummyData
   // }
-
   const response = await api.post<Vehicle[]>('/cars/plates', {
     plates,
     raise_for_errors: false,

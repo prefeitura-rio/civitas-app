@@ -4,7 +4,7 @@ import { Printer } from 'lucide-react'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
+import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
 
 import { ReportDocument } from './report-document'
 

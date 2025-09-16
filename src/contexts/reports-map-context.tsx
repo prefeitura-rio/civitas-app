@@ -13,8 +13,8 @@ import type { MapRef } from 'react-map-gl'
 import {
   type UseAddressMarker,
   useAddressMarker,
-} from '@/hooks/map-layers/use-address-marker'
-import { type UseReports, useReports } from '@/hooks/map-layers/use-reports'
+} from '@/hooks/mapLayers/use-address-marker'
+import { type UseReports, useReports } from '@/hooks/mapLayers/use-reports'
 import type { SetViewportProps } from '@/models/utils'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 

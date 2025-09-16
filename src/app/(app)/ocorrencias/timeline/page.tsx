@@ -6,7 +6,7 @@ import { CircleAlert } from 'lucide-react'
 import { Spinner } from '@/components/custom/spinner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Pagination } from '@/components/ui/pagination'
-import { useReportsSearchParams } from '@/hooks/use-params/use-reports-search-params'
+import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
 import { getReports } from '@/http/reports/get-reports'
 import { genericErrorMessage } from '@/utils/error-handlers'
 

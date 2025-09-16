@@ -4,8 +4,8 @@ import Link from 'next/link'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
-import { useMonitoredPlates } from '@/hooks/use-contexts/use-monitored-plates-context'
-import { useProfile } from '@/hooks/use-queries/use-profile'
+import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
+import { useProfile } from '@/hooks/useQueries/useProfile'
 import { notAllowed } from '@/utils/template-messages'
 
 export function MonitoredPlatesHeader() {
