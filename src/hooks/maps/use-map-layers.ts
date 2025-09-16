@@ -10,7 +10,7 @@ export function useMapLayers() {
       radars: radarLayer,
       cameras: cameraLayer,
       agents: { layer: agentsLayer },
-      fogoCruzado: { layer: fogoCruzadoLayer },
+      fogoCruzado: fogoCruzadoLayer,
       waze: { layer: wazeLayer },
       trips: { layers: tripLayers },
       address: {
@@ -44,6 +44,12 @@ export function useMapLayers() {
     selectedObject: selectedCamera,
   } = cameraLayer
 
+  const {
+    selectedObject: selectedFogoCruzado,
+    setSelectedObject: setSelectedFogoCruzado,
+    layer: fogoCruzadoLayerObj,
+  } = fogoCruzadoLayer
+
   const mapLayers = useMemo(
     () => [
       ...AISPLayer,
@@ -51,7 +57,7 @@ export function useMapLayers() {
       cameraLayerObj,
       radarLayerObj,
       wazeLayer,
-      fogoCruzadoLayer,
+      fogoCruzadoLayerObj,
       agentsLayer,
       ...tripLayers,
       addressLayer,
@@ -64,7 +70,7 @@ export function useMapLayers() {
       cameraLayerObj,
       radarLayerObj,
       wazeLayer,
-      fogoCruzadoLayer,
+      fogoCruzadoLayerObj,
       agentsLayer,
       tripLayers,
       addressLayer,
@@ -85,6 +91,9 @@ export function useMapLayers() {
     selectedCamera,
     setSelectedCamera,
     selectCamera,
+
+    selectedFogoCruzado,
+    setSelectedFogoCruzado,
 
     isAddressVisible,
     setIsAddressVisible,

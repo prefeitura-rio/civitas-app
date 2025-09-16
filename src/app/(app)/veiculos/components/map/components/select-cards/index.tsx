@@ -1,8 +1,6 @@
 import { useMemo } from 'react'
 
-import { useCameraCOR } from '@/hooks/mapLayers/use-cameras'
-import { useFogoCruzadoIncidents } from '@/hooks/mapLayers/use-fogo-cruzado'
-import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
+import { useMapLayers } from '@/hooks/maps/use-map-layers'
 import { useMapSize } from '@/hooks/use-map-size'
 import { useMapStore } from '@/stores/use-map-store'
 
@@ -13,12 +11,7 @@ import { RadarSelectCard } from '../select-cards/radar-select-card'
 export function SelectionCards() {
   const { width: mapWidth } = useMapSize()
 
-  const multipleSelectedRadars = useMapStore(
-    (state) => state.multipleSelectedRadars,
-  )
-  const cameras = useCameraCOR()
-  const radars = useRadarLayer(multipleSelectedRadars)
-  const fogoCruzado = useFogoCruzadoIncidents()
+  const mapLayers = useMapLayers()
 
   const radarInfoMode = useMapStore((state) => state.radarInfoMode)
   const setRadarInfoMode = useMapStore((state) => state.setRadarInfoMode)
@@ -28,14 +21,14 @@ export function SelectionCards() {
   return (
     <>
       <CameraSelectCard
-        selectedObject={cameras.selectedObject}
-        setSelectedObject={cameras.setSelectedObject}
+        selectedObject={mapLayers.selectedCamera}
+        setSelectedObject={mapLayers.setSelectedCamera}
         className={marginTop}
       />
 
       <RadarSelectCard
-        selectedObject={radars.selectedObject}
-        setSelectedObject={radars.setSelectedObject}
+        selectedObject={mapLayers.selectedRadar}
+        setSelectedObject={mapLayers.setSelectedRadar}
         className={marginTop}
       />
 
@@ -48,8 +41,8 @@ export function SelectionCards() {
         className={marginTop}
       />
       <FogoCruzadoSelectCard
-        selectedObject={fogoCruzado.selectedObject}
-        setSelectedObject={fogoCruzado.setSelectedObject}
+        selectedObject={mapLayers.selectedFogoCruzado}
+        setSelectedObject={mapLayers.setSelectedFogoCruzado}
       />
     </>
   )
