@@ -30,14 +30,14 @@ steps:
         CURRENT_VERSION=$$(node -p "require('./package.json').version")
         echo "Current package.json version: $$CURRENT_VERSION"
         
-        LAST_PROD_TAG=$$(git tag --list | grep "^prod-" | sort -V | tail -1)
+        LAST_VERSION_TAG=$$(git tag --list | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1)
         
-        if [ -z "$$LAST_PROD_TAG" ]; then
-          echo "No previous production tags found. First deployment!"
+        if [ -z "$$LAST_VERSION_TAG" ]; then
+          echo "No previous version tags found. First deployment!"
           DEPLOY_NEEDED=true
         else
-          echo "Last production tag: $$LAST_PROD_TAG"
-          LAST_VERSION=$$(echo "$$LAST_PROD_TAG" | sed -E 's/prod-([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/')
+          echo "Last version tag: $$LAST_VERSION_TAG"
+          LAST_VERSION=$$(echo "$$LAST_VERSION_TAG" | sed 's/^v//')
           echo "Last deployed version: $$LAST_VERSION"
           
           if [ "$$CURRENT_VERSION" != "$$LAST_VERSION" ]; then
@@ -51,15 +51,21 @@ steps:
         
         if [ "$$DEPLOY_NEEDED" = "true" ]; then
           TIMESTAMP=$$(date +%Y%m%d-%H%M%S)
-          NEW_TAG="prod-$$CURRENT_VERSION-$$TIMESTAMP"
+          VERSION_TAG="$$CURRENT_VERSION"
+          PROD_TAG="prod-$$CURRENT_VERSION-$$TIMESTAMP"
           
           git config --global user.email "cloudbuild@datario.com"
           git config --global user.name "Cloud Build"
-          git tag -a "$$NEW_TAG" -m "Production release v$$CURRENT_VERSION - $$(date +%Y-%m-%d %H:%M:%S)"
-          git push origin "$$NEW_TAG"
           
-          echo "$$NEW_TAG" > /workspace/version_tag.txt
-          echo "🏷️  Created production tag: $$NEW_TAG"
+          git tag -a "$$VERSION_TAG" -m "Release v$$CURRENT_VERSION - $$(date +%Y-%m-%d %H:%M:%S)" || echo "Tag $$VERSION_TAG already exists"
+          git tag -a "$$PROD_TAG" -m "Production deployment v$$CURRENT_VERSION - $$(date +%Y-%m-%d %H:%M:%S)"
+          
+          git push origin "$$VERSION_TAG" || echo "Failed to push $$VERSION_TAG (may already exist)"
+          git push origin "$$PROD_TAG"
+          
+          echo "$$PROD_TAG" > /workspace/version_tag.txt
+          echo "🏷️  Created version tag: $$VERSION_TAG"
+          echo "🏷️  Created production tag: $$PROD_TAG"
         else
           echo "💡 To deploy, update version in package.json (npm version patch/minor/major)"
           exit 1
