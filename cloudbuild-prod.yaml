@@ -16,7 +16,7 @@ steps:
       - |
         corepack enable && \
         corepack prepare pnpm@9.15.2 --activate && \
-        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPatterns="(critical|integration|radar.*bug)" --maxWorkers=2
+        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathIgnorePatterns="e2e" --maxWorkers=2
     waitFor: ["install-deps"]
     id: "run-tests"
 
@@ -57,15 +57,14 @@ steps:
           git config --global user.email "cloudbuild@datario.com"
           git config --global user.name "Cloud Build"
           
-          git tag -a "$$VERSION_TAG" -m "Release v$$CURRENT_VERSION - $$(date +%Y-%m-%d %H:%M:%S)" || echo "Tag $$VERSION_TAG already exists"
-          git tag -a "$$PROD_TAG" -m "Production deployment v$$CURRENT_VERSION - $$(date +%Y-%m-%d %H:%M:%S)"
+          git tag -a "$$VERSION_TAG" -m "Release v$$CURRENT_VERSION - $$(date +%Y-%m-%d)" || echo "Tag $$VERSION_TAG already exists"
+          git tag -a "$$PROD_TAG" -m "Production deployment v$$CURRENT_VERSION - $$(date +%Y-%m-%d)"
           
-          git push origin "$$VERSION_TAG" || echo "Failed to push $$VERSION_TAG (may already exist)"
-          git push origin "$$PROD_TAG"
-          
-          echo "$$PROD_TAG" > /workspace/version_tag.txt
           echo "🏷️  Created version tag: $$VERSION_TAG"
           echo "🏷️  Created production tag: $$PROD_TAG"
+          echo "⚠️  Note: Tags created locally, but push to GitHub requires authentication setup"
+          
+          echo "$$PROD_TAG" > /workspace/version_tag.txt
         else
           echo "💡 To deploy, update version in package.json (npm version patch/minor/major)"
           exit 1
@@ -85,52 +84,11 @@ steps:
     id: "create-env"
 
   - name: "gcr.io/cloud-builders/docker"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        VERSION_TAG=$$(cat /workspace/version_tag.txt)
-        PACKAGE_VERSION=$$(node -p "require('./package.json').version")
-        docker build \
-          --cache-from gcr.io/$PROJECT_ID/civitas:latest \
-          -t gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA \
-          -t gcr.io/$PROJECT_ID/civitas:latest \
-          -t gcr.io/$PROJECT_ID/civitas:$$VERSION_TAG \
-          -t gcr.io/$PROJECT_ID/civitas:v$$PACKAGE_VERSION \
-          .
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA", "."]
     waitFor: ["run-tests", "version-check", "create-env"]
 
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"]
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/civitas:latest"]
-  - name: "gcr.io/cloud-builders/docker"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        VERSION_TAG=$$(cat /workspace/version_tag.txt)
-        PACKAGE_VERSION=$$(node -p "require('./package.json').version")
-        docker push gcr.io/$PROJECT_ID/civitas:$$VERSION_TAG
-        docker push gcr.io/$PROJECT_ID/civitas:v$$PACKAGE_VERSION
-
-  - name: "gcr.io/cloud-builders/gcloud"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        VERSION_TAG=$$(cat /workspace/version_tag.txt)
-        PACKAGE_VERSION=$$(node -p "require('./package.json').version")
-        TIMESTAMP=$$(date +%Y-%m-%d\ %H:%M:%S)
-        echo "Deployment Info:" > deployment-info.txt && \
-        echo "Timestamp: $$TIMESTAMP" >> deployment-info.txt && \
-        echo "Commit SHA: $COMMIT_SHA" >> deployment-info.txt && \
-        echo "Package Version: $$PACKAGE_VERSION" >> deployment-info.txt && \
-        echo "Version Tag: $$VERSION_TAG" >> deployment-info.txt && \
-        echo "Simple Version Tag: v$$PACKAGE_VERSION" >> deployment-info.txt && \
-        echo "Image Tag: gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA" >> deployment-info.txt && \
-        echo "Branch: $BRANCH_NAME" >> deployment-info.txt && \
-        gsutil cp deployment-info.txt gs://$PROJECT_ID-deployments/prod/deployment-info-$$VERSION_TAG.txt
 
   - name: "gcr.io/cloud-builders/gke-deploy"
     dir: "k8s/prod"
@@ -155,23 +113,8 @@ steps:
       - "--cluster=datario"
       - "--project=datario"
 
-  - name: "gcr.io/cloud-builders/curl"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        echo "Waiting for deployment to be ready..." && \
-        sleep 30 && \
-        curl -f https://civitas.rio/health || echo "Health check failed, but deployment completed"
-
 images:
   - "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
-  - "gcr.io/$PROJECT_ID/civitas:latest"
-
-artifacts:
-  objects:
-    location: "gs://$PROJECT_ID-deployments/prod/"
-    paths: ["deployment-info.txt"]
 
 options:
   logging: CLOUD_LOGGING_ONLY

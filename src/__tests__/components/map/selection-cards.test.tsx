@@ -87,6 +87,35 @@ describe('SelectionCards', () => {
           isFetching: false,
           isError: false,
         },
+        agents: {
+          layer: null,
+        },
+        waze: {
+          layer: null,
+        },
+        trips: {
+          layers: [],
+        },
+        address: {
+          layerStates: {
+            isVisible: false,
+            setIsVisible: jest.fn(),
+            setAddressMarker: jest.fn(),
+          },
+          layer: null,
+        },
+        AISP: {
+          layers: [],
+        },
+        CISP: {
+          layers: [],
+        },
+        schools: {
+          layers: null,
+        },
+        busStops: {
+          layers: null,
+        },
       },
     } as any)
   })
@@ -178,6 +207,35 @@ describe('SelectionCards', () => {
           isFetching: false,
           isError: false,
         },
+        agents: {
+          layer: null,
+        },
+        waze: {
+          layer: null,
+        },
+        trips: {
+          layers: [],
+        },
+        address: {
+          layerStates: {
+            isVisible: false,
+            setIsVisible: jest.fn(),
+            setAddressMarker: jest.fn(),
+          },
+          layer: null,
+        },
+        AISP: {
+          layers: [],
+        },
+        CISP: {
+          layers: [],
+        },
+        schools: {
+          layers: null,
+        },
+        busStops: {
+          layers: null,
+        },
       },
     } as any)
 
@@ -253,6 +311,35 @@ describe('SelectionCards', () => {
           refetch: jest.fn(),
           isFetching: false,
           isError: false,
+        },
+        agents: {
+          layer: null,
+        },
+        waze: {
+          layer: null,
+        },
+        trips: {
+          layers: [],
+        },
+        address: {
+          layerStates: {
+            isVisible: false,
+            setIsVisible: jest.fn(),
+            setAddressMarker: jest.fn(),
+          },
+          layer: null,
+        },
+        AISP: {
+          layers: [],
+        },
+        CISP: {
+          layers: [],
+        },
+        schools: {
+          layers: null,
+        },
+        busStops: {
+          layers: null,
         },
       },
     } as any)
