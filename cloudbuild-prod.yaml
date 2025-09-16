@@ -22,16 +22,27 @@ steps:
     waitFor: ["install-deps"]
     id: "run-tests"
 
-  # Check if version changed and create tag if needed
+  # Check if version changed and create tag if needed (PRODUCTION GATE)
   - name: "node:20-alpine"
     entrypoint: "sh"
     args:
       - "-c"
       - |
-        # Tornar script executável
+        # Install git (needed for version-check script)
+        apk add --no-cache git && \
+        # Make script executable and run version check
         chmod +x scripts/version-check.sh && \
-        # Executar verificação de versão
-        ./scripts/version-check.sh prod
+        # Run version check - this will exit with code 1 if no deploy needed
+        if ./scripts/version-check.sh prod; then
+          echo "Version check passed - deploy approved"
+          # Extract the created tag name for Docker tagging
+          LATEST_TAG=$(git tag --list | grep "^prod-" | sort -V | tail -1)
+          echo "$LATEST_TAG" > /workspace/version_tag.txt
+          echo "Production tag: $LATEST_TAG"
+        else
+          echo "Version check failed - no deploy needed"
+          exit 1
+        fi
     waitFor: ["install-deps"]
     id: "version-check"
 
@@ -49,26 +60,35 @@ steps:
 
   # Build the container image with cache optimization
   - name: "gcr.io/cloud-builders/docker"
-    args: 
-      - "build"
-      - "--cache-from"
-      - "gcr.io/$PROJECT_ID/civitas:latest"
-      - "-t"
-      - "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
-      - "-t"
-      - "gcr.io/$PROJECT_ID/civitas:latest"
-      - "-t"
-      - "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"
-      - "."
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        VERSION_TAG=$(cat /workspace/version_tag.txt)
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        docker build \
+          --cache-from gcr.io/$PROJECT_ID/civitas:latest \
+          -t gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA \
+          -t gcr.io/$PROJECT_ID/civitas:latest \
+          -t gcr.io/$PROJECT_ID/civitas:$$VERSION_TAG \
+          -t gcr.io/$PROJECT_ID/civitas:v$$PACKAGE_VERSION \
+          .
     waitFor: ["run-tests", "version-check", "create-env"]
 
-  # Push both images to Container Registry
+  # Push all images to Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"]
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:latest"]
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"]
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        VERSION_TAG=$(cat /workspace/version_tag.txt)
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        docker push gcr.io/$PROJECT_ID/civitas:$$VERSION_TAG
+        docker push gcr.io/$PROJECT_ID/civitas:v$$PACKAGE_VERSION
 
   # Save deployment info for rollback
   - name: "gcr.io/cloud-builders/gcloud"
@@ -76,14 +96,18 @@ steps:
     args:
       - "-c"
       - |
+        VERSION_TAG=$(cat /workspace/version_tag.txt)
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        TIMESTAMP=$(date +%Y-%m-%d\ %H:%M:%S)
         echo "Deployment Info:" > deployment-info.txt && \
-        echo "Timestamp: $(date +%Y-%m-%d %H:%M:%S)" >> deployment-info.txt && \
+        echo "Timestamp: $$TIMESTAMP" >> deployment-info.txt && \
         echo "Commit SHA: $COMMIT_SHA" >> deployment-info.txt && \
+        echo "Package Version: $$PACKAGE_VERSION" >> deployment-info.txt && \
+        echo "Version Tag: $$VERSION_TAG" >> deployment-info.txt && \
+        echo "Simple Version Tag: v$$PACKAGE_VERSION" >> deployment-info.txt && \
         echo "Image Tag: gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA" >> deployment-info.txt && \
-        echo "Git Tag: prod-$(date +%Y%m%d-%H%M%S)" >> deployment-info.txt && \
         echo "Branch: $BRANCH_NAME" >> deployment-info.txt && \
-        echo "Package Version: $(node -p "require('./package.json').version")" >> deployment-info.txt && \
-        gsutil cp deployment-info.txt gs://$PROJECT_ID-deployments/prod/deployment-info-$(date +%Y%m%d-%H%M%S).txt
+        gsutil cp deployment-info.txt gs://$PROJECT_ID-deployments/prod/deployment-info-$$VERSION_TAG.txt
 
   # Kustomize: set the image in the kustomization.yaml file
   - name: "gcr.io/cloud-builders/gke-deploy"
@@ -124,7 +148,7 @@ steps:
 images:
   - "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
   - "gcr.io/$PROJECT_ID/civitas:latest"
-  - "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"
+# Note: Version-specific tags are pushed dynamically based on package.json version
 
 # Store deployment history for rollback
 artifacts:
