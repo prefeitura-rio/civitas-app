@@ -5,18 +5,14 @@ import React from 'react'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useVehicle } from '@/hooks/useQueries/useVehicle'
+import { useMapLayers } from '@/stores/use-map-store'
 
 import { ReportDocument } from '../../report/components/report-document'
 
 export default function DownloadReportButton() {
-  const {
-    layers: {
-      trips: { trips, isLoading },
-    },
-  } = useMap()
+  const { trips } = useMapLayers()
   const { formattedSearchParams } = useCarPathsSearchParams()
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
@@ -25,9 +21,9 @@ export default function DownloadReportButton() {
 
   return (
     <Dialog>
-      <Tooltip asChild text="Relatório de viagens" disabled={isLoading}>
+      <Tooltip asChild text="Relatório de viagens" disabled={trips.isLoading}>
         <DialogTrigger asChild>
-          <Button variant="secondary" size="icon" disabled={isLoading}>
+          <Button variant="secondary" size="icon" disabled={trips.isLoading}>
             <Printer className="size-4 shrink-0" />
           </Button>
         </DialogTrigger>
@@ -35,7 +31,7 @@ export default function DownloadReportButton() {
       <DialogContent className="h-[80%] max-w-7xl">
         <PDFViewer style={{ width: '100%', height: '100%' }}>
           <ReportDocument
-            trips={trips || []}
+            trips={trips.trips || []}
             searchParams={{
               plate: formattedSearchParams.plate,
               endTime: formattedSearchParams.to,

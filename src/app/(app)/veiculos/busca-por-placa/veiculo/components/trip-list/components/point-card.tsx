@@ -3,8 +3,8 @@ import { TriangleAlert } from 'lucide-react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { Point } from '@/models/entities'
+import { useMapLayers, useMapStore } from '@/stores/use-map-store'
 import { haversineDistance } from '@/utils/haversine-distance'
 
 interface PointCardProps {
@@ -12,12 +12,10 @@ interface PointCardProps {
 }
 
 export function PointCard({ point }: PointCardProps) {
+  const setViewport = useMapStore((state) => state.setViewport)
   const {
-    setViewport,
-    layers: {
-      trips: { selectedTrip },
-    },
-  } = useMap()
+    trips: { selectedTrip },
+  } = useMapLayers()
 
   const points = selectedTrip?.points || []
 

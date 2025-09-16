@@ -7,11 +7,11 @@ import { MonitoredPlateFormDialog } from '@/app/(app)/components/monitored-plate
 import { Tooltip } from '@/components/custom/tooltip'
 import { Toggle } from '@/components/ui/toggle'
 import { useDisclosure } from '@/hooks/use-disclosure'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { isApiError } from '@/lib/api'
+import { useMapLayers } from '@/stores/use-map-store'
 import { notAllowed } from '@/utils/template-messages'
 
 import { DisableMonitoringAlertDialog } from './components/disable-monitoring-alert-dialog'
@@ -21,18 +21,14 @@ export function MonitoringToggle() {
   const disableMonitoringAlertDisclosure = useDisclosure()
   const { setDialogInitialData } = useMonitoredPlates()
   const [monitored, setMonitored] = useState(false)
-  const {
-    layers: {
-      trips: { lastSearchParams, isLoading: isLoadingGetCarPath },
-    },
-  } = useMap()
+  const { trips } = useMapLayers()
   const { data: profile } = useProfile()
 
   const { data: monitoredPlate, isLoading: isLoadingMonitoredPlate } = useQuery(
     {
-      queryKey: ['cars', 'monitored', lastSearchParams?.plate],
+      queryKey: ['cars', 'monitored', trips.lastSearchParams?.plate],
       queryFn: () =>
-        getMonitoredPlate({ plate: lastSearchParams?.plate || '' }),
+        getMonitoredPlate({ plate: trips.lastSearchParams?.plate || '' }),
       retry(failureCount, error) {
         if (
           isApiError(error) &&
@@ -49,8 +45,8 @@ export function MonitoringToggle() {
   )
 
   function handleSetMonitored() {
-    if (lastSearchParams) {
-      setDialogInitialData({ plate: lastSearchParams?.plate })
+    if (trips.lastSearchParams) {
+      setDialogInitialData({ plate: trips.lastSearchParams?.plate })
     }
 
     monitoredPlateFormDialog.onOpen()
@@ -68,18 +64,18 @@ export function MonitoringToggle() {
 
   return (
     <>
-      {lastSearchParams && (
+      {trips.lastSearchParams && (
         <div>
           <Tooltip
             text="Gerenciar monitoramento"
             disabled={
-              isLoadingGetCarPath ||
+              trips.isLoading ||
               isLoadingMonitoredPlate ||
               !profile ||
               !profile.is_admin
             }
             disabledText={
-              isLoadingGetCarPath || isLoadingMonitoredPlate ? '' : notAllowed
+              trips.isLoading || isLoadingMonitoredPlate ? '' : notAllowed
             }
             asChild
           >
@@ -88,7 +84,7 @@ export function MonitoringToggle() {
                 pressed={monitored}
                 onPressedChange={handleSetMonitored}
                 disabled={
-                  isLoadingGetCarPath ||
+                  trips.isLoading ||
                   isLoadingMonitoredPlate ||
                   !profile ||
                   !profile.is_admin
@@ -109,7 +105,7 @@ export function MonitoringToggle() {
           <DisableMonitoringAlertDialog
             isOpen={disableMonitoringAlertDisclosure.isOpen}
             onOpenChange={disableMonitoringAlertDisclosure.onOpenChange}
-            plate={lastSearchParams?.plate}
+            plate={trips.lastSearchParams?.plate}
           />
         </div>
       )}

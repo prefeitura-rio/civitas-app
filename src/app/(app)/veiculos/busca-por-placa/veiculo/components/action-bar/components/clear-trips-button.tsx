@@ -3,14 +3,10 @@ import { useRouter } from 'next/navigation'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
-import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useMapLayers } from '@/stores/use-map-store'
 
 export function ClearTripsButton() {
-  const {
-    layers: {
-      trips: { clearSearch },
-    },
-  } = useMap()
+  const { trips } = useMapLayers()
   const router = useRouter()
 
   return (
@@ -20,7 +16,7 @@ export function ClearTripsButton() {
         size="icon"
         onClick={() => {
           console.log('clearSearch')
-          clearSearch()
+          trips.clearSearch()
           router.push('/veiculos/busca-por-placa')
         }}
       >

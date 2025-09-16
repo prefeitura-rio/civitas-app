@@ -20,10 +20,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useSearchByPlateResultDynamicFilter } from '@/hooks/useSearchByPlateResultDynamicFilter'
 import { dateConfig } from '@/lib/date-config'
+import { useMapLayers } from '@/stores/use-map-store'
 
 import { ActionBar } from './components/action-bar'
 import { Filter } from './components/filter'
@@ -31,10 +31,8 @@ import { PlateList } from './components/plate-list'
 
 export default function Veiculos() {
   const {
-    layers: {
-      trips: { isLoading, getPossiblePlates, possiblePlates },
-    },
-  } = useMap()
+    trips: { isLoading, getPossiblePlates, possiblePlates },
+  } = useMapLayers()
 
   const { formattedSearchParams } = useCarPathsSearchParams()
   const router = useRouter()

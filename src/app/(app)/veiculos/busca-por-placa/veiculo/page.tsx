@@ -11,18 +11,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
+import { useMapLayers } from '@/stores/use-map-store'
 
 import { ActionBar } from './components/action-bar'
 import { TripList } from './components/trip-list'
 
 export default function Veiculo() {
   const {
-    layers: {
-      trips: { isLoading, getTrips },
-    },
-  } = useMap()
+    trips: { isLoading, getTrips },
+  } = useMapLayers()
   const { formattedSearchParams } = useCarPathsSearchParams()
   const router = useRouter()
 

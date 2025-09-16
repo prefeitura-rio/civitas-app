@@ -21,13 +21,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCortexRemainingCredits } from '@/hooks/useQueries/useCortexRemainingCredits'
 import { useVehicles } from '@/hooks/useQueries/useVehicles'
 import { useVehiclesCreditsRequired } from '@/hooks/useQueries/useVehiclesCreditsRequired'
 import { useSearchByPlateEnhancedResultDynamicFilter } from '@/hooks/useSearchByPlateEnhancedResultDynamicFilter'
 import { dateConfig } from '@/lib/date-config'
+import { useMapLayers } from '@/stores/use-map-store'
 import { cortexRequestLimit } from '@/utils/cortex-limit'
 
 import { Filter } from './components/filter'
@@ -38,14 +38,12 @@ export default function Veiculos() {
   const [isLoading, setIsLoading] = useState(true)
 
   const {
-    layers: {
-      trips: {
-        isLoading: isPossiblePlatesLoading,
-        getPossiblePlates,
-        possiblePlates,
-      },
+    trips: {
+      isLoading: isPossiblePlatesLoading,
+      getPossiblePlates,
+      possiblePlates,
     },
-  } = useMap()
+  } = useMapLayers()
   const { formattedSearchParams } = useCarPathsSearchParams()
   const router = useRouter()
 

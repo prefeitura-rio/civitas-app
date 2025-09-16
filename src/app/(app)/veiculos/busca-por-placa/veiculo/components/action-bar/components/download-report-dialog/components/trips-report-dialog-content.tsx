@@ -1,18 +1,14 @@
 import { PDFViewer } from '@react-pdf/renderer'
 
 import { DialogContent } from '@/components/ui/dialog'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useVehicle } from '@/hooks/useQueries/useVehicle'
+import { useMapLayers } from '@/stores/use-map-store'
 
 import { ReportDocument } from '../../../../report/components/report-document'
 
 export function TripsReportDialogContent() {
-  const {
-    layers: {
-      trips: { trips },
-    },
-  } = useMap()
+  const { trips } = useMapLayers()
   const { formattedSearchParams } = useCarPathsSearchParams()
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
@@ -23,7 +19,7 @@ export function TripsReportDialogContent() {
     <DialogContent className="h-[80%] max-w-7xl">
       <PDFViewer style={{ width: '100%', height: '100%' }}>
         <ReportDocument
-          trips={trips || []}
+          trips={trips.trips || []}
           searchParams={{
             plate: formattedSearchParams.plate,
             endTime: formattedSearchParams.to,

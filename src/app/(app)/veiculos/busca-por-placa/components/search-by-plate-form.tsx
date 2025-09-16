@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
+import { useMapLayers } from '@/stores/use-map-store'
 import { toQueryParams } from '@/utils/to-query-params'
 import { dateRangeSchema, requiredPlateHintSchema } from '@/utils/zod-schemas'
 
@@ -27,10 +27,8 @@ export type WideSearchFormData = z.infer<typeof wideSearchSchema>
 export function SearchByPlateForm() {
   const router = useRouter()
   const {
-    layers: {
-      trips: { getTrips, getPossiblePlates },
-    },
-  } = useMap()
+    trips: { getTrips, getPossiblePlates },
+  } = useMapLayers()
   const { formattedSearchParams } = useCarPathsSearchParams()
 
   const {

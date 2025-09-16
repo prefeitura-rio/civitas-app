@@ -6,8 +6,8 @@ import { twMerge } from 'tailwind-merge'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import type { Point } from '@/models/entities'
+import { useMapLayers, useMapStore } from '@/stores/use-map-store'
 
 import { PointCard } from './point-card'
 
@@ -38,12 +38,10 @@ export function TripCard({
   endLocation,
   cloneAlert,
 }: TripCardProps) {
+  const setViewport = useMapStore((state) => state.setViewport)
   const {
-    setViewport,
-    layers: {
-      trips: { trips, selectedTrip, setSelectedTrip },
-    },
-  } = useMap()
+    trips: { trips, selectedTrip, setSelectedTrip },
+  } = useMapLayers()
 
   const points = selectedTrip?.points || []
   const isSelected = selectedTrip?.index === index

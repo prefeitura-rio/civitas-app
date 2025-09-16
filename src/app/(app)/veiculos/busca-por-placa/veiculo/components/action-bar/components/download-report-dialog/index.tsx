@@ -17,9 +17,9 @@ import {
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useRadars } from '@/hooks/useQueries/useRadars'
+import { useMapLayers } from '@/stores/use-map-store'
 import { exportToCSV } from '@/utils/csv'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
@@ -31,11 +31,7 @@ enum FileType {
 }
 
 export function DownloadReportDialog() {
-  const {
-    layers: {
-      trips: { trips, isLoading: isLoadingTrips },
-    },
-  } = useMap()
+  const { trips } = useMapLayers()
   const { formattedSearchParams } = useCarPathsSearchParams()
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
@@ -70,7 +66,7 @@ export function DownloadReportDialog() {
                 variant="secondary"
                 size="icon"
                 disabled={
-                  !trips || isLoadingTrips || !radars || isLoadingRadars
+                  !trips.trips || trips.isLoading || !radars || isLoadingRadars
                 }
               >
                 <Printer className="size-4 shrink-0" />
@@ -190,17 +186,17 @@ export function DownloadReportDialog() {
                     if (fileType === FileType.PDF) {
                       setShowViagens(true)
                     }
-                    if (fileType === FileType.CSV && trips) {
-                      console.log('lon: ', trips?.[0].points?.[0].from[0])
+                    if (fileType === FileType.CSV && trips.trips) {
+                      console.log('lon: ', trips.trips?.[0].points?.[0].from[0])
                       console.log(
                         'lat: ',
-                        trips?.[0].points?.[0].from[0]
+                        trips.trips?.[0].points?.[0].from[0]
                           .toString()
                           .replace('.', ','),
                       )
                       exportToCSV(
                         `pontos_de_deteccao_${formattedSearchParams.plate}`,
-                        trips.flatMap((t, i) =>
+                        trips.trips.flatMap((t, i) =>
                           t.points.map((p, j) => ({
                             'Índice Viagem': i + 1,
                             'Índice Detecção': j + 1,
