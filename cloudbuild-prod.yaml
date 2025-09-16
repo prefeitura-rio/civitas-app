@@ -1,5 +1,4 @@
 steps:
-  # Install dependencies and run tests
   - name: "node:20-alpine"
     entrypoint: "sh"
     args:
@@ -7,22 +6,72 @@ steps:
       - |
         corepack enable && \
         corepack prepare pnpm@9.15.2 --activate && \
-        pnpm install --frozen-lockfile && \
-        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPatterns="src/__tests__"
+        pnpm install --frozen-lockfile --prefer-offline
+    id: "install-deps"
 
-  # Check if version changed and create tag if needed
   - name: "node:20-alpine"
     entrypoint: "sh"
     args:
       - "-c"
       - |
-        # Tornar script executável
-        chmod +x scripts/version-check.sh && \
-        # Executar verificação de versão
-        ./scripts/version-check.sh prod
+        corepack enable && \
+        corepack prepare pnpm@9.15.2 --activate && \
+        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathIgnorePatterns="e2e" --maxWorkers=2
+    waitFor: ["install-deps"]
+    id: "run-tests"
+
+  - name: "node:20-alpine"
+    entrypoint: "sh"
+    args:
+      - "-c"
+      - |
+        apk add --no-cache git
+        
+        CURRENT_VERSION=$$(node -p "require('./package.json').version")
+        echo "Current package.json version: $$CURRENT_VERSION"
+        
+        LAST_VERSION_TAG=$$(git tag --list | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1)
+        
+        if [ -z "$$LAST_VERSION_TAG" ]; then
+          echo "No previous version tags found. First deployment!"
+          DEPLOY_NEEDED=true
+        else
+          echo "Last version tag: $$LAST_VERSION_TAG"
+          LAST_VERSION=$$(echo "$$LAST_VERSION_TAG" | sed 's/^v//')
+          echo "Last deployed version: $$LAST_VERSION"
+          
+          if [ "$$CURRENT_VERSION" != "$$LAST_VERSION" ]; then
+            echo "✅ Version changed from $$LAST_VERSION to $$CURRENT_VERSION - Deploy approved!"
+            DEPLOY_NEEDED=true
+          else
+            echo "❌ Version unchanged ($$CURRENT_VERSION) - Deploy skipped!"
+            DEPLOY_NEEDED=false
+          fi
+        fi
+        
+        if [ "$$DEPLOY_NEEDED" = "true" ]; then
+          TIMESTAMP=$$(date +%Y%m%d-%H%M%S)
+          VERSION_TAG="$$CURRENT_VERSION"
+          PROD_TAG="prod-$$CURRENT_VERSION-$$TIMESTAMP"
+          
+          git config --global user.email "cloudbuild@datario.com"
+          git config --global user.name "Cloud Build"
+          
+          git tag -a "$$VERSION_TAG" -m "Release v$$CURRENT_VERSION - $$(date +%Y-%m-%d)" || echo "Tag $$VERSION_TAG already exists"
+          git tag -a "$$PROD_TAG" -m "Production deployment v$$CURRENT_VERSION - $$(date +%Y-%m-%d)"
+          
+          echo "🏷️  Created version tag: $$VERSION_TAG"
+          echo "🏷️  Created production tag: $$PROD_TAG"
+          echo "⚠️  Note: Tags created locally, but push to GitHub requires authentication setup"
+          
+          echo "$$PROD_TAG" > /workspace/version_tag.txt
+        else
+          echo "💡 To deploy, update version in package.json (npm version patch/minor/major)"
+          exit 1
+        fi
+    waitFor: ["install-deps"]
     id: "version-check"
 
-  # Create the .env file
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
     args:
@@ -31,43 +80,16 @@ steps:
         echo "NEXT_PUBLIC_CIVITAS_API_URL=https://api.civitas.rio" > .env.production && \
         echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoiZXNjcml0b3Jpb2RlZGFkb3MiLCJhIjoiY2t3bWdmcHpjMmJ2cTJucWJ4MGQ1Mm1kbiJ9.4hHJX-1pSevYoBbja7Pq4w" >> .env.production && \
         echo "NEXT_PUBLIC_VISION_AI_URL=http://app.dados.rio/vision-ai" >> .env.production
+    waitFor: ["-"]
+    id: "create-env"
 
-  # Build the container image with multiple tags
   - name: "gcr.io/cloud-builders/docker"
-    args: 
-      - "build"
-      - "-t"
-      - "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
-      - "-t"
-      - "gcr.io/$PROJECT_ID/civitas:latest"
-      - "-t"
-      - "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"
-      - "."
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA", "."]
+    waitFor: ["run-tests", "version-check", "create-env"]
 
-  # Push the container images to Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"]
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/civitas:latest"]
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"]
 
-  # Save deployment info for rollback
-  - name: "gcr.io/cloud-builders/gcloud"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        echo "Deployment Info:" > deployment-info.txt && \
-        echo "Timestamp: $(date +%Y-%m-%d %H:%M:%S)" >> deployment-info.txt && \
-        echo "Commit SHA: $COMMIT_SHA" >> deployment-info.txt && \
-        echo "Image Tag: gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA" >> deployment-info.txt && \
-        echo "Git Tag: prod-$(date +%Y%m%d-%H%M%S)" >> deployment-info.txt && \
-        echo "Branch: $BRANCH_NAME" >> deployment-info.txt && \
-        echo "Package Version: $(node -p "require('./package.json').version")" >> deployment-info.txt && \
-        gsutil cp deployment-info.txt gs://$PROJECT_ID-deployments/prod/deployment-info-$(date +%Y%m%d-%H%M%S).txt
-
-  # Kustomize: set the image in the kustomization.yaml file
   - name: "gcr.io/cloud-builders/gke-deploy"
     dir: "k8s/prod"
     entrypoint: "kustomize"
@@ -77,13 +99,11 @@ steps:
       - "image"
       - "gcr.io/project-id/civitas=gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
 
-  # Kustomize: apply the kustomization.yaml file
   - name: "gcr.io/cloud-builders/gke-deploy"
     dir: "k8s/prod"
     entrypoint: "kustomize"
     args: ["build", ".", "-o", "prod.yaml"]
 
-  # Deploy the application to the GKE cluster
   - name: "gcr.io/cloud-builders/gke-deploy"
     dir: "k8s/prod"
     args:
@@ -93,27 +113,8 @@ steps:
       - "--cluster=datario"
       - "--project=datario"
 
-  # Health check and deployment verification
-  - name: "gcr.io/cloud-builders/curl"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        echo "Waiting for deployment to be ready..." && \
-        sleep 30 && \
-        curl -f https://civitas.rio/health || echo "Health check failed, but deployment completed"
-
 images:
   - "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"
-  - "gcr.io/$PROJECT_ID/civitas:latest"
-  - "gcr.io/$PROJECT_ID/civitas:prod-$(date +%Y%m%d-%H%M%S)"
 
-# Store deployment history for rollback
-artifacts:
-  objects:
-    location: "gs://$PROJECT_ID-deployments/prod/"
-    paths: ["deployment-info.txt"]
-
-# Only run if version check passed (step succeeded)
 options:
   logging: CLOUD_LOGGING_ONLY

@@ -21,7 +21,7 @@ const mockRadar: Radar = {
   district: 'Copacabana',
   company: 'TECHNO RADARES',
   activeInLast24Hours: true,
-  lastDetectionTime: new Date('2025-01-15T10:30:00'),
+  lastDetectionTime: new Date('2025-01-15T10:30:00').toISOString(),
   streetName: 'Avenida Atlântica',
   hasData: true,
   direction: 'Sentido Centro',
@@ -42,6 +42,7 @@ describe('Select Cards Layout Snapshots', () => {
   beforeEach(() => {
     mockUseMapStore.mockImplementation((selector) => {
       const state = {
+        // Only mock the properties that are actually used in the tests
         zoomToLocation: jest.fn(),
         restorePreviousViewport: jest.fn(),
         previousViewport: {
@@ -49,8 +50,10 @@ describe('Select Cards Layout Snapshots', () => {
           longitude: -43.1729,
           zoom: 12,
         },
+        radarInfoMode: null,
+        setRadarInfoMode: jest.fn(),
       }
-      return selector(state)
+      return selector(state as any) // Use 'as any' to bypass the complete type check
     })
   })
 
@@ -74,7 +77,7 @@ describe('Select Cards Layout Snapshots', () => {
       const inactiveRadar: Radar = {
         ...mockRadar,
         activeInLast24Hours: false,
-        lastDetectionTime: new Date('2024-12-01T10:30:00'),
+        lastDetectionTime: new Date('2024-12-01T10:30:00').toISOString(),
       }
 
       const { container } = render(
@@ -111,7 +114,7 @@ describe('Select Cards Layout Snapshots', () => {
     it('deve manter o layout compacto do camera card sem streaming', () => {
       const cameraWithoutStreaming: CameraCOR = {
         ...mockCamera,
-        streamingUrl: undefined,
+        streamingUrl: '',
       }
 
       const { container } = render(
