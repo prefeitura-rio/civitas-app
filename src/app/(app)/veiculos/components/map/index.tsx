@@ -7,12 +7,7 @@ import { useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { MapSizeMonitor } from '@/components/custom/map-size-monitor'
-import { useMapLayers } from '@/hooks/maps/use-map-layers'
-import { useMapSearch } from '@/hooks/maps/use-map-search'
-import { useMapState } from '@/hooks/maps/use-map-state'
-import { useMouseInteractions } from '@/hooks/maps/use-mouse-interactions'
-import { useSelectionManagement } from '@/hooks/maps/use-selection-management'
-import { useMap } from '@/hooks/useContexts/use-map-context'
+import { useMapStore } from '@/stores/use-map-store'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { ContextMenu } from './components/context-menu'
@@ -20,18 +15,25 @@ import { HoverCards } from './components/hover-cards'
 import { MapLayerControl } from './components/layer-toggle'
 import { SearchBox } from './components/search-box'
 import { SelectionCards } from './components/select-cards'
+import { useMapLayers } from './hooks/use-map-layers'
+import { useMapSearch } from './hooks/use-map-search'
+import { useMapState } from './hooks/use-map-state'
+import { useMouseInteractions } from './hooks/use-mouse-interactions'
+import { useSelectionManagement } from './hooks/use-selection-management'
 
 export function Map() {
   const deckRef = useRef<Deck | null>(null)
   const mapRef = useRef<MapRef | null>(null)
 
-  const {
-    contextMenuPickingInfo,
-    openContextMenu,
-    setContextMenuPickingInfo,
-    setOpenContextMenu,
-    zoomToLocation,
-  } = useMap()
+  const contextMenuPickingInfo = useMapStore(
+    (state) => state.contextMenuPickingInfo,
+  )
+  const openContextMenu = useMapStore((state) => state.openContextMenu)
+  const setContextMenuPickingInfo = useMapStore(
+    (state) => state.setContextMenuPickingInfo,
+  )
+  const setOpenContextMenu = useMapStore((state) => state.setOpenContextMenu)
+  const zoomToLocation = useMapStore((state) => state.zoomToLocation)
 
   const mapState = useMapState({ mapRef, deckRef })
   const mapLayers = useMapLayers()

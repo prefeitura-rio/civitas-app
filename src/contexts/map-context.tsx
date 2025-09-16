@@ -8,38 +8,47 @@ import type { MapRef } from 'react-map-gl'
 import {
   type UseAddressMarker,
   useAddressMarker,
-} from '@/hooks/mapLayers/use-address-marker'
-import { type UseAgents, useAgents } from '@/hooks/mapLayers/use-agents'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-address-marker'
+import {
+  type UseAgents,
+  useAgents,
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-agents'
 import {
   type UseAISPLayer,
   useAISPLayer,
-} from '@/hooks/mapLayers/use-AISP-layer'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-AISP-layer'
 import {
   type UseBusStopLayer,
   useBusStopLayer,
-} from '@/hooks/mapLayers/use-bus-stop-layer'
-import { type UseCameraCOR, useCameraCOR } from '@/hooks/mapLayers/use-cameras'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-bus-stop-layer'
+import {
+  type UseCameraCOR,
+  useCameraCOR,
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-cameras'
 import {
   type UseCISPLayer,
   useCISPLayer,
-} from '@/hooks/mapLayers/use-CISP-layer'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-CISP-layer'
 import {
   type UseFogoCruzadoIncidents,
   useFogoCruzadoIncidents,
-} from '@/hooks/mapLayers/use-fogo-cruzado'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-fogo-cruzado'
 import {
   type UseRadarLayer,
   useRadarLayer,
-} from '@/hooks/mapLayers/use-radar-layer'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-radar-layer'
 import {
   type UseSchoolLayer,
   useSchoolLayer,
-} from '@/hooks/mapLayers/use-school-layer'
-import { type UseTrips, useTrips } from '@/hooks/mapLayers/use-trips'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-school-layer'
+import {
+  type UseTrips,
+  useTrips,
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-trips'
 import {
   type UseWazePoliceAlerts,
   useWazePoliceAlerts,
-} from '@/hooks/mapLayers/use-waze-police-alerts'
+} from '@/app/(app)/veiculos/components/map/hooks/layers/use-waze-police-alerts'
 import type { SetViewportProps } from '@/models/utils'
 import { useMapStore } from '@/stores/use-map-store'
 import { MapStyle } from '@/utils/get-map-style'

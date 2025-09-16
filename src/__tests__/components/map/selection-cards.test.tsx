@@ -1,19 +1,62 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 
 import { SelectionCards } from '@/app/(app)/veiculos/components/map/components/select-cards'
-import { useMap } from '@/hooks/useContexts/use-map-context'
 
-jest.mock('@/hooks/useContexts/use-map-context', () => ({
-  useMap: jest.fn(),
+// Mock the map size hook
+jest.mock('@/hooks/use-map-size', () => ({
+  useMapSize: jest.fn(() => ({
+    width: 1200,
+    height: 800,
+  })),
 }))
 
-const mockUseMap = jest.mocked(useMap)
+// Mock the Zustand store
+jest.mock('@/stores/use-map-store', () => ({
+  useMapStore: jest.fn((selector) => {
+    const mockState = {
+      multipleSelectedRadars: [],
+      radarInfoMode: null,
+      setRadarInfoMode: jest.fn(),
+    }
+    return selector(mockState)
+  }),
+}))
 
+// Mock the layer hooks
+jest.mock('@/app/(app)/veiculos/components/map/hooks/layers/use-cameras', () => ({
+  useCameraCOR: jest.fn(() => ({
+    selectedObject: null,
+    setSelectedObject: jest.fn(),
+    data: [],
+    layer: {},
+  })),
+}))
+
+jest.mock('@/app/(app)/veiculos/components/map/hooks/layers/use-radar-layer', () => ({
+  useRadarLayer: jest.fn(() => ({
+    selectedObject: null,
+    setSelectedObject: jest.fn(),
+    data: [],
+    layer: {},
+  })),
+}))
+
+jest.mock('@/app/(app)/veiculos/components/map/hooks/layers/use-fogo-cruzado', () => ({
+  useFogoCruzadoIncidents: jest.fn(() => ({
+    selectedObject: null,
+    setSelectedObject: jest.fn(),
+    data: [],
+    layer: {},
+  })),
+}))
+
+// Mock the select card components
 jest.mock(
   '@/app/(app)/veiculos/components/map/components/select-cards/camera-select-card',
   () => ({
-    CameraSelectCard: ({ selectedObject, setSelectedObject }: any) => (
-      <div data-testid="camera-select-card">
+    CameraSelectCard: ({ selectedObject, setSelectedObject, className }: any) => (
+      <div data-testid="camera-select-card" className={className}>
         Camera: {selectedObject ? 'selected' : 'not selected'}
         <button onClick={() => setSelectedObject(null)}>Close Camera</button>
       </div>
@@ -24,9 +67,10 @@ jest.mock(
 jest.mock(
   '@/app/(app)/veiculos/components/map/components/select-cards/radar-select-card',
   () => ({
-    RadarSelectCard: ({ selectedObject, setSelectedObject }: any) => (
-      <div data-testid="radar-select-card">
+    RadarSelectCard: ({ selectedObject, setSelectedObject, infoMode, className }: any) => (
+      <div data-testid="radar-select-card" className={className}>
         Radar: {selectedObject ? 'selected' : 'not selected'}
+        {infoMode && <span data-testid="info-mode">Info Mode</span>}
         <button onClick={() => setSelectedObject(null)}>Close Radar</button>
       </div>
     ),
@@ -48,220 +92,175 @@ jest.mock(
 )
 
 describe('SelectionCards', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
-    jest.clearAllMocks()
-    mockUseMap.mockReturnValue({
-      layers: {
-        cameras: {
-          selectedObject: null,
-          handleSelectObject: jest.fn(),
-          setSelectedObject: jest.fn(),
-          data: [],
-          failed: false,
-          layer: null,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-          isFetching: false,
-          isError: false,
-        },
-        radars: {
-          selectedObject: null,
-          setSelectedObject: jest.fn(),
-          data: [],
-          layer: null,
-          hoveredObject: null,
-          setHoveredObject: jest.fn(),
-          handleSelectObject: jest.fn(),
-          clearSelection: jest.fn(),
-        },
-        fogoCruzado: {
-          selectedObject: null,
-          setSelectedObject: jest.fn(),
-          data: [],
-          failed: false,
-          layer: null,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-          isFetching: false,
-          isError: false,
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
         },
       },
-    } as any)
+    })
+    jest.clearAllMocks()
   })
 
+  const createWrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+
   it('should render without errors', () => {
-    render(<SelectionCards />)
+    render(<SelectionCards />, { wrapper: createWrapper })
+    
     expect(screen.getByTestId('camera-select-card')).toBeInTheDocument()
-    const radarCards = screen.getAllByTestId('radar-select-card')
-    expect(radarCards).toHaveLength(2) // Normal radar card + info mode radar card
+    expect(screen.getAllByTestId('radar-select-card')).toHaveLength(2)
     expect(screen.getByTestId('fogo-cruzado-select-card')).toBeInTheDocument()
   })
 
   it('should display "selected" state when objects are selected', () => {
-    mockUseMap.mockReturnValue({
-      layers: {
-        cameras: {
-          selectedObject: {
-            code: 'CAM123',
-            location: 'Test Location',
-            zone: 'Test Zone',
-            latitude: -22.9068,
-            longitude: -43.1729,
-            streamingUrl: 'http://test.com',
-          },
-          handleSelectObject: jest.fn(),
-          setSelectedObject: jest.fn(),
-          data: [],
-          failed: false,
-          layer: null,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-          isFetching: false,
-          isError: false,
-        },
-        radars: {
-          selectedObject: {
-            cetRioCode: 'RDR123',
-            latitude: -22.9068,
-            longitude: -43.1729,
-            location: 'Test Location',
-            district: 'Test District',
-            company: 'Test Company',
-            isActive24h: true,
-            lastDetectionTime: new Date(),
-            streetName: 'Test Street',
-            hasData: true,
-            direction: 'Test Direction',
-            lane: 'Test Lane',
-            streetNumber: '123',
-          },
-          setSelectedObject: jest.fn(),
-          data: [],
-          layer: null,
-          hoveredObject: null,
-          setHoveredObject: jest.fn(),
-          handleSelectObject: jest.fn(),
-          clearSelection: jest.fn(),
-        },
-        fogoCruzado: {
-          selectedObject: {
-            id: 'FC123',
-            documentNumber: 'DOC123',
-            address: 'Test Address',
-            state: 'RJ',
-            region: 'Test Region',
-            latitude: -22.9068,
-            longitude: -43.1729,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            status: 'active',
-            type: 'test',
-            description: 'Test Description',
-            priority: 'high',
-            assignedTo: 'Test User',
-            estimatedResolutionTime: new Date(),
-            actualResolutionTime: new Date(),
-            resolutionNotes: 'Test Notes',
-            attachments: [],
-            tags: [],
-          },
-          setSelectedObject: jest.fn(),
-          data: [],
-          failed: false,
-          layer: null,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-          isFetching: false,
-          isError: false,
-        },
-      },
-    } as any)
+    const { useCameraCOR } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-cameras')
+    const { useRadarLayer } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-radar-layer')
+    const { useFogoCruzadoIncidents } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-fogo-cruzado')
 
-    render(<SelectionCards />)
+    useCameraCOR.mockReturnValue({
+      selectedObject: { id: 'camera1' },
+      setSelectedObject: jest.fn(),
+    })
+
+    useRadarLayer.mockReturnValue({
+      selectedObject: { id: 'radar1' },
+      setSelectedObject: jest.fn(),
+    })
+
+    useFogoCruzadoIncidents.mockReturnValue({
+      selectedObject: { id: 'fogo1' },
+      setSelectedObject: jest.fn(),
+    })
+
+    render(<SelectionCards />, { wrapper: createWrapper })
 
     expect(screen.getByText('Camera: selected')).toBeInTheDocument()
     expect(screen.getByText('Radar: selected')).toBeInTheDocument()
     expect(screen.getByText('FogoCruzado: selected')).toBeInTheDocument()
   })
 
-  it('should display "not selected" state when objects are not selected', () => {
-    render(<SelectionCards />)
+  it('should display "not selected" state when no objects are selected', () => {
+    const { useCameraCOR } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-cameras')
+    const { useRadarLayer } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-radar-layer')
+    const { useFogoCruzadoIncidents } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-fogo-cruzado')
+
+    // Reset mocks to return null/undefined selected objects
+    useCameraCOR.mockReturnValue({
+      selectedObject: null,
+      setSelectedObject: jest.fn(),
+      data: [],
+      layer: {},
+    })
+
+    useRadarLayer.mockReturnValue({
+      selectedObject: null,
+      setSelectedObject: jest.fn(),
+      data: [],
+      layer: {},
+    })
+
+    useFogoCruzadoIncidents.mockReturnValue({
+      selectedObject: null,
+      setSelectedObject: jest.fn(),
+      data: [],
+      layer: {},
+    })
+
+    render(<SelectionCards />, { wrapper: createWrapper })
 
     expect(screen.getByText('Camera: not selected')).toBeInTheDocument()
-    const radarElements = screen.getAllByText('Radar: not selected')
-    expect(radarElements).toHaveLength(2) // Normal radar card + info mode radar card
     expect(screen.getByText('FogoCruzado: not selected')).toBeInTheDocument()
   })
 
-  it('deve passar props corretas para CameraSelectCard', () => {
-    render(<SelectionCards />)
-
-    expect(screen.getByTestId('camera-select-card')).toBeInTheDocument()
-  })
-
-  it('deve passar props corretas para RadarSelectCard', () => {
-    render(<SelectionCards />)
-
+  it('should render radar info mode card', () => {
+    render(<SelectionCards />, { wrapper: createWrapper })
+    
     const radarCards = screen.getAllByTestId('radar-select-card')
-    expect(radarCards).toHaveLength(2) // Normal radar card + info mode radar card
+    expect(radarCards).toHaveLength(2)
+    
+    // One should be the info mode card
+    expect(screen.getByTestId('info-mode')).toBeInTheDocument()
   })
 
-  it('deve passar props corretas para FogoCruzadoSelectCard', () => {
-    render(<SelectionCards />)
+  it('should apply margin top class for small screen widths', () => {
+    const { useMapSize } = require('@/hooks/use-map-size')
+    
+    useMapSize.mockReturnValue({
+      width: 1000, // Less than 1060
+      height: 800,
+    })
 
-    expect(screen.getByTestId('fogo-cruzado-select-card')).toBeInTheDocument()
+    render(<SelectionCards />, { wrapper: createWrapper })
+    
+    const cameraCard = screen.getByTestId('camera-select-card')
+    expect(cameraCard).toHaveClass('mt-12')
+  })
+
+  it('should not apply margin top class for large screen widths', () => {
+    const { useMapSize } = require('@/hooks/use-map-size')
+    
+    useMapSize.mockReturnValue({
+      width: 1200, // Greater than 1060
+      height: 800,
+    })
+
+    render(<SelectionCards />, { wrapper: createWrapper })
+    
+    const cameraCard = screen.getByTestId('camera-select-card')
+    expect(cameraCard).not.toHaveClass('mt-12')
   })
 
   it('deve lidar com valores undefined/null graciosamente', () => {
-    mockUseMap.mockReturnValue({
-      layers: {
-        cameras: {
-          selectedObject: null,
-          handleSelectObject: jest.fn(),
-          setSelectedObject: jest.fn(),
-          data: [],
-          failed: false,
-          layer: null,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-          isFetching: false,
-          isError: false,
-        },
-        radars: {
-          selectedObject: null,
-          setSelectedObject: jest.fn(),
-          data: [],
-          layer: null,
-          hoveredObject: null,
-          setHoveredObject: jest.fn(),
-          handleSelectObject: jest.fn(),
-          clearSelection: jest.fn(),
-        },
-        fogoCruzado: {
-          selectedObject: null,
-          setSelectedObject: jest.fn(),
-          data: [],
-          failed: false,
-          layer: null,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-          isFetching: false,
-          isError: false,
-        },
-      },
-    } as any)
+    const { useCameraCOR } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-cameras')
+    const { useRadarLayer } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-radar-layer')
+    const { useFogoCruzadoIncidents } = require('@/app/(app)/veiculos/components/map/hooks/layers/use-fogo-cruzado')
 
-    render(<SelectionCards />)
+    useCameraCOR.mockReturnValue({
+      selectedObject: null,
+      setSelectedObject: jest.fn(),
+    })
+
+    useRadarLayer.mockReturnValue({
+      selectedObject: undefined,
+      setSelectedObject: jest.fn(),
+    })
+
+    useFogoCruzadoIncidents.mockReturnValue({
+      selectedObject: null,
+      setSelectedObject: jest.fn(),
+    })
+
+    expect(() => {
+      render(<SelectionCards />, { wrapper: createWrapper })
+    }).not.toThrow()
 
     expect(screen.getByText('Camera: not selected')).toBeInTheDocument()
-    const radarElements = screen.getAllByText('Radar: not selected')
-    expect(radarElements).toHaveLength(2) // Normal radar card + info mode radar card
     expect(screen.getByText('FogoCruzado: not selected')).toBeInTheDocument()
+  })
+
+  it('deve renderizar corretamente com store vazio', () => {
+    const { useMapStore } = require('@/stores/use-map-store')
+
+    useMapStore.mockImplementation((selector) => {
+      const mockState = {
+        multipleSelectedRadars: [],
+        radarInfoMode: null,
+        setRadarInfoMode: jest.fn(),
+      }
+      return selector(mockState)
+    })
+
+    expect(() => {
+      render(<SelectionCards />, { wrapper: createWrapper })
+    }).not.toThrow()
+
+    expect(screen.getByTestId('camera-select-card')).toBeInTheDocument()
+    expect(screen.getAllByTestId('radar-select-card')).toHaveLength(2)
+    expect(screen.getByTestId('fogo-cruzado-select-card')).toBeInTheDocument()
   })
 })

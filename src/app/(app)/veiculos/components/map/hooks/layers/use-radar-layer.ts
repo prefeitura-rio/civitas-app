@@ -6,7 +6,7 @@ import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Radar } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
-import { useRadars } from '../useQueries/useRadars'
+import { useRadars } from '@/hooks/useQueries/useRadars'
 
 export interface UseRadarLayer {
   data: Radar[] | undefined

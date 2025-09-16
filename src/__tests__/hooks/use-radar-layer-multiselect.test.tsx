@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 
-import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
+import { useRadarLayer } from '@/app/(app)/veiculos/components/map/hooks/layers/use-radar-layer'
 import type { Radar } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
