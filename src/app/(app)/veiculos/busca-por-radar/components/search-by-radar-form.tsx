@@ -26,19 +26,12 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
   const setViewport = useMapStore((state) => state.setViewport)
   const { selectedObjects, setSelectedObjects, data: radarsData } = radars
 
-  const {
-    control,
-    handleSubmit,
-    isSubmitting,
-    errors,
-    timeValidation,
-    MIN_DATE,
-    MAX_DATE,
-  } = useRadarSearchForm({
-    selectedObjects,
-    radars: radarsData,
-    formattedSearchParams,
-  })
+  const { control, handleSubmit, isSubmitting, errors, MIN_DATE, MAX_DATE } =
+    useRadarSearchForm({
+      selectedObjects,
+      radars: radarsData,
+      formattedSearchParams,
+    })
 
   return (
     <>
@@ -62,11 +55,9 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
 
           <DateField
             name="endDate"
-            showValidation={true}
             control={control}
             isSubmitting={isSubmitting}
             errors={errors}
-            timeValidation={timeValidation}
             minDate={MIN_DATE}
             maxDate={MAX_DATE}
           />
