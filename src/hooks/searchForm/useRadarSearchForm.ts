@@ -11,7 +11,6 @@ import type { Radar } from '@/models/entities'
 import { toQueryParams } from '@/utils/to-query-params'
 
 import { useRadarSync } from './useRadarSync'
-import { useTimeValidation } from './useTimeValidation'
 
 const FIVE_HOURS_MS = 5 * 60 * 60 * 1000
 const MIN_DATE = new Date(2024, 5, 1)
@@ -63,9 +62,6 @@ export function useRadarSearchForm({
   })
 
   const startDate = watch('startDate')
-  const endDate = watch('endDate')
-
-  const timeValidation = useTimeValidation(startDate, endDate)
 
   useRadarSync({
     selectedObjects,
@@ -102,7 +98,6 @@ export function useRadarSearchForm({
     handleSubmit: handleSubmit(handleFormSubmit),
     isSubmitting,
     errors,
-    timeValidation,
     MIN_DATE,
     MAX_DATE,
   }
