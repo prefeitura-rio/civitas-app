@@ -55,13 +55,16 @@ export function useRadarSearchForm({
     handleSubmit,
     watch,
     setValue,
+    trigger,
     formState: { isSubmitting, errors },
   } = useForm<RadarSearchFormData>({
     resolver: zodResolver(radarSearchSchema),
     defaultValues,
+    mode: 'onChange',
   })
 
   const startDate = watch('startDate')
+  const endDate = watch('endDate')
 
   useRadarSync({
     selectedObjects,
@@ -76,6 +79,12 @@ export function useRadarSearchForm({
       setValue('endDate', newEndDate)
     }
   }, [startDate, setValue])
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      trigger('endDate')
+    }
+  }, [startDate, endDate, trigger])
 
   const handleFormSubmit = useCallback(
     (data: RadarSearchFormData) => {
