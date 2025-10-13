@@ -1,8 +1,9 @@
 import { Info } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
+import { InputError } from '@/components/custom/input-error'
 import { Tooltip } from '@/components/custom/tooltip'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DatePicker } from '@/components/ui/date-picker'
 
 interface DateFieldProps {
@@ -12,6 +13,21 @@ interface DateFieldProps {
   errors: any // eslint-disable-line @typescript-eslint/no-explicit-any
   minDate: Date
   maxDate: Date
+}
+
+function CardTooltipContent() {
+  return (
+    <Card className="m-0">
+      <CardHeader>
+        <CardTitle className="text-center">
+          Instruções para seleção de datas:
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="text-start">
+        <p>O intervalo entre as datas deve ser de no máximo 5 horas</p>
+      </CardContent>
+    </Card>
+  )
 }
 
 export function DateField({
@@ -25,41 +41,32 @@ export function DateField({
   const isEndDate = name === 'endDate'
 
   return (
-    <div className="relative flex w-full flex-col">
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
-          <DatePicker
-            className="w-full"
-            value={field.value}
-            onChange={field.onChange}
-            type="datetime-local"
-            disabled={isSubmitting}
-            fromDate={minDate}
-            toDate={maxDate}
-          />
+    <div className="flex w-full flex-col">
+      <div className="relative w-full">
+        <Controller
+          control={control}
+          name={name}
+          render={({ field }) => (
+            <DatePicker
+              className="w-full"
+              value={field.value}
+              onChange={field.onChange}
+              type="datetime-local"
+              disabled={isSubmitting}
+              fromDate={minDate}
+              toDate={maxDate}
+            />
+          )}
+        />
+        {isEndDate && (
+          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center">
+            <Tooltip side="bottom" render={<CardTooltipContent />}>
+              <Info className="size-4 text-muted-foreground" />
+            </Tooltip>
+          </div>
         )}
-      />
-      {isEndDate && (
-        <div className="absolute-y-centered right-2 flex items-center">
-          <Tooltip
-            side="bottom"
-            render={
-              <Card className="m-0">
-                <p>O intervalo entre as datas deve ser de no máximo 5 horas</p>
-              </Card>
-            }
-          >
-            <Info className="size-4 text-muted-foreground" />
-          </Tooltip>
-        </div>
-      )}
-      {errors[name] && (
-        <span className="mt-1 text-sm text-red-500">
-          {errors[name]?.message}
-        </span>
-      )}
+      </div>
+      {errors[name] && <InputError message={errors[name]?.message} />}
     </div>
   )
 }
