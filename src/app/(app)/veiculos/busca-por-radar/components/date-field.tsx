@@ -20,11 +20,25 @@ function CardTooltipContent() {
     <Card className="m-0">
       <CardHeader>
         <CardTitle className="text-center">
-          Instruções para seleção de datas:
+          Intervalo de tempo do relatório
         </CardTitle>
       </CardHeader>
       <CardContent className="text-start">
-        <p>O intervalo entre as datas deve ser de no máximo 5 horas</p>
+        <p>
+          O período de tempo máximo de 5h foi definido devido ao grande volume
+          de dados processados pelo sistema, garantindo que os relatórios sejam
+          gerados com agilidade e estabilidade.
+        </p>
+        <p>
+          Caso seja necessário um relatório com período superior, entre em
+          contato com{' '}
+          <a
+            href="mailto:inteligencia.civitas@prefeitura.rio"
+            className="text-blue-600 underline"
+          >
+            inteligencia.civitas@prefeitura.rio
+          </a>
+        </p>
       </CardContent>
     </Card>
   )
