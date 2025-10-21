@@ -24,6 +24,19 @@ export const wideSearchSchema = z.object({
 
 export type WideSearchFormData = z.infer<typeof wideSearchSchema>
 
+const getStartOfToday = () => {
+  const now = new Date()
+
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+}
+
+const getNowWithoutSeconds = () => {
+  const now = new Date()
+  now.setSeconds(0, 0)
+
+  return now
+}
+
 export function SearchByPlateForm() {
   const router = useRouter()
   const {
@@ -50,10 +63,8 @@ export function SearchByPlateForm() {
         }
       : {
           date: {
-            from: new Date(
-              new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).setSeconds(0, 0),
-            ), // 7 days ago
-            to: new Date(new Date().setSeconds(0, 0)),
+            from: getStartOfToday(),
+            to: getNowWithoutSeconds(),
           },
           plate: '',
         },
