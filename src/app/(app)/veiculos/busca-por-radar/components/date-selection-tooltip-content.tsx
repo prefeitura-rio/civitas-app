@@ -16,13 +16,15 @@ export function DateSelectionTooltipContent() {
         </p>
         <p>
           Caso seja necessário um relatório com período superior, entre em
-          contato com{' '}
+          contato com o{' '}
           <a
             href="mailto:inteligencia.civitas@prefeitura.rio"
             className="text-blue-600 underline"
           >
             inteligencia.civitas@prefeitura.rio
           </a>
+          contendo a justificativa do pedido e todos os parâmetros necessários
+          para a geração do relatório.
         </p>
       </CardContent>
     </Card>
