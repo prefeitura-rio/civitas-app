@@ -22,7 +22,7 @@ export function DateSelectionTooltipContent() {
             className="text-blue-600 underline"
           >
             inteligencia.civitas@prefeitura.rio
-          </a>
+          </a>{' '}
           contendo a justificativa do pedido e todos os parâmetros necessários
           para a geração do relatório.
         </p>
