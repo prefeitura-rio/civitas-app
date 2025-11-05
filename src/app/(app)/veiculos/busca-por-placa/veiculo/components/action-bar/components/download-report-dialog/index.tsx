@@ -22,6 +22,7 @@ import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchPara
 import { useRadars } from '@/hooks/useQueries/useRadars'
 import { exportToCSV } from '@/utils/csv'
 
+import { CloningReportDownloadProgressAlert } from './components/cloning-report-download-progress-alert'
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
 
@@ -29,6 +30,8 @@ enum FileType {
   'PDF' = 'PDF',
   'CSV' = 'CSV',
 }
+
+type ReportFormType = 'viagens' | 'placas conjuntas' | 'clonagem'
 
 export function DownloadReportDialog() {
   const {
@@ -42,13 +45,12 @@ export function DownloadReportDialog() {
   const { data: radars, isLoading: isLoadingRadars } = useRadars()
 
   const [open, setOpen] = useState(false)
-  const [formType, setFormType] = useState<'viagens' | 'placas conjuntas'>(
-    'viagens',
-  )
+  const [formType, setFormType] = useState<ReportFormType>('viagens')
   const [nMinutes, setNMinutes] = useState(1)
   const [nPlates, setNPlates] = useState(10)
   const [showViagens, setShowViagens] = useState(false)
   const [showPlacasConjuntas, setShowPlacasConjuntas] = useState(false)
+  const [showClonagem, setShowClonagem] = useState(false)
   const [fileType, setFileType] = useState<FileType>(FileType.PDF)
 
   useEffect(() => {
@@ -57,8 +59,15 @@ export function DownloadReportDialog() {
     setNPlates(10)
     setShowViagens(false)
     setShowPlacasConjuntas(false)
+    setShowClonagem(false)
     setFileType(FileType.PDF)
   }, [open])
+
+  useEffect(() => {
+    if (formType === 'clonagem') {
+      setFileType(FileType.PDF)
+    }
+  }, [formType])
 
   return (
     <>
@@ -91,7 +100,7 @@ export function DownloadReportDialog() {
                   defaultValue="viagens"
                   className="pl-4"
                   onValueChange={(value) =>
-                    setFormType(value as typeof formType)
+                    setFormType(value as ReportFormType)
                   }
                 >
                   <div className="flex items-center space-x-2">
@@ -109,6 +118,10 @@ export function DownloadReportDialog() {
                       Relatório de Placas Conjuntas
                     </Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="clonagem" id="clonagem" />
+                    <Label htmlFor="clonagem">Relatório de Clonagem</Label>
+                  </div>
                 </RadioGroup>
               </div>
               <div className="flex gap-2">
@@ -120,14 +133,36 @@ export function DownloadReportDialog() {
                   onValueChange={(e) => setFileType(e as FileType)}
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value={FileType.PDF} id={FileType.PDF} />
-                    <Label htmlFor={FileType.PDF} className="cursor-pointer">
+                    <RadioGroupItem
+                      value={FileType.PDF}
+                      id={FileType.PDF}
+                      disabled={formType === 'clonagem'}
+                    />
+                    <Label
+                      htmlFor={FileType.PDF}
+                      className={
+                        formType === 'clonagem'
+                          ? 'cursor-not-allowed text-muted-foreground'
+                          : 'cursor-pointer'
+                      }
+                    >
                       PDF
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value={FileType.CSV} id={FileType.CSV} />
-                    <Label htmlFor={FileType.CSV} className="cursor-pointer">
+                    <RadioGroupItem
+                      value={FileType.CSV}
+                      id={FileType.CSV}
+                      disabled={formType === 'clonagem'}
+                    />
+                    <Label
+                      htmlFor={FileType.CSV}
+                      className={
+                        formType === 'clonagem'
+                          ? 'cursor-not-allowed text-muted-foreground'
+                          : 'cursor-pointer'
+                      }
+                    >
                       CSV
                     </Label>
                   </div>
@@ -221,8 +256,10 @@ export function DownloadReportDialog() {
                         ),
                       )
                     }
-                  } else {
+                  } else if (formType === 'placas conjuntas') {
                     setShowPlacasConjuntas(true)
+                  } else {
+                    setShowClonagem(true)
                   }
                 }}
               >
@@ -239,6 +276,10 @@ export function DownloadReportDialog() {
         nMinutes={nMinutes}
         nPlates={nPlates}
         fileType={fileType}
+      />
+      <CloningReportDownloadProgressAlert
+        open={showClonagem}
+        setOpen={setOpen}
       />
     </>
   )
