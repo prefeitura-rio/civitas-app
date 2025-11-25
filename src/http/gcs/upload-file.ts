@@ -5,6 +5,11 @@ export interface UploadFileOptions {
   onProgress?: (progress: number, status: 'initiating' | 'uploading') => void
 }
 
+const CHUNK_SIZE_BYTES = 16 * 1024 * 1024 // 16MB to avoid long timeouts on slow links
+const FILE_TIMEOUT_MS = 300000 // 5 minutes default
+const CHUNK_TIMEOUT_MS = 600000 // 10 minutes per chunk to reduce retries on slow links
+const PROGRESS_THROTTLE_MS = 100
+
 export async function uploadFileToGCS({
   file,
   uploadUrl,
@@ -17,7 +22,7 @@ export async function uploadFileToGCS({
     url: string,
     body: File | Blob | null,
     headers: Record<string, string> = {},
-    timeoutMs = 300000, // 5 minutes default
+    timeoutMs = FILE_TIMEOUT_MS,
   ): Promise<{ xhr: XMLHttpRequest; status: number }> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
@@ -103,7 +108,7 @@ export async function uploadFileToGCS({
     const fileSize = file.size
     let retryCount = 0
     const maxRetries = 5
-    const CHUNK_SIZE = 64 * 1024 * 1024 // 64MB chunks
+    const CHUNK_SIZE = CHUNK_SIZE_BYTES
 
     while (offset < fileSize) {
       const chunkEnd = Math.min(offset + CHUNK_SIZE, fileSize)
@@ -122,7 +127,7 @@ export async function uploadFileToGCS({
           const xhr = new XMLHttpRequest()
           xhr.open('PUT', sessionUri)
           xhr.withCredentials = false
-          xhr.timeout = 300000 // 5 minutes per chunk
+          xhr.timeout = CHUNK_TIMEOUT_MS
 
           xhr.addEventListener('timeout', () => {
             reject(new Error('Upload timeout'))
@@ -134,7 +139,6 @@ export async function uploadFileToGCS({
 
           // Throttle progress updates to improve performance
           let lastProgressUpdate = 0
-          const PROGRESS_THROTTLE_MS = 100
 
           xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable && onProgress) {
@@ -221,7 +225,7 @@ export async function uploadFileToGCS({
       const xhr = new XMLHttpRequest()
       xhr.open('PUT', uploadUrl)
       xhr.withCredentials = false
-      xhr.timeout = 300000 // 5 minutes for the file
+      xhr.timeout = FILE_TIMEOUT_MS
 
       xhr.addEventListener('timeout', () => {
         reject(new Error('Upload timeout'))
@@ -233,7 +237,6 @@ export async function uploadFileToGCS({
 
       if (onProgress) {
         let lastProgressUpdate = 0
-        const PROGRESS_THROTTLE_MS = 100
 
         xhr.upload.addEventListener('progress', (e) => {
           if (e.lengthComputable) {

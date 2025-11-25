@@ -1,6 +1,5 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import {
   AlertCircle,
@@ -10,409 +9,56 @@ import {
   Upload,
   X,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { generateUploadUrl } from '@/http/gcs/generate-upload-url'
-import { uploadFileToGCS } from '@/http/gcs/upload-file'
-import { calculateCRC32C } from '@/utils/calculate-crc32c'
-import { sanitizePath } from '@/utils/sanitize-path'
 
-import { getGcsUploadErrorMessage } from '../utils/get-gcs-error-message'
-
-const gcsUploadFormSchema = z.object({})
-
-type GcsUploadForm = z.infer<typeof gcsUploadFormSchema>
-
-interface FileWithProgress {
-  file: File
-  relativePath: string
-  progress: number
-  status: 'pending' | 'initiating' | 'uploading' | 'success' | 'error'
-  error?: string
-}
-
-// Custom interfaces for File System Access API
-interface GCSFileSystemDirectoryReader<T> {
-  readEntries: (successCallback: (entries: T[]) => void) => void
-}
-
-interface GCSFileSystemEntry {
-  isFile: boolean
-  isDirectory: boolean
-  name: string
-  file: (callback: (file: File) => void) => void
-  createReader: () => GCSFileSystemDirectoryReader<GCSFileSystemEntry>
-}
-
-interface DataTransferItemWithWebkit {
-  webkitGetAsEntry: () => GCSFileSystemEntry | null
-}
-
-interface FileWithWebkitPath extends File {
-  webkitRelativePath: string
-}
+import { formatFileSize, useUploadForm } from '../hooks/use-upload-form'
+import { useUploadQueue } from '../hooks/use-upload-queue'
 
 interface GcsUploadFormProps {
   bucketName: string
 }
 
 export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
-  const [files, setFiles] = useState<FileWithProgress[]>([])
-  const [isDragging, setIsDragging] = useState(false)
-  const [shouldRetry, setShouldRetry] = useState(false)
-
-  const { handleSubmit, reset } = useForm<GcsUploadForm>({
-    resolver: zodResolver(gcsUploadFormSchema),
-  })
-
   const { mutateAsync: generateUploadUrlMutation } = useMutation({
     mutationFn: generateUploadUrl,
   })
-
-  const handleFiles = useCallback((fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) return
-
-    const newFiles: FileWithProgress[] = Array.from(fileList).map((file) => {
-      const fileWithPath = file as unknown as FileWithWebkitPath
-      return {
-        file,
-        relativePath: fileWithPath.webkitRelativePath || file.name,
-        progress: 0,
-        status: 'pending' as const,
-      }
-    })
-
-    setFiles((prev) => [...prev, ...newFiles])
-  }, [])
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-  }, [])
-
-  // Recursive function to traverse directories
-  const traverseFileTree = useCallback(
-    async (
-      item: GCSFileSystemEntry,
-      path = '',
-    ): Promise<FileWithProgress[]> => {
-      return new Promise((resolve) => {
-        if (item.isFile) {
-          item.file((file: File) => {
-            const relativePath = path + file.name
-            resolve([
-              {
-                file,
-                relativePath,
-                progress: 0,
-                status: 'pending' as const,
-              },
-            ])
-          })
-        } else if (item.isDirectory) {
-          const dirReader = item.createReader()
-          const entries: GCSFileSystemEntry[] = []
-
-          const readEntries = () => {
-            dirReader.readEntries(async (results: GCSFileSystemEntry[]) => {
-              if (results.length === 0) {
-                const allFiles: FileWithProgress[] = []
-                for (const entry of entries) {
-                  const files = await traverseFileTree(
-                    entry,
-                    path + item.name + '/',
-                  )
-                  allFiles.push(...files)
-                }
-                resolve(allFiles)
-              } else {
-                entries.push(...results)
-                readEntries()
-              }
-            })
-          }
-          readEntries()
-        } else {
-          resolve([])
-        }
-      })
-    },
-    [],
-  )
-
-  const handleDrop = useCallback(
-    async (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setIsDragging(false)
-
-      const items = Array.from(e.dataTransfer.items)
-      const allFiles: FileWithProgress[] = []
-
-      for (const item of items) {
-        const itemWithWebkit = item as unknown as DataTransferItemWithWebkit
-        const entry = itemWithWebkit.webkitGetAsEntry?.()
-        if (entry) {
-          const files = await traverseFileTree(entry)
-          allFiles.push(...files)
-        }
-      }
-
-      if (allFiles.length > 0) {
-        setFiles((prev) => [...prev, ...allFiles])
-      }
-    },
-    [traverseFileTree],
-  )
-
-  const handleFileInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFiles(e.target.files)
-    },
-    [handleFiles],
-  )
-
-  const removeFile = useCallback((index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index))
-  }, [])
-
-  const uploadFile = useCallback(
-    async (fileWithProgress: FileWithProgress, index: number) => {
-      if (!bucketName) {
-        toast.error('Nome do bucket é obrigatório')
-        return
-      }
-
-      setFiles((prev) =>
-        prev.map((f, i) => (i === index ? { ...f, status: 'uploading' } : f)),
-      )
-
-      try {
-        const contentType =
-          fileWithProgress.file.type || 'application/octet-stream'
-        const isResumable = fileWithProgress.file.size > 5 * 1024 * 1024
-
-        const lastSlashIndex = fileWithProgress.relativePath.lastIndexOf('/')
-        const filePath =
-          lastSlashIndex >= 0
-            ? sanitizePath(
-                fileWithProgress.relativePath.substring(0, lastSlashIndex),
-              )
-            : undefined
-
-        // Calculate CRC32C checksum
-        const crc32c = await calculateCRC32C(fileWithProgress.file)
-
-        const { data: uploadUrlData } = await generateUploadUrlMutation({
-          file_name: fileWithProgress.file.name,
-          file_path: filePath,
-          bucket_name: bucketName,
-          content_type: contentType,
-          resumable: isResumable,
-          file_size: fileWithProgress.file.size,
-          crc32c,
-        })
-
-        if (uploadUrlData.file_exists) {
-          setFiles((prev) =>
-            prev.map((f, i) =>
-              i === index ? { ...f, status: 'success', progress: 100 } : f,
-            ),
-          )
-          toast.success(`${fileWithProgress.file.name} já existe (pulado)`)
-          return
-        }
-
-        if (!uploadUrlData.signed_url) {
-          throw new Error('Upload URL was not returned by the server')
-        }
-        await uploadFileToGCS({
-          file: fileWithProgress.file,
-          uploadUrl: uploadUrlData.signed_url,
-          resumable: isResumable,
-          onProgress: (progress, status) => {
-            setFiles((prev) =>
-              prev.map((f, i) =>
-                i === index ? { ...f, progress, status } : f,
-              ),
-            )
-          },
-        })
-
-        setFiles((prev) =>
-          prev.map((f, i) =>
-            i === index ? { ...f, status: 'success', progress: 100 } : f,
-          ),
-        )
-      } catch (error) {
-        const errorMessage = getGcsUploadErrorMessage(error)
-        setFiles((prev) =>
-          prev.map((f, i) =>
-            i === index ? { ...f, status: 'error', error: errorMessage } : f,
-          ),
-        )
-        toast.error(
-          `Erro ao fazer upload de ${fileWithProgress.file.name}: ${errorMessage}`,
-        )
-      }
-    },
-    [bucketName, generateUploadUrlMutation],
-  )
-
-  async function onSubmit() {
-    if (files.length === 0) {
-      toast.error('Selecione pelo menos um arquivo para fazer upload')
-      return
-    }
-
-    const pendingFiles = files
-      .map((f, i) => ({ file: f, index: i }))
-      .filter(({ file }) => file.status === 'pending')
-      .sort((a, b) => a.file.file.size - b.file.file.size) // Sort by size (smallest first)
-
-    if (pendingFiles.length === 0) {
-      toast.info('Todos os arquivos já foram enviados')
-      return
-    }
-
-    const MAX_CONCURRENT = 10
-    const queue = [...pendingFiles]
-    const active = new Set<Promise<void>>()
-
-    const processNext = async () => {
-      while (queue.length > 0 && active.size < MAX_CONCURRENT) {
-        const item = queue.shift()
-        if (!item) break
-
-        const uploadPromise = uploadFile(item.file, item.index).finally(() => {
-          active.delete(uploadPromise)
-          processNext() // Process next when one completes
-        })
-
-        active.add(uploadPromise)
-      }
-    }
-
-    // Start initial batch
-    await processNext()
-
-    // Wait for all to complete
-    while (active.size > 0) {
-      await Promise.race(active)
-    }
-
-    // Final toast with results
-    const results = files.filter((f) => f.status !== 'pending')
-    const successCount = results.filter((f) => f.status === 'success').length
-    const errorCount = results.filter((f) => f.status === 'error').length
-
-    if (successCount > 0 && errorCount === 0) {
-      toast.success(`${successCount} arquivo(s) enviado(s) com sucesso!`)
-    } else if (successCount > 0 && errorCount > 0) {
-      toast.warning(
-        `${successCount} arquivo(s) enviado(s) com sucesso, ${errorCount} falharam.`,
-      )
-    } else if (errorCount > 0 && successCount === 0) {
-      toast.error(`${errorCount} arquivo(s) falharam no upload`)
-    }
-  }
-
-  useEffect(() => {
-    if (shouldRetry) {
-      onSubmit()
-      setShouldRetry(false)
-    }
-  }, [shouldRetry, files]) // Depend on files to ensure we see the updated state
-
-  function handleClear() {
-    setFiles([])
-    reset()
-  }
-
-  function handleRetry() {
-    // Reset status of failed files to pending
-    setFiles((prev) =>
-      prev.map((f) =>
-        f.status === 'error'
-          ? { ...f, status: 'pending', progress: 0, error: undefined }
-          : f,
-      ),
-    )
-    setShouldRetry(true)
-  }
-
-  function handleExportErrors() {
-    const csvHeader = 'Nome do Arquivo,Caminho Relativo,Mensagem de Erro\n'
-    const csvContent = files
-      .filter((f) => f.status === 'error')
-      .map((f) => {
-        const name = `"${f.file.name.replace(/"/g, '""')}"`
-        const path = `"${f.relativePath.replace(/"/g, '""')}"`
-        const error = `"${(f.error || 'Desconhecido').replace(/"/g, '""')}"`
-        return `${name},${path},${error}`
-      })
-      .join('\n')
-
-    const blob = new Blob([csvHeader + csvContent], {
-      type: 'text/csv;charset=utf-8;',
-    })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `erros-upload-${new Date().toISOString()}.csv`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
-  // Sort files dynamically: uploading/initiating → top, success → bottom, pending → middle
-  const sortedFiles = useMemo(() => {
-    const statusOrder = {
-      uploading: 1,
-      initiating: 1,
-      pending: 2,
-      error: 3,
-      success: 4,
-    }
-    return [...files].sort((a, b) => {
-      const orderDiff = statusOrder[a.status] - statusOrder[b.status]
-      if (orderDiff !== 0) return orderDiff
-      return 0
-    })
-  }, [files])
-
-  // Calculate global progress
-  const globalProgress = useMemo(() => {
-    if (files.length === 0) return 0
-    const totalProgress = files.reduce((sum, f) => sum + f.progress, 0)
-    return totalProgress / files.length
-  }, [files])
-
-  const activeUploads = files.filter(
-    (f) => f.status === 'uploading' || f.status === 'initiating',
-  ).length
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
-  }
+  const {
+    files,
+    sortedFiles,
+    globalProgress,
+    activeUploads,
+    hasErrors,
+    addFiles,
+    removeFile,
+    clearFiles,
+    retryErrorsAndStart,
+    startUploads,
+  } = useUploadQueue({
+    bucketName,
+    generateUploadUrl: generateUploadUrlMutation,
+  })
+  const {
+    isDragging,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleFileInputChange,
+    handleSubmit,
+    handleClear,
+    handleRetry,
+    handleExportErrors,
+  } = useUploadForm({
+    files,
+    addFiles,
+    startUploads,
+    retryErrorsAndStart,
+    clearFiles,
+  })
 
   return (
     <div className="mx-auto w-full max-w-[700px] space-y-4">
@@ -421,12 +67,7 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
           <CardTitle>Upload de Arquivos para GCS</CardTitle>
         </CardHeader>
         <CardContent className="max-h-[calc(100vh-12rem)] overflow-y-auto">
-          <form
-            onSubmit={handleSubmit(onSubmit, (errors) =>
-              console.error('Form validation errors:', errors),
-            )}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Global Progress Bar for Multiple Files */}
             {files.length > 1 && activeUploads > 0 && (
               <div className="rounded-lg border bg-muted/50 p-4">
@@ -510,12 +151,10 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
               <div className="space-y-2">
                 <Label>Arquivos Selecionados ({files.length})</Label>
                 <div className="max-h-96 space-y-2 overflow-y-auto rounded-lg border p-4">
-                  {sortedFiles.map((fileWithProgress, index) => {
-                    // Find original index for state updates
-                    const originalIndex = files.indexOf(fileWithProgress)
+                  {sortedFiles.map((fileWithProgress) => {
                     return (
                       <div
-                        key={`${fileWithProgress.file.name}-${index}`}
+                        key={fileWithProgress.id}
                         className="flex items-center justify-between rounded border p-3"
                       >
                         <div className="flex flex-1 items-center gap-3">
@@ -576,7 +215,7 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeFile(originalIndex)}
+                          onClick={() => removeFile(fileWithProgress.id)}
                           disabled={fileWithProgress.status === 'uploading'}
                         >
                           <X className="h-4 w-4" />
@@ -589,7 +228,7 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
             )}
 
             {/* Error Alert */}
-            {files.some((f) => f.status === 'error') && (
+            {hasErrors && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Falha no Upload</AlertTitle>
