@@ -227,7 +227,6 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
               </div>
             )}
 
-            {/* Error Alert */}
             {hasErrors && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
