@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { generateUploadUrl } from '@/http/gcs/generate-upload-url'
 import { uploadFileToGCS } from '@/http/gcs/upload-file'
+import { calculateCRC32C } from '@/utils/calculate-crc32c'
 import { sanitizePath } from '@/utils/sanitize-path'
 
 import { getGcsUploadErrorMessage } from '../utils/get-gcs-error-message'
@@ -212,6 +213,9 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
               )
             : undefined
 
+        // Calculate CRC32C checksum
+        const crc32c = await calculateCRC32C(fileWithProgress.file)
+
         const { data: uploadUrlData } = await generateUploadUrlMutation({
           file_name: fileWithProgress.file.name,
           file_path: filePath,
@@ -219,7 +223,18 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
           content_type: contentType,
           resumable: isResumable,
           file_size: fileWithProgress.file.size,
+          crc32c,
         })
+
+        if (uploadUrlData.file_exists) {
+          setFiles((prev) =>
+            prev.map((f, i) =>
+              i === index ? { ...f, status: 'success', progress: 100 } : f,
+            ),
+          )
+          toast.success(`${fileWithProgress.file.name} já existe (pulado)`)
+          return
+        }
 
         if (!uploadUrlData.signed_url) {
           throw new Error('Upload URL was not returned by the server')

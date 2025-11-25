@@ -9,6 +9,7 @@ export interface GenerateUploadUrlRequest {
   content_type: string
   resumable: boolean
   file_size: number
+  crc32c?: string
 }
 
 export interface GenerateUploadUrlResponse {
@@ -28,6 +29,7 @@ export async function generateUploadUrl(
       content_type: data.content_type,
       resumable: data.resumable,
       file_size: data.file_size,
+      crc32c: data.crc32c,
     },
     {
       headers: {
