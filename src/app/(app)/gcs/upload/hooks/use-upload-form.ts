@@ -33,6 +33,13 @@ interface UseUploadFormParams {
   clearFiles: () => void
 }
 
+const isDirectoryPlaceholder = (file: File, relativePath: string): boolean => {
+  return (
+    relativePath.endsWith('/') ||
+    (file.size === 0 && file.type === '' && relativePath === file.name)
+  )
+}
+
 export function useUploadForm({
   files,
   addFiles,
@@ -42,19 +49,38 @@ export function useUploadForm({
 }: UseUploadFormParams) {
   const [isDragging, setIsDragging] = useState(false)
 
+  const filterDirectoryPlaceholders = useCallback(
+    (fileList: FileWithProgress[]) => {
+      const paths = fileList.map((f) => f.relativePath)
+      return fileList.filter((file) => {
+        const path = file.relativePath
+        const hasChildren = paths.some(
+          (other) => other !== path && other.startsWith(`${path}/`),
+        )
+        return !hasChildren
+      })
+    },
+    [],
+  )
+
   const handleFiles = useCallback(
     (fileList: FileList | null) => {
       if (!fileList || fileList.length === 0) return
 
-      const newFiles: FileWithProgress[] = Array.from(fileList).map((file) => {
-        const fileWithPath = file as unknown as FileWithWebkitPath
-        const relativePath = fileWithPath.webkitRelativePath || file.name
-        return createFileWithProgress(file, relativePath)
-      })
+      const newFiles: FileWithProgress[] = filterDirectoryPlaceholders(
+        Array.from(fileList)
+          .map((file) => {
+            const fileWithPath = file as unknown as FileWithWebkitPath
+            const relativePath = fileWithPath.webkitRelativePath || file.name
+            if (isDirectoryPlaceholder(file, relativePath)) return null
+            return createFileWithProgress(file, relativePath)
+          })
+          .filter(Boolean) as FileWithProgress[],
+      )
 
       addFiles(newFiles)
     },
-    [addFiles],
+    [addFiles, filterDirectoryPlaceholders],
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -128,6 +154,7 @@ export function useUploadForm({
       Array.from(e.dataTransfer.files || []).forEach((file) => {
         const fileWithPath = file as unknown as FileWithWebkitPath
         const relativePath = fileWithPath.webkitRelativePath || file.name
+        if (isDirectoryPlaceholder(file, relativePath)) return
         addIfNew(createFileWithProgress(file, relativePath))
       })
 
@@ -142,10 +169,13 @@ export function useUploadForm({
       }
 
       if (collected.size > 0) {
-        addFiles(Array.from(collected.values()))
+        const filtered = filterDirectoryPlaceholders(
+          Array.from(collected.values()),
+        )
+        addFiles(filtered)
       }
     },
-    [addFiles, traverseFileTree],
+    [addFiles, filterDirectoryPlaceholders, traverseFileTree],
   )
 
   const handleFileInputChange = useCallback(
