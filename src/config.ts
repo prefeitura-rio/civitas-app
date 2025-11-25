@@ -12,9 +12,16 @@ const getConfig = () => {
     throw new Error('NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN is not set')
   }
 
+  const arquivoOperacionalBucketName =
+    process.env.NEXT_PUBLIC_ARQUIVO_OPERACIONAL_BUCKET_NAME
+  if (!arquivoOperacionalBucketName) {
+    throw new Error('NEXT_PUBLIC_ARQUIVO_OPERACIONAL_BUCKET_NAME is not set')
+  }
+
   return {
     apiUrl: trimmedApiUrl,
     mapboxAccessToken,
+    arquivoOperacionalBucketName,
   }
 }
 
