@@ -1,5 +1,7 @@
 import { api } from '@/lib/api'
 
+import { GCS_ROUTES } from './constants'
+
 export interface GenerateDownloadUrlRequest {
   file_name: string
   bucket_name: string
@@ -15,7 +17,7 @@ export async function generateDownloadUrl(
   data: GenerateDownloadUrlRequest,
 ): Promise<{ data: GenerateDownloadUrlResponse }> {
   const response = await api.post<GenerateDownloadUrlResponse>(
-    '/gcs/files/download-url',
+    GCS_ROUTES.files['download-url'],
     {
       file_name: data.file_name,
       bucket_name: data.bucket_name,

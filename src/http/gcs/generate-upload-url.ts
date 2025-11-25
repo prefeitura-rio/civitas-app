@@ -1,0 +1,38 @@
+import { api } from '@/lib/api'
+
+import { GCS_ROUTES } from './constants'
+
+export interface GenerateUploadUrlRequest {
+  file_name: string
+  bucket_name: string
+  content_type: string
+  resumable: boolean
+  file_size: number
+}
+
+export interface GenerateUploadUrlResponse {
+  signed_url: string
+  file_exists?: boolean
+}
+
+export async function generateUploadUrl(
+  data: GenerateUploadUrlRequest,
+): Promise<{ data: GenerateUploadUrlResponse }> {
+  const response = await api.post<GenerateUploadUrlResponse>(
+    GCS_ROUTES.files['upload-url'],
+    {
+      file_name: data.file_name,
+      bucket_name: data.bucket_name,
+      content_type: data.content_type,
+      resumable: data.resumable,
+      file_size: data.file_size,
+    },
+    {
+      headers: {
+        accept: 'application/json',
+      },
+    },
+  )
+
+  return { data: response.data }
+}
