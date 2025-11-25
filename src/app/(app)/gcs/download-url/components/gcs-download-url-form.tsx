@@ -1,12 +1,7 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { Copy, ExternalLink, Link2 } from 'lucide-react'
-import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
+import { Controller } from 'react-hook-form'
 
 import { InputError } from '@/components/custom/input-error'
 import { Spinner } from '@/components/custom/spinner'
@@ -21,116 +16,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { generateDownloadUrl } from '@/http/gcs/generate-download-url'
 
-import { getGcsErrorMessage } from '../utils/get-gcs-error-message'
-
-const gcsDownloadUrlFormSchema = z
-  .object({
-    file_name: z.string().min(1, { message: 'Nome do arquivo é obrigatório' }),
-    bucket_name: z.string().min(1, { message: 'Nome do bucket é obrigatório' }),
-    expiration_value: z
-      .number({
-        required_error: 'Validade é obrigatória',
-        invalid_type_error: 'Validade deve ser um número',
-      })
-      .min(1, { message: 'Valor deve ser maior que zero' }),
-    expiration_unit: z.enum(['minutes', 'hours', 'days'], {
-      required_error: 'Unidade de tempo é obrigatória',
-    }),
-  })
-  .superRefine((data, ctx) => {
-    const maxMinutes = 7 * 24 * 60 // 7 dias em minutos = 10080
-    const expirationMinutes = convertToMinutes(
-      data.expiration_value,
-      data.expiration_unit,
-    )
-
-    if (expirationMinutes > maxMinutes) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'A validade máxima permitida é de 7 dias',
-        path: ['expiration_value'],
-      })
-    }
-  })
-
-type GcsDownloadUrlForm = z.infer<typeof gcsDownloadUrlFormSchema>
-
-function convertToMinutes(
-  value: number,
-  unit: 'minutes' | 'hours' | 'days',
-): number {
-  switch (unit) {
-    case 'minutes':
-      return value
-    case 'hours':
-      return value * 60
-    case 'days':
-      return value * 24 * 60
-    default:
-      return value
-  }
-}
+import { useDownloadUrlForm } from '../hooks/use-download-url-form'
 
 export function GcsDownloadUrlForm() {
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
-
   const {
     register,
-    handleSubmit,
     control,
-    formState: { errors },
-    reset,
-  } = useForm<GcsDownloadUrlForm>({
-    resolver: zodResolver(gcsDownloadUrlFormSchema),
-    defaultValues: {
-      file_name: '',
-      bucket_name: '',
-      expiration_value: 60,
-      expiration_unit: 'minutes',
-    },
-  })
-
-  const { mutateAsync: generateUrlMutation, isPending } = useMutation({
-    mutationFn: generateDownloadUrl,
-  })
-
-  async function onSubmit(data: GcsDownloadUrlForm) {
-    const expirationMinutes = convertToMinutes(
-      data.expiration_value,
-      data.expiration_unit,
-    )
-
-    try {
-      const response = await generateUrlMutation({
-        file_name: data.file_name,
-        bucket_name: data.bucket_name,
-        expiration_minutes: expirationMinutes,
-      })
-      setDownloadUrl(response.data.download_url)
-      toast.success('Link de download gerado com sucesso!')
-    } catch (error) {
-      const errorMessage = getGcsErrorMessage(error)
-      toast.error(errorMessage)
-    }
-  }
-
-  async function handleCopyUrl() {
-    if (downloadUrl) {
-      try {
-        await navigator.clipboard.writeText(downloadUrl)
-        toast.success('URL copiada para a área de transferência!')
-      } catch (error) {
-        toast.error('Não foi possível copiar a URL.')
-      }
-    }
-  }
-
-  function handleReset() {
-    reset()
-    setDownloadUrl(null)
-  }
+    errors,
+    isPending,
+    downloadUrl,
+    handleSubmit,
+    onSubmit,
+    handleCopyUrl,
+    handleReset,
+  } = useDownloadUrlForm()
 
   return (
     <div className="mx-auto w-full max-w-[700px] space-y-4">
@@ -238,32 +138,34 @@ export function GcsDownloadUrlForm() {
               )}
             </div>
           </form>
+
+          {downloadUrl && (
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Label>URL Gerada:</Label>
+                <Button variant="outline" size="sm" onClick={handleCopyUrl}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copiar
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="text-primary"
+                >
+                  <a href={downloadUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Abrir
+                  </a>
+                </Button>
+              </div>
+              <p className="break-all rounded-md bg-muted p-3 text-sm">
+                {downloadUrl}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {downloadUrl && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Link Gerado</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => window.open(downloadUrl, '_blank')}
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Abrir URL
-              </Button>
-              <Button type="button" variant="outline" onClick={handleCopyUrl}>
-                <Copy className="mr-2 h-4 w-4" />
-                Copiar URL
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
