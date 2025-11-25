@@ -6,6 +6,7 @@ import type {
   GenerateUploadUrlResponse,
 } from '@/http/gcs/generate-upload-url'
 import { uploadFileToGCS } from '@/http/gcs/upload-file'
+import { calculateCRC32C } from '@/utils/calculate-crc32c'
 import { sanitizePath } from '@/utils/sanitize-path'
 
 import { getGcsUploadErrorMessage } from '../utils/get-gcs-error-message'
@@ -84,6 +85,8 @@ export function useUploadQueue({
           ),
         )
 
+        const crc32c = await calculateCRC32C(fileWithProgress.file)
+
         const { data: uploadUrlData } = await generateUploadUrl({
           file_name: fileWithProgress.file.name,
           file_path: filePath,
@@ -91,7 +94,20 @@ export function useUploadQueue({
           content_type: contentType,
           resumable: isResumable,
           file_size: fileWithProgress.file.size,
+          crc32c,
         })
+
+        if (uploadUrlData.file_exists) {
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileWithProgress.id
+                ? { ...f, status: 'success', progress: 100 }
+                : f,
+            ),
+          )
+          toast.success(`${fileWithProgress.file.name} já existe (pulado)`)
+          return 'success'
+        }
 
         if (!uploadUrlData.signed_url) {
           throw new Error('Upload URL was not returned by the server')
