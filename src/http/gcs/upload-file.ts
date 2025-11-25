@@ -17,6 +17,7 @@ export async function uploadFileToGCS({
     url: string,
     body: File | Blob | null,
     headers: Record<string, string> = {},
+    timeoutMs = 300000, // 5 minutes default
   ): Promise<{ xhr: XMLHttpRequest; status: number }> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
@@ -35,6 +36,11 @@ export async function uploadFileToGCS({
           reject(error)
         }
       }
+
+      xhr.timeout = timeoutMs
+      xhr.addEventListener('timeout', () => {
+        safeReject(new Error('Upload timeout'))
+      })
 
       xhr.addEventListener('load', () => {
         safeResolve({ xhr, status: xhr.status })
@@ -116,6 +122,11 @@ export async function uploadFileToGCS({
           const xhr = new XMLHttpRequest()
           xhr.open('PUT', sessionUri)
           xhr.withCredentials = false
+          xhr.timeout = 300000 // 5 minutes per chunk
+
+          xhr.addEventListener('timeout', () => {
+            reject(new Error('Upload timeout'))
+          })
 
           Object.entries(headers).forEach(([k, v]) =>
             xhr.setRequestHeader(k, v),
@@ -210,6 +221,11 @@ export async function uploadFileToGCS({
       const xhr = new XMLHttpRequest()
       xhr.open('PUT', uploadUrl)
       xhr.withCredentials = false
+      xhr.timeout = 300000 // 5 minutes for the file
+
+      xhr.addEventListener('timeout', () => {
+        reject(new Error('Upload timeout'))
+      })
 
       Object.entries(headers).forEach(([key, value]) => {
         xhr.setRequestHeader(key, value)
