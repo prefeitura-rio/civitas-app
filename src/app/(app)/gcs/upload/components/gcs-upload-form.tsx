@@ -2,12 +2,20 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { AlertCircle, CheckCircle2, File, Upload, X } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  File,
+  Upload,
+  X,
+} from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -57,6 +65,7 @@ interface GcsUploadFormProps {
 export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
   const [files, setFiles] = useState<FileWithProgress[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [shouldRetry, setShouldRetry] = useState(false)
 
   const { handleSubmit, reset } = useForm<GcsUploadForm>({
     resolver: zodResolver(gcsUploadFormSchema),
@@ -306,9 +315,53 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
     }
   }
 
+  useEffect(() => {
+    if (shouldRetry) {
+      onSubmit()
+      setShouldRetry(false)
+    }
+  }, [shouldRetry, files]) // Depend on files to ensure we see the updated state
+
   function handleClear() {
     setFiles([])
     reset()
+  }
+
+  function handleRetry() {
+    // Reset status of failed files to pending
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.status === 'error'
+          ? { ...f, status: 'pending', progress: 0, error: undefined }
+          : f,
+      ),
+    )
+    setShouldRetry(true)
+  }
+
+  function handleExportErrors() {
+    const csvHeader = 'Nome do Arquivo,Caminho Relativo,Mensagem de Erro\n'
+    const csvContent = files
+      .filter((f) => f.status === 'error')
+      .map((f) => {
+        const name = `"${f.file.name.replace(/"/g, '""')}"`
+        const path = `"${f.relativePath.replace(/"/g, '""')}"`
+        const error = `"${(f.error || 'Desconhecido').replace(/"/g, '""')}"`
+        return `${name},${path},${error}`
+      })
+      .join('\n')
+
+    const blob = new Blob([csvHeader + csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `erros-upload-${new Date().toISOString()}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   // Sort files dynamically: uploading/initiating → top, success → bottom, pending → middle
@@ -518,6 +571,42 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
                   })}
                 </div>
               </div>
+            )}
+
+            {/* Error Alert */}
+            {files.some((f) => f.status === 'error') && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Falha no Upload</AlertTitle>
+                <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span>
+                    {files.filter((f) => f.status === 'error').length}{' '}
+                    arquivo(s) falharam ao enviar.
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-destructive-foreground/20 bg-destructive/10 text-destructive-foreground hover:bg-destructive/20"
+                      onClick={handleRetry}
+                    >
+                      <Upload className="mr-2 h-3 w-3" />
+                      Tentar Novamente
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-destructive-foreground/20 bg-destructive/10 text-destructive-foreground hover:bg-destructive/20"
+                      onClick={handleExportErrors}
+                    >
+                      <Download className="mr-2 h-3 w-3" />
+                      Exportar CSV
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
             )}
 
             <div className="flex gap-2">
