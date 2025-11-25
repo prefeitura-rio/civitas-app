@@ -27,9 +27,31 @@ type GcsUploadForm = z.infer<typeof gcsUploadFormSchema>
 
 interface FileWithProgress {
   file: File
+  relativePath: string
   progress: number
   status: 'pending' | 'initiating' | 'uploading' | 'success' | 'error'
   error?: string
+}
+
+// Custom interfaces for File System Access API
+interface GCSFileSystemDirectoryReader<T> {
+  readEntries: (successCallback: (entries: T[]) => void) => void
+}
+
+interface GCSFileSystemEntry {
+  isFile: boolean
+  isDirectory: boolean
+  name: string
+  file: (callback: (file: File) => void) => void
+  createReader: () => GCSFileSystemDirectoryReader<GCSFileSystemEntry>
+}
+
+interface DataTransferItemWithWebkit {
+  webkitGetAsEntry: () => GCSFileSystemEntry | null
+}
+
+interface FileWithWebkitPath extends File {
+  webkitRelativePath: string
 }
 
 export function GcsUploadForm() {
@@ -58,15 +80,18 @@ export function GcsUploadForm() {
   const handleFiles = useCallback((fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return
 
-    const newFiles: FileWithProgress[] = Array.from(fileList).map((file) => ({
-      file,
-      progress: 0,
-      status: 'pending' as const,
-    }))
+    const newFiles: FileWithProgress[] = Array.from(fileList).map((file) => {
+      const fileWithPath = file as unknown as FileWithWebkitPath
+      return {
+        file,
+        relativePath: fileWithPath.webkitRelativePath || file.name,
+        progress: 0,
+        status: 'pending' as const,
+      }
+    })
 
     setFiles((prev) => [...prev, ...newFiles])
   }, [])
-
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -79,14 +104,79 @@ export function GcsUploadForm() {
     setIsDragging(false)
   }, [])
 
+  // Recursive function to traverse directories
+  const traverseFileTree = useCallback(
+    async (
+      item: GCSFileSystemEntry,
+      path = '',
+    ): Promise<FileWithProgress[]> => {
+      return new Promise((resolve) => {
+        if (item.isFile) {
+          item.file((file: File) => {
+            const relativePath = path + file.name
+            resolve([
+              {
+                file,
+                relativePath,
+                progress: 0,
+                status: 'pending' as const,
+              },
+            ])
+          })
+        } else if (item.isDirectory) {
+          const dirReader = item.createReader()
+          const entries: GCSFileSystemEntry[] = []
+
+          const readEntries = () => {
+            dirReader.readEntries(async (results: GCSFileSystemEntry[]) => {
+              if (results.length === 0) {
+                const allFiles: FileWithProgress[] = []
+                for (const entry of entries) {
+                  const files = await traverseFileTree(
+                    entry,
+                    path + item.name + '/',
+                  )
+                  allFiles.push(...files)
+                }
+                resolve(allFiles)
+              } else {
+                entries.push(...results)
+                readEntries()
+              }
+            })
+          }
+          readEntries()
+        } else {
+          resolve([])
+        }
+      })
+    },
+    [],
+  )
+
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    async (e: React.DragEvent) => {
       e.preventDefault()
       e.stopPropagation()
       setIsDragging(false)
-      handleFiles(e.dataTransfer.files)
+
+      const items = Array.from(e.dataTransfer.items)
+      const allFiles: FileWithProgress[] = []
+
+      for (const item of items) {
+        const itemWithWebkit = item as unknown as DataTransferItemWithWebkit
+        const entry = itemWithWebkit.webkitGetAsEntry?.()
+        if (entry) {
+          const files = await traverseFileTree(entry)
+          allFiles.push(...files)
+        }
+      }
+
+      if (allFiles.length > 0) {
+        setFiles((prev) => [...prev, ...allFiles])
+      }
     },
-    [handleFiles],
+    [traverseFileTree],
   )
 
   const handleFileInputChange = useCallback(
@@ -115,8 +205,22 @@ export function GcsUploadForm() {
         const contentType =
           fileWithProgress.file.type || 'application/octet-stream'
         const isResumable = fileWithProgress.file.size > 5 * 1024 * 1024
+
+        const lastSlashIndex = fileWithProgress.relativePath.lastIndexOf('/')
+        const filePath =
+          lastSlashIndex >= 0
+            ? fileWithProgress.relativePath.substring(0, lastSlashIndex)
+            : undefined
+
+        console.log('Upload debug:', {
+          fileName: fileWithProgress.file.name,
+          relativePath: fileWithProgress.relativePath,
+          extractedFilePath: filePath,
+        })
+
         const { data: uploadUrlData } = await generateUploadUrlMutation({
           file_name: fileWithProgress.file.name,
+          file_path: filePath,
           bucket_name: bucketName,
           content_type: contentType,
           resumable: isResumable,
@@ -323,7 +427,7 @@ export function GcsUploadForm() {
             )}
 
             <div className="flex flex-col gap-1">
-              <Label>Arquivos</Label>
+              <Label>Arquivos e Pastas</Label>
               <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -340,11 +444,21 @@ export function GcsUploadForm() {
                 />
                 <Upload className="mb-4 h-12 w-12 text-muted-foreground" />
                 <p className="mb-2 text-center text-sm font-medium">
-                  Arraste arquivos aqui ou clique para selecionar
+                  Arraste arquivos e/ou pastas aqui
                 </p>
-                <p className="text-center text-xs text-muted-foreground">
-                  Você pode selecionar múltiplos arquivos
+                <p className="mb-2 text-center text-xs text-muted-foreground">
+                  Pastas mantêm hierarquia completa • Suporta múltiplos níveis
                 </p>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    document.getElementById('file-input')?.click()
+                  }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Ou clique para selecionar arquivos
+                </button>
               </div>
             </div>
 
@@ -366,6 +480,12 @@ export function GcsUploadForm() {
                             <p className="text-sm font-medium">
                               {fileWithProgress.file.name}
                             </p>
+                            {fileWithProgress.relativePath !==
+                              fileWithProgress.file.name && (
+                              <p className="truncate text-xs text-muted-foreground">
+                                📁 {fileWithProgress.relativePath}
+                              </p>
+                            )}
                             <p className="text-xs text-muted-foreground">
                               {formatFileSize(fileWithProgress.file.size)}
                             </p>

@@ -4,6 +4,7 @@ import { GCS_ROUTES } from './constants'
 
 export interface GenerateUploadUrlRequest {
   file_name: string
+  file_path?: string
   bucket_name: string
   content_type: string
   resumable: boolean
@@ -22,6 +23,7 @@ export async function generateUploadUrl(
     GCS_ROUTES.files['upload-url'],
     {
       file_name: data.file_name,
+      file_path: data.file_path,
       bucket_name: data.bucket_name,
       content_type: data.content_type,
       resumable: data.resumable,
