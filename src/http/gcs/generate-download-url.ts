@@ -1,4 +1,5 @@
 import { api } from '@/lib/api'
+import { sanitizePath } from '@/utils/sanitize-path'
 
 import { GCS_ROUTES } from './constants'
 
@@ -19,7 +20,7 @@ export async function generateDownloadUrl(
   const response = await api.post<GenerateDownloadUrlResponse>(
     GCS_ROUTES.files['download-url'],
     {
-      file_name: data.file_name,
+      file_name: sanitizePath(data.file_name),
       bucket_name: data.bucket_name,
       expiration_minutes: data.expiration_minutes,
     },

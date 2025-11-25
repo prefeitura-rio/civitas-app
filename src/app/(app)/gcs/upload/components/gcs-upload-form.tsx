@@ -8,20 +8,16 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { InputError } from '@/components/custom/input-error'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { config } from '@/config'
 import { generateUploadUrl } from '@/http/gcs/generate-upload-url'
 import { uploadFileToGCS } from '@/http/gcs/upload-file'
+import { sanitizePath } from '@/utils/sanitize-path'
 
 import { getGcsUploadErrorMessage } from '../utils/get-gcs-error-message'
 
-const gcsUploadFormSchema = z.object({
-  bucket_name: z.string().min(1, { message: 'Nome do bucket é obrigatório' }),
-})
+const gcsUploadFormSchema = z.object({})
 
 type GcsUploadForm = z.infer<typeof gcsUploadFormSchema>
 
@@ -54,24 +50,17 @@ interface FileWithWebkitPath extends File {
   webkitRelativePath: string
 }
 
-export function GcsUploadForm() {
+interface GcsUploadFormProps {
+  bucketName: string
+}
+
+export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
   const [files, setFiles] = useState<FileWithProgress[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    watch,
-  } = useForm<GcsUploadForm>({
+  const { handleSubmit, reset } = useForm<GcsUploadForm>({
     resolver: zodResolver(gcsUploadFormSchema),
-    defaultValues: {
-      bucket_name: config.arquivoOperacionalBucketName,
-    },
   })
-
-  const bucketName = watch('bucket_name')
 
   const { mutateAsync: generateUploadUrlMutation } = useMutation({
     mutationFn: generateUploadUrl,
@@ -209,14 +198,10 @@ export function GcsUploadForm() {
         const lastSlashIndex = fileWithProgress.relativePath.lastIndexOf('/')
         const filePath =
           lastSlashIndex >= 0
-            ? fileWithProgress.relativePath.substring(0, lastSlashIndex)
+            ? sanitizePath(
+                fileWithProgress.relativePath.substring(0, lastSlashIndex),
+              )
             : undefined
-
-        console.log('Upload debug:', {
-          fileName: fileWithProgress.file.name,
-          relativePath: fileWithProgress.relativePath,
-          extractedFilePath: filePath,
-        })
 
         const { data: uploadUrlData } = await generateUploadUrlMutation({
           file_name: fileWithProgress.file.name,
@@ -368,20 +353,12 @@ export function GcsUploadForm() {
           <CardTitle>Upload de Arquivos para GCS</CardTitle>
         </CardHeader>
         <CardContent className="max-h-[calc(100vh-12rem)] overflow-y-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label htmlFor="bucket_name">Nome do Bucket *</Label>
-                <InputError message={errors.bucket_name?.message} />
-              </div>
-              <Input
-                id="bucket_name"
-                {...register('bucket_name')}
-                type="text"
-                placeholder="ex: meu-bucket"
-              />
-            </div>
-
+          <form
+            onSubmit={handleSubmit(onSubmit, (errors) =>
+              console.error('Form validation errors:', errors),
+            )}
+            className="space-y-4"
+          >
             {/* Global Progress Bar for Multiple Files */}
             {files.length > 1 && activeUploads > 0 && (
               <div className="rounded-lg border bg-muted/50 p-4">
@@ -427,7 +404,6 @@ export function GcsUploadForm() {
             )}
 
             <div className="flex flex-col gap-1">
-              <Label>Arquivos e Pastas</Label>
               <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
