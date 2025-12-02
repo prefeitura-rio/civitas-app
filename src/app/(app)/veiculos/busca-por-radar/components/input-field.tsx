@@ -1,63 +1,64 @@
-import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
 
-import { DatePicker } from '@/components/ui/date-picker'
+import type { RadarSearchFormData } from '@/app/(app)/veiculos/components/validationSchemas'
+import { Input } from '@/components/ui/input'
 
-interface DateFieldProps {
-  name: 'startDate' | 'endDate'
-  showValidation?: boolean
-  control: any // eslint-disable-line @typescript-eslint/no-explicit-any
+import { FormField } from './form-field'
+
+type InputFieldProps = {
+  name: 'plate' | 'radarIds'
+  placeholder: string
+  control: Control<RadarSearchFormData>
   isSubmitting: boolean
-  errors: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  timeValidation?: {
-    isValid: boolean
-    message: string
-    duration: number
-  }
-  minDate: Date
-  maxDate: Date
+  error?: string
+  isRadarIds?: boolean
 }
 
-export function DateField({
+export function InputField({
   name,
-  showValidation = false,
+  placeholder,
   control,
   isSubmitting,
-  errors,
-  timeValidation,
-  minDate,
-  maxDate,
-}: DateFieldProps) {
+  error,
+  isRadarIds = false,
+}: InputFieldProps) {
+  const getInputValue = (fieldValue: string | string[] | undefined) => {
+    if (!isRadarIds) {
+      return fieldValue ?? ''
+    }
+
+    return Array.isArray(fieldValue) ? fieldValue.join(', ') : ''
+  }
+
+  const handleInputChange = (
+    value: string,
+    onChange: (nextValue: string | string[]) => void,
+  ) => {
+    if (isRadarIds) {
+      const codes = value
+        .split(',')
+        .map((code) => code.trim())
+        .filter(Boolean)
+
+      onChange(codes)
+      return
+    }
+
+    onChange(value)
+  }
+
   return (
-    <div className="flex w-full flex-col">
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
-          <DatePicker
-            className="w-full"
-            value={field.value}
-            onChange={field.onChange}
-            type="datetime-local"
-            disabled={isSubmitting}
-            fromDate={minDate}
-            toDate={maxDate}
-          />
-        )}
-      />
-      {errors[name] && (
-        <span className="mt-1 text-sm text-red-500">
-          {errors[name]?.message}
-        </span>
+    <FormField control={control} name={name} error={error}>
+      {({ value, onChange, ...field }) => (
+        <Input
+          {...field}
+          className="w-full"
+          placeholder={placeholder}
+          disabled={isSubmitting}
+          value={getInputValue(value)}
+          onChange={(event) => handleInputChange(event.target.value, onChange)}
+        />
       )}
-      {showValidation && timeValidation && (
-        <div
-          className={`mt-1 text-sm ${
-            timeValidation.isValid ? 'text-blue-600' : 'text-red-500'
-          }`}
-        >
-          {timeValidation.message}
-        </div>
-      )}
-    </div>
+    </FormField>
   )
 }
