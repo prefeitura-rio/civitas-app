@@ -19,7 +19,11 @@ import {
 
 import { useDownloadUrlForm } from '../hooks/use-download-url-form'
 
-export function GcsDownloadUrlForm() {
+interface GcsDownloadUrlFormProps {
+  bucketName: string
+}
+
+export function GcsDownloadUrlForm({ bucketName }: GcsDownloadUrlFormProps) {
   const {
     register,
     control,
@@ -30,7 +34,7 @@ export function GcsDownloadUrlForm() {
     onSubmit,
     handleCopyUrl,
     handleReset,
-  } = useDownloadUrlForm()
+  } = useDownloadUrlForm({ bucketName })
 
   return (
     <div className="mx-auto w-full max-w-[700px] space-y-4">
