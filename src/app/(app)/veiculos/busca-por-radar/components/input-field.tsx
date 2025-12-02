@@ -1,68 +1,62 @@
-import { useCallback, useMemo } from 'react'
 import { Controller } from 'react-hook-form'
 
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 
-interface InputFieldProps {
-  name: 'plate' | 'radarIds'
-  placeholder: string
-  isRadarIds?: boolean
+interface DateFieldProps {
+  name: 'startDate' | 'endDate'
+  showValidation?: boolean
   control: any // eslint-disable-line @typescript-eslint/no-explicit-any
   isSubmitting: boolean
   errors: any // eslint-disable-line @typescript-eslint/no-explicit-any
+  timeValidation?: {
+    isValid: boolean
+    message: string
+    duration: number
+  }
+  minDate: Date
+  maxDate: Date
 }
 
-export function InputField({
+export function DateField({
   name,
-  placeholder,
-  isRadarIds = false,
+  showValidation = false,
   control,
   isSubmitting,
   errors,
-}: InputFieldProps) {
-  const getInputValue = useCallback(
-    (fieldValue: string | string[] | undefined) => {
-      if (!isRadarIds) return fieldValue
-      return Array.isArray(fieldValue) ? fieldValue.join(', ') : ''
-    },
-    [isRadarIds],
-  )
-
-  const handleInputChange = useCallback(
-    (value: string, onChange: (value: string | string[]) => void) => {
-      if (isRadarIds) {
-        const codes = value
-          .split(',')
-          .map((code) => code.trim())
-          .filter(Boolean)
-        onChange(codes)
-      } else {
-        onChange(value)
-      }
-    },
-    [isRadarIds],
-  )
-
-  const errorMessage = useMemo(() => errors[name]?.message, [errors, name])
-
+  timeValidation,
+  minDate,
+  maxDate,
+}: DateFieldProps) {
   return (
     <div className="flex w-full flex-col">
       <Controller
         control={control}
         name={name}
         render={({ field }) => (
-          <Input
-            {...field}
+          <DatePicker
             className="w-full"
-            placeholder={placeholder}
+            value={field.value}
+            onChange={field.onChange}
+            type="datetime-local"
             disabled={isSubmitting}
-            value={getInputValue(field.value)}
-            onChange={(e) => handleInputChange(e.target.value, field.onChange)}
+            fromDate={minDate}
+            toDate={maxDate}
           />
         )}
       />
-      {errorMessage && (
-        <span className="mt-1 text-sm text-red-500">{errorMessage}</span>
+      {errors[name] && (
+        <span className="mt-1 text-sm text-red-500">
+          {errors[name]?.message}
+        </span>
+      )}
+      {showValidation && timeValidation && (
+        <div
+          className={`mt-1 text-sm ${
+            timeValidation.isValid ? 'text-blue-600' : 'text-red-500'
+          }`}
+        >
+          {timeValidation.message}
+        </div>
       )}
     </div>
   )
