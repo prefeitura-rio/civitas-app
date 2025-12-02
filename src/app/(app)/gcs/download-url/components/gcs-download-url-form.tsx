@@ -42,20 +42,6 @@ export function GcsDownloadUrlForm() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
-                <Label htmlFor="bucket_name">Nome do Bucket *</Label>
-                <InputError message={errors.bucket_name?.message} />
-              </div>
-              <Input
-                id="bucket_name"
-                {...register('bucket_name')}
-                type="text"
-                placeholder="ex: meu-bucket"
-                disabled={isPending}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
                 <Label htmlFor="file_name">Nome do Arquivo *</Label>
                 <InputError message={errors.file_name?.message} />
               </div>
