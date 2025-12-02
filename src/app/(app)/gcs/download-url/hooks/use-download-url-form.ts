@@ -12,7 +12,6 @@ import { getGcsErrorMessage } from '../utils/get-gcs-error-message'
 const formSchema = z
   .object({
     file_name: z.string().min(1, { message: 'Nome do arquivo é obrigatório' }),
-    bucket_name: z.string().min(1, { message: 'Nome do bucket é obrigatório' }),
     expiration_value: z
       .number({
         required_error: 'Validade é obrigatória',
@@ -50,7 +49,11 @@ function convertToMinutes(
   return value * 24 * 60
 }
 
-export function useDownloadUrlForm() {
+interface UseDownloadUrlFormParams {
+  bucketName: string
+}
+
+export function useDownloadUrlForm({ bucketName }: UseDownloadUrlFormParams) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
 
   const {
@@ -63,7 +66,6 @@ export function useDownloadUrlForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       file_name: '',
-      bucket_name: '',
       expiration_value: 60,
       expiration_unit: 'minutes',
     },
@@ -75,6 +77,11 @@ export function useDownloadUrlForm() {
 
   const onSubmit = useCallback(
     async (data: GcsDownloadUrlFormValues) => {
+      if (!bucketName) {
+        toast.error('Configuração de bucket ausente no servidor')
+        return
+      }
+
       const expirationMinutes = convertToMinutes(
         data.expiration_value,
         data.expiration_unit,
@@ -83,7 +90,7 @@ export function useDownloadUrlForm() {
       try {
         const response = await generateUrlMutation({
           file_name: data.file_name,
-          bucket_name: data.bucket_name,
+          bucket_name: bucketName,
           expiration_minutes: expirationMinutes,
         })
         setDownloadUrl(response.data.download_url)
@@ -93,7 +100,7 @@ export function useDownloadUrlForm() {
         toast.error(errorMessage)
       }
     },
-    [generateUrlMutation],
+    [bucketName, generateUrlMutation],
   )
 
   const handleCopyUrl = useCallback(async () => {
