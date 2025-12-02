@@ -23,6 +23,19 @@ interface GcsUploadFormProps {
   bucketName: string
 }
 
+function splitFileNameAndExtension(filename: string) {
+  const lastDotIndex = filename.lastIndexOf('.')
+
+  if (lastDotIndex <= 0) {
+    return { base: filename, extension: '' }
+  }
+
+  return {
+    base: filename.slice(0, lastDotIndex),
+    extension: filename.slice(lastDotIndex),
+  }
+}
+
 export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
   const { mutateAsync: generateUploadUrlMutation } = useMutation({
     mutationFn: generateUploadUrl,
@@ -152,17 +165,29 @@ export function GcsUploadForm({ bucketName }: GcsUploadFormProps) {
                 <Label>Arquivos Selecionados ({files.length})</Label>
                 <div className="max-h-96 space-y-2 overflow-y-auto rounded-lg border p-4">
                   {sortedFiles.map((fileWithProgress) => {
+                    const { base, extension } = splitFileNameAndExtension(
+                      fileWithProgress.file.name,
+                    )
+
                     return (
                       <div
                         key={fileWithProgress.id}
                         className="flex items-center justify-between rounded border p-3"
                       >
-                        <div className="flex flex-1 items-center gap-3">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
                           <File className="h-5 w-5 text-muted-foreground" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">
-                              {fileWithProgress.file.name}
-                            </p>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1 text-sm font-medium leading-tight">
+                              <span
+                                className="truncate"
+                                title={fileWithProgress.file.name}
+                              >
+                                {base}
+                              </span>
+                              {extension && (
+                                <span className="shrink-0">{extension}</span>
+                              )}
+                            </div>
                             {fileWithProgress.relativePath !==
                               fileWithProgress.file.name && (
                               <p className="truncate text-xs text-muted-foreground">
