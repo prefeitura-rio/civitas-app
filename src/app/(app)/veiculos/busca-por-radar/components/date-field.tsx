@@ -1,54 +1,63 @@
-import { Info } from 'lucide-react'
-import type { Control } from 'react-hook-form'
+import { Controller } from 'react-hook-form'
 
-import type { RadarSearchFormData } from '@/app/(app)/veiculos/components/validationSchemas'
-import { Tooltip } from '@/components/custom/tooltip'
 import { DatePicker } from '@/components/ui/date-picker'
 
-import { DateSelectionTooltipContent } from './date-selection-tooltip-content'
-import { FormField } from './form-field'
-
-type DateFieldProps = {
+interface DateFieldProps {
   name: 'startDate' | 'endDate'
-  control: Control<RadarSearchFormData>
+  showValidation?: boolean
+  control: any // eslint-disable-line @typescript-eslint/no-explicit-any
   isSubmitting: boolean
+  errors: any // eslint-disable-line @typescript-eslint/no-explicit-any
+  timeValidation?: {
+    isValid: boolean
+    message: string
+    duration: number
+  }
   minDate: Date
   maxDate: Date
-  error?: string
 }
 
 export function DateField({
   name,
+  showValidation = false,
   control,
   isSubmitting,
+  errors,
+  timeValidation,
   minDate,
   maxDate,
-  error,
 }: DateFieldProps) {
-  const isEndDate = name === 'endDate'
-
   return (
-    <FormField control={control} name={name} error={error}>
-      {({ value, onChange }) => (
-        <div className="relative w-full">
+    <div className="flex w-full flex-col">
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
           <DatePicker
             className="w-full"
-            value={value}
-            onChange={onChange}
+            value={field.value}
+            onChange={field.onChange}
             type="datetime-local"
             disabled={isSubmitting}
             fromDate={minDate}
             toDate={maxDate}
           />
-          {isEndDate ? (
-            <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center">
-              <Tooltip side="bottom" render={<DateSelectionTooltipContent />}>
-                <Info className="size-4 text-muted-foreground" />
-              </Tooltip>
-            </div>
-          ) : null}
+        )}
+      />
+      {errors[name] && (
+        <span className="mt-1 text-sm text-red-500">
+          {errors[name]?.message}
+        </span>
+      )}
+      {showValidation && timeValidation && (
+        <div
+          className={`mt-1 text-sm ${
+            timeValidation.isValid ? 'text-blue-600' : 'text-red-500'
+          }`}
+        >
+          {timeValidation.message}
         </div>
       )}
-    </FormField>
+    </div>
   )
 }
