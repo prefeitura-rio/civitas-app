@@ -81,6 +81,16 @@ export const sidebarItems: SideBarItem[] = [
         title: 'Visão Computacional',
         path: '/vision-ai',
       },
+      {
+        icon: 'Link',
+        title: 'URLs Temporárias',
+        path: '/gcs/download-url',
+      },
+      {
+        icon: 'Upload',
+        title: 'Upload de Arquivos',
+        path: '/gcs/upload',
+      },
     ],
   },
 ] as const
