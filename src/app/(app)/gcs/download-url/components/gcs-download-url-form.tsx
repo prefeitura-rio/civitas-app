@@ -124,34 +124,35 @@ export function GcsDownloadUrlForm() {
               )}
             </div>
           </form>
-
-          {downloadUrl && (
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Label>URL Gerada:</Label>
-                <Button variant="outline" size="sm" onClick={handleCopyUrl}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copiar
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="text-primary"
-                >
-                  <a href={downloadUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Abrir
-                  </a>
-                </Button>
-              </div>
-              <p className="break-all rounded-md bg-muted p-3 text-sm">
-                {downloadUrl}
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {downloadUrl && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Link Gerado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary"
+                asChild
+              >
+                <a href={downloadUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Abrir URL
+                </a>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleCopyUrl}>
+                <Copy className="mr-2 h-4 w-4" />
+                Copiar URL
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
