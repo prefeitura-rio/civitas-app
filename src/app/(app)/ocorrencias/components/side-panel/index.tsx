@@ -12,6 +12,8 @@ import { MultiselectCheckbox } from '@/components/custom/multiselect-checkbox'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { useTimelineStreaming } from '@/contexts/timeline-streaming-context'
 import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
 import { useReportFilterOptions } from '@/hooks/useQueries/reports/useReportFilterOptions'
 import { cn } from '@/lib/utils'
@@ -41,6 +43,8 @@ type FilterFormType = z.infer<typeof filterFormSchema>
 export function SidePanel({ className }: SidePanelProps) {
   const router = useRouter()
   const pathName = usePathname()
+  const isTimeline = pathName.includes('/timeline')
+  const { isStreamingEnabled, setIsStreamingEnabled } = useTimelineStreaming()
 
   const { formattedSearchParams } = useReportsSearchParams()
   const {
@@ -115,6 +119,18 @@ export function SidePanel({ className }: SidePanelProps) {
     >
       <h4>Filtros:</h4>
       <div className="w-full">
+        {isTimeline && (
+          <div className="mb-4 flex items-center justify-between">
+            <Label htmlFor="streaming-toggle" className="text-sm">
+              Atualização automática
+            </Label>
+            <Switch
+              id="streaming-toggle"
+              checked={isStreamingEnabled}
+              onCheckedChange={setIsStreamingEnabled}
+            />
+          </div>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
           {/* <div className="space-y-0.5">
             <Label>Busca semântica</Label>

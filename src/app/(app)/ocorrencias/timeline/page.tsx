@@ -1,12 +1,15 @@
 'use client'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { CircleAlert } from 'lucide-react'
+import { useCallback, useEffect, useRef } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Pagination } from '@/components/ui/pagination'
+import { useTimelineStreaming } from '@/contexts/timeline-streaming-context'
 import { useReportsSearchParams } from '@/hooks/useParams/useReportsSearchParams'
+import type { ReportsResponse } from '@/http/reports/get-reports'
 import { getReports } from '@/http/reports/get-reports'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
@@ -15,10 +18,155 @@ import { ReportCard } from './components/report-card'
 export default function Timeline() {
   const { handlePaginate, queryKey, formattedSearchParams } =
     useReportsSearchParams()
+  const queryClient = useQueryClient()
+  const { isStreamingEnabled } = useTimelineStreaming()
+  const hasExecutedFirstRequest = useRef(false)
+
   const { data, isLoading, error } = useQuery({
     queryKey,
     queryFn: () => getReports(formattedSearchParams),
   })
+
+  // Função para buscar e adicionar novas ocorrências
+  const fetchNewOccurrences = useCallback(
+    async (isFirstRequest: boolean = false) => {
+      try {
+        // Obter dados atuais do cache (sempre os mais atualizados)
+        const currentData = queryClient.getQueryData<ReportsResponse>(queryKey)
+
+        if (!currentData?.items || currentData.items.length === 0) {
+          return
+        }
+
+        // Encontrar a ocorrência mais recente na lista atual
+        const mostRecentDate = new Date(
+          Math.max(
+            ...currentData.items.map((item) => new Date(item.date).getTime()),
+          ),
+        )
+
+        const now = new Date()
+        let minDate: string
+        const maxDate = now.toISOString()
+
+        if (isFirstRequest) {
+          // Primeiro request: buscar desde a data da ocorrência mais recente até agora
+          minDate = mostRecentDate.toISOString()
+        } else {
+          // Requests subsequentes: buscar apenas dos últimos 5 minutos
+          const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
+          minDate = fiveMinutesAgo.toISOString()
+        }
+
+        // Criar parâmetros de busca mantendo os originais, mas atualizando as datas
+        const streamingParams = {
+          ...formattedSearchParams,
+          minDate,
+          maxDate,
+          page: 1, // Sempre buscar na primeira página para novas ocorrências
+        }
+
+        // Buscar novas ocorrências
+        const newData = await getReports(streamingParams)
+
+        if (newData?.items && newData.items.length > 0) {
+          // Obter dados atuais do cache novamente (pode ter mudado durante a busca)
+          const latestData = queryClient.getQueryData<ReportsResponse>(queryKey)
+
+          if (latestData) {
+            // Criar um Set com os reportIds existentes para verificação rápida
+            const existingReportIds = new Set(
+              latestData.items.map((item) => item.reportId),
+            )
+
+            // Encontrar a data da ocorrência mais recente na lista atual (para comparação)
+            const latestMostRecentDate = new Date(
+              Math.max(
+                ...latestData.items.map((item) =>
+                  new Date(item.date).getTime(),
+                ),
+              ),
+            )
+
+            // Filtrar novas ocorrências:
+            // 1. Que não sejam duplicatas (não existam no cache)
+            // 2. Que sejam mais recentes que a ocorrência mais recente da lista atual
+            //    (garantindo que só adicionamos ocorrências novas, não antigas)
+            const newItems = newData.items.filter((item) => {
+              const itemDate = new Date(item.date)
+              const isDuplicate = existingReportIds.has(item.reportId)
+              const isNewer =
+                itemDate.getTime() > latestMostRecentDate.getTime()
+
+              return !isDuplicate && isNewer
+            })
+
+            if (newItems.length > 0) {
+              // Ordenar novas ocorrências por data (mais recente primeiro)
+              newItems.sort(
+                (a, b) =>
+                  new Date(b.date).getTime() - new Date(a.date).getTime(),
+              )
+
+              // Atualizar o cache usando função updater para garantir que a atualização seja detectada
+              queryClient.setQueryData<ReportsResponse>(queryKey, (oldData) => {
+                if (!oldData) return oldData
+
+                // Verificar novamente se há duplicatas (pode ter mudado durante a atualização)
+                const currentReportIds = new Set(
+                  oldData.items.map((item) => item.reportId),
+                )
+                const finalNewItems = newItems.filter(
+                  (item) => !currentReportIds.has(item.reportId),
+                )
+
+                if (finalNewItems.length === 0) {
+                  return oldData
+                }
+
+                const finalCombinedItems = [...finalNewItems, ...oldData.items]
+
+                return {
+                  ...oldData,
+                  items: finalCombinedItems,
+                  total: oldData.total + finalNewItems.length,
+                }
+              })
+            }
+          }
+        }
+      } catch (error) {
+        // Silenciosamente falhar para não interromper o streaming
+      }
+    },
+    [queryKey, formattedSearchParams, queryClient],
+  )
+
+  useEffect(() => {
+    if (!isStreamingEnabled) {
+      // Resetar flag quando streaming é desativado
+      hasExecutedFirstRequest.current = false
+      return
+    }
+
+    // Executar imediatamente quando o streaming é ativado (primeiro request)
+    if (!hasExecutedFirstRequest.current) {
+      fetchNewOccurrences(true)
+      hasExecutedFirstRequest.current = true
+    }
+
+    // Configurar intervalo para executar a cada 5 minutos (requests subsequentes)
+    const intervalId = setInterval(
+      () => {
+        fetchNewOccurrences(false)
+      },
+      5 * 60 * 1000,
+    ) // 5 minutos
+
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [isStreamingEnabled, fetchNewOccurrences])
 
   return (
     <div className="mt-10 h-[calc(100%-4.75rem)] min-w-screen-lg space-y-4 overflow-y-scroll">
