@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react'
 
-import type { CameraCOR, Radar } from '@/models/entities'
+import type { Camera, Radar } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 interface UseSelectionManagementProps {
   selectedRadar: Radar | null
-  selectedCamera: CameraCOR | null
-  setSelectedCamera: (camera: CameraCOR | null) => void
+  selectedCamera: Camera | null
+  setSelectedCamera: (camera: Camera | null) => void
 }
 
 export function useSelectionManagement({

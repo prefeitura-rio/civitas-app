@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 
 import { CameraSelectCard } from '@/app/(app)/veiculos/components/map/components/select-cards/camera-select-card'
 import { RadarSelectCard } from '@/app/(app)/veiculos/components/map/components/select-cards/radar-select-card'
-import type { CameraCOR, Radar } from '@/models/entities'
+import type { Camera, Radar } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 jest.mock('@/stores/use-map-store', () => ({
@@ -29,13 +29,14 @@ const mockRadar: Radar = {
   streetNumber: '1000',
 }
 
-const mockCamera: CameraCOR = {
+const mockCamera: Camera = {
   code: 'CAM001',
   latitude: -22.9068,
   longitude: -43.1729,
   location: 'copacabana palace',
   zone: 'zona sul',
   streamingUrl: 'https://example.com/stream',
+  sistemaOrigem: 'DC3',
 }
 
 describe('Select Cards Layout Snapshots', () => {
@@ -112,7 +113,7 @@ describe('Select Cards Layout Snapshots', () => {
     })
 
     it('deve manter o layout compacto do camera card sem streaming', () => {
-      const cameraWithoutStreaming: CameraCOR = {
+      const cameraWithoutStreaming: Camera = {
         ...mockCamera,
         streamingUrl: '',
       }

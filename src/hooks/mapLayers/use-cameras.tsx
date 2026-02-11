@@ -10,41 +10,38 @@ import {
 } from 'react'
 
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
-import { getCameraCOR } from '@/http/cameras-cor/get-cameras-cor'
-import { CameraCOR } from '@/models/entities'
+import { getCamera } from '@/http/cameras-cor/get-cameras-cor'
+import { Camera } from '@/models/entities'
 
-export interface UseCameraCOR {
-  data: CameraCOR[]
+export interface UseCamera {
+  data: Camera[]
   failed: boolean
-  layer: IconLayer<CameraCOR, object>
+  layer: IconLayer<Camera, object>
   isLoading: boolean
   isVisible: boolean
   setIsVisible: Dispatch<SetStateAction<boolean>>
-  hoveredObject: PickingInfo<CameraCOR> | null
-  setHoveredObject: Dispatch<SetStateAction<PickingInfo<CameraCOR> | null>>
-  selectedObject: CameraCOR | null
-  setSelectedObject: Dispatch<SetStateAction<CameraCOR | null>>
-  handleSelectObject: (
-    camera: CameraCOR | null,
-    clearRadar?: () => void,
-  ) => void
+  hoveredObject: PickingInfo<Camera> | null
+  setHoveredObject: Dispatch<SetStateAction<PickingInfo<Camera> | null>>
+  selectedObject: Camera | null
+  setSelectedObject: Dispatch<SetStateAction<Camera | null>>
+  handleSelectObject: (camera: Camera | null, clearRadar?: () => void) => void
 }
 
-export function useCameraCOR(): UseCameraCOR {
+export function useCamera(): UseCamera {
   const [hoveredObject, setHoveredObject] =
-    useState<PickingInfo<CameraCOR> | null>(null)
+    useState<PickingInfo<Camera> | null>(null)
   const [isVisible, setIsVisible] = useState(true)
-  const [selectedObject, setSelectedObject] = useState<CameraCOR | null>(null)
+  const [selectedObject, setSelectedObject] = useState<Camera | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['cameras'],
-    queryFn: () => getCameraCOR(),
+    queryFn: () => getCamera(),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   })
 
   const handleSelectObject = useCallback(
-    (camera: CameraCOR | null, clearRadar?: () => void) => {
+    (camera: Camera | null, clearRadar?: () => void) => {
       if (camera === null || selectedObject?.code === camera.code) {
         setSelectedObject(null)
       } else {
@@ -59,7 +56,7 @@ export function useCameraCOR(): UseCameraCOR {
 
   const layer = useMemo(
     () =>
-      new IconLayer<CameraCOR>({
+      new IconLayer<Camera>({
         id: 'cameras',
         data,
         pickable: true,

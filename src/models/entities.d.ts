@@ -98,22 +98,24 @@ export type Profile = {
   isAdmin: boolean
 }
 
-export type BackendCameraCOR = {
+export type BackendCamera = {
   CameraCode: string
   CameraName: string
   CameraZone: string
   Latitude: string
   Longitude: string
   Streamming: string
+  sistema_origem: string
 }
 
-export type CameraCOR = {
+export type Camera = {
   code: string
   location: string
   zone: string
   latitude: number
   longitude: number
   streamingUrl: string
+  sistemaOrigem: string
 }
 
 export type BackendRadar = {

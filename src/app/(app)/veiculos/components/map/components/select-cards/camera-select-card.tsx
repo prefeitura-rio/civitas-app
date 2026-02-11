@@ -8,12 +8,12 @@ import { useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import type { CameraCOR } from '@/models/entities'
+import type { Camera } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 interface CameraSelectCardProps {
-  selectedObject: CameraCOR | null
-  setSelectedObject: (value: CameraCOR | null) => void
+  selectedObject: Camera | null
+  setSelectedObject: (value: Camera | null) => void
   className?: string
 }
 
@@ -75,11 +75,19 @@ export function CameraSelectCard({
         </CardHeader>
         <CardContent className="px-4 py-3">
           <div className="space-y-3 text-sm">
-            <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium">Código</span>
-              <span className="text-sm text-muted-foreground">
-                {selectedObject?.code}
-              </span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Código</span>
+                <span className="text-sm text-muted-foreground">
+                  {selectedObject?.code}
+                </span>
+              </div>
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Sistema</span>
+                <span className="text-sm text-muted-foreground">
+                  {selectedObject?.sistemaOrigem}
+                </span>
+              </div>
             </div>
 
             <div className="flex flex-col space-y-1">
@@ -92,12 +100,14 @@ export function CameraSelectCard({
               </span>
             </div>
 
-            <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium">Zona</span>
-              <span className="text-sm text-muted-foreground">
-                {selectedObject?.zone.capitalizeFirstLetter()}
-              </span>
-            </div>
+            {selectedObject?.zone && (
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Zona</span>
+                <span className="text-sm text-muted-foreground">
+                  {selectedObject?.zone.capitalizeFirstLetter()}
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col space-y-1">
@@ -135,18 +145,18 @@ export function CameraSelectCard({
                 </Button>
               )}
             </div>
-            {selectedObject?.streamingUrl && (
-              <div className="pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={handleOpenStreaming}
-                >
-                  Abrir Streaming
-                </Button>
-              </div>
-            )}
+
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleOpenStreaming}
+                disabled={!selectedObject?.streamingUrl}
+              >
+                Abrir Streaming
+              </Button>
+            </div>
           </div>
         </CardContent>
       </div>
