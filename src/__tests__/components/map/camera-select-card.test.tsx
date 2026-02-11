@@ -141,7 +141,7 @@ describe('CameraSelectCard', () => {
       )
     })
 
-    it('should not display streaming button when streamingUrl is not available', () => {
+    it('should display streaming button with disabled state when streamingUrl is not available', () => {
       render(
         <CameraSelectCard
           {...defaultProps}
@@ -149,7 +149,9 @@ describe('CameraSelectCard', () => {
         />,
       )
 
-      expect(screen.queryByText('Abrir Streaming')).not.toBeInTheDocument()
+      const button = screen.getByText('Abrir Streaming')
+      expect(button).toBeInTheDocument()
+      expect(button).toBeDisabled()
     })
   })
 
