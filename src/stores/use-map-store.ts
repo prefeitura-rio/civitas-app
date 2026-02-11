@@ -13,7 +13,7 @@ import { useAddressMarker } from '@/hooks/mapLayers/use-address-marker'
 import { useAgents } from '@/hooks/mapLayers/use-agents'
 import { useAISPLayer } from '@/hooks/mapLayers/use-AISP-layer'
 import { useBusStopLayer } from '@/hooks/mapLayers/use-bus-stop-layer'
-import { useCameraCOR } from '@/hooks/mapLayers/use-cameras'
+import { useCamera } from '@/hooks/mapLayers/use-cameras'
 import { useCISPLayer } from '@/hooks/mapLayers/use-CISP-layer'
 import { useFogoCruzadoIncidents } from '@/hooks/mapLayers/use-fogo-cruzado'
 import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
@@ -180,7 +180,7 @@ export function useMapLayers() {
   // Os layers são memoizados internamente
   const radars = useRadarLayer(multipleSelectedRadars)
   const trips = useTrips({ setViewport })
-  const cameras = useCameraCOR()
+  const cameras = useCamera()
   const agents = useAgents()
   const fogoCruzado = useFogoCruzadoIncidents()
   const waze = useWazePoliceAlerts()
