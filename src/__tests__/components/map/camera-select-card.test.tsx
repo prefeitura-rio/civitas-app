@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { CameraSelectCard } from '@/app/(app)/veiculos/components/map/components/select-cards/camera-select-card'
-import type { CameraCOR } from '@/models/entities'
+import type { Camera } from '@/models/entities'
 
 jest.mock('@/utils/string-extensions', () => ({
   capitalizeFirstLetter: jest.fn(
@@ -16,22 +16,24 @@ Object.defineProperty(window, 'open', {
 })
 
 describe('CameraSelectCard', () => {
-  const mockCamera: CameraCOR = {
+  const mockCamera: Camera = {
     code: 'CAM001',
     location: 'centro',
     zone: 'zona sul',
     streamingUrl: 'https://example.com/stream',
     longitude: -43.1729,
     latitude: -22.9068,
+    sistemaOrigem: 'DC3',
   }
 
-  const mockCameraWithoutStreaming: CameraCOR = {
+  const mockCameraWithoutStreaming: Camera = {
     code: 'CAM002',
     location: 'botafogo',
     zone: 'zona sul',
     streamingUrl: '',
     longitude: -43.1729,
     latitude: -22.9068,
+    sistemaOrigem: 'DC3',
   }
 
   const defaultProps = {
@@ -171,13 +173,14 @@ describe('CameraSelectCard', () => {
 
   describe('undefined/null values', () => {
     it('should handle undefined values gracefully', () => {
-      const mockCameraWithUndefined: CameraCOR = {
+      const mockCameraWithUndefined: Camera = {
         code: 'CAM003',
         location: 'teste',
         zone: 'teste',
         streamingUrl: '',
         longitude: -43.1729,
         latitude: -22.9068,
+        sistemaOrigem: 'DC3',
       }
 
       render(
@@ -195,13 +198,14 @@ describe('CameraSelectCard', () => {
     })
 
     it('should handle null values gracefully', () => {
-      const mockCameraWithNull: CameraCOR = {
+      const mockCameraWithNull: Camera = {
         code: 'CAM004',
         location: 'teste',
         zone: 'teste',
         streamingUrl: '',
         longitude: -43.1729,
         latitude: -22.9068,
+        sistemaOrigem: 'DC3',
       }
 
       render(

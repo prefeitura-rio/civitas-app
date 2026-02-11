@@ -19,6 +19,37 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '11 de Fevereiro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Integração de câmeras CIVITAS (DC3)',
+        content: (
+          <>
+            <p>
+              A camada de câmeras do mapa foi expandida para incluir
+              equipamentos do sistema <strong>DC3</strong>, além das câmeras já
+              existentes do TIXXI.
+            </p>
+            <p>
+              Para facilitar a identificação, foi adicionada uma nova informação
+              de <strong>Sistema</strong> no cartão de detalhes da câmera
+              (acessível ao clicar com o botão direito ou selecionar a câmera),
+              permitindo distinguir a origem de cada equipamento.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/card-camera-civitas-dc3-campo-sistema.png"
+              alt="Exemplo de cartão de câmera CIVITAS (DC3) com campo de sistema"
+              width={400}
+              height={300}
+              className="mb-4"
+            />
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '15 de Setembro de 2025',
     subCards: [
       {

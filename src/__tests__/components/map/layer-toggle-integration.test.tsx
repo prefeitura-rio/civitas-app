@@ -24,7 +24,7 @@ jest.mock('@/hooks/mapLayers/use-radar-layer', () => ({
 }))
 
 jest.mock('@/hooks/mapLayers/use-cameras', () => ({
-  useCameraCOR: () => ({
+  useCamera: () => ({
     isVisible: true, // Camada de câmeras deve estar visível por padrão
     setIsVisible: mockSetIsCameraVisible,
     data: [],

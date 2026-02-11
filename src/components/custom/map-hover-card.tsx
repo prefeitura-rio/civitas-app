@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import type {
   Agent,
-  CameraCOR,
+  Camera,
   FogoCruzadoIncident,
   Point,
   Radar,
@@ -18,7 +18,7 @@ import { Card } from '../ui/card'
 interface MapHoverCardProps {
   children?: ReactNode
   hoveredObject: PickingInfo<
-    CameraCOR | Radar | FogoCruzadoIncident | Agent | WazeAlert | Report | Point
+    Camera | Radar | FogoCruzadoIncident | Agent | WazeAlert | Report | Point
   > | null
   className?: string
 }
