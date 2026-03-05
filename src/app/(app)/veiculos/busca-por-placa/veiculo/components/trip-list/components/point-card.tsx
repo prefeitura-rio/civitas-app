@@ -134,7 +134,9 @@ export function PointCard({ point }: PointCardProps) {
           {`${point.speed} Km/h`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {`Sentido ${point.direction?.capitalizeFirstLetter()}`}
+          {point.direction?.trim()
+            ? `Sentido ${point.direction.capitalizeFirstLetter()}`
+            : 'Sentido'}
         </span>
       </div>
     </div>
