@@ -46,18 +46,36 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
         class="space-y-3 text-sm"
       >
         <div
-          class="flex flex-col space-y-1"
+          class="grid grid-cols-2 gap-4"
         >
-          <span
-            class="text-sm font-medium"
+          <div
+            class="flex flex-col space-y-1"
           >
-            Código
-          </span>
-          <span
-            class="text-sm text-muted-foreground"
+            <span
+              class="text-sm font-medium"
+            >
+              Código
+            </span>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              CAM001
+            </span>
+          </div>
+          <div
+            class="flex flex-col space-y-1"
           >
-            CAM001
-          </span>
+            <span
+              class="text-sm font-medium"
+            >
+              Sistema
+            </span>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              DC3
+            </span>
+          </div>
         </div>
         <div
           class="flex flex-col space-y-1"
@@ -259,18 +277,36 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
         class="space-y-3 text-sm"
       >
         <div
-          class="flex flex-col space-y-1"
+          class="grid grid-cols-2 gap-4"
         >
-          <span
-            class="text-sm font-medium"
+          <div
+            class="flex flex-col space-y-1"
           >
-            Código
-          </span>
-          <span
-            class="text-sm text-muted-foreground"
+            <span
+              class="text-sm font-medium"
+            >
+              Código
+            </span>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              CAM001
+            </span>
+          </div>
+          <div
+            class="flex flex-col space-y-1"
           >
-            CAM001
-          </span>
+            <span
+              class="text-sm font-medium"
+            >
+              Sistema
+            </span>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              DC3
+            </span>
+          </div>
         </div>
         <div
           class="flex flex-col space-y-1"
@@ -411,6 +447,16 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
             </svg>
           </button>
         </div>
+        <div
+          class="pt-2"
+        >
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 w-full"
+            disabled=""
+          >
+            Abrir Streaming
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -463,16 +509,32 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
         class="space-y-3 text-sm"
       >
         <div
-          class="flex flex-col space-y-1"
+          class="grid grid-cols-2 gap-4"
         >
-          <span
-            class="text-sm font-medium"
+          <div
+            class="flex flex-col space-y-1"
           >
-            Código
-          </span>
-          <span
-            class="text-sm text-muted-foreground"
-          />
+            <span
+              class="text-sm font-medium"
+            >
+              Código
+            </span>
+            <span
+              class="text-sm text-muted-foreground"
+            />
+          </div>
+          <div
+            class="flex flex-col space-y-1"
+          >
+            <span
+              class="text-sm font-medium"
+            >
+              Sistema
+            </span>
+            <span
+              class="text-sm text-muted-foreground"
+            />
+          </div>
         </div>
         <div
           class="flex flex-col space-y-1"
@@ -507,18 +569,6 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
               Localização
             </span>
           </div>
-          <span
-            class="text-sm text-muted-foreground"
-          />
-        </div>
-        <div
-          class="flex flex-col space-y-1"
-        >
-          <span
-            class="text-sm font-medium"
-          >
-            Zona
-          </span>
           <span
             class="text-sm text-muted-foreground"
           />
@@ -603,6 +653,16 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
                 d="M3 3v5h5"
               />
             </svg>
+          </button>
+        </div>
+        <div
+          class="pt-2"
+        >
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 w-full"
+            disabled=""
+          >
+            Abrir Streaming
           </button>
         </div>
       </div>
