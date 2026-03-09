@@ -42,6 +42,11 @@ export const sidebarItems: SideBarItem[] = [
     path: '/pessoas',
   },
   {
+    icon: 'ClipboardList',
+    title: 'Chamados',
+    path: '/chamados',
+  },
+  {
     icon: 'Speech',
     title: 'Ocorrências (DD & 1746)',
     path: '/ocorrencias/timeline',

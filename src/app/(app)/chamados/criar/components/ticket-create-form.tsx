@@ -1,0 +1,2425 @@
+'use client'
+
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as Slider from '@radix-ui/react-slider'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { ChevronDown, ChevronUp, Plus, Trash, Upload } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import type { Control, UseFormRegister } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  type TicketCreateForm as TicketCreateFormType,
+  ticketCreateSchema,
+} from '@/contexts/tickets-create-context'
+import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
+import { getOperations } from '@/http/operations/get-operations'
+import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
+import { createTicket } from '@/http/tickets/create-ticket'
+import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
+import { genericErrorMessage } from '@/utils/error-handlers'
+
+import styles from './ticket-create-form.module.css'
+
+const MOCK_TEAMS = [
+  { id: '1', title: 'Equipe A' },
+  { id: '2', title: 'Equipe B' },
+]
+
+type OpenServiceKey =
+  | 'busca_por_placa'
+  | 'busca_por_radar'
+  | 'cerco_eletronico'
+  | 'busca_por_imagem'
+  | 'placas_correlatas'
+  | 'placas_conjuntas'
+  | 'reserva_de_imagem'
+  | 'analise_de_imagem'
+  | 'outros'
+  | null
+
+type DetectionType = 'ANTES' | 'DEPOIS' | 'AMBOS' | null
+
+type BuscaPorPlacaDraft = {
+  period_start: string
+  period_end: string
+  plate: string
+}
+
+type BuscaPorRadarDraft = {
+  period_start: string
+  period_end: string
+  plate: string
+  radar_address: string
+}
+
+type CercoEletronicoDraft = {
+  plate: string
+  vehicle_observations: string
+}
+
+type BuscaPorImagemDraft = {
+  period_start: string
+  period_end: string
+  plate: string
+  address: string
+  description: string
+}
+
+type CorrelataDraft = {
+  period_start: string
+  period_end: string
+  plate: string
+  interest_interval_minutes: number
+  detection_count: number
+  detection: DetectionType
+}
+
+type ReservaImagemDraft = {
+  period_start: string
+  period_end: string
+  orientation: string
+}
+
+type AnaliseImagemDraft = {
+  period_start: string
+  period_end: string
+  orientation: string
+}
+
+type OutrosDraft = {
+  orientation: string
+}
+
+type SectionKey =
+  | 'info'
+  | 'requester'
+  | 'services'
+  | 'internal'
+  | 'comment'
+  | 'attachments'
+
+function emptyBuscaPorPlacaDraft(): BuscaPorPlacaDraft {
+  return {
+    period_start: '',
+    period_end: '',
+    plate: '',
+  }
+}
+
+function emptyBuscaPorRadarDraft(): BuscaPorRadarDraft {
+  return {
+    period_start: '',
+    period_end: '',
+    plate: '',
+    radar_address: '',
+  }
+}
+
+function emptyCercoDraft(): CercoEletronicoDraft {
+  return {
+    plate: '',
+    vehicle_observations: '',
+  }
+}
+
+function emptyBuscaPorImagemDraft(): BuscaPorImagemDraft {
+  return {
+    period_start: '',
+    period_end: '',
+    plate: '',
+    address: '',
+    description: '',
+  }
+}
+
+function emptyCorrelataDraft(): CorrelataDraft {
+  return {
+    period_start: '',
+    period_end: '',
+    plate: '',
+    interest_interval_minutes: 1,
+    detection_count: 10,
+    detection: null,
+  }
+}
+
+function emptyReservaImagemDraft(): ReservaImagemDraft {
+  return {
+    period_start: '',
+    period_end: '',
+    orientation: '',
+  }
+}
+
+function emptyAnaliseImagemDraft(): AnaliseImagemDraft {
+  return {
+    period_start: '',
+    period_end: '',
+    orientation: '',
+  }
+}
+
+function emptyOutrosDraft(): OutrosDraft {
+  return {
+    orientation: '',
+  }
+}
+
+function emptyToNull(value?: string | null) {
+  if (value == null) return null
+  const trimmed = value.trim()
+  return trimmed.length ? trimmed : null
+}
+
+function nullIfEmpty(value: string) {
+  return emptyToNull(value)
+}
+
+function numberOrNull(value: string | number | null | undefined) {
+  if (value == null || value === '') return null
+  const num = Number(value)
+  return Number.isNaN(num) ? null : num
+}
+
+function toIsoDateTime(value?: string | null) {
+  const normalized = emptyToNull(value)
+  if (!normalized) return null
+
+  const date = new Date(normalized)
+  if (Number.isNaN(date.getTime())) return null
+
+  return date.toISOString()
+}
+
+function buildTicketCreatePayload(
+  data: TicketCreateFormType,
+): TicketCreateFormType {
+  return {
+    ...data,
+    associar_chamado_id: emptyToNull(data.associar_chamado_id),
+    operation_id: data.operation_id,
+    numero_procedimento: emptyToNull(data.numero_procedimento),
+    numero_oficio: emptyToNull(data.numero_oficio),
+    data_base: emptyToNull(data.data_base),
+    natureza_id: emptyToNull(data.natureza_id),
+    apelido_imprensa: emptyToNull(data.apelido_imprensa),
+    link_materia: emptyToNull(data.link_materia),
+    equipe_id: data.equipe_id,
+    comentario_inicial: emptyToNull(data.comentario_inicial),
+
+    requisitante: {
+      requisitante_nome: data.requisitante.requisitante_nome.trim(),
+      requisitante_telefone: emptyToNull(
+        data.requisitante.requisitante_telefone,
+      ),
+      requisitante_email: emptyToNull(data.requisitante.requisitante_email),
+    },
+
+    pontos_focais: data.pontos_focais.map((fp) => ({
+      nome: fp.nome.trim(),
+      telefone: emptyToNull(fp.telefone),
+      email: emptyToNull(fp.email),
+    })),
+
+    busca_por_placa: data.busca_por_placa.map((item) => ({
+      plate: item.plate.trim(),
+      period_start: toIsoDateTime(item.period_start),
+      period_end: toIsoDateTime(item.period_end),
+    })),
+
+    busca_por_radar: data.busca_por_radar.map((item) => ({
+      plate: item.plate.trim(),
+      period_start: toIsoDateTime(item.period_start),
+      period_end: toIsoDateTime(item.period_end),
+      radar_address: emptyToNull(item.radar_address),
+    })),
+
+    cerco_eletronico: data.cerco_eletronico.map((item) => ({
+      plate: item.plate.trim(),
+      vehicle_observations: emptyToNull(item.vehicle_observations),
+    })),
+
+    busca_por_imagem: data.busca_por_imagem.map((item) => ({
+      plate: emptyToNull(item.plate),
+      period_start: toIsoDateTime(item.period_start),
+      period_end: toIsoDateTime(item.period_end),
+      address: emptyToNull(item.address),
+      description: emptyToNull(item.description),
+    })),
+
+    placas_correlatas: data.placas_correlatas.map((group) => ({
+      interest_interval_minutes: numberOrNull(group.interest_interval_minutes),
+      detection_count: numberOrNull(group.detection_count),
+      detection: group.detection ?? null,
+      items: (group.items ?? []).map((item) => ({
+        plate: item.plate.trim(),
+        period_start: toIsoDateTime(item.period_start),
+        period_end: toIsoDateTime(item.period_end),
+      })),
+    })),
+
+    placas_conjuntas: data.placas_conjuntas.map((group) => ({
+      interest_interval_minutes: numberOrNull(group.interest_interval_minutes),
+      detection_count: numberOrNull(group.detection_count),
+      detection: group.detection ?? null,
+      items: (group.items ?? []).map((item) => ({
+        plate: item.plate.trim(),
+        period_start: toIsoDateTime(item.period_start),
+        period_end: toIsoDateTime(item.period_end),
+      })),
+    })),
+
+    reserva_de_imagem: data.reserva_de_imagem.map((item) => ({
+      period_start: toIsoDateTime(item.period_start),
+      period_end: toIsoDateTime(item.period_end),
+      orientation: emptyToNull(item.orientation),
+    })),
+
+    analise_de_imagem: data.analise_de_imagem.map((item) => ({
+      period_start: toIsoDateTime(item.period_start),
+      period_end: toIsoDateTime(item.period_end),
+      orientation: emptyToNull(item.orientation),
+    })),
+
+    outros: data.outros.map((item) => ({
+      orientation: emptyToNull(item.orientation),
+    })),
+  }
+}
+
+export function TicketCreateForm() {
+  const [files, setFiles] = useState<File[]>([])
+  const [openService, setOpenService] = useState<OpenServiceKey>(null)
+  const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>(
+    {
+      info: true,
+      requester: true,
+      services: true,
+      internal: true,
+      comment: true,
+      attachments: true,
+    },
+  )
+
+  const [buscaPorPlacaDraft, setBuscaPorPlacaDraft] =
+    useState<BuscaPorPlacaDraft>(emptyBuscaPorPlacaDraft())
+  const [buscaPorRadarDraft, setBuscaPorRadarDraft] =
+    useState<BuscaPorRadarDraft>(emptyBuscaPorRadarDraft())
+  const [cercoDraft, setCercoDraft] =
+    useState<CercoEletronicoDraft>(emptyCercoDraft())
+  const [buscaPorImagemDraft, setBuscaPorImagemDraft] =
+    useState<BuscaPorImagemDraft>(emptyBuscaPorImagemDraft())
+  const [placasCorrelatasDraft, setPlacasCorrelatasDraft] =
+    useState<CorrelataDraft>(emptyCorrelataDraft())
+  const [placasConjuntasDraft, setPlacasConjuntasDraft] =
+    useState<CorrelataDraft>(emptyCorrelataDraft())
+  const [reservaImagemDraft, setReservaImagemDraft] =
+    useState<ReservaImagemDraft>(emptyReservaImagemDraft())
+  const [analiseImagemDraft, setAnaliseImagemDraft] =
+    useState<AnaliseImagemDraft>(emptyAnaliseImagemDraft())
+  const [outrosDraft, setOutrosDraft] =
+    useState<OutrosDraft>(emptyOutrosDraft())
+
+  const defaultValues = useMemo<TicketCreateFormType>(
+    () => ({
+      associar_chamado_id: null,
+      tipo_chamado_id: '',
+      operation_id: '',
+
+      numero_procedimento: null,
+      numero_oficio: null,
+      data_base: null,
+      natureza_id: null,
+
+      possui_apelido_imprensa: false,
+      apelido_imprensa: null,
+      link_materia: null,
+
+      requisitante: {
+        requisitante_nome: '',
+        requisitante_telefone: null,
+        requisitante_email: null,
+      },
+
+      pontos_focais: [],
+
+      equipe_id: '',
+      prioridade: 'ROTINA',
+
+      comentario_inicial: null,
+
+      busca_por_placa: [],
+      busca_por_radar: [],
+      cerco_eletronico: [],
+      busca_por_imagem: [],
+      placas_correlatas: [],
+      placas_conjuntas: [],
+      reserva_de_imagem: [],
+      analise_de_imagem: [],
+      outros: [],
+    }),
+    [],
+  )
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { isSubmitting, errors },
+  } = useForm<TicketCreateFormType>({
+    resolver: zodResolver(ticketCreateSchema),
+    defaultValues,
+  })
+
+  const possuiApelido = watch('possui_apelido_imprensa')
+
+  const focalPoints = useFieldArray({ control, name: 'pontos_focais' })
+  const buscaPorPlaca = useFieldArray({ control, name: 'busca_por_placa' })
+  const buscaPorRadar = useFieldArray({ control, name: 'busca_por_radar' })
+  const cercoEletronico = useFieldArray({ control, name: 'cerco_eletronico' })
+  const buscaPorImagem = useFieldArray({ control, name: 'busca_por_imagem' })
+  const placasCorrelatas = useFieldArray({ control, name: 'placas_correlatas' })
+  const placasConjuntas = useFieldArray({ control, name: 'placas_conjuntas' })
+  const reservaDeImagem = useFieldArray({ control, name: 'reserva_de_imagem' })
+  const analiseDeImagem = useFieldArray({ control, name: 'analise_de_imagem' })
+  const outros = useFieldArray({ control, name: 'outros' })
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async (payload: TicketCreateFormType) =>
+      createTicket(payload, files),
+    onSuccess: () => {
+      toast.success('Chamado criado com sucesso.')
+      reset(defaultValues)
+      setFiles([])
+      setOpenService(null)
+      setBuscaPorPlacaDraft(emptyBuscaPorPlacaDraft())
+      setBuscaPorRadarDraft(emptyBuscaPorRadarDraft())
+      setCercoDraft(emptyCercoDraft())
+      setBuscaPorImagemDraft(emptyBuscaPorImagemDraft())
+      setPlacasCorrelatasDraft(emptyCorrelataDraft())
+      setPlacasConjuntasDraft(emptyCorrelataDraft())
+      setReservaImagemDraft(emptyReservaImagemDraft())
+      setAnaliseImagemDraft(emptyAnaliseImagemDraft())
+      setOutrosDraft(emptyOutrosDraft())
+      setSelectedTicketLabel('')
+    },
+    onError: () => toast.error(genericErrorMessage),
+  })
+
+  const { data: operationsResponse, isLoading: isOperationsLoading } = useQuery(
+    {
+      queryKey: ['operations', 'select'],
+      queryFn: () =>
+        getOperations({
+          page: 1,
+          size: 100,
+        }),
+    },
+  )
+
+  const { data: ticketTypesResponse, isLoading: isTicketTypesLoading } =
+    useQuery({
+      queryKey: ['ticket-types', 'select'],
+      queryFn: () =>
+        getTicketTypes({
+          isActive: true,
+        }),
+    })
+
+  const { data: ticketNaturesResponse, isLoading: isTicketNaturesLoading } =
+    useQuery({
+      queryKey: ['ticket-natures', 'select'],
+      queryFn: () =>
+        getTicketNatures({
+          isActive: true,
+        }),
+    })
+
+  const ticketTypes = ticketTypesResponse?.data?.items ?? []
+  const ticketNatures = ticketNaturesResponse?.data?.items ?? []
+
+  const operations = operationsResponse?.data?.items ?? []
+  const isLoading = isSubmitting || isPending
+
+  function toggleSection(key: SectionKey) {
+    setOpenSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
+  }
+
+  function onDropFiles(inputFiles: FileList | null) {
+    if (!inputFiles) return
+    const next = Array.from(inputFiles)
+    setFiles((prev) => [...prev, ...next])
+  }
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  async function onSubmit(data: TicketCreateFormType) {
+    const payload = buildTicketCreatePayload(data)
+    await mutateAsync(payload)
+  }
+
+  function handleOpenService(service: OpenServiceKey) {
+    setOpenService((current) => (current === service ? null : service))
+  }
+
+  const [ticketSearch, setTicketSearch] = useState('')
+  const [ticketPopoverOpen, setTicketPopoverOpen] = useState(false)
+  const [selectedTicketLabel, setSelectedTicketLabel] = useState('')
+
+  const { data: ticketsResponse, isLoading: isTicketsLoading } = useQuery({
+    queryKey: ['tickets', 'search', ticketSearch],
+    queryFn: () =>
+      getTicketsSelect({
+        search: ticketSearch,
+      }),
+    enabled: ticketPopoverOpen && ticketSearch.trim().length > 0,
+  })
+
+  const tickets = ticketsResponse?.data ?? []
+
+  return (
+    <div className={styles.root}>
+      <form
+        className="mx-auto w-full max-w-5xl space-y-4"
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <div className={`${styles.sectionCard} ${styles.sectionInner}`}>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Associar chamado</Label>
+              <Controller
+                control={control}
+                name="associar_chamado_id"
+                render={({ field }) => (
+                  <Popover
+                    open={ticketPopoverOpen}
+                    onOpenChange={setTicketPopoverOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isLoading}
+                        className="h-11 w-full justify-between bg-[#11273a] font-normal"
+                      >
+                        <span className="truncate">
+                          {selectedTicketLabel ||
+                            'Digite para buscar um chamado'}
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Buscar chamado..."
+                          value={ticketSearch}
+                          onValueChange={setTicketSearch}
+                        />
+
+                        <CommandList>
+                          {isTicketsLoading && (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                              Buscando chamados...
+                            </div>
+                          )}
+
+                          {!isTicketsLoading &&
+                            ticketSearch.trim().length === 0 && (
+                              <div className="px-3 py-2 text-sm text-muted-foreground">
+                                Digite para pesquisar.
+                              </div>
+                            )}
+
+                          {!isTicketsLoading &&
+                            ticketSearch.trim().length > 0 &&
+                            tickets.length === 0 && (
+                              <CommandEmpty>
+                                Nenhum chamado encontrado.
+                              </CommandEmpty>
+                            )}
+
+                          <CommandGroup>
+                            {tickets.map((ticket) => (
+                              <CommandItem
+                                key={ticket.id}
+                                value={`${ticket.id} ${ticket.titulo}`}
+                                onSelect={() => {
+                                  field.onChange(ticket.id)
+                                  setSelectedTicketLabel(ticket.titulo)
+                                  setTicketSearch(ticket.titulo)
+                                  setTicketPopoverOpen(false)
+                                }}
+                              >
+                                <div className="flex w-full items-center justify-between gap-2">
+                                  <span className="truncate">
+                                    {ticket.titulo}
+                                  </span>
+                                  {field.value === ticket.id && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Selecionado
+                                    </span>
+                                  )}
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+
+                          {field.value && (
+                            <div className="border-t p-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full justify-start"
+                                onClick={() => {
+                                  field.onChange(null)
+                                  setSelectedTicketLabel('')
+                                  setTicketSearch('')
+                                  setTicketPopoverOpen(false)
+                                }}
+                              >
+                                Limpar seleção
+                              </Button>
+                            </div>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Tipo de chamado</Label>
+              <Controller
+                control={control}
+                name="tipo_chamado_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isLoading || isTicketTypesLoading}
+                  >
+                    <SelectTrigger className="h-11 bg-[#11273a]">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ticketTypes.map((ticketType) => (
+                        <SelectItem key={ticketType.id} value={ticketType.id}>
+                          {ticketType.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.tipo_chamado_id?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.tipo_chamado_id.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <Section
+          title="Informações do chamado"
+          isOpen={openSections.info}
+          onToggle={() => toggleSection('info')}
+        >
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Nº de procedimento</Label>
+              <Input
+                className="h-11 bg-[#11273a]"
+                disabled={isLoading}
+                {...register('numero_procedimento')}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Nº do ofício</Label>
+              <Input
+                className="h-11 bg-[#11273a]"
+                disabled={isLoading}
+                {...register('numero_oficio')}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Data base</Label>
+              <Input
+                className="h-11 bg-[#11273a]"
+                type="date"
+                disabled={isLoading}
+                {...register('data_base')}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Natureza</Label>
+              <Controller
+                control={control}
+                name="natureza_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(v) => field.onChange(v || null)}
+                    disabled={isLoading || isTicketNaturesLoading}
+                  >
+                    <SelectTrigger className="h-11 bg-[#11273a]">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ticketNatures.map((nature) => (
+                        <SelectItem key={nature.id} value={nature.id}>
+                          {nature.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            <div className="flex items-center gap-3 pt-2 md:col-span-2">
+              <Controller
+                control={control}
+                name="possui_apelido_imprensa"
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(v) => field.onChange(!!v)}
+                    disabled={isLoading}
+                  />
+                )}
+              />
+              <Label className={styles.fieldLabel}>
+                Possui apelido pela imprensa?
+              </Label>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Apelido pela imprensa</Label>
+              <Input
+                className="h-11 bg-[#11273a]"
+                disabled={isLoading || !possuiApelido}
+                {...register('apelido_imprensa')}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Link da matéria</Label>
+              <Input
+                className="h-11 bg-[#11273a]"
+                disabled={isLoading || !possuiApelido}
+                placeholder="https://..."
+                {...register('link_materia')}
+              />
+              {errors.link_materia?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.link_materia.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="Requisitante"
+          isOpen={openSections.requester}
+          onToggle={() => toggleSection('requester')}
+        >
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Demandante</Label>
+              <Controller
+                control={control}
+                name="operation_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(v) => field.onChange(v || null)}
+                    disabled={isLoading || isOperationsLoading}
+                  >
+                    <SelectTrigger className="h-11 bg-[#11273a]">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {operations.map((op) => (
+                        <SelectItem key={op.id} value={op.id}>
+                          {op.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.operation_id?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.operation_id.message}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label className={styles.fieldLabel}>Requisitante</Label>
+                <Input
+                  className="h-11 bg-[#11273a]"
+                  disabled={isLoading}
+                  {...register('requisitante.requisitante_nome')}
+                />
+                {errors.requisitante?.requisitante_nome?.message && (
+                  <p className="text-xs text-destructive">
+                    {errors.requisitante.requisitante_nome.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className={styles.fieldLabel}>Telefone</Label>
+                <Input
+                  className="h-11 bg-[#11273a]"
+                  disabled={isLoading}
+                  {...register('requisitante.requisitante_telefone')}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className={styles.fieldLabel}>Email</Label>
+                <Input
+                  className="h-11 bg-[#11273a]"
+                  disabled={isLoading}
+                  {...register('requisitante.requisitante_email')}
+                />
+                {errors.requisitante?.requisitante_email?.message && (
+                  <p className="text-xs text-destructive">
+                    {errors.requisitante.requisitante_email.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isLoading || focalPoints.fields.length >= 20}
+                onClick={() =>
+                  focalPoints.append({
+                    nome: '',
+                    telefone: null,
+                    email: null,
+                  })
+                }
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar Ponto Focal
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {focalPoints.fields.map((fp, idx) => (
+                <div
+                  key={fp.id}
+                  className="grid grid-cols-1 gap-3 md:grid-cols-3"
+                >
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Ponto focal</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`pontos_focais.${idx}.nome`)}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Telefone</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`pontos_focais.${idx}.telefone`)}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Email</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        className="h-11 bg-[#11273a]"
+                        disabled={isLoading}
+                        {...register(`pontos_focais.${idx}.email`)}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-11 w-11 p-0"
+                        disabled={isLoading}
+                        onClick={() => focalPoints.remove(idx)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {errors.pontos_focais?.message && (
+              <p className="text-xs text-destructive">
+                {errors.pontos_focais.message as string}
+              </p>
+            )}
+          </div>
+        </Section>
+
+        <Section
+          title="Serviços"
+          isOpen={openSections.services}
+          onToggle={() => toggleSection('services')}
+        >
+          <div className={styles.serviceGrid}>
+            <ServiceAddCard
+              title="Busca por placa"
+              onAdd={() => handleOpenService('busca_por_placa')}
+            />
+            <ServiceAddCard
+              title="Busca por radar"
+              onAdd={() => handleOpenService('busca_por_radar')}
+            />
+            <ServiceAddCard
+              title="Cerco"
+              onAdd={() => handleOpenService('cerco_eletronico')}
+            />
+            <ServiceAddCard
+              title="Imagem"
+              onAdd={() => handleOpenService('busca_por_imagem')}
+            />
+            <ServiceAddCard
+              title="Placas correlatas"
+              onAdd={() => handleOpenService('placas_correlatas')}
+            />
+            <ServiceAddCard
+              title="Placas conjuntas"
+              onAdd={() => handleOpenService('placas_conjuntas')}
+            />
+            <ServiceAddCard
+              title="Reserva de imagem"
+              onAdd={() => handleOpenService('reserva_de_imagem')}
+            />
+            <ServiceAddCard
+              title="Análise de imagem"
+              onAdd={() => handleOpenService('analise_de_imagem')}
+            />
+            <ServiceAddCard
+              title="Outros"
+              onAdd={() => handleOpenService('outros')}
+            />
+          </div>
+
+          {openService === 'busca_por_placa' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Busca por placa"
+                onToggle={() => setOpenService(null)}
+              />
+              <div className="space-y-3">
+                <PeriodFields
+                  startValue={buscaPorPlacaDraft.period_start}
+                  endValue={buscaPorPlacaDraft.period_end}
+                  onChangeStart={(value) =>
+                    setBuscaPorPlacaDraft((prev) => ({
+                      ...prev,
+                      period_start: value,
+                    }))
+                  }
+                  onChangeEnd={(value) =>
+                    setBuscaPorPlacaDraft((prev) => ({
+                      ...prev,
+                      period_end: value,
+                    }))
+                  }
+                />
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
+                  <Input
+                    className="h-11 bg-[#11273a]"
+                    value={buscaPorPlacaDraft.plate}
+                    onChange={(e) =>
+                      setBuscaPorPlacaDraft((prev) => ({
+                        ...prev,
+                        plate: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.inlineAddButton}
+                  onClick={() => {
+                    buscaPorPlaca.append({
+                      plate: buscaPorPlacaDraft.plate,
+                      period_start: nullIfEmpty(
+                        buscaPorPlacaDraft.period_start,
+                      ),
+                      period_end: nullIfEmpty(buscaPorPlacaDraft.period_end),
+                    })
+                    setBuscaPorPlacaDraft(emptyBuscaPorPlacaDraft())
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {openService === 'busca_por_radar' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Busca por radar"
+                onToggle={() => setOpenService(null)}
+              />
+              <div className="space-y-3">
+                <PeriodFields
+                  startValue={buscaPorRadarDraft.period_start}
+                  endValue={buscaPorRadarDraft.period_end}
+                  onChangeStart={(value) =>
+                    setBuscaPorRadarDraft((prev) => ({
+                      ...prev,
+                      period_start: value,
+                    }))
+                  }
+                  onChangeEnd={(value) =>
+                    setBuscaPorRadarDraft((prev) => ({
+                      ...prev,
+                      period_end: value,
+                    }))
+                  }
+                />
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
+                  <Input
+                    className="h-11 bg-[#11273a]"
+                    value={buscaPorRadarDraft.plate}
+                    onChange={(e) =>
+                      setBuscaPorRadarDraft((prev) => ({
+                        ...prev,
+                        plate: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Orientação</Label>
+                  <Textarea
+                    className="min-h-[92px] bg-[#11273a]"
+                    value={buscaPorRadarDraft.radar_address}
+                    onChange={(e) =>
+                      setBuscaPorRadarDraft((prev) => ({
+                        ...prev,
+                        radar_address: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.inlineAddButton}
+                  onClick={() => {
+                    buscaPorRadar.append({
+                      plate: buscaPorRadarDraft.plate,
+                      period_start: nullIfEmpty(
+                        buscaPorRadarDraft.period_start,
+                      ),
+                      period_end: nullIfEmpty(buscaPorRadarDraft.period_end),
+                      radar_address: nullIfEmpty(
+                        buscaPorRadarDraft.radar_address,
+                      ),
+                    })
+                    setBuscaPorRadarDraft(emptyBuscaPorRadarDraft())
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {openService === 'cerco_eletronico' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Cerco eletrônico"
+                onToggle={() => setOpenService(null)}
+              />
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
+                  <Input
+                    className="h-11 bg-[#11273a]"
+                    value={cercoDraft.plate}
+                    onChange={(e) =>
+                      setCercoDraft((prev) => ({
+                        ...prev,
+                        plate: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>
+                    Observações do veículo
+                  </Label>
+                  <Textarea
+                    className="min-h-[92px] bg-[#11273a]"
+                    value={cercoDraft.vehicle_observations}
+                    onChange={(e) =>
+                      setCercoDraft((prev) => ({
+                        ...prev,
+                        vehicle_observations: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.inlineAddButton}
+                  onClick={() => {
+                    cercoEletronico.append({
+                      plate: cercoDraft.plate,
+                      vehicle_observations: nullIfEmpty(
+                        cercoDraft.vehicle_observations,
+                      ),
+                    })
+                    setCercoDraft(emptyCercoDraft())
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {openService === 'busca_por_imagem' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Busca por imagem"
+                onToggle={() => setOpenService(null)}
+              />
+              <div className="space-y-3">
+                <PeriodFields
+                  startValue={buscaPorImagemDraft.period_start}
+                  endValue={buscaPorImagemDraft.period_end}
+                  onChangeStart={(value) =>
+                    setBuscaPorImagemDraft((prev) => ({
+                      ...prev,
+                      period_start: value,
+                    }))
+                  }
+                  onChangeEnd={(value) =>
+                    setBuscaPorImagemDraft((prev) => ({
+                      ...prev,
+                      period_end: value,
+                    }))
+                  }
+                />
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
+                  <Input
+                    className="h-11 bg-[#11273a]"
+                    value={buscaPorImagemDraft.plate}
+                    onChange={(e) =>
+                      setBuscaPorImagemDraft((prev) => ({
+                        ...prev,
+                        plate: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Endereço</Label>
+                  <Input
+                    className="h-11 bg-[#11273a]"
+                    value={buscaPorImagemDraft.address}
+                    onChange={(e) =>
+                      setBuscaPorImagemDraft((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Orientação</Label>
+                  <Textarea
+                    className="min-h-[110px] bg-[#11273a]"
+                    value={buscaPorImagemDraft.description}
+                    onChange={(e) =>
+                      setBuscaPorImagemDraft((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.inlineAddButton}
+                  onClick={() => {
+                    buscaPorImagem.append({
+                      plate: nullIfEmpty(buscaPorImagemDraft.plate),
+                      period_start: nullIfEmpty(
+                        buscaPorImagemDraft.period_start,
+                      ),
+                      period_end: nullIfEmpty(buscaPorImagemDraft.period_end),
+                      address: nullIfEmpty(buscaPorImagemDraft.address),
+                      description: nullIfEmpty(buscaPorImagemDraft.description),
+                    })
+                    setBuscaPorImagemDraft(emptyBuscaPorImagemDraft())
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {openService === 'placas_correlatas' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Placas correlatas"
+                onToggle={() => setOpenService(null)}
+              />
+              <CorrelataPanel
+                draft={placasCorrelatasDraft}
+                setDraft={setPlacasCorrelatasDraft}
+                onAdd={() => {
+                  placasCorrelatas.append({
+                    interest_interval_minutes:
+                      placasCorrelatasDraft.interest_interval_minutes,
+                    detection_count: placasCorrelatasDraft.detection_count,
+                    detection: placasCorrelatasDraft.detection,
+                    items: [
+                      {
+                        plate: placasCorrelatasDraft.plate,
+                        period_start: nullIfEmpty(
+                          placasCorrelatasDraft.period_start,
+                        ),
+                        period_end: nullIfEmpty(
+                          placasCorrelatasDraft.period_end,
+                        ),
+                      },
+                    ],
+                  })
+                  setPlacasCorrelatasDraft(emptyCorrelataDraft())
+                }}
+              />
+            </div>
+          )}
+
+          {openService === 'placas_conjuntas' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Placas conjuntas"
+                onToggle={() => setOpenService(null)}
+              />
+              <CorrelataPanel
+                draft={placasConjuntasDraft}
+                setDraft={setPlacasConjuntasDraft}
+                onAdd={() => {
+                  placasConjuntas.append({
+                    interest_interval_minutes:
+                      placasConjuntasDraft.interest_interval_minutes,
+                    detection_count: placasConjuntasDraft.detection_count,
+                    detection: placasConjuntasDraft.detection,
+                    items: [
+                      {
+                        plate: placasConjuntasDraft.plate,
+                        period_start: nullIfEmpty(
+                          placasConjuntasDraft.period_start,
+                        ),
+                        period_end: nullIfEmpty(
+                          placasConjuntasDraft.period_end,
+                        ),
+                      },
+                    ],
+                  })
+                  setPlacasConjuntasDraft(emptyCorrelataDraft())
+                }}
+              />
+            </div>
+          )}
+
+          {openService === 'reserva_de_imagem' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Reserva de imagem"
+                onToggle={() => setOpenService(null)}
+              />
+              <div className="space-y-3">
+                <PeriodFields
+                  startValue={reservaImagemDraft.period_start}
+                  endValue={reservaImagemDraft.period_end}
+                  onChangeStart={(value) =>
+                    setReservaImagemDraft((prev) => ({
+                      ...prev,
+                      period_start: value,
+                    }))
+                  }
+                  onChangeEnd={(value) =>
+                    setReservaImagemDraft((prev) => ({
+                      ...prev,
+                      period_end: value,
+                    }))
+                  }
+                />
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Orientação</Label>
+                  <Textarea
+                    className="min-h-[110px] bg-[#11273a]"
+                    value={reservaImagemDraft.orientation}
+                    onChange={(e) =>
+                      setReservaImagemDraft((prev) => ({
+                        ...prev,
+                        orientation: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.inlineAddButton}
+                  onClick={() => {
+                    reservaDeImagem.append({
+                      period_start: nullIfEmpty(
+                        reservaImagemDraft.period_start,
+                      ),
+                      period_end: nullIfEmpty(reservaImagemDraft.period_end),
+                      orientation: nullIfEmpty(reservaImagemDraft.orientation),
+                    })
+                    setReservaImagemDraft(emptyReservaImagemDraft())
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {openService === 'analise_de_imagem' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Análise de imagem"
+                onToggle={() => setOpenService(null)}
+              />
+              <div className="space-y-3">
+                <PeriodFields
+                  startValue={analiseImagemDraft.period_start}
+                  endValue={analiseImagemDraft.period_end}
+                  onChangeStart={(value) =>
+                    setAnaliseImagemDraft((prev) => ({
+                      ...prev,
+                      period_start: value,
+                    }))
+                  }
+                  onChangeEnd={(value) =>
+                    setAnaliseImagemDraft((prev) => ({
+                      ...prev,
+                      period_end: value,
+                    }))
+                  }
+                />
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Orientação</Label>
+                  <Textarea
+                    className="min-h-[110px] bg-[#11273a]"
+                    value={analiseImagemDraft.orientation}
+                    onChange={(e) =>
+                      setAnaliseImagemDraft((prev) => ({
+                        ...prev,
+                        orientation: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.inlineAddButton}
+                  onClick={() => {
+                    analiseDeImagem.append({
+                      period_start: nullIfEmpty(
+                        analiseImagemDraft.period_start,
+                      ),
+                      period_end: nullIfEmpty(analiseImagemDraft.period_end),
+                      orientation: nullIfEmpty(analiseImagemDraft.orientation),
+                    })
+                    setAnaliseImagemDraft(emptyAnaliseImagemDraft())
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {openService === 'outros' && (
+            <div className={styles.activeServicePanel}>
+              <ServicePanelTitle
+                title="Outros"
+                onToggle={() => setOpenService(null)}
+              />
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Orientação</Label>
+                  <Textarea
+                    className="min-h-[110px] bg-[#11273a]"
+                    value={outrosDraft.orientation}
+                    onChange={(e) =>
+                      setOutrosDraft((prev) => ({
+                        ...prev,
+                        orientation: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.inlineAddButton}
+                  onClick={() => {
+                    outros.append({
+                      orientation: nullIfEmpty(outrosDraft.orientation),
+                    })
+                    setOutrosDraft(emptyOutrosDraft())
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 space-y-4">
+            <ServiceList
+              label="Busca por placa"
+              fields={buscaPorPlaca.fields}
+              onRemove={buscaPorPlaca.remove}
+              renderRow={(idx) => (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Placa</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`busca_por_placa.${idx}.plate`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Início</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`busca_por_placa.${idx}.period_start`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Fim</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`busca_por_placa.${idx}.period_end`)}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+
+            <ServiceList
+              label="Busca por radar"
+              fields={buscaPorRadar.fields}
+              onRemove={buscaPorRadar.remove}
+              renderRow={(idx) => (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Placa</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`busca_por_radar.${idx}.plate`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Início</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`busca_por_radar.${idx}.period_start`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Fim</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`busca_por_radar.${idx}.period_end`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-3">
+                    <Label className={styles.fieldLabel}>Orientação</Label>
+                    <Textarea
+                      className="bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`busca_por_radar.${idx}.radar_address`)}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+
+            <ServiceList
+              label="Cerco eletrônico"
+              fields={cercoEletronico.fields}
+              onRemove={cercoEletronico.remove}
+              renderRow={(idx) => (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Placa</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`cerco_eletronico.${idx}.plate`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2">
+                    <Label className={styles.fieldLabel}>
+                      Observações do veículo
+                    </Label>
+                    <Textarea
+                      className="bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(
+                        `cerco_eletronico.${idx}.vehicle_observations`,
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+
+            <ServiceList
+              label="Busca por imagem"
+              fields={buscaPorImagem.fields}
+              onRemove={buscaPorImagem.remove}
+              renderRow={(idx) => (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Placa</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`busca_por_imagem.${idx}.plate`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Início</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`busca_por_imagem.${idx}.period_start`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Fim</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`busca_por_imagem.${idx}.period_end`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-3">
+                    <Label className={styles.fieldLabel}>Endereço</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`busca_por_imagem.${idx}.address`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-3">
+                    <Label className={styles.fieldLabel}>Orientação</Label>
+                    <Textarea
+                      className="bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`busca_por_imagem.${idx}.description`)}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+
+            <ServiceList
+              label="Placas correlatas"
+              fields={placasCorrelatas.fields}
+              onRemove={placasCorrelatas.remove}
+              renderRow={(idx) => (
+                <CorrelataListForm
+                  register={register}
+                  control={control}
+                  index={idx}
+                  name="placas_correlatas"
+                  disabled={isLoading}
+                />
+              )}
+            />
+
+            <ServiceList
+              label="Placas conjuntas"
+              fields={placasConjuntas.fields}
+              onRemove={placasConjuntas.remove}
+              renderRow={(idx) => (
+                <CorrelataListForm
+                  register={register}
+                  control={control}
+                  index={idx}
+                  name="placas_conjuntas"
+                  disabled={isLoading}
+                />
+              )}
+            />
+
+            <ServiceList
+              label="Reserva de imagem"
+              fields={reservaDeImagem.fields}
+              onRemove={reservaDeImagem.remove}
+              renderRow={(idx) => (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Início</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`reserva_de_imagem.${idx}.period_start`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Fim</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`reserva_de_imagem.${idx}.period_end`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2">
+                    <Label className={styles.fieldLabel}>Orientação</Label>
+                    <Textarea
+                      className="bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`reserva_de_imagem.${idx}.orientation`)}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+
+            <ServiceList
+              label="Análise de imagem"
+              fields={analiseDeImagem.fields}
+              onRemove={analiseDeImagem.remove}
+              renderRow={(idx) => (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Início</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`analise_de_imagem.${idx}.period_start`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={styles.fieldLabel}>Fim</Label>
+                    <Input
+                      className="h-11 bg-[#11273a]"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...register(`analise_de_imagem.${idx}.period_end`)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2">
+                    <Label className={styles.fieldLabel}>Orientação</Label>
+                    <Textarea
+                      className="bg-[#11273a]"
+                      disabled={isLoading}
+                      {...register(`analise_de_imagem.${idx}.orientation`)}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+
+            <ServiceList
+              label="Outros"
+              fields={outros.fields}
+              onRemove={outros.remove}
+              renderRow={(idx) => (
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Orientação</Label>
+                  <Textarea
+                    className="bg-[#11273a]"
+                    disabled={isLoading}
+                    {...register(`outros.${idx}.orientation`)}
+                  />
+                </div>
+              )}
+            />
+          </div>
+        </Section>
+
+        <Section
+          title="Locação interna"
+          isOpen={openSections.internal}
+          onToggle={() => toggleSection('internal')}
+        >
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Equipe</Label>
+              <Controller
+                control={control}
+                name="equipe_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(v) => field.onChange(v || null)}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className="h-11 bg-[#11273a]">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOCK_TEAMS.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.equipe_id?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.equipe_id.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Prioridade</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <PriorityButton
+                  active={watch('prioridade') === 'URGENTE'}
+                  label="Urgente"
+                  onClick={() => setValue('prioridade', 'URGENTE')}
+                  disabled={isLoading}
+                />
+                <PriorityButton
+                  active={watch('prioridade') === 'ALTA'}
+                  label="Alta"
+                  onClick={() => setValue('prioridade', 'ALTA')}
+                  disabled={isLoading}
+                />
+                <PriorityButton
+                  active={watch('prioridade') === 'ROTINA'}
+                  label="Rotina"
+                  onClick={() => setValue('prioridade', 'ROTINA')}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="Adicionar comentário"
+          isOpen={openSections.comment}
+          onToggle={() => toggleSection('comment')}
+        >
+          <Textarea
+            placeholder="Escreva um comentário"
+            disabled={isLoading}
+            className={`${styles.fakeEditor} bg-[#11273a]`}
+            {...register('comentario_inicial')}
+          />
+        </Section>
+
+        <Section
+          title="Anexar documentos"
+          isOpen={openSections.attachments}
+          onToggle={() => toggleSection('attachments')}
+        >
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="space-y-2">
+              {files.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nenhum arquivo anexado.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {files.map((f, idx) => (
+                    <div
+                      key={`${f.name}-${idx}`}
+                      className={`${styles.fileRow} flex items-center justify-between px-3 py-2`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Checkbox checked />
+                        <p className="truncate text-sm">{f.name}</p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => removeFile(idx)}
+                        disabled={isLoading}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <label
+              className={`${styles.uploadBox} flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md p-6 text-center`}
+            >
+              <input
+                className="hidden"
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => onDropFiles(e.target.files)}
+                disabled={isLoading}
+              />
+              <Upload className="h-5 w-5 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Clique para fazer upload ou arraste o arquivo
+              </p>
+              <p className="text-xs text-muted-foreground">
+                PDF, DOC, DOCX (máx. 10MB)
+              </p>
+            </label>
+          </div>
+        </Section>
+
+        <div className={styles.footerBar}>
+          <div className={styles.footerInner}>
+            <Button
+              type="button"
+              variant="secondary"
+              className={styles.cancelButton}
+              disabled={isLoading}
+              onClick={() => reset(defaultValues)}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className={styles.saveButton}
+            >
+              {isLoading ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+function Section({
+  title,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string
+  isOpen: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionBadge}>{title}</span>
+
+        <button
+          type="button"
+          onClick={onToggle}
+          className={styles.sectionToggle}
+          aria-label={`Alternar seção ${title}`}
+        >
+          {isOpen ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+
+      {isOpen && <div className={styles.sectionInner}>{children}</div>}
+    </div>
+  )
+}
+
+function ServicePanelTitle({
+  title,
+  onToggle,
+}: {
+  title: string
+  onToggle: () => void
+}) {
+  return (
+    <div className="mb-4 flex items-center justify-between">
+      <span className={styles.sectionBadge}>{title}</span>
+
+      <button
+        type="button"
+        onClick={onToggle}
+        className={styles.sectionToggle}
+        aria-label={`Fechar serviço ${title}`}
+      >
+        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+      </button>
+    </div>
+  )
+}
+
+function ServiceAddCard({
+  title,
+  onAdd,
+}: {
+  title: string
+  onAdd: () => void
+}) {
+  return (
+    <button type="button" onClick={onAdd} className={styles.serviceCard}>
+      <span className={styles.serviceCardTitle}>{title}</span>
+      <span className={styles.plusBox}>
+        <Plus className="h-4 w-4" />
+      </span>
+    </button>
+  )
+}
+
+function PeriodFields({
+  startValue,
+  endValue,
+  onChangeStart,
+  onChangeEnd,
+}: {
+  startValue: string
+  endValue: string
+  onChangeStart: (value: string) => void
+  onChangeEnd: (value: string) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className={styles.fieldLabel}>Período da busca</Label>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <Input
+          className="h-11 bg-[#11273a]"
+          type="datetime-local"
+          value={startValue}
+          onChange={(e) => onChangeStart(e.target.value)}
+        />
+        <Input
+          className="h-11 bg-[#11273a]"
+          type="datetime-local"
+          value={endValue}
+          onChange={(e) => onChangeEnd(e.target.value)}
+        />
+      </div>
+    </div>
+  )
+}
+
+function RangeStatField({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  step = 1,
+  unit,
+  disabled = false,
+}: {
+  label: string
+  value: number
+  onChange: (value: number) => void
+  min: number
+  max: number
+  step?: number
+  unit: string
+  disabled?: boolean
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label className={styles.fieldLabel}>{label}</Label>
+        <p className="text-2xl font-semibold text-white">
+          {value} {unit}
+        </p>
+      </div>
+
+      <Slider.Root
+        className={`relative flex h-6 w-full touch-none select-none items-center ${
+          disabled ? 'pointer-events-none opacity-60' : ''
+        }`}
+        value={[value]}
+        min={min}
+        max={max}
+        step={step}
+        disabled={disabled}
+        onValueChange={(values) => onChange(values[0] ?? min)}
+      >
+        <Slider.Track className="relative h-2 grow overflow-hidden rounded-full bg-slate-700">
+          <Slider.Range className="absolute h-full rounded-full bg-cyan-400" />
+        </Slider.Track>
+
+        <Slider.Thumb
+          className="block h-6 w-6 rounded-full border-2 border-cyan-400 bg-[#0f1724] shadow outline-none transition hover:scale-105 focus-visible:ring-2 focus-visible:ring-cyan-300"
+          aria-label={label}
+        />
+      </Slider.Root>
+
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Min: {min} {unit}
+        </span>
+        <span>
+          Max: {max} {unit}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function CorrelataPanel({
+  draft,
+  setDraft,
+  onAdd,
+}: {
+  draft: CorrelataDraft
+  setDraft: React.Dispatch<React.SetStateAction<CorrelataDraft>>
+  onAdd: () => void
+}) {
+  return (
+    <div className="space-y-3">
+      <PeriodFields
+        startValue={draft.period_start}
+        endValue={draft.period_end}
+        onChangeStart={(value) =>
+          setDraft((prev) => ({ ...prev, period_start: value }))
+        }
+        onChangeEnd={(value) =>
+          setDraft((prev) => ({ ...prev, period_end: value }))
+        }
+      />
+
+      <div className="space-y-1.5">
+        <Label className={styles.fieldLabel}>Placa do veículo</Label>
+        <Input
+          className="h-11 bg-[#11273a]"
+          value={draft.plate}
+          onChange={(e) =>
+            setDraft((prev) => ({ ...prev, plate: e.target.value }))
+          }
+        />
+      </div>
+
+      <RangeStatField
+        label="Intervalo de interesse"
+        value={draft.interest_interval_minutes}
+        min={1}
+        max={5}
+        unit=""
+        onChange={(value) =>
+          setDraft((prev) => ({
+            ...prev,
+            interest_interval_minutes: value,
+          }))
+        }
+      />
+
+      <RangeStatField
+        label="Quantidade de Detecção"
+        value={draft.detection_count}
+        min={5}
+        max={50}
+        unit=""
+        onChange={(value) =>
+          setDraft((prev) => ({
+            ...prev,
+            detection_count: value,
+          }))
+        }
+      />
+
+      <div className="space-y-1.5">
+        <Label className={styles.fieldLabel}>Detecção</Label>
+        <div className={styles.segmentedDetection}>
+          <button
+            type="button"
+            className={`${styles.detectionButton} ${draft.detection === 'ANTES' ? styles.detectionButtonActive : ''}`}
+            onClick={() =>
+              setDraft((prev) => ({ ...prev, detection: 'ANTES' }))
+            }
+          >
+            Antes
+          </button>
+          <button
+            type="button"
+            className={`${styles.detectionButton} ${draft.detection === 'DEPOIS' ? styles.detectionButtonActive : ''}`}
+            onClick={() =>
+              setDraft((prev) => ({ ...prev, detection: 'DEPOIS' }))
+            }
+          >
+            Depois
+          </button>
+          <button
+            type="button"
+            className={`${styles.detectionButton} ${draft.detection === 'AMBOS' ? styles.detectionButtonActive : ''}`}
+            onClick={() =>
+              setDraft((prev) => ({ ...prev, detection: 'AMBOS' }))
+            }
+          >
+            Ambos
+          </button>
+        </div>
+      </div>
+
+      <button type="button" className={styles.inlineAddButton} onClick={onAdd}>
+        <Plus className="h-5 w-5" />
+      </button>
+    </div>
+  )
+}
+
+function ServiceList<T extends { id: string }>({
+  label,
+  fields,
+  onRemove,
+  renderRow,
+}: {
+  label: string
+  fields: T[]
+  onRemove: (index: number) => void
+  renderRow: (index: number) => React.ReactNode
+}) {
+  if (fields.length === 0) return null
+
+  return (
+    <div className={styles.listCard}>
+      <div className={styles.listHeader}>
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground">
+          {fields.length} item(ns)
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {fields.map((f, idx) => (
+          <div
+            key={f.id}
+            className="rounded-md border border-slate-700/40 bg-[#0f2435]/70 p-3"
+          >
+            <div className="mb-3 flex justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={() => onRemove(idx)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+            {renderRow(idx)}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PriorityButton({
+  active,
+  label,
+  onClick,
+  disabled,
+}: {
+  active: boolean
+  label: string
+  onClick: () => void
+  disabled?: boolean
+}) {
+  return (
+    <Button
+      type="button"
+      variant={active ? 'default' : 'outline'}
+      onClick={onClick}
+      disabled={disabled}
+      className={`h-11 ${active ? 'bg-[#29527a]' : ''}`}
+    >
+      {label}
+    </Button>
+  )
+}
+
+function CorrelataListForm({
+  register,
+  control,
+  index,
+  name,
+  disabled,
+}: {
+  register: UseFormRegister<TicketCreateFormType>
+  control: Control<TicketCreateFormType>
+  index: number
+  name: 'placas_correlatas' | 'placas_conjuntas'
+  disabled: boolean
+}) {
+  const itemsFieldArray = useFieldArray({
+    control,
+    name: `${name}.${index}.items`,
+  })
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-4">
+        {itemsFieldArray.fields.map((item, itemIndex) => (
+          <div
+            key={item.id}
+            className="rounded-md border border-slate-700/40 bg-[#0f2435]/50 p-3"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">
+                Item {itemIndex + 1}
+              </p>
+
+              {itemsFieldArray.fields.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  disabled={disabled}
+                  onClick={() => itemsFieldArray.remove(itemIndex)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label className={styles.fieldLabel}>Placa</Label>
+                <Input
+                  className="h-11 bg-[#11273a]"
+                  disabled={disabled}
+                  {...register(`${name}.${index}.items.${itemIndex}.plate`)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className={styles.fieldLabel}>Início</Label>
+                <Input
+                  className="h-11 bg-[#11273a]"
+                  type="datetime-local"
+                  disabled={disabled}
+                  {...register(
+                    `${name}.${index}.items.${itemIndex}.period_start`,
+                  )}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className={styles.fieldLabel}>Fim</Label>
+                <Input
+                  className="h-11 bg-[#11273a]"
+                  type="datetime-local"
+                  disabled={disabled}
+                  {...register(
+                    `${name}.${index}.items.${itemIndex}.period_end`,
+                  )}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-center">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 w-full gap-2"
+          disabled={disabled}
+          onClick={() =>
+            itemsFieldArray.append({
+              plate: '',
+              period_start: null,
+              period_end: null,
+            })
+          }
+        >
+          <Plus className="h-4 w-4" />
+          Adicionar placa
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="space-y-3 md:col-span-3">
+          <Controller
+            control={control}
+            name={`${name}.${index}.interest_interval_minutes`}
+            render={({ field }) => (
+              <RangeStatField
+                label="Intervalo de Interesse"
+                value={Number(field.value ?? 1)}
+                min={1}
+                max={5}
+                unit=""
+                disabled={disabled}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+
+        <div className="space-y-3 md:col-span-3">
+          <Controller
+            control={control}
+            name={`${name}.${index}.detection_count`}
+            render={({ field }) => (
+              <RangeStatField
+                label="Quantidaede de Detecção"
+                value={Number(field.value ?? 10)}
+                min={5}
+                max={50}
+                unit=""
+                disabled={disabled}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+
+        <div className="space-y-1.5 md:col-span-3">
+          <Label className={styles.fieldLabel}>Detecção</Label>
+
+          <Controller
+            control={control}
+            name={`${name}.${index}.detection`}
+            render={({ field }) => (
+              <div className={styles.segmentedDetection}>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  className={`${styles.detectionButton} ${
+                    field.value === 'ANTES' ? styles.detectionButtonActive : ''
+                  }`}
+                  onClick={() => field.onChange('ANTES')}
+                >
+                  Antes
+                </button>
+
+                <button
+                  type="button"
+                  disabled={disabled}
+                  className={`${styles.detectionButton} ${
+                    field.value === 'DEPOIS' ? styles.detectionButtonActive : ''
+                  }`}
+                  onClick={() => field.onChange('DEPOIS')}
+                >
+                  Depois
+                </button>
+
+                <button
+                  type="button"
+                  disabled={disabled}
+                  className={`${styles.detectionButton} ${
+                    field.value === 'AMBOS' ? styles.detectionButtonActive : ''
+                  }`}
+                  onClick={() => field.onChange('AMBOS')}
+                >
+                  Ambos
+                </button>
+              </div>
+            )}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}

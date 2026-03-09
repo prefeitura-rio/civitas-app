@@ -1,0 +1,235 @@
+.root {
+  --tc-page-bg: transparent;
+  --tc-card-bg: linear-gradient(180deg, #0b1d2c 0%, #0e2436 100%);
+  --tc-card-border: rgba(81, 115, 143, 0.38);
+  --tc-input-bg: #11273a;
+  --tc-input-border: #3c566d;
+  --tc-input-border-hover: #507290;
+  --tc-soft: #18344d;
+  --tc-soft-2: #1f3f5b;
+  --tc-text: #e7eef7;
+  --tc-muted: #9fb0c2;
+  --tc-green: #067a57;
+  --tc-green-hover: #0a8a64;
+  --tc-badge-bg: #1d3f5a;
+  --tc-badge-text: #eff6ff;
+}
+
+.root {
+  color: var(--tc-text);
+}
+
+.sectionCard {
+  background: var(--tc-card-bg);
+  border: 1px solid var(--tc-card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.sectionInner {
+  padding: 16px;
+}
+
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--tc-badge-bg);
+  color: var(--tc-badge-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+
+.sectionToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--tc-muted);
+}
+
+.fieldLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #d5e3f0;
+}
+
+.fakeEditor {
+  min-height: 160px;
+}
+
+.uploadBox {
+  min-height: 96px;
+  border: 1px solid var(--tc-input-border);
+  border-radius: 8px;
+  background: rgba(10, 25, 38, 0.35);
+}
+
+.fileRow {
+  background: rgba(17, 39, 58, 0.75);
+  border: 1px solid rgba(60, 86, 109, 0.45);
+  border-radius: 8px;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .serviceGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.serviceCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--tc-input-border);
+  background: rgba(17, 39, 58, 0.85);
+  padding: 0 14px;
+  transition: 0.15s ease;
+}
+
+.serviceCard:hover {
+  border-color: var(--tc-input-border-hover);
+  background: rgba(22, 48, 71, 0.95);
+}
+
+.serviceCardTitle {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.plusBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(111, 142, 168, 0.32);
+}
+
+.activeServicePanel {
+  margin-top: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--tc-card-border);
+  background: linear-gradient(180deg, #0f2334 0%, #132b40 100%);
+  padding: 16px;
+}
+
+.inlineAddButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--tc-soft);
+  transition: 0.15s ease;
+}
+
+.inlineAddButton:hover {
+  background: var(--tc-soft-2);
+}
+
+.segmentedDetection {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .segmentedDetection {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.detectionButton {
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--tc-soft);
+  color: var(--tc-text);
+  font-size: 14px;
+  transition: 0.15s ease;
+}
+
+.detectionButton:hover {
+  background: var(--tc-soft-2);
+}
+
+.detectionButtonActive {
+  background: #29527a;
+  border-color: rgba(125, 165, 199, 0.4);
+}
+
+.listCard {
+  border-radius: 10px;
+  border: 1px solid rgba(67, 99, 124, 0.48);
+  background: rgba(11, 28, 41, 0.4);
+  padding: 12px;
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.footerBar {
+  margin-top: 24px;
+  padding-top: 8px;
+}
+
+.footerInner {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0;
+}
+
+.cancelButton {
+  min-width: 164px;
+}
+
+.saveButton {
+  min-width: 164px;
+  background: var(--tc-green);
+}
+
+.saveButton:hover {
+  background: var(--tc-green-hover);
+}
+
