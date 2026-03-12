@@ -10,6 +10,8 @@
   --tc-soft-2: #1f3f5b;
   --tc-text: #f9fafa;
   --tc-muted: #97a2ab;
+  --tc-text-subtle: #97a2ab; /* color/text/subtle Figma */
+  --tc-icon-subtle: #97a2ab; /* color/icon/subtle Figma */
   --tc-green: #067a57;
   --tc-green-hover: #0a8a64;
   --tc-badge-bg: #1d3449;
@@ -82,23 +84,229 @@
   border: 1px solid var(--tc-input-border);
   border-radius: var(--tc-border-radius);
   min-height: 44px;
+  color: var(--tc-text-subtle);
+}
+
+.inputBg::placeholder {
+  color: var(--tc-text-subtle);
+}
+
+/* Popover "Associar chamado" – mesmo padrão do formulário (portal renderiza fora do .root, usamos valores fixos) */
+.associarChamadoPopover {
+  background: #101d28;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  color: #f9fafa;
+}
+
+.associarChamadoCommand {
+  background: transparent;
+  color: #f9fafa;
+}
+
+.associarChamadoCommand [cmdk-input-wrapper] {
+  border-bottom-color: #4a5d6d;
+}
+
+.associarChamadoCommand input {
+  color: #f9fafa;
+}
+
+.associarChamadoCommand input::placeholder {
+  color: #97a2ab;
+}
+
+.associarChamadoCommand [cmdk-input-wrapper] svg {
+  color: #97a2ab;
+}
+
+.associarChamadoCommand [data-selected='true'] {
+  background: #18344d;
+  color: #f9fafa;
+}
+
+.associarChamadoCommand .text-muted-foreground,
+.associarChamadoPopover .text-muted-foreground {
+  color: #97a2ab;
+}
+
+.associarChamadoPopover .border-t {
+  border-color: #4a5d6d;
+}
+
+/* Select dropdown – mesmo padrão da página (portal renderiza fora do .root) */
+.selectContentForm {
+  background: #101d28 !important;
+  border: 1px solid #4a5d6d !important;
+  color: #f9fafa !important;
+}
+
+.selectItemForm {
+  color: #f9fafa !important;
+}
+
+.selectItemForm:hover,
+.selectItemForm:focus,
+.selectItemForm[data-highlighted] {
+  background: #18344d !important;
+  color: #f9fafa !important;
+}
+
+.selectItemForm[data-state='checked'] {
+  background: #18344d !important;
+  color: #f9fafa !important;
+}
+
+.inputWithIconLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--tc-input-bg);
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+  min-height: 44px;
+  height: 44px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.inputWithIconLeft input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--tc-text-subtle);
+  font-size: 14px;
+}
+
+.inputWithIconLeft input::placeholder {
+  color: var(--tc-text-subtle);
+}
+
+.inputWithIconLeft input:focus {
+  box-shadow: none;
+}
+
+.iconSubtle {
+  color: var(--tc-icon-subtle);
+  flex-shrink: 0;
 }
 
 .fakeEditor {
   min-height: 160px;
 }
 
+/* Anexar documentos – fiel ao Figma (node 783:19052) */
+.attachmentsLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .attachmentsLayout {
+    flex-direction: row;
+  }
+}
+
+.attachmentsDocumentList {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploadColumn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .uploadBox {
-  min-height: 96px;
-  border: 1px dashed var(--tc-input-border);
+  height: 128px;
+  border: 1px solid var(--tc-input-border);
   border-radius: var(--tc-border-radius);
   background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.uploadBox:hover {
+  border-color: var(--tc-input-border-hover);
+}
+
+.uploadBoxText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--tc-text-subtle);
+  text-align: center;
+}
+
+.uploadBoxHint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--tc-text-subtle);
+  text-align: center;
 }
 
 .fileRow {
   background: var(--tc-input-bg);
-  border: 1px solid var(--tc-input-border);
-  border-radius: var(--tc-border-radius);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  min-width: 0;
+  min-height: 32px;
+}
+
+/* Ícone CheckSquare do Figma (node 783:19060) – 24px, #97A2AB */
+.fileRowCheckIcon {
+  width: 24px;
+  height: 24px;
+  color: #97a2ab;
+  flex-shrink: 0;
+}
+
+/* Ícone de excluir – contorno cinza claro como no Figma, alinhado ao texto */
+.fileRowDeleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tc-icon-subtle);
+}
+
+.fileRowDeleteBtn:hover {
+  color: var(--tc-text);
+}
+
+.fileRowFileName {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--tc-text);
+  text-transform: uppercase;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .serviceGrid {
@@ -245,6 +453,23 @@
 
 .saveButton:hover {
   background: var(--tc-green-hover);
+}
+
+/* Botões de prioridade alinhados ao design (LOCAÇÃO INTERNA - PRIORIDADE) */
+.priorityButton {
+  min-height: 44px;
+  border-radius: var(--tc-border-radius);
+  border: 1px solid var(--tc-input-border);
+  background: var(--tc-input-bg);
+  color: var(--tc-text);
+  font-size: 14px;
+  font-weight: 400;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.priorityButton:hover:not(:disabled) {
+  background: var(--tc-soft);
+  border-color: var(--tc-input-border-hover);
 }
 
 .priorityActive {

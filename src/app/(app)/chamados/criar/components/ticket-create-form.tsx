@@ -3,7 +3,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as Slider from '@radix-ui/react-slider'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronUp, Plus, Trash, Upload } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  SquareCheck,
+  Trash,
+  Upload,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Control, UseFormRegister } from 'react-hook-form'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
@@ -545,8 +552,13 @@ export function TicketCreateForm() {
                       </Button>
                     </PopoverTrigger>
 
-                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                      <Command shouldFilter={false}>
+                    <PopoverContent
+                      className={`w-[var(--radix-popover-trigger-width)] p-0 ${styles.associarChamadoPopover}`}
+                    >
+                      <Command
+                        shouldFilter={false}
+                        className={styles.associarChamadoCommand}
+                      >
                         <CommandInput
                           placeholder="Buscar chamado..."
                           value={ticketSearch}
@@ -640,9 +652,13 @@ export function TicketCreateForm() {
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={styles.selectContentForm}>
                       {ticketTypes.map((ticketType) => (
-                        <SelectItem key={ticketType.id} value={ticketType.id}>
+                        <SelectItem
+                          key={ticketType.id}
+                          value={ticketType.id}
+                          className={styles.selectItemForm}
+                        >
                           {ticketType.name}
                         </SelectItem>
                       ))}
@@ -686,9 +702,9 @@ export function TicketCreateForm() {
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Data base</Label>
               <Input
-                className={`h-11 ${styles.inputBg}`}
                 type="date"
                 disabled={isLoading}
+                className={`h-11 ${styles.inputBg}`}
                 {...register('data_base')}
               />
             </div>
@@ -707,9 +723,13 @@ export function TicketCreateForm() {
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={styles.selectContentForm}>
                       {ticketNatures.map((nature) => (
-                        <SelectItem key={nature.id} value={nature.id}>
+                        <SelectItem
+                          key={nature.id}
+                          value={nature.id}
+                          className={styles.selectItemForm}
+                        >
                           {nature.name}
                         </SelectItem>
                       ))}
@@ -782,9 +802,13 @@ export function TicketCreateForm() {
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={styles.selectContentForm}>
                       {operations.map((op) => (
-                        <SelectItem key={op.id} value={op.id}>
+                        <SelectItem
+                          key={op.id}
+                          value={op.id}
+                          className={styles.selectItemForm}
+                        >
                           {op.title}
                         </SelectItem>
                       ))}
@@ -1754,9 +1778,13 @@ export function TicketCreateForm() {
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={styles.selectContentForm}>
                       {MOCK_TEAMS.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
+                        <SelectItem
+                          key={t.id}
+                          value={t.id}
+                          className={styles.selectItemForm}
+                        >
                           {t.title}
                         </SelectItem>
                       ))}
@@ -1815,32 +1843,30 @@ export function TicketCreateForm() {
           isOpen={openSections.attachments}
           onToggle={() => toggleSection('attachments')}
         >
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div className="space-y-2">
+          <div className={styles.attachmentsLayout}>
+            <div className={styles.attachmentsDocumentList}>
               {files.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Nenhum arquivo anexado.
-                </p>
+                <p className={styles.uploadBoxHint}>Nenhum arquivo anexado.</p>
               ) : (
-                <div className="space-y-2">
+                <div className={styles.fileList}>
                   {files.map((f, idx) => (
-                    <div
-                      key={`${f.name}-${idx}`}
-                      className={`${styles.fileRow} flex items-center justify-between px-3 py-2`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Checkbox checked />
-                        <p className="truncate text-sm">{f.name}</p>
-                      </div>
-
+                    <div key={`${f.name}-${idx}`} className={styles.fileRow}>
+                      <SquareCheck
+                        className={`${styles.fileRowCheckIcon} shrink-0`}
+                        aria-hidden
+                      />
+                      <p className={styles.fileRowFileName} title={f.name}>
+                        {f.name}
+                      </p>
                       <Button
                         type="button"
                         variant="ghost"
-                        className="h-8 w-8 p-0"
+                        className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
                         onClick={() => removeFile(idx)}
                         disabled={isLoading}
+                        title="Excluir anexo"
                       >
-                        <Trash className="h-4 w-4" />
+                        <Trash className="h-4 w-4" aria-hidden />
                       </Button>
                     </div>
                   ))}
@@ -1848,25 +1874,25 @@ export function TicketCreateForm() {
               )}
             </div>
 
-            <label
-              className={`${styles.uploadBox} flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md p-6 text-center`}
-            >
-              <input
-                className="hidden"
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx"
-                onChange={(e) => onDropFiles(e.target.files)}
-                disabled={isLoading}
-              />
-              <Upload className="h-5 w-5 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Clique para fazer upload ou arraste o arquivo
-              </p>
-              <p className="text-xs text-muted-foreground">
-                PDF, DOC, DOCX (máx. 10MB)
-              </p>
-            </label>
+            <div className={styles.uploadColumn}>
+              <label className={styles.uploadBox}>
+                <input
+                  className="hidden"
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => onDropFiles(e.target.files)}
+                  disabled={isLoading}
+                />
+                <Upload className="h-6 w-6 shrink-0 text-[var(--tc-icon-subtle)]" />
+                <span className={styles.uploadBoxText}>
+                  Clique para fazer upload ou arraste o arquivo
+                </span>
+                <span className={styles.uploadBoxHint}>
+                  PDF, DOC, DOCX (máx. 10MB)
+                </span>
+              </label>
+            </div>
           </div>
         </Section>
 
@@ -2225,10 +2251,10 @@ function PriorityButton({
   return (
     <Button
       type="button"
-      variant={active ? 'default' : 'outline'}
+      variant="outline"
       onClick={onClick}
       disabled={disabled}
-      className={`h-11 ${active ? styles.priorityActive : ''}`}
+      className={`${styles.priorityButton} ${active ? styles.priorityActive : ''}`}
     >
       {label}
     </Button>
