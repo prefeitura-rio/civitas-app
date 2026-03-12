@@ -2,9 +2,14 @@
 
 export function TicketCreateHeader() {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 space-y-4">
-      <h2>Cadastro Manual de Chamado</h2>
-      <p className="text-sm text-muted-foreground">
+    <div className="flex w-full flex-col items-start gap-0">
+      <h1
+        className="font-semibold leading-10 text-[var(--tc-heading,#f9fafa)]"
+        style={{ fontSize: '20px' }}
+      >
+        Cadastro Manual de Chamado
+      </h1>
+      <p className="mt-0 text-[length:12px] leading-4 text-[var(--tc-muted,#97a2ab)]">
         Preencha as informações abaixo para criar um novo chamado.
       </p>
     </div>

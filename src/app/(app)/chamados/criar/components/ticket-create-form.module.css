@@ -1,18 +1,20 @@
 .root {
-  --tc-page-bg: transparent;
-  --tc-card-bg: linear-gradient(180deg, #0b1d2c 0%, #0e2436 100%);
-  --tc-card-border: rgba(81, 115, 143, 0.38);
-  --tc-input-bg: #11273a;
-  --tc-input-border: #3c566d;
+  --tc-page-bg: #0c161f;
+  --tc-section-bg: #101d28;
+  --tc-card-bg: #101d28;
+  --tc-card-border: #4a5d6d;
+  --tc-input-bg: #152534;
+  --tc-input-border: #4a5d6d;
   --tc-input-border-hover: #507290;
   --tc-soft: #18344d;
   --tc-soft-2: #1f3f5b;
-  --tc-text: #e7eef7;
-  --tc-muted: #9fb0c2;
+  --tc-text: #f9fafa;
+  --tc-muted: #97a2ab;
   --tc-green: #067a57;
   --tc-green-hover: #0a8a64;
-  --tc-badge-bg: #1d3f5a;
-  --tc-badge-text: #eff6ff;
+  --tc-badge-bg: #1d3449;
+  --tc-badge-text: #f9fafa;
+  --tc-border-radius: 8px;
 }
 
 .root {
@@ -20,30 +22,31 @@
 }
 
 .sectionCard {
-  background: var(--tc-card-bg);
-  border: 1px solid var(--tc-card-border);
-  border-radius: 12px;
+  background: var(--tc-section-bg);
+  border: none;
+  border-radius: var(--tc-border-radius);
   overflow: hidden;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.02),
-    0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .sectionInner {
-  padding: 16px;
+  padding: 24px 16px;
+}
+
+.sectionCardFirst {
+  padding: 24px 16px;
 }
 
 .sectionBadge {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  padding: 0 12px;
-  border-radius: 999px;
+  padding: 4px 12px;
+  border-radius: var(--tc-border-radius);
   background: var(--tc-badge-bg);
   color: var(--tc-badge-text);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -51,8 +54,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 48px;
   gap: 8px;
-  padding: 14px 16px 0;
+  padding: 0 16px;
 }
 
 .sectionToggle {
@@ -66,11 +70,18 @@
 }
 
 .fieldLabel {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
   text-transform: uppercase;
-  color: #d5e3f0;
+  color: var(--tc-text);
+}
+
+.inputBg {
+  background-color: var(--tc-input-bg);
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+  min-height: 44px;
 }
 
 .fakeEditor {
@@ -79,21 +90,21 @@
 
 .uploadBox {
   min-height: 96px;
-  border: 1px solid var(--tc-input-border);
-  border-radius: 8px;
-  background: rgba(10, 25, 38, 0.35);
+  border: 1px dashed var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+  background: transparent;
 }
 
 .fileRow {
-  background: rgba(17, 39, 58, 0.75);
-  border: 1px solid rgba(60, 86, 109, 0.45);
-  border-radius: 8px;
+  background: var(--tc-input-bg);
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
 }
 
 .serviceGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
 @media (min-width: 768px) {
@@ -106,46 +117,26 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 48px;
+  min-height: 40px;
   width: 100%;
-  border-radius: 10px;
-  border: 1px solid rgba(70, 101, 126, 0.48);
-  background: linear-gradient(
-    180deg,
-    rgba(17, 39, 58, 0.96) 0%,
-    rgba(13, 31, 47, 0.96) 100%
-  );
-  padding: 0 14px;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.02),
-    0 4px 14px rgba(0, 0, 0, 0.14);
+  border-radius: var(--tc-border-radius);
+  border: none;
+  background: var(--tc-input-bg);
+  padding: 0 16px;
+  transition: background 0.15s ease;
 }
 
 .serviceCard:hover {
-  border-color: rgba(97, 137, 170, 0.62);
-  background: linear-gradient(
-    180deg,
-    rgba(20, 46, 68, 0.98) 0%,
-    rgba(15, 36, 54, 0.98) 100%
-  );
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 8px 24px rgba(0, 0, 0, 0.2);
+  background: var(--tc-soft);
 }
 
 .serviceCardTitle {
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 400;
+  letter-spacing: 0;
   text-transform: uppercase;
   text-align: left;
-  color: #dbe8f4;
+  color: var(--tc-text);
 }
 
 .plusBox {
@@ -163,9 +154,9 @@
 
 .activeServicePanel {
   margin-top: 16px;
-  border-radius: 12px;
-  border: 1px solid var(--tc-card-border);
-  background: linear-gradient(180deg, #0f2334 0%, #132b40 100%);
+  border-radius: var(--tc-border-radius);
+  border: none;
+  background: var(--tc-section-bg);
   padding: 16px;
 }
 
@@ -212,14 +203,14 @@
 }
 
 .detectionButtonActive {
-  background: #29527a;
-  border-color: rgba(125, 165, 199, 0.4);
+  background: var(--tc-badge-bg);
+  border-color: var(--tc-input-border);
 }
 
 .listCard {
-  border-radius: 10px;
-  border: 1px solid rgba(67, 99, 124, 0.48);
-  background: rgba(11, 28, 41, 0.4);
+  border-radius: var(--tc-border-radius);
+  border: none;
+  background: var(--tc-section-bg);
   padding: 12px;
 }
 
@@ -254,5 +245,37 @@
 
 .saveButton:hover {
   background: var(--tc-green-hover);
+}
+
+.priorityActive {
+  background: var(--tc-badge-bg);
+  border-color: var(--tc-input-border);
+}
+
+.addPointFocalButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  gap: 16px;
+  padding: 8px 16px;
+  border-radius: var(--tc-border-radius);
+  border: 1px solid var(--tc-card-border);
+  background: var(--tc-section-bg);
+  color: var(--tc-text);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.addPointFocalButton:hover:not(:disabled) {
+  background: var(--tc-soft);
+  border-color: var(--tc-input-border-hover);
+}
+
+.addPointFocalButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 

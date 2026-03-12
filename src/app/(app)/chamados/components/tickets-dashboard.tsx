@@ -3,14 +3,12 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
-  Check,
   ChevronDown,
   ChevronUp,
   Search,
   Tag,
-  X,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,19 +16,13 @@ import {
   getTicketsDashboard,
   type TicketDashboardFilters,
 } from '@/http/tickets/get-tickets-dashboard'
-import {
-  searchFocalPoints,
-  searchInternalNumbers,
-  searchOfficialLetters,
-  searchOperations,
-  type SearchOption,
-  searchProcedureNumbers,
-  searchRequesters,
-  searchTicketNatures,
-  searchTicketTypes,
-} from '@/http/tickets/tickets-dashboard-filters'
 
 import styles from './tickets-dashboard.module.css'
+import {
+  emptyFilters,
+  type FilterFormState,
+  TicketsDashboardFilterModal,
+} from './tickets-dashboard-filters'
 
 type DashboardServiceTag = {
   label: string
@@ -83,27 +75,6 @@ type SectionConfig = {
   label: string
 }
 
-type FilterFormState = {
-  tipo_chamado_id: SearchOption[]
-  numero_interno: SearchOption[]
-  numero_procedimento: SearchOption[]
-  numero_oficio: SearchOption[]
-  natureza_id: SearchOption[]
-  demandante_id: SearchOption[]
-  requisitante: SearchOption[]
-  ponto_focal: SearchOption[]
-
-  data_base_inicio: string
-  data_base_fim: string
-  data_entrada_inicio: string
-  data_entrada_fim: string
-
-  status: string[]
-  prioridade: string[]
-  equipe: string[]
-  servicos_realizados: string[]
-}
-
 const periodOptions: PeriodOption[] = [
   { label: 'Últimos 7 Dias', value: 7 },
   { label: 'Últimos 15 Dias', value: 15 },
@@ -118,64 +89,6 @@ const sections: SectionConfig[] = [
   { key: 'aguardando_revisao', label: 'AGUARDANDO REVISÃO' },
   { key: 'bloqueados', label: 'BLOQUEADO' },
 ]
-
-const statusOptions = [
-  'PENDENTE',
-  'BLOQUEADO',
-  'AGUARDANDO REVISÃO',
-  'ARQUIVADO',
-]
-
-const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
-
-const teamOptions = ['Fox', 'Hotel', 'Golf', 'India']
-
-const serviceOptions = [
-  'BUSCA POR RADAR',
-  'BUSCA POR PLACA',
-  'PLACAS CORRELATAS',
-  'PLACAS CONJUNTAS',
-  'BUSCA POR IMAGEM',
-  'ANÁLISE DE IMAGEM',
-  'RESERVA DE IMAGEM',
-  'CERCO ELETRÔNICO',
-  'OUTROS',
-]
-
-const emptyFilters = (): FilterFormState => ({
-  tipo_chamado_id: [],
-  numero_interno: [],
-  numero_procedimento: [],
-  numero_oficio: [],
-  natureza_id: [],
-  demandante_id: [],
-  requisitante: [],
-  ponto_focal: [],
-
-  data_base_inicio: '',
-  data_base_fim: '',
-  data_entrada_inicio: '',
-  data_entrada_fim: '',
-
-  status: [],
-  prioridade: [],
-  equipe: [],
-  servicos_realizados: [],
-})
-
-function useDebouncedValue<T>(value: T, delay = 400) {
-  const [debouncedValue, setDebouncedValue] = useState(value)
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
-
-    return () => window.clearTimeout(timeout)
-  }, [value, delay])
-
-  return debouncedValue
-}
 
 function normalizePriority(priority: string) {
   const value = priority.trim().toUpperCase()
@@ -201,229 +114,27 @@ function getServiceClassName(label: string) {
   const normalized = label.trim().toLowerCase()
 
   if (normalized.includes('cerco')) return styles.serviceTagPink
-  if (normalized.includes('busca por placa')) return styles.serviceTagGreen
+  if (
+    normalized.includes('busca por placa') ||
+    normalized.includes('busca de placa')
+  )
+    return styles.serviceTagGreen
   if (normalized.includes('reserva de imagem')) return styles.serviceTagYellow
-  if (normalized.includes('busca por imagem')) return styles.serviceTagCyan
-  if (normalized.includes('busca por radar')) return styles.serviceTagBlue
+  if (
+    normalized.includes('busca por imagem') ||
+    normalized.includes('busca de imagem')
+  )
+    return styles.serviceTagCyan
+  if (
+    normalized.includes('busca por radar') ||
+    normalized.includes('busca de radar')
+  )
+    return styles.serviceTagBlue
   if (normalized.includes('placas correlatas')) return styles.serviceTagOrange
   if (normalized.includes('placas conjuntas')) return styles.serviceTagPurple
   if (normalized.includes('outros')) return styles.serviceTagRed
 
   return styles.serviceTagDefault
-}
-
-function formatLabel(value: string) {
-  return value
-    .toLowerCase()
-    .split(' ')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-}
-
-function ToggleButtonGroup({
-  label,
-  options,
-  values,
-  onChange,
-}: {
-  label: string
-  options: string[]
-  values: string[]
-  onChange: (values: string[]) => void
-}) {
-  const toggleValue = (value: string) => {
-    const exists = values.includes(value)
-
-    if (exists) {
-      onChange(values.filter((item) => item !== value))
-      return
-    }
-
-    onChange([...values, value])
-  }
-
-  return (
-    <div className={styles.filterBlock}>
-      <span className={styles.filterLabel}>{label}</span>
-
-      <div className={styles.toggleGrid}>
-        {options.map((option) => {
-          const selected = values.includes(option)
-
-          return (
-            <button
-              key={option}
-              type="button"
-              className={`${styles.toggleButton} ${selected ? styles.toggleButtonActive : ''}`}
-              onClick={() => toggleValue(option)}
-            >
-              {formatLabel(option)}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function SearchMultiSelect({
-  label,
-  placeholder = 'Selecione',
-  value,
-  onChange,
-  searchFn,
-  minCharsMessage = 'Digite ao menos 2 caracteres',
-}: {
-  label: string
-  placeholder?: string
-  value: SearchOption[]
-  onChange: (value: SearchOption[]) => void
-  searchFn: (search: string) => Promise<SearchOption[]>
-  minCharsMessage?: string
-}) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const [search, setSearch] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const debouncedSearch = useDebouncedValue(search, 350)
-
-  const { data, isFetching } = useQuery({
-    queryKey: ['dashboard-filter-search', label, debouncedSearch],
-    queryFn: () => searchFn(debouncedSearch),
-    enabled: isOpen && debouncedSearch.trim().length >= 2,
-    staleTime: 1000 * 60 * 5,
-  })
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!containerRef.current) return
-      if (!containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const selectedValues = useMemo(
-    () => new Set(value.map((item) => item.value)),
-    [value],
-  )
-
-  const options = useMemo(() => {
-    return (data ?? []).filter((item) => !selectedValues.has(item.value))
-  }, [data, selectedValues])
-
-  const removeItem = (itemValue: string) => {
-    onChange(value.filter((item) => item.value !== itemValue))
-  }
-
-  const addItem = (item: SearchOption) => {
-    onChange([...value, item])
-    setSearch('')
-  }
-
-  return (
-    <div className={styles.filterBlock} ref={containerRef}>
-      <span className={styles.filterLabel}>{label}</span>
-
-      <div className={styles.multiSelectBox}>
-        <div className={styles.multiSelectInputWrapper}>
-          <input
-            value={search}
-            onFocus={() => setIsOpen(true)}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setIsOpen(true)
-            }}
-            placeholder={value.length > 0 ? '' : placeholder}
-            className={styles.multiSelectInput}
-          />
-
-          <ChevronDown className={styles.multiSelectChevron} size={16} />
-        </div>
-
-        {value.length > 0 ? (
-          <div className={styles.selectedChips}>
-            {value.map((item) => (
-              <span key={item.value} className={styles.selectedChip}>
-                {item.label}
-                <button
-                  type="button"
-                  className={styles.selectedChipRemove}
-                  onClick={() => removeItem(item.value)}
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            ))}
-          </div>
-        ) : null}
-
-        {isOpen ? (
-          <div className={styles.multiSelectDropdown}>
-            {debouncedSearch.trim().length < 2 ? (
-              <div className={styles.dropdownHint}>{minCharsMessage}</div>
-            ) : isFetching ? (
-              <div className={styles.dropdownHint}>Buscando...</div>
-            ) : options.length === 0 ? (
-              <div className={styles.dropdownHint}>
-                Nenhum resultado encontrado
-              </div>
-            ) : (
-              options.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  className={styles.dropdownOption}
-                  onClick={() => addItem(item)}
-                >
-                  <span>{item.label}</span>
-                  <Check size={14} />
-                </button>
-              ))
-            )}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-function DateRangeField({
-  label,
-  startValue,
-  endValue,
-  onChangeStart,
-  onChangeEnd,
-}: {
-  label: string
-  startValue: string
-  endValue: string
-  onChangeStart: (value: string) => void
-  onChangeEnd: (value: string) => void
-}) {
-  return (
-    <div className={styles.filterBlock}>
-      <span className={styles.filterLabel}>{label}</span>
-
-      <div className={styles.dateRange}>
-        <input
-          type="date"
-          value={startValue}
-          onChange={(event) => onChangeStart(event.target.value)}
-          className={styles.dateInput}
-        />
-
-        <input
-          type="date"
-          value={endValue}
-          onChange={(event) => onChangeEnd(event.target.value)}
-          className={styles.dateInput}
-        />
-      </div>
-    </div>
-  )
 }
 
 function DashboardSectionTable({
@@ -569,8 +280,6 @@ export function TicketsDashboard() {
   const [search, setSearch] = useState<string>('')
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
-  const [draftFilters, setDraftFilters] =
-    useState<FilterFormState>(emptyFilters())
   const [appliedFilters, setAppliedFilters] =
     useState<FilterFormState>(emptyFilters())
 
@@ -662,24 +371,17 @@ export function TicketsDashboard() {
   }
 
   const openFilterModal = () => {
-    setDraftFilters(appliedFilters)
     setIsFilterModalOpen(true)
   }
 
-  const clearDraftFilters = () => {
-    setDraftFilters(emptyFilters())
-  }
-
-  const applyDraftFilters = () => {
-    setAppliedFilters(draftFilters)
-    setIsFilterModalOpen(false)
+  const clearAppliedFilters = () => {
+    setAppliedFilters(emptyFilters())
   }
 
   return (
     <div className={styles.dashboardContainer}>
       <section className={styles.summaryPanel}>
         <div className={styles.summaryTop}>
-          <div />
           <div className={styles.selectWrapper}>
             <select
               className={styles.periodSelect}
@@ -718,6 +420,15 @@ export function TicketsDashboard() {
         </div>
 
         <div className={styles.toolbarActions}>
+          {activeFiltersCount > 0 ? (
+            <button
+              type="button"
+              className={styles.toolbarClearFilters}
+              onClick={clearAppliedFilters}
+            >
+              Limpar filtro
+            </button>
+          ) : null}
           <Button type="button" className={styles.toolbarButton}>
             Exportar
           </Button>
@@ -764,227 +475,12 @@ export function TicketsDashboard() {
         <div className={styles.fetchingState}>Atualizando dados...</div>
       ) : null}
 
-      {isFilterModalOpen ? (
-        <div className={styles.filterModalOverlay}>
-          <div className={styles.filterModal}>
-            <div className={styles.filterModalHeader}>
-              <div className={styles.filterModalTitle}></div>
-
-              <button
-                type="button"
-                className={styles.filterModalClose}
-                onClick={() => setIsFilterModalOpen(false)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={styles.filterModalBody}>
-              <div className={styles.filterGrid}>
-                <SearchMultiSelect
-                  label="TIPO DE CHAMADO"
-                  value={draftFilters.tipo_chamado_id}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      tipo_chamado_id: value,
-                    }))
-                  }
-                  searchFn={searchTicketTypes}
-                />
-
-                <SearchMultiSelect
-                  label="Nº INTERNO"
-                  value={draftFilters.numero_interno}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      numero_interno: value,
-                    }))
-                  }
-                  searchFn={searchInternalNumbers}
-                />
-
-                <SearchMultiSelect
-                  label="Nº DE PROCEDIMENTO"
-                  value={draftFilters.numero_procedimento}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      numero_procedimento: value,
-                    }))
-                  }
-                  searchFn={searchProcedureNumbers}
-                />
-
-                <SearchMultiSelect
-                  label="Nº DE OFÍCIO"
-                  value={draftFilters.numero_oficio}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      numero_oficio: value,
-                    }))
-                  }
-                  searchFn={searchOfficialLetters}
-                />
-
-                <SearchMultiSelect
-                  label="NATUREZA DO CHAMADO"
-                  value={draftFilters.natureza_id}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      natureza_id: value,
-                    }))
-                  }
-                  searchFn={searchTicketNatures}
-                />
-
-                <SearchMultiSelect
-                  label="DEMANDANTE"
-                  value={draftFilters.demandante_id}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      demandante_id: value,
-                    }))
-                  }
-                  searchFn={searchOperations}
-                />
-
-                <SearchMultiSelect
-                  label="REQUISITANTE"
-                  value={draftFilters.requisitante}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      requisitante: value,
-                    }))
-                  }
-                  searchFn={searchRequesters}
-                />
-
-                <SearchMultiSelect
-                  label="PONTO FOCAL"
-                  value={draftFilters.ponto_focal}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      ponto_focal: value,
-                    }))
-                  }
-                  searchFn={searchFocalPoints}
-                />
-
-                <DateRangeField
-                  label="DATA BASE"
-                  startValue={draftFilters.data_base_inicio}
-                  endValue={draftFilters.data_base_fim}
-                  onChangeStart={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      data_base_inicio: value,
-                    }))
-                  }
-                  onChangeEnd={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      data_base_fim: value,
-                    }))
-                  }
-                />
-
-                <DateRangeField
-                  label="DATA DE ENTRADA"
-                  startValue={draftFilters.data_entrada_inicio}
-                  endValue={draftFilters.data_entrada_fim}
-                  onChangeStart={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      data_entrada_inicio: value,
-                    }))
-                  }
-                  onChangeEnd={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      data_entrada_fim: value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className={styles.filterTogglesGrid}>
-                <ToggleButtonGroup
-                  label="STATUS DO CHAMADO"
-                  options={statusOptions}
-                  values={draftFilters.status}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      status: value,
-                    }))
-                  }
-                />
-
-                <ToggleButtonGroup
-                  label="PRIORIDADE"
-                  options={priorityOptions}
-                  values={draftFilters.prioridade}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      prioridade: value,
-                    }))
-                  }
-                />
-
-                <ToggleButtonGroup
-                  label="EQUIPE"
-                  options={teamOptions}
-                  values={draftFilters.equipe}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      equipe: value,
-                    }))
-                  }
-                />
-
-                <ToggleButtonGroup
-                  label="SERVIÇOS REALIZADOS"
-                  options={serviceOptions}
-                  values={draftFilters.servicos_realizados}
-                  onChange={(value) =>
-                    setDraftFilters((current) => ({
-                      ...current,
-                      servicos_realizados: value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className={styles.filterModalFooter}>
-              <Button
-                type="button"
-                className={styles.filterSecondaryButton}
-                onClick={clearDraftFilters}
-              >
-                Limpar Filtro
-              </Button>
-
-              <Button
-                type="button"
-                className={styles.filterPrimaryButton}
-                onClick={applyDraftFilters}
-              >
-                Salvar
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <TicketsDashboardFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        filters={appliedFilters}
+        onApply={setAppliedFilters}
+      />
     </div>
   )
 }

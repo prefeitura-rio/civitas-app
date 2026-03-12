@@ -515,11 +515,11 @@ export function TicketCreateForm() {
   return (
     <div className={styles.root}>
       <form
-        className="mx-auto w-full max-w-5xl space-y-4"
+        className="mx-auto w-full max-w-5xl space-y-8"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className={`${styles.sectionCard} ${styles.sectionInner}`}>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className={`${styles.sectionCard} ${styles.sectionCardFirst}`}>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Associar chamado</Label>
               <Controller
@@ -535,7 +535,7 @@ export function TicketCreateForm() {
                         type="button"
                         variant="outline"
                         disabled={isLoading}
-                        className="h-11 w-full justify-between bg-[#11273a] font-normal"
+                        className={`h-11 w-full justify-between ${styles.inputBg} font-normal`}
                       >
                         <span className="truncate">
                           {selectedTicketLabel ||
@@ -637,7 +637,7 @@ export function TicketCreateForm() {
                     onValueChange={field.onChange}
                     disabled={isLoading || isTicketTypesLoading}
                   >
-                    <SelectTrigger className="h-11 bg-[#11273a]">
+                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -668,7 +668,7 @@ export function TicketCreateForm() {
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Nº de procedimento</Label>
               <Input
-                className="h-11 bg-[#11273a]"
+                className={`h-11 ${styles.inputBg}`}
                 disabled={isLoading}
                 {...register('numero_procedimento')}
               />
@@ -677,7 +677,7 @@ export function TicketCreateForm() {
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Nº do ofício</Label>
               <Input
-                className="h-11 bg-[#11273a]"
+                className={`h-11 ${styles.inputBg}`}
                 disabled={isLoading}
                 {...register('numero_oficio')}
               />
@@ -686,7 +686,7 @@ export function TicketCreateForm() {
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Data base</Label>
               <Input
-                className="h-11 bg-[#11273a]"
+                className={`h-11 ${styles.inputBg}`}
                 type="date"
                 disabled={isLoading}
                 {...register('data_base')}
@@ -704,7 +704,7 @@ export function TicketCreateForm() {
                     onValueChange={(v) => field.onChange(v || null)}
                     disabled={isLoading || isTicketNaturesLoading}
                   >
-                    <SelectTrigger className="h-11 bg-[#11273a]">
+                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -739,7 +739,7 @@ export function TicketCreateForm() {
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Apelido pela imprensa</Label>
               <Input
-                className="h-11 bg-[#11273a]"
+                className={`h-11 ${styles.inputBg}`}
                 disabled={isLoading || !possuiApelido}
                 {...register('apelido_imprensa')}
               />
@@ -748,7 +748,7 @@ export function TicketCreateForm() {
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Link da matéria</Label>
               <Input
-                className="h-11 bg-[#11273a]"
+                className={`h-11 ${styles.inputBg}`}
                 disabled={isLoading || !possuiApelido}
                 placeholder="https://..."
                 {...register('link_materia')}
@@ -779,7 +779,7 @@ export function TicketCreateForm() {
                     onValueChange={(v) => field.onChange(v || null)}
                     disabled={isLoading || isOperationsLoading}
                   >
-                    <SelectTrigger className="h-11 bg-[#11273a]">
+                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -803,7 +803,7 @@ export function TicketCreateForm() {
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Requisitante</Label>
                 <Input
-                  className="h-11 bg-[#11273a]"
+                  className={`h-11 ${styles.inputBg}`}
                   disabled={isLoading}
                   {...register('requisitante.requisitante_nome')}
                 />
@@ -817,7 +817,7 @@ export function TicketCreateForm() {
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Telefone</Label>
                 <Input
-                  className="h-11 bg-[#11273a]"
+                  className={`h-11 ${styles.inputBg}`}
                   disabled={isLoading}
                   {...register('requisitante.requisitante_telefone')}
                 />
@@ -826,7 +826,7 @@ export function TicketCreateForm() {
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Email</Label>
                 <Input
-                  className="h-11 bg-[#11273a]"
+                  className={`h-11 ${styles.inputBg}`}
                   disabled={isLoading}
                   {...register('requisitante.requisitante_email')}
                 />
@@ -838,11 +838,9 @@ export function TicketCreateForm() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3">
-              <Button
+            <div className="flex flex-col items-end gap-4">
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
                 disabled={isLoading || focalPoints.fields.length >= 20}
                 onClick={() =>
                   focalPoints.append({
@@ -851,11 +849,11 @@ export function TicketCreateForm() {
                     email: null,
                   })
                 }
-                className="gap-2"
+                className={styles.addPointFocalButton}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-5 w-5 shrink-0" aria-hidden />
                 Adicionar Ponto Focal
-              </Button>
+              </button>
             </div>
 
             <div className="space-y-3">
@@ -867,7 +865,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Ponto focal</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       disabled={isLoading}
                       {...register(`pontos_focais.${idx}.nome`)}
                     />
@@ -876,7 +874,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Telefone</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       disabled={isLoading}
                       {...register(`pontos_focais.${idx}.telefone`)}
                     />
@@ -886,7 +884,7 @@ export function TicketCreateForm() {
                     <Label className={styles.fieldLabel}>Email</Label>
                     <div className="flex gap-2">
                       <Input
-                        className="h-11 bg-[#11273a]"
+                        className={`h-11 ${styles.inputBg}`}
                         disabled={isLoading}
                         {...register(`pontos_focais.${idx}.email`)}
                       />
@@ -984,7 +982,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Placa do veículo</Label>
                   <Input
-                    className="h-11 bg-[#11273a]"
+                    className={`h-11 ${styles.inputBg}`}
                     value={buscaPorPlacaDraft.plate}
                     onChange={(e) =>
                       setBuscaPorPlacaDraft((prev) => ({
@@ -1042,7 +1040,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Placa do veículo</Label>
                   <Input
-                    className="h-11 bg-[#11273a]"
+                    className={`h-11 ${styles.inputBg}`}
                     value={buscaPorRadarDraft.plate}
                     onChange={(e) =>
                       setBuscaPorRadarDraft((prev) => ({
@@ -1056,7 +1054,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Orientação</Label>
                   <Textarea
-                    className="min-h-[92px] bg-[#11273a]"
+                    className={`min-h-[92px] ${styles.inputBg}`}
                     value={buscaPorRadarDraft.radar_address}
                     onChange={(e) =>
                       setBuscaPorRadarDraft((prev) => ({
@@ -1100,7 +1098,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Placa do veículo</Label>
                   <Input
-                    className="h-11 bg-[#11273a]"
+                    className={`h-11 ${styles.inputBg}`}
                     value={cercoDraft.plate}
                     onChange={(e) =>
                       setCercoDraft((prev) => ({
@@ -1116,7 +1114,7 @@ export function TicketCreateForm() {
                     Observações do veículo
                   </Label>
                   <Textarea
-                    className="min-h-[92px] bg-[#11273a]"
+                    className={`min-h-[92px] ${styles.inputBg}`}
                     value={cercoDraft.vehicle_observations}
                     onChange={(e) =>
                       setCercoDraft((prev) => ({
@@ -1173,7 +1171,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Placa do veículo</Label>
                   <Input
-                    className="h-11 bg-[#11273a]"
+                    className={`h-11 ${styles.inputBg}`}
                     value={buscaPorImagemDraft.plate}
                     onChange={(e) =>
                       setBuscaPorImagemDraft((prev) => ({
@@ -1187,7 +1185,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Endereço</Label>
                   <Input
-                    className="h-11 bg-[#11273a]"
+                    className={`h-11 ${styles.inputBg}`}
                     value={buscaPorImagemDraft.address}
                     onChange={(e) =>
                       setBuscaPorImagemDraft((prev) => ({
@@ -1201,7 +1199,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Orientação</Label>
                   <Textarea
-                    className="min-h-[110px] bg-[#11273a]"
+                    className={`min-h-[110px] ${styles.inputBg}`}
                     value={buscaPorImagemDraft.description}
                     onChange={(e) =>
                       setBuscaPorImagemDraft((prev) => ({
@@ -1327,7 +1325,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Orientação</Label>
                   <Textarea
-                    className="min-h-[110px] bg-[#11273a]"
+                    className={`min-h-[110px] ${styles.inputBg}`}
                     value={reservaImagemDraft.orientation}
                     onChange={(e) =>
                       setReservaImagemDraft((prev) => ({
@@ -1385,7 +1383,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Orientação</Label>
                   <Textarea
-                    className="min-h-[110px] bg-[#11273a]"
+                    className={`min-h-[110px] ${styles.inputBg}`}
                     value={analiseImagemDraft.orientation}
                     onChange={(e) =>
                       setAnaliseImagemDraft((prev) => ({
@@ -1426,7 +1424,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Orientação</Label>
                   <Textarea
-                    className="min-h-[110px] bg-[#11273a]"
+                    className={`min-h-[110px] ${styles.inputBg}`}
                     value={outrosDraft.orientation}
                     onChange={(e) =>
                       setOutrosDraft((prev) => ({
@@ -1463,7 +1461,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Placa</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       disabled={isLoading}
                       {...register(`busca_por_placa.${idx}.plate`)}
                     />
@@ -1471,7 +1469,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Início</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`busca_por_placa.${idx}.period_start`)}
@@ -1480,7 +1478,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Fim</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`busca_por_placa.${idx}.period_end`)}
@@ -1499,7 +1497,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Placa</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       disabled={isLoading}
                       {...register(`busca_por_radar.${idx}.plate`)}
                     />
@@ -1507,7 +1505,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Início</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`busca_por_radar.${idx}.period_start`)}
@@ -1516,7 +1514,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Fim</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`busca_por_radar.${idx}.period_end`)}
@@ -1525,7 +1523,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5 md:col-span-3">
                     <Label className={styles.fieldLabel}>Orientação</Label>
                     <Textarea
-                      className="bg-[#11273a]"
+                      className={styles.inputBg}
                       disabled={isLoading}
                       {...register(`busca_por_radar.${idx}.radar_address`)}
                     />
@@ -1543,7 +1541,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Placa</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       disabled={isLoading}
                       {...register(`cerco_eletronico.${idx}.plate`)}
                     />
@@ -1553,7 +1551,7 @@ export function TicketCreateForm() {
                       Observações do veículo
                     </Label>
                     <Textarea
-                      className="bg-[#11273a]"
+                      className={styles.inputBg}
                       disabled={isLoading}
                       {...register(
                         `cerco_eletronico.${idx}.vehicle_observations`,
@@ -1573,7 +1571,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Placa</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       disabled={isLoading}
                       {...register(`busca_por_imagem.${idx}.plate`)}
                     />
@@ -1581,7 +1579,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Início</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`busca_por_imagem.${idx}.period_start`)}
@@ -1590,7 +1588,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Fim</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`busca_por_imagem.${idx}.period_end`)}
@@ -1599,7 +1597,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5 md:col-span-3">
                     <Label className={styles.fieldLabel}>Endereço</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       disabled={isLoading}
                       {...register(`busca_por_imagem.${idx}.address`)}
                     />
@@ -1607,7 +1605,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5 md:col-span-3">
                     <Label className={styles.fieldLabel}>Orientação</Label>
                     <Textarea
-                      className="bg-[#11273a]"
+                      className={styles.inputBg}
                       disabled={isLoading}
                       {...register(`busca_por_imagem.${idx}.description`)}
                     />
@@ -1655,7 +1653,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Início</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`reserva_de_imagem.${idx}.period_start`)}
@@ -1664,7 +1662,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Fim</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`reserva_de_imagem.${idx}.period_end`)}
@@ -1673,7 +1671,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5 md:col-span-2">
                     <Label className={styles.fieldLabel}>Orientação</Label>
                     <Textarea
-                      className="bg-[#11273a]"
+                      className={styles.inputBg}
                       disabled={isLoading}
                       {...register(`reserva_de_imagem.${idx}.orientation`)}
                     />
@@ -1691,7 +1689,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Início</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`analise_de_imagem.${idx}.period_start`)}
@@ -1700,7 +1698,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Fim</Label>
                     <Input
-                      className="h-11 bg-[#11273a]"
+                      className={`h-11 ${styles.inputBg}`}
                       type="datetime-local"
                       disabled={isLoading}
                       {...register(`analise_de_imagem.${idx}.period_end`)}
@@ -1709,7 +1707,7 @@ export function TicketCreateForm() {
                   <div className="space-y-1.5 md:col-span-2">
                     <Label className={styles.fieldLabel}>Orientação</Label>
                     <Textarea
-                      className="bg-[#11273a]"
+                      className={styles.inputBg}
                       disabled={isLoading}
                       {...register(`analise_de_imagem.${idx}.orientation`)}
                     />
@@ -1726,7 +1724,7 @@ export function TicketCreateForm() {
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Orientação</Label>
                   <Textarea
-                    className="bg-[#11273a]"
+                    className={styles.inputBg}
                     disabled={isLoading}
                     {...register(`outros.${idx}.orientation`)}
                   />
@@ -1753,7 +1751,7 @@ export function TicketCreateForm() {
                     onValueChange={(v) => field.onChange(v || null)}
                     disabled={isLoading}
                   >
-                    <SelectTrigger className="h-11 bg-[#11273a]">
+                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1807,7 +1805,7 @@ export function TicketCreateForm() {
           <Textarea
             placeholder="Escreva um comentário"
             disabled={isLoading}
-            className={`${styles.fakeEditor} bg-[#11273a]`}
+            className={`${styles.fakeEditor} ${styles.inputBg}`}
             {...register('comentario_inicial')}
           />
         </Section>
@@ -1989,13 +1987,13 @@ function PeriodFields({
       <Label className={styles.fieldLabel}>Período da busca</Label>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <Input
-          className="h-11 bg-[#11273a]"
+          className={`h-11 ${styles.inputBg}`}
           type="datetime-local"
           value={startValue}
           onChange={(e) => onChangeStart(e.target.value)}
         />
         <Input
-          className="h-11 bg-[#11273a]"
+          className={`h-11 ${styles.inputBg}`}
           type="datetime-local"
           value={endValue}
           onChange={(e) => onChangeEnd(e.target.value)}
@@ -2091,7 +2089,7 @@ function CorrelataPanel({
       <div className="space-y-1.5">
         <Label className={styles.fieldLabel}>Placa do veículo</Label>
         <Input
-          className="h-11 bg-[#11273a]"
+          className={`h-11 ${styles.inputBg}`}
           value={draft.plate}
           onChange={(e) =>
             setDraft((prev) => ({ ...prev, plate: e.target.value }))
@@ -2230,7 +2228,7 @@ function PriorityButton({
       variant={active ? 'default' : 'outline'}
       onClick={onClick}
       disabled={disabled}
-      className={`h-11 ${active ? 'bg-[#29527a]' : ''}`}
+      className={`h-11 ${active ? styles.priorityActive : ''}`}
     >
       {label}
     </Button>
@@ -2285,7 +2283,7 @@ function CorrelataListForm({
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Placa</Label>
                 <Input
-                  className="h-11 bg-[#11273a]"
+                  className={`h-11 ${styles.inputBg}`}
                   disabled={disabled}
                   {...register(`${name}.${index}.items.${itemIndex}.plate`)}
                 />
@@ -2294,7 +2292,7 @@ function CorrelataListForm({
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Início</Label>
                 <Input
-                  className="h-11 bg-[#11273a]"
+                  className={`h-11 ${styles.inputBg}`}
                   type="datetime-local"
                   disabled={disabled}
                   {...register(
@@ -2306,7 +2304,7 @@ function CorrelataListForm({
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Fim</Label>
                 <Input
-                  className="h-11 bg-[#11273a]"
+                  className={`h-11 ${styles.inputBg}`}
                   type="datetime-local"
                   disabled={disabled}
                   {...register(
