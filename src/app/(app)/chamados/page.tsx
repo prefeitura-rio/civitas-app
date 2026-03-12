@@ -1,12 +1,9 @@
-import { TicketsHeader } from './components/tickets-header'
-import { TicketsTable } from './components/tickets-table'
+import { TicketsDashboard } from './components/tickets-dashboard'
 
 export default function ChamadosPage() {
   return (
-    <div className="page-content space-y-4 overflow-y-scroll">
-      <TicketsHeader />
-      {/* <TicketsFilter /> */}
-      <TicketsTable />
+    <div className="page-content space-y-4 overflow-y-scroll pb-24">
+      <TicketsDashboard />
     </div>
   )
 }
