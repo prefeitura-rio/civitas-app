@@ -17,12 +17,12 @@ import {
   type TicketDashboardFilters,
 } from '@/http/tickets/get-tickets-dashboard'
 
-import styles from './tickets-dashboard.module.css'
+import styles from './tickets-general-list.module.css'
 import {
   emptyFilters,
   type FilterFormState,
   TicketsDashboardFilterModal,
-} from './tickets-dashboard-filters'
+} from './tickets-general-list-filters'
 
 type DashboardServiceTag = {
   label: string
@@ -275,7 +275,7 @@ function DashboardSectionTable({
   )
 }
 
-export function TicketsDashboard() {
+export function TicketsGeneralList() {
   const [periodDays, setPeriodDays] = useState<number>(30)
   const [search, setSearch] = useState<string>('')
 

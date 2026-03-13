@@ -2,7 +2,7 @@
 
 export function TicketCreateHeader() {
   return (
-    <div className="flex w-full flex-col items-start gap-0">
+    <div className="mx-auto w-full max-w-5xl space-y-8">
       <h1
         className="font-semibold leading-10 text-[var(--tc-heading,#f9fafa)]"
         style={{ fontSize: '20px' }}

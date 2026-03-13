@@ -3,7 +3,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as Slider from '@radix-ui/react-slider'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns'
 import {
+  CalendarIcon,
   ChevronDown,
   ChevronUp,
   Plus,
@@ -17,6 +19,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Command,
@@ -50,6 +53,7 @@ import { getOperations } from '@/http/operations/get-operations'
 import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
 import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
+import { dateConfig } from '@/lib/date-config'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import styles from './ticket-create-form.module.css'
@@ -701,11 +705,16 @@ export function TicketCreateForm() {
 
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Data base</Label>
-              <Input
-                type="date"
-                disabled={isLoading}
-                className={`h-11 ${styles.inputBg}`}
-                {...register('data_base')}
+              <Controller
+                control={control}
+                name="data_base"
+                render={({ field }) => (
+                  <DataBaseDatePicker
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    disabled={isLoading}
+                  />
+                )}
               />
             </div>
 
@@ -1994,6 +2003,71 @@ function ServiceAddCard({
         <Plus className="h-4 w-4" />
       </span>
     </button>
+  )
+}
+
+function parseDateString(s: string): Date | undefined {
+  if (!s?.trim()) return undefined
+  const d = new Date(s + 'T00:00:00')
+  return Number.isNaN(d.getTime()) ? undefined : d
+}
+
+function toDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function DataBaseDatePicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string
+  onChange: (value: string | null) => void
+  disabled?: boolean
+}) {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const date = parseDateString(value)
+  const triggerLabel = date
+    ? format(date, dateConfig.formats.date, { locale: dateConfig.locale })
+    : 'dd/mm/aaaa'
+
+  const handleSelect = (d: Date | undefined) => {
+    if (!d) {
+      onChange(null)
+      return
+    }
+    onChange(toDateString(d))
+    setIsCalendarOpen(false)
+  }
+
+  return (
+    <div className={styles.datePickerWrap}>
+      <button
+        type="button"
+        className={styles.datePickerTrigger}
+        aria-label="Selecionar data base"
+        aria-expanded={isCalendarOpen}
+        onClick={() => !disabled && setIsCalendarOpen((open) => !open)}
+        disabled={disabled}
+      >
+        <span>{triggerLabel}</span>
+        <CalendarIcon className={styles.datePickerTriggerIcon} />
+      </button>
+      {isCalendarOpen ? (
+        <div className={styles.datePickerCalendarInline}>
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={handleSelect}
+            locale={dateConfig.locale}
+            defaultMonth={date}
+          />
+        </div>
+      ) : null}
+    </div>
   )
 }
 

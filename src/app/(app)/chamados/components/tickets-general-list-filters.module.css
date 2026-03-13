@@ -194,16 +194,22 @@
   gap: 8px;
   width: 100%;
   min-height: 42px;
-  padding: 0 14px;
+  padding: 0 14px 0 16px;
   border: 1px solid rgba(77, 109, 137, 0.55);
   border-radius: 8px;
   background: #0d1c28;
-  color: #d9e7f5;
+  color: #97a2ab;
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
   outline: none;
   text-align: left;
+}
+
+.dateRangeTrigger span {
+  flex: 1;
+  text-align: left;
+  color: #97a2ab;
 }
 
 .dateRangeTrigger:hover {
@@ -218,7 +224,9 @@
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  opacity: 0.8;
+  margin-left: auto;
+  color: #92a9bf;
+  opacity: 0.9;
 }
 
 .dateRangeCalendarInline {

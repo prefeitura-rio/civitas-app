@@ -21,7 +21,7 @@ import {
 } from '@/http/tickets/tickets-dashboard-filters'
 import { dateConfig } from '@/lib/date-config'
 
-import styles from './tickets-dashboard-filters.module.css'
+import styles from './tickets-general-list-filters.module.css'
 
 export type FilterFormState = {
   tipo_chamado_id: SearchOption[]
@@ -373,8 +373,8 @@ function FilterDateRangeField({
           aria-expanded={isCalendarOpen}
           onClick={() => setIsCalendarOpen((open) => !open)}
         >
-          <CalendarIcon className={styles.dateRangeTriggerIcon} />
           <span>{triggerLabel ?? 'dd/mm/aaaa – dd/mm/aaaa'}</span>
+          <CalendarIcon className={styles.dateRangeTriggerIcon} />
         </button>
         {isCalendarOpen ? (
           <div className={styles.dateRangeCalendarInline}>

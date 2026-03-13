@@ -10,8 +10,8 @@
   --tc-soft-2: #1f3f5b;
   --tc-text: #f9fafa;
   --tc-muted: #97a2ab;
-  --tc-text-subtle: #97a2ab; /* color/text/subtle Figma */
-  --tc-icon-subtle: #97a2ab; /* color/icon/subtle Figma */
+  --tc-text-subtle: #97a2ab; 
+  --tc-icon-subtle: #97a2ab;
   --tc-green: #067a57;
   --tc-green-hover: #0a8a64;
   --tc-badge-bg: #1d3449;
@@ -91,7 +91,63 @@
   color: var(--tc-text-subtle);
 }
 
-/* Popover "Associar chamado" – mesmo padrão do formulário (portal renderiza fora do .root, usamos valores fixos) */
+/* Data base – mesmo padrão dos outros inputs do formulário */
+.datePickerWrap {
+  width: 100%;
+}
+
+.datePickerTrigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px 0 16px;
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+  background-color: var(--tc-input-bg);
+  color: var(--tc-text-subtle);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  outline: none;
+  text-align: left;
+}
+
+.datePickerTrigger:hover:not(:disabled) {
+  border-color: var(--tc-input-border-hover);
+}
+
+.datePickerTrigger:focus {
+  border-color: var(--tc-input-border-hover);
+}
+
+.datePickerTrigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.datePickerTrigger span {
+  flex: 1;
+  text-align: left;
+}
+
+.datePickerTriggerIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--tc-icon-subtle);
+}
+
+.datePickerCalendarInline {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: var(--tc-input-bg);
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+}
+
 .associarChamadoPopover {
   background: #101d28;
   border: 1px solid #4a5d6d;
@@ -134,7 +190,6 @@
   border-color: #4a5d6d;
 }
 
-/* Select dropdown – mesmo padrão da página (portal renderiza fora do .root) */
 .selectContentForm {
   background: #101d28 !important;
   border: 1px solid #4a5d6d !important;
@@ -199,7 +254,6 @@
   min-height: 160px;
 }
 
-/* Anexar documentos – fiel ao Figma (node 783:19052) */
 .attachmentsLayout {
   display: flex;
   flex-direction: column;
@@ -269,7 +323,6 @@
   min-height: 32px;
 }
 
-/* Ícone CheckSquare do Figma (node 783:19060) – 24px, #97A2AB */
 .fileRowCheckIcon {
   width: 24px;
   height: 24px;
@@ -277,7 +330,6 @@
   flex-shrink: 0;
 }
 
-/* Ícone de excluir – contorno cinza claro como no Figma, alinhado ao texto */
 .fileRowDeleteBtn {
   display: inline-flex;
   align-items: center;
@@ -455,7 +507,6 @@
   background: var(--tc-green-hover);
 }
 
-/* Botões de prioridade alinhados ao design (LOCAÇÃO INTERNA - PRIORIDADE) */
 .priorityButton {
   min-height: 44px;
   border-radius: var(--tc-border-radius);
