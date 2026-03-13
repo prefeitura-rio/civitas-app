@@ -237,6 +237,27 @@
   border-radius: 8px;
 }
 
+/* Quando o calendário está aberto: input e calendário formam um único bloco */
+.dateRangePickerWrapOpen {
+  border: 1px solid rgba(77, 109, 137, 0.55);
+  border-radius: 8px;
+  background: #0d1c28;
+  overflow: hidden;
+}
+
+.dateRangePickerWrapOpen .dateRangeTrigger {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid rgba(77, 109, 137, 0.55);
+}
+
+.dateRangePickerWrapOpen .dateRangeCalendarInline {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+  padding: 12px 12px 16px;
+}
+
 .filterTogglesGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

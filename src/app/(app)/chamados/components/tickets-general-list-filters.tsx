@@ -365,7 +365,9 @@ function FilterDateRangeField({
   return (
     <div className={styles.filterBlock}>
       <span className={styles.filterLabel}>{label}</span>
-      <div className={styles.dateRangePickerWrap}>
+      <div
+        className={`${styles.dateRangePickerWrap} ${isCalendarOpen ? styles.dateRangePickerWrapOpen : ''}`}
+      >
         <button
           type="button"
           className={styles.dateRangeTrigger}

@@ -2044,7 +2044,9 @@ function DataBaseDatePicker({
   }
 
   return (
-    <div className={styles.datePickerWrap}>
+    <div
+      className={`${styles.datePickerWrap} ${isCalendarOpen ? styles.datePickerWrapOpen : ''}`}
+    >
       <button
         type="button"
         className={styles.datePickerTrigger}

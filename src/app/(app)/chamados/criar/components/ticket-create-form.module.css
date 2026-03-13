@@ -91,7 +91,7 @@
   color: var(--tc-text-subtle);
 }
 
-/* Data base – mesmo padrão dos outros inputs do formulário */
+/* Data base – mesmo padrão dos outros inputs; input e calendário conectados quando aberto */
 .datePickerWrap {
   width: 100%;
 }
@@ -146,6 +146,27 @@
   background-color: var(--tc-input-bg);
   border: 1px solid var(--tc-input-border);
   border-radius: var(--tc-border-radius);
+}
+
+/* Quando o calendário está aberto: input e calendário formam um único bloco */
+.datePickerWrapOpen {
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+  background-color: var(--tc-input-bg);
+  overflow: hidden;
+}
+
+.datePickerWrapOpen .datePickerTrigger {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--tc-input-border);
+}
+
+.datePickerWrapOpen .datePickerCalendarInline {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+  padding: 12px 12px 16px;
 }
 
 .associarChamadoPopover {
