@@ -8,6 +8,7 @@ import {
   CalendarIcon,
   ChevronDown,
   ChevronUp,
+  Pencil,
   Plus,
   SquareCheck,
   Trash,
@@ -20,7 +21,6 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Command,
   CommandEmpty,
@@ -29,6 +29,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -43,6 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import {
   type TicketCreateForm as TicketCreateFormType,
@@ -327,7 +335,11 @@ function buildTicketCreatePayload(
 
 export function TicketCreateForm() {
   const [files, setFiles] = useState<File[]>([])
-  const [openService, setOpenService] = useState<OpenServiceKey>(null)
+  const [serviceModalOpen, setServiceModalOpen] =
+    useState<OpenServiceKey | null>(null)
+  const [serviceModalEditIndex, setServiceModalEditIndex] = useState<
+    number | null
+  >(null)
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>(
     {
       info: true,
@@ -405,6 +417,7 @@ export function TicketCreateForm() {
     handleSubmit,
     watch,
     setValue,
+    getValues,
     reset,
     formState: { isSubmitting, errors },
   } = useForm<TicketCreateFormType>({
@@ -432,7 +445,8 @@ export function TicketCreateForm() {
       toast.success('Chamado criado com sucesso.')
       reset(defaultValues)
       setFiles([])
-      setOpenService(null)
+      setServiceModalOpen(null)
+      setServiceModalEditIndex(null)
       setBuscaPorPlacaDraft(emptyBuscaPorPlacaDraft())
       setBuscaPorRadarDraft(emptyBuscaPorRadarDraft())
       setCercoDraft(emptyCercoDraft())
@@ -505,7 +519,402 @@ export function TicketCreateForm() {
   }
 
   function handleOpenService(service: OpenServiceKey) {
-    setOpenService((current) => (current === service ? null : service))
+    setServiceModalEditIndex(null)
+    setServiceModalOpen(service)
+    switch (service) {
+      case 'busca_por_placa':
+        setBuscaPorPlacaDraft(emptyBuscaPorPlacaDraft())
+        break
+      case 'busca_por_radar':
+        setBuscaPorRadarDraft(emptyBuscaPorRadarDraft())
+        break
+      case 'cerco_eletronico':
+        setCercoDraft(emptyCercoDraft())
+        break
+      case 'busca_por_imagem':
+        setBuscaPorImagemDraft(emptyBuscaPorImagemDraft())
+        break
+      case 'placas_correlatas':
+        setPlacasCorrelatasDraft(emptyCorrelataDraft())
+        break
+      case 'placas_conjuntas':
+        setPlacasConjuntasDraft(emptyCorrelataDraft())
+        break
+      case 'reserva_de_imagem':
+        setReservaImagemDraft(emptyReservaImagemDraft())
+        break
+      case 'analise_de_imagem':
+        setAnaliseImagemDraft(emptyAnaliseImagemDraft())
+        break
+      case 'outros':
+        setOutrosDraft(emptyOutrosDraft())
+        break
+      default:
+        break
+    }
+  }
+
+  function openServiceModalForEdit(service: OpenServiceKey, index: number) {
+    const values = getValues()
+    setServiceModalEditIndex(index)
+    setServiceModalOpen(service)
+    switch (service) {
+      case 'busca_por_placa': {
+        const item = values.busca_por_placa?.[index]
+        if (item)
+          setBuscaPorPlacaDraft({
+            plate: item.plate ?? '',
+            period_start: item.period_start ?? '',
+            period_end: item.period_end ?? '',
+          })
+        break
+      }
+      case 'busca_por_radar': {
+        const item = values.busca_por_radar?.[index]
+        if (item)
+          setBuscaPorRadarDraft({
+            plate: item.plate ?? '',
+            period_start: item.period_start ?? '',
+            period_end: item.period_end ?? '',
+            radar_address: item.radar_address ?? '',
+          })
+        break
+      }
+      case 'cerco_eletronico': {
+        const item = values.cerco_eletronico?.[index]
+        if (item)
+          setCercoDraft({
+            plate: item.plate ?? '',
+            vehicle_observations: item.vehicle_observations ?? '',
+          })
+        break
+      }
+      case 'busca_por_imagem': {
+        const item = values.busca_por_imagem?.[index]
+        if (item)
+          setBuscaPorImagemDraft({
+            plate: item.plate ?? '',
+            period_start: item.period_start ?? '',
+            period_end: item.period_end ?? '',
+            address: item.address ?? '',
+            description: item.description ?? '',
+          })
+        break
+      }
+      case 'placas_correlatas': {
+        const group = values.placas_correlatas?.[index]
+        if (group) {
+          const first = group.items?.[0]
+          setPlacasCorrelatasDraft({
+            period_start: first?.period_start ?? '',
+            period_end: first?.period_end ?? '',
+            plate: first?.plate ?? '',
+            interest_interval_minutes: group.interest_interval_minutes ?? 1,
+            detection_count: group.detection_count ?? 10,
+            detection: group.detection ?? null,
+          })
+        }
+        break
+      }
+      case 'placas_conjuntas': {
+        const group = values.placas_conjuntas?.[index]
+        if (group) {
+          const first = group.items?.[0]
+          setPlacasConjuntasDraft({
+            period_start: first?.period_start ?? '',
+            period_end: first?.period_end ?? '',
+            plate: first?.plate ?? '',
+            interest_interval_minutes: group.interest_interval_minutes ?? 1,
+            detection_count: group.detection_count ?? 10,
+            detection: group.detection ?? null,
+          })
+        }
+        break
+      }
+      case 'reserva_de_imagem': {
+        const item = values.reserva_de_imagem?.[index]
+        if (item)
+          setReservaImagemDraft({
+            period_start: item.period_start ?? '',
+            period_end: item.period_end ?? '',
+            orientation: item.orientation ?? '',
+          })
+        break
+      }
+      case 'analise_de_imagem': {
+        const item = values.analise_de_imagem?.[index]
+        if (item)
+          setAnaliseImagemDraft({
+            period_start: item.period_start ?? '',
+            period_end: item.period_end ?? '',
+            orientation: item.orientation ?? '',
+          })
+        break
+      }
+      case 'outros': {
+        const item = values.outros?.[index]
+        if (item)
+          setOutrosDraft({
+            orientation: item.orientation ?? '',
+          })
+        break
+      }
+      default:
+        break
+    }
+  }
+
+  function closeServiceModal() {
+    setServiceModalOpen(null)
+    setServiceModalEditIndex(null)
+  }
+
+  function handleSaveServiceModal() {
+    const idx = serviceModalEditIndex
+    const service = serviceModalOpen
+    if (!service) return
+
+    if (idx !== null) {
+      switch (service) {
+        case 'busca_por_placa':
+          setValue(`busca_por_placa.${idx}.plate`, buscaPorPlacaDraft.plate)
+          setValue(
+            `busca_por_placa.${idx}.period_start`,
+            nullIfEmpty(buscaPorPlacaDraft.period_start),
+          )
+          setValue(
+            `busca_por_placa.${idx}.period_end`,
+            nullIfEmpty(buscaPorPlacaDraft.period_end),
+          )
+          break
+        case 'busca_por_radar':
+          setValue(`busca_por_radar.${idx}.plate`, buscaPorRadarDraft.plate)
+          setValue(
+            `busca_por_radar.${idx}.period_start`,
+            nullIfEmpty(buscaPorRadarDraft.period_start),
+          )
+          setValue(
+            `busca_por_radar.${idx}.period_end`,
+            nullIfEmpty(buscaPorRadarDraft.period_end),
+          )
+          setValue(
+            `busca_por_radar.${idx}.radar_address`,
+            nullIfEmpty(buscaPorRadarDraft.radar_address),
+          )
+          break
+        case 'cerco_eletronico':
+          setValue(`cerco_eletronico.${idx}.plate`, cercoDraft.plate)
+          setValue(
+            `cerco_eletronico.${idx}.vehicle_observations`,
+            nullIfEmpty(cercoDraft.vehicle_observations),
+          )
+          break
+        case 'busca_por_imagem':
+          setValue(
+            `busca_por_imagem.${idx}.plate`,
+            nullIfEmpty(buscaPorImagemDraft.plate),
+          )
+          setValue(
+            `busca_por_imagem.${idx}.period_start`,
+            nullIfEmpty(buscaPorImagemDraft.period_start),
+          )
+          setValue(
+            `busca_por_imagem.${idx}.period_end`,
+            nullIfEmpty(buscaPorImagemDraft.period_end),
+          )
+          setValue(
+            `busca_por_imagem.${idx}.address`,
+            nullIfEmpty(buscaPorImagemDraft.address),
+          )
+          setValue(
+            `busca_por_imagem.${idx}.description`,
+            nullIfEmpty(buscaPorImagemDraft.description),
+          )
+          break
+        case 'placas_correlatas':
+          setValue(
+            `placas_correlatas.${idx}.interest_interval_minutes`,
+            placasCorrelatasDraft.interest_interval_minutes,
+          )
+          setValue(
+            `placas_correlatas.${idx}.detection_count`,
+            placasCorrelatasDraft.detection_count,
+          )
+          setValue(
+            `placas_correlatas.${idx}.detection`,
+            placasCorrelatasDraft.detection,
+          )
+          setValue(
+            `placas_correlatas.${idx}.items.0.plate`,
+            placasCorrelatasDraft.plate,
+          )
+          setValue(
+            `placas_correlatas.${idx}.items.0.period_start`,
+            nullIfEmpty(placasCorrelatasDraft.period_start),
+          )
+          setValue(
+            `placas_correlatas.${idx}.items.0.period_end`,
+            nullIfEmpty(placasCorrelatasDraft.period_end),
+          )
+          break
+        case 'placas_conjuntas':
+          setValue(
+            `placas_conjuntas.${idx}.interest_interval_minutes`,
+            placasConjuntasDraft.interest_interval_minutes,
+          )
+          setValue(
+            `placas_conjuntas.${idx}.detection_count`,
+            placasConjuntasDraft.detection_count,
+          )
+          setValue(
+            `placas_conjuntas.${idx}.detection`,
+            placasConjuntasDraft.detection,
+          )
+          setValue(
+            `placas_conjuntas.${idx}.items.0.plate`,
+            placasConjuntasDraft.plate,
+          )
+          setValue(
+            `placas_conjuntas.${idx}.items.0.period_start`,
+            nullIfEmpty(placasConjuntasDraft.period_start),
+          )
+          setValue(
+            `placas_conjuntas.${idx}.items.0.period_end`,
+            nullIfEmpty(placasConjuntasDraft.period_end),
+          )
+          break
+        case 'reserva_de_imagem':
+          setValue(
+            `reserva_de_imagem.${idx}.period_start`,
+            nullIfEmpty(reservaImagemDraft.period_start),
+          )
+          setValue(
+            `reserva_de_imagem.${idx}.period_end`,
+            nullIfEmpty(reservaImagemDraft.period_end),
+          )
+          setValue(
+            `reserva_de_imagem.${idx}.orientation`,
+            nullIfEmpty(reservaImagemDraft.orientation),
+          )
+          break
+        case 'analise_de_imagem':
+          setValue(
+            `analise_de_imagem.${idx}.period_start`,
+            nullIfEmpty(analiseImagemDraft.period_start),
+          )
+          setValue(
+            `analise_de_imagem.${idx}.period_end`,
+            nullIfEmpty(analiseImagemDraft.period_end),
+          )
+          setValue(
+            `analise_de_imagem.${idx}.orientation`,
+            nullIfEmpty(analiseImagemDraft.orientation),
+          )
+          break
+        case 'outros':
+          setValue(
+            `outros.${idx}.orientation`,
+            nullIfEmpty(outrosDraft.orientation),
+          )
+          break
+        default:
+          break
+      }
+    } else {
+      switch (service) {
+        case 'busca_por_placa':
+          buscaPorPlaca.append({
+            plate: buscaPorPlacaDraft.plate,
+            period_start: nullIfEmpty(buscaPorPlacaDraft.period_start),
+            period_end: nullIfEmpty(buscaPorPlacaDraft.period_end),
+          })
+          setBuscaPorPlacaDraft(emptyBuscaPorPlacaDraft())
+          break
+        case 'busca_por_radar':
+          buscaPorRadar.append({
+            plate: buscaPorRadarDraft.plate,
+            period_start: nullIfEmpty(buscaPorRadarDraft.period_start),
+            period_end: nullIfEmpty(buscaPorRadarDraft.period_end),
+            radar_address: nullIfEmpty(buscaPorRadarDraft.radar_address),
+          })
+          setBuscaPorRadarDraft(emptyBuscaPorRadarDraft())
+          break
+        case 'cerco_eletronico':
+          cercoEletronico.append({
+            plate: cercoDraft.plate,
+            vehicle_observations: nullIfEmpty(cercoDraft.vehicle_observations),
+          })
+          setCercoDraft(emptyCercoDraft())
+          break
+        case 'busca_por_imagem':
+          buscaPorImagem.append({
+            plate: nullIfEmpty(buscaPorImagemDraft.plate),
+            period_start: nullIfEmpty(buscaPorImagemDraft.period_start),
+            period_end: nullIfEmpty(buscaPorImagemDraft.period_end),
+            address: nullIfEmpty(buscaPorImagemDraft.address),
+            description: nullIfEmpty(buscaPorImagemDraft.description),
+          })
+          setBuscaPorImagemDraft(emptyBuscaPorImagemDraft())
+          break
+        case 'placas_correlatas':
+          placasCorrelatas.append({
+            interest_interval_minutes:
+              placasCorrelatasDraft.interest_interval_minutes,
+            detection_count: placasCorrelatasDraft.detection_count,
+            detection: placasCorrelatasDraft.detection,
+            items: [
+              {
+                plate: placasCorrelatasDraft.plate,
+                period_start: nullIfEmpty(placasCorrelatasDraft.period_start),
+                period_end: nullIfEmpty(placasCorrelatasDraft.period_end),
+              },
+            ],
+          })
+          setPlacasCorrelatasDraft(emptyCorrelataDraft())
+          break
+        case 'placas_conjuntas':
+          placasConjuntas.append({
+            interest_interval_minutes:
+              placasConjuntasDraft.interest_interval_minutes,
+            detection_count: placasConjuntasDraft.detection_count,
+            detection: placasConjuntasDraft.detection,
+            items: [
+              {
+                plate: placasConjuntasDraft.plate,
+                period_start: nullIfEmpty(placasConjuntasDraft.period_start),
+                period_end: nullIfEmpty(placasConjuntasDraft.period_end),
+              },
+            ],
+          })
+          setPlacasConjuntasDraft(emptyCorrelataDraft())
+          break
+        case 'reserva_de_imagem':
+          reservaDeImagem.append({
+            period_start: nullIfEmpty(reservaImagemDraft.period_start),
+            period_end: nullIfEmpty(reservaImagemDraft.period_end),
+            orientation: nullIfEmpty(reservaImagemDraft.orientation),
+          })
+          setReservaImagemDraft(emptyReservaImagemDraft())
+          break
+        case 'analise_de_imagem':
+          analiseDeImagem.append({
+            period_start: nullIfEmpty(analiseImagemDraft.period_start),
+            period_end: nullIfEmpty(analiseImagemDraft.period_end),
+            orientation: nullIfEmpty(analiseImagemDraft.orientation),
+          })
+          setAnaliseImagemDraft(emptyAnaliseImagemDraft())
+          break
+        case 'outros':
+          outros.append({
+            orientation: nullIfEmpty(outrosDraft.orientation),
+          })
+          setOutrosDraft(emptyOutrosDraft())
+          break
+        default:
+          break
+      }
+    }
+    closeServiceModal()
   }
 
   const [ticketSearch, setTicketSearch] = useState('')
@@ -748,46 +1157,60 @@ export function TicketCreateForm() {
               />
             </div>
 
-            <div className="flex items-center gap-3 pt-2 md:col-span-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2 md:col-span-2">
+              <Label className={styles.fieldLabel}>
+                Possui apelido pela imprensa?
+              </Label>
               <Controller
                 control={control}
                 name="possui_apelido_imprensa"
                 render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(v) => field.onChange(!!v)}
-                    disabled={isLoading}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="possui_apelido_imprensa"
+                      size="sm"
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isLoading}
+                      className={styles.apelidoToggle}
+                    />
+                    <span className={styles.toggleLabel}>
+                      {field.value ? 'Sim' : 'Não'}
+                    </span>
+                  </div>
                 )}
               />
-              <Label className={styles.fieldLabel}>
-                Possui apelido pela imprensa?
-              </Label>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Apelido pela imprensa</Label>
-              <Input
-                className={`h-11 ${styles.inputBg}`}
-                disabled={isLoading || !possuiApelido}
-                {...register('apelido_imprensa')}
-              />
-            </div>
+            {possuiApelido && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>
+                    Apelido pela imprensa
+                  </Label>
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={isLoading}
+                    {...register('apelido_imprensa')}
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Link da matéria</Label>
-              <Input
-                className={`h-11 ${styles.inputBg}`}
-                disabled={isLoading || !possuiApelido}
-                placeholder="https://..."
-                {...register('link_materia')}
-              />
-              {errors.link_materia?.message && (
-                <p className="text-xs text-destructive">
-                  {errors.link_materia.message}
-                </p>
-              )}
-            </div>
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Link da matéria</Label>
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={isLoading}
+                    placeholder="https://..."
+                    {...register('link_materia')}
+                  />
+                  {errors.link_materia?.message && (
+                    <p className="text-xs text-destructive">
+                      {errors.link_materia.message}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </Section>
 
@@ -988,507 +1411,351 @@ export function TicketCreateForm() {
             />
           </div>
 
-          {openService === 'busca_por_placa' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Busca por placa"
-                onToggle={() => setOpenService(null)}
-              />
-              <div className="space-y-3">
-                <PeriodFields
-                  startValue={buscaPorPlacaDraft.period_start}
-                  endValue={buscaPorPlacaDraft.period_end}
-                  onChangeStart={(value) =>
-                    setBuscaPorPlacaDraft((prev) => ({
-                      ...prev,
-                      period_start: value,
-                    }))
-                  }
-                  onChangeEnd={(value) =>
-                    setBuscaPorPlacaDraft((prev) => ({
-                      ...prev,
-                      period_end: value,
-                    }))
-                  }
-                />
+          <Dialog
+            open={!!serviceModalOpen}
+            onOpenChange={(open) => !open && closeServiceModal()}
+          >
+            <DialogContent className={styles.serviceModal}>
+              <DialogHeader className={styles.serviceModalHeader}>
+                <DialogTitle className={styles.serviceModalTitle}>
+                  {serviceModalOpen === 'busca_por_placa'
+                    ? 'Busca por placa'
+                    : serviceModalOpen === 'busca_por_radar'
+                      ? 'Busca por radar'
+                      : serviceModalOpen === 'cerco_eletronico'
+                        ? 'Cerco eletrônico'
+                        : serviceModalOpen === 'busca_por_imagem'
+                          ? 'Busca por imagem'
+                          : serviceModalOpen === 'placas_correlatas'
+                            ? 'Placas correlatas'
+                            : serviceModalOpen === 'placas_conjuntas'
+                              ? 'Placas conjuntas'
+                              : serviceModalOpen === 'reserva_de_imagem'
+                                ? 'Reserva de imagem'
+                                : serviceModalOpen === 'analise_de_imagem'
+                                  ? 'Análise de imagem'
+                                  : serviceModalOpen === 'outros'
+                                    ? 'Outros'
+                                    : ''}
+                </DialogTitle>
+              </DialogHeader>
 
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={buscaPorPlacaDraft.plate}
-                    onChange={(e) =>
-                      setBuscaPorPlacaDraft((prev) => ({
-                        ...prev,
-                        plate: e.target.value,
-                      }))
-                    }
+              <div className={styles.serviceModalBody}>
+                {serviceModalOpen === 'busca_por_placa' && (
+                  <div className="space-y-3">
+                    <PeriodFieldsCalendarStyle
+                      startValue={buscaPorPlacaDraft.period_start}
+                      endValue={buscaPorPlacaDraft.period_end}
+                      onChangeStart={(value) =>
+                        setBuscaPorPlacaDraft((prev) => ({
+                          ...prev,
+                          period_start: value,
+                        }))
+                      }
+                      onChangeEnd={(value) =>
+                        setBuscaPorPlacaDraft((prev) => ({
+                          ...prev,
+                          period_end: value,
+                        }))
+                      }
+                    />
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Placa do veículo
+                      </Label>
+                      <Input
+                        className={`h-11 ${styles.inputBg}`}
+                        value={buscaPorPlacaDraft.plate}
+                        onChange={(e) =>
+                          setBuscaPorPlacaDraft((prev) => ({
+                            ...prev,
+                            plate: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {serviceModalOpen === 'busca_por_radar' && (
+                  <div className="space-y-3">
+                    <PeriodFieldsCalendarStyle
+                      startValue={buscaPorRadarDraft.period_start}
+                      endValue={buscaPorRadarDraft.period_end}
+                      onChangeStart={(value) =>
+                        setBuscaPorRadarDraft((prev) => ({
+                          ...prev,
+                          period_start: value,
+                        }))
+                      }
+                      onChangeEnd={(value) =>
+                        setBuscaPorRadarDraft((prev) => ({
+                          ...prev,
+                          period_end: value,
+                        }))
+                      }
+                    />
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Placa do veículo
+                      </Label>
+                      <Input
+                        className={`h-11 ${styles.inputBg}`}
+                        value={buscaPorRadarDraft.plate}
+                        onChange={(e) =>
+                          setBuscaPorRadarDraft((prev) => ({
+                            ...prev,
+                            plate: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Orientação</Label>
+                      <Textarea
+                        className={`min-h-[92px] ${styles.inputBg}`}
+                        value={buscaPorRadarDraft.radar_address}
+                        onChange={(e) =>
+                          setBuscaPorRadarDraft((prev) => ({
+                            ...prev,
+                            radar_address: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {serviceModalOpen === 'cerco_eletronico' && (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Placa do veículo
+                      </Label>
+                      <Input
+                        className={`h-11 ${styles.inputBg}`}
+                        value={cercoDraft.plate}
+                        onChange={(e) =>
+                          setCercoDraft((prev) => ({
+                            ...prev,
+                            plate: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Observações do veículo
+                      </Label>
+                      <Textarea
+                        className={`min-h-[92px] ${styles.inputBg}`}
+                        value={cercoDraft.vehicle_observations}
+                        onChange={(e) =>
+                          setCercoDraft((prev) => ({
+                            ...prev,
+                            vehicle_observations: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {serviceModalOpen === 'busca_por_imagem' && (
+                  <div className="space-y-3">
+                    <PeriodFieldsCalendarStyle
+                      startValue={buscaPorImagemDraft.period_start}
+                      endValue={buscaPorImagemDraft.period_end}
+                      onChangeStart={(value) =>
+                        setBuscaPorImagemDraft((prev) => ({
+                          ...prev,
+                          period_start: value,
+                        }))
+                      }
+                      onChangeEnd={(value) =>
+                        setBuscaPorImagemDraft((prev) => ({
+                          ...prev,
+                          period_end: value,
+                        }))
+                      }
+                    />
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Placa do veículo
+                      </Label>
+                      <Input
+                        className={`h-11 ${styles.inputBg}`}
+                        value={buscaPorImagemDraft.plate}
+                        onChange={(e) =>
+                          setBuscaPorImagemDraft((prev) => ({
+                            ...prev,
+                            plate: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Endereço</Label>
+                      <Input
+                        className={`h-11 ${styles.inputBg}`}
+                        value={buscaPorImagemDraft.address}
+                        onChange={(e) =>
+                          setBuscaPorImagemDraft((prev) => ({
+                            ...prev,
+                            address: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Orientação</Label>
+                      <Textarea
+                        className={`min-h-[110px] ${styles.inputBg}`}
+                        value={buscaPorImagemDraft.description}
+                        onChange={(e) =>
+                          setBuscaPorImagemDraft((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {serviceModalOpen === 'placas_correlatas' && (
+                  <CorrelataPanel
+                    draft={placasCorrelatasDraft}
+                    setDraft={setPlacasCorrelatasDraft}
+                    onAdd={() => {}}
+                    hideAddButton
+                    useCalendarStyle
                   />
-                </div>
+                )}
 
-                <button
-                  type="button"
-                  className={styles.inlineAddButton}
-                  onClick={() => {
-                    buscaPorPlaca.append({
-                      plate: buscaPorPlacaDraft.plate,
-                      period_start: nullIfEmpty(
-                        buscaPorPlacaDraft.period_start,
-                      ),
-                      period_end: nullIfEmpty(buscaPorPlacaDraft.period_end),
-                    })
-                    setBuscaPorPlacaDraft(emptyBuscaPorPlacaDraft())
-                  }}
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
+                {serviceModalOpen === 'placas_conjuntas' && (
+                  <CorrelataPanel
+                    draft={placasConjuntasDraft}
+                    setDraft={setPlacasConjuntasDraft}
+                    onAdd={() => {}}
+                    hideAddButton
+                    useCalendarStyle
+                  />
+                )}
+
+                {serviceModalOpen === 'reserva_de_imagem' && (
+                  <div className="space-y-3">
+                    <PeriodFieldsCalendarStyle
+                      startValue={reservaImagemDraft.period_start}
+                      endValue={reservaImagemDraft.period_end}
+                      onChangeStart={(value) =>
+                        setReservaImagemDraft((prev) => ({
+                          ...prev,
+                          period_start: value,
+                        }))
+                      }
+                      onChangeEnd={(value) =>
+                        setReservaImagemDraft((prev) => ({
+                          ...prev,
+                          period_end: value,
+                        }))
+                      }
+                    />
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Orientação</Label>
+                      <Textarea
+                        className={`min-h-[110px] ${styles.inputBg}`}
+                        value={reservaImagemDraft.orientation}
+                        onChange={(e) =>
+                          setReservaImagemDraft((prev) => ({
+                            ...prev,
+                            orientation: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {serviceModalOpen === 'analise_de_imagem' && (
+                  <div className="space-y-3">
+                    <PeriodFieldsCalendarStyle
+                      startValue={analiseImagemDraft.period_start}
+                      endValue={analiseImagemDraft.period_end}
+                      onChangeStart={(value) =>
+                        setAnaliseImagemDraft((prev) => ({
+                          ...prev,
+                          period_start: value,
+                        }))
+                      }
+                      onChangeEnd={(value) =>
+                        setAnaliseImagemDraft((prev) => ({
+                          ...prev,
+                          period_end: value,
+                        }))
+                      }
+                    />
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Orientação</Label>
+                      <Textarea
+                        className={`min-h-[110px] ${styles.inputBg}`}
+                        value={analiseImagemDraft.orientation}
+                        onChange={(e) =>
+                          setAnaliseImagemDraft((prev) => ({
+                            ...prev,
+                            orientation: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {serviceModalOpen === 'outros' && (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Orientação</Label>
+                      <Textarea
+                        className={`min-h-[110px] ${styles.inputBg}`}
+                        value={outrosDraft.orientation}
+                        onChange={(e) =>
+                          setOutrosDraft((prev) => ({
+                            ...prev,
+                            orientation: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
 
-          {openService === 'busca_por_radar' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Busca por radar"
-                onToggle={() => setOpenService(null)}
-              />
-              <div className="space-y-3">
-                <PeriodFields
-                  startValue={buscaPorRadarDraft.period_start}
-                  endValue={buscaPorRadarDraft.period_end}
-                  onChangeStart={(value) =>
-                    setBuscaPorRadarDraft((prev) => ({
-                      ...prev,
-                      period_start: value,
-                    }))
-                  }
-                  onChangeEnd={(value) =>
-                    setBuscaPorRadarDraft((prev) => ({
-                      ...prev,
-                      period_end: value,
-                    }))
-                  }
-                />
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={buscaPorRadarDraft.plate}
-                    onChange={(e) =>
-                      setBuscaPorRadarDraft((prev) => ({
-                        ...prev,
-                        plate: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Orientação</Label>
-                  <Textarea
-                    className={`min-h-[92px] ${styles.inputBg}`}
-                    value={buscaPorRadarDraft.radar_address}
-                    onChange={(e) =>
-                      setBuscaPorRadarDraft((prev) => ({
-                        ...prev,
-                        radar_address: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <button
+              <DialogFooter className={styles.serviceModalFooter}>
+                <Button
                   type="button"
-                  className={styles.inlineAddButton}
-                  onClick={() => {
-                    buscaPorRadar.append({
-                      plate: buscaPorRadarDraft.plate,
-                      period_start: nullIfEmpty(
-                        buscaPorRadarDraft.period_start,
-                      ),
-                      period_end: nullIfEmpty(buscaPorRadarDraft.period_end),
-                      radar_address: nullIfEmpty(
-                        buscaPorRadarDraft.radar_address,
-                      ),
-                    })
-                    setBuscaPorRadarDraft(emptyBuscaPorRadarDraft())
-                  }}
+                  variant="secondary"
+                  className={styles.cancelButton}
+                  onClick={closeServiceModal}
                 >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {openService === 'cerco_eletronico' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Cerco eletrônico"
-                onToggle={() => setOpenService(null)}
-              />
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={cercoDraft.plate}
-                    onChange={(e) =>
-                      setCercoDraft((prev) => ({
-                        ...prev,
-                        plate: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>
-                    Observações do veículo
-                  </Label>
-                  <Textarea
-                    className={`min-h-[92px] ${styles.inputBg}`}
-                    value={cercoDraft.vehicle_observations}
-                    onChange={(e) =>
-                      setCercoDraft((prev) => ({
-                        ...prev,
-                        vehicle_observations: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <button
+                  Cancelar
+                </Button>
+                <Button
                   type="button"
-                  className={styles.inlineAddButton}
-                  onClick={() => {
-                    cercoEletronico.append({
-                      plate: cercoDraft.plate,
-                      vehicle_observations: nullIfEmpty(
-                        cercoDraft.vehicle_observations,
-                      ),
-                    })
-                    setCercoDraft(emptyCercoDraft())
-                  }}
+                  className={styles.saveButton}
+                  onClick={handleSaveServiceModal}
                 >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {openService === 'busca_por_imagem' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Busca por imagem"
-                onToggle={() => setOpenService(null)}
-              />
-              <div className="space-y-3">
-                <PeriodFields
-                  startValue={buscaPorImagemDraft.period_start}
-                  endValue={buscaPorImagemDraft.period_end}
-                  onChangeStart={(value) =>
-                    setBuscaPorImagemDraft((prev) => ({
-                      ...prev,
-                      period_start: value,
-                    }))
-                  }
-                  onChangeEnd={(value) =>
-                    setBuscaPorImagemDraft((prev) => ({
-                      ...prev,
-                      period_end: value,
-                    }))
-                  }
-                />
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Placa do veículo</Label>
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={buscaPorImagemDraft.plate}
-                    onChange={(e) =>
-                      setBuscaPorImagemDraft((prev) => ({
-                        ...prev,
-                        plate: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Endereço</Label>
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={buscaPorImagemDraft.address}
-                    onChange={(e) =>
-                      setBuscaPorImagemDraft((prev) => ({
-                        ...prev,
-                        address: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Orientação</Label>
-                  <Textarea
-                    className={`min-h-[110px] ${styles.inputBg}`}
-                    value={buscaPorImagemDraft.description}
-                    onChange={(e) =>
-                      setBuscaPorImagemDraft((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.inlineAddButton}
-                  onClick={() => {
-                    buscaPorImagem.append({
-                      plate: nullIfEmpty(buscaPorImagemDraft.plate),
-                      period_start: nullIfEmpty(
-                        buscaPorImagemDraft.period_start,
-                      ),
-                      period_end: nullIfEmpty(buscaPorImagemDraft.period_end),
-                      address: nullIfEmpty(buscaPorImagemDraft.address),
-                      description: nullIfEmpty(buscaPorImagemDraft.description),
-                    })
-                    setBuscaPorImagemDraft(emptyBuscaPorImagemDraft())
-                  }}
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {openService === 'placas_correlatas' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Placas correlatas"
-                onToggle={() => setOpenService(null)}
-              />
-              <CorrelataPanel
-                draft={placasCorrelatasDraft}
-                setDraft={setPlacasCorrelatasDraft}
-                onAdd={() => {
-                  placasCorrelatas.append({
-                    interest_interval_minutes:
-                      placasCorrelatasDraft.interest_interval_minutes,
-                    detection_count: placasCorrelatasDraft.detection_count,
-                    detection: placasCorrelatasDraft.detection,
-                    items: [
-                      {
-                        plate: placasCorrelatasDraft.plate,
-                        period_start: nullIfEmpty(
-                          placasCorrelatasDraft.period_start,
-                        ),
-                        period_end: nullIfEmpty(
-                          placasCorrelatasDraft.period_end,
-                        ),
-                      },
-                    ],
-                  })
-                  setPlacasCorrelatasDraft(emptyCorrelataDraft())
-                }}
-              />
-            </div>
-          )}
-
-          {openService === 'placas_conjuntas' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Placas conjuntas"
-                onToggle={() => setOpenService(null)}
-              />
-              <CorrelataPanel
-                draft={placasConjuntasDraft}
-                setDraft={setPlacasConjuntasDraft}
-                onAdd={() => {
-                  placasConjuntas.append({
-                    interest_interval_minutes:
-                      placasConjuntasDraft.interest_interval_minutes,
-                    detection_count: placasConjuntasDraft.detection_count,
-                    detection: placasConjuntasDraft.detection,
-                    items: [
-                      {
-                        plate: placasConjuntasDraft.plate,
-                        period_start: nullIfEmpty(
-                          placasConjuntasDraft.period_start,
-                        ),
-                        period_end: nullIfEmpty(
-                          placasConjuntasDraft.period_end,
-                        ),
-                      },
-                    ],
-                  })
-                  setPlacasConjuntasDraft(emptyCorrelataDraft())
-                }}
-              />
-            </div>
-          )}
-
-          {openService === 'reserva_de_imagem' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Reserva de imagem"
-                onToggle={() => setOpenService(null)}
-              />
-              <div className="space-y-3">
-                <PeriodFields
-                  startValue={reservaImagemDraft.period_start}
-                  endValue={reservaImagemDraft.period_end}
-                  onChangeStart={(value) =>
-                    setReservaImagemDraft((prev) => ({
-                      ...prev,
-                      period_start: value,
-                    }))
-                  }
-                  onChangeEnd={(value) =>
-                    setReservaImagemDraft((prev) => ({
-                      ...prev,
-                      period_end: value,
-                    }))
-                  }
-                />
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Orientação</Label>
-                  <Textarea
-                    className={`min-h-[110px] ${styles.inputBg}`}
-                    value={reservaImagemDraft.orientation}
-                    onChange={(e) =>
-                      setReservaImagemDraft((prev) => ({
-                        ...prev,
-                        orientation: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.inlineAddButton}
-                  onClick={() => {
-                    reservaDeImagem.append({
-                      period_start: nullIfEmpty(
-                        reservaImagemDraft.period_start,
-                      ),
-                      period_end: nullIfEmpty(reservaImagemDraft.period_end),
-                      orientation: nullIfEmpty(reservaImagemDraft.orientation),
-                    })
-                    setReservaImagemDraft(emptyReservaImagemDraft())
-                  }}
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {openService === 'analise_de_imagem' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Análise de imagem"
-                onToggle={() => setOpenService(null)}
-              />
-              <div className="space-y-3">
-                <PeriodFields
-                  startValue={analiseImagemDraft.period_start}
-                  endValue={analiseImagemDraft.period_end}
-                  onChangeStart={(value) =>
-                    setAnaliseImagemDraft((prev) => ({
-                      ...prev,
-                      period_start: value,
-                    }))
-                  }
-                  onChangeEnd={(value) =>
-                    setAnaliseImagemDraft((prev) => ({
-                      ...prev,
-                      period_end: value,
-                    }))
-                  }
-                />
-
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Orientação</Label>
-                  <Textarea
-                    className={`min-h-[110px] ${styles.inputBg}`}
-                    value={analiseImagemDraft.orientation}
-                    onChange={(e) =>
-                      setAnaliseImagemDraft((prev) => ({
-                        ...prev,
-                        orientation: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.inlineAddButton}
-                  onClick={() => {
-                    analiseDeImagem.append({
-                      period_start: nullIfEmpty(
-                        analiseImagemDraft.period_start,
-                      ),
-                      period_end: nullIfEmpty(analiseImagemDraft.period_end),
-                      orientation: nullIfEmpty(analiseImagemDraft.orientation),
-                    })
-                    setAnaliseImagemDraft(emptyAnaliseImagemDraft())
-                  }}
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {openService === 'outros' && (
-            <div className={styles.activeServicePanel}>
-              <ServicePanelTitle
-                title="Outros"
-                onToggle={() => setOpenService(null)}
-              />
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label className={styles.fieldLabel}>Orientação</Label>
-                  <Textarea
-                    className={`min-h-[110px] ${styles.inputBg}`}
-                    value={outrosDraft.orientation}
-                    onChange={(e) =>
-                      setOutrosDraft((prev) => ({
-                        ...prev,
-                        orientation: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.inlineAddButton}
-                  onClick={() => {
-                    outros.append({
-                      orientation: nullIfEmpty(outrosDraft.orientation),
-                    })
-                    setOutrosDraft(emptyOutrosDraft())
-                  }}
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
+                  Salvar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <div className="mt-4 space-y-4">
             <ServiceList
               label="Busca por placa"
               fields={buscaPorPlaca.fields}
               onRemove={buscaPorPlaca.remove}
+              onEdit={(idx) => openServiceModalForEdit('busca_por_placa', idx)}
               renderRow={(idx) => (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="space-y-1.5">
@@ -1525,6 +1792,7 @@ export function TicketCreateForm() {
               label="Busca por radar"
               fields={buscaPorRadar.fields}
               onRemove={buscaPorRadar.remove}
+              onEdit={(idx) => openServiceModalForEdit('busca_por_radar', idx)}
               renderRow={(idx) => (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="space-y-1.5">
@@ -1569,6 +1837,7 @@ export function TicketCreateForm() {
               label="Cerco eletrônico"
               fields={cercoEletronico.fields}
               onRemove={cercoEletronico.remove}
+              onEdit={(idx) => openServiceModalForEdit('cerco_eletronico', idx)}
               renderRow={(idx) => (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div className="space-y-1.5">
@@ -1599,6 +1868,7 @@ export function TicketCreateForm() {
               label="Busca por imagem"
               fields={buscaPorImagem.fields}
               onRemove={buscaPorImagem.remove}
+              onEdit={(idx) => openServiceModalForEdit('busca_por_imagem', idx)}
               renderRow={(idx) => (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="space-y-1.5">
@@ -1651,6 +1921,9 @@ export function TicketCreateForm() {
               label="Placas correlatas"
               fields={placasCorrelatas.fields}
               onRemove={placasCorrelatas.remove}
+              onEdit={(idx) =>
+                openServiceModalForEdit('placas_correlatas', idx)
+              }
               renderRow={(idx) => (
                 <CorrelataListForm
                   register={register}
@@ -1666,6 +1939,7 @@ export function TicketCreateForm() {
               label="Placas conjuntas"
               fields={placasConjuntas.fields}
               onRemove={placasConjuntas.remove}
+              onEdit={(idx) => openServiceModalForEdit('placas_conjuntas', idx)}
               renderRow={(idx) => (
                 <CorrelataListForm
                   register={register}
@@ -1681,6 +1955,9 @@ export function TicketCreateForm() {
               label="Reserva de imagem"
               fields={reservaDeImagem.fields}
               onRemove={reservaDeImagem.remove}
+              onEdit={(idx) =>
+                openServiceModalForEdit('reserva_de_imagem', idx)
+              }
               renderRow={(idx) => (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div className="space-y-1.5">
@@ -1717,6 +1994,9 @@ export function TicketCreateForm() {
               label="Análise de imagem"
               fields={analiseDeImagem.fields}
               onRemove={analiseDeImagem.remove}
+              onEdit={(idx) =>
+                openServiceModalForEdit('analise_de_imagem', idx)
+              }
               renderRow={(idx) => (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div className="space-y-1.5">
@@ -1753,6 +2033,7 @@ export function TicketCreateForm() {
               label="Outros"
               fields={outros.fields}
               onRemove={outros.remove}
+              onEdit={(idx) => openServiceModalForEdit('outros', idx)}
               renderRow={(idx) => (
                 <div className="space-y-1.5">
                   <Label className={styles.fieldLabel}>Orientação</Label>
@@ -1966,29 +2247,6 @@ function Section({
   )
 }
 
-function ServicePanelTitle({
-  title,
-  onToggle,
-}: {
-  title: string
-  onToggle: () => void
-}) {
-  return (
-    <div className="mb-4 flex items-center justify-between">
-      <span className={styles.sectionBadge}>{title}</span>
-
-      <button
-        type="button"
-        onClick={onToggle}
-        className={styles.sectionToggle}
-        aria-label={`Fechar serviço ${title}`}
-      >
-        <ChevronUp className="h-4 w-4 text-muted-foreground" />
-      </button>
-    </div>
-  )
-}
-
 function ServiceAddCard({
   title,
   onAdd,
@@ -2019,6 +2277,87 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+function parseDateTimeString(
+  s: string,
+): { date: Date; time: string } | undefined {
+  if (!s?.trim()) return undefined
+  const norm = s.includes('T') ? s : s + 'T00:00:00'
+  const parsed = new Date(norm)
+  if (Number.isNaN(parsed.getTime())) return undefined
+  const time =
+    s.includes('T') && s.length >= 16
+      ? `${String(parsed.getHours()).padStart(2, '0')}:${String(parsed.getMinutes()).padStart(2, '0')}`
+      : '00:00'
+  return { date: parsed, time }
+}
+
+function toDateTimeString(d: Date, time: string): string {
+  const [h = '0', m = '0'] = time.split(':')
+  const y = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hour = String(parseInt(h, 10)).padStart(2, '0')
+  const min = String(parseInt(m, 10)).padStart(2, '0')
+  return `${y}-${month}-${day}T${hour}:${min}`
+}
+
+function PeriodDatePickerField({
+  value,
+  onChange,
+  disabled,
+  defaultTime = '00:00',
+  placeholder = 'Selecione a data',
+}: {
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+  defaultTime?: string
+  placeholder?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const parsed = parseDateTimeString(value)
+  const triggerLabel =
+    parsed?.date != null
+      ? format(parsed.date, dateConfig.formats.date, {
+          locale: dateConfig.locale,
+        })
+      : placeholder
+
+  const handleSelect = (d: Date | undefined) => {
+    if (!d) return
+    onChange(toDateTimeString(d, parsed?.time ?? defaultTime))
+    setOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className={`h-11 w-full justify-between text-left font-normal ${styles.inputBg}`}
+        >
+          <span className={!parsed?.date ? 'text-muted-foreground' : ''}>
+            {triggerLabel}
+          </span>
+          <CalendarIcon className="h-4 w-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={parsed?.date}
+          onSelect={handleSelect}
+          locale={dateConfig.locale}
+          defaultMonth={parsed?.date}
+          className="rounded-lg border"
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 function DataBaseDatePicker({
   value,
   onChange,
@@ -2028,11 +2367,11 @@ function DataBaseDatePicker({
   onChange: (value: string | null) => void
   disabled?: boolean
 }) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [open, setOpen] = useState(false)
   const date = parseDateString(value)
   const triggerLabel = date
     ? format(date, dateConfig.formats.date, { locale: dateConfig.locale })
-    : 'dd/mm/aaaa'
+    : ''
 
   const handleSelect = (d: Date | undefined) => {
     if (!d) {
@@ -2040,36 +2379,33 @@ function DataBaseDatePicker({
       return
     }
     onChange(toDateString(d))
-    setIsCalendarOpen(false)
+    setOpen(false)
   }
 
   return (
-    <div
-      className={`${styles.datePickerWrap} ${isCalendarOpen ? styles.datePickerWrapOpen : ''}`}
-    >
-      <button
-        type="button"
-        className={styles.datePickerTrigger}
-        aria-label="Selecionar data base"
-        aria-expanded={isCalendarOpen}
-        onClick={() => !disabled && setIsCalendarOpen((open) => !open)}
-        disabled={disabled}
-      >
-        <span>{triggerLabel}</span>
-        <CalendarIcon className={styles.datePickerTriggerIcon} />
-      </button>
-      {isCalendarOpen ? (
-        <div className={styles.datePickerCalendarInline}>
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleSelect}
-            locale={dateConfig.locale}
-            defaultMonth={date}
-          />
-        </div>
-      ) : null}
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className={`h-11 w-full justify-between text-left font-normal ${styles.inputBg}`}
+        >
+          <span>{triggerLabel}</span>
+          <CalendarIcon className="h-4 w-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={handleSelect}
+          locale={dateConfig.locale}
+          defaultMonth={date}
+          className="rounded-lg border"
+        />
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -2099,6 +2435,39 @@ function PeriodFields({
           type="datetime-local"
           value={endValue}
           onChange={(e) => onChangeEnd(e.target.value)}
+        />
+      </div>
+    </div>
+  )
+}
+
+/** Período da busca no mesmo estilo do campo Data base (botão + popover + calendário). */
+function PeriodFieldsCalendarStyle({
+  startValue,
+  endValue,
+  onChangeStart,
+  onChangeEnd,
+}: {
+  startValue: string
+  endValue: string
+  onChangeStart: (value: string) => void
+  onChangeEnd: (value: string) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className={styles.fieldLabel}>Período da busca</Label>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <PeriodDatePickerField
+          value={startValue}
+          onChange={onChangeStart}
+          defaultTime="00:00"
+          placeholder="Data inicial"
+        />
+        <PeriodDatePickerField
+          value={endValue}
+          onChange={onChangeEnd}
+          defaultTime="23:59"
+          placeholder="Data final"
         />
       </div>
     </div>
@@ -2170,14 +2539,21 @@ function CorrelataPanel({
   draft,
   setDraft,
   onAdd,
+  hideAddButton,
+  useCalendarStyle,
 }: {
   draft: CorrelataDraft
   setDraft: React.Dispatch<React.SetStateAction<CorrelataDraft>>
   onAdd: () => void
+  hideAddButton?: boolean
+  useCalendarStyle?: boolean
 }) {
+  const PeriodComponent = useCalendarStyle
+    ? PeriodFieldsCalendarStyle
+    : PeriodFields
   return (
     <div className="space-y-3">
-      <PeriodFields
+      <PeriodComponent
         startValue={draft.period_start}
         endValue={draft.period_end}
         onChangeStart={(value) =>
@@ -2260,9 +2636,15 @@ function CorrelataPanel({
         </div>
       </div>
 
-      <button type="button" className={styles.inlineAddButton} onClick={onAdd}>
-        <Plus className="h-5 w-5" />
-      </button>
+      {!hideAddButton && (
+        <button
+          type="button"
+          className={styles.inlineAddButton}
+          onClick={onAdd}
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+      )}
     </div>
   )
 }
@@ -2271,14 +2653,18 @@ function ServiceList<T extends { id: string }>({
   label,
   fields,
   onRemove,
+  onEdit,
   renderRow,
 }: {
   label: string
   fields: T[]
   onRemove: (index: number) => void
+  onEdit?: (index: number) => void
   renderRow: (index: number) => React.ReactNode
 }) {
   if (fields.length === 0) return null
+
+  const isCompact = onEdit != null
 
   return (
     <div className={styles.listCard}>
@@ -2289,23 +2675,58 @@ function ServiceList<T extends { id: string }>({
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className={styles.serviceItemList}>
         {fields.map((f, idx) => (
           <div
             key={f.id}
-            className="rounded-md border border-slate-700/40 bg-[#0f2435]/70 p-3"
+            className={
+              isCompact
+                ? styles.serviceItemBadgeCard
+                : styles.serviceItemFormCard
+            }
           >
-            <div className="mb-3 flex justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                onClick={() => onRemove(idx)}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-            {renderRow(idx)}
+            {isCompact ? (
+              <>
+                <button
+                  type="button"
+                  className={styles.serviceItemBadgeButton}
+                  onClick={() => onEdit?.(idx)}
+                  title="Abrir para editar"
+                >
+                  <span className={styles.serviceItemBadge}>
+                    {label} · Item {idx + 1}
+                  </span>
+                  <Pencil className={styles.serviceItemBadgeIcon} />
+                </button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className={styles.serviceItemDeleteBtn}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemove(idx)
+                  }}
+                  title="Remover"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="mb-3 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onRemove(idx)}
+                    title="Remover"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+                {renderRow(idx)}
+              </>
+            )}
           </div>
         ))}
       </div>

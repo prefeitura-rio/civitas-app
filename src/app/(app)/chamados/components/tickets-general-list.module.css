@@ -389,6 +389,11 @@
   gap: 8px;
 }
 
+/* Largura mínima no rótulo para alinhar os badges de count na mesma coluna */
+.priorityCell > span:first-child {
+  min-width: 72px;
+}
+
 .priorityWarningBadge {
   display: inline-flex;
   align-items: center;

@@ -9,6 +9,11 @@ import { type DateRange } from 'react-day-picker'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
   searchFocalPoints,
   searchInternalNumbers,
   searchOfficialLetters,
@@ -327,7 +332,7 @@ function FilterDateRangeField({
   onChangeStart: (value: string) => void
   onChangeEnd: (value: string) => void
 }) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [open, setOpen] = useState(false)
 
   const value: DateRange | undefined = useMemo(() => {
     const from = parseDateString(startValue)
@@ -350,7 +355,7 @@ function FilterDateRangeField({
     onChangeStart(toDateString(normalized.from))
     onChangeEnd(normalized.to ? toDateString(normalized.to) : '')
     if (normalized.from && normalized.to) {
-      setIsCalendarOpen(false)
+      setOpen(false)
     }
   }
 
@@ -365,32 +370,31 @@ function FilterDateRangeField({
   return (
     <div className={styles.filterBlock}>
       <span className={styles.filterLabel}>{label}</span>
-      <div
-        className={`${styles.dateRangePickerWrap} ${isCalendarOpen ? styles.dateRangePickerWrapOpen : ''}`}
-      >
-        <button
-          type="button"
-          className={styles.dateRangeTrigger}
-          aria-label={label}
-          aria-expanded={isCalendarOpen}
-          onClick={() => setIsCalendarOpen((open) => !open)}
-        >
-          <span>{triggerLabel ?? 'dd/mm/aaaa – dd/mm/aaaa'}</span>
-          <CalendarIcon className={styles.dateRangeTriggerIcon} />
-        </button>
-        {isCalendarOpen ? (
-          <div className={styles.dateRangeCalendarInline}>
-            <Calendar
-              mode="range"
-              selected={value}
-              onSelect={handleChange}
-              locale={dateConfig.locale}
-              numberOfMonths={2}
-              defaultMonth={value?.from}
-            />
-          </div>
-        ) : null}
-      </div>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className={`h-[42px] w-full justify-between text-left font-normal ${styles.dateRangeTrigger}`}
+          >
+            <span className="min-w-0 flex-1 truncate text-left">
+              {triggerLabel ?? 'dd/mm/aaaa – dd/mm/aaaa'}
+            </span>
+            <CalendarIcon className="h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="z-[100] w-auto p-0" align="start">
+          <Calendar
+            mode="range"
+            selected={value}
+            onSelect={handleChange}
+            locale={dateConfig.locale}
+            numberOfMonths={2}
+            defaultMonth={value?.from}
+            className="rounded-lg border"
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }
