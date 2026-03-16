@@ -52,10 +52,6 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  type TicketCreateForm as TicketCreateFormType,
-  ticketCreateSchema,
-} from '@/contexts/tickets-create-context'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getOperations } from '@/http/operations/get-operations'
 import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
@@ -65,6 +61,10 @@ import { dateConfig } from '@/lib/date-config'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import styles from './ticket-create-form.module.css'
+import {
+  type TicketCreateForm as TicketCreateFormType,
+  ticketCreateSchema,
+} from './ticket-create-schema'
 
 const MOCK_TEAMS = [
   { id: '1', title: 'Equipe A' },
@@ -204,6 +204,36 @@ function emptyAnaliseImagemDraft(): AnaliseImagemDraft {
     orientation: '',
   }
 }
+
+const SERVICE_CONFIG = {
+  busca_por_placa: {
+    label: 'Busca por placa',
+  },
+  busca_por_radar: {
+    label: 'Busca por radar',
+  },
+  cerco_eletronico: {
+    label: 'Cerco eletrônico',
+  },
+  busca_por_imagem: {
+    label: 'Busca por imagem',
+  },
+  placas_correlatas: {
+    label: 'Placas correlatas',
+  },
+  placas_conjuntas: {
+    label: 'Placas conjuntas',
+  },
+  reserva_de_imagem: {
+    label: 'Reserva de imagem',
+  },
+  analise_de_imagem: {
+    label: 'Análise de imagem',
+  },
+  outros: {
+    label: 'Outros',
+  },
+} satisfies Record<Exclude<OpenServiceKey, null>, { label: string }>
 
 function emptyOutrosDraft(): OutrosDraft {
   return {
@@ -934,6 +964,17 @@ export function TicketCreateForm() {
 
   return (
     <div className={styles.root}>
+      <div className="mx-auto w-full max-w-5xl space-y-8">
+        <h1
+          className="font-semibold leading-10 text-[var(--tc-heading,#f9fafa)]"
+          style={{ fontSize: '20px' }}
+        >
+          Cadastro Manual de Chamado
+        </h1>
+        <p className="mt-0 text-[length:12px] leading-4 text-[var(--tc-muted,#97a2ab)]">
+          Preencha as informações abaixo para criar um novo chamado.
+        </p>
+      </div>
       <form
         className="mx-auto w-full max-w-5xl space-y-8"
         onSubmit={handleSubmit(onSubmit)}
@@ -1418,25 +1459,9 @@ export function TicketCreateForm() {
             <DialogContent className={styles.serviceModal}>
               <DialogHeader className={styles.serviceModalHeader}>
                 <DialogTitle className={styles.serviceModalTitle}>
-                  {serviceModalOpen === 'busca_por_placa'
-                    ? 'Busca por placa'
-                    : serviceModalOpen === 'busca_por_radar'
-                      ? 'Busca por radar'
-                      : serviceModalOpen === 'cerco_eletronico'
-                        ? 'Cerco eletrônico'
-                        : serviceModalOpen === 'busca_por_imagem'
-                          ? 'Busca por imagem'
-                          : serviceModalOpen === 'placas_correlatas'
-                            ? 'Placas correlatas'
-                            : serviceModalOpen === 'placas_conjuntas'
-                              ? 'Placas conjuntas'
-                              : serviceModalOpen === 'reserva_de_imagem'
-                                ? 'Reserva de imagem'
-                                : serviceModalOpen === 'analise_de_imagem'
-                                  ? 'Análise de imagem'
-                                  : serviceModalOpen === 'outros'
-                                    ? 'Outros'
-                                    : ''}
+                  {serviceModalOpen
+                    ? SERVICE_CONFIG[serviceModalOpen].label
+                    : ''}
                 </DialogTitle>
               </DialogHeader>
 
@@ -2441,7 +2466,6 @@ function PeriodFields({
   )
 }
 
-/** Período da busca no mesmo estilo do campo Data base (botão + popover + calendário). */
 function PeriodFieldsCalendarStyle({
   startValue,
   endValue,

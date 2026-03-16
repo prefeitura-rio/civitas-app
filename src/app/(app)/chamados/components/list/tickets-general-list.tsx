@@ -17,12 +17,12 @@ import {
   type TicketDashboardFilters,
 } from '@/http/tickets/get-tickets-dashboard'
 
-import styles from './tickets-general-list.module.css'
 import {
   emptyFilters,
   type FilterFormState,
   TicketsDashboardFilterModal,
-} from './tickets-general-list-filters'
+} from '../filter/tickets-general-list-filters'
+import styles from './tickets-general-list.module.css'
 
 type DashboardServiceTag = {
   label: string

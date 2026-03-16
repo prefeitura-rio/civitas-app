@@ -1,4 +1,4 @@
-import { TicketsGeneralList } from './components/tickets-general-list'
+import { TicketsGeneralList } from './components/list/tickets-general-list'
 
 export default function ChamadosPage() {
   return (

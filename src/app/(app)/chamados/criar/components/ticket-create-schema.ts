@@ -1,5 +1,3 @@
-'use client'
-
 import { z } from 'zod'
 
 export const ticketPriorityEnum = z.enum(['URGENTE', 'ALTA', 'ROTINA'])
