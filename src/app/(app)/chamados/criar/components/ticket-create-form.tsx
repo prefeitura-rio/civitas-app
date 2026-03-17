@@ -18,6 +18,7 @@ import { useMemo, useState } from 'react'
 import type { Control, UseFormRegister } from 'react-hook-form'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import type { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -62,6 +63,15 @@ import { genericErrorMessage } from '@/utils/error-handlers'
 
 import styles from './ticket-create-form.module.css'
 import {
+  serviceAnaliseDeImagemSchema,
+  serviceBuscaPorImagemSchema,
+  serviceBuscaPorPlacaSchema,
+  serviceBuscaPorRadarSchema,
+  serviceCercoSchema,
+  serviceOutrosSchema,
+  servicePlacasConjuntasSchema,
+  servicePlacasCorrelatasSchema,
+  serviceReservaDeImagemSchema,
   type TicketCreateForm as TicketCreateFormType,
   ticketCreateSchema,
 } from './ticket-create-schema'
@@ -111,10 +121,14 @@ type BuscaPorImagemDraft = {
   description: string
 }
 
-type CorrelataDraft = {
+type CorrelataDraftItem = {
   period_start: string
   period_end: string
   plate: string
+}
+
+type CorrelataDraft = {
+  items: CorrelataDraftItem[]
   interest_interval_minutes: number
   detection_count: number
   detection: DetectionType
@@ -178,11 +192,13 @@ function emptyBuscaPorImagemDraft(): BuscaPorImagemDraft {
   }
 }
 
+function emptyCorrelataItem(): CorrelataDraftItem {
+  return { period_start: '', period_end: '', plate: '' }
+}
+
 function emptyCorrelataDraft(): CorrelataDraft {
   return {
-    period_start: '',
-    period_end: '',
-    plate: '',
+    items: [emptyCorrelataItem()],
     interest_interval_minutes: 1,
     detection_count: 10,
     detection: null,
@@ -285,20 +301,19 @@ function buildTicketCreatePayload(
 
     requisitante: {
       requisitante_nome: data.requisitante.requisitante_nome.trim(),
-      requisitante_telefone: emptyToNull(
-        data.requisitante.requisitante_telefone,
-      ),
+      requisitante_telefone: data.requisitante.requisitante_telefone,
+
       requisitante_email: emptyToNull(data.requisitante.requisitante_email),
     },
 
     pontos_focais: data.pontos_focais.map((fp) => ({
       nome: fp.nome.trim(),
-      telefone: emptyToNull(fp.telefone),
+      telefone: fp.telefone ?? '',
       email: emptyToNull(fp.email),
     })),
 
     busca_por_placa: data.busca_por_placa.map((item) => ({
-      plate: item.plate.trim(),
+      plate: emptyToNull(item.plate),
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
     })),
@@ -400,6 +415,11 @@ export function TicketCreateForm() {
   const [outrosDraft, setOutrosDraft] =
     useState<OutrosDraft>(emptyOutrosDraft())
 
+  const [serviceModalErrors, setServiceModalErrors] = useState<Record<
+    string,
+    string
+  > | null>(null)
+
   const defaultValues = useMemo<TicketCreateFormType>(
     () => ({
       associar_chamado_id: null,
@@ -417,7 +437,7 @@ export function TicketCreateForm() {
 
       requisitante: {
         requisitante_nome: '',
-        requisitante_telefone: null,
+        requisitante_telefone: '',
         requisitante_email: null,
       },
 
@@ -550,6 +570,7 @@ export function TicketCreateForm() {
 
   function handleOpenService(service: OpenServiceKey) {
     setServiceModalEditIndex(null)
+    setServiceModalErrors(null)
     setServiceModalOpen(service)
     switch (service) {
       case 'busca_por_placa':
@@ -587,6 +608,7 @@ export function TicketCreateForm() {
   function openServiceModalForEdit(service: OpenServiceKey, index: number) {
     const values = getValues()
     setServiceModalEditIndex(index)
+    setServiceModalErrors(null)
     setServiceModalOpen(service)
     switch (service) {
       case 'busca_por_placa': {
@@ -634,11 +656,17 @@ export function TicketCreateForm() {
       case 'placas_correlatas': {
         const group = values.placas_correlatas?.[index]
         if (group) {
-          const first = group.items?.[0]
+          const items = (
+            group.items?.length
+              ? group.items
+              : [{ period_start: null, period_end: null, plate: '' }]
+          ).map((item) => ({
+            period_start: item?.period_start ?? '',
+            period_end: item?.period_end ?? '',
+            plate: item?.plate ?? '',
+          }))
           setPlacasCorrelatasDraft({
-            period_start: first?.period_start ?? '',
-            period_end: first?.period_end ?? '',
-            plate: first?.plate ?? '',
+            items,
             interest_interval_minutes: group.interest_interval_minutes ?? 1,
             detection_count: group.detection_count ?? 10,
             detection: group.detection ?? null,
@@ -649,11 +677,17 @@ export function TicketCreateForm() {
       case 'placas_conjuntas': {
         const group = values.placas_conjuntas?.[index]
         if (group) {
-          const first = group.items?.[0]
+          const items = (
+            group.items?.length
+              ? group.items
+              : [{ period_start: null, period_end: null, plate: '' }]
+          ).map((item) => ({
+            period_start: item?.period_start ?? '',
+            period_end: item?.period_end ?? '',
+            plate: item?.plate ?? '',
+          }))
           setPlacasConjuntasDraft({
-            period_start: first?.period_start ?? '',
-            period_end: first?.period_end ?? '',
-            plate: first?.plate ?? '',
+            items,
             interest_interval_minutes: group.interest_interval_minutes ?? 1,
             detection_count: group.detection_count ?? 10,
             detection: group.detection ?? null,
@@ -697,12 +731,90 @@ export function TicketCreateForm() {
   function closeServiceModal() {
     setServiceModalOpen(null)
     setServiceModalEditIndex(null)
+    setServiceModalErrors(null)
+  }
+
+  function zodErrorsToRecord(error: z.ZodError): Record<string, string> {
+    const err: Record<string, string> = {}
+    for (const issue of error.issues) {
+      const key = issue.path.join('.')
+      err[key] = issue.message
+    }
+    return err
+  }
+
+  function validateServiceDraft(): Record<string, string> | null {
+    const service = serviceModalOpen
+    if (!service) return null
+
+    switch (service) {
+      case 'busca_por_placa': {
+        const result = serviceBuscaPorPlacaSchema.safeParse(buscaPorPlacaDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'busca_por_radar': {
+        const result = serviceBuscaPorRadarSchema.safeParse(buscaPorRadarDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'cerco_eletronico': {
+        const result = serviceCercoSchema.safeParse(cercoDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'busca_por_imagem': {
+        const result =
+          serviceBuscaPorImagemSchema.safeParse(buscaPorImagemDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'placas_correlatas': {
+        const result = servicePlacasCorrelatasSchema.safeParse(
+          placasCorrelatasDraft,
+        )
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'placas_conjuntas': {
+        const result =
+          servicePlacasConjuntasSchema.safeParse(placasConjuntasDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'reserva_de_imagem': {
+        const result =
+          serviceReservaDeImagemSchema.safeParse(reservaImagemDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'analise_de_imagem': {
+        const result =
+          serviceAnaliseDeImagemSchema.safeParse(analiseImagemDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      case 'outros': {
+        const result = serviceOutrosSchema.safeParse(outrosDraft)
+        if (result.success) return null
+        return zodErrorsToRecord(result.error)
+      }
+      default:
+        return null
+    }
   }
 
   function handleSaveServiceModal() {
     const idx = serviceModalEditIndex
     const service = serviceModalOpen
     if (!service) return
+
+    const validationErrors = validateServiceDraft()
+    if (validationErrors) {
+      setServiceModalErrors(validationErrors)
+      return
+    }
+    setServiceModalErrors(null)
 
     if (idx !== null) {
       switch (service) {
@@ -775,16 +887,12 @@ export function TicketCreateForm() {
             placasCorrelatasDraft.detection,
           )
           setValue(
-            `placas_correlatas.${idx}.items.0.plate`,
-            placasCorrelatasDraft.plate,
-          )
-          setValue(
-            `placas_correlatas.${idx}.items.0.period_start`,
-            nullIfEmpty(placasCorrelatasDraft.period_start),
-          )
-          setValue(
-            `placas_correlatas.${idx}.items.0.period_end`,
-            nullIfEmpty(placasCorrelatasDraft.period_end),
+            `placas_correlatas.${idx}.items`,
+            placasCorrelatasDraft.items.map((item) => ({
+              plate: item.plate,
+              period_start: nullIfEmpty(item.period_start),
+              period_end: nullIfEmpty(item.period_end),
+            })),
           )
           break
         case 'placas_conjuntas':
@@ -801,16 +909,12 @@ export function TicketCreateForm() {
             placasConjuntasDraft.detection,
           )
           setValue(
-            `placas_conjuntas.${idx}.items.0.plate`,
-            placasConjuntasDraft.plate,
-          )
-          setValue(
-            `placas_conjuntas.${idx}.items.0.period_start`,
-            nullIfEmpty(placasConjuntasDraft.period_start),
-          )
-          setValue(
-            `placas_conjuntas.${idx}.items.0.period_end`,
-            nullIfEmpty(placasConjuntasDraft.period_end),
+            `placas_conjuntas.${idx}.items`,
+            placasConjuntasDraft.items.map((item) => ({
+              plate: item.plate,
+              period_start: nullIfEmpty(item.period_start),
+              period_end: nullIfEmpty(item.period_end),
+            })),
           )
           break
         case 'reserva_de_imagem':
@@ -892,13 +996,11 @@ export function TicketCreateForm() {
               placasCorrelatasDraft.interest_interval_minutes,
             detection_count: placasCorrelatasDraft.detection_count,
             detection: placasCorrelatasDraft.detection,
-            items: [
-              {
-                plate: placasCorrelatasDraft.plate,
-                period_start: nullIfEmpty(placasCorrelatasDraft.period_start),
-                period_end: nullIfEmpty(placasCorrelatasDraft.period_end),
-              },
-            ],
+            items: placasCorrelatasDraft.items.map((item) => ({
+              plate: item.plate,
+              period_start: nullIfEmpty(item.period_start),
+              period_end: nullIfEmpty(item.period_end),
+            })),
           })
           setPlacasCorrelatasDraft(emptyCorrelataDraft())
           break
@@ -908,13 +1010,11 @@ export function TicketCreateForm() {
               placasConjuntasDraft.interest_interval_minutes,
             detection_count: placasConjuntasDraft.detection_count,
             detection: placasConjuntasDraft.detection,
-            items: [
-              {
-                plate: placasConjuntasDraft.plate,
-                period_start: nullIfEmpty(placasConjuntasDraft.period_start),
-                period_end: nullIfEmpty(placasConjuntasDraft.period_end),
-              },
-            ],
+            items: placasConjuntasDraft.items.map((item) => ({
+              plate: item.plate,
+              period_start: nullIfEmpty(item.period_start),
+              period_end: nullIfEmpty(item.period_end),
+            })),
           })
           setPlacasConjuntasDraft(emptyCorrelataDraft())
           break
@@ -1318,6 +1418,11 @@ export function TicketCreateForm() {
                   disabled={isLoading}
                   {...register('requisitante.requisitante_telefone')}
                 />
+                {errors.requisitante?.requisitante_telefone?.message && (
+                  <p className="text-xs text-destructive">
+                    {errors.requisitante.requisitante_telefone.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -1342,7 +1447,7 @@ export function TicketCreateForm() {
                 onClick={() =>
                   focalPoints.append({
                     nome: '',
-                    telefone: null,
+                    telefone: '',
                     email: null,
                   })
                 }
@@ -1366,6 +1471,11 @@ export function TicketCreateForm() {
                       disabled={isLoading}
                       {...register(`pontos_focais.${idx}.nome`)}
                     />
+                    {errors.pontos_focais?.[idx]?.nome?.message && (
+                      <p className="text-xs text-destructive">
+                        {errors.pontos_focais[idx].nome.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -1375,6 +1485,11 @@ export function TicketCreateForm() {
                       disabled={isLoading}
                       {...register(`pontos_focais.${idx}.telefone`)}
                     />
+                    {errors.pontos_focais?.[idx]?.telefone?.message && (
+                      <p className="text-xs text-destructive">
+                        {errors.pontos_focais[idx].telefone.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -1395,6 +1510,11 @@ export function TicketCreateForm() {
                         <Trash className="h-4 w-4" />
                       </Button>
                     </div>
+                    {errors.pontos_focais?.[idx]?.email?.message && (
+                      <p className="text-xs text-destructive">
+                        {errors.pontos_focais[idx].email.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1484,6 +1604,13 @@ export function TicketCreateForm() {
                         }))
                       }
                     />
+                    {(serviceModalErrors?.period_start ||
+                      serviceModalErrors?.period_end) && (
+                      <p className="text-xs text-destructive">
+                        {serviceModalErrors.period_start ||
+                          serviceModalErrors.period_end}
+                      </p>
+                    )}
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>
                         Placa do veículo
@@ -1498,6 +1625,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.plate && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.plate}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1520,6 +1652,13 @@ export function TicketCreateForm() {
                         }))
                       }
                     />
+                    {(serviceModalErrors?.period_start ||
+                      serviceModalErrors?.period_end) && (
+                      <p className="text-xs text-destructive">
+                        {serviceModalErrors.period_start ||
+                          serviceModalErrors.period_end}
+                      </p>
+                    )}
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>
                         Placa do veículo
@@ -1534,6 +1673,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.plate && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.plate}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>Orientação</Label>
@@ -1547,6 +1691,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.radar_address && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.radar_address}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1567,6 +1716,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.plate && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.plate}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>
@@ -1582,6 +1736,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.vehicle_observations && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.vehicle_observations}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1604,6 +1763,13 @@ export function TicketCreateForm() {
                         }))
                       }
                     />
+                    {(serviceModalErrors?.period_start ||
+                      serviceModalErrors?.period_end) && (
+                      <p className="text-xs text-destructive">
+                        {serviceModalErrors.period_start ||
+                          serviceModalErrors.period_end}
+                      </p>
+                    )}
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>
                         Placa do veículo
@@ -1618,6 +1784,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.plate && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.plate}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>Endereço</Label>
@@ -1631,6 +1802,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.address && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.address}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>Orientação</Label>
@@ -1644,6 +1820,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.description && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1655,6 +1836,7 @@ export function TicketCreateForm() {
                     onAdd={() => {}}
                     hideAddButton
                     useCalendarStyle
+                    errors={serviceModalErrors}
                   />
                 )}
 
@@ -1665,6 +1847,7 @@ export function TicketCreateForm() {
                     onAdd={() => {}}
                     hideAddButton
                     useCalendarStyle
+                    errors={serviceModalErrors}
                   />
                 )}
 
@@ -1686,6 +1869,13 @@ export function TicketCreateForm() {
                         }))
                       }
                     />
+                    {(serviceModalErrors?.period_start ||
+                      serviceModalErrors?.period_end) && (
+                      <p className="text-xs text-destructive">
+                        {serviceModalErrors.period_start ||
+                          serviceModalErrors.period_end}
+                      </p>
+                    )}
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>Orientação</Label>
                       <Textarea
@@ -1698,6 +1888,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.orientation && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.orientation}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1720,6 +1915,13 @@ export function TicketCreateForm() {
                         }))
                       }
                     />
+                    {(serviceModalErrors?.period_start ||
+                      serviceModalErrors?.period_end) && (
+                      <p className="text-xs text-destructive">
+                        {serviceModalErrors.period_start ||
+                          serviceModalErrors.period_end}
+                      </p>
+                    )}
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>Orientação</Label>
                       <Textarea
@@ -1732,6 +1934,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.orientation && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.orientation}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1750,6 +1957,11 @@ export function TicketCreateForm() {
                           }))
                         }
                       />
+                      {serviceModalErrors?.orientation && (
+                        <p className="text-xs text-destructive">
+                          {serviceModalErrors.orientation}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -2565,38 +2777,111 @@ function CorrelataPanel({
   onAdd,
   hideAddButton,
   useCalendarStyle,
+  errors,
 }: {
   draft: CorrelataDraft
   setDraft: React.Dispatch<React.SetStateAction<CorrelataDraft>>
   onAdd: () => void
   hideAddButton?: boolean
   useCalendarStyle?: boolean
+  errors?: Record<string, string> | null
 }) {
   const PeriodComponent = useCalendarStyle
     ? PeriodFieldsCalendarStyle
     : PeriodFields
+
+  const addItem = () => {
+    setDraft((prev) => ({
+      ...prev,
+      items: [...prev.items, emptyCorrelataItem()],
+    }))
+  }
+
+  const updateItem = (index: number, updates: Partial<CorrelataDraftItem>) => {
+    setDraft((prev) => ({
+      ...prev,
+      items: prev.items.map((item, i) =>
+        i === index ? { ...item, ...updates } : item,
+      ),
+    }))
+  }
+
+  const removeItem = (index: number) => {
+    setDraft((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }))
+  }
+
   return (
     <div className="space-y-3">
-      <PeriodComponent
-        startValue={draft.period_start}
-        endValue={draft.period_end}
-        onChangeStart={(value) =>
-          setDraft((prev) => ({ ...prev, period_start: value }))
-        }
-        onChangeEnd={(value) =>
-          setDraft((prev) => ({ ...prev, period_end: value }))
-        }
-      />
+      {draft.items.map((item, index) => (
+        <div
+          key={index}
+          className="space-y-3 rounded-md border border-slate-700/40 bg-[#0f2435]/50 p-3"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-muted-foreground">
+              Período e placa {draft.items.length > 1 ? index + 1 : ''}
+            </p>
+            {draft.items.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={() => removeItem(index)}
+                title="Remover"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
 
-      <div className="space-y-1.5">
-        <Label className={styles.fieldLabel}>Placa do veículo</Label>
-        <Input
-          className={`h-11 ${styles.inputBg}`}
-          value={draft.plate}
-          onChange={(e) =>
-            setDraft((prev) => ({ ...prev, plate: e.target.value }))
-          }
-        />
+          <PeriodComponent
+            startValue={item.period_start}
+            endValue={item.period_end}
+            onChangeStart={(value) =>
+              updateItem(index, { period_start: value })
+            }
+            onChangeEnd={(value) => updateItem(index, { period_end: value })}
+          />
+          {(errors?.[`items.${index}.period_start`] ||
+            errors?.[`items.${index}.period_end`]) && (
+            <p className="text-xs text-destructive">
+              {errors[`items.${index}.period_start`] ||
+                errors[`items.${index}.period_end`]}
+            </p>
+          )}
+
+          <div className="space-y-1.5">
+            <Label className={styles.fieldLabel}>Placa do veículo</Label>
+            <Input
+              className={`h-11 ${styles.inputBg}`}
+              value={item.plate}
+              onChange={(e) => updateItem(index, { plate: e.target.value })}
+            />
+            {errors?.[`items.${index}.plate`] && (
+              <p className="text-xs text-destructive">
+                {errors[`items.${index}.plate`]}
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {errors?.items && (
+        <p className="text-xs text-destructive">{errors.items}</p>
+      )}
+
+      <div className="flex flex-col items-end">
+        <button
+          type="button"
+          onClick={addItem}
+          className={styles.addPointFocalButton}
+        >
+          <Plus className="h-5 w-5 shrink-0" aria-hidden />
+          Adicionar período e placa
+        </button>
       </div>
 
       <RangeStatField
@@ -2659,6 +2944,9 @@ function CorrelataPanel({
           </button>
         </div>
       </div>
+      {errors?.detection && (
+        <p className="text-xs text-destructive">{errors.detection}</p>
+      )}
 
       {!hideAddButton && (
         <button
@@ -2908,7 +3196,7 @@ function CorrelataListForm({
             name={`${name}.${index}.detection_count`}
             render={({ field }) => (
               <RangeStatField
-                label="Quantidaede de Detecção"
+                label="Quantidade de Detecção"
                 value={Number(field.value ?? 10)}
                 min={5}
                 max={50}

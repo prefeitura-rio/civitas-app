@@ -739,7 +739,6 @@
   background: var(--tc-input-border-hover);
 }
 
-/* Botão X (fechar) da modal – centro vertical alinhado ao título */
 .serviceModal > button:last-of-type {
   top: 17px !important;
   right: 24px !important;

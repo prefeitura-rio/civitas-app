@@ -6,76 +6,162 @@ export const ticketDetectionEnum = z.enum(['ANTES', 'DEPOIS', 'AMBOS'])
 
 const requesterSchema = z.object({
   requisitante_nome: z.string().min(2, 'Campo obrigatório').max(120),
-  requisitante_telefone: z.string().max(30).optional().nullable(),
+  requisitante_telefone: z.string().min(2, 'Campo obrigatório').max(30),
   requisitante_email: z.string().email('Email inválido').nullable(),
 })
 
 const focalPointSchema = z.object({
   nome: z.string().min(2, 'Campo obrigatório').max(120),
-  telefone: z.string().max(30).optional().nullable(),
+  telefone: z.string().min(1, 'Campo obrigatório').max(120),
   email: z.string().email('Email inválido').optional().nullable(),
 })
 
-const serviceBuscaPorPlacaSchema = z.object({
+export const serviceBuscaPorPlacaSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
-  plate: z.string().min(1).max(20),
+  plate: z.string().optional().nullable(),
 })
 
-const serviceBuscaPorRadarSchema = z.object({
-  period_start: z.string().optional().nullable(),
-  period_end: z.string().optional().nullable(),
-  plate: z.string().min(1).max(20),
-  radar_address: z.string().max(50_000).optional().nullable(),
+export const serviceBuscaPorRadarSchema = z.object({
+  period_start: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  period_end: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  plate: z.string().min(1, 'Campo obrigatório').max(20),
+  radar_address: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
 })
 
-const serviceCercoSchema = z.object({
-  plate: z.string().min(1).max(20),
-  vehicle_observations: z.string().max(50_000).optional().nullable(),
+export const serviceCercoSchema = z.object({
+  plate: z.string().min(1, 'Campo obrigatório').max(20),
+  vehicle_observations: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
 })
 
-const serviceBuscaPorImagemSchema = z.object({
-  period_start: z.string().optional().nullable(),
-  period_end: z.string().optional().nullable(),
-  plate: z.string().max(20).optional().nullable(),
-  address: z.string().max(50_000).optional().nullable(),
-  description: z.string().max(50_000).optional().nullable(),
+export const serviceBuscaPorImagemSchema = z.object({
+  period_start: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  period_end: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  plate: z.string().min(1, 'Campo obrigatório').max(20).optional().nullable(),
+  address: z.string().min(1, 'Campo obrigatório').max(50).optional().nullable(),
+  description: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
 })
 
 const correlataItemSchema = z.object({
-  period_start: z.string().optional().nullable(),
-  period_end: z.string().optional().nullable(),
-  plate: z.string().min(1).max(20),
+  period_start: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  period_end: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  plate: z.string().min(1, 'Campo obrigatório').max(20),
 })
 
-const servicePlacasCorrelatasSchema = z.object({
+export const servicePlacasCorrelatasSchema = z.object({
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
   detection_count: z.number().int().min(0).optional().nullable(),
   detection: ticketDetectionEnum.optional().nullable(),
-  items: z.array(correlataItemSchema).default([]),
+  items: z
+    .array(correlataItemSchema)
+    .min(1, 'Adicione ao menos um período e placa')
+    .default([]),
 })
 
-const servicePlacasConjuntasSchema = z.object({
+export const servicePlacasConjuntasSchema = z.object({
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
   detection_count: z.number().int().min(0).optional().nullable(),
   detection: ticketDetectionEnum.optional().nullable(),
-  items: z.array(correlataItemSchema).default([]),
+  items: z
+    .array(correlataItemSchema)
+    .min(1, 'Adicione ao menos um período e placa')
+    .default([]),
 })
 
-const serviceReservaDeImagemSchema = z.object({
-  period_start: z.string().optional().nullable(),
-  period_end: z.string().optional().nullable(),
-  orientation: z.string().max(50_000).optional().nullable(),
+export const serviceReservaDeImagemSchema = z.object({
+  period_start: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  period_end: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  orientation: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
 })
 
-const serviceAnaliseDeImagemSchema = z.object({
-  period_start: z.string().optional().nullable(),
-  period_end: z.string().optional().nullable(),
-  orientation: z.string().max(50_000).optional().nullable(),
+export const serviceAnaliseDeImagemSchema = z.object({
+  period_start: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  period_end: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
+  orientation: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
 })
 
-const serviceOutrosSchema = z.object({
-  orientation: z.string().max(50_000).optional().nullable(),
+export const serviceOutrosSchema = z.object({
+  orientation: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(50)
+    .optional()
+    .nullable(),
 })
 
 export const ticketCreateSchema = z.object({
@@ -102,7 +188,7 @@ export const ticketCreateSchema = z.object({
   equipe_id: z.string().min(1, 'Campo obrigatório'),
   prioridade: ticketPriorityEnum.default('ROTINA'),
 
-  comentario_inicial: z.string().max(50_000).optional().nullable(),
+  comentario_inicial: z.string().max(50).optional().nullable(),
 
   busca_por_placa: z.array(serviceBuscaPorPlacaSchema).default([]),
   busca_por_radar: z.array(serviceBuscaPorRadarSchema).default([]),
