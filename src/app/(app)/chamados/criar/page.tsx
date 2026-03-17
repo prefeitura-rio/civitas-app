@@ -1,4 +1,4 @@
-import { TicketCreateForm } from './components/ticket-create-form'
+import { TicketCreateForm } from './ticket-create/ticket-create-form'
 
 export default function CriarChamadoPage() {
   return (

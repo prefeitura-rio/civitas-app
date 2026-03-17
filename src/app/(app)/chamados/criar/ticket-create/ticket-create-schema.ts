@@ -23,74 +23,29 @@ export const serviceBuscaPorPlacaSchema = z.object({
 })
 
 export const serviceBuscaPorRadarSchema = z.object({
-  period_start: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  period_end: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  plate: z.string().min(1, 'Campo obrigatório').max(20),
-  radar_address: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
+  period_start: z.string().optional().nullable(),
+  period_end: z.string().optional().nullable(),
+  plate: z.string().optional().nullable(),
+  radar_address: z.string().optional().nullable(),
 })
 
 export const serviceCercoSchema = z.object({
-  plate: z.string().min(1, 'Campo obrigatório').max(20),
-  vehicle_observations: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
+  plate: z.string().optional().nullable(),
+  vehicle_observations: z.string().optional().nullable(),
 })
 
 export const serviceBuscaPorImagemSchema = z.object({
-  period_start: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  period_end: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  plate: z.string().min(1, 'Campo obrigatório').max(20).optional().nullable(),
-  address: z.string().min(1, 'Campo obrigatório').max(50).optional().nullable(),
-  description: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
+  period_start: z.string().optional().nullable(),
+  period_end: z.string().optional().nullable(),
+  plate: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
 })
 
 const correlataItemSchema = z.object({
-  period_start: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  period_end: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  plate: z.string().min(1, 'Campo obrigatório').max(20),
+  period_start: z.string().optional().nullable(),
+  period_end: z.string().optional().nullable(),
+  plate: z.string().optional().nullable(),
 })
 
 export const servicePlacasCorrelatasSchema = z.object({
@@ -114,54 +69,19 @@ export const servicePlacasConjuntasSchema = z.object({
 })
 
 export const serviceReservaDeImagemSchema = z.object({
-  period_start: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  period_end: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  orientation: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
+  period_start: z.string().optional().nullable(),
+  period_end: z.string().optional().nullable(),
+  orientation: z.string().optional().nullable(),
 })
 
 export const serviceAnaliseDeImagemSchema = z.object({
-  period_start: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  period_end: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
-  orientation: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
+  period_start: z.string().optional().nullable(),
+  period_end: z.string().optional().nullable(),
+  orientation: z.string().optional().nullable(),
 })
 
 export const serviceOutrosSchema = z.object({
-  orientation: z
-    .string()
-    .min(1, 'Campo obrigatório')
-    .max(50)
-    .optional()
-    .nullable(),
+  orientation: z.string().optional().nullable(),
 })
 
 export const ticketCreateSchema = z.object({
@@ -180,10 +100,7 @@ export const ticketCreateSchema = z.object({
   link_materia: z.string().url('URL inválida').optional().nullable(),
 
   requisitante: requesterSchema,
-  pontos_focais: z
-    .array(focalPointSchema)
-    .max(20, 'Máximo de 20 pontos focais')
-    .default([]),
+  pontos_focais: z.array(focalPointSchema).default([]),
 
   equipe_id: z.string().min(1, 'Campo obrigatório'),
   prioridade: ticketPriorityEnum.default('ROTINA'),

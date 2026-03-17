@@ -710,6 +710,15 @@
   overflow: visible !important;
 }
 
+/* Form do modal que tem corpo rolável (ex.: Placas correlatas / conjuntas) */
+.serviceModalFormScroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Área rolável do conteúdo – título e botões fixos, corpo com scroll */
 .serviceModalBody {
   flex: 1 1 0;
@@ -788,6 +797,10 @@
   gap: 12px;
   justify-content: flex-end;
   flex-direction: row;
+}
+
+.serviceModalFormScroll .serviceModalFooter {
+  flex-shrink: 0;
 }
 
 .serviceModalFooter .cancelButton {
