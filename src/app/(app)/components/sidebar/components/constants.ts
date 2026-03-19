@@ -86,6 +86,16 @@ export const sidebarItems: SideBarItem[] = [
         title: 'Visão Computacional',
         path: '/vision-ai',
       },
+      {
+        icon: 'UserCog',
+        title: 'Equipes',
+        path: '/equipes',
+      },
+      {
+        icon: 'Shield',
+        title: 'Perfis',
+        path: '/perfis',
+      },
     ],
   },
 ] as const

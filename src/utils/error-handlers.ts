@@ -1,5 +1,14 @@
 import { isApiError } from '@/lib/api'
 
+/** Para erros de API com status !== 500, retorna response.data.detail; caso contrário, mensagem genérica. */
+export function getApiErrorMessage(error: unknown): string {
+  if (!isApiError(error)) return genericErrorMessage
+  if (error.response?.status === 500) return genericErrorMessage
+  const detail = error.response?.data?.detail
+  if (typeof detail === 'string' && detail.trim()) return detail
+  return genericErrorMessage
+}
+
 export function isGrantError(error: unknown) {
   return (
     isApiError(error) &&

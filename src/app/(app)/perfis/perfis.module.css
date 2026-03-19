@@ -1,0 +1,365 @@
+/**
+ * Tokens e estilos da tela Cadastro de Perfil (Figma Civitas - node 1004:15411)
+ * Design: https://www.figma.com/design/6Njx9o5Q7wl6SDQf52JZrW/Civitas?node-id=1004-15411
+ */
+
+/* ---------- Design tokens (Figma) ---------- */
+.perfisPage {
+  --perfis-bg-page: #071421;
+  --perfis-bg-section: #101d28;
+  --perfis-bg-button: #1d3449;
+  --perfis-border: #4a5d6d;
+  --perfis-text-default: #f9fafa;
+  --perfis-text-subtle: #97a2ab;
+  --perfis-radius-sm: 8px;
+  --perfis-radius-md: 16px;
+  --perfis-gap-section: 40px;
+}
+
+/* ---------- Layout da página (igual à página de equipes) ---------- */
+.perfisPage {
+  background-color: var(--perfis-bg-page);
+  min-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--perfis-gap-section);
+  width: 100%;
+}
+
+.perfisContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* ---------- Cabeçalho (título + subtítulo) ---------- */
+.perfisHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.perfisTitle {
+  font-family: var(--font-family-heading, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 40px;
+  color: var(--perfis-text-default);
+  margin: 0;
+}
+
+.perfisSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--perfis-text-subtle);
+  margin: 0;
+}
+
+/* ---------- Card da tabela ---------- */
+.perfisTableCard {
+  background-color: var(--perfis-bg-section);
+  border-radius: var(--perfis-radius-sm);
+  width: 100%;
+  overflow: hidden;
+}
+
+.perfisTableContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 16px 32px;
+}
+
+/* ---------- Cabeçalho da tabela ---------- */
+.perfisTableHeaderRow {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 24px;
+  border-bottom: 0.8px solid var(--perfis-border);
+}
+
+.perfisTableHeaderCellNome {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  min-width: 0;
+  flex: 1;
+  max-width: 400px;
+}
+
+.perfisTableHeaderCellPerfil {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.perfisTableHeaderCellAcoes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.perfisTableHeaderText {
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--perfis-text-subtle);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ---------- Linhas da tabela ---------- */
+.perfisTableRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 24px;
+  border-bottom: 0.8px solid var(--perfis-border);
+}
+
+.perfisTableRowContent {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.perfisTableCellNome {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  min-width: 0;
+  flex: 1;
+  max-width: 400px;
+}
+
+.perfisTableCellPerfil {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.perfisTableCellText {
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--perfis-text-subtle);
+  margin: 0;
+}
+
+/* ---------- Badges de perfil (cores do Figma) ---------- */
+.perfisBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.perfisBadgeCoordenador {
+  background: rgba(15, 122, 92, 0.1);
+  color: #0f7a5c;
+}
+
+.perfisBadgeAdministrativo {
+  background: rgba(210, 100, 42, 0.1);
+  color: #d2642a;
+}
+
+.perfisBadgeAdjunto {
+  background: rgba(91, 77, 178, 0.1);
+  color: #5b4db2;
+}
+
+.perfisBadgeLiderIlha {
+  background: rgba(140, 62, 122, 0.1);
+  color: #8c3e7a;
+}
+
+.perfisBadgeOperador {
+  background: rgba(6, 178, 187, 0.1);
+  color: #06b2bb;
+}
+
+/* ---------- Botão Editar ---------- */
+.perfisBtnEditar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 4px 12px;
+  background-color: var(--perfis-bg-button);
+  border-radius: var(--perfis-radius-sm);
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 16px;
+  color: var(--perfis-text-default);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.perfisBtnEditar:hover {
+  opacity: 0.9;
+}
+
+.perfisBtnEditar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Paginação (estilo Figma) ---------- */
+/* Textos à esquerda; botões centralizados no meio */
+.perfisPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.perfisPagination > div {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start !important;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Grupo dos 4 botões de navegação no centro */
+.perfisPagination > div > div > div:last-child {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.perfisPaginationBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 8px 16px;
+  background-color: var(--perfis-bg-button);
+  border-radius: var(--perfis-radius-sm);
+  border: none;
+  color: var(--perfis-text-default);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.perfisPaginationBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.perfisPaginationBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Override dos botões do componente Pagination quando dentro de .perfisPagination */
+.perfisPagination button {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+  background-color: var(--perfis-bg-button) !important;
+  border-color: var(--perfis-border) !important;
+  color: var(--perfis-text-default) !important;
+  border-radius: var(--perfis-radius-sm);
+}
+
+.perfisPagination button:hover:not(:disabled) {
+  opacity: 0.9;
+  background-color: var(--perfis-bg-button) !important;
+  border-color: var(--perfis-border) !important;
+}
+
+.perfisPagination span {
+  color: var(--perfis-text-subtle);
+  font-size: 14px;
+}
+
+.perfisPaginationNumbers {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ---------- Modal (mesmo padrão da página) ---------- */
+/* Redefine tokens no modal (portal fica fora de .perfisPage) */
+.perfisModalContent {
+  --perfis-bg-page: #071421;
+  --perfis-bg-section: #101d28;
+  --perfis-bg-button: #1d3449;
+  --perfis-border: #4a5d6d;
+  --perfis-text-default: #f9fafa;
+  --perfis-text-subtle: #97a2ab;
+  --perfis-radius-sm: 8px;
+  background-color: var(--perfis-bg-section);
+  border: 1px solid var(--perfis-border);
+  border-radius: var(--perfis-radius-sm);
+  color: var(--perfis-text-default);
+}
+
+.perfisModalTitle {
+  font-family: var(--font-family-heading, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 40px;
+  color: var(--perfis-text-default);
+}
+
+.perfisModalLabel {
+  font-size: 14px;
+  color: var(--perfis-text-subtle);
+}
+
+.perfisModalSection {
+  background-color: rgba(29, 52, 73, 0.3);
+  border: 1px solid var(--perfis-border);
+  border-radius: var(--perfis-radius-sm);
+  padding: 16px;
+}
+
+.perfisModalBtnPrimary {
+  background-color: var(--perfis-bg-button);
+  color: var(--perfis-text-default);
+  border-radius: var(--perfis-radius-sm);
+  font-weight: 600;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.perfisModalBtnPrimary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.perfisModalBtnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
