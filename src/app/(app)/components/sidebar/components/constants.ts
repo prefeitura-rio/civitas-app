@@ -1,5 +1,7 @@
 import type { icons } from 'lucide-react'
 
+import { config } from '@/config'
+
 export interface Module {
   icon: keyof typeof icons
   title: string
@@ -13,6 +15,12 @@ export interface Category {
 }
 
 export type SideBarItem = Module | Category
+
+const chamadosItem: Module = {
+  icon: 'ClipboardList',
+  title: 'Chamados',
+  path: '/chamados',
+}
 
 export const sidebarItems: SideBarItem[] = [
   {
@@ -41,11 +49,7 @@ export const sidebarItems: SideBarItem[] = [
     title: 'Pessoas',
     path: '/pessoas',
   },
-  {
-    icon: 'ClipboardList',
-    title: 'Chamados',
-    path: '/chamados',
-  },
+  ...(config.enableChamados ? [chamadosItem] : []),
   {
     icon: 'Speech',
     title: 'Ocorrências (DD & 1746)',
