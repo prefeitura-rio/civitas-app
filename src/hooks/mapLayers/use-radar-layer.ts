@@ -123,48 +123,83 @@ export function useRadarLayer(
             height: 48,
             mask: false,
           },
+          // SENTRY: variantes violetas nas linhas extras do atlas (y 96 e 144)
+          'sentry-default': {
+            x: 0,
+            y: 96,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
+          'sentry-highlighted': {
+            x: 48,
+            y: 96,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
+          'sentry-disabled': {
+            x: 0,
+            y: 144,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
+          'sentry-disabled-highlighted': {
+            x: 48,
+            y: 144,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
         },
         getIcon: (d) => {
           const isSelected = selectedObject?.cetRioCode === d.cetRioCode
           const isMultiSelected = selectedObjects.find(
             (item) => item.cetRioCode === d.cetRioCode,
           )
+          const isHovered = hoveredObject?.object?.cetRioCode === d.cetRioCode
+          const isSentry = d.company?.toUpperCase() === 'SENTRY'
+          const prefix = isSentry ? 'sentry-' : ''
 
-          if ((isSelected || isMultiSelected) && d.activeInLast24Hours) {
-            return 'highlighted'
+          if (
+            (isSelected || isMultiSelected || isHovered) &&
+            d.activeInLast24Hours
+          ) {
+            return `${prefix}highlighted`
           }
 
-          if ((isSelected || isMultiSelected) && !d.activeInLast24Hours) {
-            return 'disabled-highlighted'
+          if (
+            (isSelected || isMultiSelected || isHovered) &&
+            !d.activeInLast24Hours
+          ) {
+            return `${prefix}disabled-highlighted`
           }
 
           if (!d.activeInLast24Hours) {
-            return 'disabled'
+            return `${prefix}disabled`
           }
 
-          return 'default'
+          return `${prefix}default`
         },
         sizeScale: 24,
         getPosition: (d) => [d.longitude, d.latitude],
         getColor: () => [240, 140, 10],
         visible: isVisible,
-        // onHover: (info) => {
-        //   if (!isHoveringInfoCard) {
-        //     setHoveredObject(info.object ? info : null)
-        //   }
-        // },
+        onHover: (info) => {
+          setHoveredObject(info.object ? info : null)
+        },
         // onClick: (info) => {
         //   if (info.object) {
         //     handleSelectObject(info.object)
         //   }
         // },
-        autoHighlight: true,
-        highlightColor: [249, 115, 22],
       }),
     [
       data,
       selectedObject?.cetRioCode,
       selectedObjects,
+      hoveredObject?.object?.cetRioCode,
       isVisible,
       multipleSelectedRadars,
     ],
