@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getOperations } from '@/http/operations/get-operations'
+import { getTeamsList } from '@/http/teams/get-teams'
 import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
 import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
@@ -130,6 +131,11 @@ export function useTicketCreate() {
     enabled: ticketPopoverOpen && ticketSearch.trim().length > 0,
   })
 
+  const teamsQuery = useQuery({
+    queryKey: ['teams', 'list', 'select'],
+    queryFn: () => getTeamsList(),
+  })
+
   const createMutation = useMutation({
     mutationFn: async (payload: TicketCreateForm) =>
       createTicket(payload, files),
@@ -148,12 +154,14 @@ export function useTicketCreate() {
   const ticketTypes = ticketTypesQuery.data?.data?.items ?? []
   const ticketNatures = ticketNaturesQuery.data?.data?.items ?? []
   const tickets = ticketsQuery.data?.data ?? []
+  const teams = teamsQuery.data?.data ?? []
 
   const isOperationsLoading = operationsQuery.isLoading
   const isTicketTypesLoading = ticketTypesQuery.isLoading
   const isTicketNaturesLoading = ticketNaturesQuery.isLoading
   const isTicketsLoading = ticketsQuery.isLoading
-  const isLoading = isSubmitting || createMutation.isPending
+  const isTeamsLoading = teamsQuery.isLoading
+  const isLoading = isSubmitting || createMutation.isPending || isTeamsLoading
 
   function toggleSection(key: SectionKey) {
     setOpenSections((prev) => ({
@@ -209,10 +217,12 @@ export function useTicketCreate() {
     isTicketTypesLoading,
     isTicketNaturesLoading,
     isTicketsLoading,
+    isTeamsLoading,
     operations,
     ticketTypes,
     ticketNatures,
     tickets,
+    teams,
     files,
     openSections,
     serviceModalOpen,

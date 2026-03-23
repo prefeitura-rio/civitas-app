@@ -37,6 +37,15 @@ export interface TeamSimple {
   is_active: boolean
 }
 
+export interface TeamsListSimpleResponse {
+  id: string
+  name: string
+}
+
+export function getTeamsList() {
+  return api.get<TeamsListSimpleResponse[]>('/teams/')
+}
+
 export function getTeams() {
-  return api.get<TeamListResponse>('/teams/')
+  return api.get<TeamListResponse>('/teams/with-members')
 }

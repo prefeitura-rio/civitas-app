@@ -37,7 +37,6 @@ import { DataBaseDatePicker } from '../components/shared/data-base-date-picker'
 import { PriorityButton } from '../components/shared/priority-button'
 import { Section } from '../components/shared/section'
 import { useTicketCreate } from '../hooks/use-ticket-create'
-import { MOCK_TEAMS } from '../ticket-create/ticket-create.constant'
 import styles from './ticket-create-form.module.css'
 
 function nullIfEmpty(value?: string | null) {
@@ -716,13 +715,13 @@ export function TicketCreateForm() {
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent className={styles.selectContentForm}>
-                      {MOCK_TEAMS.map((t) => (
+                      {vm.teams.map((t) => (
                         <SelectItem
                           key={t.id}
                           value={t.id}
                           className={styles.selectItemForm}
                         >
-                          {t.title}
+                          {t.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
