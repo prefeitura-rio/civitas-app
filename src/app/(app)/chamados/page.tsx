@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 
 import { config } from '@/config'
 
-import { TicketsGeneralList } from './components/list/tickets-general-list'
+import { TicketsGeneralList } from './list/tickets-general-list'
 
 export default function ChamadosPage() {
   if (!config.enableChamados) {

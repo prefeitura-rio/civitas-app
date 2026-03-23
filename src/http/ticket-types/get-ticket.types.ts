@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
+import type { PaginationRequest } from '@/models/pagination'
 
 export interface TicketType {
   id: string
@@ -12,12 +12,8 @@ interface GetTicketTypesRequest extends PaginationRequest {
   isActive?: boolean
 }
 
-export interface GetTicketTypesResponse extends PaginationResponse {
-  items: TicketType[]
-}
-
 export function getTicketTypes({ search, isActive }: GetTicketTypesRequest) {
-  return api.get<GetTicketTypesResponse>('/ticket-types', {
+  return api.get<TicketType[]>('/ticket-types', {
     params: {
       search,
       isActive,

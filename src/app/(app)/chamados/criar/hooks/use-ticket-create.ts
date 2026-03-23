@@ -145,8 +145,8 @@ export function useTicketCreate() {
   })
 
   const operations = operationsQuery.data?.data?.items ?? []
-  const ticketTypes = ticketTypesQuery.data?.data?.items ?? []
-  const ticketNatures = ticketNaturesQuery.data?.data?.items ?? []
+  const ticketTypes = ticketTypesQuery.data?.data ?? []
+  const ticketNatures = ticketNaturesQuery.data?.data ?? []
   const tickets = ticketsQuery.data?.data ?? []
 
   const isOperationsLoading = operationsQuery.isLoading
