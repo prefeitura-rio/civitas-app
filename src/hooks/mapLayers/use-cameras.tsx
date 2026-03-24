@@ -61,8 +61,6 @@ export function useCamera(): UseCamera {
         data,
         pickable: true,
         getSize: 24,
-        autoHighlight: true,
-        highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
         visible: isVisible,
         iconAtlas: cameraIconAtlas.src,
         iconMapping: {
@@ -80,15 +78,35 @@ export function useCamera(): UseCamera {
             height: 48,
             mask: false,
           },
+          'dc3-default': {
+            x: 0,
+            y: 48,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
+          'dc3-highlighted': {
+            x: 48,
+            y: 48,
+            width: 48,
+            height: 48,
+            mask: false,
+          },
         },
         getIcon: (d) => {
-          if (selectedObject?.code === d.code) {
-            return 'highlighted'
-          } else return 'default'
+          const isActive =
+            selectedObject?.code === d.code ||
+            hoveredObject?.object?.code === d.code
+          const isDC3 = d.sistemaOrigem?.toUpperCase() === 'DC3'
+          const prefix = isDC3 ? 'dc3-' : ''
+          return isActive ? `${prefix}highlighted` : `${prefix}default`
         },
         getPosition: (info) => [info.longitude, info.latitude],
+        onHover: (info) => {
+          setHoveredObject(info.object ? info : null)
+        },
       }),
-    [data, selectedObject?.code, isVisible],
+    [data, selectedObject?.code, hoveredObject?.object?.code, isVisible],
   )
 
   return {
