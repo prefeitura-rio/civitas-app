@@ -15,10 +15,12 @@ export default function CadastroPerfilPage() {
   return (
     <ProfileAccessProvider>
       <div
-        className={`${styles.perfisPage} page-content flex min-h-screen flex-col overflow-y-auto px-6 py-6`}
+        className={`${styles.perfisPage} flex min-h-screen flex-col overflow-y-auto px-6 py-6`}
       >
-        <ProfileAccessTable />
-        <ProfileAccessDialogs />
+        <div className="content">
+          <ProfileAccessTable />
+          <ProfileAccessDialogs />
+        </div>
       </div>
     </ProfileAccessProvider>
   )
