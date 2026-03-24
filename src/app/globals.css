@@ -111,6 +111,20 @@
   .page-content {
     @apply h-screen p-4 pt-8 w-full;
   }
+  .content {
+    @apply mx-auto w-full px-4 sm:px-6 lg:px-8;
+    max-width: 1400px;
+  }
+
+  .content-sm {
+    @apply mx-auto w-full px-4 sm:px-6 lg:px-8;
+    max-width: 960px;
+  }
+
+  .content-lg {
+    @apply mx-auto w-full px-4 sm:px-6 lg:px-8;
+    max-width: 1600px;
+  }
 
   .A4 {
     @apply m-auto flex h-[29cm] w-[21cm] flex-col gap-4 border-border bg-white px-[1.5cm] py-[1cm];

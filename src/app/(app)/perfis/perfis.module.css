@@ -231,13 +231,12 @@
   cursor: not-allowed;
 }
 
-/* ---------- Paginação (estilo Figma) ---------- */
-/* Textos à esquerda; botões centralizados no meio */
 .perfisPagination {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  margin-top: var(--perfis-gap-section);
 }
 
 .perfisPagination > div {
@@ -247,13 +246,15 @@
   justify-content: flex-start !important;
   gap: 24px;
   width: 100%;
+  min-height: 48px;
 }
 
 /* Grupo dos 4 botões de navegação no centro */
 .perfisPagination > div > div > div:last-child {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .perfisPaginationBtn {

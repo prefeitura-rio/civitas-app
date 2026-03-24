@@ -10,9 +10,11 @@ export default function EquipesPage() {
   return (
     <TeamsProvider>
       <div className="equipes-page page-content flex min-h-screen flex-col gap-[var(--equipes-gap-section)] overflow-y-auto px-6 py-6">
-        <TeamsHeader />
-        <TeamsList />
-        <TeamsDialogs />
+        <div className="content">
+          <TeamsHeader />
+          <TeamsList />
+          <TeamsDialogs />
+        </div>
       </div>
     </TeamsProvider>
   )
