@@ -21,7 +21,7 @@ import {
   emptyFilters,
   type FilterFormState,
   TicketsDashboardFilterModal,
-} from '../filter/tickets-general-list-filters'
+} from './components/filter/tickets-general-list-filters'
 import styles from './tickets-general-list.module.css'
 
 type DashboardServiceTag = {

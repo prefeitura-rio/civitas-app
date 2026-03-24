@@ -1,6 +1,14 @@
+import { notFound } from 'next/navigation'
+
+import { config } from '@/config'
+
 import { TicketCreateForm } from './ticket-create/ticket-create-form'
 
 export default function CriarChamadoPage() {
+  if (!config.enableChamados) {
+    notFound()
+  }
+
   return (
     <div
       className="page-content space-y-4 overflow-y-scroll pb-24"

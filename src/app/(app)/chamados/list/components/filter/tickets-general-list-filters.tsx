@@ -14,15 +14,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import {
-  searchFocalPoints,
-  searchInternalNumbers,
-  searchOfficialLetters,
   searchOperations,
   type SearchOption,
-  searchProcedureNumbers,
   searchRequesters,
-  searchTicketNatures,
-  searchTicketTypes,
 } from '@/http/tickets/tickets-dashboard-filters'
 import { dateConfig } from '@/lib/date-config'
 
@@ -49,28 +43,9 @@ export type FilterFormState = {
   servicos_realizados: string[]
 }
 
-const statusOptions = [
-  'PENDENTE',
-  'BLOQUEADO',
-  'AGUARDANDO REVISÃO',
-  'ARQUIVADO',
-]
-
 const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
 
 const teamOptions = ['Fox', 'Hotel', 'Golf', 'India']
-
-const serviceOptions = [
-  'BUSCA POR RADAR',
-  'BUSCA POR PLACA',
-  'PLACAS CORRELATAS',
-  'PLACAS CONJUNTAS',
-  'BUSCA POR IMAGEM',
-  'ANÁLISE DE IMAGEM',
-  'RESERVA DE IMAGEM',
-  'CERCO ELETRÔNICO',
-  'OUTROS',
-]
 
 export function emptyFilters(): FilterFormState {
   return {
@@ -449,66 +424,6 @@ export function TicketsDashboardFilterModal({
         <div className={styles.filterModalBody}>
           <div className={styles.filterGrid}>
             <SearchMultiSelect
-              label="TIPO DE CHAMADO"
-              value={draftFilters.tipo_chamado_id}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  tipo_chamado_id: value,
-                }))
-              }
-              searchFn={searchTicketTypes}
-            />
-
-            <SearchMultiSelect
-              label="Nº INTERNO"
-              value={draftFilters.numero_interno}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  numero_interno: value,
-                }))
-              }
-              searchFn={searchInternalNumbers}
-            />
-
-            <SearchMultiSelect
-              label="Nº DE PROCEDIMENTO"
-              value={draftFilters.numero_procedimento}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  numero_procedimento: value,
-                }))
-              }
-              searchFn={searchProcedureNumbers}
-            />
-
-            <SearchMultiSelect
-              label="Nº DE OFÍCIO"
-              value={draftFilters.numero_oficio}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  numero_oficio: value,
-                }))
-              }
-              searchFn={searchOfficialLetters}
-            />
-
-            <SearchMultiSelect
-              label="NATUREZA DO CHAMADO"
-              value={draftFilters.natureza_id}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  natureza_id: value,
-                }))
-              }
-              searchFn={searchTicketNatures}
-            />
-
-            <SearchMultiSelect
               label="DEMANDANTE"
               value={draftFilters.demandante_id}
               onChange={(value) =>
@@ -530,18 +445,6 @@ export function TicketsDashboardFilterModal({
                 }))
               }
               searchFn={searchRequesters}
-            />
-
-            <SearchMultiSelect
-              label="PONTO FOCAL"
-              value={draftFilters.ponto_focal}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  ponto_focal: value,
-                }))
-              }
-              searchFn={searchFocalPoints}
             />
 
             <FilterDateRangeField
@@ -583,18 +486,6 @@ export function TicketsDashboardFilterModal({
 
           <div className={styles.filterTogglesGrid}>
             <ToggleButtonGroup
-              label="STATUS DO CHAMADO"
-              options={statusOptions}
-              values={draftFilters.status}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  status: value,
-                }))
-              }
-            />
-
-            <ToggleButtonGroup
               label="PRIORIDADE"
               options={priorityOptions}
               values={draftFilters.prioridade}
@@ -616,19 +507,6 @@ export function TicketsDashboardFilterModal({
                   equipe: value,
                 }))
               }
-            />
-
-            <ToggleButtonGroup
-              label="SERVIÇOS REALIZADOS"
-              options={serviceOptions}
-              values={draftFilters.servicos_realizados}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  servicos_realizados: value,
-                }))
-              }
-              lastItemFullWidth
             />
           </div>
         </div>
