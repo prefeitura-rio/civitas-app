@@ -44,7 +44,18 @@ export const sidebarItems: SideBarItem[] = [
   {
     icon: 'ClipboardList',
     title: 'Chamados',
-    path: '/chamados',
+    modules: [
+      {
+        icon: 'List',
+        title: 'Lista Geral',
+        path: '/chamados',
+      },
+      {
+        icon: 'CirclePlus',
+        title: 'Criar',
+        path: '/chamados/criar',
+      },
+    ],
   },
   {
     icon: 'Speech',

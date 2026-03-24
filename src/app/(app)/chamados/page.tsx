@@ -2,7 +2,10 @@ import { TicketsGeneralList } from './components/list/tickets-general-list'
 
 export default function ChamadosPage() {
   return (
-    <div className="page-content space-y-4 overflow-y-scroll pb-24">
+    <div
+      className="page-content space-y-4 overflow-y-scroll pb-24"
+      style={{ backgroundColor: '#0c161f' }}
+    >
       <TicketsGeneralList />
     </div>
   )

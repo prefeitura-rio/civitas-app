@@ -1,6 +1,14 @@
 'use client'
 
-import { ChevronDown, Plus, SquareCheck, Trash, Upload } from 'lucide-react'
+import {
+  ChevronDown,
+  Mail,
+  Phone,
+  Plus,
+  SquareCheck,
+  Trash,
+  Upload,
+} from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
@@ -28,6 +36,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { maskPhoneBR } from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../components/services/correlata-list-form'
 import { ServiceAddCard } from '../components/services/service-add-card'
@@ -102,7 +111,7 @@ export function TicketCreateForm() {
 
   return (
     <div className={styles.root}>
-      <div className="mx-auto w-full max-w-5xl space-y-8">
+      <div className="w-full space-y-8">
         <h1
           className="font-semibold leading-10 text-[var(--tc-heading,#f9fafa)]"
           style={{ fontSize: '20px' }}
@@ -115,7 +124,7 @@ export function TicketCreateForm() {
       </div>
 
       <form
-        className="mx-auto w-full max-w-5xl space-y-8"
+        className="w-full space-y-8"
         onSubmit={vm.handleSubmit(vm.onSubmit)}
       >
         <div className={`${styles.sectionCard} ${styles.sectionCardFirst}`}>
@@ -454,20 +463,49 @@ export function TicketCreateForm() {
 
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Telefone</Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  disabled={vm.isLoading}
-                  {...vm.register('requisitante.requisitante_telefone')}
+                <Controller
+                  control={vm.control}
+                  name="requisitante.requisitante_telefone"
+                  render={({ field }) => (
+                    <div className={styles.inputWithIconRight}>
+                      <Input
+                        className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        disabled={vm.isLoading}
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={field.value ?? ''}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        onChange={(e) =>
+                          field.onChange(maskPhoneBR(e.target.value))
+                        }
+                      />
+                      <Phone
+                        className="h-4 w-4 shrink-0 opacity-50"
+                        aria-hidden
+                      />
+                    </div>
+                  )}
                 />
+                {vm.errors.requisitante?.requisitante_telefone?.message && (
+                  <p className="text-xs text-destructive">
+                    {vm.errors.requisitante.requisitante_telefone.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Email</Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  disabled={vm.isLoading}
-                  {...vm.register('requisitante.requisitante_email')}
-                />
+                <div className={styles.inputWithIconRight}>
+                  <Input
+                    className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    type="email"
+                    disabled={vm.isLoading}
+                    autoComplete="email"
+                    {...vm.register('requisitante.requisitante_email')}
+                  />
+                  <Mail className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
+                </div>
                 {vm.errors.requisitante?.requisitante_email?.message && (
                   <p className="text-xs text-destructive">
                     {vm.errors.requisitante?.requisitante_email?.message}
@@ -511,25 +549,64 @@ export function TicketCreateForm() {
 
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Telefone</Label>
-                    <Input
-                      className={`h-11 ${styles.inputBg}`}
-                      disabled={vm.isLoading}
-                      {...vm.register(`pontos_focais.${idx}.telefone`)}
+                    <Controller
+                      control={vm.control}
+                      name={`pontos_focais.${idx}.telefone`}
+                      render={({ field }) => (
+                        <div className={styles.inputWithIconRight}>
+                          <Input
+                            className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            disabled={vm.isLoading}
+                            inputMode="tel"
+                            autoComplete="tel"
+                            value={field.value ?? ''}
+                            onBlur={field.onBlur}
+                            ref={field.ref}
+                            onChange={(e) =>
+                              field.onChange(maskPhoneBR(e.target.value))
+                            }
+                          />
+                          <Phone
+                            className="h-4 w-4 shrink-0 opacity-50"
+                            aria-hidden
+                          />
+                        </div>
+                      )}
                     />
+                    {vm.errors.pontos_focais?.[idx]?.telefone?.message && (
+                      <p className="text-xs text-destructive">
+                        {vm.errors.pontos_focais[idx]?.telefone?.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className={styles.fieldLabel}>Email</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        className={`h-11 ${styles.inputBg}`}
-                        disabled={vm.isLoading}
-                        {...vm.register(`pontos_focais.${idx}.email`)}
-                      />
+                    <div className="flex min-w-0 items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className={styles.inputWithIconRight}>
+                          <Input
+                            className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            type="email"
+                            disabled={vm.isLoading}
+                            autoComplete="email"
+                            {...vm.register(`pontos_focais.${idx}.email`)}
+                          />
+                          <Mail
+                            className="h-4 w-4 shrink-0 opacity-50"
+                            aria-hidden
+                          />
+                        </div>
+                        {vm.errors.pontos_focais?.[idx]?.email?.message && (
+                          <p className="text-xs text-destructive">
+                            {vm.errors.pontos_focais[idx]?.email?.message}
+                          </p>
+                        )}
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"
-                        className="h-11 w-11 p-0"
+                        className="h-11 w-11 shrink-0 p-0"
                         disabled={vm.isLoading}
                         onClick={() => vm.focalPoints.remove(idx)}
                       >
