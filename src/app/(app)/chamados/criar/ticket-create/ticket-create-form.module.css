@@ -263,7 +263,8 @@
   padding-right: 16px;
 }
 
-.inputWithIconLeft input {
+.inputWithIconLeft input,
+.inputWithIconRight input {
   flex: 1;
   min-width: 0;
   height: 100%;
@@ -275,12 +276,42 @@
   font-size: 14px;
 }
 
-.inputWithIconLeft input::placeholder {
+.inputWithIconLeft input::placeholder,
+.inputWithIconRight input::placeholder {
   color: var(--tc-text-subtle);
 }
 
-.inputWithIconLeft input:focus {
+.inputWithIconLeft input:focus,
+.inputWithIconRight input:focus {
   box-shadow: none;
+}
+
+/* Mesmo padrão visual do Data base (ícone à direita, opacidade no ícone) */
+.inputWithIconRight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: var(--tc-input-bg);
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+  min-height: 44px;
+  height: 44px;
+  padding-left: 16px;
+  padding-right: 14px;
+}
+
+.inputWithIconRight:hover:not(:has(input:disabled)) {
+  border-color: var(--tc-input-border-hover);
+}
+
+.inputWithIconRight:focus-within {
+  border-color: var(--tc-input-border-hover);
+}
+
+.inputWithIconRight:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .iconSubtle {

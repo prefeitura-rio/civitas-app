@@ -16,10 +16,31 @@ export interface Category {
 
 export type SideBarItem = Module | Category
 
-const chamadosItem: Module = {
+const chamadosItem: Category = {
   icon: 'ClipboardList',
   title: 'Chamados',
-  path: '/chamados',
+  modules: [
+    {
+      icon: 'List',
+      title: 'Lista Geral',
+      path: '/chamados',
+    },
+    {
+      icon: 'CirclePlus',
+      title: 'Criar',
+      path: '/chamados/criar',
+    },
+    {
+      icon: 'UserCog',
+      title: 'Equipes',
+      path: '/equipes',
+    },
+    {
+      icon: 'Shield',
+      title: 'Perfis',
+      path: '/perfis',
+    },
+  ],
 }
 
 export const sidebarItems: SideBarItem[] = [

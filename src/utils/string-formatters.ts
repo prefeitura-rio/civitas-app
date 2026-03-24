@@ -50,6 +50,38 @@ export function formatPhone(value: string) {
   return ddd + celDigit + middleDigits + '-' + last4Digits
 }
 
+export function maskPhoneBR(value: string) {
+  const n = value.replace(/\D/g, '').slice(0, 11)
+  if (n.length === 0) return ''
+
+  if (n.length <= 2) {
+    return `(${n}`
+  }
+
+  const ddd = n.slice(0, 2)
+  const rest = n.slice(2)
+
+  if (rest.length === 0) {
+    return `(${ddd})`
+  }
+
+  if (rest[0] === '9') {
+    if (rest.length === 1) {
+      return `(${ddd}) ${rest}`
+    }
+    const body = rest.slice(1)
+    if (body.length <= 4) {
+      return `(${ddd}) ${rest[0]} ${body}`
+    }
+    return `(${ddd}) ${rest[0]} ${body.slice(0, 4)}-${body.slice(4)}`
+  }
+
+  if (rest.length <= 4) {
+    return `(${ddd}) ${rest}`
+  }
+  return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`
+}
+
 export function formatCNPJ(value: string) {
   // Remove any non-numeric characters
   const numericValue = value.replace(/\D/g, '')

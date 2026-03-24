@@ -1,8 +1,3 @@
-export const MOCK_TEAMS = [
-  { id: '1', title: 'Equipe A' },
-  { id: '2', title: 'Equipe B' },
-] as const
-
 export type OpenServiceKey =
   | 'busca_por_placa'
   | 'busca_por_radar'
