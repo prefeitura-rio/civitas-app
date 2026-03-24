@@ -14,7 +14,9 @@ export default function CriarChamadoPage() {
       className="page-content space-y-4 overflow-y-scroll pb-24"
       style={{ backgroundColor: '#0c161f' }}
     >
-      <TicketCreateForm />
+      <div className="content">
+        <TicketCreateForm />
+      </div>
     </div>
   )
 }
