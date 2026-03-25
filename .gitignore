@@ -19,6 +19,7 @@ package-lock.json
 /blob-report/
 /playwright/.cache/
 /e2e-results/
+.jest-last.json
 
 # next.js
 /.next/

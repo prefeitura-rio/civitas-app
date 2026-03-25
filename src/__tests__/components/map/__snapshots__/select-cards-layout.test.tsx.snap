@@ -707,7 +707,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       <h3
         class="text-left text-sm font-semibold tracking-tighter"
       >
-        Radar OCR
+        Informações do Equipamento
       </h3>
     </div>
     <div
@@ -722,7 +722,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm font-medium"
           >
-            Código CET-Rio
+            Código do Equipamento
           </span>
           <span
             class="break-all text-sm text-muted-foreground"
@@ -951,7 +951,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 r="3"
               />
             </svg>
-            Focar no Radar
+            Focar no Equipamento
           </button>
           <button
             class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
@@ -1020,7 +1020,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       <h3
         class="text-left text-sm font-semibold tracking-tighter"
       >
-        Radar OCR
+        Informações do Equipamento
       </h3>
     </div>
     <div
@@ -1035,7 +1035,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm font-medium"
           >
-            Código CET-Rio
+            Código do Equipamento
           </span>
           <span
             class="break-all text-sm text-muted-foreground"
@@ -1274,7 +1274,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 Atenção!
               </span>
                
-              Radares são considerados inativos se não enviarem dados há mais de 24 horas. No entanto, essa informação não é atualizada em tempo real e pode seguir desatualizada por várias horas.
+              Equipamentos LPR são considerados inativos se não enviarem dados há mais de 24 horas. No entanto, essa informação não é atualizada em tempo real e pode seguir desatualizada por várias horas.
             </p>
           </div>
         </div>
@@ -1305,7 +1305,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 r="3"
               />
             </svg>
-            Focar no Radar
+            Focar no Equipamento
           </button>
           <button
             class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
@@ -1374,7 +1374,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       <h3
         class="text-left text-sm font-semibold tracking-tighter"
       >
-        Radar OCR
+        Informações do Equipamento
       </h3>
     </div>
     <div
@@ -1389,7 +1389,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm font-medium"
           >
-            Código CET-Rio
+            Código do Equipamento
           </span>
           <span
             class="break-all text-sm text-muted-foreground"
@@ -1566,7 +1566,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 Atenção!
               </span>
                
-              Radares são considerados inativos se não enviarem dados há mais de 24 horas. No entanto, essa informação não é atualizada em tempo real e pode seguir desatualizada por várias horas.
+              Equipamentos LPR são considerados inativos se não enviarem dados há mais de 24 horas. No entanto, essa informação não é atualizada em tempo real e pode seguir desatualizada por várias horas.
             </p>
           </div>
         </div>
@@ -1597,7 +1597,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 r="3"
               />
             </svg>
-            Focar no Radar
+            Focar no Equipamento
           </button>
           <button
             class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
