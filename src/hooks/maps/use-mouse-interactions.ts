@@ -39,7 +39,10 @@ export function useMouseInteractions({
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
       const ZOOM_SIZE = 18
 
-      if (info?.layer?.id === 'radars' && info.object) {
+      const RADAR_LAYER_IDS = ['radars', 'radars-sentry']
+      const CAMERA_LAYER_IDS = ['cameras', 'cameras-dc3']
+
+      if (RADAR_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
         const radar = info.object as Radar
         const setRadarInfoMode = useMapStore.getState().setRadarInfoMode
         setRadarInfoMode(radar)
@@ -48,7 +51,7 @@ export function useMouseInteractions({
         return
       }
 
-      if (info?.layer?.id === 'cameras' && info.object) {
+      if (CAMERA_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
         const camera = info.object as Camera
         selectCamera(camera, () => {
           setSelectedRadar(null)
@@ -108,7 +111,8 @@ export function useMouseInteractions({
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      if (info?.layer?.id === 'radars' && info.object) {
+      const RADAR_LAYER_IDS = ['radars', 'radars-sentry']
+      if (RADAR_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
         const radar = info.object as Radar
         multiSelectRadar(radar)
       }

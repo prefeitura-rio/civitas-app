@@ -83,9 +83,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 4,
   },
-  radar: {
+  equipment: {
     textAlign: 'center',
-    width: '11%',
+    width: '13%',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingVertical: 4,
@@ -117,8 +117,8 @@ export function TripTable({ points }: TripTableProps) {
         <View style={styles.speed}>
           <Text>Velocidade [Km/h]</Text>
         </View>
-        <View style={styles.radar}>
-          <Text>Radar nº</Text>
+        <View style={styles.equipment}>
+          <Text>Equipamento nº</Text>
         </View>
       </View>
 
@@ -146,7 +146,7 @@ export function TripTable({ points }: TripTableProps) {
                 <Text>{item.index + 1}</Text>
               </View>
               <View style={styles.location}>
-                <Text>{`${location}, ${district}; Sentido: ${direction}; Faixa: ${item.lane}`}</Text>
+                <Text>{`${location}, ${district}; Sentido: ${direction}`}</Text>
               </View>
               <View style={styles.latitude}>
                 <Text>
@@ -169,7 +169,7 @@ export function TripTable({ points }: TripTableProps) {
               <View style={styles.speed}>
                 <Text>{item.speed.toFixed(0)}</Text>
               </View>
-              <View style={styles.radar}>
+              <View style={styles.equipment}>
                 <Text>{item.cetRioCode}</Text>
               </View>
             </View>

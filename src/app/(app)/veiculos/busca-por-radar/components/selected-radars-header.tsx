@@ -26,7 +26,7 @@ export function SelectedRadarsHeader({
     <form className="flex space-x-2" onSubmit={handleSubmit}>
       <Input
         value={searchValue}
-        placeholder="Código CET-RIO"
+        placeholder="Código Equipamento"
         onChange={(event) => onSearchChange(event.target.value)}
       />
       <Button type="submit">Adicionar</Button>
