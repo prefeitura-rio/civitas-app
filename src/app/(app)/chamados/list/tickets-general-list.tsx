@@ -92,19 +92,20 @@ const sections: SectionConfig[] = [
 ]
 
 function normalizePriority(priority: string) {
-  const value = priority.trim().toUpperCase()
+  const value = priority?.trim().toUpperCase()
+  if (value === null) return ''
 
   if (value === 'URGENTE') return 'Urgente'
   if (value === 'ALTA') return 'Alta'
-  return 'Rotina'
+  if (value === 'ROTINA') return 'Rotina'
 }
 
 function getPriorityBadgeValue(item: DashboardItem) {
-  if (item.prioridade.trim().toUpperCase() === 'URGENTE') {
+  if (item.prioridade?.trim().toUpperCase() === 'URGENTE') {
     return Math.max(item.dias_atraso, 1)
   }
 
-  if (item.prioridade.trim().toUpperCase() === 'ALTA') {
+  if (item.prioridade?.trim().toUpperCase() === 'ALTA') {
     return Math.max(item.dias_atraso, 1)
   }
 

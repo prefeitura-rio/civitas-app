@@ -1,5 +1,7 @@
 import type { icons } from 'lucide-react'
 
+import { config } from '@/config'
+
 export interface Module {
   icon: keyof typeof icons
   title: string
@@ -13,6 +15,33 @@ export interface Category {
 }
 
 export type SideBarItem = Module | Category
+
+const chamadosItem: Category = {
+  icon: 'ClipboardList',
+  title: 'Chamados',
+  modules: [
+    {
+      icon: 'List',
+      title: 'Lista Geral',
+      path: '/chamados',
+    },
+    {
+      icon: 'CirclePlus',
+      title: 'Criar',
+      path: '/chamados/criar',
+    },
+    {
+      icon: 'UserCog',
+      title: 'Equipes',
+      path: '/equipes',
+    },
+    {
+      icon: 'Shield',
+      title: 'Perfis',
+      path: '/perfis',
+    },
+  ],
+}
 
 export const sidebarItems: SideBarItem[] = [
   {
@@ -41,22 +70,7 @@ export const sidebarItems: SideBarItem[] = [
     title: 'Pessoas',
     path: '/pessoas',
   },
-  {
-    icon: 'ClipboardList',
-    title: 'Chamados',
-    modules: [
-      {
-        icon: 'List',
-        title: 'Lista Geral',
-        path: '/chamados',
-      },
-      {
-        icon: 'CirclePlus',
-        title: 'Criar',
-        path: '/chamados/criar',
-      },
-    ],
-  },
+  ...(config.enableChamados ? [chamadosItem] : []),
   {
     icon: 'Speech',
     title: 'Ocorrências (DD & 1746)',
@@ -96,16 +110,6 @@ export const sidebarItems: SideBarItem[] = [
         icon: 'ScanEye',
         title: 'Visão Computacional',
         path: '/vision-ai',
-      },
-      {
-        icon: 'UserCog',
-        title: 'Equipes',
-        path: '/equipes',
-      },
-      {
-        icon: 'Shield',
-        title: 'Perfis',
-        path: '/perfis',
       },
     ],
   },
