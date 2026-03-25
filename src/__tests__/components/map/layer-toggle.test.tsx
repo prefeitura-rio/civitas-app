@@ -132,7 +132,7 @@ describe('MapLayerControl', () => {
     fireEvent.click(button)
 
     // Verifica se a camada de radar está selecionada por padrão
-    const radarButton = screen.getByLabelText('Toggle Radar layer')
+    const radarButton = screen.getByLabelText('Toggle LPR layer')
     expect(radarButton).toHaveAttribute('data-state', 'on')
     expect(radarButton).toHaveAttribute('aria-pressed', 'true')
   })
@@ -266,7 +266,7 @@ describe('MapLayerControl', () => {
     fireEvent.click(button)
 
     // Verifica se todas as camadas estão presentes
-    expect(screen.getByLabelText('Toggle Radar layer')).toBeInTheDocument()
+    expect(screen.getByLabelText('Toggle LPR layer')).toBeInTheDocument()
     expect(screen.getByLabelText('Toggle Câmeras layer')).toBeInTheDocument()
     expect(screen.getByLabelText('Toggle Agentes layer')).toBeInTheDocument()
     expect(
@@ -294,7 +294,7 @@ describe('MapLayerControl', () => {
     fireEvent.click(button)
 
     // Verifica se os nomes das camadas estão corretos
-    expect(screen.getByText('Radar')).toBeInTheDocument()
+    expect(screen.getByText('LPR')).toBeInTheDocument()
     expect(screen.getByText('Câmeras')).toBeInTheDocument()
     expect(screen.getByText('Agentes')).toBeInTheDocument()
     expect(screen.getByText('Policiamento (Waze)')).toBeInTheDocument()
@@ -314,7 +314,7 @@ describe('MapLayerControl', () => {
     fireEvent.click(button)
 
     // Verifica se as camadas selecionadas têm a classe correta
-    const radarButton = screen.getByLabelText('Toggle Radar layer')
+    const radarButton = screen.getByLabelText('Toggle LPR layer')
     const camerasButton = screen.getByLabelText('Toggle Câmeras layer')
 
     expect(radarButton).toHaveClass('data-[state=on]:bg-primary')
@@ -352,7 +352,7 @@ describe('MapLayerControl', () => {
     const selectedLayerNames = selectedLayers.map((button) =>
       button.getAttribute('aria-label'),
     )
-    expect(selectedLayerNames).toContain('Toggle Radar layer')
+    expect(selectedLayerNames).toContain('Toggle LPR layer')
     expect(selectedLayerNames).toContain('Toggle Câmeras layer')
   })
 })
