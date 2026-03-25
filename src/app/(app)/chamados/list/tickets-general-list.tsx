@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -91,19 +92,20 @@ const sections: SectionConfig[] = [
 ]
 
 function normalizePriority(priority: string) {
-  const value = priority.trim().toUpperCase()
+  const value = priority?.trim().toUpperCase()
+  if (value === null) return ''
 
   if (value === 'URGENTE') return 'Urgente'
   if (value === 'ALTA') return 'Alta'
-  return 'Rotina'
+  if (value === 'ROTINA') return 'Rotina'
 }
 
 function getPriorityBadgeValue(item: DashboardItem) {
-  if (item.prioridade.trim().toUpperCase() === 'URGENTE') {
+  if (item.prioridade?.trim().toUpperCase() === 'URGENTE') {
     return Math.max(item.dias_atraso, 1)
   }
 
-  if (item.prioridade.trim().toUpperCase() === 'ALTA') {
+  if (item.prioridade?.trim().toUpperCase() === 'ALTA') {
     return Math.max(item.dias_atraso, 1)
   }
 
@@ -278,6 +280,7 @@ function DashboardSectionTable({
 export function TicketsGeneralList() {
   const [periodDays, setPeriodDays] = useState<number>(30)
   const [search, setSearch] = useState<string>('')
+  const debouncedSearch = useDebounce(search, 350)
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] =
@@ -296,7 +299,7 @@ export function TicketsGeneralList() {
     return {
       period_days: periodDays,
       overdue_after_days: 7,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
 
       tipo_chamado_id: appliedFilters.tipo_chamado_id.map((item) => item.value),
       numero_interno: appliedFilters.numero_interno.map((item) =>
@@ -318,14 +321,16 @@ export function TicketsGeneralList() {
 
       status: appliedFilters.status.length ? appliedFilters.status : undefined,
       prioridade: appliedFilters.prioridade.length
-        ? appliedFilters.prioridade
+        ? appliedFilters.prioridade.map((item) => item.value)
         : undefined,
-      equipe: appliedFilters.equipe.length ? appliedFilters.equipe : undefined,
+      equipe: appliedFilters.equipe.length
+        ? appliedFilters.equipe.map((item) => item.value)
+        : undefined,
       servicos_realizados: appliedFilters.servicos_realizados.length
         ? appliedFilters.servicos_realizados
         : undefined,
     }
-  }, [appliedFilters, periodDays, search])
+  }, [appliedFilters, periodDays, debouncedSearch])
 
   const { data, isLoading, isFetching } = useQuery<TicketDashboardResponse>({
     queryKey: ['tickets-dashboard', dashboardPayload],

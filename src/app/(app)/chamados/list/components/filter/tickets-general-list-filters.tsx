@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { CalendarIcon, Check, ChevronDown, X } from 'lucide-react'
+import { CalendarIcon, ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { type DateRange } from 'react-day-picker'
 
@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { getTeamsList } from '@/http/teams/get-teams'
 import {
   searchOperations,
   type SearchOption,
@@ -38,14 +39,12 @@ export type FilterFormState = {
   data_entrada_fim: string
 
   status: string[]
-  prioridade: string[]
-  equipe: string[]
+  prioridade: SearchOption[]
+  equipe: SearchOption[]
   servicos_realizados: string[]
 }
 
 const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
-
-const teamOptions = ['Fox', 'Hotel', 'Golf', 'India']
 
 export function emptyFilters(): FilterFormState {
   return {
@@ -92,59 +91,10 @@ function formatLabel(value: string) {
     .join(' ')
 }
 
-function ToggleButtonGroup({
-  label,
-  options,
-  values,
-  onChange,
-  lastItemFullWidth = false,
-}: {
-  label: string
-  options: string[]
-  values: string[]
-  onChange: (values: string[]) => void
-  lastItemFullWidth?: boolean
-}) {
-  const toggleValue = (value: string) => {
-    const exists = values.includes(value)
-
-    if (exists) {
-      onChange(values.filter((item) => item !== value))
-      return
-    }
-
-    onChange([...values, value])
-  }
-
-  return (
-    <div className={styles.filterBlock}>
-      <span className={styles.filterLabel}>{label}</span>
-
-      <div
-        className={
-          lastItemFullWidth
-            ? `${styles.toggleGrid} ${styles.toggleGridLastFull}`
-            : styles.toggleGrid
-        }
-      >
-        {options.map((option) => {
-          const selected = values.includes(option)
-
-          return (
-            <button
-              key={option}
-              type="button"
-              className={`${styles.toggleButton} ${selected ? styles.toggleButtonActive : ''}`}
-              onClick={() => toggleValue(option)}
-            >
-              {formatLabel(option)}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+const prioritySearchOptions: SearchOption[] = priorityOptions.map((p) => ({
+  value: p,
+  label: formatLabel(p),
+}))
 
 function SearchMultiSelect({
   label,
@@ -152,13 +102,17 @@ function SearchMultiSelect({
   value,
   onChange,
   searchFn,
+  staticOptions,
+  optionsLoading,
   minCharsMessage = 'Digite ao menos 2 caracteres',
 }: {
   label: string
   placeholder?: string
   value: SearchOption[]
   onChange: (value: SearchOption[]) => void
-  searchFn: (search: string) => Promise<SearchOption[]>
+  searchFn?: (search: string) => Promise<SearchOption[]>
+  staticOptions?: SearchOption[]
+  optionsLoading?: boolean
   minCharsMessage?: string
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -168,8 +122,12 @@ function SearchMultiSelect({
 
   const { data, isFetching } = useQuery({
     queryKey: ['dashboard-filter-search', label, debouncedSearch],
-    queryFn: () => searchFn(debouncedSearch),
-    enabled: isOpen && debouncedSearch.trim().length >= 2,
+    queryFn: () => searchFn!(debouncedSearch),
+    enabled:
+      isOpen &&
+      !staticOptions &&
+      Boolean(searchFn) &&
+      debouncedSearch.trim().length >= 2,
     staleTime: 1000 * 60 * 5,
   })
 
@@ -190,9 +148,22 @@ function SearchMultiSelect({
     [value],
   )
 
+  const staticFiltered = useMemo(() => {
+    if (!staticOptions) return []
+    const q = debouncedSearch.trim().toLowerCase()
+    return staticOptions.filter(
+      (item) =>
+        !selectedValues.has(item.value) &&
+        (q === '' ||
+          item.label.toLowerCase().includes(q) ||
+          item.value.toLowerCase().includes(q)),
+    )
+  }, [staticOptions, debouncedSearch, selectedValues])
+
   const options = useMemo(() => {
+    if (staticOptions) return staticFiltered
     return (data ?? []).filter((item) => !selectedValues.has(item.value))
-  }, [data, selectedValues])
+  }, [staticOptions, staticFiltered, data, selectedValues])
 
   const removeItem = (itemValue: string) => {
     onChange(value.filter((item) => item.value !== itemValue))
@@ -224,7 +195,9 @@ function SearchMultiSelect({
 
           {isOpen ? (
             <div className={styles.multiSelectDropdown}>
-              {debouncedSearch.trim().length < 2 ? (
+              {optionsLoading ? (
+                <div className={styles.dropdownHint}>Buscando...</div>
+              ) : !staticOptions && debouncedSearch.trim().length < 2 ? (
                 <div className={styles.dropdownHint}>{minCharsMessage}</div>
               ) : isFetching ? (
                 <div className={styles.dropdownHint}>Buscando...</div>
@@ -240,8 +213,7 @@ function SearchMultiSelect({
                     className={styles.dropdownOption}
                     onClick={() => addItem(item)}
                   >
-                    <span>{item.label}</span>
-                    <Check size={14} />
+                    {item.label}
                   </button>
                 ))
               )}
@@ -395,6 +367,19 @@ export function TicketsDashboardFilterModal({
     }
   }, [isOpen, filters])
 
+  const { data: teamSearchOptions, isFetching: isTeamsLoading } = useQuery({
+    queryKey: ['teams-list-dashboard-filter'],
+    queryFn: async () => {
+      const { data } = await getTeamsList()
+      return data.map((team) => ({
+        value: team.id,
+        label: team.name,
+      }))
+    },
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 5,
+  })
+
   const clearDraftFilters = () => {
     setDraftFilters(emptyFilters())
   }
@@ -485,28 +470,31 @@ export function TicketsDashboardFilterModal({
           </div>
 
           <div className={styles.filterTogglesGrid}>
-            <ToggleButtonGroup
+            <SearchMultiSelect
               label="PRIORIDADE"
-              options={priorityOptions}
-              values={draftFilters.prioridade}
+              placeholder="Selecione"
+              value={draftFilters.prioridade}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
                   prioridade: value,
                 }))
               }
+              staticOptions={prioritySearchOptions}
             />
 
-            <ToggleButtonGroup
+            <SearchMultiSelect
               label="EQUIPE"
-              options={teamOptions}
-              values={draftFilters.equipe}
+              placeholder="Selecione"
+              value={draftFilters.equipe}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
                   equipe: value,
                 }))
               }
+              staticOptions={teamSearchOptions ?? []}
+              optionsLoading={isTeamsLoading}
             />
           </div>
         </div>

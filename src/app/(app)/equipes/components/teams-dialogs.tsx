@@ -1,24 +1,21 @@
 'use client'
 
-import { useTeams } from '@/hooks/useContexts/use-teams-context'
-
+import type { TeamsController } from '../hooks/use-teams-controller'
 import { DeleteTeamMemberAlertDialog } from './delete-team-member-alert-dialog'
 import { TeamFormDialog } from './team-form-dialog'
 import { TeamMemberFormDialog } from './team-member-form-dialog'
 
-export function TeamsDialogs() {
+interface TeamsDialogsProps {
+  controller: TeamsController
+}
+
+export function TeamsDialogs({ controller }: TeamsDialogsProps) {
   const {
     teamFormDisclosure,
     memberFormDisclosure,
     deleteTeamMemberProps,
-    setDeleteTeamMemberProps,
-  } = useTeams()
-
-  const deleteTeamMemberDisclosure = {
-    isOpen: Boolean(deleteTeamMemberProps),
-    onOpen: () => {},
-    onClose: () => setDeleteTeamMemberProps(null),
-  }
+    closeDeleteTeamMemberDialog,
+  } = controller
 
   return (
     <>
@@ -26,18 +23,21 @@ export function TeamsDialogs() {
         isOpen={teamFormDisclosure.isOpen}
         onOpen={teamFormDisclosure.onOpen}
         onClose={teamFormDisclosure.onClose}
+        controller={controller}
       />
 
       <TeamMemberFormDialog
         isOpen={memberFormDisclosure.isOpen}
         onOpen={memberFormDisclosure.onOpen}
         onClose={memberFormDisclosure.onClose}
+        controller={controller}
       />
 
       <DeleteTeamMemberAlertDialog
-        isOpen={deleteTeamMemberDisclosure.isOpen}
-        onOpen={deleteTeamMemberDisclosure.onOpen}
-        onClose={deleteTeamMemberDisclosure.onClose}
+        isOpen={Boolean(deleteTeamMemberProps)}
+        onOpen={() => {}}
+        onClose={closeDeleteTeamMemberDialog}
+        controller={controller}
       />
     </>
   )

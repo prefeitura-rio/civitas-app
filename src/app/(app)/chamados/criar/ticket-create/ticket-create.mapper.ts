@@ -34,6 +34,9 @@ export function buildTicketCreatePayload(
     natureza_id: emptyToNull(data.natureza_id),
     apelido_imprensa: emptyToNull(data.apelido_imprensa),
     link_materia: emptyToNull(data.link_materia),
+    bairro_correspondencia: emptyToNull(data.bairro_correspondencia),
+    rua_correspondencia: emptyToNull(data.rua_correspondencia),
+    numero_correspondencia: emptyToNull(data.numero_correspondencia),
     comentario_inicial: emptyToNull(data.comentario_inicial),
 
     requisitante: {

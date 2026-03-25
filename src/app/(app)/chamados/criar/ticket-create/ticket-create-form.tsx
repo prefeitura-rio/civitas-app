@@ -45,7 +45,7 @@ import { ServiceModal } from '../components/services/service-modal'
 import { DataBaseDatePicker } from '../components/shared/data-base-date-picker'
 import { PriorityButton } from '../components/shared/priority-button'
 import { Section } from '../components/shared/section'
-import { useTicketCreate } from '../hooks/use-ticket-create'
+import { useTicketCreateController } from '../hooks/use-create-controller'
 import styles from './ticket-create-form.module.css'
 
 function nullIfEmpty(value?: string | null) {
@@ -55,7 +55,7 @@ function nullIfEmpty(value?: string | null) {
 }
 
 export function TicketCreateForm() {
-  const vm = useTicketCreate()
+  const vm = useTicketCreateController()
   const initialBuscaPorPlaca =
     vm.serviceModalOpen === 'busca_por_placa' &&
     vm.serviceModalEditIndex !== null
@@ -401,6 +401,81 @@ export function TicketCreateForm() {
                   )}
                 </div>
               </>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 pt-2 md:col-span-2">
+              <Label className={styles.fieldLabel}>
+                Possui endereço de correspondência?
+              </Label>
+
+              <Controller
+                control={vm.control}
+                name="possui_endereco_correspondencia"
+                render={({ field }) => (
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="possui_endereco_correspondencia"
+                      size="sm"
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={vm.isLoading}
+                      className={styles.apelidoToggle}
+                    />
+                    <span className={styles.toggleLabel}>
+                      {field.value ? 'Sim' : 'Não'}
+                    </span>
+                  </div>
+                )}
+              />
+            </div>
+
+            {vm.possuiEnderecoCorrespondencia && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(4.5rem,6rem)] md:col-span-2">
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Bairro</Label>
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={vm.isLoading}
+                    maxLength={120}
+                    {...vm.register('bairro_correspondencia')}
+                  />
+                  {vm.errors.bairro_correspondencia?.message && (
+                    <p className="text-xs text-destructive">
+                      {vm.errors.bairro_correspondencia.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Rua</Label>
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={vm.isLoading}
+                    maxLength={255}
+                    {...vm.register('rua_correspondencia')}
+                  />
+                  {vm.errors.rua_correspondencia?.message && (
+                    <p className="text-xs text-destructive">
+                      {vm.errors.rua_correspondencia.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={styles.fieldLabel}>Número</Label>
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={vm.isLoading}
+                    maxLength={20}
+                    {...vm.register('numero_correspondencia')}
+                  />
+                  {vm.errors.numero_correspondencia?.message && (
+                    <p className="text-xs text-destructive">
+                      {vm.errors.numero_correspondencia.message}
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </Section>
@@ -818,19 +893,37 @@ export function TicketCreateForm() {
                 <PriorityButton
                   active={vm.watch('prioridade') === 'URGENTE'}
                   label="Urgente"
-                  onClick={() => vm.setValue('prioridade', 'URGENTE')}
+                  onClick={() => {
+                    const current = vm.getValues('prioridade')
+                    vm.setValue(
+                      'prioridade',
+                      current === 'URGENTE' ? null : 'URGENTE',
+                    )
+                  }}
                   disabled={vm.isLoading}
                 />
                 <PriorityButton
                   active={vm.watch('prioridade') === 'ALTA'}
                   label="Alta"
-                  onClick={() => vm.setValue('prioridade', 'ALTA')}
+                  onClick={() => {
+                    const current = vm.getValues('prioridade')
+                    vm.setValue(
+                      'prioridade',
+                      current === 'ALTA' ? null : 'ALTA',
+                    )
+                  }}
                   disabled={vm.isLoading}
                 />
                 <PriorityButton
                   active={vm.watch('prioridade') === 'ROTINA'}
                   label="Rotina"
-                  onClick={() => vm.setValue('prioridade', 'ROTINA')}
+                  onClick={() => {
+                    const current = vm.getValues('prioridade')
+                    vm.setValue(
+                      'prioridade',
+                      current === 'ROTINA' ? null : 'ROTINA',
+                    )
+                  }}
                   disabled={vm.isLoading}
                 />
               </div>
@@ -894,7 +987,10 @@ export function TicketCreateForm() {
                   type="file"
                   multiple
                   accept=".pdf,.doc,.docx"
-                  onChange={(e) => vm.onDropFiles(e.target.files)}
+                  onChange={(e) => {
+                    vm.onDropFiles(e.target.files)
+                    e.target.value = ''
+                  }}
                   disabled={vm.isLoading}
                 />
                 <Upload className="h-6 w-6 shrink-0 text-[var(--tc-icon-subtle)]" />

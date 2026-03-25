@@ -19,11 +19,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { useTeams } from '@/hooks/useContexts/use-teams-context'
 import { createTeam } from '@/http/teams/create-team'
 import { updateTeam } from '@/http/teams/update-team'
 import { queryClient } from '@/lib/react-query'
 import { getApiErrorMessage } from '@/utils/error-handlers'
+
+import type { TeamsController } from '../hooks/use-teams-controller'
 
 const teamFormSchema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
@@ -37,14 +38,16 @@ interface TeamFormDialogProps {
   isOpen: boolean
   onClose: () => void
   onOpen: () => void
+  controller: TeamsController
 }
 
 export function TeamFormDialog({
   isOpen,
   onClose,
   onOpen,
+  controller,
 }: TeamFormDialogProps) {
-  const { teamDialogInitialData, setTeamDialogInitialData } = useTeams()
+  const { teamDialogInitialData, setTeamDialogInitialData } = controller
 
   const {
     register,

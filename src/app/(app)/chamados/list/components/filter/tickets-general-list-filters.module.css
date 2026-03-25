@@ -11,8 +11,12 @@
 }
 
 .filterModal {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 1220px;
+  /* Altura mínima maior na vertical; não ultrapassa a área útil do overlay */
+  min-height: min(75vh, calc(100vh - 84px));
   max-height: calc(100vh - 84px);
   overflow: auto;
   border: 1px solid rgba(74, 107, 138, 0.35);
@@ -53,6 +57,8 @@
 }
 
 .filterModalBody {
+  flex: 1;
+  min-height: 0;
   padding: 8px 16px 12px;
 }
 
@@ -147,15 +153,16 @@
 
 .multiSelectDropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: 100%;
   left: 0;
   right: 0;
   z-index: 20;
   min-width: 100%;
   max-height: 240px;
   overflow: auto;
+  margin-top: -1px;
   border: 1px solid rgba(77, 109, 137, 0.55);
-  border-radius: 10px;
+  border-radius: 0 0 10px 10px;
   background: #0d1c28;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
 }
@@ -169,7 +176,7 @@
 .dropdownOption {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   width: 100%;
   min-height: 40px;
   padding: 0 14px;
