@@ -6,15 +6,34 @@ import {
   ChevronRight,
   ChevronUp,
   FileText,
+  Mail,
+  Pencil,
+  Phone,
   Plus,
+  SquareCheck,
+  Trash,
   Upload,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Controller } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -22,37 +41,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { maskPhoneBR } from '@/utils/string-formatters'
 
+import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
+import { ServiceModal } from '../../criar/components/services/service-modal'
+import { DataBaseDatePicker } from '../../criar/components/shared/data-base-date-picker'
+import { useTicketCreateController } from '../../criar/hooks/use-create-controller'
+import type { OpenServiceKey } from '../../criar/ticket-create/ticket-create.constant'
+import { SERVICE_CONFIG } from '../../criar/ticket-create/ticket-create.constant'
 import styles from './email-to-ticket-view.module.css'
-import { SERVICE_LABELS, type ServiceKey, ServiceModal } from './service-modal'
 
 const MOCK_EMAIL = {
   subject: 'Demonstração de integração de anexos',
   senderName: 'Marcus Vinícius Rocha',
   senderEmail: 'marcus.rocha90@gmail.com',
   date: '07/02/2026 às 01:51',
-  body: 'Demonstração de integração de anexos - texto completo do email',
+  body: 'Demonstração de integração de anexos',
   attachments: [
     { name: 'ia-mirai.pdf', type: 'pdf' as const, url: '/ia-mirai.pdf' },
     { name: 'Relatório final.pdf', type: 'pdf' as const, url: '/ia-mirai.pdf' },
   ],
 }
 
-const MOCK_TICKET_TYPES = [
-  { id: '1', name: 'Requisição' },
-  { id: '2', name: 'Incidente' },
-  { id: '3', name: 'Solicitação' },
-]
-
-const MOCK_PRIORITIES = [
-  { id: 'baixa', name: 'Baixa' },
-  { id: 'media', name: 'Média' },
-  { id: 'alta', name: 'Alta' },
-  { id: 'urgente', name: 'Urgente' },
-]
-
-const SERVICE_KEYS: ServiceKey[] = [
+const SERVICE_ORDER: Exclude<OpenServiceKey, null>[] = [
   'busca_por_placa',
   'busca_por_radar',
   'cerco_eletronico',
@@ -64,52 +77,212 @@ const SERVICE_KEYS: ServiceKey[] = [
   'outros',
 ]
 
-type AddedService = {
-  id: string
-  key: ServiceKey
+function nullIfEmpty(value?: string | null) {
+  if (value == null) return null
+  const trimmed = value.trim()
+  return trimmed.length ? trimmed : null
 }
 
-let serviceIdCounter = 0
+function ConverterPanelSection({
+  title,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string
+  isOpen: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className={styles.panelSection}>
+      <div className={styles.panelSectionHeader}>
+        <span className={styles.panelSectionTitle}>{title}</span>
+        <button
+          type="button"
+          className={styles.sectionToggleBtn}
+          onClick={onToggle}
+          aria-label={`Alternar seção ${title}`}
+        >
+          {isOpen ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+      {isOpen && <div className={styles.panelSectionInner}>{children}</div>}
+    </div>
+  )
+}
+
+function CompactServiceList<T extends { id: string }>({
+  label,
+  fields,
+  onRemove,
+  onEdit,
+  renderRow,
+}: {
+  label: string
+  fields: T[]
+  onRemove: (index: number) => void
+  onEdit?: (index: number) => void
+  renderRow: (index: number) => React.ReactNode
+}) {
+  if (fields.length === 0) return null
+
+  const isCompact = onEdit != null
+
+  return (
+    <div className={styles.listCard}>
+      <div className={styles.listHeader}>
+        <p className="text-sm font-medium text-[var(--tc-text)]">{label}</p>
+        <p className="text-xs text-muted-foreground">
+          {fields.length} item(ns)
+        </p>
+      </div>
+
+      <div className={styles.serviceItemList}>
+        {fields.map((f, idx) => (
+          <div
+            key={f.id}
+            className={
+              isCompact
+                ? styles.serviceItemBadgeCard
+                : styles.serviceItemFormCard
+            }
+          >
+            {isCompact ? (
+              <>
+                <button
+                  type="button"
+                  className={styles.serviceItemBadgeButton}
+                  onClick={() => onEdit?.(idx)}
+                  title="Abrir para editar"
+                >
+                  <span className={styles.serviceItemBadge}>
+                    {label} · Item {idx + 1}
+                  </span>
+                  <Pencil className={styles.serviceItemBadgeIcon} />
+                </button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className={styles.serviceItemDeleteBtn}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemove(idx)
+                  }}
+                  title="Remover"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="mb-2 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onRemove(idx)}
+                    title="Remover"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+                {renderRow(idx)}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function EmailToTicketView() {
+  const vm = useTicketCreateController()
   const [currentAttachment, setCurrentAttachment] = useState(0)
-  const [serviceModalKey, setServiceModalKey] = useState<ServiceKey | null>(
-    null,
-  )
-  const [addedServices, setAddedServices] = useState<AddedService[]>([])
   const [emailInfoCollapsed, setEmailInfoCollapsed] = useState(false)
+
+  useEffect(() => {
+    vm.setValue('requisitante.requisitante_nome', MOCK_EMAIL.senderName)
+    vm.setValue('requisitante.requisitante_email', MOCK_EMAIL.senderEmail)
+    vm.setValue(
+      'comentario_inicial',
+      `${MOCK_EMAIL.subject}\n\n${MOCK_EMAIL.body}`,
+    )
+  }, [vm.setValue])
+
+  const initialBuscaPorPlaca =
+    vm.serviceModalOpen === 'busca_por_placa' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().busca_por_placa?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialBuscaPorRadar =
+    vm.serviceModalOpen === 'busca_por_radar' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().busca_por_radar?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialCerco =
+    vm.serviceModalOpen === 'cerco_eletronico' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().cerco_eletronico?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialBuscaPorImagem =
+    vm.serviceModalOpen === 'busca_por_imagem' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().busca_por_imagem?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialPlacasCorrelatas =
+    vm.serviceModalOpen === 'placas_correlatas' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().placas_correlatas?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialPlacasConjuntas =
+    vm.serviceModalOpen === 'placas_conjuntas' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().placas_conjuntas?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialReservaImagem =
+    vm.serviceModalOpen === 'reserva_de_imagem' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().reserva_de_imagem?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialAnaliseImagem =
+    vm.serviceModalOpen === 'analise_de_imagem' &&
+    vm.serviceModalEditIndex !== null
+      ? vm.getValues().analise_de_imagem?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialOutros =
+    vm.serviceModalOpen === 'outros' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().outros?.[vm.serviceModalEditIndex]
+      : undefined
 
   const attachments = MOCK_EMAIL.attachments
   const attachment = attachments[currentAttachment]
 
-  function handleAddService(key: ServiceKey) {
-    serviceIdCounter += 1
-    setAddedServices((prev) => [
-      ...prev,
-      { id: `svc-${serviceIdCounter}`, key },
-    ])
-    setServiceModalKey(null)
-  }
-
-  function handleRemoveService(id: string) {
-    setAddedServices((prev) => prev.filter((s) => s.id !== id))
-  }
-
   return (
     <div className={styles.root}>
-      {/* Top bar */}
       <div className={styles.topBar}>
         <span className={styles.topBarTitle}>Converter em Chamado</span>
-        <button className={styles.closeButton}>
+        <button type="button" className={styles.closeButton}>
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Main split layout */}
       <div className={styles.mainLayout}>
-        {/* Left panel – email + PDF */}
         <div className={styles.leftPanel}>
-          {/* Collapsible email info */}
           <div
             className={`${styles.emailInfoSection} ${
               emailInfoCollapsed
@@ -117,7 +290,6 @@ export function EmailToTicketView() {
                 : styles.emailInfoSectionOpen
             }`}
           >
-            {/* Email header */}
             <div className={styles.emailHeader}>
               <h2 className={styles.emailSubject}>{MOCK_EMAIL.subject}</h2>
               <div className={styles.emailMeta}>
@@ -134,13 +306,11 @@ export function EmailToTicketView() {
               </div>
             </div>
 
-            {/* Email body */}
             <div className={styles.emailBody}>
               <p className={styles.emailBodyText}>{MOCK_EMAIL.body}</p>
             </div>
           </div>
 
-          {/* Collapse toggle */}
           <button
             type="button"
             className={styles.collapseBar}
@@ -159,7 +329,6 @@ export function EmailToTicketView() {
             )}
           </button>
 
-          {/* Attachment bar */}
           {attachments.length > 0 && (
             <div className={styles.attachmentBar}>
               <div className={styles.attachmentName}>
@@ -168,6 +337,7 @@ export function EmailToTicketView() {
               </div>
               <div className={styles.attachmentNav}>
                 <button
+                  type="button"
                   className={styles.attachmentNavButton}
                   disabled={currentAttachment === 0}
                   onClick={() =>
@@ -180,6 +350,7 @@ export function EmailToTicketView() {
                   {currentAttachment + 1} / {attachments.length}
                 </span>
                 <button
+                  type="button"
                   className={styles.attachmentNavButton}
                   disabled={currentAttachment >= attachments.length - 1}
                   onClick={() =>
@@ -194,7 +365,6 @@ export function EmailToTicketView() {
             </div>
           )}
 
-          {/* PDF viewer */}
           <div className={styles.pdfViewer}>
             {attachment?.url ? (
               <iframe
@@ -212,185 +382,1103 @@ export function EmailToTicketView() {
           </div>
         </div>
 
-        {/* Right panel – form */}
         <div className={styles.rightPanel}>
-          <div className={styles.rightPanelScroll}>
-            <h3 className={styles.rightPanelTitle}>Dados do Chamado</h3>
+          <form
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={vm.handleSubmit(vm.onSubmit)}
+          >
+            <div className={styles.rightPanelScroll}>
+              <h3 className={styles.rightPanelTitle}>Dados do Chamado</h3>
 
-            <div className="space-y-4">
-              {/* Tipo de chamado */}
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Tipo de chamado</Label>
-                <Select>
-                  <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent className={styles.selectContentForm}>
-                    {MOCK_TICKET_TYPES.map((type) => (
-                      <SelectItem
-                        key={type.id}
-                        value={type.id}
-                        className={styles.selectItemForm}
-                      >
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="space-y-4">
+                <div className={styles.firstFieldsCard}>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Associar chamado
+                      </Label>
 
-              {/* Prioridade */}
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Prioridade</Label>
-                <Select defaultValue="media">
-                  <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent className={styles.selectContentForm}>
-                    {MOCK_PRIORITIES.map((p) => (
-                      <SelectItem
-                        key={p.id}
-                        value={p.id}
-                        className={styles.selectItemForm}
-                      >
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                      <Controller
+                        control={vm.control}
+                        name="associar_chamado_id"
+                        render={({ field }) => (
+                          <Popover
+                            open={vm.ticketPopoverOpen}
+                            onOpenChange={vm.setTicketPopoverOpen}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                disabled={vm.isLoading}
+                                className={`h-11 w-full justify-between ${styles.inputBg} font-normal`}
+                              >
+                                <span className="truncate">
+                                  {vm.selectedTicketLabel ||
+                                    'Digite para buscar um chamado'}
+                                </span>
+                                <ChevronDown className="h-4 w-4 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
 
-              {/* Solicitante */}
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Solicitante</Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  defaultValue={MOCK_EMAIL.senderName}
-                />
-              </div>
+                            <PopoverContent
+                              className={`w-[var(--radix-popover-trigger-width)] p-0 ${styles.associarChamadoPopover}`}
+                            >
+                              <Command
+                                shouldFilter={false}
+                                className={styles.associarChamadoCommand}
+                              >
+                                <CommandInput
+                                  placeholder="Buscar chamado..."
+                                  value={vm.ticketSearch}
+                                  onValueChange={vm.setTicketSearch}
+                                />
 
-              {/* Email do solicitante */}
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>
-                  Email do solicitante
-                </Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  defaultValue={MOCK_EMAIL.senderEmail}
-                />
-              </div>
+                                <CommandList>
+                                  {vm.isTicketsLoading && (
+                                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                                      Buscando chamados...
+                                    </div>
+                                  )}
 
-              {/* Assunto */}
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Assunto</Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  defaultValue={MOCK_EMAIL.subject}
-                />
-              </div>
+                                  {!vm.isTicketsLoading &&
+                                    vm.ticketSearch.trim().length === 0 && (
+                                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                                        Digite para pesquisar.
+                                      </div>
+                                    )}
 
-              {/* Descrição */}
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Descrição</Label>
-                <Textarea
-                  className={`min-h-[80px] ${styles.inputBg}`}
-                  defaultValue={MOCK_EMAIL.body}
-                />
-              </div>
+                                  {!vm.isTicketsLoading &&
+                                    vm.ticketSearch.trim().length > 0 &&
+                                    vm.tickets.length === 0 && (
+                                      <CommandEmpty>
+                                        Nenhum chamado encontrado.
+                                      </CommandEmpty>
+                                    )}
 
-              {/* Serviços */}
-              <div>
-                <div className={styles.sectionDivider}>
-                  <span className={styles.sectionBadge}>Serviços</span>
-                  <div className={styles.sectionLine} />
+                                  <CommandGroup>
+                                    {vm.tickets.map((ticket) => (
+                                      <CommandItem
+                                        key={ticket.id}
+                                        value={`${ticket.id} ${ticket.titulo}`}
+                                        onSelect={() => {
+                                          field.onChange(ticket.id)
+                                          vm.setSelectedTicketLabel(
+                                            ticket.titulo,
+                                          )
+                                          vm.setTicketSearch(ticket.titulo)
+                                          vm.setTicketPopoverOpen(false)
+                                        }}
+                                      >
+                                        <div className="flex w-full items-center justify-between gap-2">
+                                          <span className="truncate">
+                                            {ticket.titulo}
+                                          </span>
+                                          {field.value === ticket.id && (
+                                            <span className="text-xs text-muted-foreground">
+                                              Selecionado
+                                            </span>
+                                          )}
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+
+                                  {field.value && (
+                                    <div className="border-t p-2">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        className="w-full justify-start"
+                                        onClick={() => {
+                                          field.onChange(null)
+                                          vm.setSelectedTicketLabel('')
+                                          vm.setTicketSearch('')
+                                          vm.setTicketPopoverOpen(false)
+                                        }}
+                                      >
+                                        Limpar seleção
+                                      </Button>
+                                    </div>
+                                  )}
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Tipo de chamado
+                      </Label>
+                      <Controller
+                        control={vm.control}
+                        name="tipo_chamado_id"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            disabled={vm.isLoading || vm.isTicketTypesLoading}
+                          >
+                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent className={styles.selectContentForm}>
+                              {vm.ticketTypes.map((ticketType) => (
+                                <SelectItem
+                                  key={ticketType.id}
+                                  value={ticketType.id}
+                                  className={styles.selectItemForm}
+                                >
+                                  {ticketType.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {vm.errors.tipo_chamado_id?.message && (
+                        <p className="text-xs text-destructive">
+                          {vm.errors.tipo_chamado_id.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className={styles.serviceGrid}>
-                  {SERVICE_KEYS.map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={styles.serviceCard}
-                      onClick={() => setServiceModalKey(key)}
-                    >
-                      <span className={styles.serviceCardTitle}>
-                        {SERVICE_LABELS[key]}
-                      </span>
-                      <span className={styles.plusBox}>
-                        <Plus className="h-3 w-3" />
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <ConverterPanelSection
+                  title="Informações do chamado"
+                  isOpen={vm.openSections.info}
+                  onToggle={() => vm.toggleSection('info')}
+                >
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Nº de procedimento
+                      </Label>
+                      <Input
+                        className={`h-11 ${styles.inputBg}`}
+                        disabled={vm.isLoading}
+                        {...vm.register('numero_procedimento')}
+                      />
+                    </div>
 
-                {addedServices.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {addedServices.map((svc) => (
-                      <div key={svc.id} className={styles.addedServiceTag}>
-                        <span>{SERVICE_LABELS[svc.key]}</span>
-                        <button
-                          type="button"
-                          className={styles.addedServiceRemove}
-                          onClick={() => handleRemoveService(svc.id)}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Nº do ofício</Label>
+                      <Input
+                        className={`h-11 ${styles.inputBg}`}
+                        disabled={vm.isLoading}
+                        {...vm.register('numero_oficio')}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Data base</Label>
+                      <Controller
+                        control={vm.control}
+                        name="data_base"
+                        render={({ field }) => (
+                          <DataBaseDatePicker
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            disabled={vm.isLoading}
+                          />
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Natureza</Label>
+                      <Controller
+                        control={vm.control}
+                        name="natureza_id"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value ?? ''}
+                            onValueChange={(v) => field.onChange(v || null)}
+                            disabled={vm.isLoading || vm.isTicketNaturesLoading}
+                          >
+                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent className={styles.selectContentForm}>
+                              {vm.ticketNatures.map((nature) => (
+                                <SelectItem
+                                  key={nature.id}
+                                  value={nature.id}
+                                  className={styles.selectItemForm}
+                                >
+                                  {nature.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <Label className={styles.fieldLabel}>
+                        Possui apelido pela imprensa?
+                      </Label>
+                      <Controller
+                        control={vm.control}
+                        name="possui_apelido_imprensa"
+                        render={({ field }) => (
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              id="conv_possui_apelido"
+                              size="sm"
+                              checked={!!field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={vm.isLoading}
+                              className={styles.apelidoToggle}
+                            />
+                            <span className={styles.toggleLabel}>
+                              {field.value ? 'Sim' : 'Não'}
+                            </span>
+                          </div>
+                        )}
+                      />
+                    </div>
+
+                    {vm.possuiApelido && (
+                      <>
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>
+                            Apelido pela imprensa
+                          </Label>
+                          <Input
+                            className={`h-11 ${styles.inputBg}`}
+                            disabled={vm.isLoading}
+                            {...vm.register('apelido_imprensa')}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>
+                            Link da matéria
+                          </Label>
+                          <Input
+                            className={`h-11 ${styles.inputBg}`}
+                            disabled={vm.isLoading}
+                            placeholder="https://..."
+                            {...vm.register('link_materia')}
+                          />
+                          {vm.errors.link_materia?.message && (
+                            <p className="text-xs text-destructive">
+                              {vm.errors.link_materia.message}
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <Label className={styles.fieldLabel}>
+                        Possui endereço de correspondência?
+                      </Label>
+                      <Controller
+                        control={vm.control}
+                        name="possui_endereco_correspondencia"
+                        render={({ field }) => (
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              id="conv_possui_endereco"
+                              size="sm"
+                              checked={!!field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={vm.isLoading}
+                              className={styles.apelidoToggle}
+                            />
+                            <span className={styles.toggleLabel}>
+                              {field.value ? 'Sim' : 'Não'}
+                            </span>
+                          </div>
+                        )}
+                      />
+                    </div>
+
+                    {vm.possuiEnderecoCorrespondencia && (
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>Bairro</Label>
+                          <Input
+                            className={`h-11 ${styles.inputBg}`}
+                            disabled={vm.isLoading}
+                            maxLength={120}
+                            {...vm.register('bairro_correspondencia')}
+                          />
+                          {vm.errors.bairro_correspondencia?.message && (
+                            <p className="text-xs text-destructive">
+                              {vm.errors.bairro_correspondencia.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>Rua</Label>
+                          <Input
+                            className={`h-11 ${styles.inputBg}`}
+                            disabled={vm.isLoading}
+                            maxLength={255}
+                            {...vm.register('rua_correspondencia')}
+                          />
+                          {vm.errors.rua_correspondencia?.message && (
+                            <p className="text-xs text-destructive">
+                              {vm.errors.rua_correspondencia.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>Número</Label>
+                          <Input
+                            className={`h-11 ${styles.inputBg}`}
+                            disabled={vm.isLoading}
+                            maxLength={20}
+                            {...vm.register('numero_correspondencia')}
+                          />
+                          {vm.errors.numero_correspondencia?.message && (
+                            <p className="text-xs text-destructive">
+                              {vm.errors.numero_correspondencia.message}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                    )}
+                  </div>
+                </ConverterPanelSection>
+
+                <ConverterPanelSection
+                  title="Requisitante"
+                  isOpen={vm.openSections.requester}
+                  onToggle={() => vm.toggleSection('requester')}
+                >
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Demandante</Label>
+                      <Controller
+                        control={vm.control}
+                        name="operation_id"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value ?? ''}
+                            onValueChange={(v) => field.onChange(v || null)}
+                            disabled={vm.isLoading || vm.isOperationsLoading}
+                          >
+                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent className={styles.selectContentForm}>
+                              {vm.operations.map((op) => (
+                                <SelectItem
+                                  key={op.id}
+                                  value={op.id}
+                                  className={styles.selectItemForm}
+                                >
+                                  {op.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {vm.errors.operation_id?.message && (
+                        <p className="text-xs text-destructive">
+                          {vm.errors.operation_id.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>
+                          Requisitante
+                        </Label>
+                        <Input
+                          className={`h-11 ${styles.inputBg}`}
+                          disabled={vm.isLoading}
+                          {...vm.register('requisitante.requisitante_nome')}
+                        />
+                        {vm.errors.requisitante?.requisitante_nome?.message && (
+                          <p className="text-xs text-destructive">
+                            {vm.errors.requisitante?.requisitante_nome?.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>Telefone</Label>
+                        <Controller
+                          control={vm.control}
+                          name="requisitante.requisitante_telefone"
+                          render={({ field }) => (
+                            <div className={styles.inputWithIconRight}>
+                              <Input
+                                className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                disabled={vm.isLoading}
+                                inputMode="tel"
+                                autoComplete="tel"
+                                value={field.value ?? ''}
+                                onBlur={field.onBlur}
+                                ref={field.ref}
+                                onChange={(e) =>
+                                  field.onChange(maskPhoneBR(e.target.value))
+                                }
+                              />
+                              <Phone
+                                className="h-4 w-4 shrink-0 opacity-50"
+                                aria-hidden
+                              />
+                            </div>
+                          )}
+                        />
+                        {vm.errors.requisitante?.requisitante_telefone
+                          ?.message && (
+                          <p className="text-xs text-destructive">
+                            {
+                              vm.errors.requisitante.requisitante_telefone
+                                .message
+                            }
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>Email</Label>
+                        <div className={styles.inputWithIconRight}>
+                          <Input
+                            className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            type="email"
+                            disabled={vm.isLoading}
+                            autoComplete="email"
+                            {...vm.register('requisitante.requisitante_email')}
+                          />
+                          <Mail
+                            className="h-4 w-4 shrink-0 opacity-50"
+                            aria-hidden
+                          />
+                        </div>
+                        {vm.errors.requisitante?.requisitante_email
+                          ?.message && (
+                          <p className="text-xs text-destructive">
+                            {
+                              vm.errors.requisitante?.requisitante_email
+                                ?.message
+                            }
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={
+                        vm.isLoading || vm.focalPoints.fields.length >= 20
+                      }
+                      onClick={() =>
+                        vm.focalPoints.append({
+                          nome: '',
+                          telefone: '',
+                          email: null,
+                        })
+                      }
+                      className={styles.addPointFocalButton}
+                    >
+                      <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                      Adicionar Ponto Focal
+                    </button>
+
+                    <div className="space-y-3">
+                      {vm.focalPoints.fields.map((fp, idx) => (
+                        <div key={fp.id} className="grid grid-cols-1 gap-3">
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>
+                              Ponto focal
+                            </Label>
+                            <Input
+                              className={`h-11 ${styles.inputBg}`}
+                              disabled={vm.isLoading}
+                              {...vm.register(`pontos_focais.${idx}.nome`)}
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>
+                              Telefone
+                            </Label>
+                            <Controller
+                              control={vm.control}
+                              name={`pontos_focais.${idx}.telefone`}
+                              render={({ field }) => (
+                                <div className={styles.inputWithIconRight}>
+                                  <Input
+                                    className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    disabled={vm.isLoading}
+                                    inputMode="tel"
+                                    autoComplete="tel"
+                                    value={field.value ?? ''}
+                                    onBlur={field.onBlur}
+                                    ref={field.ref}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        maskPhoneBR(e.target.value),
+                                      )
+                                    }
+                                  />
+                                  <Phone
+                                    className="h-4 w-4 shrink-0 opacity-50"
+                                    aria-hidden
+                                  />
+                                </div>
+                              )}
+                            />
+                            {vm.errors.pontos_focais?.[idx]?.telefone
+                              ?.message && (
+                              <p className="text-xs text-destructive">
+                                {
+                                  vm.errors.pontos_focais[idx]?.telefone
+                                    ?.message
+                                }
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>Email</Label>
+                            <div className="flex min-w-0 items-start gap-2">
+                              <div className="min-w-0 flex-1">
+                                <div className={styles.inputWithIconRight}>
+                                  <Input
+                                    className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    type="email"
+                                    disabled={vm.isLoading}
+                                    autoComplete="email"
+                                    {...vm.register(
+                                      `pontos_focais.${idx}.email`,
+                                    )}
+                                  />
+                                  <Mail
+                                    className="h-4 w-4 shrink-0 opacity-50"
+                                    aria-hidden
+                                  />
+                                </div>
+                                {vm.errors.pontos_focais?.[idx]?.email
+                                  ?.message && (
+                                  <p className="text-xs text-destructive">
+                                    {
+                                      vm.errors.pontos_focais[idx]?.email
+                                        ?.message
+                                    }
+                                  </p>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="h-11 w-11 shrink-0 p-0"
+                                disabled={vm.isLoading}
+                                onClick={() => vm.focalPoints.remove(idx)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </ConverterPanelSection>
+
+                <ConverterPanelSection
+                  title="Serviços"
+                  isOpen={vm.openSections.services}
+                  onToggle={() => vm.toggleSection('services')}
+                >
+                  <div className={styles.serviceGridFull}>
+                    {SERVICE_ORDER.map((key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        className={styles.serviceCardCta}
+                        onClick={() => vm.handleOpenService(key)}
+                      >
+                        <span className={styles.serviceCardCtaTitle}>
+                          {SERVICE_CONFIG[key].label}
+                        </span>
+                        <span className={styles.plusBox}>
+                          <Plus className="h-3 w-3" />
+                        </span>
+                      </button>
                     ))}
                   </div>
-                )}
-              </div>
 
-              {/* Anexar ofício */}
-              <div>
-                <div className={styles.sectionDivider}>
-                  <span className={styles.sectionBadge}>Anexar ofício</span>
-                  <div className={styles.sectionLine} />
-                </div>
+                  <div className="mt-3 space-y-3">
+                    <CompactServiceList
+                      label="Busca por placa"
+                      fields={vm.buscaPorPlaca.fields}
+                      onRemove={vm.buscaPorPlaca.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('busca_por_placa', idx)
+                      }
+                      renderRow={() => null}
+                    />
 
-                <label className={styles.uploadBox}>
-                  <input
-                    className="hidden"
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx"
+                    <CompactServiceList
+                      label="Busca por radar"
+                      fields={vm.buscaPorRadar.fields}
+                      onRemove={vm.buscaPorRadar.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('busca_por_radar', idx)
+                      }
+                      renderRow={() => null}
+                    />
+
+                    <CompactServiceList
+                      label="Cerco eletrônico"
+                      fields={vm.cercoEletronico.fields}
+                      onRemove={vm.cercoEletronico.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('cerco_eletronico', idx)
+                      }
+                      renderRow={() => null}
+                    />
+
+                    <CompactServiceList
+                      label="Busca por imagem"
+                      fields={vm.buscaPorImagem.fields}
+                      onRemove={vm.buscaPorImagem.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('busca_por_imagem', idx)
+                      }
+                      renderRow={() => null}
+                    />
+
+                    <CompactServiceList
+                      label="Placas correlatas"
+                      fields={vm.placasCorrelatas.fields}
+                      onRemove={vm.placasCorrelatas.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('placas_correlatas', idx)
+                      }
+                      renderRow={(idx) => (
+                        <CorrelataListForm
+                          register={vm.register}
+                          control={vm.control}
+                          index={idx}
+                          name="placas_correlatas"
+                          disabled={vm.isLoading}
+                        />
+                      )}
+                    />
+
+                    <CompactServiceList
+                      label="Placas conjuntas"
+                      fields={vm.placasConjuntas.fields}
+                      onRemove={vm.placasConjuntas.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('placas_conjuntas', idx)
+                      }
+                      renderRow={(idx) => (
+                        <CorrelataListForm
+                          register={vm.register}
+                          control={vm.control}
+                          index={idx}
+                          name="placas_conjuntas"
+                          disabled={vm.isLoading}
+                        />
+                      )}
+                    />
+
+                    <CompactServiceList
+                      label="Reserva de imagem"
+                      fields={vm.reservaDeImagem.fields}
+                      onRemove={vm.reservaDeImagem.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('reserva_de_imagem', idx)
+                      }
+                      renderRow={() => null}
+                    />
+
+                    <CompactServiceList
+                      label="Análise de imagem"
+                      fields={vm.analiseDeImagem.fields}
+                      onRemove={vm.analiseDeImagem.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('analise_de_imagem', idx)
+                      }
+                      renderRow={() => null}
+                    />
+
+                    <CompactServiceList
+                      label="Outros"
+                      fields={vm.outros.fields}
+                      onRemove={vm.outros.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('outros', idx)
+                      }
+                      renderRow={() => null}
+                    />
+                  </div>
+                </ConverterPanelSection>
+
+                <ConverterPanelSection
+                  title="Locação interna"
+                  isOpen={vm.openSections.internal}
+                  onToggle={() => vm.toggleSection('internal')}
+                >
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>Equipe</Label>
+                      <Controller
+                        control={vm.control}
+                        name="equipe_id"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value ?? ''}
+                            onValueChange={(v) => field.onChange(v || null)}
+                            disabled={vm.isLoading}
+                          >
+                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent className={styles.selectContentForm}>
+                              {vm.teams.map((t) => (
+                                <SelectItem
+                                  key={t.id}
+                                  value={t.id}
+                                  className={styles.selectItemForm}
+                                >
+                                  {t.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {vm.errors.equipe_id?.message && (
+                        <p className="text-xs text-destructive">
+                          {vm.errors.equipe_id.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className={styles.fieldLabel}>Prioridade</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={vm.isLoading}
+                          className={`${styles.priorityButton} ${
+                            vm.watch('prioridade') === 'URGENTE'
+                              ? styles.priorityActive
+                              : ''
+                          }`}
+                          onClick={() => {
+                            const current = vm.getValues('prioridade')
+                            vm.setValue(
+                              'prioridade',
+                              current === 'URGENTE' ? null : 'URGENTE',
+                            )
+                          }}
+                        >
+                          Urgente
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={vm.isLoading}
+                          className={`${styles.priorityButton} ${
+                            vm.watch('prioridade') === 'ALTA'
+                              ? styles.priorityActive
+                              : ''
+                          }`}
+                          onClick={() => {
+                            const current = vm.getValues('prioridade')
+                            vm.setValue(
+                              'prioridade',
+                              current === 'ALTA' ? null : 'ALTA',
+                            )
+                          }}
+                        >
+                          Alta
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={vm.isLoading}
+                          className={`${styles.priorityButton} ${
+                            vm.watch('prioridade') === 'ROTINA'
+                              ? styles.priorityActive
+                              : ''
+                          }`}
+                          onClick={() => {
+                            const current = vm.getValues('prioridade')
+                            vm.setValue(
+                              'prioridade',
+                              current === 'ROTINA' ? null : 'ROTINA',
+                            )
+                          }}
+                        >
+                          Rotina
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </ConverterPanelSection>
+
+                <ConverterPanelSection
+                  title="Adicionar comentário"
+                  isOpen={vm.openSections.comment}
+                  onToggle={() => vm.toggleSection('comment')}
+                >
+                  <Textarea
+                    placeholder="Escreva um comentário"
+                    disabled={vm.isLoading}
+                    className={`${styles.fakeEditor} ${styles.inputBg}`}
+                    {...vm.register('comentario_inicial')}
                   />
-                  <Upload className="h-5 w-5 text-[var(--tc-icon-subtle)]" />
-                  <span className={styles.uploadBoxText}>
-                    Clique para fazer upload ou arraste o arquivo
-                  </span>
-                  <span className={styles.uploadBoxHint}>
-                    PDF, DOC, DOCX (máx. 10MB)
-                  </span>
-                </label>
+                </ConverterPanelSection>
+
+                <ConverterPanelSection
+                  title="Anexar documentos"
+                  isOpen={vm.openSections.attachments}
+                  onToggle={() => vm.toggleSection('attachments')}
+                >
+                  <div className={styles.attachmentsLayout}>
+                    <div className={styles.attachmentsDocumentList}>
+                      {vm.files.length === 0 ? (
+                        <p className={styles.uploadBoxHint}>
+                          Nenhum arquivo anexado.
+                        </p>
+                      ) : (
+                        <div className={styles.fileList}>
+                          {vm.files.map((f, idx) => (
+                            <div
+                              key={`${f.name}-${idx}`}
+                              className={styles.fileRow}
+                            >
+                              <SquareCheck
+                                className={`${styles.fileRowCheckIcon} shrink-0`}
+                                aria-hidden
+                              />
+                              <p
+                                className={styles.fileRowFileName}
+                                title={f.name}
+                              >
+                                {f.name}
+                              </p>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
+                                onClick={() => vm.removeFile(idx)}
+                                disabled={vm.isLoading}
+                                title="Excluir anexo"
+                              >
+                                <Trash className="h-4 w-4" aria-hidden />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.uploadColumn}>
+                      <label className={styles.uploadBox}>
+                        <input
+                          className="hidden"
+                          type="file"
+                          multiple
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            vm.onDropFiles(e.target.files)
+                            e.target.value = ''
+                          }}
+                          disabled={vm.isLoading}
+                        />
+                        <Upload className="h-5 w-5 shrink-0 text-[var(--tc-icon-subtle)]" />
+                        <span className={styles.uploadBoxText}>
+                          Clique para fazer upload ou arraste o arquivo
+                        </span>
+                        <span className={styles.uploadBoxHint}>
+                          PDF, DOC, DOCX (máx. 10MB)
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                </ConverterPanelSection>
               </div>
             </div>
-          </div>
 
-          {/* Form footer */}
-          <div className={styles.formFooter}>
-            <Button
-              type="button"
-              variant="secondary"
-              className={styles.cancelButton}
-            >
-              Cancelar
-            </Button>
-            <Button type="button" className={styles.saveButton}>
-              Converter
-            </Button>
-          </div>
+            <div className={styles.formFooter}>
+              <Button
+                type="button"
+                variant="secondary"
+                className={styles.cancelButton}
+                disabled={vm.isLoading}
+                onClick={() => vm.reset(vm.defaultValues)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                className={styles.saveButton}
+                disabled={vm.isLoading}
+              >
+                {vm.isLoading ? 'Salvando...' : 'Converter'}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* Service modal */}
-      {serviceModalKey && (
-        <ServiceModal
-          serviceKey={serviceModalKey}
-          onClose={() => setServiceModalKey(null)}
-          onAdd={handleAddService}
-        />
-      )}
+      <ServiceModal
+        variant="drawer"
+        serviceModalOpen={vm.serviceModalOpen}
+        editIndex={vm.serviceModalEditIndex}
+        closeServiceModal={vm.closeServiceModal}
+        initialBuscaPorPlaca={initialBuscaPorPlaca}
+        initialBuscaPorRadar={initialBuscaPorRadar}
+        initialCerco={initialCerco}
+        initialBuscaPorImagem={initialBuscaPorImagem}
+        initialPlacasCorrelatas={initialPlacasCorrelatas}
+        initialPlacasConjuntas={initialPlacasConjuntas}
+        initialReservaImagem={initialReservaImagem}
+        initialAnaliseImagem={initialAnaliseImagem}
+        initialOutros={initialOutros}
+        onSaveBuscaPorPlaca={(value, editIndex) => {
+          const normalized = {
+            plate: value.plate ?? null,
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
+          }
+          if (editIndex !== null) {
+            vm.buscaPorPlaca.update(editIndex, normalized)
+          } else {
+            vm.buscaPorPlaca.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveBuscaPorRadar={(value, editIndex) => {
+          const normalized = {
+            plate: value.plate,
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
+            radar_address: nullIfEmpty(value.radar_address),
+          }
+          if (editIndex !== null) {
+            vm.buscaPorRadar.update(editIndex, normalized)
+          } else {
+            vm.buscaPorRadar.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveCerco={(value, editIndex) => {
+          const normalized = {
+            plate: value.plate,
+            vehicle_observations: nullIfEmpty(value.vehicle_observations),
+          }
+          if (editIndex !== null) {
+            vm.cercoEletronico.update(editIndex, normalized)
+          } else {
+            vm.cercoEletronico.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveBuscaPorImagem={(value, editIndex) => {
+          const normalized = {
+            plate: nullIfEmpty(value.plate),
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
+            address: nullIfEmpty(value.address),
+            description: nullIfEmpty(value.description),
+          }
+          if (editIndex !== null) {
+            vm.buscaPorImagem.update(editIndex, normalized)
+          } else {
+            vm.buscaPorImagem.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSavePlacasCorrelatas={(value, editIndex) => {
+          const normalized = {
+            interest_interval_minutes: value.interest_interval_minutes,
+            detection_count: value.detection_count,
+            detection: value.detection,
+            items: value.items.map((item) => ({
+              plate: item.plate,
+              period_start: nullIfEmpty(item.period_start),
+              period_end: nullIfEmpty(item.period_end),
+            })),
+          }
+          if (editIndex !== null) {
+            vm.placasCorrelatas.update(editIndex, normalized)
+          } else {
+            vm.placasCorrelatas.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSavePlacasConjuntas={(value, editIndex) => {
+          const normalized = {
+            interest_interval_minutes: value.interest_interval_minutes,
+            detection_count: value.detection_count,
+            detection: value.detection,
+            items: value.items.map((item) => ({
+              plate: item.plate,
+              period_start: nullIfEmpty(item.period_start),
+              period_end: nullIfEmpty(item.period_end),
+            })),
+          }
+          if (editIndex !== null) {
+            vm.placasConjuntas.update(editIndex, normalized)
+          } else {
+            vm.placasConjuntas.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveReservaImagem={(value, editIndex) => {
+          const normalized = {
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
+            orientation: nullIfEmpty(value.orientation),
+          }
+          if (editIndex !== null) {
+            vm.reservaDeImagem.update(editIndex, normalized)
+          } else {
+            vm.reservaDeImagem.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveAnaliseImagem={(value, editIndex) => {
+          const normalized = {
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
+            orientation: nullIfEmpty(value.orientation),
+          }
+          if (editIndex !== null) {
+            vm.analiseDeImagem.update(editIndex, normalized)
+          } else {
+            vm.analiseDeImagem.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveOutros={(value, editIndex) => {
+          const normalized = {
+            orientation: nullIfEmpty(value.orientation),
+          }
+          if (editIndex !== null) {
+            vm.outros.update(editIndex, normalized)
+          } else {
+            vm.outros.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+      />
     </div>
   )
 }

@@ -83,10 +83,11 @@
   border-right: 1px solid var(--tc-card-border);
 }
 
-/* Right panel */
+/* Right panel – largura extra para o formulário completo */
 .rightPanel {
-  flex: 0 0 420px;
-  max-width: 420px;
+  flex: 0 0 min(520px, 100%);
+  max-width: min(520px, 100%);
+  min-width: 280px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -570,4 +571,440 @@
 
 .addServiceButton:hover {
   background: var(--tc-green-hover);
+}
+
+/* Blocos colapsáveis (equivalente às seções do cadastro manual) */
+.panelSection {
+  background: var(--tc-section-bg);
+  border-radius: var(--tc-border-radius);
+  overflow: hidden;
+}
+
+.panelSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.panelSectionTitle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 12px;
+  border-radius: var(--tc-border-radius);
+  background: var(--tc-badge-bg);
+  color: var(--tc-badge-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.panelSectionHeader:hover .panelSectionTitle {
+  background: var(--tc-soft);
+}
+
+.panelSectionHeader:hover .sectionToggleBtn {
+  background: var(--tc-soft);
+  color: var(--tc-text);
+}
+
+.panelSectionInner {
+  padding: 16px 12px;
+}
+
+.sectionToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--tc-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sectionToggleBtn:hover {
+  background: var(--tc-soft);
+  color: var(--tc-text);
+}
+
+.firstFieldsCard {
+  background: var(--tc-section-bg);
+  border-radius: var(--tc-border-radius);
+  padding: 16px 12px;
+}
+
+.associarChamadoPopover {
+  background: #101d28;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  color: #f9fafa;
+}
+
+.associarChamadoCommand {
+  background: transparent;
+  color: #f9fafa;
+}
+
+.associarChamadoCommand [cmdk-input-wrapper] {
+  border-bottom-color: #4a5d6d;
+}
+
+.associarChamadoCommand input {
+  color: #f9fafa;
+}
+
+.associarChamadoCommand input::placeholder {
+  color: #97a2ab;
+}
+
+.associarChamadoCommand [cmdk-input-wrapper] svg {
+  color: #97a2ab;
+}
+
+.associarChamadoCommand [data-selected='true'] {
+  background: #18344d;
+  color: #f9fafa;
+}
+
+.associarChamadoCommand .text-muted-foreground,
+.associarChamadoPopover .text-muted-foreground {
+  color: #97a2ab;
+}
+
+.associarChamadoPopover .border-t {
+  border-color: #4a5d6d;
+}
+
+.inputWithIconRight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: var(--tc-input-bg);
+  border: 1px solid var(--tc-input-border);
+  border-radius: var(--tc-border-radius);
+  min-height: 44px;
+  height: 44px;
+  padding-left: 16px;
+  padding-right: 14px;
+}
+
+.inputWithIconRight input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--tc-text-subtle);
+  font-size: 14px;
+}
+
+.inputWithIconRight input::placeholder {
+  color: var(--tc-text-subtle);
+}
+
+.inputWithIconRight input:focus {
+  box-shadow: none;
+}
+
+.inputWithIconRight:hover:not(:has(input:disabled)) {
+  border-color: var(--tc-input-border-hover);
+}
+
+.inputWithIconRight:focus-within {
+  border-color: var(--tc-input-border-hover);
+}
+
+.inputWithIconRight:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.apelidoToggle[data-state='checked'] {
+  background-color: var(--tc-green) !important;
+}
+
+.apelidoToggle[data-state='unchecked'] {
+  background-color: var(--tc-input-bg) !important;
+  border: 1px solid var(--tc-input-border);
+}
+
+.toggleLabel {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--tc-muted);
+}
+
+.fakeEditor {
+  min-height: 120px;
+}
+
+.attachmentsLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .attachmentsLayout {
+    flex-direction: row;
+  }
+}
+
+.attachmentsDocumentList {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploadColumn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fileRow {
+  background: var(--tc-input-bg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  min-width: 0;
+  min-height: 32px;
+}
+
+.fileRowCheckIcon {
+  width: 20px;
+  height: 20px;
+  color: #97a2ab;
+  flex-shrink: 0;
+}
+
+.fileRowFileName {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--tc-text);
+  text-transform: uppercase;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileRowDeleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tc-icon-subtle);
+}
+
+.fileRowDeleteBtn:hover {
+  color: var(--tc-text);
+}
+
+.listCard {
+  border-radius: var(--tc-border-radius);
+  border: none;
+  background: var(--tc-input-bg);
+  padding: 10px;
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.serviceItemList {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.serviceItemFormCard {
+  border-radius: var(--tc-border-radius);
+  border: 1px solid rgba(74, 93, 109, 0.4);
+  background: rgba(15, 36, 53, 0.5);
+  padding: 10px;
+  width: 100%;
+}
+
+.serviceItemBadgeCard {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: var(--tc-border-radius);
+  border: 1px solid var(--tc-card-border);
+  background: var(--tc-input-bg);
+  padding: 6px 10px;
+  min-height: 40px;
+}
+
+.serviceItemBadgeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--tc-border-radius);
+  background: transparent;
+  color: var(--tc-text);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  min-width: 0;
+}
+
+.serviceItemBadgeButton:hover {
+  background: var(--tc-soft);
+}
+
+.serviceItemBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--tc-border-radius);
+  background: var(--tc-badge-bg);
+  color: var(--tc-badge-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.serviceItemBadgeIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--tc-icon-subtle);
+  flex-shrink: 0;
+}
+
+.serviceItemDeleteBtn {
+  flex-shrink: 0;
+  height: 28px;
+  width: 28px;
+  padding: 0;
+  color: var(--tc-icon-subtle);
+}
+
+.serviceItemDeleteBtn:hover {
+  color: var(--tc-text);
+  background: var(--tc-soft);
+}
+
+.priorityButton {
+  min-height: 40px;
+  border-radius: var(--tc-border-radius);
+  border: 1px solid var(--tc-input-border);
+  background: var(--tc-section-bg);
+  color: var(--tc-text);
+  font-size: 13px;
+  font-weight: 400;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.priorityButton:hover:not(:disabled) {
+  background: var(--tc-soft);
+  border-color: var(--tc-input-border-hover);
+}
+
+.priorityActive {
+  background: var(--tc-soft-2);
+  border-color: var(--tc-input-border-hover);
+  box-shadow: 0 0 0 2px var(--tc-input-border-hover);
+  font-weight: 500;
+}
+
+.addPointFocalButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: var(--tc-border-radius);
+  border: 1px solid var(--tc-card-border);
+  background: var(--tc-section-bg);
+  color: var(--tc-text);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.addPointFocalButton:hover:not(:disabled) {
+  background: var(--tc-soft);
+  border-color: var(--tc-input-border-hover);
+}
+
+.addPointFocalButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Grade de adicionar serviços – 2 colunas compactas (padrão converter) */
+.serviceGridFull {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.serviceCardCta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 36px;
+  width: 100%;
+  border-radius: var(--tc-border-radius);
+  border: none;
+  background: var(--tc-input-bg);
+  padding: 0 12px;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.serviceCardCta:hover {
+  background: var(--tc-soft);
+}
+
+.serviceCardCtaTitle {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--tc-text);
 }
