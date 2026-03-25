@@ -11,10 +11,11 @@ import {
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { useTeams } from '@/hooks/useContexts/use-teams-context'
 import type { Team, TeamMember } from '@/http/teams/get-teams'
 import { getTeams } from '@/http/teams/get-teams'
 import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
+
+import type { TeamsController } from '../hooks/use-teams-controller'
 
 const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
@@ -32,16 +33,19 @@ function resolveIsland(member: TeamMember) {
   return member.island_name || '-'
 }
 
-export function TeamsList() {
+interface TeamsListProps {
+  controller: TeamsController
+}
+
+export function TeamsList({ controller }: TeamsListProps) {
   const [openTeams, setOpenTeams] = useState<string[]>([])
 
   const {
-    memberFormDisclosure,
-    setMemberDialogInitialData,
-    teamFormDisclosure,
-    setTeamDialogInitialData,
-    setDeleteTeamMemberProps,
-  } = useTeams()
+    openCreateMemberDialog,
+    openEditMemberDialog,
+    openEditTeamDialog,
+    openDeleteTeamMemberDialog,
+  } = controller
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['teams'],
@@ -119,6 +123,7 @@ export function TeamsList() {
                     </div>
                     <div className="ml-auto w-[80px] shrink-0" />
                   </div>
+
                   {team.members.map((member) => (
                     <div
                       key={member.id}
@@ -135,12 +140,13 @@ export function TeamsList() {
                           {member.user_name || '-'}
                         </div>
                       </div>
+
                       <div className="flex shrink-0 items-center justify-end gap-2">
                         <Button
                           type="button"
                           className="equipes-btn-editar flex items-center gap-1"
                           onClick={() => {
-                            setMemberDialogInitialData({
+                            openEditMemberDialog({
                               id: member.id,
                               team_id: team.id,
                               team_name: team.name,
@@ -151,18 +157,18 @@ export function TeamsList() {
                               role: member.role,
                               is_active: member.is_active,
                             })
-                            memberFormDisclosure.onOpen()
                           }}
                         >
                           <PencilLine className="size-3.5" />
                           Editar
                         </Button>
+
                         <Button
                           type="button"
                           variant="outline"
                           className="h-6 border-red-900/50 bg-transparent px-2 text-[10px] text-red-300 hover:bg-red-950/30 hover:text-red-200"
                           onClick={() => {
-                            setDeleteTeamMemberProps({
+                            openDeleteTeamMemberDialog({
                               id: member.id,
                               user_name: member.user_name || 'Colaborador',
                               team_id: team.id,
@@ -185,28 +191,27 @@ export function TeamsList() {
                       variant="outline"
                       className="border-[var(--equipes-border)] bg-transparent text-[var(--equipes-text-subtle)] hover:bg-[var(--equipes-bg-label)] hover:text-[var(--equipes-text-default)]"
                       onClick={() => {
-                        setTeamDialogInitialData({
+                        openEditTeamDialog({
                           id: team.id,
                           name: team.name,
                           description: team.description,
                           is_active: team.is_active,
                         })
-                        teamFormDisclosure.onOpen()
                       }}
                     >
                       <PencilLine className="mr-2 size-4" />
                       Editar Equipe
                     </Button>
                   </div>
+
                   <Button
                     type="button"
                     className="equipes-btn-adicionar flex items-center gap-2"
                     onClick={() => {
-                      setMemberDialogInitialData({
+                      openCreateMemberDialog({
                         team_id: team.id,
                         team_name: team.name,
                       })
-                      memberFormDisclosure.onOpen()
                     }}
                   >
                     <Plus className="size-5 shrink-0" />

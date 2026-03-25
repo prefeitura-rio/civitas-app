@@ -13,23 +13,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useTeams } from '@/hooks/useContexts/use-teams-context'
 import { deleteTeamMember } from '@/http/teams/delete-team-member'
 import { queryClient } from '@/lib/react-query'
 import { getApiErrorMessage } from '@/utils/error-handlers'
+
+import type { TeamsController } from '../hooks/use-teams-controller'
 
 interface DeleteTeamMemberAlertDialogProps {
   isOpen: boolean
   onClose: () => void
   onOpen: () => void
+  controller: TeamsController
 }
 
 export function DeleteTeamMemberAlertDialog({
   isOpen,
   onClose,
   onOpen,
+  controller,
 }: DeleteTeamMemberAlertDialogProps) {
-  const { deleteTeamMemberProps, setDeleteTeamMemberProps } = useTeams()
+  const { deleteTeamMemberProps, setDeleteTeamMemberProps } = controller
 
   const { mutateAsync: deleteTeamMemberMutation } = useMutation({
     mutationFn: deleteTeamMember,

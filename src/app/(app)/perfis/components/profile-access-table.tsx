@@ -3,7 +3,6 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { Pagination } from '@/components/ui/pagination'
-import { useProfileAccess } from '@/hooks/useContexts/use-profile-access-context'
 import { useProfileAccessSearchParams } from '@/hooks/useParams/useProfileAccessSearchParams'
 import {
   getUsersWithRoles,
@@ -37,11 +36,13 @@ function RoleBadge({ role }: { role: UserRoleEnum }) {
   )
 }
 
-export function ProfileAccessTable() {
+interface ProfileAccessTableProps {
+  onEditUser: (user: UserRoleListItem) => void
+}
+
+export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
   const { formattedSearchParams, queryKey, handlePaginate } =
     useProfileAccessSearchParams()
-
-  const { formDialogDisclosure, setDialogInitialData } = useProfileAccess()
 
   const { data: response, isLoading } = useQuery({
     queryKey,
@@ -105,14 +106,12 @@ export function ProfileAccessTable() {
                       ))}
                     </div>
                   </div>
+
                   <div className={styles.perfisTableHeaderCellAcoes}>
                     <button
                       type="button"
                       className={styles.perfisBtnEditar}
-                      onClick={() => {
-                        setDialogInitialData(user)
-                        formDialogDisclosure.onOpen()
-                      }}
+                      onClick={() => onEditUser(user)}
                     >
                       Editar
                     </button>
