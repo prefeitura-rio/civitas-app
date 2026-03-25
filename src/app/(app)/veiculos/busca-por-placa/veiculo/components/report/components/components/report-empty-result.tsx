@@ -24,7 +24,7 @@ export function ReportEmptyResult({ searchParams }: ReportEmptyResultProps) {
         textAlign: 'center',
       }}
     >
-      {`A placa ${plate} NÃO foi detectada pelos radares da Prefeitura da cidade do Rio de Janeiro entre ${from} e ${to}.`}
+      {`A placa ${plate} NÃO foi detectada pelos equipamentos de leitura de placa (LPR) da Prefeitura da cidade do Rio de Janeiro entre ${from} e ${to}.`}
     </Text>
   )
 }
