@@ -61,7 +61,7 @@ export function useSearchByRadarResultDynamicFilter({
     if (radars.length === 0) return detections
 
     return detections.filter((detection) =>
-      radars.includes(detection.cetRioCode),
+      radars.includes(detection.equipmentCode),
     )
   }
 

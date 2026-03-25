@@ -18,7 +18,7 @@ export function RadarInfo({
       <Separator className="mb-4 mt-1 bg-secondary" />
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
-          <Label>Código CET-Rio</Label>
+          <Label>Código do Equipamento</Label>
           <Value>{pickingInfo.object?.cetRioCode}</Value>
         </div>
 
@@ -79,9 +79,10 @@ export function RadarInfo({
               <AlertTriangle className="mr-2 mt-1 h-6 w-6 text-yellow-400" />
               <p className="text-sm text-gray-300">
                 <span className="font-bold text-yellow-400">Atenção!</span>{' '}
-                Radares são considerados inativos se não enviarem dados há mais
-                de 24 horas. No entanto, essa informação não é atualizada em
-                tempo real e pode seguir desatualizada por várias horas.
+                Equipamentos LPR são considerados inativos se não enviarem dados
+                há mais de 24 horas. No entanto, essa informação não é
+                atualizada em tempo real e pode seguir desatualizada por várias
+                horas.
               </p>
             </div>
           </div>

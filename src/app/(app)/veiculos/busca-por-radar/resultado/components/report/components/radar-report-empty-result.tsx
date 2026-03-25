@@ -35,7 +35,7 @@ export function RadarReportEmptyResult({
         textAlign: 'justify',
       }}
     >
-      {`Os Radares mencionados acima NÃO detectaram veículos entre ${from} e ${to}.`}
+      {`Os Equipamentos mencionados acima NÃO detectaram veículos entre ${from} e ${to}.`}
     </Text>
   )
 }

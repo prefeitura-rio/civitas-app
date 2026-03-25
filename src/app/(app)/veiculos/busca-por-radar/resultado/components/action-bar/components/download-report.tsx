@@ -90,7 +90,7 @@ export function DownloadReport({
 
           // Adiciona as detecções ao objeto
           const detections = data.filter(
-            (detection) => detection.cetRioCode === radar.cetRioCode,
+            (detection) => detection.equipmentCode === radar.cetRioCode,
           )
           acc[location].detections.push(...detections)
           return acc
@@ -123,8 +123,14 @@ export function DownloadReport({
       throw new Error('formattedSearchParams is required')
 
     if (fileType === 'CSV') {
-      // Download CSV
-      exportToCSV('busca_por_radar', selectedData || [])
+      const csvRows = (selectedData || []).map((row) => {
+        const copy: Record<string, unknown> = {
+          ...(row as Record<string, unknown>),
+        }
+        delete copy.lane
+        return copy
+      })
+      exportToCSV('busca_por_equipamento', csvRows)
     } else {
       // Download PDF
       const groupedData = groupData(selectedData || [])
@@ -152,7 +158,7 @@ export function DownloadReport({
         />,
       ).toBlob()
 
-      downloadFile(blob, 'busca_por_radar.pdf')
+      downloadFile(blob, 'busca_por_equipamento.pdf')
     }
   }, [
     filters.filteredData,
@@ -186,7 +192,7 @@ export function DownloadReport({
       </Tooltip>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Relatório de Busca por Radar</DialogTitle>
+          <DialogTitle>Relatório de Busca por Equipamento</DialogTitle>
           <DialogDescription>
             Baixe um relatório PDF ou CSV contendo o resultado da busca
             realizada. Você pode escolher por aplicar ou não os filtros

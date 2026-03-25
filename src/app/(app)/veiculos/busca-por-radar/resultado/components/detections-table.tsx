@@ -35,19 +35,14 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       ),
     },
     {
-      accessorKey: 'cetRioCode',
-      header: () => <Label className="w-28">Radar</Label>,
-      cell: ({ row }) => <span>{row.getValue('cetRioCode')}</span>,
+      accessorKey: 'equipmentCode',
+      header: () => <Label className="w-28">Equipamento</Label>,
+      cell: ({ row }) => <span>{row.getValue('equipmentCode')}</span>,
     },
     {
       accessorKey: 'location',
       header: () => <Label className="w-28">Localização</Label>,
       cell: ({ row }) => <span>{row.getValue('location')}</span>,
-    },
-    {
-      accessorKey: 'lane',
-      header: () => <Label className="w-28">Faixa</Label>,
-      cell: ({ row }) => <span>{row.getValue('lane')}</span>,
     },
     {
       accessorKey: 'speed',

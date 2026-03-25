@@ -78,13 +78,13 @@ export function RadarSelectCard({
         </Button>
         <CardHeader className="border-b px-4 py-3">
           <CardTitle className="text-left text-sm font-semibold tracking-tighter">
-            {infoMode ? 'Informações do Radar' : 'Radar OCR'}
+            Informações do Equipamento
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
           <div className="space-y-3 text-sm">
             <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium">Código CET-Rio</span>
+              <span className="text-sm font-medium">Código do Equipamento</span>
               <span className="break-all text-sm text-muted-foreground">
                 {radarData?.cetRioCode}
               </span>
@@ -159,8 +159,8 @@ export function RadarSelectCard({
                   <AlertTriangle className="mr-1.5 mt-0.5 h-4 w-4 text-yellow-400" />
                   <p className="text-xs text-gray-300">
                     <span className="font-bold text-yellow-400">Atenção!</span>{' '}
-                    Radares são considerados inativos se não enviarem dados há
-                    mais de 24 horas. No entanto, essa informação não é
+                    Equipamentos LPR são considerados inativos se não enviarem
+                    dados há mais de 24 horas. No entanto, essa informação não é
                     atualizada em tempo real e pode seguir desatualizada por
                     várias horas.
                   </p>
@@ -176,7 +176,7 @@ export function RadarSelectCard({
                 onClick={handleZoomToRadar}
               >
                 <MapPin className="mr-2 h-4 w-4" />
-                Focar no Radar
+                Focar no Equipamento
               </Button>
               {previousViewport && (
                 <Button
