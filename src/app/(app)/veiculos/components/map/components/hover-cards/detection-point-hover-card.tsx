@@ -54,7 +54,7 @@ export function DetectionPointHoverCard({
             setIsHoveringInfoCard(false)
           }}
         >
-          <h4>Informações do Radar</h4>
+          <h4>Informações do Equipamento</h4>
           <Separator className="mb-4 mt-1 bg-secondary" />
           <div className="flex flex-col gap-4">
             <div className="flex flex-col">
@@ -113,7 +113,7 @@ export function DetectionPointHoverCard({
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
                   <Cctv className="size-4 shrink-0" />
-                  <Label>Radar</Label>
+                  <Label>Equipamento</Label>
                 </div>
                 <Value>{hoveredObject.object.cetRioCode}</Value>
               </div>

@@ -69,8 +69,7 @@ const columns = [
   { title: 'Marca/Modelo', width: '20%', key: 'brandModel' },
   { title: 'Cor', width: '13%', key: 'color' },
   { title: 'Ano Modelo', width: '10%', key: 'modelYear' },
-  { title: 'Radar', width: '13%', key: 'cetRioCode' },
-  { title: 'Faixa', width: '7%', key: 'lane' },
+  { title: 'Equipamento', width: '13%', key: 'equipmentCode' },
   { title: 'Velocidade [Km/h]', width: '12%', key: 'speed' },
 ]
 
@@ -96,7 +95,7 @@ export interface RadarReportDocumentProps {
 const removeDuplicates = (detections: EnhancedDetectionDTO[]) => {
   const uniqueDetections = new Map<string, EnhancedDetectionDTO>()
   detections.forEach((detection) => {
-    const key = `${detection.timestamp}-${detection.plate}-${detection.cetRioCode}-${detection.lane}-${detection.speed}`
+    const key = `${detection.timestamp}-${detection.plate}-${detection.equipmentCode}-${detection.lane}-${detection.speed}`
     if (!uniqueDetections.has(key)) {
       uniqueDetections.set(key, detection)
     }
@@ -108,7 +107,7 @@ export function RadarReportDocument({
   data,
   parameters,
 }: RadarReportDocumentProps) {
-  const reportTitle = 'Relatório de detecção de placas por radar'
+  const reportTitle = 'Relatório de detecção de placas por equipamento'
 
   // Remove duplicates from each group's detections
   const filteredData = data.map((group) => ({
