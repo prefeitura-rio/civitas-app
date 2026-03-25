@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { CalendarIcon, Check, ChevronDown, X } from 'lucide-react'
+import { CalendarIcon, ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { type DateRange } from 'react-day-picker'
 
@@ -13,16 +13,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { getTeamsList } from '@/http/teams/get-teams'
 import {
-  searchFocalPoints,
-  searchInternalNumbers,
-  searchOfficialLetters,
   searchOperations,
   type SearchOption,
-  searchProcedureNumbers,
   searchRequesters,
-  searchTicketNatures,
-  searchTicketTypes,
 } from '@/http/tickets/tickets-dashboard-filters'
 import { dateConfig } from '@/lib/date-config'
 
@@ -44,33 +39,12 @@ export type FilterFormState = {
   data_entrada_fim: string
 
   status: string[]
-  prioridade: string[]
-  equipe: string[]
+  prioridade: SearchOption[]
+  equipe: SearchOption[]
   servicos_realizados: string[]
 }
 
-const statusOptions = [
-  'PENDENTE',
-  'BLOQUEADO',
-  'AGUARDANDO REVISÃO',
-  'ARQUIVADO',
-]
-
 const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
-
-const teamOptions = ['Fox', 'Hotel', 'Golf', 'India']
-
-const serviceOptions = [
-  'BUSCA POR RADAR',
-  'BUSCA POR PLACA',
-  'PLACAS CORRELATAS',
-  'PLACAS CONJUNTAS',
-  'BUSCA POR IMAGEM',
-  'ANÁLISE DE IMAGEM',
-  'RESERVA DE IMAGEM',
-  'CERCO ELETRÔNICO',
-  'OUTROS',
-]
 
 export function emptyFilters(): FilterFormState {
   return {
@@ -117,59 +91,10 @@ function formatLabel(value: string) {
     .join(' ')
 }
 
-function ToggleButtonGroup({
-  label,
-  options,
-  values,
-  onChange,
-  lastItemFullWidth = false,
-}: {
-  label: string
-  options: string[]
-  values: string[]
-  onChange: (values: string[]) => void
-  lastItemFullWidth?: boolean
-}) {
-  const toggleValue = (value: string) => {
-    const exists = values.includes(value)
-
-    if (exists) {
-      onChange(values.filter((item) => item !== value))
-      return
-    }
-
-    onChange([...values, value])
-  }
-
-  return (
-    <div className={styles.filterBlock}>
-      <span className={styles.filterLabel}>{label}</span>
-
-      <div
-        className={
-          lastItemFullWidth
-            ? `${styles.toggleGrid} ${styles.toggleGridLastFull}`
-            : styles.toggleGrid
-        }
-      >
-        {options.map((option) => {
-          const selected = values.includes(option)
-
-          return (
-            <button
-              key={option}
-              type="button"
-              className={`${styles.toggleButton} ${selected ? styles.toggleButtonActive : ''}`}
-              onClick={() => toggleValue(option)}
-            >
-              {formatLabel(option)}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+const prioritySearchOptions: SearchOption[] = priorityOptions.map((p) => ({
+  value: p,
+  label: formatLabel(p),
+}))
 
 function SearchMultiSelect({
   label,
@@ -177,13 +102,17 @@ function SearchMultiSelect({
   value,
   onChange,
   searchFn,
+  staticOptions,
+  optionsLoading,
   minCharsMessage = 'Digite ao menos 2 caracteres',
 }: {
   label: string
   placeholder?: string
   value: SearchOption[]
   onChange: (value: SearchOption[]) => void
-  searchFn: (search: string) => Promise<SearchOption[]>
+  searchFn?: (search: string) => Promise<SearchOption[]>
+  staticOptions?: SearchOption[]
+  optionsLoading?: boolean
   minCharsMessage?: string
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -193,8 +122,12 @@ function SearchMultiSelect({
 
   const { data, isFetching } = useQuery({
     queryKey: ['dashboard-filter-search', label, debouncedSearch],
-    queryFn: () => searchFn(debouncedSearch),
-    enabled: isOpen && debouncedSearch.trim().length >= 2,
+    queryFn: () => searchFn!(debouncedSearch),
+    enabled:
+      isOpen &&
+      !staticOptions &&
+      Boolean(searchFn) &&
+      debouncedSearch.trim().length >= 2,
     staleTime: 1000 * 60 * 5,
   })
 
@@ -215,9 +148,22 @@ function SearchMultiSelect({
     [value],
   )
 
+  const staticFiltered = useMemo(() => {
+    if (!staticOptions) return []
+    const q = debouncedSearch.trim().toLowerCase()
+    return staticOptions.filter(
+      (item) =>
+        !selectedValues.has(item.value) &&
+        (q === '' ||
+          item.label.toLowerCase().includes(q) ||
+          item.value.toLowerCase().includes(q)),
+    )
+  }, [staticOptions, debouncedSearch, selectedValues])
+
   const options = useMemo(() => {
+    if (staticOptions) return staticFiltered
     return (data ?? []).filter((item) => !selectedValues.has(item.value))
-  }, [data, selectedValues])
+  }, [staticOptions, staticFiltered, data, selectedValues])
 
   const removeItem = (itemValue: string) => {
     onChange(value.filter((item) => item.value !== itemValue))
@@ -249,7 +195,9 @@ function SearchMultiSelect({
 
           {isOpen ? (
             <div className={styles.multiSelectDropdown}>
-              {debouncedSearch.trim().length < 2 ? (
+              {optionsLoading ? (
+                <div className={styles.dropdownHint}>Buscando...</div>
+              ) : !staticOptions && debouncedSearch.trim().length < 2 ? (
                 <div className={styles.dropdownHint}>{minCharsMessage}</div>
               ) : isFetching ? (
                 <div className={styles.dropdownHint}>Buscando...</div>
@@ -265,8 +213,7 @@ function SearchMultiSelect({
                     className={styles.dropdownOption}
                     onClick={() => addItem(item)}
                   >
-                    <span>{item.label}</span>
-                    <Check size={14} />
+                    {item.label}
                   </button>
                 ))
               )}
@@ -420,6 +367,19 @@ export function TicketsDashboardFilterModal({
     }
   }, [isOpen, filters])
 
+  const { data: teamSearchOptions, isFetching: isTeamsLoading } = useQuery({
+    queryKey: ['teams-list-dashboard-filter'],
+    queryFn: async () => {
+      const { data } = await getTeamsList()
+      return data.map((team) => ({
+        value: team.id,
+        label: team.name,
+      }))
+    },
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 5,
+  })
+
   const clearDraftFilters = () => {
     setDraftFilters(emptyFilters())
   }
@@ -449,66 +409,6 @@ export function TicketsDashboardFilterModal({
         <div className={styles.filterModalBody}>
           <div className={styles.filterGrid}>
             <SearchMultiSelect
-              label="TIPO DE CHAMADO"
-              value={draftFilters.tipo_chamado_id}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  tipo_chamado_id: value,
-                }))
-              }
-              searchFn={searchTicketTypes}
-            />
-
-            <SearchMultiSelect
-              label="Nº INTERNO"
-              value={draftFilters.numero_interno}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  numero_interno: value,
-                }))
-              }
-              searchFn={searchInternalNumbers}
-            />
-
-            <SearchMultiSelect
-              label="Nº DE PROCEDIMENTO"
-              value={draftFilters.numero_procedimento}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  numero_procedimento: value,
-                }))
-              }
-              searchFn={searchProcedureNumbers}
-            />
-
-            <SearchMultiSelect
-              label="Nº DE OFÍCIO"
-              value={draftFilters.numero_oficio}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  numero_oficio: value,
-                }))
-              }
-              searchFn={searchOfficialLetters}
-            />
-
-            <SearchMultiSelect
-              label="NATUREZA DO CHAMADO"
-              value={draftFilters.natureza_id}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  natureza_id: value,
-                }))
-              }
-              searchFn={searchTicketNatures}
-            />
-
-            <SearchMultiSelect
               label="DEMANDANTE"
               value={draftFilters.demandante_id}
               onChange={(value) =>
@@ -530,18 +430,6 @@ export function TicketsDashboardFilterModal({
                 }))
               }
               searchFn={searchRequesters}
-            />
-
-            <SearchMultiSelect
-              label="PONTO FOCAL"
-              value={draftFilters.ponto_focal}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  ponto_focal: value,
-                }))
-              }
-              searchFn={searchFocalPoints}
             />
 
             <FilterDateRangeField
@@ -582,53 +470,31 @@ export function TicketsDashboardFilterModal({
           </div>
 
           <div className={styles.filterTogglesGrid}>
-            <ToggleButtonGroup
-              label="STATUS DO CHAMADO"
-              options={statusOptions}
-              values={draftFilters.status}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  status: value,
-                }))
-              }
-            />
-
-            <ToggleButtonGroup
+            <SearchMultiSelect
               label="PRIORIDADE"
-              options={priorityOptions}
-              values={draftFilters.prioridade}
+              placeholder="Selecione"
+              value={draftFilters.prioridade}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
                   prioridade: value,
                 }))
               }
+              staticOptions={prioritySearchOptions}
             />
 
-            <ToggleButtonGroup
+            <SearchMultiSelect
               label="EQUIPE"
-              options={teamOptions}
-              values={draftFilters.equipe}
+              placeholder="Selecione"
+              value={draftFilters.equipe}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
                   equipe: value,
                 }))
               }
-            />
-
-            <ToggleButtonGroup
-              label="SERVIÇOS REALIZADOS"
-              options={serviceOptions}
-              values={draftFilters.servicos_realizados}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  servicos_realizados: value,
-                }))
-              }
-              lastItemFullWidth
+              staticOptions={teamSearchOptions ?? []}
+              optionsLoading={isTeamsLoading}
             />
           </div>
         </div>
