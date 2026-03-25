@@ -19,6 +19,108 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '25 de Março de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Integração de LPR Sentry no mapa',
+        content: (
+          <>
+            <p>
+              A camada de <strong>LPR</strong> do mapa agora também exibe
+              cameras LPR do sistema <strong>Sentry</strong>. Para facilitar a
+              identificação, os ícones foram ajustados com{' '}
+              <strong>cor diferente</strong> para distinguir as cameras LPR do
+              Sentry dos radares da CET-Rio.
+            </p>
+
+            <p>
+              As leituras de <strong>LPR</strong> do Sentry passam a ser
+              consideradas nas funcionalidades de{' '}
+              <strong>Busca por Placa</strong> e <strong>Busca por LPR</strong>,
+              incluindo a geração de relatórios (<strong>PDF</strong> e{' '}
+              <strong>CSV</strong>) para a busca por placa e para os relatórios
+              de <strong>Pontos de Detecção</strong>.
+            </p>
+            <p>
+              Também houve ajustes no conteúdo dos relatórios, removendo a
+              coluna de <strong>Faixa</strong> e atualizando a nomenclatura de
+              <strong> Radar</strong> para <strong>LPR</strong>.
+            </p>
+            <p>
+              <strong>Atenção:</strong> Os relatórios de{' '}
+              <strong>Placas Conjuntas</strong> e
+              <strong> Placas Correlatas</strong> ainda não incluem as leituras
+              LPR Sentry.
+            </p>
+
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-radars-sentry-lpr-distinct-colors.png"
+              alt="Exemplo de cartão de câmera CIVITAS (DC3) com campo de sistema"
+              width={800}
+              height={600}
+              className="mx-auto mb-4 block"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Camada "Radar" renomeada para "LPR"',
+        content: (
+          <>
+            <p>
+              A nomenclatura do módulo foi padronizada e a camada que antes era
+              exibida como <strong>Radar</strong> agora aparece como{' '}
+              <strong>LPR</strong> no controle de camadas, cards e popups.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-radar-to-lpr.png"
+              alt="Exemplo de cartão de câmera CIVITAS (DC3) com campo de sistema"
+              width={150}
+              height={200}
+              className="mx-auto mb-4 block"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Identificação visual por sistema (câmeras e LPR)',
+        content: (
+          <>
+            <p>
+              Ajustamos os ícones no mapa para facilitar a identificação visual
+              de sistemas distintos, como <strong>DC3</strong> e{' '}
+              <strong>TIXXI</strong> na camada de câmeras.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-cameras-distinct-colors.png"
+              alt="Exemplo de cartão de câmera CIVITAS (DC3) com campo de sistema"
+              width={800}
+              height={600}
+              className="mx-auto mb-4 block"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Camadas com carregamento sob demanda',
+        content: (
+          <>
+            <p>
+              Para evitar chamadas automáticas a endpoints indisponíveis, as
+              camadas <strong>Fogo Cruzado</strong> e{' '}
+              <strong>Policiamento (Waze)</strong> agora só realizam requisições
+              quando são ativadas pelo usuário.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '11 de Fevereiro de 2026',
     subCards: [
       {
@@ -42,7 +144,7 @@ export const changelog: Card[] = [
               alt="Exemplo de cartão de câmera CIVITAS (DC3) com campo de sistema"
               width={400}
               height={300}
-              className="mb-4"
+              className="mx-auto mb-4 block"
             />
           </>
         ),
@@ -67,7 +169,7 @@ export const changelog: Card[] = [
               alt="Exemplo de busca por coordenadas mostrando sugestões de endereços com coordenadas"
               width={400}
               height={300}
-              className="mb-4"
+              className="mx-auto mb-4 block"
             />
             <p>A busca por coordenadas aceita diferentes formatos:</p>
             <ul>
@@ -151,7 +253,7 @@ export const changelog: Card[] = [
               alt="Demonstração da nova interface de busca por radar com seleção de período em português"
               width={800}
               height={600}
-              className="mb-4"
+              className="mx-auto mb-4 block"
             />
             <ul>
               <li>
