@@ -99,11 +99,16 @@ export const ticketCreateSchema = z.object({
   apelido_imprensa: z.string().max(120).optional().nullable(),
   link_materia: z.string().url('URL inválida').optional().nullable(),
 
+  possui_endereco_correspondencia: z.boolean().default(false),
+  bairro_correspondencia: z.string().max(120).optional().nullable(),
+  rua_correspondencia: z.string().max(255).optional().nullable(),
+  numero_correspondencia: z.string().max(20).optional().nullable(),
+
   requisitante: requesterSchema,
   pontos_focais: z.array(focalPointSchema).default([]),
 
   equipe_id: z.string().min(1, 'Campo obrigatório'),
-  prioridade: ticketPriorityEnum.default('ROTINA'),
+  prioridade: ticketPriorityEnum.optional().nullable(),
 
   comentario_inicial: z.string().max(50).optional().nullable(),
 

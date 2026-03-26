@@ -23,7 +23,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useTeams } from '@/hooks/useContexts/use-teams-context'
 import { listIslands } from '@/http/islands/list-islands'
 import { createTeamMember } from '@/http/teams/create-team-member'
 import { updateTeamMember } from '@/http/teams/update-team-member'
@@ -32,6 +31,8 @@ import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-rol
 import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 import { queryClient } from '@/lib/react-query'
 import { getApiErrorMessage } from '@/utils/error-handlers'
+
+import type { TeamsController } from '../hooks/use-teams-controller'
 
 const roleEnumValues = [
   'Coordenador',
@@ -75,14 +76,16 @@ interface TeamMemberFormDialogProps {
   isOpen: boolean
   onClose: () => void
   onOpen: () => void
+  controller: TeamsController
 }
 
 export function TeamMemberFormDialog({
   isOpen,
   onClose,
   onOpen,
+  controller,
 }: TeamMemberFormDialogProps) {
-  const { memberDialogInitialData, setMemberDialogInitialData } = useTeams()
+  const { memberDialogInitialData, setMemberDialogInitialData } = controller
 
   const {
     handleSubmit,
@@ -209,6 +212,7 @@ export function TeamMemberFormDialog({
         | undefined
       const needsIsland =
         initialRole === 'Adjunto' || initialRole === 'Operador'
+
       reset({
         user_id: memberDialogInitialData.user_id || '',
         team_id: memberDialogInitialData.team_id,
@@ -376,10 +380,12 @@ export function TeamMemberFormDialog({
                           ? [field.value as UserRoleEnum]
                           : []
                       : availableRoles
+
                     const placeholder =
                       !memberDialogInitialData?.id && !selectedUserId
                         ? 'Selecione um usuário primeiro'
                         : 'Selecione a função'
+
                     return (
                       <Popover
                         open={roleSelectOpen}

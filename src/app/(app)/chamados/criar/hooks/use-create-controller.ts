@@ -24,7 +24,16 @@ import {
   ticketCreateSchema,
 } from '../ticket-create/ticket-create-schema'
 
-export function useTicketCreate() {
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
+const ALLOWED_ATTACHMENT_EXT = new Set(['.pdf', '.doc', '.docx'])
+
+function attachmentExtension(name: string): string {
+  const dot = name.lastIndexOf('.')
+  if (dot === -1) return ''
+  return name.slice(dot).toLowerCase()
+}
+
+export function useTicketCreateController() {
   const [files, setFiles] = useState<File[]>([])
   const [serviceModalOpen, setServiceModalOpen] = useState<OpenServiceKey>(null)
   const [serviceModalEditIndex, setServiceModalEditIndex] = useState<
@@ -58,6 +67,10 @@ export function useTicketCreate() {
       possui_apelido_imprensa: false,
       apelido_imprensa: null,
       link_materia: null,
+      possui_endereco_correspondencia: false,
+      bairro_correspondencia: null,
+      rua_correspondencia: null,
+      numero_correspondencia: null,
       requisitante: {
         requisitante_nome: '',
         requisitante_telefone: '',
@@ -65,7 +78,7 @@ export function useTicketCreate() {
       },
       pontos_focais: [],
       equipe_id: '',
-      prioridade: 'ROTINA',
+      prioridade: null,
       comentario_inicial: null,
       busca_por_placa: [],
       busca_por_radar: [],
@@ -98,6 +111,7 @@ export function useTicketCreate() {
   } = form
 
   const possuiApelido = watch('possui_apelido_imprensa')
+  const possuiEnderecoCorrespondencia = watch('possui_endereco_correspondencia')
 
   const focalPoints = useFieldArray({ control, name: 'pontos_focais' })
   const buscaPorPlaca = useFieldArray({ control, name: 'busca_por_placa' })
@@ -151,8 +165,8 @@ export function useTicketCreate() {
   })
 
   const operations = operationsQuery.data?.data?.items ?? []
-  const ticketTypes = ticketTypesQuery.data?.data ?? []
-  const ticketNatures = ticketNaturesQuery.data?.data ?? []
+  const ticketTypes = ticketTypesQuery.data?.data?.items ?? []
+  const ticketNatures = ticketNaturesQuery.data?.data?.items ?? []
   const tickets = ticketsQuery.data?.data ?? []
   const teams = teamsQuery.data?.data ?? []
 
@@ -171,9 +185,47 @@ export function useTicketCreate() {
   }
 
   function onDropFiles(inputFiles: FileList | null) {
-    if (!inputFiles) return
-    const next = Array.from(inputFiles)
-    setFiles((prev) => [...prev, ...next])
+    if (!inputFiles?.length) return
+
+    const accepted: File[] = []
+    const invalidType: string[] = []
+    const invalidSize: string[] = []
+
+    for (const file of Array.from(inputFiles)) {
+      const ext = attachmentExtension(file.name)
+      if (!ALLOWED_ATTACHMENT_EXT.has(ext)) {
+        invalidType.push(file.name)
+        continue
+      }
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        invalidSize.push(file.name)
+        continue
+      }
+      accepted.push(file)
+    }
+
+    if (invalidType.length > 0) {
+      toast.error('Formato de arquivo não permitido.', {
+        description:
+          'Anexe apenas PDF, DOC ou DOCX. ' +
+          (invalidType.length <= 3
+            ? invalidType.join(', ')
+            : `${invalidType.slice(0, 3).join(', ')} e mais ${invalidType.length - 3}`),
+      })
+    }
+
+    if (invalidSize.length > 0) {
+      toast.error('Arquivo acima do limite de 10MB.', {
+        description:
+          invalidSize.length <= 3
+            ? invalidSize.join(', ')
+            : `${invalidSize.slice(0, 3).join(', ')} e mais ${invalidSize.length - 3}`,
+      })
+    }
+
+    if (accepted.length > 0) {
+      setFiles((prev) => [...prev, ...accepted])
+    }
   }
 
   function removeFile(index: number) {
@@ -212,6 +264,7 @@ export function useTicketCreate() {
     trigger,
     errors,
     possuiApelido,
+    possuiEnderecoCorrespondencia,
     isLoading,
     isOperationsLoading,
     isTicketTypesLoading,

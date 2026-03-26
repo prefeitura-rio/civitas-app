@@ -17,8 +17,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { useProfileAccess } from '@/hooks/useContexts/use-profile-access-context'
-import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
+import type {
+  UserRoleEnum,
+  UserRoleListItem,
+} from '@/http/user-roles/get-users-with-roles'
 import { updateUserRoles } from '@/http/user-roles/update-user-roles'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
@@ -53,15 +55,17 @@ interface ProfileAccessFormDialogProps {
   isOpen: boolean
   onClose: () => void
   onOpen: () => void
+  dialogInitialData: UserRoleListItem | null
+  setDialogInitialData: (value: UserRoleListItem | null) => void
 }
 
 export function ProfileAccessFormDialog({
   isOpen,
   onClose,
   onOpen,
+  dialogInitialData,
+  setDialogInitialData,
 }: ProfileAccessFormDialogProps) {
-  const { dialogInitialData, setDialogInitialData } = useProfileAccess()
-
   const {
     handleSubmit,
     setValue,

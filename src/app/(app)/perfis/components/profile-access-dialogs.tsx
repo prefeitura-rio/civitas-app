@@ -1,17 +1,31 @@
 'use client'
 
-import { useProfileAccess } from '@/hooks/useContexts/use-profile-access-context'
+import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
 
 import { ProfileAccessFormDialog } from './profile-access-form-dialog'
 
-export function ProfileAccessDialogs() {
-  const { formDialogDisclosure } = useProfileAccess()
+interface ProfileAccessDialogsProps {
+  isOpen: boolean
+  onOpen: () => void
+  onClose: () => void
+  dialogInitialData: UserRoleListItem | null
+  setDialogInitialData: (value: UserRoleListItem | null) => void
+}
 
+export function ProfileAccessDialogs({
+  isOpen,
+  onOpen,
+  onClose,
+  dialogInitialData,
+  setDialogInitialData,
+}: ProfileAccessDialogsProps) {
   return (
     <ProfileAccessFormDialog
-      isOpen={formDialogDisclosure.isOpen}
-      onOpen={formDialogDisclosure.onOpen}
-      onClose={formDialogDisclosure.onClose}
+      isOpen={isOpen}
+      onOpen={onOpen}
+      onClose={onClose}
+      dialogInitialData={dialogInitialData}
+      setDialogInitialData={setDialogInitialData}
     />
   )
 }

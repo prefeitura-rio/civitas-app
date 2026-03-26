@@ -3,10 +3,15 @@
 import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { useTeams } from '@/hooks/useContexts/use-teams-context'
 
-export function TeamsHeader() {
-  const { teamFormDisclosure, setTeamDialogInitialData } = useTeams()
+import type { TeamsController } from '../hooks/use-teams-controller'
+
+interface TeamsHeaderProps {
+  controller: TeamsController
+}
+
+export function TeamsHeader({ controller }: TeamsHeaderProps) {
+  const { openCreateTeamDialog } = controller
 
   return (
     <div className="flex w-full items-start justify-end gap-4">
@@ -20,10 +25,7 @@ export function TeamsHeader() {
       <Button
         type="button"
         className="equipes-btn-criar flex items-center gap-2"
-        onClick={() => {
-          setTeamDialogInitialData(null)
-          teamFormDisclosure.onOpen()
-        }}
+        onClick={openCreateTeamDialog}
       >
         <Plus className="size-5 shrink-0" />
         Criar Equipe
