@@ -44,6 +44,43 @@ export type BackendNotificationChannel = {
   active: boolean
 }
 
+export type DemandantLink = {
+  id: string
+  reference_number: string
+  valid_until: string
+  active: boolean
+  notes: string
+  additional_info: JSON
+  demandant: {
+    id: string
+    organization: {
+      id: string
+      name: string
+      organization_type: string
+      acronym: string
+      jurisdiction_level: string
+      created_at: string
+      updated_at: string
+    }
+    name: string
+    email: string
+    phone_1: string
+    phone_2: string | null
+    phone_3: string | null
+    created_at: string
+    updated_at: string
+  }
+  radars: {
+    id: string
+    lpr_equipment_id: string
+    active: boolean
+    created_at: string
+    updated_at: string
+  }[]
+  created_at: string
+  updated_at: string
+}
+
 export type MonitoredPlate = {
   id: string
   plate: string
@@ -51,6 +88,7 @@ export type MonitoredPlate = {
   contactInfo: string | null
   notes: string
   active: boolean
+  demandantLinks?: DemandantLink[]
   additionalInfo: JSON
   notificationChannels: NotificationChannel[]
   createdAt: string
@@ -60,14 +98,21 @@ export type MonitoredPlate = {
 export type BackendMonitoredPlate = {
   id: string
   plate: string
-  operation: Operation
-  contact_info: string | null
+  numero_controle?: string
   notes: string
-  active: boolean
-  additional_info: JSON
   notification_channels: NotificationChannel[]
   created_at: string
   updated_at: string
+
+  demandant_links?: DemandantLink[]
+
+  /**
+   * Formato legado (mantido opcional para evitar quebrar outros endpoints).
+   */
+  operation?: Operation
+  contact_info?: string | null
+  active?: boolean
+  additional_info?: JSON
 }
 
 export type AdditionalInfo = {

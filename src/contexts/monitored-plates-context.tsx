@@ -52,7 +52,7 @@ export const monitoredPlateFormSchema = z.object({
       value: z.string().min(1, { message: 'Campo obrigatório' }),
     })
     .array()
-    .min(1, { message: 'Pelo menos um canal deve ser selecionado' }),
+    .default([]),
 })
 
 export type MonitoredPlateForm = z.infer<typeof monitoredPlateFormSchema>

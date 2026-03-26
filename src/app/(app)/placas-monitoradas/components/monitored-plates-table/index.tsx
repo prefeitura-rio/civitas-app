@@ -7,6 +7,11 @@ import { PencilLine, Trash } from 'lucide-react'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Pagination } from '@/components/ui/pagination'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 import { useMonitoredPlatesSearchParams } from '@/hooks/useParams/useMonitoredPlatesSearchParams'
@@ -62,8 +67,58 @@ export function MonitoredPlatesTable() {
       header: 'Observações',
     },
     {
-      accessorKey: 'operation.title',
-      header: 'Demandante',
+      id: 'demandantLinks',
+      header: 'Demandantes (links)',
+      cell: ({ row }) => {
+        const demandantLinks = row.original.demandantLinks ?? []
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                Demandantes ({demandantLinks.length})
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[26rem]">
+              {demandantLinks.length === 0 ? (
+                <div className="px-2 py-2 text-sm text-muted-foreground">
+                  Nenhum demandant_link encontrado
+                </div>
+              ) : (
+                <div className="max-h-[28rem] overflow-auto">
+                  {demandantLinks.map((link) => (
+                    <div
+                      key={link.id}
+                      className="flex flex-col gap-1 border-b px-2 py-2 last:border-b-0"
+                    >
+                      <div className="font-medium">{link.demandant.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Referência: {link.reference_number}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Validade:{' '}
+                        {formatDate(link.valid_until, 'dd/MM/yyyy HH:mm')}
+                      </div>
+                      <div
+                        className={`text-xs ${
+                          link.active
+                            ? 'text-green-600'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {link.active ? 'Ativo' : 'Inativo'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Radars: {link.radars.length}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
     },
     {
       accessorKey: 'notificationChannels',

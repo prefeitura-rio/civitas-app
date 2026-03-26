@@ -70,6 +70,7 @@ export function MonitoredPlateFormDialog({
       active: true,
       notes: '',
       contactInfo: '',
+      notificationChannels: [],
       operation: {
         id: '',
         title: '',
@@ -211,6 +212,8 @@ export function MonitoredPlateFormDialog({
           },
         )
         setValue('notificationChannels', channelOptions)
+      } else {
+        setValue('notificationChannels', [])
       }
       setIsLoading(false)
     }
