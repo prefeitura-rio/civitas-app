@@ -82,7 +82,7 @@ export function SelectedRadarsPopover({
       <PopoverTrigger asChild>
         <Button variant="outline" className="w-full">
           <MapPinIcon className="mr-2 size-4 shrink-0" />
-          Radares ({selectedRadarIds.length})
+          Equipamentos ({selectedRadarIds.length})
         </Button>
       </PopoverTrigger>
       <PopoverContent

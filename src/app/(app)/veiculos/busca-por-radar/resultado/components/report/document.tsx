@@ -67,8 +67,7 @@ const styles = StyleSheet.create({
 const columns = [
   { title: 'Data e Hora', width: '25%', key: 'timestamp' },
   { title: 'Placa', width: '15%', key: 'plate' },
-  { title: 'Radar', width: '15%', key: 'cetRioCode' },
-  { title: 'Faixa', width: '10%', key: 'lane' },
+  { title: 'Equipamento', width: '15%', key: 'equipmentCode' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
 ]
 
@@ -92,7 +91,7 @@ export interface RadarReportDocumentProps {
 const removeDuplicates = (detections: DetectionDTO[]) => {
   const uniqueDetections = new Map<string, DetectionDTO>()
   detections.forEach((detection) => {
-    const key = `${detection.timestamp}-${detection.plate}-${detection.cetRioCode}-${detection.lane}-${detection.speed}`
+    const key = `${detection.timestamp}-${detection.plate}-${detection.equipmentCode}-${detection.lane}-${detection.speed}`
     if (!uniqueDetections.has(key)) {
       uniqueDetections.set(key, detection)
     }
@@ -104,7 +103,7 @@ export function RadarReportDocument({
   data,
   parameters,
 }: RadarReportDocumentProps) {
-  const reportTitle = 'Relatório de detecção de placas por radar'
+  const reportTitle = 'Relatório de detecção de placas por equipamento'
 
   // Remove duplicates from each group's detections
   const filteredData = data.map((group) => ({

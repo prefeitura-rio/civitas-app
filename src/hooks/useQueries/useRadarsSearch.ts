@@ -9,7 +9,7 @@ export type DetectionDTO = {
   plate: string
   timestamp: string
   speed: number
-  cetRioCode: string
+  equipmentCode: string
   location: string
   lane: string
 }
@@ -47,7 +47,7 @@ export function useRadarsSearch() {
           const joinedData = detections.map((detection) => {
             return {
               ...detection, // plate, timestamp, speed
-              cetRioCode: radar.cetRioCode,
+              equipmentCode: radar.cetRioCode,
               lane: radar.lane || '',
               location: radar.location?.replace(/- FX \d+/, '') || 'N/A',
             } as DetectionDTO
