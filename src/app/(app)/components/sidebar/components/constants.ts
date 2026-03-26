@@ -31,6 +31,11 @@ const chamadosItem: Category = {
       path: '/chamados/criar',
     },
     {
+      icon: 'Inbox',
+      title: 'Caixa de Entrada',
+      path: '/chamados/caixa-entrada',
+    },
+    {
       icon: 'UserCog',
       title: 'Equipes',
       path: '/equipes',

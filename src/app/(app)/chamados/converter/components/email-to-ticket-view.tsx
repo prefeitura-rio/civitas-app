@@ -1,5 +1,8 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import {
   ChevronDown,
   ChevronLeft,
@@ -15,7 +18,8 @@ import {
   Upload,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
@@ -43,6 +47,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { maskPhoneBR } from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
@@ -51,18 +56,24 @@ import { DataBaseDatePicker } from '../../criar/components/shared/data-base-date
 import { useTicketCreateController } from '../../criar/hooks/use-create-controller'
 import type { OpenServiceKey } from '../../criar/ticket-create/ticket-create.constant'
 import { SERVICE_CONFIG } from '../../criar/ticket-create/ticket-create.constant'
+import { useAttachmentPreviewUrl } from '../hooks/use-attachment-preview-url'
 import styles from './email-to-ticket-view.module.css'
 
-const MOCK_EMAIL = {
-  subject: 'Demonstração de integração de anexos',
-  senderName: 'Marcus Vinícius Rocha',
-  senderEmail: 'marcus.rocha90@gmail.com',
-  date: '07/02/2026 às 01:51',
-  body: 'Demonstração de integração de anexos',
-  attachments: [
-    { name: 'ia-mirai.pdf', type: 'pdf' as const, url: '/ia-mirai.pdf' },
-    { name: 'Relatório final.pdf', type: 'pdf' as const, url: '/ia-mirai.pdf' },
-  ],
+function resolveEmailDate(email: EmailOut): Date | null {
+  if (email.date) {
+    const d = new Date(email.date)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+  if (email.internal_date != null) {
+    return new Date(email.internal_date)
+  }
+  return null
+}
+
+function formatEmailMetaDate(email: EmailOut): string {
+  const d = resolveEmailDate(email)
+  if (!d) return '—'
+  return format(d, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
 }
 
 const SERVICE_ORDER: Exclude<OpenServiceKey, null>[] = [
@@ -203,18 +214,70 @@ function CompactServiceList<T extends { id: string }>({
 }
 
 export function EmailToTicketView() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const emailId = searchParams.get('email_id')?.trim() || null
+
   const vm = useTicketCreateController()
   const [currentAttachment, setCurrentAttachment] = useState(0)
   const [emailInfoCollapsed, setEmailInfoCollapsed] = useState(false)
 
+  const {
+    data: emailResponse,
+    isLoading: emailLoading,
+    isError: emailError,
+  } = useQuery({
+    queryKey: ['email-detail', emailId],
+    queryFn: () => getEmailById(emailId!),
+    enabled: Boolean(emailId),
+  })
+
+  const email = emailResponse?.data
+
   useEffect(() => {
-    vm.setValue('requisitante.requisitante_nome', MOCK_EMAIL.senderName)
-    vm.setValue('requisitante.requisitante_email', MOCK_EMAIL.senderEmail)
+    if (!email) return
+    const nome = email.from_name?.trim() || email.from_address?.trim() || ''
+    vm.setValue('requisitante.requisitante_nome', nome)
     vm.setValue(
-      'comentario_inicial',
-      `${MOCK_EMAIL.subject}\n\n${MOCK_EMAIL.body}`,
+      'requisitante.requisitante_email',
+      email.from_address?.trim() || '',
     )
-  }, [vm.setValue])
+    const subj = email.subject?.trim() || ''
+    const body = (email.body_preview || email.snippet || '').trim()
+    vm.setValue('comentario_inicial', subj ? `${subj}\n\n${body}` : body)
+  }, [email, vm.setValue])
+
+  const attachments = email?.attachments ?? []
+
+  useEffect(() => {
+    setCurrentAttachment(0)
+  }, [emailId])
+
+  useEffect(() => {
+    if (attachments.length === 0) {
+      setCurrentAttachment(0)
+      return
+    }
+    setCurrentAttachment((i) => Math.min(i, attachments.length - 1))
+  }, [attachments.length])
+
+  const currentAttachmentItem = attachments[currentAttachment]
+  const { url: attachmentPreviewUrl, loading: attachmentPreviewLoading } =
+    useAttachmentPreviewUrl(currentAttachmentItem)
+
+  const emailDisplay = useMemo(() => {
+    if (!email) return null
+    const senderName =
+      email.from_name?.trim() || email.from_address?.trim() || '—'
+    return {
+      subject: email.subject?.trim() || 'Sem assunto',
+      senderName,
+      senderEmail: email.from_address?.trim() || '',
+      body: (email.body_preview || email.snippet || '').trim() || '—',
+      date: formatEmailMetaDate(email),
+      avatarChar: senderName.charAt(0).toUpperCase() || '?',
+    }
+  }, [email])
 
   const initialBuscaPorPlaca =
     vm.serviceModalOpen === 'busca_por_placa' &&
@@ -269,71 +332,108 @@ export function EmailToTicketView() {
       ? vm.getValues().outros?.[vm.serviceModalEditIndex]
       : undefined
 
-  const attachments = MOCK_EMAIL.attachments
-  const attachment = attachments[currentAttachment]
-
   return (
     <div className={styles.root}>
       <div className={styles.topBar}>
         <span className={styles.topBarTitle}>Converter em Chamado</span>
-        <button type="button" className={styles.closeButton}>
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={() => router.push('/chamados/caixa-entrada')}
+          aria-label="Fechar"
+        >
           <X className="h-5 w-5" />
         </button>
       </div>
 
       <div className={styles.mainLayout}>
         <div className={styles.leftPanel}>
-          <div
-            className={`${styles.emailInfoSection} ${
-              emailInfoCollapsed
-                ? styles.emailInfoSectionClosed
-                : styles.emailInfoSectionOpen
-            }`}
-          >
-            <div className={styles.emailHeader}>
-              <h2 className={styles.emailSubject}>{MOCK_EMAIL.subject}</h2>
-              <div className={styles.emailMeta}>
-                <div className={styles.avatar}>
-                  {MOCK_EMAIL.senderName.charAt(0)}
+          {!emailId && (
+            <div className={styles.emailInfoSection}>
+              <p className={styles.emailBodyText}>
+                Abra um e-mail na Caixa de Entrada e use &quot;Converter em
+                Chamado&quot; para carregar o conteúdo aqui.
+              </p>
+            </div>
+          )}
+
+          {emailId && emailLoading && (
+            <div className={styles.emailInfoSection}>
+              <p className={styles.emailBodyText}>Carregando e-mail...</p>
+            </div>
+          )}
+
+          {emailId && emailError && !emailLoading && (
+            <div className={styles.emailInfoSection}>
+              <p className={styles.emailBodyText}>
+                Não foi possível carregar este e-mail.
+              </p>
+            </div>
+          )}
+
+          {emailId && emailDisplay && (
+            <>
+              <div
+                className={`${styles.emailInfoSection} ${
+                  emailInfoCollapsed
+                    ? styles.emailInfoSectionClosed
+                    : styles.emailInfoSectionOpen
+                }`}
+              >
+                <div className={styles.emailHeader}>
+                  <h2 className={styles.emailSubject}>
+                    {emailDisplay.subject}
+                  </h2>
+                  <div className={styles.emailMeta}>
+                    <div className={styles.avatar}>
+                      {emailDisplay.avatarChar}
+                    </div>
+                    <div className={styles.senderInfo}>
+                      <p className={styles.senderName}>
+                        {emailDisplay.senderName}
+                      </p>
+                      {emailDisplay.senderEmail ? (
+                        <p className={styles.senderEmail}>
+                          &lt;{emailDisplay.senderEmail}&gt;
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className={styles.emailDate}>
+                      {emailDisplay.date}
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.senderInfo}>
-                  <p className={styles.senderName}>{MOCK_EMAIL.senderName}</p>
-                  <p className={styles.senderEmail}>
-                    &lt;{MOCK_EMAIL.senderEmail}&gt;
-                  </p>
+
+                <div className={styles.emailBody}>
+                  <p className={styles.emailBodyText}>{emailDisplay.body}</p>
                 </div>
-                <span className={styles.emailDate}>{MOCK_EMAIL.date}</span>
               </div>
-            </div>
 
-            <div className={styles.emailBody}>
-              <p className={styles.emailBodyText}>{MOCK_EMAIL.body}</p>
-            </div>
-          </div>
+              <button
+                type="button"
+                className={styles.collapseBar}
+                onClick={() => setEmailInfoCollapsed((prev) => !prev)}
+              >
+                {emailInfoCollapsed ? (
+                  <>
+                    <ChevronDown className="h-3.5 w-3.5" />
+                    Mostrar detalhes do email
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="h-3.5 w-3.5" />
+                    Ocultar detalhes do email
+                  </>
+                )}
+              </button>
+            </>
+          )}
 
-          <button
-            type="button"
-            className={styles.collapseBar}
-            onClick={() => setEmailInfoCollapsed((prev) => !prev)}
-          >
-            {emailInfoCollapsed ? (
-              <>
-                <ChevronDown className="h-3.5 w-3.5" />
-                Mostrar detalhes do email
-              </>
-            ) : (
-              <>
-                <ChevronUp className="h-3.5 w-3.5" />
-                Ocultar detalhes do email
-              </>
-            )}
-          </button>
-
-          {attachments.length > 0 && (
+          {emailId && emailDisplay && attachments.length > 0 && (
             <div className={styles.attachmentBar}>
               <div className={styles.attachmentName}>
                 <FileText className="h-4 w-4" />
-                <span>{attachment?.name}</span>
+                <span>{currentAttachmentItem?.filename}</span>
               </div>
               <div className={styles.attachmentNav}>
                 <button
@@ -366,13 +466,24 @@ export function EmailToTicketView() {
           )}
 
           <div className={styles.pdfViewer}>
-            {attachment?.url ? (
+            {emailId &&
+            emailDisplay &&
+            attachments.length > 0 &&
+            attachmentPreviewUrl ? (
               <iframe
-                key={attachment.url + currentAttachment}
-                src={attachment.url}
-                title={attachment.name}
+                key={attachmentPreviewUrl + currentAttachment}
+                src={attachmentPreviewUrl}
+                title={currentAttachmentItem?.filename ?? 'Anexo'}
                 className="h-full w-full border-0"
               />
+            ) : emailId &&
+              emailDisplay &&
+              attachments.length > 0 &&
+              attachmentPreviewLoading ? (
+              <div className={styles.pdfPlaceholder}>
+                <FileText className="h-16 w-16 opacity-30" />
+                <span>Carregando anexo...</span>
+              </div>
             ) : (
               <div className={styles.pdfPlaceholder}>
                 <FileText className="h-16 w-16 opacity-30" />
@@ -385,7 +496,9 @@ export function EmailToTicketView() {
         <div className={styles.rightPanel}>
           <form
             className="flex min-h-0 flex-1 flex-col"
-            onSubmit={vm.handleSubmit(vm.onSubmit)}
+            onSubmit={vm.handleSubmit((data) =>
+              vm.onSubmitFromEmail(data, emailId),
+            )}
           >
             <div className={styles.rightPanelScroll}>
               <h3 className={styles.rightPanelTitle}>Dados do Chamado</h3>

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 
 import { config } from '@/config'
 
@@ -9,5 +10,11 @@ export default function ConverterChamadoPage() {
     notFound()
   }
 
-  return <EmailToTicketView />
+  return (
+    <Suspense
+      fallback={<div className="p-6 text-muted-foreground">Carregando…</div>}
+    >
+      <EmailToTicketView />
+    </Suspense>
+  )
 }

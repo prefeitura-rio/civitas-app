@@ -151,8 +151,7 @@ export function useTicketCreateController() {
   })
 
   const createMutation = useMutation({
-    mutationFn: async (payload: TicketCreateForm) =>
-      createTicket(payload, files),
+    mutationFn: async (payload: unknown) => createTicket(payload, files),
     onSuccess: () => {
       toast.success('Chamado criado com sucesso.')
       reset(defaultValues)
@@ -237,6 +236,17 @@ export function useTicketCreateController() {
     await createMutation.mutateAsync(payload)
   }
 
+  async function onSubmitFromEmail(
+    data: TicketCreateForm,
+    emailId?: string | null,
+  ) {
+    const basePayload = buildTicketCreatePayload(data)
+    const payload = emailId
+      ? { ...basePayload, email_id: emailId }
+      : basePayload
+    await createMutation.mutateAsync(payload)
+  }
+
   function handleOpenService(service: OpenServiceKey) {
     setServiceModalEditIndex(null)
     setServiceModalOpen(service)
@@ -305,6 +315,7 @@ export function useTicketCreateController() {
     onDropFiles,
     removeFile,
     onSubmit,
+    onSubmitFromEmail,
     handleOpenService,
     openServiceModalForEdit,
     closeServiceModal,
