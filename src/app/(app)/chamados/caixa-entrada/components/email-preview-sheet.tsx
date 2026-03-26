@@ -15,7 +15,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
-import { getEmailById } from '@/http/emails/get-email'
+import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { cn } from '@/lib/utils'
 
 import styles from './email-preview-sheet.module.css'
@@ -64,12 +64,11 @@ export function EmailPreviewSheet({
   })
 
   const email = response?.data
-  console.log(email)
 
   const handleDownload = useCallback(
     async (a: Parameters<typeof downloadEmailAttachmentFile>[0]) => {
       try {
-        await downloadEmailAttachmentFile(a)
+        await downloadEmailAttachmentFile(a, email.id)
       } catch {
         toast.error('Não foi possível baixar o anexo.')
       }
@@ -173,7 +172,7 @@ export function EmailPreviewSheet({
             {email.attachments.length > 0 ? (
               <div className={styles.attachmentsSection}>
                 <div className={styles.attachmentsList}>
-                  {email.attachments.map((att) => (
+                  {email.attachments.map((att: AttachmentOut) => (
                     <div key={att.id} className={styles.attachmentCard}>
                       <div className={styles.attachmentLeft}>
                         <div className={styles.pdfIconWrap}>

@@ -5,12 +5,15 @@ import { useEffect, useState } from 'react'
 import type { AttachmentOut } from '@/http/emails/get-email'
 import { api } from '@/lib/api'
 
-export function useAttachmentPreviewUrl(attachment: AttachmentOut | undefined) {
+export function useAttachmentPreviewUrl(
+  attachment: AttachmentOut | undefined,
+  emailId: string | null | undefined,
+) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!attachment) {
+    if (!attachment || !emailId) {
       setUrl(null)
       return
     }
@@ -30,7 +33,7 @@ export function useAttachmentPreviewUrl(attachment: AttachmentOut | undefined) {
     setLoading(true)
 
     api
-      .get(`/emails/attachments/${attachment.id}/download`, {
+      .get(`/emails/${emailId}/attachments/${attachment.id}/download`, {
         responseType: 'blob',
       })
       .then((res) => {
@@ -55,7 +58,7 @@ export function useAttachmentPreviewUrl(attachment: AttachmentOut | undefined) {
       setUrl(null)
       setLoading(false)
     }
-  }, [attachment?.id, attachment?.file_path])
+  }, [attachment?.id, attachment?.file_path, emailId])
 
   return { url, loading }
 }

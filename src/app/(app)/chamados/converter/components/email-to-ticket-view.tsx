@@ -263,7 +263,7 @@ export function EmailToTicketView() {
 
   const currentAttachmentItem = attachments[currentAttachment]
   const { url: attachmentPreviewUrl, loading: attachmentPreviewLoading } =
-    useAttachmentPreviewUrl(currentAttachmentItem)
+    useAttachmentPreviewUrl(currentAttachmentItem, emailId)
 
   const emailDisplay = useMemo(() => {
     if (!email) return null

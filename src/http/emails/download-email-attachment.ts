@@ -3,7 +3,10 @@ import { downloadFile } from '@/utils/download-file'
 
 import type { AttachmentOut } from './get-email'
 
-export async function downloadEmailAttachmentFile(attachment: AttachmentOut) {
+export async function downloadEmailAttachmentFile(
+  attachment: AttachmentOut,
+  emailId: string,
+) {
   if (
     attachment.file_path.startsWith('http://') ||
     attachment.file_path.startsWith('https://')
@@ -13,7 +16,7 @@ export async function downloadEmailAttachmentFile(attachment: AttachmentOut) {
   }
 
   const response = await api.get<Blob>(
-    `/emails/attachments/${attachment.id}/download`,
+    `/emails/${emailId}/attachments/${attachment.id}/download`,
     {
       responseType: 'blob',
     },
