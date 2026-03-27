@@ -191,6 +191,20 @@ export function MonitoredPlateFormDialog({
   }
 
   useEffect(() => {
+    if (isOpen && !initialData) {
+      reset({
+        plate: '',
+        active: true,
+        notes: '',
+        contactInfo: '',
+        additionalInfo: undefined,
+        notificationChannels: [],
+        operation: { id: '', title: '' },
+      })
+    }
+  }, [isOpen, initialData, reset])
+
+  useEffect(() => {
     if (
       initialData &&
       isOpen &&

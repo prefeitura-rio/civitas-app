@@ -9,15 +9,18 @@ import { useProfile } from '@/hooks/useQueries/useProfile'
 import { notAllowed } from '@/utils/template-messages'
 
 export function MonitoredPlatesHeader() {
-  const { formDialogDisclosure } = useMonitoredPlates()
+  const { formDialogDisclosure, setDialogInitialData } = useMonitoredPlates()
   const { data: profile } = useProfile()
 
   return (
     <div className="flex w-full justify-between">
       <h2>Placas Monitoradas</h2>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
         <Button asChild variant="link">
-          <Link href={'/placas-monitoradas/historico'}>Histórico</Link>
+          <Link href="/demandantes">Organizações e demandantes</Link>
+        </Button>
+        <Button asChild variant="link">
+          <Link href="/placas-monitoradas/historico">Histórico</Link>
         </Button>
         <Tooltip
           hideContent={!profile || profile.is_admin}
@@ -26,10 +29,13 @@ export function MonitoredPlatesHeader() {
           asChild
         >
           <Button
-            onClick={formDialogDisclosure.onOpen}
+            onClick={() => {
+              setDialogInitialData(null)
+              formDialogDisclosure.onOpen()
+            }}
             disabled={!profile || !profile.is_admin}
           >
-            Adicionar
+            Adicionar placa
           </Button>
         </Tooltip>
       </div>
