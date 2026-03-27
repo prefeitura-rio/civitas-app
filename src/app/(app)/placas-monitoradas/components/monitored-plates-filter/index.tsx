@@ -23,7 +23,7 @@ const activeOptions = ['all', 'true', 'false']
 
 const filterFormSchema = z.object({
   plateContains: z.string().toUpperCase().optional(),
-  operationTitle: z.string().optional(),
+  organizationName: z.string().optional(),
   notificationChannelTitle: z.string().optional(),
   active: z.enum([activeOptions[0], ...activeOptions]),
   createdAtFrom: z.string().optional(),
@@ -51,14 +51,15 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     const pActive = searchParams.get('active')
     const pPlate = searchParams.get('plateContains')
-    const pOperation = searchParams.get('operationTitle')
+    const pOrg =
+      searchParams.get('organizationName') || searchParams.get('operationTitle')
     const pChannel = searchParams.get('notificationChannelTitle')
     const pCreatedAtFrom = searchParams.get('createdAtFrom')
     const pCreatedAtTo = searchParams.get('createdAtTo')
 
     if (pActive) setValue('active', pActive)
     if (pPlate) setValue('plateContains', pPlate)
-    if (pOperation) setValue('operationTitle', pOperation)
+    if (pOrg) setValue('organizationName', pOrg)
     if (pChannel) setValue('notificationChannelTitle', pChannel)
     if (pCreatedAtFrom) {
       setValue('createdAtFrom', pCreatedAtFrom)
@@ -81,7 +82,8 @@ export function MonitoredPlatesFilter() {
     const params = new URLSearchParams()
 
     if (props.plateContains) params.set('plateContains', props.plateContains)
-    if (props.operationTitle) params.set('operationTitle', props.operationTitle)
+    if (props.organizationName)
+      params.set('organizationName', props.organizationName)
     if (props.notificationChannelTitle)
       params.set('notificationChannelTitle', props.notificationChannelTitle)
 
@@ -118,17 +120,16 @@ export function MonitoredPlatesFilter() {
       </div>
       <div className="">
         <Label
-          htmlFor="operationTitle"
+          htmlFor="organizationName"
           className="text-xs text-muted-foreground"
         >
-          Demandante
+          Organização (nome)
         </Label>
         <Input
           className="h-9 w-40"
-          id="operationTitle"
+          id="organizationName"
           type="text"
-          // placeholder="Demandante"
-          {...register('operationTitle')}
+          {...register('organizationName')}
         />
       </div>
       <div>

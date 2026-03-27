@@ -35,6 +35,7 @@ import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
 
 import { DemandantFormDialog } from '../demandantes/components/demandants-section/demandant-dialogs/demandant-form-dialog'
+import { MonitoredPlateDemandantLinksPanel } from './monitored-plate-demandant-links-panel'
 
 interface MonitoredPlateDialogProps {
   isOpen: boolean
@@ -70,6 +71,9 @@ export function MonitoredPlateFormDialog({
   } = useForm<MonitoredPlateForm>({
     resolver: zodResolver(monitoredPlateFormSchema),
     defaultValues: {
+      numeroControle: '',
+      demandantLinkReference: '',
+      demandantLinkValidUntil: '',
       active: true,
       notes: '',
       contactInfo: '',
@@ -80,6 +84,8 @@ export function MonitoredPlateFormDialog({
       },
     },
   })
+
+  const isEditingExistingPlate = Boolean(initialData && shouldFetchData)
 
   const {
     mutateAsync: createMonitoredPlateMutation,
@@ -98,7 +104,9 @@ export function MonitoredPlateFormDialog({
     onError: (error, variables) => {
       console.error('Error:', error)
       if (isConflictError(error)) {
-        toast.error(`A placa ${variables.plate} já existe`)
+        toast.error(
+          `Placa ou número de controle já cadastrado (${variables.plate}).`,
+        )
       } else {
         toast.error(genericErrorMessage)
       }
@@ -119,10 +127,12 @@ export function MonitoredPlateFormDialog({
       })
       toast.success(`A placa ${data.plate} foi atualizada com sucesso!`)
     },
-    onError: (error, variables) => {
+    onError: (error) => {
       console.error('Error2:', error)
       if (isConflictError(error)) {
-        toast.error(`A placa ${variables.plate} já existe`)
+        toast.error(
+          'Não foi possível atualizar: placa ou número de controle em conflito.',
+        )
       } else {
         toast.error(genericErrorMessage)
       }
@@ -155,6 +165,9 @@ export function MonitoredPlateFormDialog({
       reset()
       setInitialData(null)
       setValue('notificationChannels', [])
+      setValue('numeroControle', '')
+      setValue('demandantLinkReference', '')
+      setValue('demandantLinkValidUntil', '')
       setValue('operation.id', '')
       setValue('operation.title', '')
     }
@@ -167,21 +180,36 @@ export function MonitoredPlateFormDialog({
       )
       if (initialData?.plate && shouldFetchData) {
         await updateMonitoredPlateMutation({
-          plate: props.plate,
-          active: props.active,
-          contactInfo: props.contactInfo,
+          plate: initialData.plate,
+          numeroControle: props.numeroControle,
           notes: props.notes,
-          operationId: props.operation.id,
           notificationChannels,
         })
       } else {
+        const rawUntil = props.demandantLinkValidUntil?.trim()
+        let linkValidUntil: string | undefined
+        if (rawUntil) {
+          const parsed = new Date(rawUntil)
+          linkValidUntil = Number.isNaN(parsed.getTime())
+            ? undefined
+            : parsed.toISOString()
+        }
         await createMonitoredPlateMutation({
           plate: props.plate,
-          active: true,
-          operationId: props.operation.id,
-          contactInfo: props.contactInfo,
+          numeroControle: props.numeroControle,
           notes: props.notes,
           notificationChannels,
+          demandantLinks:
+            props.operation.id.trim() !== ''
+              ? [
+                  {
+                    demandantId: props.operation.id,
+                    referenceNumber: props.demandantLinkReference.trim(),
+                    validUntil: linkValidUntil,
+                    notes: props.contactInfo?.trim() || undefined,
+                  },
+                ]
+              : undefined,
         })
       }
       handleOnOpenChange(false)
@@ -194,6 +222,9 @@ export function MonitoredPlateFormDialog({
     if (isOpen && !initialData) {
       reset({
         plate: '',
+        numeroControle: '',
+        demandantLinkReference: '',
+        demandantLinkValidUntil: '',
         active: true,
         notes: '',
         contactInfo: '',
@@ -213,12 +244,13 @@ export function MonitoredPlateFormDialog({
       shouldFetchData
     ) {
       setValue('plate', monitoredPlate.plate)
+      setValue('numeroControle', monitoredPlate.numeroControle ?? '')
       setValue('active', monitoredPlate.active)
-      setValue('additionalInfo', monitoredPlate.additionalInfo)
       setValue('notes', monitoredPlate.notes)
-      setValue('contactInfo', monitoredPlate.contactInfo || '')
-      setValue('operation.id', monitoredPlate.operation.id || '')
-      setValue('operation.title', monitoredPlate.operation.title || '')
+      setValue('demandantLinkReference', '')
+      setValue('demandantLinkValidUntil', '')
+      setValue('contactInfo', '')
+      setValue('operation', { id: '', title: '' })
       if (monitoredPlate.notificationChannels.length > 0) {
         const channelOptions = monitoredPlate.notificationChannels.map(
           (item) => {
@@ -238,7 +270,14 @@ export function MonitoredPlateFormDialog({
     if (initialData && isOpen && !shouldFetchData) {
       setValue('plate', initialData.plate)
     }
-  }, [isOpen, isLoading, monitoredPlate])
+  }, [
+    isOpen,
+    isLoading,
+    monitoredPlate,
+    initialData,
+    shouldFetchData,
+    setValue,
+  ])
 
   useEffect(() => {
     if (
@@ -265,7 +304,7 @@ export function MonitoredPlateFormDialog({
             </DialogTitle>
             <DialogDescription>
               {initialData && shouldFetchData
-                ? 'Gerencie o monitoramento dessa placa.'
+                ? 'Altere dados da placa, canais e víncios com demandantes (validade, referência, notas e ativo).'
                 : 'Cadastre uma nova placa a ser monitorada.'}
             </DialogDescription>
           </DialogHeader>
@@ -291,19 +330,21 @@ export function MonitoredPlateFormDialog({
 
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
-                <Label htmlFor="contactInfo">Contatos</Label>
-                <InputError message={errors.contactInfo?.message} />
+                <Label htmlFor="numeroControle">Nº de controle</Label>
+                <InputError message={errors.numeroControle?.message} />
               </div>
-              <Textarea
-                id="contactInfo"
-                {...register('contactInfo')}
+              <Input
+                id="numeroControle"
+                {...register('numeroControle')}
+                type="text"
                 disabled={isLoading}
+                autoComplete="off"
               />
             </div>
 
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
-                <Label htmlFor="notes">Observações</Label>
+                <Label htmlFor="notes">Observações (placa)</Label>
                 <InputError message={errors.notes?.message} />
               </div>
               <Textarea
@@ -313,47 +354,113 @@ export function MonitoredPlateFormDialog({
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label>Demandante</Label>
-                <InputError message={errors.operation?.title?.message} />
-              </div>
-              <Controller
-                control={control}
-                name="operation.title"
-                render={({ field }) => (
-                  <SelectWithSearch
-                    onSelect={(item) => {
-                      setValue('operation.title', item.label)
-                      setValue('operation.id', item.value)
-                    }}
-                    options={demandants.map((item) => ({
-                      label: `${item.name} (${item.organization.acronym})`,
-                      value: item.id,
-                    }))}
-                    disabled={isLoading}
-                    value={field.value}
-                    placeholder="Selecione um demandante"
-                    topAction={
-                      <div className="flex justify-center p-2">
-                        <Button
-                          variant="link"
-                          className="h-auto p-0"
-                          onClick={() => {
-                            setDemandantDialogInitial(null)
-                            formDialogDisclosure.onOpen()
-                          }}
-                        >
-                          Criar novo demandante
-                        </Button>
-                      </div>
-                    }
-
-                    // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
+            {!isEditingExistingPlate && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label>Demandante (opcional)</Label>
+                    <InputError message={errors.operation?.title?.message} />
+                  </div>
+                  <Controller
+                    control={control}
+                    name="operation.title"
+                    render={({ field }) => (
+                      <SelectWithSearch
+                        onSelect={(item) => {
+                          setValue('operation.title', item.label)
+                          setValue('operation.id', item.value)
+                        }}
+                        options={demandants.map((item) => ({
+                          label: `${item.name} (${item.organization.acronym})`,
+                          value: item.id,
+                        }))}
+                        disabled={isLoading}
+                        value={field.value}
+                        placeholder="Selecione um demandante"
+                        topAction={
+                          <div className="flex justify-center p-2">
+                            <Button
+                              variant="link"
+                              className="h-auto p-0"
+                              onClick={() => {
+                                setDemandantDialogInitial(null)
+                                formDialogDisclosure.onOpen()
+                              }}
+                            >
+                              Criar novo demandante
+                            </Button>
+                          </div>
+                        }
+                      />
+                    )}
                   />
-                )}
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="demandantLinkReference">
+                      Nº de referência do vínculo
+                    </Label>
+                    <InputError
+                      message={errors.demandantLinkReference?.message}
+                    />
+                  </div>
+                  <Input
+                    id="demandantLinkReference"
+                    {...register('demandantLinkReference')}
+                    type="text"
+                    maxLength={50}
+                    disabled={isLoading}
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="demandantLinkValidUntil">
+                      Validade do vínculo (opcional)
+                    </Label>
+                    <InputError
+                      message={errors.demandantLinkValidUntil?.message}
+                    />
+                  </div>
+                  <Input
+                    id="demandantLinkValidUntil"
+                    {...register('demandantLinkValidUntil')}
+                    type="datetime-local"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="contactInfo">
+                      Notas do vínculo (opcional)
+                    </Label>
+                    <InputError message={errors.contactInfo?.message} />
+                  </div>
+                  <Textarea
+                    id="contactInfo"
+                    {...register('contactInfo')}
+                    disabled={isLoading}
+                    placeholder="Enviadas junto ao vínculo placa–demandante no cadastro"
+                  />
+                </div>
+              </>
+            )}
+
+            {isEditingExistingPlate && monitoredPlate && (
+              <MonitoredPlateDemandantLinksPanel
+                plate={monitoredPlate.plate}
+                links={monitoredPlate.demandantLinks}
+                demandants={demandants}
+                disabled={isLoading}
+                onOpenCreateDemandant={() => {
+                  setDemandantDialogInitial(null)
+                  formDialogDisclosure.onOpen()
+                }}
               />
-            </div>
+            )}
 
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
