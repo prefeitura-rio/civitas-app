@@ -28,6 +28,55 @@ export type Operation = {
   description: string
 }
 
+/** Resposta da API `GET/POST/PUT /organizations` (snake_case). */
+export type BackendOrganization = {
+  id: string
+  name: string
+  organization_type: string
+  acronym: string
+  jurisdiction_level: string
+  created_at: string
+  updated_at: string
+}
+
+/** Modelo usado na UI. */
+export type Organization = {
+  id: string
+  name: string
+  organizationType: string
+  acronym: string
+  jurisdictionLevel: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Resposta da API `GET/POST/PUT /demandants` (snake_case). */
+export type BackendDemandant = {
+  id: string
+  organization_id: string
+  name: string
+  email: string
+  phone_1: string
+  phone_2: string | null
+  phone_3: string | null
+  organization: BackendOrganization
+  created_at: string
+  updated_at: string
+}
+
+export type Demandant = {
+  id: string
+  organizationId: string
+  name: string
+  email: string
+  phone1: string
+  phone2: string | null
+  phone3: string | null
+  organization: Organization
+  createdAt: string
+  updatedAt: string
+}
+
 export type NotificationChannel = {
   id: string
   title: string

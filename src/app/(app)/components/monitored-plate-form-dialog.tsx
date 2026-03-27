@@ -24,17 +24,17 @@ import {
   type MonitoredPlateForm,
   monitoredPlateFormSchema,
 } from '@/contexts/monitored-plates-context'
+import { useDemandantsContext } from '@/hooks/useContexts/use-demandants-context'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
-import { useOperations } from '@/hooks/useContexts/use-operations-context'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
+import { getDemandants } from '@/http/demandants/get-demandants'
 import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
-import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
 
-import { OperationFormDialog } from '../demandantes/components/operation-dialogs/components/operation-form-dialog'
+import { DemandantFormDialog } from '../demandantes/components/demandants-section/demandant-dialogs/demandant-form-dialog'
 
 interface MonitoredPlateDialogProps {
   isOpen: boolean
@@ -50,7 +50,10 @@ export function MonitoredPlateFormDialog({
   shouldFetchData = true,
 }: MonitoredPlateDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const { formDialogDisclosure } = useOperations()
+  const {
+    formDialogDisclosure,
+    setDialogInitialData: setDemandantDialogInitial,
+  } = useDemandantsContext()
 
   const {
     dialogInitialData: initialData,
@@ -134,16 +137,16 @@ export function MonitoredPlateFormDialog({
     },
   )
 
-  const { data: operationsResponse } = useQuery({
-    queryKey: ['operations'],
-    queryFn: () => getOperations({ size: 100 }),
+  const { data: demandantsResponse } = useQuery({
+    queryKey: ['demandants', 'options', 100],
+    queryFn: () => getDemandants({ page: 1, size: 100 }),
   })
   const { data: NotificationChannelResponse } = useQuery({
     queryKey: ['notification-channels'],
     queryFn: () => getNotificationChannels({ size: 100 }),
   })
 
-  const operations = operationsResponse?.data.items || []
+  const demandants = demandantsResponse?.data.items || []
   function handleOnOpenChange(open: boolean) {
     if (open) {
       onOpen()
@@ -310,19 +313,22 @@ export function MonitoredPlateFormDialog({
                       setValue('operation.title', item.label)
                       setValue('operation.id', item.value)
                     }}
-                    options={operations.map((item) => ({
-                      label: item.title,
+                    options={demandants.map((item) => ({
+                      label: `${item.name} (${item.organization.acronym})`,
                       value: item.id,
                     }))}
                     disabled={isLoading}
                     value={field.value}
-                    placeholder="Selecione uma operação"
+                    placeholder="Selecione um demandante"
                     topAction={
                       <div className="flex justify-center p-2">
                         <Button
                           variant="link"
                           className="h-auto p-0"
-                          onClick={() => formDialogDisclosure.onOpen()}
+                          onClick={() => {
+                            setDemandantDialogInitial(null)
+                            formDialogDisclosure.onOpen()
+                          }}
                         >
                           Criar novo demandante
                         </Button>
@@ -395,7 +401,7 @@ export function MonitoredPlateFormDialog({
         </DialogContent>
       </Dialog>
 
-      <OperationFormDialog
+      <DemandantFormDialog
         isOpen={formDialogDisclosure.isOpen}
         onClose={formDialogDisclosure.onClose}
         onOpen={formDialogDisclosure.onOpen}

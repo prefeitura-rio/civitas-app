@@ -1,48 +1,64 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
+import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
-import { useOperations } from '@/hooks/useContexts/use-operations-context'
-import { useOperationsSearchParams } from '@/hooks/useParams/useOperationsSearchParams'
+import { useDemandantsContext } from '@/hooks/useContexts/use-demandants-context'
+import { useDemandantsSearchParams } from '@/hooks/useParams/useDemandantsSearchParams'
 import { useProfile } from '@/hooks/useQueries/useProfile'
-import { getOperations } from '@/http/operations/get-operations'
-import type { Operation } from '@/models/entities'
+import { getDemandants } from '@/http/demandants/get-demandants'
+import type { Demandant } from '@/models/entities'
 import { notAllowed } from '@/utils/template-messages'
 
-export function OperationsTable() {
+export function DemandantsTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
-    useOperationsSearchParams()
+    useDemandantsSearchParams()
   const {
     formDialogDisclosure,
     setDialogInitialData,
-    setOnDeleteOperationProps,
+    setOnDeleteDemandantProps,
     deleteAlertDisclosure,
-  } = useOperations()
+  } = useDemandantsContext()
   const { data: profile } = useProfile()
 
   const { data: response, isLoading } = useQuery({
     queryKey,
-    queryFn: () =>
-      getOperations({
-        ...formattedSearchParams,
-      }),
+    queryFn: () => getDemandants({ ...formattedSearchParams }),
   })
 
   const data = response?.data
 
-  const columns: ColumnDef<Operation>[] = [
+  const columns: ColumnDef<Demandant>[] = [
     {
-      accessorKey: 'title',
+      accessorKey: 'name',
       header: 'Nome',
     },
     {
-      accessorKey: 'description',
-      header: 'Descrição',
+      accessorKey: 'email',
+      header: 'E-mail',
+    },
+    {
+      accessorKey: 'phone1',
+      header: 'Telefone 1',
+    },
+    {
+      id: 'organization',
+      header: 'Organização',
+      cell: ({ row }) => (
+        <span>
+          {row.original.organization.name} ({row.original.organization.acronym})
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Criado em',
+      cell: ({ row }) => formatDate(row.original.createdAt, 'dd/MM/yyyy HH:mm'),
     },
     {
       id: 'actions',
@@ -57,7 +73,7 @@ export function OperationsTable() {
             <Tooltip
               text="Editar"
               disabledText={notAllowed}
-              disabled={!profile || !profile.is_admin}
+              disabled={!profile?.is_admin}
               asChild
             >
               <Button
@@ -68,16 +84,16 @@ export function OperationsTable() {
                   setDialogInitialData({ id: row.original.id })
                   formDialogDisclosure.onOpen()
                 }}
-                disabled={!profile || !profile.is_admin}
+                disabled={!profile?.is_admin}
               >
-                <span className="sr-only">Editar linha</span>
+                <span className="sr-only">Editar</span>
                 <PencilLine className="h-4 w-4" />
               </Button>
             </Tooltip>
             <Tooltip
               text="Excluir"
               disabledText={notAllowed}
-              disabled={!profile || !profile.is_admin}
+              disabled={!profile?.is_admin}
               asChild
             >
               <Button
@@ -85,15 +101,15 @@ export function OperationsTable() {
                 className="h-8 w-8 p-0"
                 type="button"
                 onClick={() => {
-                  setOnDeleteOperationProps({
+                  setOnDeleteDemandantProps({
                     id: row.original.id,
-                    title: row.original.title,
+                    name: row.original.name,
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={!profile || !profile.is_admin}
+                disabled={!profile?.is_admin}
               >
-                <span className="sr-only">Excluir linha</span>
+                <span className="sr-only">Excluir</span>
                 <Trash className="h-4 w-4" />
               </Button>
             </Tooltip>
@@ -104,7 +120,7 @@ export function OperationsTable() {
   ]
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <DataTable
         columns={columns}
         data={data?.items || []}

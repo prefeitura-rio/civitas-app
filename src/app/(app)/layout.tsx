@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 
 import { isAuthenticated } from '@/auth/auth'
+import { DemandantsContextProvider } from '@/contexts/demandants-context'
 import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-context'
-import { OperationsContextProvider } from '@/contexts/operations-context'
+import { OrganizationsContextProvider } from '@/contexts/organizations-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 
 import { Sidebar } from './components/sidebar'
@@ -18,14 +19,16 @@ export default function AppLayout({
 
   return (
     <CustomQueryClientProvider>
-      <OperationsContextProvider>
-        <MonitoredPlatesContextProvider>
-          <div className="flex min-h-screen w-full">
-            <Sidebar />
-            {children}
-          </div>
-        </MonitoredPlatesContextProvider>
-      </OperationsContextProvider>
+      <OrganizationsContextProvider>
+        <DemandantsContextProvider>
+          <MonitoredPlatesContextProvider>
+            <div className="flex min-h-screen w-full">
+              <Sidebar />
+              {children}
+            </div>
+          </MonitoredPlatesContextProvider>
+        </DemandantsContextProvider>
+      </OrganizationsContextProvider>
     </CustomQueryClientProvider>
   )
 }
