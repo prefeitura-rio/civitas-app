@@ -17,8 +17,19 @@ import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-con
 import { useMonitoredPlatesSearchParams } from '@/hooks/useParams/useMonitoredPlatesSearchParams'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
-import type { MonitoredPlate } from '@/models/entities'
+import type { DemandantLink, MonitoredPlate } from '@/models/entities'
 import { notAllowed } from '@/utils/template-messages'
+
+function formatDemandantContactLine(demandant: DemandantLink['demandant']) {
+  const parts = [
+    demandant.email,
+    demandant.phone_1,
+    demandant.phone_2,
+    demandant.phone_3,
+  ].filter((value): value is string => Boolean(value && value.trim()))
+
+  return parts.length ? parts.join(', ') : '—'
+}
 
 export function MonitoredPlatesTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
@@ -59,8 +70,54 @@ export function MonitoredPlatesTable() {
       header: 'Placa',
     },
     {
-      accessorKey: 'contactInfo',
+      id: 'contacts',
       header: 'Contatos',
+      cell: ({ row }) => {
+        const links = row.original.demandantLinks ?? []
+        const legacy = row.original.contactInfo?.trim()
+
+        const count = links.length > 0 ? links.length : legacy ? 1 : 0
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                Contatos ({count})
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[26rem]">
+              {links.length > 0 ? (
+                <div className="max-h-[28rem] overflow-auto">
+                  {links.map((link) => (
+                    <div
+                      key={link.id}
+                      className="flex flex-col gap-1 border-b px-2 py-3 last:border-b-0"
+                    >
+                      <div className="font-medium leading-tight">
+                        {link.demandant.name}
+                      </div>
+                      <div className="whitespace-normal break-words text-xs leading-relaxed text-muted-foreground">
+                        {formatDemandantContactLine(link.demandant)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : legacy ? (
+                <div className="px-2 py-3 text-sm text-muted-foreground">
+                  <div className="mb-1 text-xs font-medium text-foreground">
+                    Contato cadastrado
+                  </div>
+                  <div className="whitespace-normal break-words">{legacy}</div>
+                </div>
+              ) : (
+                <div className="px-2 py-2 text-sm text-muted-foreground">
+                  Nenhum contato cadastrado
+                </div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
     },
     {
       accessorKey: 'notes',
@@ -97,7 +154,12 @@ export function MonitoredPlatesTable() {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Validade:{' '}
-                        {formatDate(link.valid_until, 'dd/MM/yyyy HH:mm')}
+                        {link.valid_until
+                          ? formatDate(
+                              new Date(link.valid_until),
+                              'dd/MM/yyyy HH:mm',
+                            )
+                          : '—'}
                       </div>
                       <div
                         className={`text-xs ${
