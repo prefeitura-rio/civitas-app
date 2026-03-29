@@ -54,3 +54,27 @@ export function getEmailsAguardandoResposta({
     params: { page, pageSize },
   })
 }
+
+export function getEmailsSpam({
+  page,
+  pageSize,
+}: {
+  page: number
+  pageSize: number
+}) {
+  return api.get<EmailPageOut>('/emails/spam', {
+    params: { page, pageSize },
+  })
+}
+
+export function getEmailsRespondidos({
+  page,
+  pageSize,
+}: {
+  page: number
+  pageSize: number
+}) {
+  return api.get<EmailPageOut>('/emails/respondidos', {
+    params: { page, pageSize },
+  })
+}

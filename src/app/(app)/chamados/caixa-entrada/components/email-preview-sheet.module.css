@@ -148,6 +148,7 @@
   height: 40px;
   padding: 8px 16px;
   background-color: #152534;
+  border: none;
   border-radius: 8px;
   font-family: var(--font-family-body, 'Inter', sans-serif);
   font-weight: 400;
@@ -155,6 +156,16 @@
   line-height: 16px;
   color: #f9fafa;
   text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tagSpam:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.tagSpam:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .btnSecondary {

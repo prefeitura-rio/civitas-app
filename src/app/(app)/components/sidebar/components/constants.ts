@@ -36,6 +36,16 @@ const chamadosItem: Category = {
       path: '/chamados/caixa-entrada',
     },
     {
+      icon: 'Reply',
+      title: 'Respondidos',
+      path: '/chamados/respondidos',
+    },
+    {
+      icon: 'MailWarning',
+      title: 'Spam',
+      path: '/chamados/spam',
+    },
+    {
       icon: 'UserCog',
       title: 'Equipes',
       path: '/equipes',

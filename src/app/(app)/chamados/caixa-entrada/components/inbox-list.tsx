@@ -158,7 +158,7 @@ export function InboxList() {
           <div>
             <h1 className={styles.title}>Caixa de Entrada</h1>
             <p className={styles.subtitle}>
-              Preencha as informações abaixo para criar um novo chamado.
+              Listagem de Emails não lidos e aguardando resposta.
             </p>
           </div>
           <div className={styles.infoBar}>
