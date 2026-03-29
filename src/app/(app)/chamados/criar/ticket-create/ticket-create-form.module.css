@@ -874,12 +874,12 @@
 }
 
 /* Variante lateral (converter) – mesmos tokens do .serviceModal */
-/* Não bloqueia o painel esquerdo (PDF): só escurece; interação passa para baixo */
+/* Sem escurecimento no restante da tela para não atrapalhar leitura do PDF à esquerda */
 .serviceDrawerBackdrop {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.5);
+  background: transparent;
   pointer-events: none;
 }
 

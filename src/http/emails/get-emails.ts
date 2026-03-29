@@ -30,3 +30,27 @@ export function getEmails({
     params: { page, pageSize },
   })
 }
+
+export function getEmailsNaoLidos({
+  page,
+  pageSize,
+}: {
+  page: number
+  pageSize: number
+}) {
+  return api.get<EmailPageOut>('/emails/nao-lidos', {
+    params: { page, pageSize },
+  })
+}
+
+export function getEmailsAguardandoResposta({
+  page,
+  pageSize,
+}: {
+  page: number
+  pageSize: number
+}) {
+  return api.get<EmailPageOut>('/emails/aguardando-resposta', {
+    params: { page, pageSize },
+  })
+}

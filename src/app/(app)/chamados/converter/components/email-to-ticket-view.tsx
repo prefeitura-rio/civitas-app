@@ -13,14 +13,16 @@ import {
   Pencil,
   Phone,
   Plus,
+  Square,
   SquareCheck,
   Trash,
   Upload,
   X,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Controller } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -57,7 +59,12 @@ import { useTicketCreateController } from '../../criar/hooks/use-create-controll
 import type { OpenServiceKey } from '../../criar/ticket-create/ticket-create.constant'
 import { SERVICE_CONFIG } from '../../criar/ticket-create/ticket-create.constant'
 import { useAttachmentPreviewUrl } from '../hooks/use-attachment-preview-url'
+import { downloadEmailAttachmentAsFile } from '../utils/download-email-attachment-file'
 import styles from './email-to-ticket-view.module.css'
+
+function fileSelectionKey(file: File) {
+  return `${file.name}|${file.size}|${file.lastModified}`
+}
 
 function resolveEmailDate(email: EmailOut): Date | null {
   if (email.date) {
@@ -219,8 +226,17 @@ export function EmailToTicketView() {
   const emailId = searchParams.get('email_id')?.trim() || null
 
   const vm = useTicketCreateController()
+  const [activeSubmit, setActiveSubmit] = useState<
+    'save' | 'save-and-new' | null
+  >(null)
   const [currentAttachment, setCurrentAttachment] = useState(0)
   const [emailInfoCollapsed, setEmailInfoCollapsed] = useState(false)
+  const [emailAttachmentSelectedIds, setEmailAttachmentSelectedIds] = useState<
+    Set<number>
+  >(() => new Set())
+  const [manualFileSelected, setManualFileSelected] = useState<
+    Record<string, boolean>
+  >({})
 
   const {
     data: emailResponse,
@@ -233,6 +249,10 @@ export function EmailToTicketView() {
   })
 
   const email = emailResponse?.data
+
+  useEffect(() => {
+    if (!vm.isLoading) setActiveSubmit(null)
+  }, [vm.isLoading])
 
   useEffect(() => {
     if (!email) return
@@ -251,7 +271,12 @@ export function EmailToTicketView() {
 
   useEffect(() => {
     setCurrentAttachment(0)
+    setEmailAttachmentSelectedIds(new Set())
   }, [emailId])
+
+  useEffect(() => {
+    if (vm.files.length === 0) setManualFileSelected({})
+  }, [vm.files.length])
 
   useEffect(() => {
     if (attachments.length === 0) {
@@ -331,6 +356,57 @@ export function EmailToTicketView() {
     vm.serviceModalOpen === 'outros' && vm.serviceModalEditIndex !== null
       ? vm.getValues().outros?.[vm.serviceModalEditIndex]
       : undefined
+
+  const isManualFileIncluded = useCallback(
+    (file: File) => manualFileSelected[fileSelectionKey(file)] !== false,
+    [manualFileSelected],
+  )
+
+  const toggleManualFileSelection = useCallback((file: File) => {
+    const key = fileSelectionKey(file)
+    setManualFileSelected((prev) => {
+      const currentlyOn = prev[key] !== false
+      if (currentlyOn) return { ...prev, [key]: false }
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }, [])
+
+  const toggleEmailAttachmentSelection = useCallback((attachmentId: number) => {
+    setEmailAttachmentSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(attachmentId)) next.delete(attachmentId)
+      else next.add(attachmentId)
+      return next
+    })
+  }, [])
+
+  const buildFilesForTicketSubmit = useCallback(async (): Promise<File[]> => {
+    const manual = vm.files.filter((f) => isManualFileIncluded(f))
+    if (!emailId) return manual
+
+    const selectedEmail = attachments.filter((a) =>
+      emailAttachmentSelectedIds.has(a.id),
+    )
+    if (selectedEmail.length === 0) return manual
+
+    try {
+      const fromEmail = await Promise.all(
+        selectedEmail.map((a) => downloadEmailAttachmentAsFile(emailId, a)),
+      )
+      return [...manual, ...fromEmail]
+    } catch {
+      toast.error('Não foi possível baixar um ou mais anexos do e-mail.')
+      throw new Error('Falha ao preparar anexos do e-mail')
+    }
+  }, [
+    attachments,
+    emailAttachmentSelectedIds,
+    emailId,
+    isManualFileIncluded,
+    vm.files,
+  ])
 
   return (
     <div className={styles.root}>
@@ -496,9 +572,28 @@ export function EmailToTicketView() {
         <div className={styles.rightPanel}>
           <form
             className="flex min-h-0 flex-1 flex-col"
-            onSubmit={vm.handleSubmit((data) =>
-              vm.onSubmitFromEmail(data, emailId),
-            )}
+            onSubmit={(e) => {
+              const sub = (e.nativeEvent as SubmitEvent).submitter as
+                | HTMLButtonElement
+                | undefined
+              const intent =
+                sub?.dataset?.intent === 'save-and-new'
+                  ? 'save-and-new'
+                  : 'save'
+              setActiveSubmit(intent)
+              vm.handleSubmit(
+                async (data) => {
+                  const filesToSend = await buildFilesForTicketSubmit()
+                  await vm.onSubmitFromEmail(data, emailId, filesToSend)
+                  if (intent === 'save') {
+                    router.push('/chamados/caixa-entrada')
+                  }
+                },
+                () => {
+                  setActiveSubmit(null)
+                },
+              )(e)
+            }}
           >
             <div className={styles.rightPanelScroll}>
               <h3 className={styles.rightPanelTitle}>Dados do Chamado</h3>
@@ -1364,39 +1459,124 @@ export function EmailToTicketView() {
                 >
                   <div className={styles.attachmentsLayout}>
                     <div className={styles.attachmentsDocumentList}>
-                      {vm.files.length === 0 ? (
+                      {attachments.length === 0 && vm.files.length === 0 ? (
                         <p className={styles.uploadBoxHint}>
                           Nenhum arquivo anexado.
                         </p>
                       ) : (
                         <div className={styles.fileList}>
-                          {vm.files.map((f, idx) => (
-                            <div
-                              key={`${f.name}-${idx}`}
-                              className={styles.fileRow}
-                            >
-                              <SquareCheck
-                                className={`${styles.fileRowCheckIcon} shrink-0`}
-                                aria-hidden
-                              />
-                              <p
-                                className={styles.fileRowFileName}
-                                title={f.name}
+                          {emailId
+                            ? attachments.map((att) => {
+                                const selected = emailAttachmentSelectedIds.has(
+                                  att.id,
+                                )
+                                return (
+                                  <div
+                                    key={`email-att-${att.id}`}
+                                    className={styles.fileRow}
+                                  >
+                                    <button
+                                      type="button"
+                                      className={styles.fileRowCheckBtn}
+                                      onClick={() =>
+                                        toggleEmailAttachmentSelection(att.id)
+                                      }
+                                      disabled={vm.isLoading}
+                                      aria-pressed={selected}
+                                      aria-label={
+                                        selected
+                                          ? `Desmarcar anexo do e-mail ${att.filename}`
+                                          : `Incluir anexo do e-mail ${att.filename}`
+                                      }
+                                      title={
+                                        selected
+                                          ? 'Desmarcar para não enviar no chamado'
+                                          : 'Marcar para enviar no chamado'
+                                      }
+                                    >
+                                      {selected ? (
+                                        <SquareCheck
+                                          className={`${styles.fileRowCheckIcon} ${styles.fileRowCheckIconOn} shrink-0`}
+                                          aria-hidden
+                                        />
+                                      ) : (
+                                        <Square
+                                          className={`${styles.fileRowCheckIcon} shrink-0`}
+                                          aria-hidden
+                                        />
+                                      )}
+                                    </button>
+                                    <p
+                                      className={styles.fileRowFileName}
+                                      title={att.filename}
+                                    >
+                                      {att.filename}
+                                    </p>
+                                    <span
+                                      className={styles.fileRowSourceBadge}
+                                      title="Anexo do e-mail"
+                                    >
+                                      E-mail
+                                    </span>
+                                  </div>
+                                )
+                              })
+                            : null}
+                          {vm.files.map((f, idx) => {
+                            const included = isManualFileIncluded(f)
+                            return (
+                              <div
+                                key={`${fileSelectionKey(f)}-${idx}`}
+                                className={styles.fileRow}
                               >
-                                {f.name}
-                              </p>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
-                                onClick={() => vm.removeFile(idx)}
-                                disabled={vm.isLoading}
-                                title="Excluir anexo"
-                              >
-                                <Trash className="h-4 w-4" aria-hidden />
-                              </Button>
-                            </div>
-                          ))}
+                                <button
+                                  type="button"
+                                  className={styles.fileRowCheckBtn}
+                                  onClick={() => toggleManualFileSelection(f)}
+                                  disabled={vm.isLoading}
+                                  aria-pressed={included}
+                                  aria-label={
+                                    included
+                                      ? `Desmarcar ${f.name}`
+                                      : `Incluir ${f.name}`
+                                  }
+                                  title={
+                                    included
+                                      ? 'Desmarcar para não enviar no chamado'
+                                      : 'Marcar para enviar no chamado'
+                                  }
+                                >
+                                  {included ? (
+                                    <SquareCheck
+                                      className={`${styles.fileRowCheckIcon} ${styles.fileRowCheckIconOn} shrink-0`}
+                                      aria-hidden
+                                    />
+                                  ) : (
+                                    <Square
+                                      className={`${styles.fileRowCheckIcon} shrink-0`}
+                                      aria-hidden
+                                    />
+                                  )}
+                                </button>
+                                <p
+                                  className={styles.fileRowFileName}
+                                  title={f.name}
+                                >
+                                  {f.name}
+                                </p>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
+                                  onClick={() => vm.removeFile(idx)}
+                                  disabled={vm.isLoading}
+                                  title="Excluir anexo"
+                                >
+                                  <Trash className="h-4 w-4" aria-hidden />
+                                </Button>
+                              </div>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
@@ -1429,22 +1609,34 @@ export function EmailToTicketView() {
             </div>
 
             <div className={styles.formFooter}>
-              <Button
+              <button
+                type="submit"
+                data-intent="save"
+                className={styles.footerBtnPrimary}
+                disabled={vm.isLoading}
+              >
+                {vm.isLoading && activeSubmit === 'save'
+                  ? 'Salvando...'
+                  : 'Salvar Chamado'}
+              </button>
+              <button
+                type="submit"
+                data-intent="save-and-new"
+                className={styles.footerBtnSecondary}
+                disabled={vm.isLoading}
+              >
+                {vm.isLoading && activeSubmit === 'save-and-new'
+                  ? 'Salvando...'
+                  : 'Salvar e Criar Novo Chamado'}
+              </button>
+              <button
                 type="button"
-                variant="secondary"
-                className={styles.cancelButton}
+                className={styles.footerBtnTertiary}
                 disabled={vm.isLoading}
                 onClick={() => vm.reset(vm.defaultValues)}
               >
                 Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className={styles.saveButton}
-                disabled={vm.isLoading}
-              >
-                {vm.isLoading ? 'Salvando...' : 'Converter'}
-              </Button>
+              </button>
             </div>
           </form>
         </div>

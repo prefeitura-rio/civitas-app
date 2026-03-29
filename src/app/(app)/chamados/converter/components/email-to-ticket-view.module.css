@@ -371,27 +371,69 @@
   text-align: center;
 }
 
-/* Footer do formulário */
+/* Footer do formulário — alinhado ao Figma (Action Buttons Container) */
 .formFooter {
   padding: 16px 24px;
   border-top: 1px solid var(--tc-card-border);
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
   flex-shrink: 0;
 }
 
-.cancelButton {
-  min-width: 120px;
+.footerBtnPrimary,
+.footerBtnSecondary,
+.footerBtnTertiary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--tc-border-radius);
+  border: none;
+  font-size: 14px;
+  line-height: 16px;
+  color: #f9fafa;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.saveButton {
-  min-width: 120px;
-  background: var(--tc-green);
+.footerBtnPrimary {
+  font-weight: 600;
+  background: #065e47;
 }
 
-.saveButton:hover {
-  background: var(--tc-green-hover);
+.footerBtnPrimary:hover:not(:disabled) {
+  background: #0a7a5c;
+}
+
+.footerBtnSecondary {
+  font-weight: 600;
+  background: #402c4c;
+}
+
+.footerBtnSecondary:hover:not(:disabled) {
+  background: #4f3860;
+}
+
+.footerBtnTertiary {
+  font-weight: 400;
+  background: #1d3449;
+}
+
+.footerBtnTertiary:hover:not(:disabled) {
+  background: var(--tc-soft-2);
+}
+
+.footerBtnPrimary:disabled,
+.footerBtnSecondary:disabled,
+.footerBtnTertiary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Service grid compacto */
@@ -755,33 +797,36 @@
 .attachmentsLayout {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 16px;
   width: 100%;
 }
 
-@media (min-width: 768px) {
-  .attachmentsLayout {
-    flex-direction: row;
-  }
-}
-
 .attachmentsDocumentList {
-  flex: 1 1 0;
+  width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 0 0 auto;
 }
 
 .uploadColumn {
-  flex: 1 1 0;
+  width: 100%;
   min-width: 0;
+  flex-shrink: 0;
+}
+
+.uploadColumn .uploadBox {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .fileList {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
 }
 
 .fileRow {
@@ -795,11 +840,56 @@
   min-height: 32px;
 }
 
+.fileRowCheckBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.fileRowCheckBtn:hover:not(:disabled) {
+  background: var(--tc-soft);
+}
+
+.fileRowCheckBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .fileRowCheckIcon {
   width: 20px;
   height: 20px;
   color: #97a2ab;
   flex-shrink: 0;
+}
+
+.fileRowCheckIconOn {
+  color: var(--tc-green);
+}
+
+.fileRowSourceBadge {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--tc-badge-bg);
+  color: var(--tc-muted);
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fileRowFileName {

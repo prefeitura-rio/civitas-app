@@ -151,7 +151,13 @@ export function useTicketCreateController() {
   })
 
   const createMutation = useMutation({
-    mutationFn: async (payload: unknown) => createTicket(payload, files),
+    mutationFn: async ({
+      payload,
+      files: filesToSend,
+    }: {
+      payload: unknown
+      files: File[]
+    }) => createTicket(payload, filesToSend),
     onSuccess: () => {
       toast.success('Chamado criado com sucesso.')
       reset(defaultValues)
@@ -233,18 +239,22 @@ export function useTicketCreateController() {
 
   async function onSubmit(data: TicketCreateForm) {
     const payload = buildTicketCreatePayload(data)
-    await createMutation.mutateAsync(payload)
+    await createMutation.mutateAsync({ payload, files })
   }
 
   async function onSubmitFromEmail(
     data: TicketCreateForm,
     emailId?: string | null,
+    filesForTicket?: File[],
   ) {
     const basePayload = buildTicketCreatePayload(data)
     const payload = emailId
       ? { ...basePayload, email_id: emailId }
       : basePayload
-    await createMutation.mutateAsync(payload)
+    await createMutation.mutateAsync({
+      payload,
+      files: filesForTicket ?? files,
+    })
   }
 
   function handleOpenService(service: OpenServiceKey) {

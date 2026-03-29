@@ -3,12 +3,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronRight, Paperclip, TriangleAlert } from 'lucide-react'
+import { Paperclip, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 
+import { Section } from '@/app/(app)/chamados/criar/components/shared/section'
+import tcStyles from '@/app/(app)/chamados/criar/ticket-create/ticket-create-form.module.css'
 import { Pagination } from '@/components/ui/pagination'
 import { useCaixaEntradaSearchParams } from '@/hooks/useParams/useCaixaEntradaSearchParams'
-import { type EmailBase, getEmails } from '@/http/emails/get-emails'
+import {
+  type EmailBase,
+  getEmailsAguardandoResposta,
+  getEmailsNaoLidos,
+} from '@/http/emails/get-emails'
 
 import styles from '../caixa-entrada.module.css'
 import { EmailPreviewSheet } from './email-preview-sheet'
@@ -38,24 +44,104 @@ function senderLabel(email: EmailBase): string {
   return email.from_name?.trim() || email.from_address?.trim() || '—'
 }
 
+type RowVariant = 'nao-lidos' | 'aguardando'
+
+function InboxEmailRow({
+  email,
+  variant,
+  onOpen,
+}: {
+  email: EmailBase
+  variant: RowVariant
+  onOpen: (id: string) => void
+}) {
+  const date = resolveDate(email)
+  const nameClass =
+    variant === 'nao-lidos'
+      ? `${styles.cellText} ${styles.cellTextUnread}`
+      : `${styles.cellText} ${styles.cellTextAwaiting}`
+  const subjectClass =
+    variant === 'nao-lidos'
+      ? `${styles.cellText} ${styles.cellTextUnread}`
+      : `${styles.cellText} ${styles.cellTextAwaiting}`
+
+  return (
+    <div className={styles.row}>
+      <div className={styles.rowInner}>
+        <input
+          type="checkbox"
+          className={styles.checkbox}
+          aria-label="Selecionar e-mail"
+        />
+        <button
+          type="button"
+          className={styles.rowClickableMain}
+          onClick={() => onOpen(email.id)}
+        >
+          <div className={styles.rowLeft}>
+            <div className={styles.nameCol}>
+              <p className={nameClass}>{senderLabel(email)}</p>
+            </div>
+            <div className={styles.subjectCol}>
+              <p className={subjectClass}>{rowPreview(email)}</p>
+            </div>
+          </div>
+          <div className={styles.rowRight}>
+            {email.has_attachments ? (
+              <span title="Anexos">
+                <Paperclip className={styles.iconMuted} size={16} aria-hidden />
+              </span>
+            ) : (
+              <span className={styles.attachmentSlot} aria-hidden />
+            )}
+            <p
+              className={
+                variant === 'nao-lidos'
+                  ? `${styles.dateText} ${styles.dateTextEmphasis}`
+                  : styles.dateText
+              }
+            >
+              {date ? formatListDate(date) : '—'}
+            </p>
+          </div>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function InboxList() {
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null)
+  const [openNaoLidos, setOpenNaoLidos] = useState(true)
+  const [openAguardando, setOpenAguardando] = useState(true)
 
-  const { formattedSearchParams, queryKey, handlePaginate } =
-    useCaixaEntradaSearchParams()
+  const { naoLidos, aguardando } = useCaixaEntradaSearchParams()
 
-  const { data: response, isLoading } = useQuery({
-    queryKey,
+  const { data: resNaoLidos, isLoading: loadingNaoLidos } = useQuery({
+    queryKey: naoLidos.queryKey,
     queryFn: () =>
-      getEmails({
-        page: formattedSearchParams.page,
-        pageSize: formattedSearchParams.size,
+      getEmailsNaoLidos({
+        page: naoLidos.formattedSearchParams.page,
+        pageSize: naoLidos.formattedSearchParams.size,
       }),
     refetchInterval: 120_000,
   })
 
-  const items = response?.data?.items ?? []
-  const total = response?.data?.total ?? 0
+  const { data: resAguardando, isLoading: loadingAguardando } = useQuery({
+    queryKey: aguardando.queryKey,
+    queryFn: () =>
+      getEmailsAguardandoResposta({
+        page: aguardando.formattedSearchParams.page,
+        pageSize: aguardando.formattedSearchParams.size,
+      }),
+    refetchInterval: 120_000,
+  })
+
+  const itemsNaoLidos = resNaoLidos?.data?.items ?? []
+  const totalNaoLidos = resNaoLidos?.data?.total ?? 0
+
+  const itemsAguardando = resAguardando?.data?.items ?? []
+  const totalAguardando = resAguardando?.data?.total ?? 0
 
   return (
     <>
@@ -83,92 +169,86 @@ export function InboxList() {
           </div>
         </header>
 
-        <div className={styles.tableWrap}>
-          <div className={styles.tableToolbar}>
-            <div className={styles.badgeGroup}>
-              <span className={styles.badge}>Respondidos</span>
-              <span className={styles.badgeCount}>{total}</span>
-            </div>
-            <ChevronRight
-              className={styles.toolbarChevron}
-              size={24}
-              aria-hidden
-            />
-          </div>
+        <div className={`${tcStyles.root} ${styles.listsStack}`}>
+          <Section
+            title={`Não lidos (${totalNaoLidos})`}
+            isOpen={openNaoLidos}
+            onToggle={() => setOpenNaoLidos((v) => !v)}
+          >
+            <div className={styles.tableWrap}>
+              {loadingNaoLidos && (
+                <div className={styles.emptyState}>Carregando...</div>
+              )}
 
-          {isLoading && <div className={styles.emptyState}>Carregando...</div>}
-
-          {!isLoading && items.length === 0 && (
-            <div className={styles.emptyState}>Nenhum e-mail encontrado</div>
-          )}
-
-          {!isLoading &&
-            items.map((email) => {
-              const unread = !email.is_read
-              const date = resolveDate(email)
-              return (
-                <div key={email.id} className={styles.row}>
-                  <div className={styles.rowInner}>
-                    <input
-                      type="checkbox"
-                      className={styles.checkbox}
-                      aria-label="Selecionar e-mail"
-                    />
-                    <button
-                      type="button"
-                      className={styles.rowClickableMain}
-                      onClick={() => setSelectedEmailId(email.id)}
-                    >
-                      <div className={styles.rowLeft}>
-                        <div className={styles.nameCol}>
-                          <p
-                            className={`${styles.cellText} ${unread ? styles.cellTextUnread : ''}`}
-                          >
-                            {senderLabel(email)}
-                          </p>
-                        </div>
-                        <div className={styles.subjectCol}>
-                          <p
-                            className={`${styles.cellText} ${unread ? styles.cellTextUnread : ''}`}
-                          >
-                            {rowPreview(email)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={styles.rowRight}>
-                        {email.has_attachments ? (
-                          <span title="Anexos">
-                            <Paperclip
-                              className={styles.iconMuted}
-                              size={16}
-                              aria-hidden
-                            />
-                          </span>
-                        ) : (
-                          <span className={styles.attachmentSlot} aria-hidden />
-                        )}
-                        <p className={styles.dateText}>
-                          {date ? formatListDate(date) : '—'}
-                        </p>
-                      </div>
-                    </button>
-                  </div>
+              {!loadingNaoLidos && itemsNaoLidos.length === 0 && (
+                <div className={styles.emptyState}>
+                  Nenhum e-mail encontrado
                 </div>
-              )
-            })}
+              )}
+
+              {!loadingNaoLidos &&
+                itemsNaoLidos.map((email) => (
+                  <InboxEmailRow
+                    key={email.id}
+                    email={email}
+                    variant="nao-lidos"
+                    onOpen={setSelectedEmailId}
+                  />
+                ))}
+
+              {totalNaoLidos > 0 && (
+                <div className={styles.sectionPagination}>
+                  <Pagination
+                    page={naoLidos.formattedSearchParams.page}
+                    total={totalNaoLidos}
+                    size={naoLidos.formattedSearchParams.size}
+                    onPageChange={naoLidos.handlePaginate}
+                  />
+                </div>
+              )}
+            </div>
+          </Section>
+
+          <Section
+            title={`Aguardando resposta (${totalAguardando})`}
+            isOpen={openAguardando}
+            onToggle={() => setOpenAguardando((v) => !v)}
+          >
+            <div className={styles.tableWrap}>
+              {loadingAguardando && (
+                <div className={styles.emptyState}>Carregando...</div>
+              )}
+
+              {!loadingAguardando && itemsAguardando.length === 0 && (
+                <div className={styles.emptyState}>
+                  Nenhum e-mail encontrado
+                </div>
+              )}
+
+              {!loadingAguardando &&
+                itemsAguardando.map((email) => (
+                  <InboxEmailRow
+                    key={email.id}
+                    email={email}
+                    variant="aguardando"
+                    onOpen={setSelectedEmailId}
+                  />
+                ))}
+
+              {totalAguardando > 0 && (
+                <div className={styles.sectionPagination}>
+                  <Pagination
+                    page={aguardando.formattedSearchParams.page}
+                    total={totalAguardando}
+                    size={aguardando.formattedSearchParams.size}
+                    onPageChange={aguardando.handlePaginate}
+                  />
+                </div>
+              )}
+            </div>
+          </Section>
         </div>
       </div>
-
-      {total > 0 && (
-        <div className={styles.pagination}>
-          <Pagination
-            page={formattedSearchParams.page}
-            total={total}
-            size={formattedSearchParams.size}
-            onPageChange={handlePaginate}
-          />
-        </div>
-      )}
     </>
   )
 }
