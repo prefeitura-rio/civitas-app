@@ -50,6 +50,9 @@
   font-weight: 600;
   letter-spacing: 0;
   text-transform: uppercase;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .sectionHeader {
@@ -61,6 +64,15 @@
   padding: 0 16px;
 }
 
+.sectionHeader:hover .sectionBadge {
+  background: var(--tc-soft);
+}
+
+.sectionHeader:hover .sectionToggle {
+  background: var(--tc-soft);
+  color: var(--tc-text);
+}
+
 .sectionToggle {
   display: inline-flex;
   align-items: center;
@@ -68,7 +80,13 @@
   width: 28px;
   height: 28px;
   border-radius: 8px;
+  border: none;
+  background: transparent;
   color: var(--tc-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .fieldLabel {
@@ -853,5 +871,120 @@
 
 .serviceModalFooter .saveButton:hover {
   background: var(--tc-green-hover) !important;
+}
+
+/* Variante lateral (converter) – mesmos tokens do .serviceModal */
+/* Sem escurecimento no restante da tela para não atrapalhar leitura do PDF à esquerda */
+.serviceDrawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: transparent;
+  pointer-events: none;
+}
+
+.serviceDrawerPanel {
+  --tc-page-bg: #0c161f;
+  --tc-section-bg: #101d28;
+  --tc-card-bg: #101d28;
+  --tc-card-border: #4a5d6d;
+  --tc-input-bg: #152534;
+  --tc-input-border: #4a5d6d;
+  --tc-input-border-hover: #507290;
+  --tc-soft: #18344d;
+  --tc-soft-2: #1f3f5b;
+  --tc-text: #f9fafa;
+  --tc-muted: #97a2ab;
+  --tc-text-subtle: #97a2ab;
+  --tc-icon-subtle: #97a2ab;
+  --tc-green: #067a57;
+  --tc-green-hover: #0a8a64;
+  --tc-badge-bg: #1d3449;
+  --tc-badge-text: #f9fafa;
+  --tc-border-radius: 8px;
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 101;
+  width: min(560px, 100%);
+  background: var(--tc-section-bg);
+  border-left: 1px solid var(--tc-card-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100vh;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
+  animation: serviceDrawerSlideIn 0.2s ease-out;
+  pointer-events: auto;
+}
+
+@keyframes serviceDrawerSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.serviceDrawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--tc-card-border);
+}
+
+.serviceDrawerTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tc-text);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.serviceDrawerIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--tc-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.serviceDrawerIconBtn:hover {
+  background: var(--tc-soft);
+  color: var(--tc-text);
+}
+
+.serviceDrawerFormWrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.serviceDrawerFormWrap > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 

@@ -1,7 +1,9 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ChevronLeft, X } from 'lucide-react'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
@@ -96,10 +98,150 @@ type Props = {
     value: TicketCreateForm['outros'][number],
     editIndex: number | null,
   ) => void
+
+  /** Padrão: dialog centralizado (criar chamado). `drawer`: painel lateral (converter). */
+  variant?: 'dialog' | 'drawer'
 }
 
 export function ServiceModal(props: Props) {
-  const { serviceModalOpen, editIndex, closeServiceModal } = props
+  const {
+    serviceModalOpen,
+    editIndex,
+    closeServiceModal,
+    variant = 'dialog',
+  } = props
+
+  const title = serviceModalOpen ? SERVICE_CONFIG[serviceModalOpen].label : ''
+
+  const formNodes = (
+    <>
+      {serviceModalOpen === 'busca_por_placa' && (
+        <BuscaPorPlacaForm
+          initialValue={props.initialBuscaPorPlaca}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveBuscaPorPlaca}
+        />
+      )}
+
+      {serviceModalOpen === 'busca_por_radar' && (
+        <BuscaPorRadarForm
+          initialValue={props.initialBuscaPorRadar}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveBuscaPorRadar}
+        />
+      )}
+
+      {serviceModalOpen === 'cerco_eletronico' && (
+        <CercoForm
+          initialValue={props.initialCerco}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveCerco}
+        />
+      )}
+
+      {serviceModalOpen === 'busca_por_imagem' && (
+        <BuscaPorImagemForm
+          initialValue={props.initialBuscaPorImagem}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveBuscaPorImagem}
+        />
+      )}
+
+      {serviceModalOpen === 'placas_correlatas' && (
+        <PlacasCorrelatasForm
+          initialValue={props.initialPlacasCorrelatas}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSavePlacasCorrelatas}
+        />
+      )}
+
+      {serviceModalOpen === 'placas_conjuntas' && (
+        <PlacasConjuntasForm
+          initialValue={props.initialPlacasConjuntas}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSavePlacasConjuntas}
+        />
+      )}
+
+      {serviceModalOpen === 'reserva_de_imagem' && (
+        <ReservaImagemForm
+          initialValue={props.initialReservaImagem}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveReservaImagem}
+        />
+      )}
+
+      {serviceModalOpen === 'analise_de_imagem' && (
+        <AnaliseImagemForm
+          initialValue={props.initialAnaliseImagem}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveAnaliseImagem}
+        />
+      )}
+
+      {serviceModalOpen === 'outros' && (
+        <OutrosForm
+          initialValue={props.initialOutros}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveOutros}
+        />
+      )}
+    </>
+  )
+
+  if (variant === 'drawer') {
+    if (!serviceModalOpen) return null
+
+    return createPortal(
+      <>
+        <div className={styles.serviceDrawerBackdrop} aria-hidden />
+        <div
+          className={styles.serviceDrawerPanel}
+          role="dialog"
+          aria-modal={false}
+          aria-labelledby="service-drawer-title"
+        >
+          <div className={styles.serviceDrawerHeader}>
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                className={styles.serviceDrawerIconBtn}
+                onClick={closeServiceModal}
+                aria-label="Voltar"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <h2
+                id="service-drawer-title"
+                className={styles.serviceDrawerTitle}
+              >
+                {title}
+              </h2>
+            </div>
+            <button
+              type="button"
+              className={styles.serviceDrawerIconBtn}
+              onClick={closeServiceModal}
+              aria-label="Fechar"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className={styles.serviceDrawerFormWrap}>{formNodes}</div>
+        </div>
+      </>,
+      document.body,
+    )
+  }
 
   return (
     <Dialog
@@ -113,86 +255,7 @@ export function ServiceModal(props: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        {serviceModalOpen === 'busca_por_placa' && (
-          <BuscaPorPlacaForm
-            initialValue={props.initialBuscaPorPlaca}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSaveBuscaPorPlaca}
-          />
-        )}
-
-        {serviceModalOpen === 'busca_por_radar' && (
-          <BuscaPorRadarForm
-            initialValue={props.initialBuscaPorRadar}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSaveBuscaPorRadar}
-          />
-        )}
-
-        {serviceModalOpen === 'cerco_eletronico' && (
-          <CercoForm
-            initialValue={props.initialCerco}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSaveCerco}
-          />
-        )}
-
-        {serviceModalOpen === 'busca_por_imagem' && (
-          <BuscaPorImagemForm
-            initialValue={props.initialBuscaPorImagem}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSaveBuscaPorImagem}
-          />
-        )}
-
-        {serviceModalOpen === 'placas_correlatas' && (
-          <PlacasCorrelatasForm
-            initialValue={props.initialPlacasCorrelatas}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSavePlacasCorrelatas}
-          />
-        )}
-
-        {serviceModalOpen === 'placas_conjuntas' && (
-          <PlacasConjuntasForm
-            initialValue={props.initialPlacasConjuntas}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSavePlacasConjuntas}
-          />
-        )}
-
-        {serviceModalOpen === 'reserva_de_imagem' && (
-          <ReservaImagemForm
-            initialValue={props.initialReservaImagem}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSaveReservaImagem}
-          />
-        )}
-
-        {serviceModalOpen === 'analise_de_imagem' && (
-          <AnaliseImagemForm
-            initialValue={props.initialAnaliseImagem}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSaveAnaliseImagem}
-          />
-        )}
-
-        {serviceModalOpen === 'outros' && (
-          <OutrosForm
-            initialValue={props.initialOutros}
-            editIndex={editIndex}
-            onCancel={closeServiceModal}
-            onSave={props.onSaveOutros}
-          />
-        )}
+        {formNodes}
       </DialogContent>
     </Dialog>
   )

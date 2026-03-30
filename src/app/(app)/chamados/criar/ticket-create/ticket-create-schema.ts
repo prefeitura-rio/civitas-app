@@ -110,7 +110,7 @@ export const ticketCreateSchema = z.object({
   equipe_id: z.string().min(1, 'Campo obrigatório'),
   prioridade: ticketPriorityEnum.optional().nullable(),
 
-  comentario_inicial: z.string().max(50).optional().nullable(),
+  comentario_inicial: z.string().max(500).optional().nullable(),
 
   busca_por_placa: z.array(serviceBuscaPorPlacaSchema).default([]),
   busca_por_radar: z.array(serviceBuscaPorRadarSchema).default([]),
