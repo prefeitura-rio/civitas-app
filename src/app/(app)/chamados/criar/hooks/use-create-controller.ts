@@ -170,8 +170,8 @@ export function useTicketCreateController() {
   })
 
   const operations = operationsQuery.data?.data?.items ?? []
-  const ticketTypes = ticketTypesQuery.data?.data?.items ?? []
-  const ticketNatures = ticketNaturesQuery.data?.data?.items ?? []
+  const ticketTypes = ticketTypesQuery.data?.data ?? []
+  const ticketNatures = ticketNaturesQuery.data?.data ?? []
   const tickets = ticketsQuery.data?.data ?? []
   const teams = teamsQuery.data?.data ?? []
 

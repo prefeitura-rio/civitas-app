@@ -17,7 +17,7 @@ export interface GetTicketTypesResponse extends PaginationResponse {
 }
 
 export function getTicketTypes({ search, isActive }: GetTicketTypesRequest) {
-  return api.get<GetTicketTypesResponse>('/ticket-types', {
+  return api.get<TicketType[]>('/ticket-types', {
     params: {
       search,
       isActive,

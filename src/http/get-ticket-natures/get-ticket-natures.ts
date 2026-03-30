@@ -20,7 +20,7 @@ export function getTicketNatures({
   search,
   isActive,
 }: GetTicketNaturesRequest) {
-  return api.get<GetTicketNaturesResponse>('/ticket-natures', {
+  return api.get<TicketNature[]>('/ticket-natures', {
     params: {
       search,
       isActive,
