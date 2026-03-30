@@ -2,12 +2,19 @@
 
 import './equipes.css'
 
+import { notFound } from 'next/navigation'
+
+import { config } from '@/config'
+
 import { TeamsDialogs } from './components/teams-dialogs'
 import { TeamsHeader } from './components/teams-header'
 import { TeamsList } from './components/teams-list'
 import { useTeamsController } from './hooks/use-teams-controller'
 
 export default function EquipesPage() {
+  if (!config.enableChamados) {
+    notFound()
+  }
   const controller = useTeamsController()
 
   return (

@@ -11,6 +11,7 @@ import { useRadars } from '../useQueries/useRadars'
 export interface UseRadarLayer {
   data: Radar[] | undefined
   layer: IconLayer<Radar>
+  sentryLayer: IconLayer<Radar>
   hoveredObject: PickingInfo<Radar> | null
   setHoveredObject: (value: PickingInfo<Radar> | null) => void
   isVisible: boolean
@@ -87,92 +88,102 @@ export function useRadarLayer(
     [setMultipleSelectedRadars, selectedObjects],
   )
 
+  const iconMapping = {
+    default: { x: 0, y: 0, width: 48, height: 48, mask: false },
+    disabled: { x: 0, y: 48, width: 48, height: 48, mask: false },
+    highlighted: { x: 48, y: 0, width: 48, height: 48, mask: false },
+    'disabled-highlighted': {
+      x: 48,
+      y: 48,
+      width: 48,
+      height: 48,
+      mask: false,
+    },
+    // SENTRY: variantes violetas (y 96 e 144)
+    'sentry-default': { x: 0, y: 96, width: 48, height: 48, mask: false },
+    'sentry-highlighted': { x: 48, y: 96, width: 48, height: 48, mask: false },
+    'sentry-disabled': { x: 0, y: 144, width: 48, height: 48, mask: false },
+    'sentry-disabled-highlighted': {
+      x: 48,
+      y: 144,
+      width: 48,
+      height: 48,
+      mask: false,
+    },
+  }
+
+  const sharedProps = {
+    pickable: true,
+    sizeScale: 24,
+    iconAtlas: radarIconAtlas.src,
+    iconMapping,
+    getColor: (): [number, number, number] => [240, 140, 10],
+    getPosition: (d: Radar) => [d.longitude, d.latitude] as [number, number],
+    visible: isVisible,
+    onHover: (info: PickingInfo<Radar>) => {
+      setHoveredObject(info.object ? info : null)
+    },
+  }
+
+  const getRadarIcon = (d: Radar, prefix: '' | 'sentry-') => {
+    const isSelected = selectedObject?.cetRioCode === d.cetRioCode
+    const isMultiSelected = selectedObjects.some(
+      (item) => item.cetRioCode === d.cetRioCode,
+    )
+    const isHovered = hoveredObject?.object?.cetRioCode === d.cetRioCode
+
+    if ((isSelected || isMultiSelected || isHovered) && d.activeInLast24Hours) {
+      return `${prefix}highlighted`
+    }
+    if (
+      (isSelected || isMultiSelected || isHovered) &&
+      !d.activeInLast24Hours
+    ) {
+      return `${prefix}disabled-highlighted`
+    }
+    if (!d.activeInLast24Hours) {
+      return `${prefix}disabled`
+    }
+    return `${prefix}default`
+  }
+
+  const deps = [
+    data,
+    selectedObject?.cetRioCode,
+    selectedObjects,
+    hoveredObject?.object?.cetRioCode,
+    isVisible,
+    multipleSelectedRadars,
+  ] as const
+
+  // Radares comuns (laranja) — renderizados primeiro (abaixo)
   const layer = useMemo(
     () =>
       new IconLayer<Radar>({
+        ...sharedProps,
         id: 'radars',
-        data,
-        pickable: true,
-        iconAtlas: radarIconAtlas.src,
-        iconMapping: {
-          default: {
-            x: 0,
-            y: 0,
-            width: 48,
-            height: 48,
-            mask: false,
-          },
-          disabled: {
-            x: 0,
-            y: 48,
-            width: 48,
-            height: 48,
-            mask: false,
-          },
-          highlighted: {
-            x: 48,
-            y: 0,
-            width: 48,
-            height: 48,
-            mask: false,
-          },
-          'disabled-highlighted': {
-            x: 48,
-            y: 48,
-            width: 48,
-            height: 48,
-            mask: false,
-          },
-        },
-        getIcon: (d) => {
-          const isSelected = selectedObject?.cetRioCode === d.cetRioCode
-          const isMultiSelected = selectedObjects.find(
-            (item) => item.cetRioCode === d.cetRioCode,
-          )
-
-          if ((isSelected || isMultiSelected) && d.activeInLast24Hours) {
-            return 'highlighted'
-          }
-
-          if ((isSelected || isMultiSelected) && !d.activeInLast24Hours) {
-            return 'disabled-highlighted'
-          }
-
-          if (!d.activeInLast24Hours) {
-            return 'disabled'
-          }
-
-          return 'default'
-        },
-        sizeScale: 24,
-        getPosition: (d) => [d.longitude, d.latitude],
-        getColor: () => [240, 140, 10],
-        visible: isVisible,
-        // onHover: (info) => {
-        //   if (!isHoveringInfoCard) {
-        //     setHoveredObject(info.object ? info : null)
-        //   }
-        // },
-        // onClick: (info) => {
-        //   if (info.object) {
-        //     handleSelectObject(info.object)
-        //   }
-        // },
-        autoHighlight: true,
-        highlightColor: [249, 115, 22],
+        data: data?.filter((d) => d.company?.toUpperCase() !== 'SENTRY'),
+        getIcon: (d) => getRadarIcon(d, ''),
       }),
-    [
-      data,
-      selectedObject?.cetRioCode,
-      selectedObjects,
-      isVisible,
-      multipleSelectedRadars,
-    ],
+    [...deps],
+  )
+
+  // Radares SENTRY (violeta) — renderizados depois (por cima)
+  const sentryLayer = useMemo(
+    () =>
+      new IconLayer<Radar>({
+        ...sharedProps,
+        id: 'radars-sentry',
+        data: data?.filter((d) => d.company?.toUpperCase() === 'SENTRY'),
+        getIcon: (d) => getRadarIcon(d, 'sentry-'),
+      }),
+    [...deps],
   )
 
   return {
     data,
     layer,
+    sentryLayer,
     hoveredObject,
     setHoveredObject,
     isVisible,
