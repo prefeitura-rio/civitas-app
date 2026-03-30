@@ -16,7 +16,11 @@
   flex: 1 1 0%;
   min-width: 0;
   min-height: 0;
+  /* sem altura máxima o flex pai cresce com o conteúdo e o scroll vai para o body */
+  max-height: 100vh;
+  max-height: 100dvh;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 40px;

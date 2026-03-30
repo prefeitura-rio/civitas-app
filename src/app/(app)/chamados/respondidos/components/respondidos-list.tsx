@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Paperclip, TriangleAlert } from 'lucide-react'
+import { Paperclip } from 'lucide-react'
 import { useState } from 'react'
 
 import tcStyles from '@/app/(app)/chamados/criar/ticket-create/ticket-create-form.module.css'
@@ -125,6 +125,7 @@ export function RespondidosList() {
           if (!open) setSelectedEmailId(null)
         }}
         emailId={selectedEmailId}
+        showMarkAsSpam={false}
       />
 
       <div className={inboxStyles.content}>
@@ -133,16 +134,6 @@ export function RespondidosList() {
             <h1 className={inboxStyles.title}>Respondidos</h1>
             <p className={inboxStyles.subtitle}>
               Listagem de e-mails que já receberam resposta.
-            </p>
-          </div>
-          <div className={inboxStyles.infoBar}>
-            <TriangleAlert
-              className={inboxStyles.iconMuted}
-              aria-hidden
-              size={16}
-            />
-            <p className={inboxStyles.infoBarText}>
-              Os e-mails são atualizados automaticamente a cada 2 minutos.
             </p>
           </div>
         </header>

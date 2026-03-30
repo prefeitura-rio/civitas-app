@@ -57,12 +57,15 @@ export interface EmailPreviewSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   emailId: string | null
+  /** Só na caixa de entrada; em pastas como respondidos/spam não exibe marcar spam. */
+  showMarkAsSpam?: boolean
 }
 
 export function EmailPreviewSheet({
   open,
   onOpenChange,
   emailId,
+  showMarkAsSpam = true,
 }: EmailPreviewSheetProps) {
   const queryClient = useQueryClient()
   const [spamConfirmOpen, setSpamConfirmOpen] = useState(false)
@@ -128,27 +131,29 @@ export function EmailPreviewSheet({
 
   return (
     <>
-      <AlertDialog open={spamConfirmOpen} onOpenChange={setSpamConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Marcar como spam?</AlertDialogTitle>
-            <AlertDialogDescription>
-              O e-mail será movido para a pasta de spam. Você poderá revisá-lo
-              depois na área de spam.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={markSpamMutation.isPending}
-              onClick={() => markSpamMutation.mutate()}
-            >
-              {markSpamMutation.isPending ? 'Marcando…' : 'Marcar como spam'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {showMarkAsSpam ? (
+        <AlertDialog open={spamConfirmOpen} onOpenChange={setSpamConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Marcar como spam?</AlertDialogTitle>
+              <AlertDialogDescription>
+                O e-mail será movido para a pasta de spam. Você poderá revisá-lo
+                depois na área de spam.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={markSpamMutation.isPending}
+                onClick={() => markSpamMutation.mutate()}
+              >
+                {markSpamMutation.isPending ? 'Marcando…' : 'Marcar como spam'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
 
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
@@ -205,15 +210,17 @@ export function EmailPreviewSheet({
               </div>
 
               <div className={styles.actionsRow}>
-                <button
-                  type="button"
-                  className={styles.tagSpam}
-                  onClick={() => setSpamConfirmOpen(true)}
-                  disabled={markSpamMutation.isPending}
-                >
-                  <Square size={16} aria-hidden />
-                  <span>SPAM</span>
-                </button>
+                {showMarkAsSpam ? (
+                  <button
+                    type="button"
+                    className={styles.tagSpam}
+                    onClick={() => setSpamConfirmOpen(true)}
+                    disabled={markSpamMutation.isPending}
+                  >
+                    <Square size={16} aria-hidden />
+                    <span>SPAM</span>
+                  </button>
+                ) : null}
                 {replyHref ? (
                   <a className={styles.btnSecondary} href={replyHref}>
                     Responder
