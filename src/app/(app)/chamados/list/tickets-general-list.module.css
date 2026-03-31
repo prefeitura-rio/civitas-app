@@ -394,6 +394,21 @@
   min-width: 72px;
 }
 
+.prioritySuccessBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 27px;
+  height: 20px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #15803d;
+  color: #f9fafa;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
 .priorityWarningBadge {
   display: inline-flex;
   align-items: center;

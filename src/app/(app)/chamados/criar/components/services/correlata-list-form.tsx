@@ -1,94 +1,109 @@
 import { Plus, Trash } from 'lucide-react'
-import type { Control, UseFormRegister } from 'react-hook-form'
-import { Controller, useFieldArray } from 'react-hook-form'
+import type { Control, UseFormSetValue } from 'react-hook-form'
+import { Controller, useFieldArray, useWatch } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { maskPlateBR } from '@/utils/string-formatters'
 
 import styles from '../../ticket-create/ticket-create-form.module.css'
 import type { TicketCreateForm } from '../../ticket-create/ticket-create-schema'
+import { PeriodFieldsCalendarStyle } from '../shared/period-fields'
 import { RangeStatField } from '../shared/range-stat-field'
 
 type Props = {
-  register: UseFormRegister<TicketCreateForm>
   control: Control<TicketCreateForm>
+  setValue: UseFormSetValue<TicketCreateForm>
   index: number
   name: 'placas_correlatas' | 'placas_conjuntas'
   disabled: boolean
 }
 
 export function CorrelataListForm({
-  register,
   control,
+  setValue,
   index,
   name,
   disabled,
 }: Props) {
-  const itemsFieldArray = useFieldArray({
+  const platesFieldArray = useFieldArray({
     control,
-    name: `${name}.${index}.items`,
+    name: `${name}.${index}.plates`,
+  })
+
+  const periodStart = useWatch({
+    control,
+    name: `${name}.${index}.period_start`,
+  })
+  const periodEnd = useWatch({
+    control,
+    name: `${name}.${index}.period_end`,
   })
 
   return (
     <div className="space-y-4">
+      <div className="rounded-md border border-slate-700/40 bg-[#0f2435]/50 p-3">
+        <PeriodFieldsCalendarStyle
+          startValue={periodStart ?? ''}
+          endValue={periodEnd ?? ''}
+          onChangeStart={(value) =>
+            setValue(`${name}.${index}.period_start`, value, {
+              shouldValidate: true,
+            })
+          }
+          onChangeEnd={(value) =>
+            setValue(`${name}.${index}.period_end`, value, {
+              shouldValidate: true,
+            })
+          }
+          disabled={disabled}
+        />
+      </div>
+
       <div className="space-y-4">
-        {itemsFieldArray.fields.map((item, itemIndex) => (
+        {platesFieldArray.fields.map((item, itemIndex) => (
           <div
             key={item.id}
             className="rounded-md border border-slate-700/40 bg-[#0f2435]/50 p-3"
           >
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-medium text-muted-foreground">
-                Item {itemIndex + 1}
+                Placa {platesFieldArray.fields.length > 1 ? itemIndex + 1 : ''}
               </p>
 
-              {itemsFieldArray.fields.length > 1 && (
+              {platesFieldArray.fields.length > 1 && (
                 <Button
                   type="button"
                   variant="ghost"
                   className="h-8 w-8 p-0"
                   disabled={disabled}
-                  onClick={() => itemsFieldArray.remove(itemIndex)}
+                  onClick={() => platesFieldArray.remove(itemIndex)}
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Placa</Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  disabled={disabled}
-                  {...register(`${name}.${index}.items.${itemIndex}.plate`)}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Início</Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  type="datetime-local"
-                  disabled={disabled}
-                  {...register(
-                    `${name}.${index}.items.${itemIndex}.period_start`,
-                  )}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className={styles.fieldLabel}>Fim</Label>
-                <Input
-                  className={`h-11 ${styles.inputBg}`}
-                  type="datetime-local"
-                  disabled={disabled}
-                  {...register(
-                    `${name}.${index}.items.${itemIndex}.period_end`,
-                  )}
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Placa</Label>
+              <Controller
+                control={control}
+                name={`${name}.${index}.plates.${itemIndex}.plate`}
+                render={({ field }) => (
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={disabled}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(maskPlateBR(e.target.value))
+                    }
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                )}
+              />
             </div>
           </div>
         ))}
@@ -101,10 +116,8 @@ export function CorrelataListForm({
           className="h-11 w-full gap-2"
           disabled={disabled}
           onClick={() =>
-            itemsFieldArray.append({
+            platesFieldArray.append({
               plate: '',
-              period_start: null,
-              period_end: null,
             })
           }
         >

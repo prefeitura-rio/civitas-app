@@ -3,6 +3,7 @@ import { Plus, Trash } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { maskPlateBR } from '@/utils/string-formatters'
 
 import type {
   CorrelataDraft,
@@ -23,6 +24,10 @@ type Props = {
   hideAddButton?: boolean
   useCalendarStyle?: boolean
   errors?: Record<string, string> | null
+  /** Validação de placas só deve rodar no blur/edição do campo, não ao mudar período etc. */
+  onPlateBlur?: () => void
+  onPlateChange?: () => void
+  disabled?: boolean
 }
 
 export function CorrelataPanel({
@@ -32,52 +37,73 @@ export function CorrelataPanel({
   hideAddButton,
   useCalendarStyle,
   errors,
+  onPlateBlur,
+  onPlateChange,
+  disabled = false,
 }: Props) {
   const PeriodComponent = useCalendarStyle
     ? PeriodFieldsCalendarStyle
     : PeriodFields
 
-  const addItem = () => {
+  const addPlate = () => {
     setDraft((prev) => ({
       ...prev,
-      items: [...prev.items, emptyCorrelataItem()],
+      plates: [...prev.plates, emptyCorrelataItem()],
     }))
   }
 
-  const updateItem = (index: number, updates: Partial<CorrelataDraftItem>) => {
+  const updatePlate = (index: number, updates: Partial<CorrelataDraftItem>) => {
     setDraft((prev) => ({
       ...prev,
-      items: prev.items.map((item, i) =>
+      plates: prev.plates.map((item, i) =>
         i === index ? { ...item, ...updates } : item,
       ),
     }))
   }
 
-  const removeItem = (index: number) => {
+  const removePlate = (index: number) => {
     setDraft((prev) => ({
       ...prev,
-      items: prev.items.filter((_, i) => i !== index),
+      plates: prev.plates.filter((_, i) => i !== index),
     }))
   }
 
   return (
     <div className="min-w-0 space-y-3">
-      {draft.items.map((item, index) => (
-        <div
-          key={index}
-          className="w-full min-w-0 space-y-3 rounded-md border border-slate-700/40 bg-[#0f2435]/50 p-3"
-        >
+      <div className="w-full min-w-0 space-y-3">
+        <PeriodComponent
+          startValue={draft.period_start}
+          endValue={draft.period_end}
+          onChangeStart={(value) =>
+            setDraft((prev) => ({ ...prev, period_start: value }))
+          }
+          onChangeEnd={(value) =>
+            setDraft((prev) => ({ ...prev, period_end: value }))
+          }
+          disabled={disabled}
+        />
+
+        {(errors?.period_start || errors?.period_end) && (
+          <p className="text-xs text-destructive">
+            {errors.period_start || errors.period_end}
+          </p>
+        )}
+      </div>
+
+      {draft.plates.map((item, index) => (
+        <div key={index} className="w-full min-w-0 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <p className="min-w-0 text-sm font-medium text-muted-foreground">
-              Período e placa {draft.items.length > 1 ? index + 1 : ''}
+              Placa {draft.plates.length > 1 ? index + 1 : ''}
             </p>
 
-            {draft.items.length > 1 && (
+            {draft.plates.length > 1 && (
               <Button
                 type="button"
                 variant="ghost"
                 className="h-8 w-8 shrink-0 p-0"
-                onClick={() => removeItem(index)}
+                disabled={disabled}
+                onClick={() => removePlate(index)}
                 title="Remover"
               >
                 <Trash className="h-4 w-4" />
@@ -85,51 +111,40 @@ export function CorrelataPanel({
             )}
           </div>
 
-          <PeriodComponent
-            startValue={item.period_start}
-            endValue={item.period_end}
-            onChangeStart={(value) =>
-              updateItem(index, { period_start: value })
-            }
-            onChangeEnd={(value) => updateItem(index, { period_end: value })}
-          />
-
-          {(errors?.[`items.${index}.period_start`] ||
-            errors?.[`items.${index}.period_end`]) && (
-            <p className="text-xs text-destructive">
-              {errors[`items.${index}.period_start`] ||
-                errors[`items.${index}.period_end`]}
-            </p>
-          )}
-
           <div className="min-w-0 space-y-1.5">
             <Label className={styles.fieldLabel}>Placa do veículo</Label>
             <Input
               className={`h-11 min-w-0 ${styles.inputBg}`}
               value={item.plate}
-              onChange={(e) => updateItem(index, { plate: e.target.value })}
+              disabled={disabled}
+              onChange={(e) => {
+                updatePlate(index, { plate: maskPlateBR(e.target.value) })
+                onPlateChange?.()
+              }}
+              onBlur={() => onPlateBlur?.()}
             />
-            {errors?.[`items.${index}.plate`] && (
+            {errors?.[`plates.${index}.plate`] && (
               <p className="text-xs text-destructive">
-                {errors[`items.${index}.plate`]}
+                {errors[`plates.${index}.plate`]}
               </p>
             )}
           </div>
         </div>
       ))}
 
-      {errors?.items && (
-        <p className="text-xs text-destructive">{errors.items}</p>
+      {errors?.plates && (
+        <p className="text-xs text-destructive">{errors.plates}</p>
       )}
 
       <div className="flex flex-col items-end">
         <button
           type="button"
-          onClick={addItem}
+          onClick={addPlate}
+          disabled={disabled}
           className={styles.addPointFocalButton}
         >
           <Plus className="h-5 w-5 shrink-0" aria-hidden />
-          Adicionar período e placa
+          Adicionar placa
         </button>
       </div>
 
@@ -140,6 +155,7 @@ export function CorrelataPanel({
           min={1}
           max={5}
           unit=""
+          disabled={disabled}
           onChange={(value) =>
             setDraft((prev) => ({
               ...prev,
@@ -156,6 +172,7 @@ export function CorrelataPanel({
           min={5}
           max={50}
           unit=""
+          disabled={disabled}
           onChange={(value) =>
             setDraft((prev) => ({
               ...prev,
@@ -170,6 +187,7 @@ export function CorrelataPanel({
         <div className={styles.segmentedDetection}>
           <button
             type="button"
+            disabled={disabled}
             className={`${styles.detectionButton} ${draft.detection === 'ANTES' ? styles.detectionButtonActive : ''}`}
             onClick={() =>
               setDraft((prev) => ({ ...prev, detection: 'ANTES' }))
@@ -179,6 +197,7 @@ export function CorrelataPanel({
           </button>
           <button
             type="button"
+            disabled={disabled}
             className={`${styles.detectionButton} ${draft.detection === 'DEPOIS' ? styles.detectionButtonActive : ''}`}
             onClick={() =>
               setDraft((prev) => ({ ...prev, detection: 'DEPOIS' }))
@@ -188,6 +207,7 @@ export function CorrelataPanel({
           </button>
           <button
             type="button"
+            disabled={disabled}
             className={`${styles.detectionButton} ${draft.detection === 'AMBOS' ? styles.detectionButtonActive : ''}`}
             onClick={() =>
               setDraft((prev) => ({ ...prev, detection: 'AMBOS' }))
@@ -206,6 +226,7 @@ export function CorrelataPanel({
         <button
           type="button"
           className={styles.inlineAddButton}
+          disabled={disabled}
           onClick={onAdd}
         >
           <Plus className="h-5 w-5" />

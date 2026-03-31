@@ -768,6 +768,15 @@
   overflow: hidden;
 }
 
+/* fieldset entre form e .serviceModalBody — mantém a cadeia flex para o scroll (senão o corpo cresce sem limite) */
+.serviceModalFieldsetScroll {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 /* Área rolável do conteúdo – título e botões fixos, corpo com scroll */
 .serviceModalBody {
   flex: 1 1 0;
