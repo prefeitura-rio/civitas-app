@@ -10,6 +10,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { Controller } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -36,6 +37,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import { maskDigitsOnly, maskPhoneBR } from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../components/services/correlata-list-form'
@@ -149,7 +151,12 @@ export function TicketCreateForm() {
 
       <form
         className="w-full space-y-8"
-        onSubmit={vm.handleSubmit(vm.onSubmit)}
+        onSubmit={vm.handleSubmit(vm.onSubmit, (errors) => {
+          toast.error(
+            getFirstFormErrorMessage(errors) ??
+              'Existem campos com pendências. Verifique os avisos abaixo de cada campo.',
+          )
+        })}
       >
         <div className={`${styles.sectionCard} ${styles.sectionCardFirst}`}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

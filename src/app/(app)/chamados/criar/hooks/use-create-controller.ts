@@ -18,7 +18,7 @@ import { convertTicketToConventional } from '@/http/tickets/convert-ticket-to-co
 import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketById } from '@/http/tickets/get-ticket-by-id'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import type {
   OpenServiceKey,
@@ -196,8 +196,8 @@ export function useTicketCreateController() {
       setFiles([])
       closeServiceModal()
     },
-    onError: () => {
-      toast.error(genericErrorMessage)
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error))
       setValue('associar_chamado_id', null)
       setSelectedTicketLabel('')
       setTicketSearch('')
@@ -237,7 +237,7 @@ export function useTicketCreateController() {
         closeServiceModal()
       }
     },
-    onError: () => toast.error(genericErrorMessage),
+    onError: (error) => toast.error(getApiErrorMessage(error)),
   })
 
   const createMutation = useMutation({
@@ -275,7 +275,7 @@ export function useTicketCreateController() {
         closeServiceModal()
       }
     },
-    onError: () => toast.error(genericErrorMessage),
+    onError: (error) => toast.error(getApiErrorMessage(error)),
   })
 
   const operations = operationsQuery.data?.data?.items ?? []

@@ -50,6 +50,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
+import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import { maskPhoneBR } from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
@@ -626,8 +627,12 @@ export function EmailToTicketView() {
                     setActiveSubmit(null)
                   }
                 },
-                () => {
+                (errors) => {
                   setActiveSubmit(null)
+                  toast.error(
+                    getFirstFormErrorMessage(errors) ??
+                      'Existem campos com pendências. Verifique os avisos abaixo de cada campo.',
+                  )
                 },
               )(e)
             }}
