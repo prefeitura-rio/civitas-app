@@ -144,7 +144,7 @@ export const ticketCreateSchema = z.object({
 
   operation_id: z.string().min(1, 'Campo obrigatório'),
 
-  orgao_procedimento_id: z.string().min(1, 'Campo obrigatório'),
+  orgao_procedimento_id: z.string().optional().nullable(),
 
   numero_procedimento: z
     .string()

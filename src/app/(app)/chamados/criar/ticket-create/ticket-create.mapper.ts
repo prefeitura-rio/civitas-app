@@ -36,7 +36,7 @@ export function buildTicketCreatePayload(
   return {
     ...data,
     associar_chamado_id: emptyToNull(data.associar_chamado_id),
-    orgao_procedimento_id: data.orgao_procedimento_id.trim(),
+    orgao_procedimento_id: emptyToNull(data.orgao_procedimento_id),
     numero_procedimento: emptyToNull(data.numero_procedimento),
     numero_oficio: emptyToNull(data.numero_oficio),
     data_base: emptyToNull(data.data_base),
