@@ -77,7 +77,7 @@ export type OutrosDraft = {
 
 /** Limites de caracteres alinhados ao schema de criação de chamado. */
 export const TICKET_CREATE_STRING_LIMITS = {
-  numero_procedimento: 60,
+  numero_procedimento: 12,
   numero_oficio: 60,
   apelido_imprensa: 120,
   link_materia: 2048,

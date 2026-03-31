@@ -51,13 +51,14 @@ const memberFormSchema = z
     is_active: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    const needsIsland = data.role === 'Adjunto' || data.role === 'Operador'
+    const needsIsland =
+      data.role === 'Operador' || data.role === 'Líder de Ilha'
 
     if (needsIsland && !data.island_id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['island_id'],
-        message: 'Ilha obrigatória para Adjunto ou Operador',
+        message: 'Ilha obrigatória para Operador ou Líder de Ilha',
       })
     }
   })
@@ -135,7 +136,7 @@ export function TeamMemberFormDialog({
   }, [selectedUserRolesResponse])
 
   const shouldShowIsland =
-    selectedRole === 'Adjunto' || selectedRole === 'Operador'
+    selectedRole === 'Operador' || selectedRole === 'Líder de Ilha'
 
   const { mutateAsync: createTeamMemberMutation, isPending: isPendingCreate } =
     useMutation({
@@ -211,7 +212,7 @@ export function TeamMemberFormDialog({
         | UserRoleEnum
         | undefined
       const needsIsland =
-        initialRole === 'Adjunto' || initialRole === 'Operador'
+        initialRole === 'Operador' || initialRole === 'Líder de Ilha'
 
       reset({
         user_id: memberDialogInitialData.user_id || '',
@@ -247,7 +248,7 @@ export function TeamMemberFormDialog({
   }, [selectedUserId, memberDialogInitialData?.id, setValue])
 
   useEffect(() => {
-    if (selectedRole !== 'Adjunto' && selectedRole !== 'Operador') {
+    if (selectedRole !== 'Operador' && selectedRole !== 'Líder de Ilha') {
       setValue('island_id', null, { shouldDirty: true, shouldValidate: true })
     }
   }, [selectedRole, setValue])

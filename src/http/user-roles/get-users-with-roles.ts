@@ -22,6 +22,8 @@ export interface UserRole extends UserRoleListItem {
 interface GetUsersWithRolesRequest {
   page: number
   size: number
+  /** Filtro de busca (query string `search` na API). */
+  search?: string
 }
 
 export interface GetUsersWithRolesResponse {
@@ -29,11 +31,16 @@ export interface GetUsersWithRolesResponse {
   total: number
 }
 
-export function getUsersWithRoles({ page, size }: GetUsersWithRolesRequest) {
+export function getUsersWithRoles({
+  page,
+  size,
+  search,
+}: GetUsersWithRolesRequest) {
   return api.get<GetUsersWithRolesResponse>('/users-roles', {
     params: {
       page,
       page_size: size,
+      ...(search ? { search } : {}),
     },
   })
 }

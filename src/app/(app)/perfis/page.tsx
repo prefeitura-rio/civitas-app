@@ -26,9 +26,7 @@ export default function CadastroPerfilPage() {
   }
 
   return (
-    <div
-      className={`${styles.perfisPage} flex min-h-screen flex-col overflow-y-auto px-6 py-6`}
-    >
+    <div className={`${styles.perfisPage} flex flex-col px-6 py-6`}>
       <div className="content">
         <ProfileAccessTable onEditUser={handleEditUser} />
 

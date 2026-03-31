@@ -20,7 +20,10 @@
 .perfisPage {
   background-color: var(--perfis-bg-page);
   min-height: 100vh;
+  max-height: 100dvh;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: var(--perfis-gap-section);
@@ -59,6 +62,44 @@
   line-height: 16px;
   color: var(--perfis-text-subtle);
   margin: 0;
+}
+
+.perfisSearchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.perfisSearchIcon {
+  flex-shrink: 0;
+  color: var(--perfis-text-subtle);
+  pointer-events: none;
+}
+
+.perfisSearchInput {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: var(--perfis-radius-sm);
+  border: 1px solid var(--perfis-border);
+  background-color: var(--perfis-bg-page);
+  color: var(--perfis-text-default);
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.perfisSearchInput::placeholder {
+  color: var(--perfis-text-subtle);
+}
+
+.perfisSearchInput:focus-visible {
+  outline: none;
+  border-color: var(--perfis-border);
+  box-shadow: 0 0 0 2px rgba(74, 93, 109, 0.35);
 }
 
 /* ---------- Card da tabela ---------- */
