@@ -207,10 +207,12 @@ export function useTicketCreateController() {
   const convertToConventionalMutation = useMutation({
     mutationFn: async ({
       ticketId,
+      files: filesToSend = [],
     }: {
       ticketId: string
+      files?: File[]
       saveAndNew?: boolean
-    }) => convertTicketToConventional(ticketId),
+    }) => convertTicketToConventional(ticketId, filesToSend),
     onSuccess: (_data, variables) => {
       toast.success('Chamado convertido para convencional com sucesso.')
       if (variables.saveAndNew) {
@@ -366,6 +368,7 @@ export function useTicketCreateController() {
     if (associarId) {
       await convertToConventionalMutation.mutateAsync({
         ticketId: associarId,
+        files,
         saveAndNew: false,
       })
       return
@@ -384,6 +387,7 @@ export function useTicketCreateController() {
     if (associarId) {
       await convertToConventionalMutation.mutateAsync({
         ticketId: associarId,
+        files: filesForTicket ?? files,
         saveAndNew: options?.saveAndNew ?? false,
       })
       return

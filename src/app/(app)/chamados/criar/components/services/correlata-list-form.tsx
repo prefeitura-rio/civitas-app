@@ -57,6 +57,7 @@ export function CorrelataListForm({
               shouldValidate: true,
             })
           }
+          disabled={disabled}
         />
       </div>
 

@@ -51,14 +51,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
-import { maskPhoneBR } from '@/utils/string-formatters'
+import { maskDigitsOnly, maskPhoneBR } from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
 import { ServiceModal } from '../../criar/components/services/service-modal'
 import { DataBaseDatePicker } from '../../criar/components/shared/data-base-date-picker'
 import { useTicketCreateController } from '../../criar/hooks/use-create-controller'
 import type { OpenServiceKey } from '../../criar/ticket-create/ticket-create.constant'
-import { SERVICE_CONFIG } from '../../criar/ticket-create/ticket-create.constant'
+import {
+  SERVICE_CONFIG,
+  TICKET_CREATE_STRING_LIMITS as L,
+} from '../../criar/ticket-create/ticket-create.constant'
 import { useAttachmentPreviewUrl } from '../hooks/use-attachment-preview-url'
 import { downloadEmailAttachmentAsFile } from '../utils/download-email-attachment-file'
 import styles from './email-to-ticket-view.module.css'
@@ -102,6 +105,26 @@ function nullIfEmpty(value?: string | null) {
   return trimmed.length ? trimmed : null
 }
 
+function FieldStringError({
+  value,
+  max,
+  message,
+}: {
+  value: string | null | undefined
+  max: number
+  message?: string
+}) {
+  if ((value ?? '').length > max) {
+    return (
+      <p className="text-xs text-destructive">Máximo de {max} caracteres</p>
+    )
+  }
+  if (message) {
+    return <p className="text-xs text-destructive">{message}</p>
+  }
+  return null
+}
+
 function ConverterPanelSection({
   title,
   isOpen,
@@ -141,16 +164,21 @@ function CompactServiceList<T extends { id: string }>({
   onRemove,
   onEdit,
   renderRow,
+  disabled = false,
+  openModalDisabled,
 }: {
   label: string
   fields: T[]
   onRemove: (index: number) => void
   onEdit?: (index: number) => void
   renderRow: (index: number) => React.ReactNode
+  disabled?: boolean
+  openModalDisabled?: boolean
 }) {
   if (fields.length === 0) return null
 
   const isCompact = onEdit != null
+  const compactOpenDisabled = openModalDisabled ?? disabled
 
   return (
     <div className={styles.listCard}>
@@ -177,6 +205,7 @@ function CompactServiceList<T extends { id: string }>({
                   type="button"
                   className={styles.serviceItemBadgeButton}
                   onClick={() => onEdit?.(idx)}
+                  disabled={compactOpenDisabled}
                   title="Abrir para editar"
                 >
                   <span className={styles.serviceItemBadge}>
@@ -193,6 +222,7 @@ function CompactServiceList<T extends { id: string }>({
                     e.stopPropagation()
                     onRemove(idx)
                   }}
+                  disabled={disabled}
                   title="Remover"
                 >
                   <Trash className="h-4 w-4" />
@@ -206,6 +236,7 @@ function CompactServiceList<T extends { id: string }>({
                     variant="ghost"
                     className="h-8 w-8 p-0"
                     onClick={() => onRemove(idx)}
+                    disabled={disabled}
                     title="Remover"
                   >
                     <Trash className="h-4 w-4" />
@@ -284,6 +315,11 @@ export function EmailToTicketView() {
 
   const associarChamadoId = vm.watch('associar_chamado_id')
   const isAssociarConvertMode = Boolean(nullIfEmpty(associarChamadoId))
+  const fieldDisabled = isAssociarConvertMode || vm.isLoading
+  const attachmentDisabled =
+    vm.isConvertingToConventional ||
+    vm.isApplyingAssociatedTicket ||
+    (!isAssociarConvertMode && vm.isLoading)
 
   useEffect(() => {
     if (!email) return
@@ -610,9 +646,7 @@ export function EmailToTicketView() {
                     const isConvert = Boolean(
                       nullIfEmpty(data.associar_chamado_id),
                     )
-                    const filesToSend = isConvert
-                      ? []
-                      : await buildFilesForTicketSubmit()
+                    const filesToSend = await buildFilesForTicketSubmit()
                     const saveAndNew = intent === 'save-and-new' && !isConvert
                     await vm.onSubmitFromEmail(data, emailId, filesToSend, {
                       saveAndNew,
@@ -769,7 +803,7 @@ export function EmailToTicketView() {
                           <Select
                             value={field.value}
                             onValueChange={field.onChange}
-                            disabled={vm.isLoading || vm.isTicketTypesLoading}
+                            disabled={fieldDisabled || vm.isTicketTypesLoading}
                           >
                             <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                               <SelectValue placeholder="Selecione" />
@@ -802,240 +836,291 @@ export function EmailToTicketView() {
                   isOpen={vm.openSections.info}
                   onToggle={() => vm.toggleSection('info')}
                 >
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className={styles.fieldLabel}>
-                        Órgão procedimento
-                      </Label>
-                      <Controller
-                        control={vm.control}
-                        name="orgao_procedimento_id"
-                        render={({ field }) => (
-                          <Select
-                            value={field.value ?? ''}
-                            onValueChange={(v) => field.onChange(v || null)}
-                            disabled={vm.isLoading || vm.isOperationsLoading}
-                          >
-                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent className={styles.selectContentForm}>
-                              {vm.operations.map((op) => (
-                                <SelectItem
-                                  key={op.id}
-                                  value={op.id}
-                                  className={styles.selectItemForm}
-                                >
-                                  {op.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                  <fieldset
+                    disabled={fieldDisabled}
+                    className="min-w-0 border-0 p-0 [&:disabled]:opacity-100"
+                  >
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>
+                          Órgão procedimento
+                        </Label>
+                        <Controller
+                          control={vm.control}
+                          name="orgao_procedimento_id"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value ?? ''}
+                              onValueChange={(v) => field.onChange(v || null)}
+                              disabled={vm.isLoading || vm.isOperationsLoading}
+                            >
+                              <SelectTrigger
+                                className={`h-11 ${styles.inputBg}`}
+                              >
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent
+                                className={styles.selectContentForm}
+                              >
+                                {vm.operations.map((op) => (
+                                  <SelectItem
+                                    key={op.id}
+                                    value={op.id}
+                                    className={styles.selectItemForm}
+                                  >
+                                    {op.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                        {vm.errors.orgao_procedimento_id?.message && (
+                          <p className="text-xs text-destructive">
+                            {vm.errors.orgao_procedimento_id.message}
+                          </p>
                         )}
-                      />
-                      {vm.errors.orgao_procedimento_id?.message && (
-                        <p className="text-xs text-destructive">
-                          {vm.errors.orgao_procedimento_id.message}
-                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>
+                          Nº de procedimento
+                        </Label>
+                        <Controller
+                          control={vm.control}
+                          name="numero_procedimento"
+                          render={({ field }) => (
+                            <Input
+                              className={`h-11 ${styles.inputBg}`}
+                              disabled={vm.isLoading}
+                              inputMode="numeric"
+                              autoComplete="off"
+                              value={field.value ?? ''}
+                              onBlur={field.onBlur}
+                              ref={field.ref}
+                              onChange={(e) =>
+                                field.onChange(
+                                  maskDigitsOnly(
+                                    e.target.value,
+                                    Number.POSITIVE_INFINITY,
+                                  ),
+                                )
+                              }
+                            />
+                          )}
+                        />
+                        <FieldStringError
+                          value={vm.watch('numero_procedimento')}
+                          max={L.numero_procedimento}
+                          message={vm.errors.numero_procedimento?.message}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>
+                          Nº do ofício
+                        </Label>
+                        <Input
+                          className={`h-11 ${styles.inputBg}`}
+                          disabled={vm.isLoading}
+                          {...vm.register('numero_oficio')}
+                        />
+                        <FieldStringError
+                          value={vm.watch('numero_oficio')}
+                          max={L.numero_oficio}
+                          message={vm.errors.numero_oficio?.message}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>Data base</Label>
+                        <Controller
+                          control={vm.control}
+                          name="data_base"
+                          render={({ field }) => (
+                            <DataBaseDatePicker
+                              value={field.value ?? ''}
+                              onChange={field.onChange}
+                              disabled={vm.isLoading}
+                            />
+                          )}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>Natureza</Label>
+                        <Controller
+                          control={vm.control}
+                          name="natureza_id"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value ?? ''}
+                              onValueChange={(v) => field.onChange(v || null)}
+                              disabled={
+                                vm.isLoading || vm.isTicketNaturesLoading
+                              }
+                            >
+                              <SelectTrigger
+                                className={`h-11 ${styles.inputBg}`}
+                              >
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent
+                                className={styles.selectContentForm}
+                              >
+                                {vm.ticketNatures.map((nature) => (
+                                  <SelectItem
+                                    key={nature.id}
+                                    value={nature.id}
+                                    className={styles.selectItemForm}
+                                  >
+                                    {nature.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <Label className={styles.fieldLabel}>
+                          Possui apelido pela imprensa?
+                        </Label>
+                        <Controller
+                          control={vm.control}
+                          name="possui_apelido_imprensa"
+                          render={({ field }) => (
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id="conv_possui_apelido"
+                                size="sm"
+                                checked={!!field.value}
+                                onCheckedChange={field.onChange}
+                                disabled={vm.isLoading}
+                                className={styles.apelidoToggle}
+                              />
+                              <span className={styles.toggleLabel}>
+                                {field.value ? 'Sim' : 'Não'}
+                              </span>
+                            </div>
+                          )}
+                        />
+                      </div>
+
+                      {vm.possuiApelido && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>
+                              Apelido pela imprensa
+                            </Label>
+                            <Input
+                              className={`h-11 ${styles.inputBg}`}
+                              disabled={vm.isLoading}
+                              {...vm.register('apelido_imprensa')}
+                            />
+                            <FieldStringError
+                              value={vm.watch('apelido_imprensa')}
+                              max={L.apelido_imprensa}
+                              message={vm.errors.apelido_imprensa?.message}
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>
+                              Link da matéria
+                            </Label>
+                            <Input
+                              className={`h-11 ${styles.inputBg}`}
+                              disabled={vm.isLoading}
+                              placeholder="https://..."
+                              {...vm.register('link_materia')}
+                            />
+                            <FieldStringError
+                              value={vm.watch('link_materia')}
+                              max={L.link_materia}
+                              message={vm.errors.link_materia?.message}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <Label className={styles.fieldLabel}>
+                          Possui endereço de correspondência?
+                        </Label>
+                        <Controller
+                          control={vm.control}
+                          name="possui_endereco_correspondencia"
+                          render={({ field }) => (
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id="conv_possui_endereco"
+                                size="sm"
+                                checked={!!field.value}
+                                onCheckedChange={field.onChange}
+                                disabled={vm.isLoading}
+                                className={styles.apelidoToggle}
+                              />
+                              <span className={styles.toggleLabel}>
+                                {field.value ? 'Sim' : 'Não'}
+                              </span>
+                            </div>
+                          )}
+                        />
+                      </div>
+
+                      {vm.possuiEnderecoCorrespondencia && (
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>Bairro</Label>
+                            <Input
+                              className={`h-11 ${styles.inputBg}`}
+                              disabled={vm.isLoading}
+                              {...vm.register('bairro_correspondencia')}
+                            />
+                            <FieldStringError
+                              value={vm.watch('bairro_correspondencia')}
+                              max={L.bairro_correspondencia}
+                              message={
+                                vm.errors.bairro_correspondencia?.message
+                              }
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>Rua</Label>
+                            <Input
+                              className={`h-11 ${styles.inputBg}`}
+                              disabled={vm.isLoading}
+                              {...vm.register('rua_correspondencia')}
+                            />
+                            <FieldStringError
+                              value={vm.watch('rua_correspondencia')}
+                              max={L.rua_correspondencia}
+                              message={vm.errors.rua_correspondencia?.message}
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className={styles.fieldLabel}>Número</Label>
+                            <Input
+                              className={`h-11 ${styles.inputBg}`}
+                              disabled={vm.isLoading}
+                              {...vm.register('numero_correspondencia')}
+                            />
+                            <FieldStringError
+                              value={vm.watch('numero_correspondencia')}
+                              max={L.numero_correspondencia}
+                              message={
+                                vm.errors.numero_correspondencia?.message
+                              }
+                            />
+                          </div>
+                        </div>
                       )}
                     </div>
-
-                    <div className="space-y-1.5">
-                      <Label className={styles.fieldLabel}>
-                        Nº de procedimento
-                      </Label>
-                      <Input
-                        className={`h-11 ${styles.inputBg}`}
-                        disabled={vm.isLoading}
-                        {...vm.register('numero_procedimento')}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className={styles.fieldLabel}>Nº do ofício</Label>
-                      <Input
-                        className={`h-11 ${styles.inputBg}`}
-                        disabled={vm.isLoading}
-                        {...vm.register('numero_oficio')}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className={styles.fieldLabel}>Data base</Label>
-                      <Controller
-                        control={vm.control}
-                        name="data_base"
-                        render={({ field }) => (
-                          <DataBaseDatePicker
-                            value={field.value ?? ''}
-                            onChange={field.onChange}
-                            disabled={vm.isLoading}
-                          />
-                        )}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className={styles.fieldLabel}>Natureza</Label>
-                      <Controller
-                        control={vm.control}
-                        name="natureza_id"
-                        render={({ field }) => (
-                          <Select
-                            value={field.value ?? ''}
-                            onValueChange={(v) => field.onChange(v || null)}
-                            disabled={vm.isLoading || vm.isTicketNaturesLoading}
-                          >
-                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent className={styles.selectContentForm}>
-                              {vm.ticketNatures.map((nature) => (
-                                <SelectItem
-                                  key={nature.id}
-                                  value={nature.id}
-                                  className={styles.selectItemForm}
-                                >
-                                  {nature.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Label className={styles.fieldLabel}>
-                        Possui apelido pela imprensa?
-                      </Label>
-                      <Controller
-                        control={vm.control}
-                        name="possui_apelido_imprensa"
-                        render={({ field }) => (
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="conv_possui_apelido"
-                              size="sm"
-                              checked={!!field.value}
-                              onCheckedChange={field.onChange}
-                              disabled={vm.isLoading}
-                              className={styles.apelidoToggle}
-                            />
-                            <span className={styles.toggleLabel}>
-                              {field.value ? 'Sim' : 'Não'}
-                            </span>
-                          </div>
-                        )}
-                      />
-                    </div>
-
-                    {vm.possuiApelido && (
-                      <>
-                        <div className="space-y-1.5">
-                          <Label className={styles.fieldLabel}>
-                            Apelido pela imprensa
-                          </Label>
-                          <Input
-                            className={`h-11 ${styles.inputBg}`}
-                            disabled={vm.isLoading}
-                            {...vm.register('apelido_imprensa')}
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label className={styles.fieldLabel}>
-                            Link da matéria
-                          </Label>
-                          <Input
-                            className={`h-11 ${styles.inputBg}`}
-                            disabled={vm.isLoading}
-                            placeholder="https://..."
-                            {...vm.register('link_materia')}
-                          />
-                          {vm.errors.link_materia?.message && (
-                            <p className="text-xs text-destructive">
-                              {vm.errors.link_materia.message}
-                            </p>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Label className={styles.fieldLabel}>
-                        Possui endereço de correspondência?
-                      </Label>
-                      <Controller
-                        control={vm.control}
-                        name="possui_endereco_correspondencia"
-                        render={({ field }) => (
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="conv_possui_endereco"
-                              size="sm"
-                              checked={!!field.value}
-                              onCheckedChange={field.onChange}
-                              disabled={vm.isLoading}
-                              className={styles.apelidoToggle}
-                            />
-                            <span className={styles.toggleLabel}>
-                              {field.value ? 'Sim' : 'Não'}
-                            </span>
-                          </div>
-                        )}
-                      />
-                    </div>
-
-                    {vm.possuiEnderecoCorrespondencia && (
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="space-y-1.5">
-                          <Label className={styles.fieldLabel}>Bairro</Label>
-                          <Input
-                            className={`h-11 ${styles.inputBg}`}
-                            disabled={vm.isLoading}
-                            maxLength={120}
-                            {...vm.register('bairro_correspondencia')}
-                          />
-                          {vm.errors.bairro_correspondencia?.message && (
-                            <p className="text-xs text-destructive">
-                              {vm.errors.bairro_correspondencia.message}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label className={styles.fieldLabel}>Rua</Label>
-                          <Input
-                            className={`h-11 ${styles.inputBg}`}
-                            disabled={vm.isLoading}
-                            maxLength={255}
-                            {...vm.register('rua_correspondencia')}
-                          />
-                          {vm.errors.rua_correspondencia?.message && (
-                            <p className="text-xs text-destructive">
-                              {vm.errors.rua_correspondencia.message}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label className={styles.fieldLabel}>Número</Label>
-                          <Input
-                            className={`h-11 ${styles.inputBg}`}
-                            disabled={vm.isLoading}
-                            maxLength={20}
-                            {...vm.register('numero_correspondencia')}
-                          />
-                          {vm.errors.numero_correspondencia?.message && (
-                            <p className="text-xs text-destructive">
-                              {vm.errors.numero_correspondencia.message}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  </fieldset>
                 </ConverterPanelSection>
 
                 <ConverterPanelSection
@@ -1043,240 +1128,262 @@ export function EmailToTicketView() {
                   isOpen={vm.openSections.requester}
                   onToggle={() => vm.toggleSection('requester')}
                 >
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label className={styles.fieldLabel}>Demandante</Label>
-                      <Controller
-                        control={vm.control}
-                        name="operation_id"
-                        render={({ field }) => (
-                          <Select
-                            value={field.value ?? ''}
-                            onValueChange={(v) => field.onChange(v || null)}
-                            disabled={vm.isLoading || vm.isOperationsLoading}
-                          >
-                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent className={styles.selectContentForm}>
-                              {vm.operations.map((op) => (
-                                <SelectItem
-                                  key={op.id}
-                                  value={op.id}
-                                  className={styles.selectItemForm}
-                                >
-                                  {op.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                      {vm.errors.operation_id?.message && (
-                        <p className="text-xs text-destructive">
-                          {vm.errors.operation_id.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3">
+                  <fieldset
+                    disabled={fieldDisabled}
+                    className="min-w-0 border-0 p-0 [&:disabled]:opacity-100"
+                  >
+                    <div className="space-y-3">
                       <div className="space-y-1.5">
-                        <Label className={styles.fieldLabel}>
-                          Requisitante
-                        </Label>
-                        <Input
-                          className={`h-11 ${styles.inputBg}`}
-                          disabled={vm.isLoading}
-                          {...vm.register('requisitante.requisitante_nome')}
-                        />
-                        {vm.errors.requisitante?.requisitante_nome?.message && (
-                          <p className="text-xs text-destructive">
-                            {vm.errors.requisitante?.requisitante_nome?.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className={styles.fieldLabel}>Telefone</Label>
+                        <Label className={styles.fieldLabel}>Demandante</Label>
                         <Controller
                           control={vm.control}
-                          name="requisitante.requisitante_telefone"
+                          name="operation_id"
                           render={({ field }) => (
-                            <div className={styles.inputWithIconRight}>
-                              <Input
-                                className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                disabled={vm.isLoading}
-                                inputMode="tel"
-                                autoComplete="tel"
-                                value={field.value ?? ''}
-                                onBlur={field.onBlur}
-                                ref={field.ref}
-                                onChange={(e) =>
-                                  field.onChange(maskPhoneBR(e.target.value))
-                                }
-                              />
-                              <Phone
-                                className="h-4 w-4 shrink-0 opacity-50"
-                                aria-hidden
-                              />
-                            </div>
+                            <Select
+                              value={field.value ?? ''}
+                              onValueChange={(v) => field.onChange(v || null)}
+                              disabled={vm.isLoading || vm.isOperationsLoading}
+                            >
+                              <SelectTrigger
+                                className={`h-11 ${styles.inputBg}`}
+                              >
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent
+                                className={styles.selectContentForm}
+                              >
+                                {vm.operations.map((op) => (
+                                  <SelectItem
+                                    key={op.id}
+                                    value={op.id}
+                                    className={styles.selectItemForm}
+                                  >
+                                    {op.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           )}
                         />
-                        {vm.errors.requisitante?.requisitante_telefone
-                          ?.message && (
+                        {vm.errors.operation_id?.message && (
                           <p className="text-xs text-destructive">
-                            {
-                              vm.errors.requisitante.requisitante_telefone
-                                .message
-                            }
+                            {vm.errors.operation_id.message}
                           </p>
                         )}
                       </div>
 
-                      <div className="space-y-1.5">
-                        <Label className={styles.fieldLabel}>Email</Label>
-                        <div className={styles.inputWithIconRight}>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>
+                            Requisitante
+                          </Label>
                           <Input
-                            className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            type="email"
+                            className={`h-11 ${styles.inputBg}`}
                             disabled={vm.isLoading}
-                            autoComplete="email"
-                            {...vm.register('requisitante.requisitante_email')}
+                            {...vm.register('requisitante.requisitante_nome')}
                           />
-                          <Mail
-                            className="h-4 w-4 shrink-0 opacity-50"
-                            aria-hidden
+                          <FieldStringError
+                            value={vm.watch('requisitante.requisitante_nome')}
+                            max={L.requisitante_nome}
+                            message={
+                              vm.errors.requisitante?.requisitante_nome?.message
+                            }
                           />
                         </div>
-                        {vm.errors.requisitante?.requisitante_email
-                          ?.message && (
-                          <p className="text-xs text-destructive">
-                            {
+
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>Telefone</Label>
+                          <Controller
+                            control={vm.control}
+                            name="requisitante.requisitante_telefone"
+                            render={({ field }) => (
+                              <div className={styles.inputWithIconRight}>
+                                <Input
+                                  className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                  disabled={vm.isLoading}
+                                  inputMode="tel"
+                                  autoComplete="tel"
+                                  value={field.value ?? ''}
+                                  onBlur={field.onBlur}
+                                  ref={field.ref}
+                                  onChange={(e) =>
+                                    field.onChange(maskPhoneBR(e.target.value))
+                                  }
+                                />
+                                <Phone
+                                  className="h-4 w-4 shrink-0 opacity-50"
+                                  aria-hidden
+                                />
+                              </div>
+                            )}
+                          />
+                          <FieldStringError
+                            value={vm.watch(
+                              'requisitante.requisitante_telefone',
+                            )}
+                            max={L.requisitante_telefone}
+                            message={
+                              vm.errors.requisitante?.requisitante_telefone
+                                ?.message
+                            }
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className={styles.fieldLabel}>Email</Label>
+                          <div className={styles.inputWithIconRight}>
+                            <Input
+                              className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                              type="email"
+                              disabled={vm.isLoading}
+                              autoComplete="email"
+                              {...vm.register(
+                                'requisitante.requisitante_email',
+                              )}
+                            />
+                            <Mail
+                              className="h-4 w-4 shrink-0 opacity-50"
+                              aria-hidden
+                            />
+                          </div>
+                          <FieldStringError
+                            value={vm.watch('requisitante.requisitante_email')}
+                            max={L.requisitante_email}
+                            message={
                               vm.errors.requisitante?.requisitante_email
                                 ?.message
                             }
-                          </p>
-                        )}
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <button
-                      type="button"
-                      disabled={
-                        vm.isLoading || vm.focalPoints.fields.length >= 20
-                      }
-                      onClick={() =>
-                        vm.focalPoints.append({
-                          nome: '',
-                          telefone: '',
-                          email: null,
-                        })
-                      }
-                      className={styles.addPointFocalButton}
-                    >
-                      <Plus className="h-5 w-5 shrink-0" aria-hidden />
-                      Adicionar Ponto Focal
-                    </button>
+                      <button
+                        type="button"
+                        disabled={
+                          vm.isLoading || vm.focalPoints.fields.length >= 20
+                        }
+                        onClick={() =>
+                          vm.focalPoints.append({
+                            nome: '',
+                            telefone: '',
+                            email: null,
+                          })
+                        }
+                        className={styles.addPointFocalButton}
+                      >
+                        <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                        Adicionar Ponto Focal
+                      </button>
 
-                    <div className="space-y-3">
-                      {vm.focalPoints.fields.map((fp, idx) => (
-                        <div key={fp.id} className="grid grid-cols-1 gap-3">
-                          <div className="space-y-1.5">
-                            <Label className={styles.fieldLabel}>
-                              Ponto focal
-                            </Label>
-                            <Input
-                              className={`h-11 ${styles.inputBg}`}
-                              disabled={vm.isLoading}
-                              {...vm.register(`pontos_focais.${idx}.nome`)}
-                            />
-                          </div>
+                      <div className="space-y-3">
+                        {vm.focalPoints.fields.map((fp, idx) => (
+                          <div key={fp.id} className="grid grid-cols-1 gap-3">
+                            <div className="space-y-1.5">
+                              <Label className={styles.fieldLabel}>
+                                Ponto focal
+                              </Label>
+                              <Input
+                                className={`h-11 ${styles.inputBg}`}
+                                disabled={vm.isLoading}
+                                {...vm.register(`pontos_focais.${idx}.nome`)}
+                              />
+                              <FieldStringError
+                                value={vm.watch(`pontos_focais.${idx}.nome`)}
+                                max={L.ponto_focal_nome}
+                                message={
+                                  vm.errors.pontos_focais?.[idx]?.nome?.message
+                                }
+                              />
+                            </div>
 
-                          <div className="space-y-1.5">
-                            <Label className={styles.fieldLabel}>
-                              Telefone
-                            </Label>
-                            <Controller
-                              control={vm.control}
-                              name={`pontos_focais.${idx}.telefone`}
-                              render={({ field }) => (
-                                <div className={styles.inputWithIconRight}>
-                                  <Input
-                                    className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                    disabled={vm.isLoading}
-                                    inputMode="tel"
-                                    autoComplete="tel"
-                                    value={field.value ?? ''}
-                                    onBlur={field.onBlur}
-                                    ref={field.ref}
-                                    onChange={(e) =>
-                                      field.onChange(
-                                        maskPhoneBR(e.target.value),
-                                      )
-                                    }
-                                  />
-                                  <Phone
-                                    className="h-4 w-4 shrink-0 opacity-50"
-                                    aria-hidden
-                                  />
-                                </div>
-                              )}
-                            />
-                            {vm.errors.pontos_focais?.[idx]?.telefone
-                              ?.message && (
-                              <p className="text-xs text-destructive">
-                                {
-                                  vm.errors.pontos_focais[idx]?.telefone
+                            <div className="space-y-1.5">
+                              <Label className={styles.fieldLabel}>
+                                Telefone
+                              </Label>
+                              <Controller
+                                control={vm.control}
+                                name={`pontos_focais.${idx}.telefone`}
+                                render={({ field }) => (
+                                  <div className={styles.inputWithIconRight}>
+                                    <Input
+                                      className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      disabled={vm.isLoading}
+                                      inputMode="tel"
+                                      autoComplete="tel"
+                                      value={field.value ?? ''}
+                                      onBlur={field.onBlur}
+                                      ref={field.ref}
+                                      onChange={(e) =>
+                                        field.onChange(
+                                          maskPhoneBR(e.target.value),
+                                        )
+                                      }
+                                    />
+                                    <Phone
+                                      className="h-4 w-4 shrink-0 opacity-50"
+                                      aria-hidden
+                                    />
+                                  </div>
+                                )}
+                              />
+                              <FieldStringError
+                                value={vm.watch(
+                                  `pontos_focais.${idx}.telefone`,
+                                )}
+                                max={L.ponto_focal_telefone}
+                                message={
+                                  vm.errors.pontos_focais?.[idx]?.telefone
                                     ?.message
                                 }
-                              </p>
-                            )}
-                          </div>
+                              />
+                            </div>
 
-                          <div className="space-y-1.5">
-                            <Label className={styles.fieldLabel}>Email</Label>
-                            <div className="flex min-w-0 items-start gap-2">
-                              <div className="min-w-0 flex-1">
-                                <div className={styles.inputWithIconRight}>
-                                  <Input
-                                    className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                    type="email"
-                                    disabled={vm.isLoading}
-                                    autoComplete="email"
-                                    {...vm.register(
+                            <div className="space-y-1.5">
+                              <Label className={styles.fieldLabel}>Email</Label>
+                              <div className="flex min-w-0 items-start gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <div className={styles.inputWithIconRight}>
+                                    <Input
+                                      className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      type="email"
+                                      disabled={vm.isLoading}
+                                      autoComplete="email"
+                                      {...vm.register(
+                                        `pontos_focais.${idx}.email`,
+                                      )}
+                                    />
+                                    <Mail
+                                      className="h-4 w-4 shrink-0 opacity-50"
+                                      aria-hidden
+                                    />
+                                  </div>
+                                  <FieldStringError
+                                    value={vm.watch(
                                       `pontos_focais.${idx}.email`,
                                     )}
-                                  />
-                                  <Mail
-                                    className="h-4 w-4 shrink-0 opacity-50"
-                                    aria-hidden
-                                  />
-                                </div>
-                                {vm.errors.pontos_focais?.[idx]?.email
-                                  ?.message && (
-                                  <p className="text-xs text-destructive">
-                                    {
-                                      vm.errors.pontos_focais[idx]?.email
+                                    max={L.ponto_focal_email}
+                                    message={
+                                      vm.errors.pontos_focais?.[idx]?.email
                                         ?.message
                                     }
-                                  </p>
-                                )}
+                                  />
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  className="h-11 w-11 shrink-0 p-0"
+                                  disabled={vm.isLoading}
+                                  onClick={() => vm.focalPoints.remove(idx)}
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
                               </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                className="h-11 w-11 shrink-0 p-0"
-                                disabled={vm.isLoading}
-                                onClick={() => vm.focalPoints.remove(idx)}
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  </fieldset>
                 </ConverterPanelSection>
 
                 <ConverterPanelSection
@@ -1290,6 +1397,7 @@ export function EmailToTicketView() {
                         key={key}
                         type="button"
                         className={styles.serviceCardCta}
+                        disabled={fieldDisabled}
                         onClick={() => vm.handleOpenService(key)}
                       >
                         <span className={styles.serviceCardCtaTitle}>
@@ -1311,6 +1419,8 @@ export function EmailToTicketView() {
                         vm.openServiceModalForEdit('busca_por_placa', idx)
                       }
                       renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1321,6 +1431,8 @@ export function EmailToTicketView() {
                         vm.openServiceModalForEdit('busca_por_radar', idx)
                       }
                       renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1331,6 +1443,8 @@ export function EmailToTicketView() {
                         vm.openServiceModalForEdit('cerco_eletronico', idx)
                       }
                       renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1341,6 +1455,8 @@ export function EmailToTicketView() {
                         vm.openServiceModalForEdit('busca_por_imagem', idx)
                       }
                       renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1356,9 +1472,11 @@ export function EmailToTicketView() {
                           setValue={vm.setValue}
                           index={idx}
                           name="placas_correlatas"
-                          disabled={vm.isLoading}
+                          disabled={fieldDisabled}
                         />
                       )}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1374,9 +1492,11 @@ export function EmailToTicketView() {
                           setValue={vm.setValue}
                           index={idx}
                           name="placas_conjuntas"
-                          disabled={vm.isLoading}
+                          disabled={fieldDisabled}
                         />
                       )}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1387,6 +1507,8 @@ export function EmailToTicketView() {
                         vm.openServiceModalForEdit('reserva_de_imagem', idx)
                       }
                       renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1397,6 +1519,8 @@ export function EmailToTicketView() {
                         vm.openServiceModalForEdit('analise_de_imagem', idx)
                       }
                       renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
 
                     <CompactServiceList
@@ -1407,6 +1531,8 @@ export function EmailToTicketView() {
                         vm.openServiceModalForEdit('outros', idx)
                       }
                       renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
                     />
                   </div>
                 </ConverterPanelSection>
@@ -1416,105 +1542,114 @@ export function EmailToTicketView() {
                   isOpen={vm.openSections.internal}
                   onToggle={() => vm.toggleSection('internal')}
                 >
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label className={styles.fieldLabel}>Equipe</Label>
-                      <Controller
-                        control={vm.control}
-                        name="equipe_id"
-                        render={({ field }) => (
-                          <Select
-                            value={field.value ?? ''}
-                            onValueChange={(v) => field.onChange(v || null)}
-                            disabled={vm.isLoading}
-                          >
-                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent className={styles.selectContentForm}>
-                              {vm.teams.map((t) => (
-                                <SelectItem
-                                  key={t.id}
-                                  value={t.id}
-                                  className={styles.selectItemForm}
-                                >
-                                  {t.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                  <fieldset
+                    disabled={fieldDisabled}
+                    className="min-w-0 border-0 p-0 [&:disabled]:opacity-100"
+                  >
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>Equipe</Label>
+                        <Controller
+                          control={vm.control}
+                          name="equipe_id"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value ?? ''}
+                              onValueChange={(v) => field.onChange(v || null)}
+                              disabled={vm.isLoading}
+                            >
+                              <SelectTrigger
+                                className={`h-11 ${styles.inputBg}`}
+                              >
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent
+                                className={styles.selectContentForm}
+                              >
+                                {vm.teams.map((t) => (
+                                  <SelectItem
+                                    key={t.id}
+                                    value={t.id}
+                                    className={styles.selectItemForm}
+                                  >
+                                    {t.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                        {vm.errors.equipe_id?.message && (
+                          <p className="text-xs text-destructive">
+                            {vm.errors.equipe_id.message}
+                          </p>
                         )}
-                      />
-                      {vm.errors.equipe_id?.message && (
-                        <p className="text-xs text-destructive">
-                          {vm.errors.equipe_id.message}
-                        </p>
-                      )}
-                    </div>
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label className={styles.fieldLabel}>Prioridade</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={vm.isLoading}
-                          className={`${styles.priorityButton} ${
-                            vm.watch('prioridade') === 'URGENTE'
-                              ? styles.priorityActive
-                              : ''
-                          }`}
-                          onClick={() => {
-                            const current = vm.getValues('prioridade')
-                            vm.setValue(
-                              'prioridade',
-                              current === 'URGENTE' ? null : 'URGENTE',
-                            )
-                          }}
-                        >
-                          Urgente
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={vm.isLoading}
-                          className={`${styles.priorityButton} ${
-                            vm.watch('prioridade') === 'ALTA'
-                              ? styles.priorityActive
-                              : ''
-                          }`}
-                          onClick={() => {
-                            const current = vm.getValues('prioridade')
-                            vm.setValue(
-                              'prioridade',
-                              current === 'ALTA' ? null : 'ALTA',
-                            )
-                          }}
-                        >
-                          Alta
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={vm.isLoading}
-                          className={`${styles.priorityButton} ${
-                            vm.watch('prioridade') === 'ROTINA'
-                              ? styles.priorityActive
-                              : ''
-                          }`}
-                          onClick={() => {
-                            const current = vm.getValues('prioridade')
-                            vm.setValue(
-                              'prioridade',
-                              current === 'ROTINA' ? null : 'ROTINA',
-                            )
-                          }}
-                        >
-                          Rotina
-                        </Button>
+                      <div className="space-y-2">
+                        <Label className={styles.fieldLabel}>Prioridade</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={vm.isLoading}
+                            className={`${styles.priorityButton} ${
+                              vm.watch('prioridade') === 'URGENTE'
+                                ? styles.priorityActive
+                                : ''
+                            }`}
+                            onClick={() => {
+                              const current = vm.getValues('prioridade')
+                              vm.setValue(
+                                'prioridade',
+                                current === 'URGENTE' ? null : 'URGENTE',
+                              )
+                            }}
+                          >
+                            Urgente
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={vm.isLoading}
+                            className={`${styles.priorityButton} ${
+                              vm.watch('prioridade') === 'ALTA'
+                                ? styles.priorityActive
+                                : ''
+                            }`}
+                            onClick={() => {
+                              const current = vm.getValues('prioridade')
+                              vm.setValue(
+                                'prioridade',
+                                current === 'ALTA' ? null : 'ALTA',
+                              )
+                            }}
+                          >
+                            Alta
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={vm.isLoading}
+                            className={`${styles.priorityButton} ${
+                              vm.watch('prioridade') === 'ROTINA'
+                                ? styles.priorityActive
+                                : ''
+                            }`}
+                            onClick={() => {
+                              const current = vm.getValues('prioridade')
+                              vm.setValue(
+                                'prioridade',
+                                current === 'ROTINA' ? null : 'ROTINA',
+                              )
+                            }}
+                          >
+                            Rotina
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </fieldset>
                 </ConverterPanelSection>
 
                 <ConverterPanelSection
@@ -1522,12 +1657,22 @@ export function EmailToTicketView() {
                   isOpen={vm.openSections.comment}
                   onToggle={() => vm.toggleSection('comment')}
                 >
-                  <Textarea
-                    placeholder="Escreva um comentário"
-                    disabled={vm.isLoading}
-                    className={`${styles.fakeEditor} ${styles.inputBg}`}
-                    {...vm.register('comentario_inicial')}
-                  />
+                  <fieldset
+                    disabled={fieldDisabled}
+                    className="min-w-0 border-0 p-0 [&:disabled]:opacity-100"
+                  >
+                    <Textarea
+                      placeholder="Escreva um comentário"
+                      disabled={fieldDisabled}
+                      className={`${styles.fakeEditor} ${styles.inputBg}`}
+                      {...vm.register('comentario_inicial')}
+                    />
+                    <FieldStringError
+                      value={vm.watch('comentario_inicial')}
+                      max={L.comentario_inicial}
+                      message={vm.errors.comentario_inicial?.message}
+                    />
+                  </fieldset>
                 </ConverterPanelSection>
 
                 <ConverterPanelSection
@@ -1559,7 +1704,7 @@ export function EmailToTicketView() {
                                       onClick={() =>
                                         toggleEmailAttachmentSelection(att.id)
                                       }
-                                      disabled={vm.isLoading}
+                                      disabled={attachmentDisabled}
                                       aria-pressed={selected}
                                       aria-label={
                                         selected
@@ -1611,7 +1756,7 @@ export function EmailToTicketView() {
                                   type="button"
                                   className={styles.fileRowCheckBtn}
                                   onClick={() => toggleManualFileSelection(f)}
-                                  disabled={vm.isLoading}
+                                  disabled={attachmentDisabled}
                                   aria-pressed={included}
                                   aria-label={
                                     included
@@ -1647,7 +1792,7 @@ export function EmailToTicketView() {
                                   variant="ghost"
                                   className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
                                   onClick={() => vm.removeFile(idx)}
-                                  disabled={vm.isLoading}
+                                  disabled={attachmentDisabled}
                                   title="Excluir anexo"
                                 >
                                   <Trash className="h-4 w-4" aria-hidden />
@@ -1670,7 +1815,7 @@ export function EmailToTicketView() {
                             vm.onDropFiles(e.target.files)
                             e.target.value = ''
                           }}
-                          disabled={vm.isLoading}
+                          disabled={attachmentDisabled}
                         />
                         <Upload className="h-5 w-5 shrink-0 text-[var(--tc-icon-subtle)]" />
                         <span className={styles.uploadBoxText}>
@@ -1730,6 +1875,7 @@ export function EmailToTicketView() {
 
       <ServiceModal
         variant="drawer"
+        readOnly={isAssociarConvertMode}
         serviceModalOpen={vm.serviceModalOpen}
         editIndex={vm.serviceModalEditIndex}
         closeServiceModal={vm.closeServiceModal}

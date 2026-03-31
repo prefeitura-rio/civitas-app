@@ -27,6 +27,7 @@ type Props = {
   /** Validação de placas só deve rodar no blur/edição do campo, não ao mudar período etc. */
   onPlateBlur?: () => void
   onPlateChange?: () => void
+  disabled?: boolean
 }
 
 export function CorrelataPanel({
@@ -38,6 +39,7 @@ export function CorrelataPanel({
   errors,
   onPlateBlur,
   onPlateChange,
+  disabled = false,
 }: Props) {
   const PeriodComponent = useCalendarStyle
     ? PeriodFieldsCalendarStyle
@@ -78,6 +80,7 @@ export function CorrelataPanel({
           onChangeEnd={(value) =>
             setDraft((prev) => ({ ...prev, period_end: value }))
           }
+          disabled={disabled}
         />
 
         {(errors?.period_start || errors?.period_end) && (
@@ -99,6 +102,7 @@ export function CorrelataPanel({
                 type="button"
                 variant="ghost"
                 className="h-8 w-8 shrink-0 p-0"
+                disabled={disabled}
                 onClick={() => removePlate(index)}
                 title="Remover"
               >
@@ -112,6 +116,7 @@ export function CorrelataPanel({
             <Input
               className={`h-11 min-w-0 ${styles.inputBg}`}
               value={item.plate}
+              disabled={disabled}
               onChange={(e) => {
                 updatePlate(index, { plate: maskPlateBR(e.target.value) })
                 onPlateChange?.()
@@ -135,6 +140,7 @@ export function CorrelataPanel({
         <button
           type="button"
           onClick={addPlate}
+          disabled={disabled}
           className={styles.addPointFocalButton}
         >
           <Plus className="h-5 w-5 shrink-0" aria-hidden />
@@ -149,6 +155,7 @@ export function CorrelataPanel({
           min={1}
           max={5}
           unit=""
+          disabled={disabled}
           onChange={(value) =>
             setDraft((prev) => ({
               ...prev,
@@ -165,6 +172,7 @@ export function CorrelataPanel({
           min={5}
           max={50}
           unit=""
+          disabled={disabled}
           onChange={(value) =>
             setDraft((prev) => ({
               ...prev,
@@ -179,6 +187,7 @@ export function CorrelataPanel({
         <div className={styles.segmentedDetection}>
           <button
             type="button"
+            disabled={disabled}
             className={`${styles.detectionButton} ${draft.detection === 'ANTES' ? styles.detectionButtonActive : ''}`}
             onClick={() =>
               setDraft((prev) => ({ ...prev, detection: 'ANTES' }))
@@ -188,6 +197,7 @@ export function CorrelataPanel({
           </button>
           <button
             type="button"
+            disabled={disabled}
             className={`${styles.detectionButton} ${draft.detection === 'DEPOIS' ? styles.detectionButtonActive : ''}`}
             onClick={() =>
               setDraft((prev) => ({ ...prev, detection: 'DEPOIS' }))
@@ -197,6 +207,7 @@ export function CorrelataPanel({
           </button>
           <button
             type="button"
+            disabled={disabled}
             className={`${styles.detectionButton} ${draft.detection === 'AMBOS' ? styles.detectionButtonActive : ''}`}
             onClick={() =>
               setDraft((prev) => ({ ...prev, detection: 'AMBOS' }))
@@ -215,6 +226,7 @@ export function CorrelataPanel({
         <button
           type="button"
           className={styles.inlineAddButton}
+          disabled={disabled}
           onClick={onAdd}
         >
           <Plus className="h-5 w-5" />

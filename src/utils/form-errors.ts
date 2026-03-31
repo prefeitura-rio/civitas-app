@@ -1,6 +1,5 @@
 import type { FieldErrors } from 'react-hook-form'
 
-/** Primeira mensagem de erro em profundidade (campos aninhados e arrays). */
 export function getFirstFormErrorMessage(
   errors: FieldErrors,
 ): string | undefined {

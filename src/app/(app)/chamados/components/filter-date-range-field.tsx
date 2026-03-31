@@ -49,6 +49,7 @@ export type FilterDateRangeFieldProps = {
   onChangeEnd: (value: string) => void
   /** z-index do popover (ex.: modal de filtros vs. dialog de serviço) */
   popoverContentClassName?: string
+  disabled?: boolean
 }
 
 export function FilterDateRangeField({
@@ -57,6 +58,7 @@ export function FilterDateRangeField({
   onChangeStart,
   onChangeEnd,
   popoverContentClassName = 'z-[100] w-auto p-0',
+  disabled = false,
 }: FilterDateRangeFieldProps) {
   const [open, setOpen] = useState(false)
   /** Evita completar intervalo ao fechar após seleção completa (props podem ainda não ter atualizado). */
@@ -92,6 +94,7 @@ export function FilterDateRangeField({
   }
 
   const handleOpenChange = (next: boolean) => {
+    if (disabled) return
     if (next) {
       closedAfterFullRangeRef.current = false
     } else if (!closedAfterFullRangeRef.current) {
@@ -118,11 +121,12 @@ export function FilterDateRangeField({
 
   return (
     <div className={styles.dateRangePickerWrap}>
-      <Popover open={open} onOpenChange={handleOpenChange}>
+      <Popover open={disabled ? false : open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             type="button"
             variant="outline"
+            disabled={disabled}
             className={`h-[42px] w-full justify-between text-left font-normal ${styles.dateRangeTrigger}`}
           >
             <span className="min-w-0 flex-1 truncate text-left">

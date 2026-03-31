@@ -81,6 +81,11 @@ export function TicketCreateForm() {
   const vm = useTicketCreateController()
   const associarChamadoId = vm.watch('associar_chamado_id')
   const isAssociarConvertMode = Boolean(nullIfEmpty(associarChamadoId))
+  const fieldDisabled = isAssociarConvertMode || vm.isLoading
+  const attachmentDisabled =
+    vm.isConvertingToConventional ||
+    vm.isApplyingAssociatedTicket ||
+    (!isAssociarConvertMode && vm.isLoading)
 
   const initialBuscaPorPlaca =
     vm.serviceModalOpen === 'busca_por_placa' &&
@@ -282,7 +287,7 @@ export function TicketCreateForm() {
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
-                    disabled={vm.isLoading || vm.isTicketTypesLoading}
+                    disabled={fieldDisabled || vm.isTicketTypesLoading}
                   >
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
@@ -325,7 +330,7 @@ export function TicketCreateForm() {
                   <Select
                     value={field.value ?? ''}
                     onValueChange={(v) => field.onChange(v || null)}
-                    disabled={vm.isLoading || vm.isOperationsLoading}
+                    disabled={fieldDisabled || vm.isOperationsLoading}
                   >
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
@@ -359,7 +364,7 @@ export function TicketCreateForm() {
                 render={({ field }) => (
                   <Input
                     className={`h-11 ${styles.inputBg}`}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                     inputMode="numeric"
                     autoComplete="off"
                     value={field.value ?? ''}
@@ -387,7 +392,7 @@ export function TicketCreateForm() {
               <Label className={styles.fieldLabel}>Nº do ofício</Label>
               <Input
                 className={`h-11 ${styles.inputBg}`}
-                disabled={vm.isLoading}
+                disabled={fieldDisabled}
                 {...vm.register('numero_oficio')}
               />
               <FieldStringError
@@ -406,7 +411,7 @@ export function TicketCreateForm() {
                   <DataBaseDatePicker
                     value={field.value ?? ''}
                     onChange={field.onChange}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                   />
                 )}
               />
@@ -421,7 +426,7 @@ export function TicketCreateForm() {
                   <Select
                     value={field.value ?? ''}
                     onValueChange={(v) => field.onChange(v || null)}
-                    disabled={vm.isLoading || vm.isTicketNaturesLoading}
+                    disabled={fieldDisabled || vm.isTicketNaturesLoading}
                   >
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
@@ -457,7 +462,7 @@ export function TicketCreateForm() {
                       size="sm"
                       checked={!!field.value}
                       onCheckedChange={field.onChange}
-                      disabled={vm.isLoading}
+                      disabled={fieldDisabled}
                       className={styles.apelidoToggle}
                     />
                     <span className={styles.toggleLabel}>
@@ -476,7 +481,7 @@ export function TicketCreateForm() {
                   </Label>
                   <Input
                     className={`h-11 ${styles.inputBg}`}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                     {...vm.register('apelido_imprensa')}
                   />
                   <FieldStringError
@@ -490,7 +495,7 @@ export function TicketCreateForm() {
                   <Label className={styles.fieldLabel}>Link da matéria</Label>
                   <Input
                     className={`h-11 ${styles.inputBg}`}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                     placeholder="https://..."
                     {...vm.register('link_materia')}
                   />
@@ -518,7 +523,7 @@ export function TicketCreateForm() {
                       size="sm"
                       checked={!!field.value}
                       onCheckedChange={field.onChange}
-                      disabled={vm.isLoading}
+                      disabled={fieldDisabled}
                       className={styles.apelidoToggle}
                     />
                     <span className={styles.toggleLabel}>
@@ -535,7 +540,7 @@ export function TicketCreateForm() {
                   <Label className={styles.fieldLabel}>Bairro</Label>
                   <Input
                     className={`h-11 ${styles.inputBg}`}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                     {...vm.register('bairro_correspondencia')}
                   />
                   <FieldStringError
@@ -549,7 +554,7 @@ export function TicketCreateForm() {
                   <Label className={styles.fieldLabel}>Rua</Label>
                   <Input
                     className={`h-11 ${styles.inputBg}`}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                     {...vm.register('rua_correspondencia')}
                   />
                   <FieldStringError
@@ -563,7 +568,7 @@ export function TicketCreateForm() {
                   <Label className={styles.fieldLabel}>Número</Label>
                   <Input
                     className={`h-11 ${styles.inputBg}`}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                     {...vm.register('numero_correspondencia')}
                   />
                   <FieldStringError
@@ -592,7 +597,7 @@ export function TicketCreateForm() {
                   <Select
                     value={field.value ?? ''}
                     onValueChange={(v) => field.onChange(v || null)}
-                    disabled={vm.isLoading || vm.isOperationsLoading}
+                    disabled={fieldDisabled || vm.isOperationsLoading}
                   >
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
@@ -623,7 +628,7 @@ export function TicketCreateForm() {
                 <Label className={styles.fieldLabel}>Requisitante</Label>
                 <Input
                   className={`h-11 ${styles.inputBg}`}
-                  disabled={vm.isLoading}
+                  disabled={fieldDisabled}
                   {...vm.register('requisitante.requisitante_nome')}
                 />
                 <FieldStringError
@@ -642,7 +647,7 @@ export function TicketCreateForm() {
                     <div className={styles.inputWithIconRight}>
                       <Input
                         className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        disabled={vm.isLoading}
+                        disabled={fieldDisabled}
                         inputMode="tel"
                         autoComplete="tel"
                         value={field.value ?? ''}
@@ -674,7 +679,7 @@ export function TicketCreateForm() {
                   <Input
                     className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     type="email"
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                     autoComplete="email"
                     {...vm.register('requisitante.requisitante_email')}
                   />
@@ -698,7 +703,7 @@ export function TicketCreateForm() {
                     <Label className={styles.fieldLabel}>Ponto focal</Label>
                     <Input
                       className={`h-11 ${styles.inputBg}`}
-                      disabled={vm.isLoading}
+                      disabled={fieldDisabled}
                       {...vm.register(`pontos_focais.${idx}.nome`)}
                     />
                     <FieldStringError
@@ -717,7 +722,7 @@ export function TicketCreateForm() {
                         <div className={styles.inputWithIconRight}>
                           <Input
                             className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            disabled={vm.isLoading}
+                            disabled={fieldDisabled}
                             inputMode="tel"
                             autoComplete="tel"
                             value={field.value ?? ''}
@@ -751,7 +756,7 @@ export function TicketCreateForm() {
                           <Input
                             className="h-full min-h-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                             type="email"
-                            disabled={vm.isLoading}
+                            disabled={fieldDisabled}
                             autoComplete="email"
                             {...vm.register(`pontos_focais.${idx}.email`)}
                           />
@@ -772,7 +777,7 @@ export function TicketCreateForm() {
                         type="button"
                         variant="ghost"
                         className="h-11 w-11 shrink-0 p-0"
-                        disabled={vm.isLoading}
+                        disabled={fieldDisabled}
                         onClick={() => vm.focalPoints.remove(idx)}
                       >
                         <Trash className="h-4 w-4" />
@@ -786,7 +791,7 @@ export function TicketCreateForm() {
             <div className="flex flex-col items-end gap-4">
               <button
                 type="button"
-                disabled={vm.isLoading || vm.focalPoints.fields.length >= 20}
+                disabled={fieldDisabled || vm.focalPoints.fields.length >= 20}
                 onClick={() =>
                   vm.focalPoints.append({
                     nome: '',
@@ -812,38 +817,47 @@ export function TicketCreateForm() {
             <ServiceAddCard
               title="Busca por placa"
               onAdd={() => vm.handleOpenService('busca_por_placa')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Busca por radar"
               onAdd={() => vm.handleOpenService('busca_por_radar')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Cerco"
               onAdd={() => vm.handleOpenService('cerco_eletronico')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Imagem"
               onAdd={() => vm.handleOpenService('busca_por_imagem')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Placas correlatas"
               onAdd={() => vm.handleOpenService('placas_correlatas')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Placas conjuntas"
               onAdd={() => vm.handleOpenService('placas_conjuntas')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Reserva de imagem"
               onAdd={() => vm.handleOpenService('reserva_de_imagem')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Análise de imagem"
               onAdd={() => vm.handleOpenService('analise_de_imagem')}
+              disabled={fieldDisabled}
             />
             <ServiceAddCard
               title="Outros"
               onAdd={() => vm.handleOpenService('outros')}
+              disabled={fieldDisabled}
             />
           </div>
 
@@ -856,6 +870,8 @@ export function TicketCreateForm() {
                 vm.openServiceModalForEdit('busca_por_placa', idx)
               }
               renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -866,6 +882,8 @@ export function TicketCreateForm() {
                 vm.openServiceModalForEdit('busca_por_radar', idx)
               }
               renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -876,6 +894,8 @@ export function TicketCreateForm() {
                 vm.openServiceModalForEdit('cerco_eletronico', idx)
               }
               renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -886,6 +906,8 @@ export function TicketCreateForm() {
                 vm.openServiceModalForEdit('busca_por_imagem', idx)
               }
               renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -901,9 +923,11 @@ export function TicketCreateForm() {
                   setValue={vm.setValue}
                   index={idx}
                   name="placas_correlatas"
-                  disabled={vm.isLoading}
+                  disabled={fieldDisabled}
                 />
               )}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -919,9 +943,11 @@ export function TicketCreateForm() {
                   setValue={vm.setValue}
                   index={idx}
                   name="placas_conjuntas"
-                  disabled={vm.isLoading}
+                  disabled={fieldDisabled}
                 />
               )}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -932,6 +958,8 @@ export function TicketCreateForm() {
                 vm.openServiceModalForEdit('reserva_de_imagem', idx)
               }
               renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -942,6 +970,8 @@ export function TicketCreateForm() {
                 vm.openServiceModalForEdit('analise_de_imagem', idx)
               }
               renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
 
             <ServiceList
@@ -950,6 +980,8 @@ export function TicketCreateForm() {
               onRemove={vm.outros.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('outros', idx)}
               renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
             />
           </div>
         </Section>
@@ -969,7 +1001,7 @@ export function TicketCreateForm() {
                   <Select
                     value={field.value ?? ''}
                     onValueChange={(v) => field.onChange(v || null)}
-                    disabled={vm.isLoading}
+                    disabled={fieldDisabled}
                   >
                     <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                       <SelectValue placeholder="Selecione" />
@@ -1008,7 +1040,7 @@ export function TicketCreateForm() {
                       current === 'URGENTE' ? null : 'URGENTE',
                     )
                   }}
-                  disabled={vm.isLoading}
+                  disabled={fieldDisabled}
                 />
                 <PriorityButton
                   active={vm.watch('prioridade') === 'ALTA'}
@@ -1020,7 +1052,7 @@ export function TicketCreateForm() {
                       current === 'ALTA' ? null : 'ALTA',
                     )
                   }}
-                  disabled={vm.isLoading}
+                  disabled={fieldDisabled}
                 />
                 <PriorityButton
                   active={vm.watch('prioridade') === 'ROTINA'}
@@ -1032,7 +1064,7 @@ export function TicketCreateForm() {
                       current === 'ROTINA' ? null : 'ROTINA',
                     )
                   }}
-                  disabled={vm.isLoading}
+                  disabled={fieldDisabled}
                 />
               </div>
             </div>
@@ -1046,7 +1078,7 @@ export function TicketCreateForm() {
         >
           <Textarea
             placeholder="Escreva um comentário"
-            disabled={vm.isLoading}
+            disabled={fieldDisabled}
             className={`${styles.fakeEditor} ${styles.inputBg}`}
             {...vm.register('comentario_inicial')}
           />
@@ -1082,7 +1114,7 @@ export function TicketCreateForm() {
                         variant="ghost"
                         className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
                         onClick={() => vm.removeFile(idx)}
-                        disabled={vm.isLoading}
+                        disabled={attachmentDisabled}
                         title="Excluir anexo"
                       >
                         <Trash className="h-4 w-4" aria-hidden />
@@ -1104,7 +1136,7 @@ export function TicketCreateForm() {
                     vm.onDropFiles(e.target.files)
                     e.target.value = ''
                   }}
-                  disabled={vm.isLoading}
+                  disabled={attachmentDisabled}
                 />
                 <Upload className="h-6 w-6 shrink-0 text-[var(--tc-icon-subtle)]" />
                 <span className={styles.uploadBoxText}>
@@ -1151,6 +1183,7 @@ export function TicketCreateForm() {
         serviceModalOpen={vm.serviceModalOpen}
         editIndex={vm.serviceModalEditIndex}
         closeServiceModal={vm.closeServiceModal}
+        readOnly={isAssociarConvertMode}
         initialBuscaPorPlaca={initialBuscaPorPlaca}
         initialBuscaPorRadar={initialBuscaPorRadar}
         initialCerco={initialCerco}

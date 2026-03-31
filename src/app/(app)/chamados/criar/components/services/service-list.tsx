@@ -10,6 +10,9 @@ type Props<T extends { id: string }> = {
   onRemove: (index: number) => void
   onEdit?: (index: number) => void
   renderRow: (index: number) => React.ReactNode
+  disabled?: boolean
+  /** Se definido, controla só o botão de abrir o modal (lista compacta). Remover usa `disabled`. */
+  openModalDisabled?: boolean
 }
 
 export function ServiceList<T extends { id: string }>({
@@ -18,10 +21,13 @@ export function ServiceList<T extends { id: string }>({
   onRemove,
   onEdit,
   renderRow,
+  disabled = false,
+  openModalDisabled,
 }: Props<T>) {
   if (fields.length === 0) return null
 
   const isCompact = onEdit != null
+  const compactOpenDisabled = openModalDisabled ?? disabled
 
   return (
     <div className={styles.listCard}>
@@ -48,6 +54,7 @@ export function ServiceList<T extends { id: string }>({
                   type="button"
                   className={styles.serviceItemBadgeButton}
                   onClick={() => onEdit?.(idx)}
+                  disabled={compactOpenDisabled}
                   title="Abrir para editar"
                 >
                   <span className={styles.serviceItemBadge}>
@@ -64,6 +71,7 @@ export function ServiceList<T extends { id: string }>({
                     e.stopPropagation()
                     onRemove(idx)
                   }}
+                  disabled={disabled}
                   title="Remover"
                 >
                   <Trash className="h-4 w-4" />
@@ -77,6 +85,7 @@ export function ServiceList<T extends { id: string }>({
                     variant="ghost"
                     className="h-8 w-8 p-0"
                     onClick={() => onRemove(idx)}
+                    disabled={disabled}
                     title="Remover"
                   >
                     <Trash className="h-4 w-4" />

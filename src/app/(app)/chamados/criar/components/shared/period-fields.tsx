@@ -9,6 +9,7 @@ type BaseProps = {
   endValue: string
   onChangeStart: (value: string) => void
   onChangeEnd: (value: string) => void
+  disabled?: boolean
 }
 
 export function PeriodFields({
@@ -16,6 +17,7 @@ export function PeriodFields({
   endValue,
   onChangeStart,
   onChangeEnd,
+  disabled = false,
 }: BaseProps) {
   return (
     <div className="w-full min-w-0 space-y-1.5">
@@ -26,12 +28,14 @@ export function PeriodFields({
           type="datetime-local"
           value={startValue}
           onChange={(e) => onChangeStart(e.target.value)}
+          disabled={disabled}
         />
         <Input
           className={`h-11 min-w-0 ${styles.inputBg}`}
           type="datetime-local"
           value={endValue}
           onChange={(e) => onChangeEnd(e.target.value)}
+          disabled={disabled}
         />
       </div>
     </div>
@@ -43,6 +47,7 @@ export function PeriodFieldsCalendarStyle({
   endValue,
   onChangeStart,
   onChangeEnd,
+  disabled = false,
 }: BaseProps) {
   return (
     <div className="w-full min-w-0 space-y-1.5">
@@ -53,6 +58,7 @@ export function PeriodFieldsCalendarStyle({
         onChangeStart={onChangeStart}
         onChangeEnd={onChangeEnd}
         popoverContentClassName="z-[120] w-auto p-0"
+        disabled={disabled}
       />
     </div>
   )
