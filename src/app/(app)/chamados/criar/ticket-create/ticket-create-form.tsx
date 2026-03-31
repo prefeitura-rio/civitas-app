@@ -38,7 +38,11 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
-import { maskDigitsOnly, maskPhoneBR } from '@/utils/string-formatters'
+import {
+  maskDigitsOnly,
+  maskPhoneBR,
+  padDigitsLeft,
+} from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../components/services/correlata-list-form'
 import { ServiceAddCard } from '../components/services/service-add-card'
@@ -368,14 +372,19 @@ export function TicketCreateForm() {
                     inputMode="numeric"
                     autoComplete="off"
                     value={field.value ?? ''}
-                    onBlur={field.onBlur}
+                    onBlur={() => {
+                      field.onBlur()
+                      const raw = (field.value ?? '').trim()
+                      if (raw === '') return
+                      const padded = padDigitsLeft(raw, L.numero_procedimento)
+                      if (padded && padded !== field.value) {
+                        field.onChange(padded)
+                      }
+                    }}
                     ref={field.ref}
                     onChange={(e) =>
                       field.onChange(
-                        maskDigitsOnly(
-                          e.target.value,
-                          Number.POSITIVE_INFINITY,
-                        ),
+                        maskDigitsOnly(e.target.value, L.numero_procedimento),
                       )
                     }
                   />
@@ -445,6 +454,11 @@ export function TicketCreateForm() {
                   </Select>
                 )}
               />
+              {vm.errors.natureza_id?.message && (
+                <p className="text-xs text-destructive">
+                  {vm.errors.natureza_id.message}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2 pt-2 md:col-span-2">
@@ -1172,7 +1186,7 @@ export function TicketCreateForm() {
                   ? 'Convertendo...'
                   : 'Salvando...'
                 : isAssociarConvertMode
-                  ? 'Converter chamado'
+                  ? 'Atualizar Chamado'
                   : 'Salvar'}
             </Button>
           </div>

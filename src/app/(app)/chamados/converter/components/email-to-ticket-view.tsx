@@ -51,7 +51,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
-import { maskDigitsOnly, maskPhoneBR } from '@/utils/string-formatters'
+import {
+  maskDigitsOnly,
+  maskPhoneBR,
+  padDigitsLeft,
+} from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
 import { ServiceModal } from '../../criar/components/services/service-modal'
@@ -896,13 +900,24 @@ export function EmailToTicketView() {
                               inputMode="numeric"
                               autoComplete="off"
                               value={field.value ?? ''}
-                              onBlur={field.onBlur}
+                              onBlur={() => {
+                                field.onBlur()
+                                const raw = (field.value ?? '').trim()
+                                if (raw === '') return
+                                const padded = padDigitsLeft(
+                                  raw,
+                                  L.numero_procedimento,
+                                )
+                                if (padded && padded !== field.value) {
+                                  field.onChange(padded)
+                                }
+                              }}
                               ref={field.ref}
                               onChange={(e) =>
                                 field.onChange(
                                   maskDigitsOnly(
                                     e.target.value,
-                                    Number.POSITIVE_INFINITY,
+                                    L.numero_procedimento,
                                   ),
                                 )
                               }
@@ -981,6 +996,11 @@ export function EmailToTicketView() {
                             </Select>
                           )}
                         />
+                        {vm.errors.natureza_id?.message && (
+                          <p className="text-xs text-destructive">
+                            {vm.errors.natureza_id.message}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -1843,23 +1863,23 @@ export function EmailToTicketView() {
                     ? 'Convertendo...'
                     : 'Salvando...'
                   : isAssociarConvertMode
-                    ? 'Converter chamado'
+                    ? 'Atualizar Chamado'
                     : 'Salvar Chamado'}
               </button>
-              <button
-                type="submit"
-                data-intent="save-and-new"
-                className={styles.footerBtnSecondary}
-                disabled={vm.isLoading}
-              >
-                {vm.isLoading && activeSubmit === 'save-and-new'
-                  ? vm.isConvertingToConventional
-                    ? 'Convertendo...'
-                    : 'Salvando...'
-                  : isAssociarConvertMode
-                    ? 'Converter e criar novo chamado'
+              {!isAssociarConvertMode && (
+                <button
+                  type="submit"
+                  data-intent="save-and-new"
+                  className={styles.footerBtnSecondary}
+                  disabled={vm.isLoading}
+                >
+                  {vm.isLoading && activeSubmit === 'save-and-new'
+                    ? vm.isConvertingToConventional
+                      ? 'Convertendo...'
+                      : 'Salvando...'
                     : 'Salvar e Criar Novo Chamado'}
-              </button>
+                </button>
+              )}
               <button
                 type="button"
                 className={styles.footerBtnTertiary}

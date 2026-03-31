@@ -1,6 +1,7 @@
 import type { TicketOut } from '@/http/tickets/get-ticket-by-id'
-import { unmaskPlateBR } from '@/utils/string-formatters'
+import { padDigitsLeft, unmaskPlateBR } from '@/utils/string-formatters'
 
+import { TICKET_CREATE_STRING_LIMITS as L } from './ticket-create.constant'
 import type { TicketCreateForm } from './ticket-create-schema'
 
 function plateToPayload(value?: string | null) {
@@ -37,10 +38,12 @@ export function buildTicketCreatePayload(
     ...data,
     associar_chamado_id: emptyToNull(data.associar_chamado_id),
     orgao_procedimento_id: emptyToNull(data.orgao_procedimento_id),
-    numero_procedimento: emptyToNull(data.numero_procedimento),
+    numero_procedimento: emptyToNull(
+      padDigitsLeft(data.numero_procedimento, L.numero_procedimento),
+    ),
     numero_oficio: emptyToNull(data.numero_oficio),
     data_base: emptyToNull(data.data_base),
-    natureza_id: emptyToNull(data.natureza_id),
+    natureza_id: data.natureza_id.trim(),
     apelido_imprensa: emptyToNull(data.apelido_imprensa),
     link_materia: emptyToNull(data.link_materia),
     bairro_correspondencia: emptyToNull(data.bairro_correspondencia),
@@ -160,10 +163,12 @@ export function mapTicketOutToCreateForm(
     tipo_chamado_id: options.tipo_chamado_id,
     operation_id: ticket.operation_id ?? '',
     orgao_procedimento_id: ticket.orgao_procedimento_id ?? '',
-    numero_procedimento: ticket.numero_procedimento ?? null,
+    numero_procedimento: ticket.numero_procedimento
+      ? padDigitsLeft(ticket.numero_procedimento, L.numero_procedimento)
+      : null,
     numero_oficio: ticket.numero_oficio ?? null,
     data_base: apiDateToDataBaseString(ticket.data_base),
-    natureza_id: ticket.natureza_id ?? null,
+    natureza_id: ticket.natureza_id ?? '',
     possui_apelido_imprensa: ticket.possui_apelido_imprensa,
     apelido_imprensa: ticket.apelido_imprensa ?? null,
     link_materia: ticket.link_materia ?? null,

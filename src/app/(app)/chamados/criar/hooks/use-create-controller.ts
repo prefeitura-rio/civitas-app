@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { AxiosResponse } from 'axios'
+import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -49,6 +50,7 @@ function associarChamadoIdOrNull(value?: string | null): string | null {
 }
 
 export function useTicketCreateController() {
+  const router = useRouter()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
   const [serviceModalOpen, setServiceModalOpen] = useState<OpenServiceKey>(null)
@@ -80,7 +82,7 @@ export function useTicketCreateController() {
       numero_procedimento: null,
       numero_oficio: null,
       data_base: null,
-      natureza_id: null,
+      natureza_id: '',
       possui_apelido_imprensa: false,
       apelido_imprensa: null,
       link_materia: null,
@@ -232,11 +234,7 @@ export function useTicketCreateController() {
         setFiles([])
         closeServiceModal()
       } else {
-        reset(defaultValues)
-        setFiles([])
-        setSelectedTicketLabel('')
-        setTicketSearch('')
-        closeServiceModal()
+        router.push('/chamados')
       }
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -270,11 +268,7 @@ export function useTicketCreateController() {
         setFiles([])
         closeServiceModal()
       } else {
-        reset(defaultValues)
-        setFiles([])
-        setSelectedTicketLabel('')
-        setTicketSearch('')
-        closeServiceModal()
+        router.push('/chamados')
       }
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),

@@ -51,23 +51,13 @@ const focalPointSchema = z.object({
 export const serviceBuscaPorPlacaSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
-  plates: z
-    .array(z.string())
-    .min(1, 'Adicione ao menos uma placa')
-    .refine((arr) => arr.some((p) => p.trim().length > 0), {
-      message: 'Informe ao menos uma placa válida',
-    }),
+  plates: z.array(z.string()).default([]),
 })
 
 export const serviceBuscaPorRadarSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
-  plates: z
-    .array(z.string())
-    .min(1, 'Adicione ao menos uma placa')
-    .refine((arr) => arr.some((p) => p.trim().length > 0), {
-      message: 'Informe ao menos uma placa válida',
-    }),
+  plates: z.array(z.string()).default([]),
   orientation: z
     .string()
     .max(50_000, 'Máximo de 50000 caracteres')
@@ -98,13 +88,7 @@ export const servicePlacasCorrelatasSchema = z.object({
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
   detection_count: z.number().int().min(0).optional().nullable(),
   detection: ticketDetectionEnum.optional().nullable(),
-  plates: z
-    .array(correlataPlateItemSchema)
-    .min(1, 'Adicione ao menos uma placa')
-    .refine((arr) => arr.some((p) => (p?.plate ?? '').trim().length > 0), {
-      message: 'Informe ao menos uma placa válida',
-    })
-    .default([]),
+  plates: z.array(correlataPlateItemSchema).default([]),
 })
 
 export const servicePlacasConjuntasSchema = z.object({
@@ -113,13 +97,7 @@ export const servicePlacasConjuntasSchema = z.object({
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
   detection_count: z.number().int().min(0).optional().nullable(),
   detection: ticketDetectionEnum.optional().nullable(),
-  plates: z
-    .array(correlataPlateItemSchema)
-    .min(1, 'Adicione ao menos uma placa')
-    .refine((arr) => arr.some((p) => (p?.plate ?? '').trim().length > 0), {
-      message: 'Informe ao menos uma placa válida',
-    })
-    .default([]),
+  plates: z.array(correlataPlateItemSchema).default([]),
 })
 
 export const serviceReservaDeImagemSchema = z.object({
@@ -161,7 +139,7 @@ export const ticketCreateSchema = z.object({
     .optional()
     .nullable(),
   data_base: z.string().optional().nullable(),
-  natureza_id: z.string().optional().nullable(),
+  natureza_id: z.string().min(1, 'Campo obrigatório'),
 
   possui_apelido_imprensa: z.boolean().default(false),
   apelido_imprensa: z

@@ -381,6 +381,7 @@ function BuscaPorPlacaForm({
 
   return (
     <form
+      className={styles.serviceModalFormScroll}
       onSubmit={
         readOnly
           ? (e) => e.preventDefault()
@@ -506,6 +507,7 @@ function BuscaPorRadarForm({
 
   return (
     <form
+      className={styles.serviceModalFormScroll}
       onSubmit={
         readOnly
           ? (e) => e.preventDefault()
@@ -628,6 +630,7 @@ function CercoForm({
 
   return (
     <form
+      className={styles.serviceModalFormScroll}
       onSubmit={
         readOnly
           ? (e) => e.preventDefault()
@@ -710,6 +713,7 @@ function BuscaPorImagemForm({
 
   return (
     <form
+      className={styles.serviceModalFormScroll}
       onSubmit={
         readOnly
           ? (e) => e.preventDefault()
@@ -1037,6 +1041,7 @@ function ReservaImagemForm({
 
   return (
     <form
+      className={styles.serviceModalFormScroll}
       onSubmit={
         readOnly
           ? (e) => e.preventDefault()
@@ -1121,6 +1126,7 @@ function AnaliseImagemForm({
 
   return (
     <form
+      className={styles.serviceModalFormScroll}
       onSubmit={
         readOnly
           ? (e) => e.preventDefault()
@@ -1201,6 +1207,7 @@ function OutrosForm({
 
   return (
     <form
+      className={styles.serviceModalFormScroll}
       onSubmit={
         readOnly
           ? (e) => e.preventDefault()
