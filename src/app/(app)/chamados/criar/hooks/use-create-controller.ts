@@ -1,7 +1,8 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { AxiosResponse } from 'axios'
 import { useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -9,16 +10,24 @@ import { toast } from 'sonner'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getOperations } from '@/http/operations/get-operations'
 import { getTeamsList } from '@/http/teams/get-teams'
-import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
+import {
+  getTicketTypes,
+  type TicketType,
+} from '@/http/ticket-types/get-ticket.types'
+import { convertTicketToConventional } from '@/http/tickets/convert-ticket-to-conventional'
 import { createTicket } from '@/http/tickets/create-ticket'
+import { getTicketById } from '@/http/tickets/get-ticket-by-id'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import type {
   OpenServiceKey,
   SectionKey,
 } from '../ticket-create/ticket-create.constant'
-import { buildTicketCreatePayload } from '../ticket-create/ticket-create.mapper'
+import {
+  buildTicketCreatePayload,
+  mapTicketOutToCreateForm,
+} from '../ticket-create/ticket-create.mapper'
 import {
   type TicketCreateForm,
   ticketCreateSchema,
@@ -33,7 +42,14 @@ function attachmentExtension(name: string): string {
   return name.slice(dot).toLowerCase()
 }
 
+function associarChamadoIdOrNull(value?: string | null): string | null {
+  if (value == null) return null
+  const trimmed = value.trim()
+  return trimmed.length ? trimmed : null
+}
+
 export function useTicketCreateController() {
+  const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
   const [serviceModalOpen, setServiceModalOpen] = useState<OpenServiceKey>(null)
   const [serviceModalEditIndex, setServiceModalEditIndex] = useState<
@@ -60,6 +76,7 @@ export function useTicketCreateController() {
       associar_chamado_id: null,
       tipo_chamado_id: '',
       operation_id: '',
+      orgao_procedimento_id: '',
       numero_procedimento: null,
       numero_oficio: null,
       data_base: null,
@@ -150,6 +167,81 @@ export function useTicketCreateController() {
     queryFn: () => getTeamsList(),
   })
 
+  const applyAssociatedTicketMutation = useMutation({
+    mutationFn: async ({ ticketId }: { ticketId: string }) => {
+      const ticket = await getTicketById(ticketId)
+      return { ticket, ticketId }
+    },
+    onSuccess: ({ ticket, ticketId }) => {
+      const cached = queryClient.getQueryData<AxiosResponse<TicketType[]>>([
+        'ticket-types',
+        'select',
+      ])
+      const types = cached?.data ?? []
+      const conventional = types.find(
+        (t) => t.name.trim().toLowerCase() === 'convencional',
+      )
+      if (!conventional) {
+        toast.error('Tipo "Convencional" não encontrado no catálogo.')
+        setValue('associar_chamado_id', null)
+        setSelectedTicketLabel('')
+        setTicketSearch('')
+        return
+      }
+      const values = mapTicketOutToCreateForm(ticket, {
+        associar_chamado_id: ticketId,
+        tipo_chamado_id: conventional.id,
+      })
+      reset(values)
+      setFiles([])
+      closeServiceModal()
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error))
+      setValue('associar_chamado_id', null)
+      setSelectedTicketLabel('')
+      setTicketSearch('')
+    },
+  })
+
+  const convertToConventionalMutation = useMutation({
+    mutationFn: async ({
+      ticketId,
+      files: filesToSend = [],
+    }: {
+      ticketId: string
+      files?: File[]
+      saveAndNew?: boolean
+    }) => convertTicketToConventional(ticketId, filesToSend),
+    onSuccess: (_data, variables) => {
+      toast.success('Chamado convertido para convencional com sucesso.')
+      if (variables.saveAndNew) {
+        const current = getValues()
+        reset({
+          ...current,
+          busca_por_placa: [],
+          busca_por_radar: [],
+          cerco_eletronico: [],
+          busca_por_imagem: [],
+          placas_correlatas: [],
+          placas_conjuntas: [],
+          reserva_de_imagem: [],
+          analise_de_imagem: [],
+          outros: [],
+        })
+        setFiles([])
+        closeServiceModal()
+      } else {
+        reset(defaultValues)
+        setFiles([])
+        setSelectedTicketLabel('')
+        setTicketSearch('')
+        closeServiceModal()
+      }
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  })
+
   const createMutation = useMutation({
     mutationFn: async ({
       payload,
@@ -157,16 +249,35 @@ export function useTicketCreateController() {
     }: {
       payload: unknown
       files: File[]
+      saveAndNew?: boolean
     }) => createTicket(payload, filesToSend),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       toast.success('Chamado criado com sucesso.')
-      reset(defaultValues)
-      setFiles([])
-      setSelectedTicketLabel('')
-      setTicketSearch('')
-      closeServiceModal()
+      if (variables.saveAndNew) {
+        const current = getValues()
+        reset({
+          ...current,
+          busca_por_placa: [],
+          busca_por_radar: [],
+          cerco_eletronico: [],
+          busca_por_imagem: [],
+          placas_correlatas: [],
+          placas_conjuntas: [],
+          reserva_de_imagem: [],
+          analise_de_imagem: [],
+          outros: [],
+        })
+        setFiles([])
+        closeServiceModal()
+      } else {
+        reset(defaultValues)
+        setFiles([])
+        setSelectedTicketLabel('')
+        setTicketSearch('')
+        closeServiceModal()
+      }
     },
-    onError: () => toast.error(genericErrorMessage),
+    onError: (error) => toast.error(getApiErrorMessage(error)),
   })
 
   const operations = operationsQuery.data?.data?.items ?? []
@@ -180,7 +291,22 @@ export function useTicketCreateController() {
   const isTicketNaturesLoading = ticketNaturesQuery.isLoading
   const isTicketsLoading = ticketsQuery.isLoading
   const isTeamsLoading = teamsQuery.isLoading
-  const isLoading = isSubmitting || createMutation.isPending || isTeamsLoading
+  const isLoading =
+    isSubmitting ||
+    createMutation.isPending ||
+    convertToConventionalMutation.isPending ||
+    isTeamsLoading ||
+    applyAssociatedTicketMutation.isPending
+
+  async function applyAssociatedTicketFromSearch(
+    ticketId: string,
+    titulo: string,
+  ) {
+    setSelectedTicketLabel(titulo)
+    setTicketSearch(titulo)
+    setValue('associar_chamado_id', ticketId)
+    await applyAssociatedTicketMutation.mutateAsync({ ticketId })
+  }
 
   function toggleSection(key: SectionKey) {
     setOpenSections((prev) => ({
@@ -238,6 +364,15 @@ export function useTicketCreateController() {
   }
 
   async function onSubmit(data: TicketCreateForm) {
+    const associarId = associarChamadoIdOrNull(data.associar_chamado_id)
+    if (associarId) {
+      await convertToConventionalMutation.mutateAsync({
+        ticketId: associarId,
+        files,
+        saveAndNew: false,
+      })
+      return
+    }
     const payload = buildTicketCreatePayload(data)
     await createMutation.mutateAsync({ payload, files })
   }
@@ -246,7 +381,17 @@ export function useTicketCreateController() {
     data: TicketCreateForm,
     emailId?: string | null,
     filesForTicket?: File[],
+    options?: { saveAndNew?: boolean },
   ) {
+    const associarId = associarChamadoIdOrNull(data.associar_chamado_id)
+    if (associarId) {
+      await convertToConventionalMutation.mutateAsync({
+        ticketId: associarId,
+        files: filesForTicket ?? files,
+        saveAndNew: options?.saveAndNew ?? false,
+      })
+      return
+    }
     const basePayload = buildTicketCreatePayload(data)
     const payload = emailId
       ? { ...basePayload, email_id: emailId }
@@ -254,6 +399,7 @@ export function useTicketCreateController() {
     await createMutation.mutateAsync({
       payload,
       files: filesForTicket ?? files,
+      saveAndNew: options?.saveAndNew ?? false,
     })
   }
 
@@ -270,6 +416,15 @@ export function useTicketCreateController() {
   function closeServiceModal() {
     setServiceModalOpen(null)
     setServiceModalEditIndex(null)
+  }
+
+  function resetFormToDefaults() {
+    reset(defaultValues)
+    setFiles([])
+    setSelectedTicketLabel('')
+    setTicketSearch('')
+    setTicketPopoverOpen(false)
+    closeServiceModal()
   }
 
   return {
@@ -290,6 +445,8 @@ export function useTicketCreateController() {
     isTicketTypesLoading,
     isTicketNaturesLoading,
     isTicketsLoading,
+    isApplyingAssociatedTicket: applyAssociatedTicketMutation.isPending,
+    isConvertingToConventional: convertToConventionalMutation.isPending,
     isTeamsLoading,
     operations,
     ticketTypes,
@@ -321,6 +478,8 @@ export function useTicketCreateController() {
     setTicketPopoverOpen,
     setSelectedTicketLabel,
 
+    applyAssociatedTicketFromSearch,
+
     toggleSection,
     onDropFiles,
     removeFile,
@@ -329,5 +488,6 @@ export function useTicketCreateController() {
     handleOpenService,
     openServiceModalForEdit,
     closeServiceModal,
+    resetFormToDefaults,
   }
 }

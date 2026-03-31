@@ -19,6 +19,9 @@ import {
 import styles from '../caixa-entrada.module.css'
 import { EmailPreviewSheet } from './email-preview-sheet'
 
+/** Refetch das listas a cada 2 min (alinhado ao aviso no cabeçalho da página). */
+const CAIXA_ENTRADA_REFETCH_MS = 2 * 60 * 1000
+
 function resolveDate(email: EmailBase): Date | null {
   if (email.date) {
     const d = new Date(email.date)
@@ -124,7 +127,7 @@ export function InboxList() {
         page: naoLidos.formattedSearchParams.page,
         pageSize: naoLidos.formattedSearchParams.size,
       }),
-    refetchInterval: 120_000,
+    refetchInterval: CAIXA_ENTRADA_REFETCH_MS,
   })
 
   const { data: resAguardando, isLoading: loadingAguardando } = useQuery({
@@ -134,7 +137,7 @@ export function InboxList() {
         page: aguardando.formattedSearchParams.page,
         pageSize: aguardando.formattedSearchParams.size,
       }),
-    refetchInterval: 120_000,
+    refetchInterval: CAIXA_ENTRADA_REFETCH_MS,
   })
 
   const itemsNaoLidos = resNaoLidos?.data?.items ?? []

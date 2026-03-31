@@ -1,4 +1,12 @@
+import type { TicketOut } from '@/http/tickets/get-ticket-by-id'
+import { unmaskPlateBR } from '@/utils/string-formatters'
+
 import type { TicketCreateForm } from './ticket-create-schema'
+
+function plateToPayload(value?: string | null) {
+  const raw = unmaskPlateBR(value ?? '')
+  return raw.length ? raw : null
+}
 
 function emptyToNull(value?: string | null) {
   if (value == null) return null
@@ -28,6 +36,7 @@ export function buildTicketCreatePayload(
   return {
     ...data,
     associar_chamado_id: emptyToNull(data.associar_chamado_id),
+    orgao_procedimento_id: data.orgao_procedimento_id.trim(),
     numero_procedimento: emptyToNull(data.numero_procedimento),
     numero_oficio: emptyToNull(data.numero_oficio),
     data_base: emptyToNull(data.data_base),
@@ -52,25 +61,30 @@ export function buildTicketCreatePayload(
     })),
 
     busca_por_placa: data.busca_por_placa.map((item) => ({
-      plate: emptyToNull(item.plate),
+      plates: (item.plates ?? [])
+        .map((p) => plateToPayload(p))
+        .filter((p): p is string => p != null),
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
     })),
 
     busca_por_radar: data.busca_por_radar.map((item) => ({
-      plate: emptyToNull(item.plate),
+      plates: (item.plates ?? [])
+        .map((p) => plateToPayload(p))
+        .filter((p): p is string => p != null),
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
-      radar_address: emptyToNull(item.radar_address),
+      radar_address: null,
+      orientation: emptyToNull(item.orientation),
     })),
 
     cerco_eletronico: data.cerco_eletronico.map((item) => ({
-      plate: emptyToNull(item.plate),
+      plate: plateToPayload(item.plate),
       vehicle_observations: emptyToNull(item.vehicle_observations),
     })),
 
     busca_por_imagem: data.busca_por_imagem.map((item) => ({
-      plate: emptyToNull(item.plate),
+      plate: plateToPayload(item.plate),
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       address: emptyToNull(item.address),
@@ -78,24 +92,24 @@ export function buildTicketCreatePayload(
     })),
 
     placas_correlatas: data.placas_correlatas.map((group) => ({
+      period_start: toIsoDateTime(group.period_start),
+      period_end: toIsoDateTime(group.period_end),
       interest_interval_minutes: numberOrNull(group.interest_interval_minutes),
       detection_count: numberOrNull(group.detection_count),
       detection: group.detection ?? null,
-      items: (group.items ?? []).map((item) => ({
-        plate: emptyToNull(item.plate),
-        period_start: toIsoDateTime(item.period_start),
-        period_end: toIsoDateTime(item.period_end),
+      plates: (group.plates ?? []).map((item) => ({
+        plate: plateToPayload(item.plate),
       })),
     })),
 
     placas_conjuntas: data.placas_conjuntas.map((group) => ({
+      period_start: toIsoDateTime(group.period_start),
+      period_end: toIsoDateTime(group.period_end),
       interest_interval_minutes: numberOrNull(group.interest_interval_minutes),
       detection_count: numberOrNull(group.detection_count),
       detection: group.detection ?? null,
-      items: (group.items ?? []).map((item) => ({
-        plate: emptyToNull(item.plate),
-        period_start: toIsoDateTime(item.period_start),
-        period_end: toIsoDateTime(item.period_end),
+      plates: (group.plates ?? []).map((item) => ({
+        plate: plateToPayload(item.plate),
       })),
     })),
 
@@ -113,6 +127,120 @@ export function buildTicketCreatePayload(
 
     outros: data.outros.map((item) => ({
       orientation: emptyToNull(item.orientation),
+    })),
+  }
+}
+
+const PHONE_PLACEHOLDER = '  '
+
+function isoToDatetimeLocal(value?: string | null): string | null {
+  if (value == null || !String(value).trim()) return null
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return null
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function apiDateToDataBaseString(value?: string | null): string | null {
+  if (value == null || !String(value).trim()) return null
+  const s = String(value).trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
+  const d = new Date(s)
+  if (Number.isNaN(d.getTime())) return null
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+export function mapTicketOutToCreateForm(
+  ticket: TicketOut,
+  options: { associar_chamado_id: string; tipo_chamado_id: string },
+): TicketCreateForm {
+  return {
+    associar_chamado_id: options.associar_chamado_id,
+    tipo_chamado_id: options.tipo_chamado_id,
+    operation_id: ticket.operation_id ?? '',
+    orgao_procedimento_id: ticket.orgao_procedimento_id ?? '',
+    numero_procedimento: ticket.numero_procedimento ?? null,
+    numero_oficio: ticket.numero_oficio ?? null,
+    data_base: apiDateToDataBaseString(ticket.data_base),
+    natureza_id: ticket.natureza_id ?? null,
+    possui_apelido_imprensa: ticket.possui_apelido_imprensa,
+    apelido_imprensa: ticket.apelido_imprensa ?? null,
+    link_materia: ticket.link_materia ?? null,
+    possui_endereco_correspondencia: false,
+    bairro_correspondencia: null,
+    rua_correspondencia: null,
+    numero_correspondencia: null,
+    requisitante: {
+      requisitante_nome: ticket.requisitante.requisitante_nome,
+      requisitante_telefone:
+        ticket.requisitante.requisitante_telefone?.trim() || PHONE_PLACEHOLDER,
+      requisitante_email: ticket.requisitante.requisitante_email ?? null,
+    },
+    pontos_focais: (ticket.pontos_focais ?? []).map((fp) => ({
+      nome: fp.nome,
+      telefone: fp.telefone?.trim() || PHONE_PLACEHOLDER,
+      email: fp.email ?? null,
+    })),
+    equipe_id: ticket.equipe_id ?? '',
+    prioridade: ticket.prioridade ?? null,
+    comentario_inicial: (() => {
+      const raw = ticket.comentarios?.[0]?.body
+      if (raw == null) return null
+      const t = raw.trim()
+      if (!t) return null
+      return t.length > 500 ? t.slice(0, 500) : t
+    })(),
+    busca_por_placa: (ticket.busca_por_placa ?? []).map((s) => ({
+      plates: (s.plates ?? []).map((p) => p.plate).filter((p) => p?.trim()),
+      period_start: isoToDatetimeLocal(s.period_start),
+      period_end: isoToDatetimeLocal(s.period_end),
+    })),
+    busca_por_radar: (ticket.busca_por_radar ?? []).map((s) => ({
+      plates: (s.plates ?? []).map((p) => p.plate).filter((p) => p?.trim()),
+      period_start: isoToDatetimeLocal(s.period_start),
+      period_end: isoToDatetimeLocal(s.period_end),
+      orientation: s.orientation ?? null,
+    })),
+    cerco_eletronico: (ticket.cerco_eletronico ?? []).map((s) => ({
+      plate: s.plate ?? null,
+      vehicle_observations: s.vehicle_observations ?? null,
+    })),
+    busca_por_imagem: (ticket.busca_por_imagem ?? []).map((s) => ({
+      period_start: isoToDatetimeLocal(s.period_start),
+      period_end: isoToDatetimeLocal(s.period_end),
+      plate: s.plate ?? null,
+      address: s.address ?? null,
+      description: s.description ?? null,
+    })),
+    placas_correlatas: (ticket.placas_correlatas ?? []).map((g) => ({
+      period_start: isoToDatetimeLocal(g.period_start),
+      period_end: isoToDatetimeLocal(g.period_end),
+      interest_interval_minutes: g.interest_interval_minutes ?? null,
+      detection_count: g.detection_count ?? null,
+      detection: g.detection ?? null,
+      plates: (g.plates ?? []).map((p) => ({ plate: p.plate ?? null })),
+    })),
+    placas_conjuntas: (ticket.placas_conjuntas ?? []).map((g) => ({
+      period_start: isoToDatetimeLocal(g.period_start),
+      period_end: isoToDatetimeLocal(g.period_end),
+      interest_interval_minutes: g.interest_interval_minutes ?? null,
+      detection_count: g.detection_count ?? null,
+      detection: g.detection ?? null,
+      plates: (g.plates ?? []).map((p) => ({ plate: p.plate ?? null })),
+    })),
+    reserva_de_imagem: (ticket.reserva_de_imagem ?? []).map((s) => ({
+      period_start: isoToDatetimeLocal(s.period_start),
+      period_end: isoToDatetimeLocal(s.period_end),
+      orientation: s.orientation ?? null,
+    })),
+    analise_de_imagem: (ticket.analise_de_imagem ?? []).map((s) => ({
+      period_start: isoToDatetimeLocal(s.period_start),
+      period_end: isoToDatetimeLocal(s.period_end),
+      orientation: s.orientation ?? null,
+    })),
+    outros: (ticket.outros ?? []).map((s) => ({
+      orientation: s.orientation ?? null,
     })),
   }
 }

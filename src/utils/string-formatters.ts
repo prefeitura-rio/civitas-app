@@ -50,6 +50,31 @@ export function formatPhone(value: string) {
   return ddd + celDigit + middleDigits + '-' + last4Digits
 }
 
+/**
+ * Mantém apenas dígitos, com limite opcional.
+ * Use `Infinity` para não cortar (ex.: exibir erro de máximo no formulário).
+ */
+export function maskDigitsOnly(value: string, maxLength: number = 60) {
+  const digits = value.replace(/\D/g, '')
+  return maxLength === Infinity ? digits : digits.slice(0, maxLength)
+}
+
+/**
+ * Placa veicular BR (Mercosul LLLNLNN ou antigo LLLNNNN): até 7 caracteres
+ * alfanuméricos em maiúsculas, sem hífen (padrão atual).
+ */
+export function maskPlateBR(value: string): string {
+  return value
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 7)
+}
+
+/** Valor da placa apenas com letras e números (para envio à API). */
+export function unmaskPlateBR(value: string): string {
+  return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+}
+
 export function maskPhoneBR(value: string) {
   const n = value.replace(/\D/g, '').slice(0, 11)
   if (n.length === 0) return ''

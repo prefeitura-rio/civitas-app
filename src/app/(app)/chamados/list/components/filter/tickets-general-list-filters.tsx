@@ -1,25 +1,17 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { format } from 'date-fns'
-import { CalendarIcon, ChevronDown, X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { type DateRange } from 'react-day-picker'
 
+import { FilterDateRangeField } from '@/app/(app)/chamados/components/filter-date-range-field'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import { getTeamsList } from '@/http/teams/get-teams'
 import {
   searchOperations,
   type SearchOption,
   searchRequesters,
 } from '@/http/tickets/tickets-dashboard-filters'
-import { dateConfig } from '@/lib/date-config'
 
 import styles from './tickets-general-list-filters.module.css'
 
@@ -242,110 +234,6 @@ function SearchMultiSelect({
   )
 }
 
-function parseDateString(s: string): Date | undefined {
-  if (!s?.trim()) return undefined
-  const d = new Date(s + 'T00:00:00')
-  return Number.isNaN(d.getTime()) ? undefined : d
-}
-
-function toDateString(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function normalizeRange(range: DateRange | undefined): DateRange | undefined {
-  if (!range?.from) return undefined
-  const from = new Date(range.from)
-  const to = range.to ? new Date(range.to) : undefined
-  if (!to) return { from, to: undefined }
-  if (from.getTime() > to.getTime()) {
-    return { from: to, to: from }
-  }
-  return { from, to }
-}
-
-function FilterDateRangeField({
-  label,
-  startValue,
-  endValue,
-  onChangeStart,
-  onChangeEnd,
-}: {
-  label: string
-  startValue: string
-  endValue: string
-  onChangeStart: (value: string) => void
-  onChangeEnd: (value: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-
-  const value: DateRange | undefined = useMemo(() => {
-    const from = parseDateString(startValue)
-    const to = parseDateString(endValue)
-    if (!from) return undefined
-    if (!to) return { from, to: undefined }
-    if (from.getTime() > to.getTime()) {
-      return { from: to, to: from }
-    }
-    return { from, to }
-  }, [startValue, endValue])
-
-  const handleChange = (range: DateRange | undefined) => {
-    const normalized = normalizeRange(range)
-    if (!normalized?.from) {
-      onChangeStart('')
-      onChangeEnd('')
-      return
-    }
-    onChangeStart(toDateString(normalized.from))
-    onChangeEnd(normalized.to ? toDateString(normalized.to) : '')
-    if (normalized.from && normalized.to) {
-      setOpen(false)
-    }
-  }
-
-  const triggerLabel =
-    value?.from &&
-    (value.to
-      ? `${format(value.from, dateConfig.formats.date, { locale: dateConfig.locale })} – ${format(value.to, dateConfig.formats.date, { locale: dateConfig.locale })}`
-      : format(value.from, dateConfig.formats.date, {
-          locale: dateConfig.locale,
-        }))
-
-  return (
-    <div className={styles.filterBlock}>
-      <span className={styles.filterLabel}>{label}</span>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            className={`h-[42px] w-full justify-between text-left font-normal ${styles.dateRangeTrigger}`}
-          >
-            <span className="min-w-0 flex-1 truncate text-left">
-              {triggerLabel ?? 'dd/mm/aaaa – dd/mm/aaaa'}
-            </span>
-            <CalendarIcon className="h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="z-[100] w-auto p-0" align="start">
-          <Calendar
-            mode="range"
-            selected={value}
-            onSelect={handleChange}
-            locale={dateConfig.locale}
-            numberOfMonths={2}
-            defaultMonth={value?.from}
-            className="rounded-lg border"
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  )
-}
-
 export type TicketsDashboardFilterModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -432,41 +320,45 @@ export function TicketsDashboardFilterModal({
               searchFn={searchRequesters}
             />
 
-            <FilterDateRangeField
-              label="DATA BASE"
-              startValue={draftFilters.data_base_inicio}
-              endValue={draftFilters.data_base_fim}
-              onChangeStart={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  data_base_inicio: value,
-                }))
-              }
-              onChangeEnd={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  data_base_fim: value,
-                }))
-              }
-            />
+            <div className={styles.filterBlock}>
+              <span className={styles.filterLabel}>DATA BASE</span>
+              <FilterDateRangeField
+                startValue={draftFilters.data_base_inicio}
+                endValue={draftFilters.data_base_fim}
+                onChangeStart={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_base_inicio: value,
+                  }))
+                }
+                onChangeEnd={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_base_fim: value,
+                  }))
+                }
+              />
+            </div>
 
-            <FilterDateRangeField
-              label="DATA DE ENTRADA"
-              startValue={draftFilters.data_entrada_inicio}
-              endValue={draftFilters.data_entrada_fim}
-              onChangeStart={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  data_entrada_inicio: value,
-                }))
-              }
-              onChangeEnd={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  data_entrada_fim: value,
-                }))
-              }
-            />
+            <div className={styles.filterBlock}>
+              <span className={styles.filterLabel}>DATA DE ENTRADA</span>
+              <FilterDateRangeField
+                startValue={draftFilters.data_entrada_inicio}
+                endValue={draftFilters.data_entrada_fim}
+                onChangeStart={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_entrada_inicio: value,
+                  }))
+                }
+                onChangeEnd={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_entrada_fim: value,
+                  }))
+                }
+              />
+            </div>
           </div>
 
           <div className={styles.filterTogglesGrid}>

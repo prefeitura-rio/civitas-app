@@ -1,10 +1,10 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronLeft, X } from 'lucide-react'
+import { ChevronLeft, Plus, Trash, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -17,17 +17,20 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { maskPlateBR } from '@/utils/string-formatters'
 
 import {
   type CorrelataDraft,
+  type CorrelataDraftItem,
   emptyAnaliseImagemDraft,
   emptyBuscaPorImagemDraft,
-  emptyBuscaPorPlacaDraft,
-  emptyBuscaPorRadarDraft,
   emptyCercoDraft,
   emptyCorrelataDraft,
+  emptyCorrelataItem,
   emptyOutrosDraft,
   emptyReservaImagemDraft,
+  normalizeBuscaPorPlacaForForm,
+  normalizeBuscaPorRadarForForm,
   type OpenServiceKey,
   SERVICE_CONFIG,
 } from '../../ticket-create/ticket-create.constant'
@@ -101,6 +104,8 @@ type Props = {
 
   /** Padrão: dialog centralizado (criar chamado). `drawer`: painel lateral (converter). */
   variant?: 'dialog' | 'drawer'
+  /** Somente leitura (ex.: chamado associado no cadastro manual). */
+  readOnly?: boolean
 }
 
 export function ServiceModal(props: Props) {
@@ -109,6 +114,7 @@ export function ServiceModal(props: Props) {
     editIndex,
     closeServiceModal,
     variant = 'dialog',
+    readOnly = false,
   } = props
 
   const title = serviceModalOpen ? SERVICE_CONFIG[serviceModalOpen].label : ''
@@ -121,6 +127,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveBuscaPorPlaca}
+          readOnly={readOnly}
         />
       )}
 
@@ -130,6 +137,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveBuscaPorRadar}
+          readOnly={readOnly}
         />
       )}
 
@@ -139,6 +147,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveCerco}
+          readOnly={readOnly}
         />
       )}
 
@@ -148,6 +157,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveBuscaPorImagem}
+          readOnly={readOnly}
         />
       )}
 
@@ -157,6 +167,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSavePlacasCorrelatas}
+          readOnly={readOnly}
         />
       )}
 
@@ -166,6 +177,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSavePlacasConjuntas}
+          readOnly={readOnly}
         />
       )}
 
@@ -175,6 +187,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveReservaImagem}
+          readOnly={readOnly}
         />
       )}
 
@@ -184,6 +197,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveAnaliseImagem}
+          readOnly={readOnly}
         />
       )}
 
@@ -193,6 +207,7 @@ export function ServiceModal(props: Props) {
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveOutros}
+          readOnly={readOnly}
         />
       )}
     </>
@@ -266,6 +281,61 @@ type SimpleFormProps<T> = {
   editIndex: number | null
   onCancel: () => void
   onSave: (value: T, editIndex: number | null) => void
+  readOnly?: boolean
+}
+
+function normalizePlatesMaskedForBusca(
+  initial: ReturnType<typeof normalizeBuscaPorPlacaForForm>,
+) {
+  return {
+    ...initial,
+    plates: initial.plates.map((p) => maskPlateBR(p)),
+  }
+}
+
+function normalizePlatesMaskedForRadar(
+  initial: ReturnType<typeof normalizeBuscaPorRadarForForm>,
+) {
+  return {
+    ...initial,
+    plates: initial.plates.map((p) => maskPlateBR(p)),
+  }
+}
+
+function normalizeCercoPlateForForm(
+  initial?: TicketCreateForm['cerco_eletronico'][number],
+) {
+  const base = initial ?? {
+    ...emptyCercoDraft(),
+    vehicle_observations: null,
+  }
+  return {
+    ...base,
+    plate:
+      base.plate != null && String(base.plate).trim() !== ''
+        ? maskPlateBR(String(base.plate))
+        : '',
+  }
+}
+
+function normalizeBuscaPorImagemPlateForForm(
+  initial?: TicketCreateForm['busca_por_imagem'][number],
+) {
+  const base = initial ?? {
+    ...emptyBuscaPorImagemDraft(),
+    period_start: null,
+    period_end: null,
+    plate: null,
+    address: null,
+    description: null,
+  }
+  return {
+    ...base,
+    plate:
+      base.plate != null && String(base.plate).trim() !== ''
+        ? maskPlateBR(String(base.plate))
+        : '',
+  }
 }
 
 function BuscaPorPlacaForm({
@@ -273,23 +343,20 @@ function BuscaPorPlacaForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['busca_por_placa'][number]>) {
   const form = useForm<TicketCreateForm['busca_por_placa'][number]>({
     resolver: zodResolver(serviceBuscaPorPlacaSchema),
-    defaultValues: initialValue ?? {
-      ...emptyBuscaPorPlacaDraft(),
-      period_start: null,
-      period_end: null,
-    },
+    defaultValues: normalizePlatesMaskedForBusca(
+      normalizeBuscaPorPlacaForForm(initialValue),
+    ),
   })
 
   useEffect(() => {
     form.reset(
-      initialValue ?? {
-        ...emptyBuscaPorPlacaDraft(),
-        period_start: null,
-        period_end: null,
-      },
+      normalizePlatesMaskedForBusca(
+        normalizeBuscaPorPlacaForForm(initialValue),
+      ),
     )
   }, [initialValue, form])
 
@@ -297,35 +364,101 @@ function BuscaPorPlacaForm({
     formState: { errors },
   } = form
 
-  return (
-    <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
-      <div className={styles.serviceModalBody}>
-        <div className="space-y-3">
-          <PeriodFieldsCalendarStyle
-            startValue={form.watch('period_start') ?? ''}
-            endValue={form.watch('period_end') ?? ''}
-            onChangeStart={(value) =>
-              form.setValue('period_start', value, { shouldValidate: true })
-            }
-            onChangeEnd={(value) =>
-              form.setValue('period_end', value, { shouldValidate: true })
-            }
-          />
+  const plates = form.watch('plates') ?? ['']
 
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
+  const addPlate = () => {
+    form.setValue('plates', [...plates, ''], { shouldValidate: true })
+  }
+
+  const removePlate = (index: number) => {
+    if (plates.length <= 1) return
+    form.setValue(
+      'plates',
+      plates.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
+  return (
+    <form
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <PeriodFieldsCalendarStyle
+              startValue={form.watch('period_start') ?? ''}
+              endValue={form.watch('period_end') ?? ''}
+              onChangeStart={(value) =>
+                form.setValue('period_start', value, { shouldValidate: true })
+              }
+              onChangeEnd={(value) =>
+                form.setValue('period_end', value, { shouldValidate: true })
+              }
+              disabled={readOnly}
             />
-            {errors.plate?.message && (
-              <p className="text-xs text-destructive">{errors.plate.message}</p>
-            )}
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Placas do veículo</Label>
+              {plates.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`plates.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        value={field.value ?? ''}
+                        onChange={(e) =>
+                          field.onChange(maskPlateBR(e.target.value))
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  {plates.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-11 w-11 shrink-0 p-0"
+                      onClick={() => removePlate(index)}
+                      title="Remover placa"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {errors.plates?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.plates.message}
+                </p>
+              )}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addPlate}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar placa
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
@@ -335,25 +468,20 @@ function BuscaPorRadarForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['busca_por_radar'][number]>) {
   const form = useForm<TicketCreateForm['busca_por_radar'][number]>({
     resolver: zodResolver(serviceBuscaPorRadarSchema),
-    defaultValues: initialValue ?? {
-      ...emptyBuscaPorRadarDraft(),
-      period_start: null,
-      period_end: null,
-      radar_address: null,
-    },
+    defaultValues: normalizePlatesMaskedForRadar(
+      normalizeBuscaPorRadarForForm(initialValue),
+    ),
   })
 
   useEffect(() => {
     form.reset(
-      initialValue ?? {
-        ...emptyBuscaPorRadarDraft(),
-        period_start: null,
-        period_end: null,
-        radar_address: null,
-      },
+      normalizePlatesMaskedForRadar(
+        normalizeBuscaPorRadarForForm(initialValue),
+      ),
     )
   }, [initialValue, form])
 
@@ -361,53 +489,119 @@ function BuscaPorRadarForm({
     formState: { errors },
   } = form
 
+  const plates = form.watch('plates') ?? ['']
+
+  const addPlate = () => {
+    form.setValue('plates', [...plates, ''], { shouldValidate: true })
+  }
+
+  const removePlate = (index: number) => {
+    if (plates.length <= 1) return
+    form.setValue(
+      'plates',
+      plates.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
   return (
-    <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
-      <div className={styles.serviceModalBody}>
-        <div className="space-y-3">
-          <PeriodFieldsCalendarStyle
-            startValue={form.watch('period_start') ?? ''}
-            endValue={form.watch('period_end') ?? ''}
-            onChangeStart={(value) =>
-              form.setValue('period_start', value, { shouldValidate: true })
-            }
-            onChangeEnd={(value) =>
-              form.setValue('period_end', value, { shouldValidate: true })
-            }
-          />
-          {(errors.period_start?.message || errors.period_end?.message) && (
-            <p className="text-xs text-destructive">
-              {errors.period_start?.message || errors.period_end?.message}
-            </p>
-          )}
-
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
+    <form
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <PeriodFieldsCalendarStyle
+              startValue={form.watch('period_start') ?? ''}
+              endValue={form.watch('period_end') ?? ''}
+              onChangeStart={(value) =>
+                form.setValue('period_start', value, { shouldValidate: true })
+              }
+              onChangeEnd={(value) =>
+                form.setValue('period_end', value, { shouldValidate: true })
+              }
+              disabled={readOnly}
             />
-            {errors.plate?.message && (
-              <p className="text-xs text-destructive">{errors.plate.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Orientação</Label>
-            <Textarea
-              className={`min-h-[92px] ${styles.inputBg}`}
-              {...form.register('radar_address')}
-            />
-            {errors.radar_address?.message && (
+            {(errors.period_start?.message || errors.period_end?.message) && (
               <p className="text-xs text-destructive">
-                {errors.radar_address.message}
+                {errors.period_start?.message || errors.period_end?.message}
               </p>
             )}
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Orientação</Label>
+              <Textarea
+                className={`min-h-[92px] ${styles.inputBg}`}
+                {...form.register('orientation')}
+              />
+              {errors.orientation?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.orientation.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Placas do veículo</Label>
+              {plates.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`plates.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        value={field.value ?? ''}
+                        onChange={(e) =>
+                          field.onChange(maskPlateBR(e.target.value))
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  {plates.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-11 w-11 shrink-0 p-0"
+                      onClick={() => removePlate(index)}
+                      title="Remover placa"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {errors.plates?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.plates.message}
+                </p>
+              )}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addPlate}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar placa
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
@@ -417,22 +611,15 @@ function CercoForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['cerco_eletronico'][number]>) {
   const form = useForm<TicketCreateForm['cerco_eletronico'][number]>({
     resolver: zodResolver(serviceCercoSchema),
-    defaultValues: initialValue ?? {
-      ...emptyCercoDraft(),
-      vehicle_observations: null,
-    },
+    defaultValues: normalizeCercoPlateForForm(initialValue),
   })
 
   useEffect(() => {
-    form.reset(
-      initialValue ?? {
-        ...emptyCercoDraft(),
-        vehicle_observations: null,
-      },
-    )
+    form.reset(normalizeCercoPlateForForm(initialValue))
   }, [initialValue, form])
 
   const {
@@ -440,36 +627,63 @@ function CercoForm({
   } = form
 
   return (
-    <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
-      <div className={styles.serviceModalBody}>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
-            />
-            {errors.plate?.message && (
-              <p className="text-xs text-destructive">{errors.plate.message}</p>
-            )}
-          </div>
+    <form
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Placa do veículo</Label>
+              <Controller
+                control={form.control}
+                name="plate"
+                render={({ field }) => (
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(maskPlateBR(e.target.value))
+                    }
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                )}
+              />
+              {errors.plate?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.plate.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Observações do veículo</Label>
-            <Textarea
-              className={`min-h-[92px] ${styles.inputBg}`}
-              {...form.register('vehicle_observations')}
-            />
-            {errors.vehicle_observations?.message && (
-              <p className="text-xs text-destructive">
-                {errors.vehicle_observations.message}
-              </p>
-            )}
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>
+                Observações do veículo
+              </Label>
+              <Textarea
+                className={`min-h-[92px] ${styles.inputBg}`}
+                {...form.register('vehicle_observations')}
+              />
+              {errors.vehicle_observations?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.vehicle_observations.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
@@ -479,30 +693,15 @@ function BuscaPorImagemForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['busca_por_imagem'][number]>) {
   const form = useForm<TicketCreateForm['busca_por_imagem'][number]>({
     resolver: zodResolver(serviceBuscaPorImagemSchema),
-    defaultValues: initialValue ?? {
-      ...emptyBuscaPorImagemDraft(),
-      period_start: null,
-      period_end: null,
-      plate: null,
-      address: null,
-      description: null,
-    },
+    defaultValues: normalizeBuscaPorImagemPlateForForm(initialValue),
   })
 
   useEffect(() => {
-    form.reset(
-      initialValue ?? {
-        ...emptyBuscaPorImagemDraft(),
-        period_start: null,
-        period_end: null,
-        plate: null,
-        address: null,
-        description: null,
-      },
-    )
+    form.reset(normalizeBuscaPorImagemPlateForForm(initialValue))
   }, [initialValue, form])
 
   const {
@@ -510,67 +709,98 @@ function BuscaPorImagemForm({
   } = form
 
   return (
-    <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
-      <div className={styles.serviceModalBody}>
-        <div className="space-y-3">
-          <PeriodFieldsCalendarStyle
-            startValue={form.watch('period_start') ?? ''}
-            endValue={form.watch('period_end') ?? ''}
-            onChangeStart={(value) =>
-              form.setValue('period_start', value, { shouldValidate: true })
-            }
-            onChangeEnd={(value) =>
-              form.setValue('period_end', value, { shouldValidate: true })
-            }
-          />
-          {(errors.period_start?.message || errors.period_end?.message) && (
-            <p className="text-xs text-destructive">
-              {errors.period_start?.message || errors.period_end?.message}
-            </p>
-          )}
-
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
+    <form
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <PeriodFieldsCalendarStyle
+              startValue={form.watch('period_start') ?? ''}
+              endValue={form.watch('period_end') ?? ''}
+              onChangeStart={(value) =>
+                form.setValue('period_start', value, { shouldValidate: true })
+              }
+              onChangeEnd={(value) =>
+                form.setValue('period_end', value, { shouldValidate: true })
+              }
+              disabled={readOnly}
             />
-            {errors.plate?.message && (
-              <p className="text-xs text-destructive">{errors.plate.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Endereço</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('address')}
-            />
-            {errors.address?.message && (
+            {(errors.period_start?.message || errors.period_end?.message) && (
               <p className="text-xs text-destructive">
-                {errors.address.message}
+                {errors.period_start?.message || errors.period_end?.message}
               </p>
             )}
-          </div>
 
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Orientação</Label>
-            <Textarea
-              className={`min-h-[110px] ${styles.inputBg}`}
-              {...form.register('description')}
-            />
-            {errors.description?.message && (
-              <p className="text-xs text-destructive">
-                {errors.description.message}
-              </p>
-            )}
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Placa do veículo</Label>
+              <Controller
+                control={form.control}
+                name="plate"
+                render={({ field }) => (
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(maskPlateBR(e.target.value))
+                    }
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                )}
+              />
+              {errors.plate?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.plate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Endereço</Label>
+              <Input
+                className={`h-11 ${styles.inputBg}`}
+                {...form.register('address')}
+              />
+              {errors.address?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.address.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Orientação</Label>
+              <Textarea
+                className={`min-h-[110px] ${styles.inputBg}`}
+                {...form.register('description')}
+              />
+              {errors.description?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
+}
+
+function strFromForm(v: string | null | undefined) {
+  if (v == null) return ''
+  return String(v)
 }
 
 function toCorrelataDraft(
@@ -578,27 +808,54 @@ function toCorrelataDraft(
     | TicketCreateForm['placas_correlatas'][number]
     | TicketCreateForm['placas_conjuntas'][number],
 ): CorrelataDraft {
+  const legacyItems = (
+    value as {
+      items?: {
+        plate?: string | null
+        period_start?: string | null
+        period_end?: string | null
+      }[]
+    }
+  )?.items
+
+  let periodStart = strFromForm(value?.period_start)
+  let periodEnd = strFromForm(value?.period_end)
+
+  let plates: CorrelataDraftItem[]
+  if (value?.plates && value.plates.length > 0) {
+    plates = value.plates.map((p) => ({
+      plate: maskPlateBR(strFromForm(p?.plate)),
+    }))
+  } else if (legacyItems && legacyItems.length > 0) {
+    plates = legacyItems.map((i) => ({
+      plate: maskPlateBR(strFromForm(i?.plate)),
+    }))
+    if (!periodStart && legacyItems[0]) {
+      periodStart = strFromForm(legacyItems[0].period_start)
+      periodEnd = strFromForm(legacyItems[0].period_end)
+    }
+  } else {
+    plates = [emptyCorrelataItem()]
+  }
+
   return {
-    items: (value?.items?.length
-      ? value.items
-      : [{ plate: '', period_start: '', period_end: '' }]
-    ).map((item) => ({
-      plate: item?.plate ?? '',
-      period_start: item?.period_start ?? '',
-      period_end: item?.period_end ?? '',
-    })),
+    period_start: periodStart,
+    period_end: periodEnd,
+    plates,
     interest_interval_minutes: value?.interest_interval_minutes ?? 1,
     detection_count: value?.detection_count ?? 10,
     detection: value?.detection ?? null,
   }
 }
 
-function fromCorrelataDraft(draft: CorrelataDraft) {
+function fromCorrelataDraft(
+  draft: CorrelataDraft,
+): TicketCreateForm['placas_correlatas'][number] {
   return {
-    items: draft.items.map((item) => ({
-      plate: item.plate,
-      period_start: item.period_start || null,
-      period_end: item.period_end || null,
+    period_start: draft.period_start?.trim() ? draft.period_start : null,
+    period_end: draft.period_end?.trim() ? draft.period_end : null,
+    plates: draft.plates.map((p) => ({
+      plate: p.plate?.trim() ? p.plate : null,
     })),
     interest_interval_minutes: draft.interest_interval_minutes,
     detection_count: draft.detection_count,
@@ -611,45 +868,67 @@ function PlacasCorrelatasForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['placas_correlatas'][number]>) {
   const form = useForm<TicketCreateForm['placas_correlatas'][number]>({
     resolver: zodResolver(servicePlacasCorrelatasSchema),
-    defaultValues: initialValue ?? emptyCorrelataDraft(),
+    defaultValues:
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
   })
 
   useEffect(() => {
-    form.reset(initialValue ?? emptyCorrelataDraft())
+    form.reset(
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
+    )
   }, [initialValue, form])
   const draft = toCorrelataDraft(form.watch())
   return (
     <form
       className={styles.serviceModalFormScroll}
-      onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
     >
-      <div className={styles.serviceModalBody}>
-        <CorrelataPanel
-          draft={draft}
-          setDraft={(updater) => {
-            const currentDraft = toCorrelataDraft(form.getValues())
-            const nextDraft =
-              typeof updater === 'function' ? updater(currentDraft) : updater
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <CorrelataPanel
+            draft={draft}
+            setDraft={(updater) => {
+              const currentDraft = toCorrelataDraft(form.getValues())
+              const nextDraft =
+                typeof updater === 'function' ? updater(currentDraft) : updater
 
-            form.reset(fromCorrelataDraft(nextDraft), {
-              keepErrors: true,
-              keepDirty: true,
-              keepTouched: true,
-            })
+              form.reset(fromCorrelataDraft(nextDraft), {
+                keepErrors: true,
+                keepDirty: true,
+                keepTouched: true,
+              })
+            }}
+            onAdd={() => {}}
+            hideAddButton
+            useCalendarStyle
+            disabled={readOnly}
+            errors={toRecordErrors(form.formState.errors)}
+            onPlateBlur={() => {
+              form.trigger('plates').catch(() => {})
+            }}
+            onPlateChange={() => {
+              form.trigger('plates').catch(() => {})
+            }}
+          />
+        </div>
+      </fieldset>
 
-            form.trigger().catch(() => {})
-          }}
-          onAdd={() => {}}
-          hideAddButton
-          useCalendarStyle
-          errors={toRecordErrors(form.formState.errors)}
-        />
-      </div>
-
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
@@ -659,45 +938,67 @@ function PlacasConjuntasForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['placas_conjuntas'][number]>) {
   const form = useForm<TicketCreateForm['placas_conjuntas'][number]>({
     resolver: zodResolver(servicePlacasConjuntasSchema),
-    defaultValues: initialValue ?? emptyCorrelataDraft(),
+    defaultValues:
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
   })
 
   useEffect(() => {
-    form.reset(initialValue ?? emptyCorrelataDraft())
+    form.reset(
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
+    )
   }, [initialValue, form])
   const draft = toCorrelataDraft(form.watch())
   return (
     <form
       className={styles.serviceModalFormScroll}
-      onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
     >
-      <div className={styles.serviceModalBody}>
-        <CorrelataPanel
-          draft={draft}
-          setDraft={(updater) => {
-            const currentDraft = toCorrelataDraft(form.getValues())
-            const nextDraft =
-              typeof updater === 'function' ? updater(currentDraft) : updater
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <CorrelataPanel
+            draft={draft}
+            setDraft={(updater) => {
+              const currentDraft = toCorrelataDraft(form.getValues())
+              const nextDraft =
+                typeof updater === 'function' ? updater(currentDraft) : updater
 
-            form.reset(fromCorrelataDraft(nextDraft), {
-              keepErrors: true,
-              keepDirty: true,
-              keepTouched: true,
-            })
+              form.reset(fromCorrelataDraft(nextDraft), {
+                keepErrors: true,
+                keepDirty: true,
+                keepTouched: true,
+              })
+            }}
+            onAdd={() => {}}
+            hideAddButton
+            useCalendarStyle
+            disabled={readOnly}
+            errors={toRecordErrors(form.formState.errors)}
+            onPlateBlur={() => {
+              form.trigger('plates').catch(() => {})
+            }}
+            onPlateChange={() => {
+              form.trigger('plates').catch(() => {})
+            }}
+          />
+        </div>
+      </fieldset>
 
-            form.trigger().catch(() => {})
-          }}
-          onAdd={() => {}}
-          hideAddButton
-          useCalendarStyle
-          errors={toRecordErrors(form.formState.errors)}
-        />
-      </div>
-
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
@@ -707,6 +1008,7 @@ function ReservaImagemForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['reserva_de_imagem'][number]>) {
   const form = useForm<TicketCreateForm['reserva_de_imagem'][number]>({
     resolver: zodResolver(serviceReservaDeImagemSchema),
@@ -734,41 +1036,53 @@ function ReservaImagemForm({
   } = form
 
   return (
-    <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
-      <div className={styles.serviceModalBody}>
-        <div className="space-y-3">
-          <PeriodFieldsCalendarStyle
-            startValue={form.watch('period_start') ?? ''}
-            endValue={form.watch('period_end') ?? ''}
-            onChangeStart={(value) =>
-              form.setValue('period_start', value, { shouldValidate: true })
-            }
-            onChangeEnd={(value) =>
-              form.setValue('period_end', value, { shouldValidate: true })
-            }
-          />
-          {(errors.period_start?.message || errors.period_end?.message) && (
-            <p className="text-xs text-destructive">
-              {errors.period_start?.message || errors.period_end?.message}
-            </p>
-          )}
-
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Orientação</Label>
-            <Textarea
-              className={`min-h-[110px] ${styles.inputBg}`}
-              {...form.register('orientation')}
+    <form
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <PeriodFieldsCalendarStyle
+              startValue={form.watch('period_start') ?? ''}
+              endValue={form.watch('period_end') ?? ''}
+              onChangeStart={(value) =>
+                form.setValue('period_start', value, { shouldValidate: true })
+              }
+              onChangeEnd={(value) =>
+                form.setValue('period_end', value, { shouldValidate: true })
+              }
+              disabled={readOnly}
             />
-            {errors.orientation?.message && (
+            {(errors.period_start?.message || errors.period_end?.message) && (
               <p className="text-xs text-destructive">
-                {errors.orientation.message}
+                {errors.period_start?.message || errors.period_end?.message}
               </p>
             )}
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Orientação</Label>
+              <Textarea
+                className={`min-h-[110px] ${styles.inputBg}`}
+                {...form.register('orientation')}
+              />
+              {errors.orientation?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.orientation.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
@@ -778,6 +1092,7 @@ function AnaliseImagemForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['analise_de_imagem'][number]>) {
   const form = useForm<TicketCreateForm['analise_de_imagem'][number]>({
     resolver: zodResolver(serviceAnaliseDeImagemSchema),
@@ -805,41 +1120,53 @@ function AnaliseImagemForm({
   } = form
 
   return (
-    <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
-      <div className={styles.serviceModalBody}>
-        <div className="space-y-3">
-          <PeriodFieldsCalendarStyle
-            startValue={form.watch('period_start') ?? ''}
-            endValue={form.watch('period_end') ?? ''}
-            onChangeStart={(value) =>
-              form.setValue('period_start', value, { shouldValidate: true })
-            }
-            onChangeEnd={(value) =>
-              form.setValue('period_end', value, { shouldValidate: true })
-            }
-          />
-          {(errors.period_start?.message || errors.period_end?.message) && (
-            <p className="text-xs text-destructive">
-              {errors.period_start?.message || errors.period_end?.message}
-            </p>
-          )}
-
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Orientação</Label>
-            <Textarea
-              className={`min-h-[110px] ${styles.inputBg}`}
-              {...form.register('orientation')}
+    <form
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <PeriodFieldsCalendarStyle
+              startValue={form.watch('period_start') ?? ''}
+              endValue={form.watch('period_end') ?? ''}
+              onChangeStart={(value) =>
+                form.setValue('period_start', value, { shouldValidate: true })
+              }
+              onChangeEnd={(value) =>
+                form.setValue('period_end', value, { shouldValidate: true })
+              }
+              disabled={readOnly}
             />
-            {errors.orientation?.message && (
+            {(errors.period_start?.message || errors.period_end?.message) && (
               <p className="text-xs text-destructive">
-                {errors.orientation.message}
+                {errors.period_start?.message || errors.period_end?.message}
               </p>
             )}
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Orientação</Label>
+              <Textarea
+                className={`min-h-[110px] ${styles.inputBg}`}
+                {...form.register('orientation')}
+              />
+              {errors.orientation?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.orientation.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
@@ -849,6 +1176,7 @@ function OutrosForm({
   editIndex,
   onCancel,
   onSave,
+  readOnly = false,
 }: SimpleFormProps<TicketCreateForm['outros'][number]>) {
   const form = useForm<TicketCreateForm['outros'][number]>({
     resolver: zodResolver(serviceOutrosSchema),
@@ -872,28 +1200,55 @@ function OutrosForm({
   } = form
 
   return (
-    <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
-      <div className={styles.serviceModalBody}>
-        <div className="space-y-1.5">
-          <Label className={styles.fieldLabel}>Orientação</Label>
-          <Textarea
-            className={`min-h-[110px] ${styles.inputBg}`}
-            {...form.register('orientation')}
-          />
-          {errors.orientation?.message && (
-            <p className="text-xs text-destructive">
-              {errors.orientation.message}
-            </p>
-          )}
+    <form
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-1.5">
+            <Label className={styles.fieldLabel}>Orientação</Label>
+            <Textarea
+              className={`min-h-[110px] ${styles.inputBg}`}
+              {...form.register('orientation')}
+            />
+            {errors.orientation?.message && (
+              <p className="text-xs text-destructive">
+                {errors.orientation.message}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      </fieldset>
 
-      <FooterButtons onCancel={onCancel} />
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
     </form>
   )
 }
 
-function FooterButtons({ onCancel }: { onCancel: () => void }) {
+function FooterButtons({
+  onCancel,
+  readOnly = false,
+}: {
+  onCancel: () => void
+  readOnly?: boolean
+}) {
+  if (readOnly) {
+    return (
+      <DialogFooter className={styles.serviceModalFooter}>
+        <Button type="button" className={styles.saveButton} onClick={onCancel}>
+          Fechar
+        </Button>
+      </DialogFooter>
+    )
+  }
+
   return (
     <DialogFooter className={styles.serviceModalFooter}>
       <Button
