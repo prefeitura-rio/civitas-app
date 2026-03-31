@@ -80,7 +80,7 @@ export const changelog: Card[] = [
               paginada, pré-visualização do conteúdo e indicação de anexos. Na
               tela Converter e-mail, um e-mail selecionado pode ser transformado
               em chamado, reaproveitando o mesmo fluxo de cadastro (serviços,
-              correlatas, anexos e demais campos do formulário).
+              correlatas, anexos e demais campos).
             </p>
             <div className="flex gap-2">
               <Users className="mb-4 mt-6 size-6" />
