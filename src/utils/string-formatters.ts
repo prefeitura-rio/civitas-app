@@ -59,6 +59,17 @@ export function maskDigitsOnly(value: string, maxLength: number = 60) {
   return maxLength === Infinity ? digits : digits.slice(0, maxLength)
 }
 
+/** Completa com zeros à esquerda até `totalLength` (apenas dígitos do valor). */
+export function padDigitsLeft(
+  value: string | null | undefined,
+  totalLength: number,
+): string {
+  if (value == null || value === '') return ''
+  const digits = String(value).replace(/\D/g, '').slice(0, totalLength)
+  if (!digits) return ''
+  return digits.padStart(totalLength, '0')
+}
+
 /**
  * Placa veicular BR (Mercosul LLLNLNN ou antigo LLLNNNN): até 7 caracteres
  * alfanuméricos em maiúsculas, sem hífen (padrão atual).

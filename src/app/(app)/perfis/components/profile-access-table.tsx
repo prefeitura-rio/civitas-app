@@ -1,7 +1,10 @@
 'use client'
 
+import { Search } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
+import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Pagination } from '@/components/ui/pagination'
 import { useProfileAccessSearchParams } from '@/hooks/useParams/useProfileAccessSearchParams'
 import {
@@ -41,8 +44,32 @@ interface ProfileAccessTableProps {
 }
 
 export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
-  const { formattedSearchParams, queryKey, handlePaginate } =
-    useProfileAccessSearchParams()
+  const {
+    search,
+    formattedSearchParams,
+    queryKey,
+    handlePaginate,
+    handleSearch,
+  } = useProfileAccessSearchParams()
+
+  const [searchInput, setSearchInput] = useState(search)
+  const debouncedSearch = useDebounce(searchInput, 350)
+  const skipSearchInputSyncRef = useRef(false)
+
+  useEffect(() => {
+    if (skipSearchInputSyncRef.current) {
+      skipSearchInputSyncRef.current = false
+      return
+    }
+    setSearchInput(search)
+  }, [search])
+
+  useEffect(() => {
+    const next = debouncedSearch.trim()
+    if (next === search) return
+    skipSearchInputSyncRef.current = true
+    handleSearch(debouncedSearch)
+  }, [debouncedSearch, search, handleSearch])
 
   const { data: response, isLoading } = useQuery({
     queryKey,
@@ -64,6 +91,24 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
             Preencha as informações abaixo para criar um novo chamado.
           </p>
         </header>
+
+        <div className={styles.perfisSearchRow}>
+          <Search
+            className={styles.perfisSearchIcon}
+            size={18}
+            strokeWidth={2}
+            aria-hidden
+          />
+          <input
+            type="search"
+            className={styles.perfisSearchInput}
+            placeholder="Pesquisar por nome ou usuário..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            autoComplete="off"
+            enterKeyHint="search"
+          />
+        </div>
 
         <div className={styles.perfisTableCard}>
           <div className={styles.perfisTableContainer}>
