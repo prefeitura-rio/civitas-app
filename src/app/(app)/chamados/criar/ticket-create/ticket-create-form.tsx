@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { maskPhoneBR } from '@/utils/string-formatters'
+import { maskDigitsOnly, maskPhoneBR } from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../components/services/correlata-list-form'
 import { ServiceAddCard } from '../components/services/service-add-card'
@@ -46,7 +46,28 @@ import { DataBaseDatePicker } from '../components/shared/data-base-date-picker'
 import { PriorityButton } from '../components/shared/priority-button'
 import { Section } from '../components/shared/section'
 import { useTicketCreateController } from '../hooks/use-create-controller'
+import { TICKET_CREATE_STRING_LIMITS as L } from './ticket-create.constant'
 import styles from './ticket-create-form.module.css'
+
+function FieldStringError({
+  value,
+  max,
+  message,
+}: {
+  value: string | null | undefined
+  max: number
+  message?: string
+}) {
+  if ((value ?? '').length > max) {
+    return (
+      <p className="text-xs text-destructive">Máximo de {max} caracteres</p>
+    )
+  }
+  if (message) {
+    return <p className="text-xs text-destructive">{message}</p>
+  }
+  return null
+}
 
 function nullIfEmpty(value?: string | null) {
   if (value == null) return null
@@ -56,6 +77,9 @@ function nullIfEmpty(value?: string | null) {
 
 export function TicketCreateForm() {
   const vm = useTicketCreateController()
+  const associarChamadoId = vm.watch('associar_chamado_id')
+  const isAssociarConvertMode = Boolean(nullIfEmpty(associarChamadoId))
+
   const initialBuscaPorPlaca =
     vm.serviceModalOpen === 'busca_por_placa' &&
     vm.serviceModalEditIndex !== null
@@ -196,9 +220,10 @@ export function TicketCreateForm() {
                                 key={ticket.id}
                                 value={`${ticket.id} ${ticket.titulo}`}
                                 onSelect={() => {
-                                  field.onChange(ticket.id)
-                                  vm.setSelectedTicketLabel(ticket.titulo)
-                                  vm.setTicketSearch(ticket.titulo)
+                                  vm.applyAssociatedTicketFromSearch(
+                                    ticket.id,
+                                    ticket.titulo,
+                                  ).catch(() => {})
                                   vm.setTicketPopoverOpen(false)
                                 }}
                               >
@@ -285,11 +310,69 @@ export function TicketCreateForm() {
         >
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Órgão procedimento</Label>
+              <Controller
+                control={vm.control}
+                name="orgao_procedimento_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(v) => field.onChange(v || null)}
+                    disabled={vm.isLoading || vm.isOperationsLoading}
+                  >
+                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent className={styles.selectContentForm}>
+                      {vm.operations.map((op) => (
+                        <SelectItem
+                          key={op.id}
+                          value={op.id}
+                          className={styles.selectItemForm}
+                        >
+                          {op.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {vm.errors.orgao_procedimento_id?.message && (
+                <p className="text-xs text-destructive">
+                  {vm.errors.orgao_procedimento_id.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Nº de procedimento</Label>
-              <Input
-                className={`h-11 ${styles.inputBg}`}
-                disabled={vm.isLoading}
-                {...vm.register('numero_procedimento')}
+              <Controller
+                control={vm.control}
+                name="numero_procedimento"
+                render={({ field }) => (
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={vm.isLoading}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={field.value ?? ''}
+                    onBlur={field.onBlur}
+                    ref={field.ref}
+                    onChange={(e) =>
+                      field.onChange(
+                        maskDigitsOnly(
+                          e.target.value,
+                          Number.POSITIVE_INFINITY,
+                        ),
+                      )
+                    }
+                  />
+                )}
+              />
+              <FieldStringError
+                value={vm.watch('numero_procedimento')}
+                max={L.numero_procedimento}
+                message={vm.errors.numero_procedimento?.message}
               />
             </div>
 
@@ -299,6 +382,11 @@ export function TicketCreateForm() {
                 className={`h-11 ${styles.inputBg}`}
                 disabled={vm.isLoading}
                 {...vm.register('numero_oficio')}
+              />
+              <FieldStringError
+                value={vm.watch('numero_oficio')}
+                max={L.numero_oficio}
+                message={vm.errors.numero_oficio?.message}
               />
             </div>
 
@@ -384,6 +472,11 @@ export function TicketCreateForm() {
                     disabled={vm.isLoading}
                     {...vm.register('apelido_imprensa')}
                   />
+                  <FieldStringError
+                    value={vm.watch('apelido_imprensa')}
+                    max={L.apelido_imprensa}
+                    message={vm.errors.apelido_imprensa?.message}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -394,11 +487,11 @@ export function TicketCreateForm() {
                     placeholder="https://..."
                     {...vm.register('link_materia')}
                   />
-                  {vm.errors.link_materia?.message && (
-                    <p className="text-xs text-destructive">
-                      {vm.errors.link_materia.message}
-                    </p>
-                  )}
+                  <FieldStringError
+                    value={vm.watch('link_materia')}
+                    max={L.link_materia}
+                    message={vm.errors.link_materia?.message}
+                  />
                 </div>
               </>
             )}
@@ -436,14 +529,13 @@ export function TicketCreateForm() {
                   <Input
                     className={`h-11 ${styles.inputBg}`}
                     disabled={vm.isLoading}
-                    maxLength={120}
                     {...vm.register('bairro_correspondencia')}
                   />
-                  {vm.errors.bairro_correspondencia?.message && (
-                    <p className="text-xs text-destructive">
-                      {vm.errors.bairro_correspondencia.message}
-                    </p>
-                  )}
+                  <FieldStringError
+                    value={vm.watch('bairro_correspondencia')}
+                    max={L.bairro_correspondencia}
+                    message={vm.errors.bairro_correspondencia?.message}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -451,14 +543,13 @@ export function TicketCreateForm() {
                   <Input
                     className={`h-11 ${styles.inputBg}`}
                     disabled={vm.isLoading}
-                    maxLength={255}
                     {...vm.register('rua_correspondencia')}
                   />
-                  {vm.errors.rua_correspondencia?.message && (
-                    <p className="text-xs text-destructive">
-                      {vm.errors.rua_correspondencia.message}
-                    </p>
-                  )}
+                  <FieldStringError
+                    value={vm.watch('rua_correspondencia')}
+                    max={L.rua_correspondencia}
+                    message={vm.errors.rua_correspondencia?.message}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -466,14 +557,13 @@ export function TicketCreateForm() {
                   <Input
                     className={`h-11 ${styles.inputBg}`}
                     disabled={vm.isLoading}
-                    maxLength={20}
                     {...vm.register('numero_correspondencia')}
                   />
-                  {vm.errors.numero_correspondencia?.message && (
-                    <p className="text-xs text-destructive">
-                      {vm.errors.numero_correspondencia.message}
-                    </p>
-                  )}
+                  <FieldStringError
+                    value={vm.watch('numero_correspondencia')}
+                    max={L.numero_correspondencia}
+                    message={vm.errors.numero_correspondencia?.message}
+                  />
                 </div>
               </div>
             )}
@@ -529,11 +619,11 @@ export function TicketCreateForm() {
                   disabled={vm.isLoading}
                   {...vm.register('requisitante.requisitante_nome')}
                 />
-                {vm.errors.requisitante?.requisitante_nome?.message && (
-                  <p className="text-xs text-destructive">
-                    {vm.errors.requisitante?.requisitante_nome?.message}
-                  </p>
-                )}
+                <FieldStringError
+                  value={vm.watch('requisitante.requisitante_nome')}
+                  max={L.requisitante_nome}
+                  message={vm.errors.requisitante?.requisitante_nome?.message}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -562,11 +652,13 @@ export function TicketCreateForm() {
                     </div>
                   )}
                 />
-                {vm.errors.requisitante?.requisitante_telefone?.message && (
-                  <p className="text-xs text-destructive">
-                    {vm.errors.requisitante.requisitante_telefone.message}
-                  </p>
-                )}
+                <FieldStringError
+                  value={vm.watch('requisitante.requisitante_telefone')}
+                  max={L.requisitante_telefone}
+                  message={
+                    vm.errors.requisitante?.requisitante_telefone?.message
+                  }
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -581,30 +673,12 @@ export function TicketCreateForm() {
                   />
                   <Mail className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
                 </div>
-                {vm.errors.requisitante?.requisitante_email?.message && (
-                  <p className="text-xs text-destructive">
-                    {vm.errors.requisitante?.requisitante_email?.message}
-                  </p>
-                )}
+                <FieldStringError
+                  value={vm.watch('requisitante.requisitante_email')}
+                  max={L.requisitante_email}
+                  message={vm.errors.requisitante?.requisitante_email?.message}
+                />
               </div>
-            </div>
-
-            <div className="flex flex-col items-end gap-4">
-              <button
-                type="button"
-                disabled={vm.isLoading || vm.focalPoints.fields.length >= 20}
-                onClick={() =>
-                  vm.focalPoints.append({
-                    nome: '',
-                    telefone: '',
-                    email: null,
-                  })
-                }
-                className={styles.addPointFocalButton}
-              >
-                <Plus className="h-5 w-5 shrink-0" aria-hidden />
-                Adicionar Ponto Focal
-              </button>
             </div>
 
             <div className="space-y-3">
@@ -619,6 +693,11 @@ export function TicketCreateForm() {
                       className={`h-11 ${styles.inputBg}`}
                       disabled={vm.isLoading}
                       {...vm.register(`pontos_focais.${idx}.nome`)}
+                    />
+                    <FieldStringError
+                      value={vm.watch(`pontos_focais.${idx}.nome`)}
+                      max={L.ponto_focal_nome}
+                      message={vm.errors.pontos_focais?.[idx]?.nome?.message}
                     />
                   </div>
 
@@ -648,11 +727,13 @@ export function TicketCreateForm() {
                         </div>
                       )}
                     />
-                    {vm.errors.pontos_focais?.[idx]?.telefone?.message && (
-                      <p className="text-xs text-destructive">
-                        {vm.errors.pontos_focais[idx]?.telefone?.message}
-                      </p>
-                    )}
+                    <FieldStringError
+                      value={vm.watch(`pontos_focais.${idx}.telefone`)}
+                      max={L.ponto_focal_telefone}
+                      message={
+                        vm.errors.pontos_focais?.[idx]?.telefone?.message
+                      }
+                    />
                   </div>
 
                   <div className="space-y-1.5">
@@ -672,11 +753,13 @@ export function TicketCreateForm() {
                             aria-hidden
                           />
                         </div>
-                        {vm.errors.pontos_focais?.[idx]?.email?.message && (
-                          <p className="text-xs text-destructive">
-                            {vm.errors.pontos_focais[idx]?.email?.message}
-                          </p>
-                        )}
+                        <FieldStringError
+                          value={vm.watch(`pontos_focais.${idx}.email`)}
+                          max={L.ponto_focal_email}
+                          message={
+                            vm.errors.pontos_focais?.[idx]?.email?.message
+                          }
+                        />
                       </div>
                       <Button
                         type="button"
@@ -691,6 +774,24 @@ export function TicketCreateForm() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="flex flex-col items-end gap-4">
+              <button
+                type="button"
+                disabled={vm.isLoading || vm.focalPoints.fields.length >= 20}
+                onClick={() =>
+                  vm.focalPoints.append({
+                    nome: '',
+                    telefone: '',
+                    email: null,
+                  })
+                }
+                className={styles.addPointFocalButton}
+              >
+                <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                Adicionar Ponto Focal
+              </button>
             </div>
           </div>
         </Section>
@@ -789,8 +890,8 @@ export function TicketCreateForm() {
               }
               renderRow={(idx) => (
                 <CorrelataListForm
-                  register={vm.register}
                   control={vm.control}
+                  setValue={vm.setValue}
                   index={idx}
                   name="placas_correlatas"
                   disabled={vm.isLoading}
@@ -807,8 +908,8 @@ export function TicketCreateForm() {
               }
               renderRow={(idx) => (
                 <CorrelataListForm
-                  register={vm.register}
                   control={vm.control}
+                  setValue={vm.setValue}
                   index={idx}
                   name="placas_conjuntas"
                   disabled={vm.isLoading}
@@ -942,6 +1043,11 @@ export function TicketCreateForm() {
             className={`${styles.fakeEditor} ${styles.inputBg}`}
             {...vm.register('comentario_inicial')}
           />
+          <FieldStringError
+            value={vm.watch('comentario_inicial')}
+            max={L.comentario_inicial}
+            message={vm.errors.comentario_inicial?.message}
+          />
         </Section>
 
         <Section
@@ -1012,7 +1118,7 @@ export function TicketCreateForm() {
               variant="secondary"
               className={styles.cancelButton}
               disabled={vm.isLoading}
-              onClick={() => vm.reset(vm.defaultValues)}
+              onClick={() => vm.resetFormToDefaults()}
             >
               Cancelar
             </Button>
@@ -1022,7 +1128,13 @@ export function TicketCreateForm() {
               disabled={vm.isLoading}
               className={styles.saveButton}
             >
-              {vm.isLoading ? 'Salvando...' : 'Salvar'}
+              {vm.isLoading
+                ? vm.isConvertingToConventional
+                  ? 'Convertendo...'
+                  : 'Salvando...'
+                : isAssociarConvertMode
+                  ? 'Converter chamado'
+                  : 'Salvar'}
             </Button>
           </div>
         </div>
@@ -1043,7 +1155,9 @@ export function TicketCreateForm() {
         initialOutros={initialOutros}
         onSaveBuscaPorPlaca={(value, editIndex) => {
           const normalized = {
-            plate: value.plate ?? null,
+            plates: (value.plates ?? [])
+              .map((p) => p.trim())
+              .filter((p) => p.length > 0),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
           }
@@ -1058,10 +1172,12 @@ export function TicketCreateForm() {
         }}
         onSaveBuscaPorRadar={(value, editIndex) => {
           const normalized = {
-            plate: value.plate,
+            plates: (value.plates ?? [])
+              .map((p) => p.trim())
+              .filter((p) => p.length > 0),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
-            radar_address: nullIfEmpty(value.radar_address),
+            orientation: nullIfEmpty(value.orientation),
           }
 
           if (editIndex !== null) {
@@ -1105,13 +1221,13 @@ export function TicketCreateForm() {
         }}
         onSavePlacasCorrelatas={(value, editIndex) => {
           const normalized = {
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
             interest_interval_minutes: value.interest_interval_minutes,
             detection_count: value.detection_count,
             detection: value.detection,
-            items: value.items.map((item) => ({
+            plates: value.plates.map((item) => ({
               plate: item.plate,
-              period_start: nullIfEmpty(item.period_start),
-              period_end: nullIfEmpty(item.period_end),
             })),
           }
 
@@ -1125,13 +1241,13 @@ export function TicketCreateForm() {
         }}
         onSavePlacasConjuntas={(value, editIndex) => {
           const normalized = {
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
             interest_interval_minutes: value.interest_interval_minutes,
             detection_count: value.detection_count,
             detection: value.detection,
-            items: value.items.map((item) => ({
+            plates: value.plates.map((item) => ({
               plate: item.plate,
-              period_start: nullIfEmpty(item.period_start),
-              period_end: nullIfEmpty(item.period_end),
             })),
           }
 

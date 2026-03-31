@@ -112,6 +112,13 @@ function getPriorityBadgeValue(item: DashboardItem) {
   return null
 }
 
+/** Cores do count ao lado da prioridade: 1–15 verde, 16–24 amarelo, ≥25 vermelho */
+function getPriorityCountBadgeClass(count: number) {
+  if (count <= 15) return styles.prioritySuccessBadge
+  if (count <= 24) return styles.priorityWarningBadge
+  return styles.priorityDangerBadge
+}
+
 function getServiceClassName(label: string) {
   const normalized = label.trim().toLowerCase()
 
@@ -255,11 +262,7 @@ function DashboardSectionTable({
 
                         {badgeValue ? (
                           <span
-                            className={
-                              normalizePriority(item.prioridade) === 'Urgente'
-                                ? styles.priorityDangerBadge
-                                : styles.priorityWarningBadge
-                            }
+                            className={getPriorityCountBadgeClass(badgeValue)}
                           >
                             {badgeValue}
                           </span>

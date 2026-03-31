@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
@@ -17,7 +17,6 @@ import {
   SquareCheck,
   Trash,
   Upload,
-  X,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -50,6 +49,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
+import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { maskPhoneBR } from '@/utils/string-formatters'
 
 import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
@@ -223,6 +223,7 @@ function CompactServiceList<T extends { id: string }>({
 export function EmailToTicketView() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
   const emailId = searchParams.get('email_id')?.trim() || null
 
   const vm = useTicketCreateController()
@@ -251,8 +252,37 @@ export function EmailToTicketView() {
   const email = emailResponse?.data
 
   useEffect(() => {
+    if (!emailId) return
+
+    let cancelled = false
+
+    markEmailAsAguardandoResposta(emailId)
+      .then(() => {
+        if (cancelled) return
+        queryClient.invalidateQueries({ queryKey: ['emails-inbox-nao-lidos'] })
+        queryClient.invalidateQueries({
+          queryKey: ['emails-inbox-aguardando-resposta'],
+        })
+        queryClient.invalidateQueries({ queryKey: ['email-detail', emailId] })
+      })
+      .catch(() => {
+        if (cancelled) return
+        toast.error(
+          'Não foi possível marcar o e-mail como aguardando resposta.',
+        )
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [emailId, queryClient])
+
+  useEffect(() => {
     if (!vm.isLoading) setActiveSubmit(null)
   }, [vm.isLoading])
+
+  const associarChamadoId = vm.watch('associar_chamado_id')
+  const isAssociarConvertMode = Boolean(nullIfEmpty(associarChamadoId))
 
   useEffect(() => {
     if (!email) return
@@ -412,14 +442,6 @@ export function EmailToTicketView() {
     <div className={styles.root}>
       <div className={styles.topBar}>
         <span className={styles.topBarTitle}>Converter em Chamado</span>
-        <button
-          type="button"
-          className={styles.closeButton}
-          onClick={() => router.push('/chamados/caixa-entrada')}
-          aria-label="Fechar"
-        >
-          <X className="h-5 w-5" />
-        </button>
       </div>
 
       <div className={styles.mainLayout}>
@@ -583,10 +605,25 @@ export function EmailToTicketView() {
               setActiveSubmit(intent)
               vm.handleSubmit(
                 async (data) => {
-                  const filesToSend = await buildFilesForTicketSubmit()
-                  await vm.onSubmitFromEmail(data, emailId, filesToSend)
-                  if (intent === 'save') {
-                    router.push('/chamados/caixa-entrada')
+                  try {
+                    const isConvert = Boolean(
+                      nullIfEmpty(data.associar_chamado_id),
+                    )
+                    const filesToSend = isConvert
+                      ? []
+                      : await buildFilesForTicketSubmit()
+                    const saveAndNew = intent === 'save-and-new' && !isConvert
+                    await vm.onSubmitFromEmail(data, emailId, filesToSend, {
+                      saveAndNew,
+                    })
+                    if (intent === 'save' || isConvert) {
+                      router.push('/chamados/caixa-entrada')
+                    } else {
+                      setEmailAttachmentSelectedIds(new Set())
+                      setManualFileSelected({})
+                    }
+                  } finally {
+                    setActiveSubmit(null)
                   }
                 },
                 () => {
@@ -670,11 +707,10 @@ export function EmailToTicketView() {
                                         key={ticket.id}
                                         value={`${ticket.id} ${ticket.titulo}`}
                                         onSelect={() => {
-                                          field.onChange(ticket.id)
-                                          vm.setSelectedTicketLabel(
+                                          vm.applyAssociatedTicketFromSearch(
+                                            ticket.id,
                                             ticket.titulo,
-                                          )
-                                          vm.setTicketSearch(ticket.titulo)
+                                          ).catch(() => {})
                                           vm.setTicketPopoverOpen(false)
                                         }}
                                       >
@@ -762,6 +798,43 @@ export function EmailToTicketView() {
                   onToggle={() => vm.toggleSection('info')}
                 >
                   <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className={styles.fieldLabel}>
+                        Órgão procedimento
+                      </Label>
+                      <Controller
+                        control={vm.control}
+                        name="orgao_procedimento_id"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value ?? ''}
+                            onValueChange={(v) => field.onChange(v || null)}
+                            disabled={vm.isLoading || vm.isOperationsLoading}
+                          >
+                            <SelectTrigger className={`h-11 ${styles.inputBg}`}>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent className={styles.selectContentForm}>
+                              {vm.operations.map((op) => (
+                                <SelectItem
+                                  key={op.id}
+                                  value={op.id}
+                                  className={styles.selectItemForm}
+                                >
+                                  {op.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {vm.errors.orgao_procedimento_id?.message && (
+                        <p className="text-xs text-destructive">
+                          {vm.errors.orgao_procedimento_id.message}
+                        </p>
+                      )}
+                    </div>
+
                     <div className="space-y-1.5">
                       <Label className={styles.fieldLabel}>
                         Nº de procedimento
@@ -1274,8 +1347,8 @@ export function EmailToTicketView() {
                       }
                       renderRow={(idx) => (
                         <CorrelataListForm
-                          register={vm.register}
                           control={vm.control}
+                          setValue={vm.setValue}
                           index={idx}
                           name="placas_correlatas"
                           disabled={vm.isLoading}
@@ -1292,8 +1365,8 @@ export function EmailToTicketView() {
                       }
                       renderRow={(idx) => (
                         <CorrelataListForm
-                          register={vm.register}
                           control={vm.control}
+                          setValue={vm.setValue}
                           index={idx}
                           name="placas_conjuntas"
                           disabled={vm.isLoading}
@@ -1616,8 +1689,12 @@ export function EmailToTicketView() {
                 disabled={vm.isLoading}
               >
                 {vm.isLoading && activeSubmit === 'save'
-                  ? 'Salvando...'
-                  : 'Salvar Chamado'}
+                  ? vm.isConvertingToConventional
+                    ? 'Convertendo...'
+                    : 'Salvando...'
+                  : isAssociarConvertMode
+                    ? 'Converter chamado'
+                    : 'Salvar Chamado'}
               </button>
               <button
                 type="submit"
@@ -1626,14 +1703,18 @@ export function EmailToTicketView() {
                 disabled={vm.isLoading}
               >
                 {vm.isLoading && activeSubmit === 'save-and-new'
-                  ? 'Salvando...'
-                  : 'Salvar e Criar Novo Chamado'}
+                  ? vm.isConvertingToConventional
+                    ? 'Convertendo...'
+                    : 'Salvando...'
+                  : isAssociarConvertMode
+                    ? 'Converter e criar novo chamado'
+                    : 'Salvar e Criar Novo Chamado'}
               </button>
               <button
                 type="button"
                 className={styles.footerBtnTertiary}
                 disabled={vm.isLoading}
-                onClick={() => vm.reset(vm.defaultValues)}
+                onClick={() => vm.resetFormToDefaults()}
               >
                 Cancelar
               </button>
@@ -1658,7 +1739,9 @@ export function EmailToTicketView() {
         initialOutros={initialOutros}
         onSaveBuscaPorPlaca={(value, editIndex) => {
           const normalized = {
-            plate: value.plate ?? null,
+            plates: (value.plates ?? [])
+              .map((p) => p.trim())
+              .filter((p) => p.length > 0),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
           }
@@ -1671,10 +1754,12 @@ export function EmailToTicketView() {
         }}
         onSaveBuscaPorRadar={(value, editIndex) => {
           const normalized = {
-            plate: value.plate,
+            plates: (value.plates ?? [])
+              .map((p) => p.trim())
+              .filter((p) => p.length > 0),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
-            radar_address: nullIfEmpty(value.radar_address),
+            orientation: nullIfEmpty(value.orientation),
           }
           if (editIndex !== null) {
             vm.buscaPorRadar.update(editIndex, normalized)
@@ -1712,13 +1797,13 @@ export function EmailToTicketView() {
         }}
         onSavePlacasCorrelatas={(value, editIndex) => {
           const normalized = {
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
             interest_interval_minutes: value.interest_interval_minutes,
             detection_count: value.detection_count,
             detection: value.detection,
-            items: value.items.map((item) => ({
+            plates: value.plates.map((item) => ({
               plate: item.plate,
-              period_start: nullIfEmpty(item.period_start),
-              period_end: nullIfEmpty(item.period_end),
             })),
           }
           if (editIndex !== null) {
@@ -1730,13 +1815,13 @@ export function EmailToTicketView() {
         }}
         onSavePlacasConjuntas={(value, editIndex) => {
           const normalized = {
+            period_start: nullIfEmpty(value.period_start),
+            period_end: nullIfEmpty(value.period_end),
             interest_interval_minutes: value.interest_interval_minutes,
             detection_count: value.detection_count,
             detection: value.detection,
-            items: value.items.map((item) => ({
+            plates: value.plates.map((item) => ({
               plate: item.plate,
-              period_start: nullIfEmpty(item.period_start),
-              period_end: nullIfEmpty(item.period_end),
             })),
           }
           if (editIndex !== null) {

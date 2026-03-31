@@ -1,10 +1,10 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronLeft, X } from 'lucide-react'
+import { ChevronLeft, Plus, Trash, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -17,17 +17,20 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { maskPlateBR } from '@/utils/string-formatters'
 
 import {
   type CorrelataDraft,
+  type CorrelataDraftItem,
   emptyAnaliseImagemDraft,
   emptyBuscaPorImagemDraft,
-  emptyBuscaPorPlacaDraft,
-  emptyBuscaPorRadarDraft,
   emptyCercoDraft,
   emptyCorrelataDraft,
+  emptyCorrelataItem,
   emptyOutrosDraft,
   emptyReservaImagemDraft,
+  normalizeBuscaPorPlacaForForm,
+  normalizeBuscaPorRadarForForm,
   type OpenServiceKey,
   SERVICE_CONFIG,
 } from '../../ticket-create/ticket-create.constant'
@@ -268,6 +271,60 @@ type SimpleFormProps<T> = {
   onSave: (value: T, editIndex: number | null) => void
 }
 
+function normalizePlatesMaskedForBusca(
+  initial: ReturnType<typeof normalizeBuscaPorPlacaForForm>,
+) {
+  return {
+    ...initial,
+    plates: initial.plates.map((p) => maskPlateBR(p)),
+  }
+}
+
+function normalizePlatesMaskedForRadar(
+  initial: ReturnType<typeof normalizeBuscaPorRadarForForm>,
+) {
+  return {
+    ...initial,
+    plates: initial.plates.map((p) => maskPlateBR(p)),
+  }
+}
+
+function normalizeCercoPlateForForm(
+  initial?: TicketCreateForm['cerco_eletronico'][number],
+) {
+  const base = initial ?? {
+    ...emptyCercoDraft(),
+    vehicle_observations: null,
+  }
+  return {
+    ...base,
+    plate:
+      base.plate != null && String(base.plate).trim() !== ''
+        ? maskPlateBR(String(base.plate))
+        : '',
+  }
+}
+
+function normalizeBuscaPorImagemPlateForForm(
+  initial?: TicketCreateForm['busca_por_imagem'][number],
+) {
+  const base = initial ?? {
+    ...emptyBuscaPorImagemDraft(),
+    period_start: null,
+    period_end: null,
+    plate: null,
+    address: null,
+    description: null,
+  }
+  return {
+    ...base,
+    plate:
+      base.plate != null && String(base.plate).trim() !== ''
+        ? maskPlateBR(String(base.plate))
+        : '',
+  }
+}
+
 function BuscaPorPlacaForm({
   initialValue,
   editIndex,
@@ -276,26 +333,37 @@ function BuscaPorPlacaForm({
 }: SimpleFormProps<TicketCreateForm['busca_por_placa'][number]>) {
   const form = useForm<TicketCreateForm['busca_por_placa'][number]>({
     resolver: zodResolver(serviceBuscaPorPlacaSchema),
-    defaultValues: initialValue ?? {
-      ...emptyBuscaPorPlacaDraft(),
-      period_start: null,
-      period_end: null,
-    },
+    defaultValues: normalizePlatesMaskedForBusca(
+      normalizeBuscaPorPlacaForForm(initialValue),
+    ),
   })
 
   useEffect(() => {
     form.reset(
-      initialValue ?? {
-        ...emptyBuscaPorPlacaDraft(),
-        period_start: null,
-        period_end: null,
-      },
+      normalizePlatesMaskedForBusca(
+        normalizeBuscaPorPlacaForForm(initialValue),
+      ),
     )
   }, [initialValue, form])
 
   const {
     formState: { errors },
   } = form
+
+  const plates = form.watch('plates') ?? ['']
+
+  const addPlate = () => {
+    form.setValue('plates', [...plates, ''], { shouldValidate: true })
+  }
+
+  const removePlate = (index: number) => {
+    if (plates.length <= 1) return
+    form.setValue(
+      'plates',
+      plates.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
 
   return (
     <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
@@ -312,15 +380,54 @@ function BuscaPorPlacaForm({
             }
           />
 
-          <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
-            />
-            {errors.plate?.message && (
-              <p className="text-xs text-destructive">{errors.plate.message}</p>
+          <div className="space-y-2">
+            <Label className={styles.fieldLabel}>Placas do veículo</Label>
+            {plates.map((_, index) => (
+              <div key={index} className="flex gap-2">
+                <Controller
+                  control={form.control}
+                  name={`plates.${index}`}
+                  render={({ field }) => (
+                    <Input
+                      className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                      value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(maskPlateBR(e.target.value))
+                      }
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  )}
+                />
+                {plates.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removePlate(index)}
+                    title="Remover placa"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            {errors.plates?.message && (
+              <p className="text-xs text-destructive">
+                {errors.plates.message}
+              </p>
             )}
+            <div className="flex flex-col items-end">
+              <button
+                type="button"
+                onClick={addPlate}
+                className={styles.addPointFocalButton}
+              >
+                <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                Adicionar placa
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -338,28 +445,37 @@ function BuscaPorRadarForm({
 }: SimpleFormProps<TicketCreateForm['busca_por_radar'][number]>) {
   const form = useForm<TicketCreateForm['busca_por_radar'][number]>({
     resolver: zodResolver(serviceBuscaPorRadarSchema),
-    defaultValues: initialValue ?? {
-      ...emptyBuscaPorRadarDraft(),
-      period_start: null,
-      period_end: null,
-      radar_address: null,
-    },
+    defaultValues: normalizePlatesMaskedForRadar(
+      normalizeBuscaPorRadarForForm(initialValue),
+    ),
   })
 
   useEffect(() => {
     form.reset(
-      initialValue ?? {
-        ...emptyBuscaPorRadarDraft(),
-        period_start: null,
-        period_end: null,
-        radar_address: null,
-      },
+      normalizePlatesMaskedForRadar(
+        normalizeBuscaPorRadarForForm(initialValue),
+      ),
     )
   }, [initialValue, form])
 
   const {
     formState: { errors },
   } = form
+
+  const plates = form.watch('plates') ?? ['']
+
+  const addPlate = () => {
+    form.setValue('plates', [...plates, ''], { shouldValidate: true })
+  }
+
+  const removePlate = (index: number) => {
+    if (plates.length <= 1) return
+    form.setValue(
+      'plates',
+      plates.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
 
   return (
     <form onSubmit={form.handleSubmit((value) => onSave(value, editIndex))}>
@@ -382,27 +498,66 @@ function BuscaPorRadarForm({
           )}
 
           <div className="space-y-1.5">
-            <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
-            />
-            {errors.plate?.message && (
-              <p className="text-xs text-destructive">{errors.plate.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
             <Label className={styles.fieldLabel}>Orientação</Label>
             <Textarea
               className={`min-h-[92px] ${styles.inputBg}`}
-              {...form.register('radar_address')}
+              {...form.register('orientation')}
             />
-            {errors.radar_address?.message && (
+            {errors.orientation?.message && (
               <p className="text-xs text-destructive">
-                {errors.radar_address.message}
+                {errors.orientation.message}
               </p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label className={styles.fieldLabel}>Placas do veículo</Label>
+            {plates.map((_, index) => (
+              <div key={index} className="flex gap-2">
+                <Controller
+                  control={form.control}
+                  name={`plates.${index}`}
+                  render={({ field }) => (
+                    <Input
+                      className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                      value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(maskPlateBR(e.target.value))
+                      }
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  )}
+                />
+                {plates.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removePlate(index)}
+                    title="Remover placa"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            {errors.plates?.message && (
+              <p className="text-xs text-destructive">
+                {errors.plates.message}
+              </p>
+            )}
+            <div className="flex flex-col items-end">
+              <button
+                type="button"
+                onClick={addPlate}
+                className={styles.addPointFocalButton}
+              >
+                <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                Adicionar placa
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -420,19 +575,11 @@ function CercoForm({
 }: SimpleFormProps<TicketCreateForm['cerco_eletronico'][number]>) {
   const form = useForm<TicketCreateForm['cerco_eletronico'][number]>({
     resolver: zodResolver(serviceCercoSchema),
-    defaultValues: initialValue ?? {
-      ...emptyCercoDraft(),
-      vehicle_observations: null,
-    },
+    defaultValues: normalizeCercoPlateForForm(initialValue),
   })
 
   useEffect(() => {
-    form.reset(
-      initialValue ?? {
-        ...emptyCercoDraft(),
-        vehicle_observations: null,
-      },
-    )
+    form.reset(normalizeCercoPlateForForm(initialValue))
   }, [initialValue, form])
 
   const {
@@ -445,9 +592,19 @@ function CercoForm({
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
+            <Controller
+              control={form.control}
+              name="plate"
+              render={({ field }) => (
+                <Input
+                  className={`h-11 ${styles.inputBg}`}
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(maskPlateBR(e.target.value))}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
+              )}
             />
             {errors.plate?.message && (
               <p className="text-xs text-destructive">{errors.plate.message}</p>
@@ -482,27 +639,11 @@ function BuscaPorImagemForm({
 }: SimpleFormProps<TicketCreateForm['busca_por_imagem'][number]>) {
   const form = useForm<TicketCreateForm['busca_por_imagem'][number]>({
     resolver: zodResolver(serviceBuscaPorImagemSchema),
-    defaultValues: initialValue ?? {
-      ...emptyBuscaPorImagemDraft(),
-      period_start: null,
-      period_end: null,
-      plate: null,
-      address: null,
-      description: null,
-    },
+    defaultValues: normalizeBuscaPorImagemPlateForForm(initialValue),
   })
 
   useEffect(() => {
-    form.reset(
-      initialValue ?? {
-        ...emptyBuscaPorImagemDraft(),
-        period_start: null,
-        period_end: null,
-        plate: null,
-        address: null,
-        description: null,
-      },
-    )
+    form.reset(normalizeBuscaPorImagemPlateForForm(initialValue))
   }, [initialValue, form])
 
   const {
@@ -531,9 +672,19 @@ function BuscaPorImagemForm({
 
           <div className="space-y-1.5">
             <Label className={styles.fieldLabel}>Placa do veículo</Label>
-            <Input
-              className={`h-11 ${styles.inputBg}`}
-              {...form.register('plate')}
+            <Controller
+              control={form.control}
+              name="plate"
+              render={({ field }) => (
+                <Input
+                  className={`h-11 ${styles.inputBg}`}
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(maskPlateBR(e.target.value))}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
+              )}
             />
             {errors.plate?.message && (
               <p className="text-xs text-destructive">{errors.plate.message}</p>
@@ -573,32 +724,64 @@ function BuscaPorImagemForm({
   )
 }
 
+function strFromForm(v: string | null | undefined) {
+  if (v == null) return ''
+  return String(v)
+}
+
 function toCorrelataDraft(
   value?:
     | TicketCreateForm['placas_correlatas'][number]
     | TicketCreateForm['placas_conjuntas'][number],
 ): CorrelataDraft {
+  const legacyItems = (
+    value as {
+      items?: {
+        plate?: string | null
+        period_start?: string | null
+        period_end?: string | null
+      }[]
+    }
+  )?.items
+
+  let periodStart = strFromForm(value?.period_start)
+  let periodEnd = strFromForm(value?.period_end)
+
+  let plates: CorrelataDraftItem[]
+  if (value?.plates && value.plates.length > 0) {
+    plates = value.plates.map((p) => ({
+      plate: maskPlateBR(strFromForm(p?.plate)),
+    }))
+  } else if (legacyItems && legacyItems.length > 0) {
+    plates = legacyItems.map((i) => ({
+      plate: maskPlateBR(strFromForm(i?.plate)),
+    }))
+    if (!periodStart && legacyItems[0]) {
+      periodStart = strFromForm(legacyItems[0].period_start)
+      periodEnd = strFromForm(legacyItems[0].period_end)
+    }
+  } else {
+    plates = [emptyCorrelataItem()]
+  }
+
   return {
-    items: (value?.items?.length
-      ? value.items
-      : [{ plate: '', period_start: '', period_end: '' }]
-    ).map((item) => ({
-      plate: item?.plate ?? '',
-      period_start: item?.period_start ?? '',
-      period_end: item?.period_end ?? '',
-    })),
+    period_start: periodStart,
+    period_end: periodEnd,
+    plates,
     interest_interval_minutes: value?.interest_interval_minutes ?? 1,
     detection_count: value?.detection_count ?? 10,
     detection: value?.detection ?? null,
   }
 }
 
-function fromCorrelataDraft(draft: CorrelataDraft) {
+function fromCorrelataDraft(
+  draft: CorrelataDraft,
+): TicketCreateForm['placas_correlatas'][number] {
   return {
-    items: draft.items.map((item) => ({
-      plate: item.plate,
-      period_start: item.period_start || null,
-      period_end: item.period_end || null,
+    period_start: draft.period_start?.trim() ? draft.period_start : null,
+    period_end: draft.period_end?.trim() ? draft.period_end : null,
+    plates: draft.plates.map((p) => ({
+      plate: p.plate?.trim() ? p.plate : null,
     })),
     interest_interval_minutes: draft.interest_interval_minutes,
     detection_count: draft.detection_count,
@@ -614,11 +797,18 @@ function PlacasCorrelatasForm({
 }: SimpleFormProps<TicketCreateForm['placas_correlatas'][number]>) {
   const form = useForm<TicketCreateForm['placas_correlatas'][number]>({
     resolver: zodResolver(servicePlacasCorrelatasSchema),
-    defaultValues: initialValue ?? emptyCorrelataDraft(),
+    defaultValues:
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
   })
 
   useEffect(() => {
-    form.reset(initialValue ?? emptyCorrelataDraft())
+    form.reset(
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
+    )
   }, [initialValue, form])
   const draft = toCorrelataDraft(form.watch())
   return (
@@ -639,13 +829,17 @@ function PlacasCorrelatasForm({
               keepDirty: true,
               keepTouched: true,
             })
-
-            form.trigger().catch(() => {})
           }}
           onAdd={() => {}}
           hideAddButton
           useCalendarStyle
           errors={toRecordErrors(form.formState.errors)}
+          onPlateBlur={() => {
+            form.trigger('plates').catch(() => {})
+          }}
+          onPlateChange={() => {
+            form.trigger('plates').catch(() => {})
+          }}
         />
       </div>
 
@@ -662,11 +856,18 @@ function PlacasConjuntasForm({
 }: SimpleFormProps<TicketCreateForm['placas_conjuntas'][number]>) {
   const form = useForm<TicketCreateForm['placas_conjuntas'][number]>({
     resolver: zodResolver(servicePlacasConjuntasSchema),
-    defaultValues: initialValue ?? emptyCorrelataDraft(),
+    defaultValues:
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
   })
 
   useEffect(() => {
-    form.reset(initialValue ?? emptyCorrelataDraft())
+    form.reset(
+      initialValue != null
+        ? fromCorrelataDraft(toCorrelataDraft(initialValue))
+        : fromCorrelataDraft(emptyCorrelataDraft()),
+    )
   }, [initialValue, form])
   const draft = toCorrelataDraft(form.watch())
   return (
@@ -687,13 +888,17 @@ function PlacasConjuntasForm({
               keepDirty: true,
               keepTouched: true,
             })
-
-            form.trigger().catch(() => {})
           }}
           onAdd={() => {}}
           hideAddButton
           useCalendarStyle
           errors={toRecordErrors(form.formState.errors)}
+          onPlateBlur={() => {
+            form.trigger('plates').catch(() => {})
+          }}
+          onPlateChange={() => {
+            form.trigger('plates').catch(() => {})
+          }}
         />
       </div>
 
