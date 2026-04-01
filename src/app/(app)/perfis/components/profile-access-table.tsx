@@ -1,8 +1,8 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Pagination } from '@/components/ui/pagination'
