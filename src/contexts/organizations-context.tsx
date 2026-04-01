@@ -36,7 +36,12 @@ export const organizationFormSchema = z.object({
   name: z.string().min(1, { message: 'Campo obrigatório' }),
   organizationType: z.string().min(1, { message: 'Campo obrigatório' }),
   acronym: z.string().min(1, { message: 'Campo obrigatório' }),
-  jurisdictionLevel: z.string().min(1, { message: 'Campo obrigatório' }),
+  jurisdictionLevel: z
+    .string()
+    .refine(
+      (value) => ['municipal', 'state', 'federal'].includes(value),
+      'Campo obrigatório',
+    ),
 })
 
 export type OrganizationForm = z.infer<typeof organizationFormSchema>

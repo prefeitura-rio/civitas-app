@@ -8,7 +8,10 @@ import { Label } from '@/components/ui/label'
 import { useDemandantsContext } from '@/hooks/useContexts/use-demandants-context'
 import { useDemandantsSearchParams } from '@/hooks/useParams/useDemandantsSearchParams'
 import { useProfile } from '@/hooks/useQueries/useProfile'
-import { getOrganizations } from '@/http/organizations/get-organizations'
+import {
+  getOrganizationsForDemandantsFilter,
+  ORGANIZATIONS_DEMANDANTS_FILTER_QUERY_KEY,
+} from '@/http/organizations/get-organizations'
 import { notAllowed } from '@/utils/template-messages'
 
 export function DemandantsHeader() {
@@ -17,12 +20,15 @@ export function DemandantsHeader() {
   const { formattedSearchParams, setOrganizationFilter } =
     useDemandantsSearchParams()
 
-  const { data: orgsResponse } = useQuery({
-    queryKey: ['organizations', 'filter-options', 200],
-    queryFn: () => getOrganizations({ page: 1, size: 200 }),
+  const {
+    data: organizations = [],
+    isLoading: isLoadingOrganizations,
+    isError: isOrganizationsError,
+  } = useQuery({
+    queryKey: ORGANIZATIONS_DEMANDANTS_FILTER_QUERY_KEY,
+    queryFn: getOrganizationsForDemandantsFilter,
+    staleTime: 60_000,
   })
-
-  const organizations = orgsResponse?.data.items ?? []
 
   const selectedOrg = organizations.find(
     (o) => o.id === formattedSearchParams.organizationId,
@@ -40,8 +46,15 @@ export function DemandantsHeader() {
             Filtrar por organização
           </Label>
           <SelectWithSearch
-            placeholder="Todas as organizações"
-            value={filterDisplay}
+            placeholder={
+              isLoadingOrganizations
+                ? 'Carregando organizações…'
+                : isOrganizationsError
+                  ? 'Erro ao carregar organizações'
+                  : 'Todas as organizações'
+            }
+            value={isLoadingOrganizations ? '' : filterDisplay}
+            disabled={isLoadingOrganizations}
             options={[
               { label: 'Todas as organizações', value: '' },
               ...organizations.map((o) => ({
@@ -51,6 +64,12 @@ export function DemandantsHeader() {
             ]}
             onSelect={(item) => setOrganizationFilter(item.value || undefined)}
           />
+          {isOrganizationsError ? (
+            <p className="text-xs text-destructive">
+              Não foi possível carregar a lista de organizações. Atualize a
+              página ou tente novamente.
+            </p>
+          ) : null}
         </div>
         <Tooltip
           disabledText={notAllowed}

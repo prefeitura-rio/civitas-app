@@ -29,18 +29,27 @@ export function useDemandantsSearchParams(): UseDemandantsSearchParamsReturn {
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
-  const organizationId = searchParams.get('organizationId') || undefined
+  const organizationId =
+    searchParams.get('organizationId') ||
+    searchParams.get('organization_id') ||
+    undefined
 
   function handlePaginate(index: number) {
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', String(index))
-    if (organizationId) params.set('organizationId', organizationId)
+    params.delete('organization_id')
+    if (organizationId) {
+      params.set('organizationId', organizationId)
+    } else {
+      params.delete('organizationId')
+    }
     router.push(`${pathName}?${params.toString()}`)
   }
 
   function setOrganizationFilter(nextOrganizationId: string | undefined) {
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', '1')
+    params.delete('organization_id')
     if (nextOrganizationId) {
       params.set('organizationId', nextOrganizationId)
     } else {

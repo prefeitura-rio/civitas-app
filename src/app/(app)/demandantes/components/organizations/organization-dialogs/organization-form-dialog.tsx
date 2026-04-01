@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { InputError } from '@/components/custom/input-error'
@@ -16,6 +16,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   type OrganizationForm,
   organizationFormSchema,
@@ -38,6 +45,12 @@ export function OrganizationFormDialog({
   onClose,
   onOpen,
 }: OrganizationFormDialogProps) {
+  const jurisdictionOptions = [
+    { value: 'municipal', label: 'Municipal' },
+    { value: 'state', label: 'Estadual' },
+    { value: 'federal', label: 'Federal' },
+  ] as const
+
   const [isLoading, setIsLoading] = useState(false)
   const {
     dialogInitialData: initialData,
@@ -48,6 +61,7 @@ export function OrganizationFormDialog({
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<OrganizationForm>({
@@ -168,10 +182,15 @@ export function OrganizationFormDialog({
         <form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="org-name">Nome</Label>
+              <Label htmlFor="org-name">Requisitante</Label>
               <InputError message={errors.name?.message} />
             </div>
-            <Input id="org-name" {...register('name')} disabled={isLoading} />
+            <Input
+              id="org-name"
+              {...register('name')}
+              disabled={isLoading}
+              placeholder="Ex.: 10ª DP - Botafogo"
+            />
           </div>
 
           <div className="flex flex-col gap-1">
@@ -182,33 +201,50 @@ export function OrganizationFormDialog({
             <Input
               id="org-type"
               {...register('organizationType')}
-              placeholder="ex.: delegacia, legacy"
+              placeholder="Ex.: Delegacia de Polícia Civil"
               disabled={isLoading}
             />
           </div>
 
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="org-acronym">Sigla</Label>
+              <Label htmlFor="org-acronym">Órgão</Label>
               <InputError message={errors.acronym?.message} />
             </div>
             <Input
               id="org-acronym"
               {...register('acronym')}
               disabled={isLoading}
+              placeholder="Ex.: PCERJ"
             />
           </div>
 
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="org-jurisdiction">Esfera / jurisdição</Label>
+              <Label>Competência</Label>
               <InputError message={errors.jurisdictionLevel?.message} />
             </div>
-            <Input
-              id="org-jurisdiction"
-              {...register('jurisdictionLevel')}
-              placeholder="ex.: municipal, state"
-              disabled={isLoading}
+            <Controller
+              control={control}
+              name="jurisdictionLevel"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="org-jurisdiction">
+                    <SelectValue placeholder="Selecione (ex.: Estadual)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jurisdictionOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             />
           </div>
 

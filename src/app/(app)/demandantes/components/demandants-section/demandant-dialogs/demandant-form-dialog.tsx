@@ -1,7 +1,7 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -92,6 +92,28 @@ export function DemandantFormDialog({
     queryFn: () => getDemandant({ id: initialData!.id }),
     enabled: Boolean(initialData?.id && isOpen),
   })
+
+  /** Garante a org do demandante na lista (pode não estar na primeira página da API). */
+  const organizationOptions = useMemo(() => {
+    const mapped = organizations.map((o) => ({
+      label: `${o.name} (${o.acronym})`,
+      value: o.id,
+    }))
+    if (
+      demandant &&
+      initialData?.id &&
+      !mapped.some((o) => o.value === demandant.organizationId)
+    ) {
+      return [
+        {
+          label: `${demandant.organization.name} (${demandant.organization.acronym})`,
+          value: demandant.organizationId,
+        },
+        ...mapped,
+      ]
+    }
+    return mapped
+  }, [organizations, demandant, initialData?.id])
 
   function handleOnOpenChange(open: boolean) {
     if (open) onOpen()
@@ -186,19 +208,16 @@ export function DemandantFormDialog({
               control={control}
               name="organizationId"
               render={({ field }) => {
-                const selected = organizations.find((o) => o.id === field.value)
-                const display = selected
-                  ? `${selected.name} (${selected.acronym})`
-                  : ''
+                const selected = organizationOptions.find(
+                  (o) => o.value === field.value,
+                )
+                const display = selected?.label ?? ''
                 return (
                   <SelectWithSearch
                     disabled={isLoading}
                     value={display}
                     placeholder="Selecione a organização"
-                    options={organizations.map((o) => ({
-                      label: `${o.name} (${o.acronym})`,
-                      value: o.id,
-                    }))}
+                    options={organizationOptions}
                     onSelect={(item) => setValue('organizationId', item.value)}
                   />
                 )

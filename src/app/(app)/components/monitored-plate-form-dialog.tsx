@@ -2,12 +2,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { InputError } from '@/components/custom/input-error'
 import MultipleSelector from '@/components/custom/multiselect-with-search'
-import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,6 +35,7 @@ import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
 
 import { DemandantFormDialog } from '../demandantes/components/demandants-section/demandant-dialogs/demandant-form-dialog'
 import { MonitoredPlateDemandantLinksPanel } from './monitored-plate-demandant-links-panel'
+import type { MonitoredPlateDraftDemandantLink } from './monitored-plate-draft-demandant-link'
 
 interface MonitoredPlateDialogProps {
   isOpen: boolean
@@ -51,6 +51,9 @@ export function MonitoredPlateFormDialog({
   shouldFetchData = true,
 }: MonitoredPlateDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [draftLinks, setDraftLinks] = useState<
+    MonitoredPlateDraftDemandantLink[]
+  >([])
   const {
     formDialogDisclosure,
     setDialogInitialData: setDemandantDialogInitial,
@@ -71,19 +74,14 @@ export function MonitoredPlateFormDialog({
   } = useForm<MonitoredPlateForm>({
     resolver: zodResolver(monitoredPlateFormSchema),
     defaultValues: {
-      numeroControle: '',
-      demandantLinkReference: '',
-      demandantLinkValidUntil: '',
+      plate: '',
       active: true,
       notes: '',
-      contactInfo: '',
       notificationChannels: [],
-      operation: {
-        id: '',
-        title: '',
-      },
     },
   })
+
+  const currentPlate = useWatch({ control, name: 'plate', defaultValue: '' })
 
   const isEditingExistingPlate = Boolean(initialData && shouldFetchData)
 
@@ -104,9 +102,7 @@ export function MonitoredPlateFormDialog({
     onError: (error, variables) => {
       console.error('Error:', error)
       if (isConflictError(error)) {
-        toast.error(
-          `Placa ou número de controle já cadastrado (${variables.plate}).`,
-        )
+        toast.error(`Esta placa já está cadastrada (${variables.plate}).`)
       } else {
         toast.error(genericErrorMessage)
       }
@@ -131,7 +127,7 @@ export function MonitoredPlateFormDialog({
       console.error('Error2:', error)
       if (isConflictError(error)) {
         toast.error(
-          'Não foi possível atualizar: placa ou número de controle em conflito.',
+          'Não foi possível atualizar: conflito com outro cadastro desta placa.',
         )
       } else {
         toast.error(genericErrorMessage)
@@ -157,19 +153,16 @@ export function MonitoredPlateFormDialog({
   })
 
   const demandants = demandantsResponse?.data.items || []
+
   function handleOnOpenChange(open: boolean) {
     if (open) {
       onOpen()
     } else {
       onClose()
       reset()
+      setDraftLinks([])
       setInitialData(null)
       setValue('notificationChannels', [])
-      setValue('numeroControle', '')
-      setValue('demandantLinkReference', '')
-      setValue('demandantLinkValidUntil', '')
-      setValue('operation.id', '')
-      setValue('operation.title', '')
     }
   }
 
@@ -181,34 +174,26 @@ export function MonitoredPlateFormDialog({
       if (initialData?.plate && shouldFetchData) {
         await updateMonitoredPlateMutation({
           plate: initialData.plate,
-          numeroControle: props.numeroControle,
           notes: props.notes,
           notificationChannels,
         })
       } else {
-        const rawUntil = props.demandantLinkValidUntil?.trim()
-        let linkValidUntil: string | undefined
-        if (rawUntil) {
-          const parsed = new Date(rawUntil)
-          linkValidUntil = Number.isNaN(parsed.getTime())
-            ? undefined
-            : parsed.toISOString()
-        }
         await createMonitoredPlateMutation({
           plate: props.plate,
-          numeroControle: props.numeroControle,
           notes: props.notes,
           notificationChannels,
           demandantLinks:
-            props.operation.id.trim() !== ''
-              ? [
-                  {
-                    demandantId: props.operation.id,
-                    referenceNumber: props.demandantLinkReference.trim(),
-                    validUntil: linkValidUntil,
-                    notes: props.contactInfo?.trim() || undefined,
-                  },
-                ]
+            draftLinks.length > 0
+              ? draftLinks.map((d) => ({
+                  demandantId: d.demandantId,
+                  referenceNumber: d.referenceNumber.trim(),
+                  validUntil: d.validUntil,
+                  notes: d.notes?.trim() || undefined,
+                  lprEquipmentIds:
+                    d.lprEquipmentIds && d.lprEquipmentIds.length > 0
+                      ? d.lprEquipmentIds
+                      : undefined,
+                }))
               : undefined,
         })
       }
@@ -222,16 +207,12 @@ export function MonitoredPlateFormDialog({
     if (isOpen && !initialData) {
       reset({
         plate: '',
-        numeroControle: '',
-        demandantLinkReference: '',
-        demandantLinkValidUntil: '',
         active: true,
         notes: '',
-        contactInfo: '',
         additionalInfo: undefined,
         notificationChannels: [],
-        operation: { id: '', title: '' },
       })
+      setDraftLinks([])
     }
   }, [isOpen, initialData, reset])
 
@@ -244,13 +225,8 @@ export function MonitoredPlateFormDialog({
       shouldFetchData
     ) {
       setValue('plate', monitoredPlate.plate)
-      setValue('numeroControle', monitoredPlate.numeroControle ?? '')
       setValue('active', monitoredPlate.active)
       setValue('notes', monitoredPlate.notes)
-      setValue('demandantLinkReference', '')
-      setValue('demandantLinkValidUntil', '')
-      setValue('contactInfo', '')
-      setValue('operation', { id: '', title: '' })
       if (monitoredPlate.notificationChannels.length > 0) {
         const channelOptions = monitoredPlate.notificationChannels.map(
           (item) => {
@@ -295,17 +271,11 @@ export function MonitoredPlateFormDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {initialData && shouldFetchData
-                ? 'Atualizar placa monitorada'
-                : 'Monitorar nova placa'}
-            </DialogTitle>
+            <DialogTitle>Placa monitorada</DialogTitle>
             <DialogDescription>
-              {initialData && shouldFetchData
-                ? 'Altere dados da placa, canais e víncios com demandantes (validade, referência, notas e ativo).'
-                : 'Cadastre uma nova placa a ser monitorada.'}
+              Dados da placa, canais de notificação e vínculos com demandantes.
             </DialogDescription>
           </DialogHeader>
           <form
@@ -330,20 +300,6 @@ export function MonitoredPlateFormDialog({
 
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
-                <Label htmlFor="numeroControle">Nº de controle</Label>
-                <InputError message={errors.numeroControle?.message} />
-              </div>
-              <Input
-                id="numeroControle"
-                {...register('numeroControle')}
-                type="text"
-                disabled={isLoading}
-                autoComplete="off"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
                 <Label htmlFor="notes">Observações (placa)</Label>
                 <InputError message={errors.notes?.message} />
               </div>
@@ -353,114 +309,6 @@ export function MonitoredPlateFormDialog({
                 disabled={isLoading}
               />
             </div>
-
-            {!isEditingExistingPlate && (
-              <>
-                <div className="flex flex-col gap-1">
-                  <div className="flex gap-2">
-                    <Label>Demandante (opcional)</Label>
-                    <InputError message={errors.operation?.title?.message} />
-                  </div>
-                  <Controller
-                    control={control}
-                    name="operation.title"
-                    render={({ field }) => (
-                      <SelectWithSearch
-                        onSelect={(item) => {
-                          setValue('operation.title', item.label)
-                          setValue('operation.id', item.value)
-                        }}
-                        options={demandants.map((item) => ({
-                          label: `${item.name} (${item.organization.acronym})`,
-                          value: item.id,
-                        }))}
-                        disabled={isLoading}
-                        value={field.value}
-                        placeholder="Selecione um demandante"
-                        topAction={
-                          <div className="flex justify-center p-2">
-                            <Button
-                              variant="link"
-                              className="h-auto p-0"
-                              onClick={() => {
-                                setDemandantDialogInitial(null)
-                                formDialogDisclosure.onOpen()
-                              }}
-                            >
-                              Criar novo demandante
-                            </Button>
-                          </div>
-                        }
-                      />
-                    )}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex gap-2">
-                    <Label htmlFor="demandantLinkReference">
-                      Nº de referência do vínculo
-                    </Label>
-                    <InputError
-                      message={errors.demandantLinkReference?.message}
-                    />
-                  </div>
-                  <Input
-                    id="demandantLinkReference"
-                    {...register('demandantLinkReference')}
-                    type="text"
-                    maxLength={50}
-                    disabled={isLoading}
-                    autoComplete="off"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex gap-2">
-                    <Label htmlFor="demandantLinkValidUntil">
-                      Validade do vínculo (opcional)
-                    </Label>
-                    <InputError
-                      message={errors.demandantLinkValidUntil?.message}
-                    />
-                  </div>
-                  <Input
-                    id="demandantLinkValidUntil"
-                    {...register('demandantLinkValidUntil')}
-                    type="datetime-local"
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex gap-2">
-                    <Label htmlFor="contactInfo">
-                      Notas do vínculo (opcional)
-                    </Label>
-                    <InputError message={errors.contactInfo?.message} />
-                  </div>
-                  <Textarea
-                    id="contactInfo"
-                    {...register('contactInfo')}
-                    disabled={isLoading}
-                    placeholder="Enviadas junto ao vínculo placa–demandante no cadastro"
-                  />
-                </div>
-              </>
-            )}
-
-            {isEditingExistingPlate && monitoredPlate && (
-              <MonitoredPlateDemandantLinksPanel
-                plate={monitoredPlate.plate}
-                links={monitoredPlate.demandantLinks}
-                demandants={demandants}
-                disabled={isLoading}
-                onOpenCreateDemandant={() => {
-                  setDemandantDialogInitial(null)
-                  formDialogDisclosure.onOpen()
-                }}
-              />
-            )}
 
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
@@ -489,23 +337,34 @@ export function MonitoredPlateFormDialog({
               />
             </div>
 
-            {/* <Controller
-              control={control}
-              name="active"
-              render={({ field }) => {
-                return (
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="mapStyle"
-                      size="sm"
-                      checked={field.value}
-                      onCheckedChange={(checked) => setValue('active', checked)}
-                    />
-                    <span>{field.value ? 'Ativo' : 'Inativo'}</span>
-                  </div>
-                )
-              }}
-            /> */}
+            {isEditingExistingPlate && monitoredPlate && (
+              <MonitoredPlateDemandantLinksPanel
+                mode="persisted"
+                plate={monitoredPlate.plate}
+                links={monitoredPlate.demandantLinks}
+                demandants={demandants}
+                disabled={isLoading}
+                onOpenCreateDemandant={() => {
+                  setDemandantDialogInitial(null)
+                  formDialogDisclosure.onOpen()
+                }}
+              />
+            )}
+
+            {!isEditingExistingPlate && (
+              <MonitoredPlateDemandantLinksPanel
+                mode="draft"
+                plate={currentPlate?.trim() ?? ''}
+                draftLinks={draftLinks}
+                onDraftLinksChange={setDraftLinks}
+                demandants={demandants}
+                disabled={isLoading}
+                onOpenCreateDemandant={() => {
+                  setDemandantDialogInitial(null)
+                  formDialogDisclosure.onOpen()
+                }}
+              />
+            )}
 
             <div className="mt-4 flex w-full justify-end">
               <Button type="submit" disabled={isLoading}>

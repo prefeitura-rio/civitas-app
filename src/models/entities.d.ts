@@ -133,8 +133,8 @@ export type DemandantLink = {
 export type MonitoredPlate = {
   id: string
   plate: string
-  /** Campo `numero_controle` na API (único no sistema). */
-  numeroControle: string
+  /** Legado / resposta antiga da API; não usado no cadastro atual. */
+  numeroControle?: string
   operation: Operation
   contactInfo: string | null
   notes: string

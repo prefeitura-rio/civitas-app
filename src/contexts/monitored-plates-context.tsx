@@ -38,19 +38,8 @@ const monitoredPlateFormBaseSchema = z.object({
     .min(1, { message: '' })
     .toUpperCase()
     .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido'),
-  numeroControle: z.string().min(1, { message: 'Campo obrigatório' }),
-  operation: z.object({
-    id: z.string(),
-    title: z.string(),
-  }),
-  demandantLinkReference: z
-    .string()
-    .max(50, { message: 'No máximo 50 caracteres' }),
-  demandantLinkValidUntil: z.string().optional(),
   active: z.boolean().default(true),
   notes: z.string(),
-  /** Notas do vínculo placa–demandante (só no POST). */
-  contactInfo: z.string(),
   additionalInfo: z.unknown().optional(),
   notificationChannels: z
     .object({
@@ -61,19 +50,7 @@ const monitoredPlateFormBaseSchema = z.object({
     .default([]),
 })
 
-export const monitoredPlateFormSchema =
-  monitoredPlateFormBaseSchema.superRefine((data, ctx) => {
-    if (data.operation.id.trim() !== '') {
-      const ref = data.demandantLinkReference?.trim()
-      if (!ref) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Obrigatório ao selecionar um demandante',
-          path: ['demandantLinkReference'],
-        })
-      }
-    }
-  })
+export const monitoredPlateFormSchema = monitoredPlateFormBaseSchema
 
 export type MonitoredPlateForm = z.infer<typeof monitoredPlateFormBaseSchema>
 

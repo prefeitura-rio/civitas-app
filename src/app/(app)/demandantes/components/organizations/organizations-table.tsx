@@ -44,11 +44,11 @@ export function OrganizationsTable() {
     },
     {
       accessorKey: 'acronym',
-      header: 'Sigla',
+      header: 'Órgão',
     },
     {
       accessorKey: 'jurisdictionLevel',
-      header: 'Jurisdição',
+      header: 'Competência',
     },
     {
       accessorKey: 'createdAt',

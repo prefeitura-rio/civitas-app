@@ -36,7 +36,7 @@ export function mapBackendMonitoredPlateToMonitoredPlate(
     return {
       id: item.id,
       plate: item.plate,
-      numeroControle: item.numero_controle ?? '',
+      ...(item.numero_controle ? { numeroControle: item.numero_controle } : {}),
       notes: item.notes,
       active: plateIsActive,
       contactInfo: toContactInfo(selectedDemandantLink.demandant),
@@ -56,7 +56,7 @@ export function mapBackendMonitoredPlateToMonitoredPlate(
   return {
     id: item.id,
     plate: item.plate,
-    numeroControle: item.numero_controle ?? '',
+    ...(item.numero_controle ? { numeroControle: item.numero_controle } : {}),
     notes: item.notes,
     active: item.active ?? false,
     contactInfo: item.contact_info ?? null,

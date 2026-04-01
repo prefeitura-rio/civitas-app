@@ -1,8 +1,13 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import { useRef } from 'react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  getOrganizationsForDemandantsFilter,
+  ORGANIZATIONS_DEMANDANTS_FILTER_QUERY_KEY,
+} from '@/http/organizations/get-organizations'
 
 import { DemandantDialogs } from './components/demandants-section/demandant-dialogs'
 import { DemandantsHeader } from './components/demandants-section/demandants-header'
@@ -14,6 +19,13 @@ import { OrganizationsTable } from './components/organizations/organizations-tab
 export default function DemandantesPage() {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
+  /** Mesma queryKey de `DemandantsHeader`: prefetch ao abrir a rota. */
+  useQuery({
+    queryKey: ORGANIZATIONS_DEMANDANTS_FILTER_QUERY_KEY,
+    queryFn: getOrganizationsForDemandantsFilter,
+    staleTime: 60_000,
+  })
+
   return (
     <div
       ref={containerRef}
@@ -22,7 +34,7 @@ export default function DemandantesPage() {
       <h2 className="text-2xl font-semibold">Organizações e demandantes</h2>
 
       <Tabs
-        defaultValue="organizations"
+        defaultValue="demandants"
         onValueChange={() => containerRef.current?.scrollTo(0, 0)}
       >
         <TabsList className="w-full sm:w-auto">

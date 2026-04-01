@@ -8,7 +8,6 @@ import type { BackendMonitoredPlate } from '@/models/entities'
 export interface UpdateMonitoredPlateRequest {
   plate: string
   newPlate?: string
-  numeroControle?: string
   notes?: string
   notificationChannels?: string[]
 }
@@ -16,14 +15,11 @@ export interface UpdateMonitoredPlateRequest {
 export function updateMonitoredPlate({
   plate,
   newPlate,
-  numeroControle,
   notes,
   notificationChannels,
 }: UpdateMonitoredPlateRequest) {
   const body: Record<string, unknown> = {}
   if (typeof newPlate !== 'undefined') body.plate = newPlate
-  if (typeof numeroControle !== 'undefined')
-    body.numero_controle = numeroControle
   if (typeof notes !== 'undefined') body.notes = notes
   if (typeof notificationChannels !== 'undefined')
     body.notification_channels = notificationChannels

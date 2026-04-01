@@ -17,18 +17,39 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { postMonitoredPlateDemandantLink } from '@/http/cars/monitored/post-monitored-plate-demandant-link'
-import type { Demandant, DemandantLink } from '@/models/entities'
+import type { Demandant } from '@/models/entities'
 import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
 
-import { fromDatetimeLocalValue } from './demandant-link-datetime'
+import {
+  getDefaultDemandantLinkValidUntil,
+  isDemandantLinkValidUntilBeyondMax,
+} from './demandant-link-datetime'
+import { DemandantLinkLprMultiSelect } from './demandant-link-lpr-multi-select'
+import { DemandantLinkValidUntilPicker } from './demandant-link-valid-until-picker'
+
+export interface DemandantLinkDraftCreatePayload {
+  demandantId: string
+  referenceNumber: string
+  validUntil?: string
+  notes?: string
+  lprEquipmentIds?: string[]
+}
 
 interface DemandantLinkCreateDialogProps {
   plate: string
   open: boolean
   onOpenChange: (open: boolean) => void
   demandants: Demandant[]
-  existingLinks: DemandantLink[]
+  /** Demandantes já vinculados (API) ou já na lista de rascunho. */
+  reservedDemandantIds: string[]
   onOpenCreateDemandant: () => void
+  /**
+   * Se definido, não chama a API: apenas adiciona ao rascunho do formulário de criação da placa.
+   */
+  draftOnly?: {
+    plateDescription: string
+    onAdd: (payload: DemandantLinkDraftCreatePayload) => void
+  }
 }
 
 export function DemandantLinkCreateDialog({
@@ -36,28 +57,32 @@ export function DemandantLinkCreateDialog({
   open,
   onOpenChange,
   demandants,
-  existingLinks,
+  reservedDemandantIds,
   onOpenCreateDemandant,
+  draftOnly,
 }: DemandantLinkCreateDialogProps) {
   const queryClient = useQueryClient()
   const [demandantTitle, setDemandantTitle] = useState('')
   const [demandantId, setDemandantId] = useState('')
   const [reference, setReference] = useState('')
-  const [validUntil, setValidUntil] = useState('')
+  const [validUntilDate, setValidUntilDate] = useState<Date | undefined>()
   const [notes, setNotes] = useState('')
+  const [lprEquipmentIds, setLprEquipmentIds] = useState<string[]>([])
 
   useEffect(() => {
     if (!open) {
       setDemandantTitle('')
       setDemandantId('')
       setReference('')
-      setValidUntil('')
       setNotes('')
+      setLprEquipmentIds([])
+      return
     }
+    setValidUntilDate(getDefaultDemandantLinkValidUntil())
   }, [open])
 
-  const linkedIds = new Set(existingLinks.map((l) => l.demandant.id))
-  const availableDemandants = demandants.filter((d) => !linkedIds.has(d.id))
+  const reserved = new Set(reservedDemandantIds)
+  const availableDemandants = demandants.filter((d) => !reserved.has(d.id))
 
   const postMutation = useMutation({
     mutationFn: postMonitoredPlateDemandantLink,
@@ -79,28 +104,52 @@ export function DemandantLinkCreateDialog({
     },
   })
 
+  const pending = draftOnly ? false : postMutation.isPending
+
   function handleSubmit() {
     const ref = reference.trim()
     if (!demandantId || !ref) {
       toast.error('Selecione o demandante e informe o número de referência.')
       return
     }
-    let validUntilIso: string | undefined
-    if (validUntil.trim()) {
-      validUntilIso = fromDatetimeLocalValue(validUntil)
-      if (!validUntilIso) {
-        toast.error('Data de validade inválida.')
-        return
-      }
+    if (isDemandantLinkValidUntilBeyondMax(validUntilDate)) {
+      toast.error(
+        'A data de validade não pode ser superior a 60 dias a partir de hoje.',
+      )
+      return
     }
-    postMutation.mutate({
-      plate,
+    const validUntilIso = validUntilDate
+      ? validUntilDate.toISOString()
+      : undefined
+
+    const payload: DemandantLinkDraftCreatePayload = {
       demandantId,
       referenceNumber: ref,
       validUntil: validUntilIso,
       notes: notes.trim() || undefined,
+      lprEquipmentIds: lprEquipmentIds.length > 0 ? lprEquipmentIds : undefined,
+    }
+
+    if (draftOnly) {
+      draftOnly.onAdd(payload)
+      toast.success('Vínculo incluído no cadastro.')
+      onOpenChange(false)
+      return
+    }
+
+    postMutation.mutate({
+      plate,
+      demandantId: payload.demandantId,
+      referenceNumber: payload.referenceNumber,
+      validUntil: payload.validUntil,
+      notes: payload.notes,
+      lprEquipmentIds: payload.lprEquipmentIds,
     })
   }
+
+  const plateLine = draftOnly
+    ? draftOnly.plateDescription.trim() || '(defina a placa acima)'
+    : plate
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,7 +157,14 @@ export function DemandantLinkCreateDialog({
         <DialogHeader>
           <DialogTitle>Novo vínculo com demandante</DialogTitle>
           <DialogDescription>
-            Placa {plate}. O demandante não pode repetir nesta placa.
+            {draftOnly ? (
+              <>
+                Placa <strong>{plateLine}</strong>. Cada demandante só pode
+                aparecer uma vez nesta lista.
+              </>
+            ) : (
+              <>Placa {plateLine}. O demandante não pode repetir nesta placa.</>
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="flex min-w-0 flex-col gap-3 py-2">
@@ -121,10 +177,10 @@ export function DemandantLinkCreateDialog({
                 setDemandantId(item.value)
               }}
               options={availableDemandants.map((item) => ({
-                label: `${item.name} (${item.organization.acronym})`,
+                label: `${item.name} — ${item.organization.name} (${item.organization.acronym})`,
                 value: item.id,
               }))}
-              disabled={postMutation.isPending}
+              disabled={pending}
               placeholder="Selecione"
               topAction={
                 <div className="flex justify-center p-2">
@@ -147,26 +203,27 @@ export function DemandantLinkCreateDialog({
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               maxLength={50}
-              disabled={postMutation.isPending}
+              disabled={pending}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="create-link-until">Validade (opcional)</Label>
-            <Input
-              id="create-link-until"
-              type="datetime-local"
-              value={validUntil}
-              onChange={(e) => setValidUntil(e.target.value)}
-              disabled={postMutation.isPending}
-            />
-          </div>
+          <DemandantLinkValidUntilPicker
+            label="Validade (opcional)"
+            value={validUntilDate}
+            onChange={setValidUntilDate}
+            disabled={pending}
+          />
+          <DemandantLinkLprMultiSelect
+            value={lprEquipmentIds}
+            onChange={setLprEquipmentIds}
+            disabled={pending}
+          />
           <div className="flex flex-col gap-1">
             <Label htmlFor="create-link-notes">Notas (opcional)</Label>
             <Textarea
               id="create-link-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              disabled={postMutation.isPending}
+              disabled={pending}
               rows={3}
             />
           </div>
@@ -175,7 +232,7 @@ export function DemandantLinkCreateDialog({
           <Button
             type="button"
             variant="outline"
-            disabled={postMutation.isPending}
+            disabled={pending}
             className="h-10 w-full shrink-0 font-normal"
             onClick={() => onOpenChange(false)}
           >
@@ -183,11 +240,11 @@ export function DemandantLinkCreateDialog({
           </Button>
           <Button
             type="button"
-            disabled={postMutation.isPending}
+            disabled={pending}
             className="h-10 w-full shrink-0 font-normal"
             onClick={handleSubmit}
           >
-            {postMutation.isPending ? (
+            {pending ? (
               <Spinner className="h-4 w-4 shrink-0" aria-hidden />
             ) : (
               'Adicionar vínculo'

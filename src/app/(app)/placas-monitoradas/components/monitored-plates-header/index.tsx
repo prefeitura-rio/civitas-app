@@ -17,9 +17,6 @@ export function MonitoredPlatesHeader() {
       <h2>Placas Monitoradas</h2>
       <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
         <Button asChild variant="link">
-          <Link href="/demandantes">Organizações e demandantes</Link>
-        </Button>
-        <Button asChild variant="link">
           <Link href="/placas-monitoradas/historico">Histórico</Link>
         </Button>
         <Tooltip

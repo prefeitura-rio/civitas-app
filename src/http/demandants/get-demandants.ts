@@ -21,13 +21,15 @@ export async function getDemandants({
   size,
   organizationId,
 }: GetDemandantsRequest) {
-  const response = await api.get<BackendGetDemandantsResponse>('/demandants', {
-    params: {
-      page,
-      size,
-      organization_id: organizationId,
-    },
-  })
+  const searchParams = new URLSearchParams()
+  if (typeof page === 'number') searchParams.set('page', String(page))
+  if (typeof size === 'number') searchParams.set('size', String(size))
+  if (organizationId) searchParams.set('organization_id', organizationId)
+
+  const qs = searchParams.toString()
+  const response = await api.get<BackendGetDemandantsResponse>(
+    qs ? `/demandants?${qs}` : '/demandants',
+  )
 
   return {
     ...response,

@@ -18,6 +18,7 @@ export interface FormattedSearchParams {
   plateContains?: string
   organizationName?: string
   notificationChannelTitle?: string
+  /** Enviado à API como `demandant_link_active` (status do vínculo, não só da placa). */
   demandantLinkActive?: boolean
   page?: number
   size?: number
@@ -45,6 +46,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const notificationChannelTitle =
     searchParams.get('notificationChannelTitle') || undefined
 
+  /** Query `active`; API recebe `demandant_link_active` (`true` / `false`). */
   const pActive = searchParams.get('active')
   const demandantLinkActive = pActive === null ? undefined : pActive === 'true'
 

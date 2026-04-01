@@ -35,9 +35,21 @@ import type { DemandantLink } from '@/models/entities'
 import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
 
 import {
-  fromDatetimeLocalValue,
-  toDatetimeLocalValue,
+  isDemandantLinkValidUntilBeyondMax,
+  parseIsoToDate,
+  validUntilInstantsEqual,
 } from './demandant-link-datetime'
+import { DemandantLinkLprMultiSelect } from './demandant-link-lpr-multi-select'
+import { DemandantLinkValidUntilPicker } from './demandant-link-valid-until-picker'
+
+function lprEquipmentIdsEqual(
+  a: string[] | undefined,
+  b: string[] | undefined,
+) {
+  const sa = [...(a ?? [])].sort().join('\0')
+  const sb = [...(b ?? [])].sort().join('\0')
+  return sa === sb
+}
 
 interface DemandantLinkEditDialogProps {
   plate: string
@@ -56,7 +68,8 @@ export function DemandantLinkEditDialog({
   const [reference, setReference] = useState('')
   const [notes, setNotes] = useState('')
   const [active, setActive] = useState(true)
-  const [validUntilLocal, setValidUntilLocal] = useState('')
+  const [validUntilDate, setValidUntilDate] = useState<Date | undefined>()
+  const [lprEquipmentIds, setLprEquipmentIds] = useState<string[]>([])
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   useEffect(() => {
@@ -64,7 +77,8 @@ export function DemandantLinkEditDialog({
     setReference(link.reference_number)
     setNotes(link.notes ?? '')
     setActive(link.active)
-    setValidUntilLocal(toDatetimeLocalValue(link.valid_until))
+    setValidUntilDate(parseIsoToDate(link.valid_until))
+    setLprEquipmentIds(link.radars.map((r) => r.lpr_equipment_id))
   }, [link])
 
   useEffect(() => {
@@ -121,6 +135,13 @@ export function DemandantLinkEditDialog({
       return
     }
 
+    if (isDemandantLinkValidUntilBeyondMax(validUntilDate)) {
+      toast.error(
+        'A data de validade não pode ser superior a 60 dias a partir de hoje.',
+      )
+      return
+    }
+
     if (trimmedRef !== link.reference_number)
       payload.referenceNumber = trimmedRef
 
@@ -129,13 +150,14 @@ export function DemandantLinkEditDialog({
 
     if (active !== link.active) payload.active = active
 
-    const origLocal = toDatetimeLocalValue(link.valid_until)
-    if (validUntilLocal.trim() !== origLocal) {
-      if (validUntilLocal.trim() === '') payload.validUntil = null
-      else {
-        const iso = fromDatetimeLocalValue(validUntilLocal)
-        payload.validUntil = iso ?? null
-      }
+    const origValidDate = parseIsoToDate(link.valid_until)
+    if (!validUntilInstantsEqual(origValidDate, validUntilDate)) {
+      payload.validUntil = validUntilDate ? validUntilDate.toISOString() : null
+    }
+
+    const origLprIds = link.radars.map((r) => r.lpr_equipment_id)
+    if (!lprEquipmentIdsEqual(origLprIds, lprEquipmentIds)) {
+      payload.lprEquipmentIds = lprEquipmentIds
     }
 
     if (Object.keys(payload).length <= 2) {
@@ -154,8 +176,14 @@ export function DemandantLinkEditDialog({
         <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto overflow-x-hidden sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar vínculo</DialogTitle>
-            <DialogDescription>
-              {link.demandant.name} ({link.demandant.organization.acronym})
+            <DialogDescription className="space-y-1 text-left">
+              <span className="block text-foreground">
+                {link.demandant.name}
+              </span>
+              <span className="block text-sm text-muted-foreground">
+                Organização: {link.demandant.organization.name} (
+                {link.demandant.organization.acronym})
+              </span>
             </DialogDescription>
           </DialogHeader>
           <div className="flex min-w-0 flex-col gap-3 py-2">
@@ -169,16 +197,17 @@ export function DemandantLinkEditDialog({
                 disabled={busy}
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="edit-link-until">Validade do vínculo</Label>
-              <Input
-                id="edit-link-until"
-                type="datetime-local"
-                value={validUntilLocal}
-                onChange={(e) => setValidUntilLocal(e.target.value)}
-                disabled={busy}
-              />
-            </div>
+            <DemandantLinkValidUntilPicker
+              label="Validade do vínculo"
+              value={validUntilDate}
+              onChange={setValidUntilDate}
+              disabled={busy}
+            />
+            <DemandantLinkLprMultiSelect
+              value={lprEquipmentIds}
+              onChange={setLprEquipmentIds}
+              disabled={busy}
+            />
             <div className="flex flex-col gap-1">
               <Label htmlFor="edit-link-notes">Notas do vínculo</Label>
               <Textarea
@@ -201,8 +230,8 @@ export function DemandantLinkEditDialog({
               </Label>
             </div>
             <p className="text-xs text-muted-foreground">
-              Radares LPR neste víncio: {link.radars.length}. Lista de
-              equipamentos só via API por enquanto.
+              {link.radars.length} equipamento(s) LPR vinculado(s) na última
+              sincronização com a API.
             </p>
           </div>
 
@@ -248,8 +277,8 @@ export function DemandantLinkEditDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Remover vínculo?</AlertDialogTitle>
             <AlertDialogDescription>
-              O víncio com <strong>{link.demandant.name}</strong> será excluído.
-              A placa e os demais víncios permanecem.
+              O vínculo com <strong>{link.demandant.name}</strong> será
+              excluído. A placa e os demais vínculos permanecem.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

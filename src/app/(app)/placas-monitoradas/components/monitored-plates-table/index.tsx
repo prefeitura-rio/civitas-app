@@ -70,56 +70,6 @@ export function MonitoredPlatesTable() {
       header: 'Placa',
     },
     {
-      id: 'contacts',
-      header: 'Contatos',
-      cell: ({ row }) => {
-        const links = row.original.demandantLinks ?? []
-        const legacy = row.original.contactInfo?.trim()
-
-        const count = links.length > 0 ? links.length : legacy ? 1 : 0
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                Contatos ({count})
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[26rem]">
-              {links.length > 0 ? (
-                <div className="max-h-[28rem] overflow-auto">
-                  {links.map((link) => (
-                    <div
-                      key={link.id}
-                      className="flex flex-col gap-1 border-b px-2 py-3 last:border-b-0"
-                    >
-                      <div className="font-medium leading-tight">
-                        {link.demandant.name}
-                      </div>
-                      <div className="whitespace-normal break-words text-xs leading-relaxed text-muted-foreground">
-                        {formatDemandantContactLine(link.demandant)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : legacy ? (
-                <div className="px-2 py-3 text-sm text-muted-foreground">
-                  <div className="mb-1 text-xs font-medium text-foreground">
-                    Contato cadastrado
-                  </div>
-                  <div className="whitespace-normal break-words">{legacy}</div>
-                </div>
-              ) : (
-                <div className="px-2 py-2 text-sm text-muted-foreground">
-                  Nenhum contato cadastrado
-                </div>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      },
-    },
-    {
       accessorKey: 'notes',
       header: 'Observações',
     },
@@ -128,6 +78,7 @@ export function MonitoredPlatesTable() {
       header: 'Demandantes (links)',
       cell: ({ row }) => {
         const demandantLinks = row.original.demandantLinks ?? []
+        const legacyContactInfo = row.original.contactInfo?.trim()
 
         return (
           <DropdownMenu>
@@ -138,9 +89,20 @@ export function MonitoredPlatesTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[26rem]">
               {demandantLinks.length === 0 ? (
-                <div className="px-2 py-2 text-sm text-muted-foreground">
-                  Nenhum demandant_link encontrado
-                </div>
+                legacyContactInfo ? (
+                  <div className="px-2 py-3 text-sm text-muted-foreground">
+                    <div className="mb-1 text-xs font-medium text-foreground">
+                      Contato cadastrado
+                    </div>
+                    <div className="whitespace-normal break-words">
+                      {legacyContactInfo}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-2 py-2 text-sm text-muted-foreground">
+                    Nenhum demandant_link encontrado
+                  </div>
+                )
               ) : (
                 <div className="max-h-[28rem] overflow-auto">
                   {demandantLinks.map((link) => (
@@ -149,6 +111,13 @@ export function MonitoredPlatesTable() {
                       className="flex flex-col gap-1 border-b px-2 py-2 last:border-b-0"
                     >
                       <div className="font-medium">{link.demandant.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Organização: {link.demandant.organization.name} (
+                        {link.demandant.organization.acronym})
+                      </div>
+                      <div className="whitespace-normal break-words text-xs leading-relaxed text-muted-foreground">
+                        {formatDemandantContactLine(link.demandant)}
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         Referência: {link.reference_number}
                       </div>
