@@ -15,7 +15,6 @@ export interface TeamMember {
   role: UserRoleEnum
 }
 
-/** Ilhas da equipe (mesmo formato que listagem por time). */
 export interface TeamIsland {
   id: string
   created_at: string
@@ -30,7 +29,6 @@ export interface Team {
   description: string | null
   is_active: boolean
   members: TeamMember[]
-  /** Presente quando a API expõe ilhas em `/teams/with-members`. */
   islands?: TeamIsland[]
 }
 
