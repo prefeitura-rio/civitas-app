@@ -5,6 +5,7 @@ type MonitoredPlatesQueryKey = [
   'cars',
   'monitored',
   plateContains?: string,
+  organizationId?: string,
   organizationName?: string,
   NotificationChannelTitle?: string,
   demandantLinkActive?: boolean,
@@ -16,6 +17,7 @@ type MonitoredPlatesQueryKey = [
 
 export interface FormattedSearchParams {
   plateContains?: string
+  organizationId?: string
   organizationName?: string
   notificationChannelTitle?: string
   /** Enviado à API como `demandant_link_active` (status do vínculo, não só da placa). */
@@ -39,6 +41,10 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const pathName = usePathname()
 
   const plateContains = searchParams.get('plateContains') || undefined
+  const organizationId =
+    searchParams.get('organizationId') ||
+    searchParams.get('organization_id') ||
+    undefined
   const organizationName =
     searchParams.get('organizationName') ||
     searchParams.get('operationTitle') ||
@@ -59,6 +65,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   function handlePaginate(index: number) {
     const params = new URLSearchParams(searchParams.toString())
     if (plateContains) params.set('plateContains', plateContains)
+    if (organizationId) params.set('organizationId', organizationId)
+    params.delete('organization_id')
     if (organizationName) params.set('organizationName', organizationName)
     if (notificationChannelTitle)
       params.set('notificationChannelTitle', notificationChannelTitle)
@@ -75,6 +83,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     handlePaginate,
     formattedSearchParams: {
       plateContains,
+      organizationId,
       organizationName,
       notificationChannelTitle,
       demandantLinkActive,
@@ -87,6 +96,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       'cars',
       'monitored',
       plateContains,
+      organizationId,
       organizationName,
       notificationChannelTitle,
       demandantLinkActive,

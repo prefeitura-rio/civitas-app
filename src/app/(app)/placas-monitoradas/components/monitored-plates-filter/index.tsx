@@ -1,9 +1,10 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { FilterX, Search } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Tooltip } from '@/components/custom/tooltip'
@@ -18,11 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  getOrganizationsForDemandantsFilter,
+  ORGANIZATIONS_DEMANDANTS_FILTER_QUERY_KEY,
+} from '@/http/organizations/get-organizations'
 
 const activeOptions = ['all', 'true', 'false']
 
 const filterFormSchema = z.object({
   plateContains: z.string().toUpperCase().optional(),
+  organizationId: z.string().optional(),
   organizationName: z.string().optional(),
   notificationChannelTitle: z.string().optional(),
   active: z.enum([activeOptions[0], ...activeOptions]),
@@ -42,8 +48,21 @@ export function MonitoredPlatesFilter() {
       resolver: zodResolver(filterFormSchema),
       defaultValues: {
         active: 'all',
+        organizationId: '',
       },
     })
+
+  const organizationNameWatch = useWatch({
+    control,
+    name: 'organizationName',
+    defaultValue: '',
+  })
+
+  const { data: organizations = [], isPending: isOrgsLoading } = useQuery({
+    queryKey: ORGANIZATIONS_DEMANDANTS_FILTER_QUERY_KEY,
+    queryFn: getOrganizationsForDemandantsFilter,
+    staleTime: 60_000,
+  })
 
   const [createdAtFrom, setCreatedAtFrom] = useState<Date | undefined>()
   const [createdAtTo, setCreatedAtTo] = useState<Date | undefined>()
@@ -51,6 +70,8 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     const pActive = searchParams.get('active')
     const pPlate = searchParams.get('plateContains')
+    const pOrgId =
+      searchParams.get('organizationId') || searchParams.get('organization_id')
     const pOrg =
       searchParams.get('organizationName') || searchParams.get('operationTitle')
     const pChannel = searchParams.get('notificationChannelTitle')
@@ -61,7 +82,16 @@ export function MonitoredPlatesFilter() {
     else setValue('active', 'all')
 
     if (pPlate) setValue('plateContains', pPlate)
-    if (pOrg) setValue('organizationName', pOrg)
+    if (pOrgId) {
+      setValue('organizationId', pOrgId)
+      setValue('organizationName', undefined)
+    } else if (pOrg) {
+      setValue('organizationId', '')
+      setValue('organizationName', pOrg)
+    } else {
+      setValue('organizationId', '')
+      setValue('organizationName', undefined)
+    }
     if (pChannel) setValue('notificationChannelTitle', pChannel)
     if (pCreatedAtFrom) {
       setValue('createdAtFrom', pCreatedAtFrom)
@@ -81,6 +111,8 @@ export function MonitoredPlatesFilter() {
   function handleClearFilters() {
     reset()
     setValue('active', 'all')
+    setValue('organizationId', '')
+    setValue('organizationName', undefined)
     setCreatedAtFrom(undefined)
     setCreatedAtTo(undefined)
     router.replace(pathName)
@@ -90,8 +122,19 @@ export function MonitoredPlatesFilter() {
     const params = new URLSearchParams()
 
     if (props.plateContains) params.set('plateContains', props.plateContains)
-    if (props.organizationName)
+    if (props.organizationId) {
+      params.set('organizationId', props.organizationId)
+      params.delete('organization_id')
+    } else {
+      params.delete('organizationId')
+      params.delete('organization_id')
+    }
+    if (props.organizationName && !props.organizationId) {
       params.set('organizationName', props.organizationName)
+    } else {
+      params.delete('organizationName')
+      params.delete('operationTitle')
+    }
     if (props.notificationChannelTitle)
       params.set('notificationChannelTitle', props.notificationChannelTitle)
 
@@ -132,20 +175,59 @@ export function MonitoredPlatesFilter() {
             }
           />
         </div>
-        <div className={fieldWrap}>
-          <Label
-            htmlFor="organizationName"
-            className="text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground"
-          >
-            Organização
-          </Label>
-          <Input
-            className="h-8 w-full text-sm"
-            id="organizationName"
-            type="text"
-            {...register('organizationName')}
-          />
-        </div>
+        <Controller
+          control={control}
+          name="organizationId"
+          render={({ field }) => {
+            const selectValue =
+              field.value || (organizationNameWatch ? '__legacy_name__' : 'all')
+
+            return (
+              <div className={fieldWrap}>
+                <Label className="text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground">
+                  Organização
+                </Label>
+                <Select
+                  disabled={isOrgsLoading}
+                  value={isOrgsLoading ? 'all' : selectValue}
+                  onValueChange={(v) => {
+                    if (v === 'all') {
+                      field.onChange('')
+                      setValue('organizationName', undefined)
+                    } else if (v !== '__legacy_name__') {
+                      field.onChange(v)
+                      setValue('organizationName', undefined)
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-full text-sm">
+                    <SelectValue
+                      placeholder={
+                        isOrgsLoading
+                          ? 'Carregando organizações…'
+                          : 'Todas as organizações'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[min(24rem,70vh)]">
+                    <SelectItem value="all">Todas as organizações</SelectItem>
+                    {organizationNameWatch && !field.value ? (
+                      <SelectItem value="__legacy_name__">
+                        {organizationNameWatch}
+                      </SelectItem>
+                    ) : null}
+                    {organizations.map((o) => (
+                      <SelectItem key={o.id} value={o.id}>
+                        {o.name} ({o.acronym})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )
+          }}
+        />
+        {/* Campo Canal oculto na UI; lógica de filtro (schema, URL, submit) mantida abaixo.
         <div className={fieldWrap}>
           <Label
             htmlFor="notificationChannelTitle"
@@ -160,6 +242,7 @@ export function MonitoredPlatesFilter() {
             {...register('notificationChannelTitle')}
           />
         </div>
+        */}
         <Controller
           control={control}
           name="active"

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,7 @@ import { useMonitoredPlatesSearchParams } from '@/hooks/useParams/useMonitoredPl
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
 import type { DemandantLink, MonitoredPlate } from '@/models/entities'
+import { compareByUpdatedThenCreated } from '@/utils/sort-by-updated-or-created'
 import { notAllowed } from '@/utils/template-messages'
 
 function formatDemandantContactLine(demandant: DemandantLink['demandant']) {
@@ -63,6 +65,10 @@ export function MonitoredPlatesTable() {
   // })
 
   const data = MonitoredPlatesResponse?.data
+  const sortedItems = useMemo(
+    () => [...(data?.items ?? [])].sort(compareByUpdatedThenCreated),
+    [data?.items],
+  )
 
   const columns: ColumnDef<MonitoredPlate>[] = [
     {
@@ -283,7 +289,7 @@ export function MonitoredPlatesTable() {
     <div className="flex flex-col gap-8">
       <DataTable
         columns={columns}
-        data={data?.items || []}
+        data={sortedItems}
         isLoading={isMonitoredPlatesLoading || isProfileLoading}
       />
       {data && (

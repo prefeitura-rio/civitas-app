@@ -207,6 +207,7 @@ export function DemandantLinkEditDialog({
               value={lprEquipmentIds}
               onChange={setLprEquipmentIds}
               disabled={busy}
+              showSelectAllRadars
             />
             <div className="flex flex-col gap-1">
               <Label htmlFor="edit-link-notes">Notas do vínculo</Label>

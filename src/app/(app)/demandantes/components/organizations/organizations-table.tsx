@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import { useOrganizations } from '@/hooks/useContexts/use-organizations-context'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getOrganizations } from '@/http/organizations/get-organizations'
 import type { Organization } from '@/models/entities'
+import { compareByUpdatedThenCreated } from '@/utils/sort-by-updated-or-created'
 import { notAllowed } from '@/utils/template-messages'
 
 export function OrganizationsTable() {
@@ -32,6 +33,10 @@ export function OrganizationsTable() {
   })
 
   const data = response?.data
+  const sortedItems = useMemo(
+    () => [...(data?.items ?? [])].sort(compareByUpdatedThenCreated),
+    [data?.items],
+  )
 
   const columns: ColumnDef<Organization>[] = [
     {
@@ -116,11 +121,7 @@ export function OrganizationsTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <DataTable
-        columns={columns}
-        data={data?.items || []}
-        isLoading={isLoading}
-      />
+      <DataTable columns={columns} data={sortedItems} isLoading={isLoading} />
       {data && (
         <Pagination
           page={data.page}

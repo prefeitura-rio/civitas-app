@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ import { useDemandantsSearchParams } from '@/hooks/useParams/useDemandantsSearch
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getDemandants } from '@/http/demandants/get-demandants'
 import type { Demandant } from '@/models/entities'
+import { compareByUpdatedThenCreated } from '@/utils/sort-by-updated-or-created'
 import { notAllowed } from '@/utils/template-messages'
 
 export function DemandantsTable() {
@@ -32,6 +34,10 @@ export function DemandantsTable() {
   })
 
   const data = response?.data
+  const sortedItems = useMemo(
+    () => [...(data?.items ?? [])].sort(compareByUpdatedThenCreated),
+    [data?.items],
+  )
 
   const columns: ColumnDef<Demandant>[] = [
     {
@@ -121,11 +127,7 @@ export function DemandantsTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <DataTable
-        columns={columns}
-        data={data?.items || []}
-        isLoading={isLoading}
-      />
+      <DataTable columns={columns} data={sortedItems} isLoading={isLoading} />
       {data && (
         <Pagination
           page={data.page}

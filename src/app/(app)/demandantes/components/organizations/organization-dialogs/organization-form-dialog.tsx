@@ -49,6 +49,7 @@ export function OrganizationFormDialog({
     { value: 'municipal', label: 'Municipal' },
     { value: 'state', label: 'Estadual' },
     { value: 'federal', label: 'Federal' },
+    { value: 'other', label: 'Outros' },
   ] as const
 
   const [isLoading, setIsLoading] = useState(false)
