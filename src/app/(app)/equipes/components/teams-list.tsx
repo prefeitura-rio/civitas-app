@@ -38,7 +38,6 @@ interface TeamsListProps {
 }
 
 export function TeamsList({ controller }: TeamsListProps) {
-  /** `null` = ainda não houve interação: abre a 1ª equipe por padrão. `[]` = usuário colapsou tudo. */
   const [openTeams, setOpenTeams] = useState<string[] | null>(null)
 
   const {

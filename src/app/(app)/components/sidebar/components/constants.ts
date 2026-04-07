@@ -8,11 +8,9 @@ export interface Module {
   path: string
 }
 
-/** Módulo com subitens (ex.: Caixa de entrada → Respondidos, Spam). */
 export interface ModuleWithChildren {
   icon: keyof typeof icons
   title: string
-  /** Se definido, clique no título/ícone navega para esta rota. */
   path?: string
   children: Module[]
 }
