@@ -33,6 +33,7 @@ type DashboardItem = {
   id: string
   numero_interno: number
   chamado: string
+  data_criacao?: string | null
   status: string
   demandante: string
   equipe?: string | null
@@ -101,15 +102,7 @@ function normalizePriority(priority: string) {
 }
 
 function getPriorityBadgeValue(item: DashboardItem) {
-  if (item.prioridade?.trim().toUpperCase() === 'URGENTE') {
-    return Math.max(item.dias_atraso, 1)
-  }
-
-  if (item.prioridade?.trim().toUpperCase() === 'ALTA') {
-    return Math.max(item.dias_atraso, 1)
-  }
-
-  return null
+  return item.dias_atraso > 0 ? item.dias_atraso : null
 }
 
 /** Cores do count ao lado da prioridade: 1–15 verde, 16–24 amarelo, ≥25 vermelho */
@@ -180,6 +173,7 @@ function DashboardSectionTable({
             <thead>
               <tr>
                 <th>CHAMADO</th>
+                <th>DATA CRIAÇÃO</th>
                 <th>DEMANDANTE</th>
                 <th>EQUIPE</th>
                 <th>RESPONSÁVEL</th>
@@ -200,6 +194,9 @@ function DashboardSectionTable({
                 return (
                   <tr key={item.id}>
                     <td>{item.chamado}</td>
+                    <td>
+                      {item.data_criacao?.trim() ? item.data_criacao : '—'}
+                    </td>
                     <td>{item.demandante}</td>
                     <td>{item.equipe || '-'}</td>
                     <td>

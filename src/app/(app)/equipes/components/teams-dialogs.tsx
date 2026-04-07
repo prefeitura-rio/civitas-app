@@ -1,6 +1,7 @@
 'use client'
 
 import type { TeamsController } from '../hooks/use-teams-controller'
+import { DeleteTeamAlertDialog } from './delete-team-alert-dialog'
 import { DeleteTeamMemberAlertDialog } from './delete-team-member-alert-dialog'
 import { TeamFormDialog } from './team-form-dialog'
 import { TeamMemberFormDialog } from './team-member-form-dialog'
@@ -13,7 +14,9 @@ export function TeamsDialogs({ controller }: TeamsDialogsProps) {
   const {
     teamFormDisclosure,
     memberFormDisclosure,
+    deleteTeamProps,
     deleteTeamMemberProps,
+    closeDeleteTeamDialog,
     closeDeleteTeamMemberDialog,
   } = controller
 
@@ -30,6 +33,13 @@ export function TeamsDialogs({ controller }: TeamsDialogsProps) {
         isOpen={memberFormDisclosure.isOpen}
         onOpen={memberFormDisclosure.onOpen}
         onClose={memberFormDisclosure.onClose}
+        controller={controller}
+      />
+
+      <DeleteTeamAlertDialog
+        isOpen={Boolean(deleteTeamProps)}
+        onOpen={() => {}}
+        onClose={closeDeleteTeamDialog}
         controller={controller}
       />
 

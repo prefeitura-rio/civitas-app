@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { listIslands } from '@/http/islands/list-islands'
+import { listIslandsByTeam } from '@/http/islands/list-islands'
 import { createTeamMember } from '@/http/teams/create-team-member'
 import { updateTeamMember } from '@/http/teams/update-team-member'
 import { getUserRolesById } from '@/http/user-roles/get-user-roles-by-id'
@@ -108,6 +108,9 @@ export function TeamMemberFormDialog({
 
   const selectedUserId = watch('user_id')
   const selectedRole = watch('role')
+  const watchedTeamId = watch('team_id')
+  const teamIdForIslands =
+    watchedTeamId || memberDialogInitialData?.team_id || ''
   const didApplyInitialDataRef = useRef(false)
 
   const { data: usersResponse } = useQuery({
@@ -117,9 +120,9 @@ export function TeamMemberFormDialog({
   })
 
   const { data: islandsResponse } = useQuery({
-    queryKey: ['islands'],
-    queryFn: () => listIslands({ isActive: true }),
-    enabled: isOpen,
+    queryKey: ['islands', 'by-team', teamIdForIslands],
+    queryFn: () => listIslandsByTeam(teamIdForIslands, { isActive: true }),
+    enabled: isOpen && Boolean(teamIdForIslands),
   })
 
   const users = usersResponse?.data || []

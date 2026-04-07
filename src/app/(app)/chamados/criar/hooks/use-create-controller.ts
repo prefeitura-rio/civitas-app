@@ -210,11 +210,13 @@ export function useTicketCreateController() {
     mutationFn: async ({
       ticketId,
       files: filesToSend = [],
+      emailId,
     }: {
       ticketId: string
       files?: File[]
       saveAndNew?: boolean
-    }) => convertTicketToConventional(ticketId, filesToSend),
+      emailId?: string | null
+    }) => convertTicketToConventional(ticketId, filesToSend, { emailId }),
     onSuccess: (_data, variables) => {
       toast.success('Chamado convertido para convencional com sucesso.')
       if (variables.saveAndNew) {
@@ -383,6 +385,7 @@ export function useTicketCreateController() {
         ticketId: associarId,
         files: filesForTicket ?? files,
         saveAndNew: options?.saveAndNew ?? false,
+        emailId,
       })
       return
     }

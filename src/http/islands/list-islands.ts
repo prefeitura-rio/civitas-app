@@ -17,8 +17,9 @@ interface ListIslandsParams {
   isActive?: boolean
 }
 
-export function listIslands(params?: ListIslandsParams) {
-  return api.get<ListIslandsResponse>('/islands/', {
+/** Ilhas do time (IslandPageOut no backend). */
+export function listIslandsByTeam(teamId: string, params?: ListIslandsParams) {
+  return api.get<ListIslandsResponse>(`/islands/team/${teamId}`, {
     params: {
       search: params?.search,
       isActive: params?.isActive,
