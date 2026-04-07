@@ -8,10 +8,27 @@ export interface Module {
   path: string
 }
 
+/** Módulo com subitens (ex.: Caixa de entrada → Respondidos, Spam). */
+export interface ModuleWithChildren {
+  icon: keyof typeof icons
+  title: string
+  /** Se definido, clique no título/ícone navega para esta rota. */
+  path?: string
+  children: Module[]
+}
+
+export type SidebarModule = Module | ModuleWithChildren
+
+export function isModuleWithChildren(
+  m: SidebarModule,
+): m is ModuleWithChildren {
+  return 'children' in m && Array.isArray((m as ModuleWithChildren).children)
+}
+
 export interface Category {
   icon: keyof typeof icons
   title: string
-  modules: Module[]
+  modules: SidebarModule[]
 }
 
 export type SideBarItem = Module | Category
@@ -34,16 +51,18 @@ const chamadosItem: Category = {
       icon: 'Inbox',
       title: 'Caixa de Entrada',
       path: '/chamados/caixa-entrada',
-    },
-    {
-      icon: 'Reply',
-      title: 'Respondidos',
-      path: '/chamados/respondidos',
-    },
-    {
-      icon: 'MailWarning',
-      title: 'Spam',
-      path: '/chamados/spam',
+      children: [
+        {
+          icon: 'Reply',
+          title: 'Respondidos',
+          path: '/chamados/respondidos',
+        },
+        {
+          icon: 'MailWarning',
+          title: 'Spam',
+          path: '/chamados/spam',
+        },
+      ],
     },
     {
       icon: 'UserCog',
@@ -59,6 +78,7 @@ const chamadosItem: Category = {
 }
 
 export const sidebarItems: SideBarItem[] = [
+  ...(config.enableChamados ? [chamadosItem] : []),
   {
     icon: 'Car',
     title: 'Veículos',
@@ -85,7 +105,6 @@ export const sidebarItems: SideBarItem[] = [
     title: 'Pessoas',
     path: '/pessoas',
   },
-  ...(config.enableChamados ? [chamadosItem] : []),
   {
     icon: 'Speech',
     title: 'Ocorrências (DD & 1746)',
