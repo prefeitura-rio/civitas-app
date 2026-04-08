@@ -50,6 +50,74 @@ export function formatPhone(value: string) {
   return ddd + celDigit + middleDigits + '-' + last4Digits
 }
 
+/**
+ * Mantém apenas dígitos, com limite opcional.
+ * Use `Infinity` para não cortar (ex.: exibir erro de máximo no formulário).
+ */
+export function maskDigitsOnly(value: string, maxLength: number = 60) {
+  const digits = value.replace(/\D/g, '')
+  return maxLength === Infinity ? digits : digits.slice(0, maxLength)
+}
+
+/** Completa com zeros à esquerda até `totalLength` (apenas dígitos do valor). */
+export function padDigitsLeft(
+  value: string | null | undefined,
+  totalLength: number,
+): string {
+  if (value == null || value === '') return ''
+  const digits = String(value).replace(/\D/g, '').slice(0, totalLength)
+  if (!digits) return ''
+  return digits.padStart(totalLength, '0')
+}
+
+/**
+ * Placa veicular BR (Mercosul LLLNLNN ou antigo LLLNNNN): até 7 caracteres
+ * alfanuméricos em maiúsculas, sem hífen (padrão atual).
+ */
+export function maskPlateBR(value: string): string {
+  return value
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 7)
+}
+
+/** Valor da placa apenas com letras e números (para envio à API). */
+export function unmaskPlateBR(value: string): string {
+  return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+}
+
+export function maskPhoneBR(value: string) {
+  const n = value.replace(/\D/g, '').slice(0, 11)
+  if (n.length === 0) return ''
+
+  if (n.length <= 2) {
+    return `(${n}`
+  }
+
+  const ddd = n.slice(0, 2)
+  const rest = n.slice(2)
+
+  if (rest.length === 0) {
+    return `(${ddd})`
+  }
+
+  if (rest[0] === '9') {
+    if (rest.length === 1) {
+      return `(${ddd}) ${rest}`
+    }
+    const body = rest.slice(1)
+    if (body.length <= 4) {
+      return `(${ddd}) ${rest[0]} ${body}`
+    }
+    return `(${ddd}) ${rest[0]} ${body.slice(0, 4)}-${body.slice(4)}`
+  }
+
+  if (rest.length <= 4) {
+    return `(${ddd}) ${rest}`
+  }
+  return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`
+}
+
 export function formatCNPJ(value: string) {
   // Remove any non-numeric characters
   const numericValue = value.replace(/\D/g, '')

@@ -1,4 +1,12 @@
-import { Clock, LayoutDashboard, MapPinned } from 'lucide-react'
+import {
+  Clock,
+  FileText,
+  Filter,
+  LayoutDashboard,
+  Mail,
+  MapPinned,
+  Users,
+} from 'lucide-react'
 import Image from 'next/image'
 import type { ReactNode } from 'react'
 
@@ -18,6 +26,76 @@ export interface Card {
 }
 
 export const changelog: Card[] = [
+  {
+    title: '30 de Março de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Evolução do módulo de Chamados (primeira fase)',
+        content: (
+          <>
+            <p>
+              Foi disponibilizada a primeira fase do novo módulo de Chamados,
+              com funcionalidades iniciais para cadastro, visualização e
+              organização das solicitações dentro da plataforma.
+            </p>
+            <div className="flex gap-2">
+              <LayoutDashboard className="mb-4 mt-6 size-6" />
+              <h4>Visão centralizada e busca</h4>
+            </div>
+            <p>
+              A nova interface permite acompanhar os chamados de forma
+              centralizada, com indicadores de status como concluídos, urgentes,
+              em atraso e bloqueados, além de busca rápida e organização por
+              informações como demandante, equipe, responsável e serviços
+              vinculados.
+            </p>
+            <div className="flex gap-2">
+              <Filter className="mb-4 mt-6 size-6" />
+              <h4>Filtros avançados</h4>
+            </div>
+            <p>
+              Também foi adicionada uma área de filtros avançados,
+              possibilitando refinar os resultados por critérios como
+              demandante, requisitante, períodos de data, prioridade e equipe.
+            </p>
+            <div className="flex gap-2">
+              <FileText className="mb-4 mt-6 size-6" />
+              <h4>Cadastro manual</h4>
+            </div>
+            <p>
+              No fluxo de criação, foi implementado o cadastro manual de
+              chamados, com definição de tipo, associação com outros chamados e
+              preenchimento das principais informações, incluindo campos
+              condicionais como apelido na imprensa e endereço de
+              correspondência.
+            </p>
+            <div className="flex gap-2">
+              <Mail className="mb-4 mt-6 size-6" />
+              <h4>Integração com e-mail e triagem</h4>
+            </div>
+            <p>
+              O módulo passa a contar com a Caixa de Entrada, onde é possível
+              visualizar mensagens não lidas e aguardando resposta, com listagem
+              paginada, pré-visualização do conteúdo e indicação de anexos. Na
+              tela Converter e-mail, um e-mail selecionado pode ser transformado
+              em chamado, reaproveitando o mesmo fluxo de cadastro (serviços,
+              correlatas, anexos e demais campos).
+            </p>
+            <div className="flex gap-2">
+              <Users className="mb-4 mt-6 size-6" />
+              <h4>Equipes e perfis</h4>
+            </div>
+            <p>
+              Como suporte ao módulo, foram incluídas as telas de gestão de
+              equipes e perfis, permitindo organizar responsáveis e controlar
+              níveis de acesso.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
   {
     title: '11 de Fevereiro de 2026',
     subCards: [

@@ -1,20 +1,82 @@
 import type { icons } from 'lucide-react'
 
+import { config } from '@/config'
+
 export interface Module {
   icon: keyof typeof icons
   title: string
   path: string
 }
 
+export interface ModuleWithChildren {
+  icon: keyof typeof icons
+  title: string
+  path?: string
+  children: Module[]
+}
+
+export type SidebarModule = Module | ModuleWithChildren
+
+export function isModuleWithChildren(
+  m: SidebarModule,
+): m is ModuleWithChildren {
+  return 'children' in m && Array.isArray((m as ModuleWithChildren).children)
+}
+
 export interface Category {
   icon: keyof typeof icons
   title: string
-  modules: Module[]
+  modules: SidebarModule[]
 }
 
 export type SideBarItem = Module | Category
 
+const chamadosItem: Category = {
+  icon: 'ClipboardList',
+  title: 'Chamados',
+  modules: [
+    {
+      icon: 'List',
+      title: 'Lista Geral',
+      path: '/chamados',
+    },
+    {
+      icon: 'CirclePlus',
+      title: 'Criar',
+      path: '/chamados/criar',
+    },
+    {
+      icon: 'Inbox',
+      title: 'Caixa de Entrada',
+      path: '/chamados/caixa-entrada',
+      children: [
+        {
+          icon: 'Reply',
+          title: 'Respondidos',
+          path: '/chamados/respondidos',
+        },
+        {
+          icon: 'MailWarning',
+          title: 'Spam',
+          path: '/chamados/spam',
+        },
+      ],
+    },
+    {
+      icon: 'UserCog',
+      title: 'Equipes',
+      path: '/equipes',
+    },
+    {
+      icon: 'Shield',
+      title: 'Perfis',
+      path: '/perfis',
+    },
+  ],
+}
+
 export const sidebarItems: SideBarItem[] = [
+  ...(config.enableChamados ? [chamadosItem] : []),
   {
     icon: 'Car',
     title: 'Veículos',
