@@ -3,13 +3,15 @@ import type { BackendMonitoredPlate } from '@/models/entities'
 
 import { mapBackendMonitoredPlateToMonitoredPlate } from './map-backend-monitored-plate'
 
-interface GetMonitoredPlateRequest {
+export async function deleteMonitoredPlateDemandantLink({
+  plate,
+  linkId,
+}: {
   plate: string
-}
-
-export async function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
-  const response = await api.get<BackendMonitoredPlate>(
-    `cars/monitored/${plate}`,
+  linkId: string
+}) {
+  const response = await api.delete<BackendMonitoredPlate>(
+    `cars/monitored/${plate}/demandant-links/${linkId}`,
   )
 
   return mapBackendMonitoredPlateToMonitoredPlate(response.data)

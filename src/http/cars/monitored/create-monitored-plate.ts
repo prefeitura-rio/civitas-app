@@ -1,40 +1,48 @@
 import { api } from '@/lib/api'
-import type {
-  BackendMonitoredPlate,
-  MonitoredPlate,
-  Operation,
-} from '@/models/entities'
+import type { BackendMonitoredPlate } from '@/models/entities'
 
-export interface CreateMonitoredPlateRequest
-  extends Pick<MonitoredPlate, 'plate'>,
-    Partial<
-      Pick<
-        MonitoredPlate,
-        'additionalInfo' | 'active' | 'notes' | 'contactInfo'
-      >
-    > {
-  operationId: Operation['id']
+export interface MonitoredPlateDemandantLinkInput {
+  demandantId: string
+  referenceNumber: string
+  validUntil?: string
+  notes?: string
+  additionalInfo?: JSON
+  lprEquipmentIds?: string[]
+}
+
+export interface CreateMonitoredPlateRequest {
+  plate: string
+  notes?: string
   notificationChannels: string[]
+  demandantLinks?: MonitoredPlateDemandantLinkInput[]
 }
 
 export function createMonitoredPlate({
   plate,
-  operationId,
-  active,
-  contactInfo,
   notes,
-  additionalInfo,
   notificationChannels,
+  demandantLinks,
 }: CreateMonitoredPlateRequest) {
-  const response = api.post<BackendMonitoredPlate>('/cars/monitored', {
+  const body: Record<string, unknown> = {
     plate,
-    operation_id: operationId,
-    contact_info: contactInfo,
-    notes,
-    active,
-    additional_info: additionalInfo,
-    notification_channels: notificationChannels,
-  })
+    notes: notes ?? undefined,
+    notification_channels:
+      notificationChannels.length > 0 ? notificationChannels : undefined,
+  }
 
-  return response
+  if (demandantLinks && demandantLinks.length > 0) {
+    body.demandant_links = demandantLinks.map((link) => ({
+      demandant_id: link.demandantId,
+      reference_number: link.referenceNumber,
+      valid_until: link.validUntil ?? undefined,
+      notes: link.notes ?? undefined,
+      additional_info: link.additionalInfo ?? undefined,
+      lpr_equipment_ids:
+        link.lprEquipmentIds && link.lprEquipmentIds.length > 0
+          ? link.lprEquipmentIds
+          : undefined,
+    }))
+  }
+
+  return api.post<BackendMonitoredPlate>('/cars/monitored', body)
 }
