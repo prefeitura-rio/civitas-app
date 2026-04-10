@@ -17,11 +17,9 @@ const mockRadar: Radar = {
   company: 'CET-Rio',
   activeInLast24Hours: true,
   lastDetectionTime: '2024-01-15T10:30:00Z',
-  streetName: 'Avenida Brasil',
   hasData: true,
   direction: 'norte',
   lane: 'direita',
-  streetNumber: '123',
 }
 
 const mockRadarInactive: Radar = {
@@ -55,7 +53,9 @@ describe('RadarSelectCard', () => {
 
     expect(screen.getByText('Informações do Equipamento')).toBeInTheDocument()
     expect(screen.getAllByText('RDR123')).toHaveLength(1)
-    expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
+    expect(
+      screen.getByText('avenida brasil - centro, SENTIDO norte'),
+    ).toBeInTheDocument()
   })
 
   it('should display radar code correctly', () => {
@@ -68,7 +68,9 @@ describe('RadarSelectCard', () => {
   it('should display location and district correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
+    expect(
+      screen.getByText('avenida brasil - centro, SENTIDO norte'),
+    ).toBeInTheDocument()
   })
 
   it('should display latitude and longitude correctly', () => {
@@ -177,7 +179,7 @@ describe('RadarSelectCard', () => {
     )
 
     expect(screen.getByText('Localização')).toBeInTheDocument()
-    expect(screen.getByText('null - null')).toBeInTheDocument()
+    expect(screen.getByText('null - null, SENTIDO norte')).toBeInTheDocument()
     expect(screen.getByText('Empresa')).toBeInTheDocument()
   })
 })

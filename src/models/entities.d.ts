@@ -119,17 +119,16 @@ export type Camera = {
 }
 
 export type BackendRadar = {
-  codcet: string | null
+  id_ponto_coleta: string
+  origem_equipamento: string
   latitude: number
   longitude: number
-  locequip: string | null
-  bairro: string | null
-  logradouro: string | null
-  has_data: string
-  empresa: string | null
-  active_in_last_24_hours: string | null
+  local_ponto_coleta: string
+  bairro: string
+  sentido: string
+  has_data: boolean
   last_detection_time: string | null
-  sentido: string | null
+  active_in_last_24_hours: boolean
 }
 
 export type Radar = {
@@ -138,14 +137,12 @@ export type Radar = {
   longitude: number
   location: string | null
   district: string | null
-  streetName: string | null
   hasData: boolean
   activeInLast24Hours: boolean
   company: string | null
   lastDetectionTime: string | null
   direction: string | null
   lane: string | null
-  streetNumber: string
 }
 
 export type BackendWazeAlert = {

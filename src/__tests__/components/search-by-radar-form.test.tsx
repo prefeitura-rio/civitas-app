@@ -39,11 +39,9 @@ const mockRadar: Radar = {
   company: 'CET-Rio',
   activeInLast24Hours: true,
   lastDetectionTime: '2024-01-15T10:30:00Z',
-  streetName: 'Estrada dos Bandeirantes',
   hasData: true,
   direction: 'norte',
   lane: 'direita',
-  streetNumber: '123',
 }
 
 const mockRadar2: Radar = {

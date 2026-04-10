@@ -17,16 +17,14 @@ const mockRadar: Radar = {
   cetRioCode: '123456',
   latitude: -22.9068,
   longitude: -43.1729,
-  location: 'Avenida Atlântica',
+  location: 'Avenida Atlântica, SENTIDO Centro',
   district: 'Copacabana',
   company: 'TECHNO RADARES',
   activeInLast24Hours: true,
   lastDetectionTime: new Date('2025-01-15T10:30:00').toISOString(),
-  streetName: 'Avenida Atlântica',
   hasData: true,
-  direction: 'Sentido Centro',
+  direction: 'Centro',
   lane: 'Faixa 1',
-  streetNumber: '1000',
 }
 
 const mockCamera: Camera = {

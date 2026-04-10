@@ -162,7 +162,7 @@ export function useRadarLayer(
       new IconLayer<Radar>({
         ...sharedProps,
         id: 'radars',
-        data: data?.filter((d) => d.company?.toUpperCase() !== 'SENTRY'),
+        data: data?.filter((d) => d.company?.toUpperCase() !== 'CIVITAS'),
         getIcon: (d) => getRadarIcon(d, ''),
       }),
     [...deps],
@@ -174,7 +174,7 @@ export function useRadarLayer(
       new IconLayer<Radar>({
         ...sharedProps,
         id: 'radars-sentry',
-        data: data?.filter((d) => d.company?.toUpperCase() === 'SENTRY'),
+        data: data?.filter((d) => d.company?.toUpperCase() === 'CIVITAS'),
         getIcon: (d) => getRadarIcon(d, 'sentry-'),
       }),
     [...deps],
