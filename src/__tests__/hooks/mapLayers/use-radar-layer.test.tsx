@@ -22,11 +22,9 @@ jest.mock('@/hooks/useQueries/useRadars', () => ({
         company: 'CET-Rio',
         activeInLast24Hours: true,
         lastDetectionTime: '2024-01-15T10:30:00Z',
-        streetName: 'Avenida Brasil',
         hasData: true,
         direction: 'norte',
         lane: 'direita',
-        streetNumber: '123',
       },
       {
         cetRioCode: 'RDR456',
@@ -37,11 +35,9 @@ jest.mock('@/hooks/useQueries/useRadars', () => ({
         company: 'CET-Rio',
         activeInLast24Hours: false,
         lastDetectionTime: undefined,
-        streetName: 'Copacabana',
         hasData: true,
         direction: 'sul',
         lane: 'esquerda',
-        streetNumber: '456',
       },
     ],
   }),
@@ -114,11 +110,9 @@ describe('useRadarLayer', () => {
       company: 'CET-Rio',
       activeInLast24Hours: true,
       lastDetectionTime: '2024-01-15T10:30:00Z',
-      streetName: 'Avenida Brasil',
       hasData: true,
       direction: 'norte',
       lane: 'direita',
-      streetNumber: '123',
     }
 
     act(() => {
@@ -139,11 +133,9 @@ describe('useRadarLayer', () => {
       company: 'CET-Rio',
       activeInLast24Hours: true,
       lastDetectionTime: '2024-01-15T10:30:00Z',
-      streetName: 'Avenida Brasil',
       hasData: true,
       direction: 'norte',
       lane: 'direita',
-      streetNumber: '123',
     }
 
     act(() => {
@@ -169,11 +161,9 @@ describe('useRadarLayer', () => {
       company: 'CET-Rio',
       activeInLast24Hours: true,
       lastDetectionTime: '2024-01-15T10:30:00Z',
-      streetName: 'Avenida Brasil',
       hasData: true,
       direction: 'norte',
       lane: 'direita',
-      streetNumber: '123',
     }
     const mockClearCamera = jest.fn()
 

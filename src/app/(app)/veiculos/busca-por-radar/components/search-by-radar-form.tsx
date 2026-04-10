@@ -43,7 +43,7 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
   return (
     <>
       <Card className="mb-0 w-full max-w-screen-md p-4">
-        <h1 className="text-lg font-bold">Busca por Radar</h1>
+        <h1 className="text-lg font-bold">Busca por Equipamento</h1>
       </Card>
 
       <Card className="flex w-full max-w-screen-md flex-col p-6">
@@ -84,7 +84,7 @@ export const SearchByRadarForm = memo(function SearchByRadarForm() {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full">
                   <MapPinIcon className="mr-2 size-4 shrink-0" />
-                  Radares ({selectedObjects.length})
+                  Equipamentos ({selectedObjects.length})
                 </Button>
               </PopoverTrigger>
               <PopoverContent

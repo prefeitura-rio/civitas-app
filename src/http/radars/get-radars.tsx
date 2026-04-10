@@ -4,12 +4,12 @@ import type { BackendRadar, Radar } from '@/models/entities'
 export async function getRadars() {
   const response = await api.get<BackendRadar[]>('/radars')
 
-  // First filter for has_data, then remove duplicates by codcet
   const filteredData = response.data
-    .filter((item) => item.has_data === 'yes')
+    .filter((item) => item.has_data)
     .filter(
       (item, index, self) =>
-        index === self.findIndex((t) => t.codcet === item.codcet),
+        index ===
+        self.findIndex((t) => t.id_ponto_coleta === item.id_ponto_coleta),
     )
 
   const clusters: { [key: string]: number } = {}
@@ -29,24 +29,17 @@ export async function getRadars() {
       clusters[key] += 1
     }
 
-    const laneRegex = /- FX (\d+)/
-
-    const laneMatch = item.locequip?.match(laneRegex)
-    const lane = laneMatch ? laneMatch[1] : null
-
     return {
-      district: item.bairro,
-      cetRioCode: item.codcet,
+      cetRioCode: item.id_ponto_coleta,
+      company: item.origem_equipamento || null,
       latitude: lat,
       longitude: lon,
-      location: item.locequip,
-      streetName: item.logradouro,
-      hasData: item.has_data === 'yes',
-      company: item.empresa || null,
-      activeInLast24Hours: item.active_in_last_24_hours === 'yes',
-      lastDetectionTime: item.last_detection_time || null,
+      location: item.local_ponto_coleta,
+      district: item.bairro,
       direction: item.sentido || null,
-      lane,
+      hasData: item.has_data,
+      activeInLast24Hours: item.active_in_last_24_hours,
+      lastDetectionTime: item.last_detection_time || null,
     } as Radar
   })
 
