@@ -1,6 +1,5 @@
 import { api } from '@/lib/api'
 
-/** Valores alinhados ao enum `StandardizedResponseCategory` da API. */
 export type StandardizedResponseCategory =
   | 'RECEBIMENTO_SOLICITACOES'
   | 'RELATORIOS_PLACAS_RADARES'

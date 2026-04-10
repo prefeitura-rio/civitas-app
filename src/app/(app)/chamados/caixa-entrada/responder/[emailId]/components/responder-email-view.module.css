@@ -1,8 +1,3 @@
-/**
- * Responder e-mail — Figma Civitas node 768:19804
- * https://www.figma.com/design/6Njx9o5Q7wl6SDQf52JZrW/Civitas?node-id=768-19804
- */
-
 .root {
   --r-bg-page: #0c161f;
   --r-bg-card: #152534;
@@ -17,11 +12,6 @@
   --r-radius: 8px;
   --r-input-bg: #152534;
 
-  /**
-   * Mesmos tokens de `ticket-create-form.module.css` (.root).
-   * Sem isso, `fieldLabel` / `inputBg` importados de lá não recebem var(--tc-*)
-   * e o Select parece “texto solto” no fundo da página.
-   */
   --tc-page-bg: #0c161f;
   --tc-section-bg: #101d28;
   --tc-card-bg: #101d28;
@@ -51,7 +41,6 @@
   color: var(--r-text);
 }
 
-/* Sem padding horizontal aqui: o mesmo `content` da caixa de entrada (globals) já define px e max-width */
 .main {
   flex: 1;
   display: flex;
@@ -303,10 +292,7 @@
   width: 100%;
 }
 
-/**
- * Radix SelectTrigger injeta `bg-background border-input` (Tailwind);
- * sem !important o fundo/borda do tema “ganham” e some o bloco estilo criar.
- */
+
 .popSelectTrigger {
   width: 100% !important;
   min-height: 44px !important;

@@ -40,7 +40,6 @@ import { cn } from '@/lib/utils'
 
 import styles from './responder-email-view.module.css'
 
-/** Valor sentinela para o Select (sem POP) — não colidir com ids da API */
 const EMPTY_POP_VALUE = '__civitas_pop_empty__'
 
 function formatBytes(bytes: number): string {
