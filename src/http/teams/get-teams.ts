@@ -15,6 +15,13 @@ export interface TeamMember {
   role: UserRoleEnum
 }
 
+export interface TeamIsland {
+  id: string
+  created_at: string
+  name: string
+  is_active: boolean
+}
+
 export interface Team {
   id: string
   created_at: string
@@ -22,6 +29,7 @@ export interface Team {
   description: string | null
   is_active: boolean
   members: TeamMember[]
+  islands?: TeamIsland[]
 }
 
 export interface TeamListResponse {

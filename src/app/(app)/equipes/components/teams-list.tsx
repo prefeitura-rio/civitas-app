@@ -38,12 +38,13 @@ interface TeamsListProps {
 }
 
 export function TeamsList({ controller }: TeamsListProps) {
-  const [openTeams, setOpenTeams] = useState<string[]>([])
+  const [openTeams, setOpenTeams] = useState<string[] | null>(null)
 
   const {
     openCreateMemberDialog,
     openEditMemberDialog,
     openEditTeamDialog,
+    openDeleteTeamDialog,
     openDeleteTeamMemberDialog,
   } = controller
 
@@ -55,16 +56,22 @@ export function TeamsList({ controller }: TeamsListProps) {
   const teams = response?.data.items || []
 
   function toggleTeam(teamId: string) {
-    setOpenTeams((prev) =>
-      prev.includes(teamId)
-        ? prev.filter((item) => item !== teamId)
-        : [...prev, teamId],
-    )
+    setOpenTeams((prev) => {
+      const effective =
+        prev === null ? (teams.length > 0 ? [teams[0].id] : []) : prev
+
+      if (effective.includes(teamId)) {
+        return effective.filter((item) => item !== teamId)
+      }
+      return [...effective, teamId]
+    })
   }
 
   const normalizedOpenTeams = useMemo(() => {
-    if (openTeams.length > 0) return openTeams
-    return teams.length > 0 ? [teams[0].id] : []
+    if (openTeams === null) {
+      return teams.length > 0 ? [teams[0].id] : []
+    }
+    return openTeams
   }, [openTeams, teams])
 
   if (isLoading) {
@@ -185,7 +192,7 @@ export function TeamsList({ controller }: TeamsListProps) {
                 </div>
 
                 <div className="equipes-table-footer">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
                       variant="outline"
@@ -194,13 +201,33 @@ export function TeamsList({ controller }: TeamsListProps) {
                         openEditTeamDialog({
                           id: team.id,
                           name: team.name,
-                          description: team.description,
                           is_active: team.is_active,
+                          islands: (team.islands ?? []).map((island) => ({
+                            id: island.id,
+                            name: island.name,
+                            is_active: island.is_active,
+                          })),
                         })
                       }}
                     >
                       <PencilLine className="mr-2 size-4" />
                       Editar Equipe
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label="Excluir equipe"
+                      className="shrink-0 border-red-900/50 bg-transparent text-red-300 hover:bg-red-950/30 hover:text-red-200"
+                      onClick={() => {
+                        openDeleteTeamDialog({
+                          id: team.id,
+                          name: team.name,
+                        })
+                      }}
+                    >
+                      <Trash2 className="size-4" />
                     </Button>
                   </div>
 

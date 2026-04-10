@@ -122,8 +122,9 @@ export function EmailPreviewSheet({
   const dateStr = d ? format(d, 'dd/MM/yyyy', { locale: ptBR }) : '—'
 
   const replyHref =
-    fromAddr &&
-    `mailto:${encodeURIComponent(fromAddr)}?subject=${encodeURIComponent(`Re: ${email?.subject || ''}`)}`
+    emailId != null
+      ? `/chamados/caixa-entrada/responder/${encodeURIComponent(emailId)}`
+      : null
   const convertHref =
     emailId != null
       ? `/chamados/converter?email_id=${encodeURIComponent(emailId)}`
@@ -222,9 +223,9 @@ export function EmailPreviewSheet({
                   </button>
                 ) : null}
                 {replyHref ? (
-                  <a className={styles.btnSecondary} href={replyHref}>
+                  <Link href={replyHref} className={styles.btnSecondary}>
                     Responder
-                  </a>
+                  </Link>
                 ) : (
                   <button
                     type="button"

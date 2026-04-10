@@ -4,11 +4,17 @@ import { useState } from 'react'
 
 import { useDisclosure } from '@/hooks/use-disclosure'
 
+export interface TeamDialogIslandInitialData {
+  id?: string
+  name?: string
+  is_active?: boolean
+}
+
 export interface TeamDialogInitialData {
   id?: string
   name?: string
-  description?: string | null
   is_active?: boolean
+  islands?: TeamDialogIslandInitialData[]
 }
 
 export interface TeamMemberDialogInitialData {
@@ -89,6 +95,14 @@ export function useTeamsController() {
     setDeleteTeamMemberProps(null)
   }
 
+  function openDeleteTeamDialog(data: DeleteTeamProps) {
+    setDeleteTeamProps(data)
+  }
+
+  function closeDeleteTeamDialog() {
+    setDeleteTeamProps(null)
+  }
+
   return {
     teamFormDisclosure,
     memberFormDisclosure,
@@ -115,6 +129,9 @@ export function useTeamsController() {
 
     openDeleteTeamMemberDialog,
     closeDeleteTeamMemberDialog,
+
+    openDeleteTeamDialog,
+    closeDeleteTeamDialog,
   }
 }
 

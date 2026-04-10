@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
+import { deleteMonitoredPlate } from '@/http/cars/monitored/delete-monitored-plate'
 import { queryClient } from '@/lib/react-query'
 
 interface DisableMonitoringAlertDialogProps {
@@ -24,10 +24,11 @@ export function DisableMonitoringAlertDialog({
   onOpenChange,
   plate,
 }: DisableMonitoringAlertDialogProps) {
-  const { mutateAsync: updateMonitoredPlateMutation } = useMutation({
-    mutationFn: () => updateMonitoredPlate({ plate, active: false }),
+  const { mutateAsync: deleteMonitoredPlateMutation, isPending } = useMutation({
+    mutationFn: () => deleteMonitoredPlate(plate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cars', 'monitored', plate] })
+      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
     },
   })
 
@@ -36,20 +37,32 @@ export function DisableMonitoringAlertDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Desativar monitoramento da placa{' '}
+            Remover placa do monitoramento?{' '}
             <span className="font-semibold text-destructive">{plate}</span>
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja desativar o monitoramento da placa{' '}
-            <span className="font-semibold text-destructive">{plate}</span>?
-            Você não receberá mais notificações caso essa placa seja avistada
-            por uma das câmeras da cidade.
+            O cadastro desta placa como monitorada será excluído (incluindo
+            vínculos e configurações associadas). Você poderá cadastrá-la
+            novamente depois, se precisar.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={() => updateMonitoredPlateMutation()}>
-            Desativar
+          <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={isPending}
+            onClick={(e) => {
+              e.preventDefault()
+              deleteMonitoredPlateMutation()
+                .then(() => {
+                  onOpenChange(false)
+                })
+                .catch(() => {
+                  /* erro da API */
+                })
+            }}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Remover
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
