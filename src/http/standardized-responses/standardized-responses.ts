@@ -24,7 +24,8 @@ export interface StandardizedResponsePage {
   total: number
 }
 
-export interface StandardizedResponseDetail extends StandardizedResponseListItem {
+export interface StandardizedResponseDetail
+  extends StandardizedResponseListItem {
   body: string
 }
 
@@ -44,6 +45,6 @@ export function listStandardizedResponses(params?: {
 
 export function getStandardizedResponseById(standardizedResponseId: string) {
   return api.get<StandardizedResponseDetail>(
-    `/standardized-responses/${encodeURIComponent(standardizedResponseId)}`
+    `/standardized-responses/${encodeURIComponent(standardizedResponseId)}`,
   )
 }

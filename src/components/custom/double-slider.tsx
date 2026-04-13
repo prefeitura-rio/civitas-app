@@ -5,9 +5,8 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-interface CustomSliderProps extends React.ComponentPropsWithoutRef<
-  typeof SliderPrimitive.Root
-> {
+interface CustomSliderProps
+  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {
   unity?: string
   labelFormatter?: (value: number, thumbIndex: number) => string
 }
@@ -24,7 +23,7 @@ const Slider = React.forwardRef<
       ref={ref}
       className={cn(
         'relative flex w-full touch-none select-none items-center',
-        className
+        className,
       )}
       {...props}
     >

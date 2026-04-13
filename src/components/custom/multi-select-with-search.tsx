@@ -50,15 +50,14 @@ const multiSelectVariants = cva(
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 )
 
 /**
  * Props for MultiSelect component
  */
 interface MultiSelectProps
-  extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects to be displayed in the multi-select component.
@@ -138,7 +137,7 @@ export const MultiSelectWithSearch = React.forwardRef<
       className,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [selectedValues, setSelectedValues] =
       React.useState<string[]>(defaultValue)
@@ -151,7 +150,7 @@ export const MultiSelectWithSearch = React.forwardRef<
     }, [defaultValue])
 
     const handleInputKeyDown = (
-      event: React.KeyboardEvent<HTMLInputElement>
+      event: React.KeyboardEvent<HTMLInputElement>,
     ) => {
       if (event.key === 'Enter') {
         setIsPopoverOpen(true)
@@ -209,7 +208,7 @@ export const MultiSelectWithSearch = React.forwardRef<
             onClick={handleTogglePopover}
             className={cn(
               'flex h-auto min-h-10 w-full items-center justify-between rounded-md border border-secondary bg-popover p-1 hover:bg-inherit',
-              className
+              className,
             )}
           >
             {selectedValues.length > 0 ? (
@@ -223,7 +222,7 @@ export const MultiSelectWithSearch = React.forwardRef<
                         key={value}
                         className={cn(
                           isAnimating ? 'animate-bounce' : '',
-                          multiSelectVariants({ variant })
+                          multiSelectVariants({ variant }),
                         )}
                         style={{ animationDuration: `${animation}s` }}
                       >
@@ -246,7 +245,7 @@ export const MultiSelectWithSearch = React.forwardRef<
                       className={cn(
                         'border-foreground/1 bg-transparent text-foreground hover:bg-transparent',
                         isAnimating ? 'animate-bounce' : '',
-                        multiSelectVariants({ variant })
+                        multiSelectVariants({ variant }),
                       )}
                       style={{ animationDuration: `${animation}s` }}
                     >
@@ -309,7 +308,7 @@ export const MultiSelectWithSearch = React.forwardRef<
                       'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
                       selectedValues.length === options.length
                         ? 'bg-primary text-primary-foreground'
-                        : 'opacity-50 [&_svg]:invisible'
+                        : 'opacity-50 [&_svg]:invisible',
                     )}
                   >
                     <CheckIcon className="h-4 w-4" />
@@ -329,7 +328,7 @@ export const MultiSelectWithSearch = React.forwardRef<
                           'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
                           isSelected
                             ? 'bg-primary text-primary-foreground'
-                            : 'opacity-50 [&_svg]:invisible'
+                            : 'opacity-50 [&_svg]:invisible',
                         )}
                       >
                         <CheckIcon className="h-4 w-4" />
@@ -374,14 +373,14 @@ export const MultiSelectWithSearch = React.forwardRef<
           <WandSparkles
             className={cn(
               'my-2 h-3 w-3 cursor-pointer bg-background text-foreground',
-              isAnimating ? '' : 'text-muted-foreground'
+              isAnimating ? '' : 'text-muted-foreground',
             )}
             onClick={() => setIsAnimating(!isAnimating)}
           />
         )}
       </Popover>
     )
-  }
+  },
 )
 
 MultiSelectWithSearch.displayName = 'MultiSelect'
