@@ -44,6 +44,6 @@ export function listStandardizedResponses(params?: {
 
 export function getStandardizedResponseById(standardizedResponseId: string) {
   return api.get<StandardizedResponseDetail>(
-    `/standardized-responses/${encodeURIComponent(standardizedResponseId)}`,
+    `/standardized-responses/${encodeURIComponent(standardizedResponseId)}`
   )
 }
