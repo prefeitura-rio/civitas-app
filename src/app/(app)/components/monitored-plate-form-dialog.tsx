@@ -135,7 +135,7 @@ export function MonitoredPlateFormDialog({
 
   const { data: operationsResponse } = useQuery({
     queryKey: ['operations'],
-    queryFn: () => getOperations({ size: 100 }),
+    queryFn: () => getOperations({ size: 999 }),
   })
   const { data: NotificationChannelResponse } = useQuery({
     queryKey: ['notification-channels'],
