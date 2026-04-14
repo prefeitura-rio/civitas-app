@@ -24,7 +24,8 @@ export interface StandardizedResponsePage {
   total: number
 }
 
-export interface StandardizedResponseDetail extends StandardizedResponseListItem {
+export interface StandardizedResponseDetail
+  extends StandardizedResponseListItem {
   body: string
 }
 
