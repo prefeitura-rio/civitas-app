@@ -103,9 +103,16 @@ export function ResponderEmailView() {
   const email = emailRes?.data
 
   const { data: popsRes, isLoading: popsLoading } = useQuery({
-    queryKey: ['standardized-responses', 'list', { isActive: true }],
+    queryKey: [
+      'standardized-responses',
+      'list',
+      { isActive: true, category: 'RECEBIMENTO_SOLICITACOES' as const },
+    ],
     queryFn: async () => {
-      const r = await listStandardizedResponses({ isActive: true })
+      const r = await listStandardizedResponses({
+        isActive: true,
+        category: 'RECEBIMENTO_SOLICITACOES',
+      })
       return r.data
     },
   })
