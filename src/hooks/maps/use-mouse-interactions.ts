@@ -3,14 +3,14 @@
 import { type Deck, type PickingInfo } from 'deck.gl'
 import { type MouseEvent, useCallback, useRef } from 'react'
 
-import type { Camera, Radar } from '@/models/entities'
+import type { Camera, CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 interface UseMouseInteractionsProps {
   deckRef: React.RefObject<Deck | null>
-  multiSelectRadar: (radar: Radar) => void
+  multiSelectRadar: (radar: CollectionPoint) => void
   selectCamera: (camera: Camera | null, clearRadar?: () => void) => void
-  setSelectedRadar: (radar: Radar | null) => void
+  setSelectedRadar: (radar: CollectionPoint | null) => void
   setSelectedCamera: (camera: Camera | null) => void
   setContextMenuPickingInfo: (info: PickingInfo | null) => void
   setOpenContextMenu: (open: boolean) => void
@@ -43,7 +43,7 @@ export function useMouseInteractions({
       const CAMERA_LAYER_IDS = ['cameras', 'cameras-dc3']
 
       if (RADAR_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
-        const radar = info.object as Radar
+        const radar = info.object as CollectionPoint
         const setRadarInfoMode = useMapStore.getState().setRadarInfoMode
         setRadarInfoMode(radar)
         setSelectedCamera(null)
@@ -113,7 +113,7 @@ export function useMouseInteractions({
 
       const RADAR_LAYER_IDS = ['radars', 'radars-sentry']
       if (RADAR_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
-        const radar = info.object as Radar
+        const radar = info.object as CollectionPoint
         multiSelectRadar(radar)
       }
 

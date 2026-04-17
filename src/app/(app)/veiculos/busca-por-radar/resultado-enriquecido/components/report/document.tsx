@@ -5,7 +5,7 @@ import React from 'react'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 
 import { RadarReportCover } from './components/cover'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result'
@@ -75,7 +75,7 @@ const columns = [
 
 export type GroupedEnhancedDetection = {
   location: string
-  radars: Radar[]
+  radars: CollectionPoint[]
   detections: EnhancedDetectionDTO[]
 }
 

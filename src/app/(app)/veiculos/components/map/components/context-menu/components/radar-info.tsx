@@ -5,12 +5,12 @@ import { AlertTriangle, Building, History, MapPin } from 'lucide-react'
 import { Label, Value } from '@/components/custom/typography'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 
 export function RadarInfo({
   pickingInfo,
 }: {
-  pickingInfo: PickingInfo<Radar>
+  pickingInfo: PickingInfo<CollectionPoint>
 }) {
   return (
     <div className="h-full w-full">

@@ -16,16 +16,16 @@ import { useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 interface RadarSelectCardProps {
-  selectedObject: Radar | null
-  setSelectedObject: (value: Radar | null) => void
+  selectedObject: CollectionPoint | null
+  setSelectedObject: (value: CollectionPoint | null) => void
   className?: string
   infoMode?: boolean
-  infoObject?: Radar | null
-  setInfoObject?: (value: Radar | null) => void
+  infoObject?: CollectionPoint | null
+  setInfoObject?: (value: CollectionPoint | null) => void
 }
 
 export function RadarSelectCard({
