@@ -30,7 +30,7 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
         const newPoint: Point = {
           index,
           startTime: point.datahora,
-          cetRioCode: point.codcet,
+          cetRioCode: point.id_ponto_coleta,
           from,
           to,
           endTime: points.at(index + 1)?.datahora,

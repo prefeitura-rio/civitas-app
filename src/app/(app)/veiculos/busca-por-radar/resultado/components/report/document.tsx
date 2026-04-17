@@ -5,7 +5,7 @@ import React from 'react'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
-import type { Radar, RadarDetection } from '@/models/entities'
+import type { CollectionPoint, RadarDetection } from '@/models/entities'
 
 import { RadarReportCover } from './components/cover'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result'
@@ -73,7 +73,7 @@ const columns = [
 
 export type GroupedDetection = {
   location: string
-  radars: Radar[]
+  radars: CollectionPoint[]
   detections: DetectionDTO[]
 }
 

@@ -20,7 +20,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
-import { useRadars } from '@/hooks/useQueries/useRadars'
+import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
@@ -58,7 +58,7 @@ export function DownloadReport({
     ApplyFilters.Sim,
   )
 
-  const { data: radars } = useRadars()
+  const { data: radars } = useCollectionPoints()
 
   const groupData = useCallback(
     (data: DetectionDTO[]) => {

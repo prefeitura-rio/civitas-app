@@ -119,16 +119,17 @@ export type Camera = {
 }
 
 export type BackendRadar = {
-  id_ponto_coleta: string
-  origem_equipamento: string
+  codcet: string | null
   latitude: number
   longitude: number
-  local_ponto_coleta: string
-  bairro: string
-  sentido: string
-  has_data: boolean
+  locequip: string | null
+  bairro: string | null
+  logradouro: string | null
+  has_data: string
+  empresa: string | null
+  active_in_last_24_hours: string | null
   last_detection_time: string | null
-  active_in_last_24_hours: boolean
+  sentido: string | null
 }
 
 export type Radar = {
@@ -137,11 +138,44 @@ export type Radar = {
   longitude: number
   location: string | null
   district: string | null
+  streetName: string | null
   hasData: boolean
   activeInLast24Hours: boolean
   company: string | null
   lastDetectionTime: string | null
   direction: string | null
+  lane: string | null
+  streetNumber: string
+}
+
+export type LprCollectionPoint = {
+  id_ponto_coleta: string
+  origem_equipamento: string
+  codigo_ponto_coleta: string
+  local: string
+  bairro: string
+  sentido: string
+  latitude: number
+  longitude: number
+  status_ativo: string
+  datahora_ultima_leitura: string
+  total_leituras: number
+  ativo_ultimas_24h: boolean
+}
+
+export type CollectionPoint = {
+  cetRioCode: string
+  codigoPontoColeta: string
+  company: string | null
+  latitude: number
+  longitude: number
+  location: string | null
+  district: string | null
+  direction: string | null
+  statusAtivo: string
+  lastDetectionTime: string | null
+  totalDetections: number
+  activeInLast24Hours: boolean
   lane: string | null
 }
 
