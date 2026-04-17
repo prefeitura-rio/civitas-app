@@ -13,7 +13,11 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
 
     const formattedPoints = points
       .map((point, index) => {
-        const { location, direction, lane } = formatLocation(point.localidade)
+        const { location, direction, lane } = formatLocation(
+          point.localidade ?? '',
+        )
+        const directionFromApi = point.sentido?.trim()
+        const directionValue = directionFromApi ?? direction
         const from = [point.longitude, point.latitude] as Coordinates
         const to =
           points.at(index + 1) &&
@@ -26,13 +30,13 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
         const newPoint: Point = {
           index,
           startTime: point.datahora,
-          cetRioCode: point.codcet,
+          cetRioCode: point.id_ponto_coleta,
           from,
           to,
           endTime: points.at(index + 1)?.datahora,
           district: point.bairro,
           location,
-          direction,
+          direction: directionValue,
           speed: point.velocidade,
           lane,
           secondsToNextPoint: point.seconds_to_next_point,

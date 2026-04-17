@@ -69,7 +69,7 @@ export function RadarReportCover({
       value: totalDetections,
     },
     {
-      label: 'Radares:',
+      label: 'Equipamentos:',
       value: radarIds.join(', '),
     },
     {

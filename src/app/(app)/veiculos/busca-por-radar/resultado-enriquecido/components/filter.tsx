@@ -95,7 +95,7 @@ export function Filter({ filters, radarIds }: FilterProps) {
             setSelectedRadars(item)
           }}
           defaultValue={selectedRadars}
-          placeholder="Selecione um radar"
+          placeholder="Selecione um equipamento"
           variant="secondary"
           maxCount={2}
         />
