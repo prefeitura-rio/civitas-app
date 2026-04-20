@@ -35,6 +35,14 @@ steps:
     waitFor: ["-"]
     id: "create-env"
 
+  # Remove host node_modules so docker build context stays small (install-deps + tests
+  # already ran; the image gets deps from the Dockerfile deps stage, not from /workspace).
+  - name: "alpine:3.20"
+    entrypoint: "sh"
+    args: ["-c", "rm -rf node_modules"]
+    waitFor: ["run-tests", "create-env"]
+    id: "prune-docker-context"
+
   # Build the container image with cache optimization
   - name: "gcr.io/cloud-builders/docker"
     args: 
@@ -46,7 +54,7 @@ steps:
       - "-t"
       - "gcr.io/$PROJECT_ID/civitas:staging-latest"
       - "."
-    waitFor: ["run-tests", "create-env"]
+    waitFor: ["prune-docker-context"]
   # Push both images to Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"]
