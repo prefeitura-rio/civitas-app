@@ -106,6 +106,15 @@ const bulletPoints: BulletPoint[] = [
           },
         ],
       },
+      {
+        value: 'Estimativa de velocidade média:',
+        children: [
+          {
+            value:
+              'Nem todas as passagens possuem velocidade associada. A ausência dessa informação pode ocorrer devido a falhas na aferição ou à desativação da funcionalidade de estimativa de velocidade no equipamento.',
+          },
+        ],
+      },
     ],
   },
 ]
