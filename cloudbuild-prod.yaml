@@ -83,9 +83,16 @@ steps:
     waitFor: ["-"]
     id: "create-env"
 
+  # Remove host node_modules so docker build context stays small (see cloudbuild-staging).
+  - name: "alpine:3.20"
+    entrypoint: "sh"
+    args: ["-c", "rm -rf node_modules"]
+    waitFor: ["run-tests", "version-check", "create-env"]
+    id: "prune-docker-context"
+
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA", "."]
-    waitFor: ["run-tests", "version-check", "create-env"]
+    waitFor: ["prune-docker-context"]
 
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/$PROJECT_ID/civitas:$COMMIT_SHA"]
