@@ -1,5 +1,7 @@
 import { api } from '@/lib/api'
 
+import type { TicketAttachmentOut } from './ticket-attachments'
+
 export type TicketPriorityOut = 'URGENTE' | 'ALTA' | 'ROTINA'
 
 export type TicketCreateRequesterOut = {
@@ -23,9 +25,12 @@ export type ServiceBuscaPorPlacaPlateOut = {
 export type ServiceBuscaPorPlacaOut = {
   id: string
   created_at: string
+  /** Quando true, exige todos os campos do serviço preenchidos (validação no cliente). */
+  concluido?: boolean
   period_start?: string | null
   period_end?: string | null
   plates: ServiceBuscaPorPlacaPlateOut[]
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServiceBuscaPorRadarPlateOut = {
@@ -37,28 +42,34 @@ export type ServiceBuscaPorRadarPlateOut = {
 export type ServiceBuscaPorRadarOut = {
   id: string
   created_at: string
+  concluido?: boolean
   period_start?: string | null
   period_end?: string | null
   plates: ServiceBuscaPorRadarPlateOut[]
   radar_address?: string | null
   orientation?: string | null
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServiceCercoEletronicoOut = {
   id: string
   created_at: string
+  concluido?: boolean
   plate?: string | null
   vehicle_observations?: string | null
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServiceBuscaPorImagemOut = {
   id: string
   created_at: string
+  concluido?: boolean
   period_start?: string | null
   period_end?: string | null
   plate?: string | null
   address?: string | null
   description?: string | null
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServicePlacasCorrelatasItemOut = {
@@ -72,45 +83,55 @@ export type TicketDetection = 'ANTES' | 'DEPOIS' | 'AMBOS'
 export type ServicePlacasCorrelatasOut = {
   id: string
   created_at: string
+  concluido?: boolean
   period_start?: string | null
   period_end?: string | null
   interest_interval_minutes?: number | null
   detection_count?: number | null
   detection?: TicketDetection | null
   plates: ServicePlacasCorrelatasItemOut[]
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServicePlacasConjuntasOut = {
   id: string
   created_at: string
+  concluido?: boolean
   period_start?: string | null
   period_end?: string | null
   interest_interval_minutes?: number | null
   detection_count?: number | null
   detection?: TicketDetection | null
   plates: ServicePlacasCorrelatasItemOut[]
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServiceReservaDeImagemOut = {
   id: string
   created_at: string
+  concluido?: boolean
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServiceAnaliseDeImagemOut = {
   id: string
   created_at: string
+  concluido?: boolean
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
+  anexos?: TicketAttachmentOut[]
 }
 
 export type ServiceOutrosOut = {
   id: string
   created_at: string
+  concluido?: boolean
   orientation?: string | null
+  anexos?: TicketAttachmentOut[]
 }
 
 export type TicketCommentOut = {
@@ -120,11 +141,29 @@ export type TicketCommentOut = {
   body: string
 }
 
+export type TicketRelacionadoOut = {
+  id: string
+  numero_interno: number
+  equipe?: string | null
+  responsavel?: string | null
+  status: string
+  servicos: string[]
+}
+
 export type TicketOut = {
   id: string
   criado_em: string
+  /** Presente nas versões recentes da API (cabeçalho do detalhe). */
+  numero_interno?: number
+  status?: string
+  demandante?: string
+  equipe?: string | null
+  responsavel?: string | null
+  dias_em_aberto?: number
   associar_chamado_id?: string | null
   tipo_chamado_id: string
+  tipo_chamado_nome?: string
+  natureza_nome?: string | null
   operation_id?: string | null
   orgao_procedimento_id?: string | null
   numero_procedimento?: string | null
@@ -137,8 +176,9 @@ export type TicketOut = {
   requisitante: TicketCreateRequesterOut
   pontos_focais: TicketCreateFocalPointOut[]
   equipe_id?: string | null
-  prioridade: TicketPriorityOut
+  prioridade?: TicketPriorityOut | null
   comentarios?: TicketCommentOut[]
+  anexos?: TicketAttachmentOut[]
   busca_por_placa: ServiceBuscaPorPlacaOut[]
   busca_por_radar: ServiceBuscaPorRadarOut[]
   cerco_eletronico: ServiceCercoEletronicoOut[]
@@ -148,6 +188,7 @@ export type TicketOut = {
   reserva_de_imagem: ServiceReservaDeImagemOut[]
   analise_de_imagem: ServiceAnaliseDeImagemOut[]
   outros: ServiceOutrosOut[]
+  chamados_relacionados?: TicketRelacionadoOut[]
 }
 
 export async function getTicketById(ticketId: string) {

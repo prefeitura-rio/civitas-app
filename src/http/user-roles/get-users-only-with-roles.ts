@@ -1,7 +1,9 @@
 import { api } from '@/lib/api'
 
-import type { UserRoleListItem } from './get-users-with-roles'
+import type { UserRoleEnum, UserRoleListItem } from './get-users-with-roles'
 
-export function getUsersOnlyWithRoles() {
-  return api.get<UserRoleListItem[]>('/users-roles/assigned')
+export function getUsersOnlyWithRoles(params: { role: UserRoleEnum }) {
+  return api.get<UserRoleListItem[]>('/users-roles/assigned', {
+    params: { role: params.role },
+  })
 }

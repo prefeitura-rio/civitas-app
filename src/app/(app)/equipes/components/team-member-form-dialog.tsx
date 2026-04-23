@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ChevronDown } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -26,7 +26,6 @@ import {
 import { listIslandsByTeam } from '@/http/islands/list-islands'
 import { createTeamMember } from '@/http/teams/create-team-member'
 import { updateTeamMember } from '@/http/teams/update-team-member'
-import { getUserRolesById } from '@/http/user-roles/get-user-roles-by-id'
 import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-roles'
 import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 import { queryClient } from '@/lib/react-query'
@@ -34,12 +33,11 @@ import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import type { TeamsController } from '../hooks/use-teams-controller'
 
+/** Funções disponíveis no fluxo de colaborador da equipe (select). */
 const roleEnumValues = [
-  'Coordenador',
-  'Administrativo',
   'Adjunto',
-  'Líder de Ilha',
   'Operador',
+  'Líder de Ilha',
 ] as const satisfies readonly UserRoleEnum[]
 
 const memberFormSchema = z
@@ -106,17 +104,21 @@ export function TeamMemberFormDialog({
     },
   })
 
-  const selectedUserId = watch('user_id')
   const selectedRole = watch('role')
   const watchedTeamId = watch('team_id')
   const teamIdForIslands =
     watchedTeamId || memberDialogInitialData?.team_id || ''
   const didApplyInitialDataRef = useRef(false)
 
-  const { data: usersResponse } = useQuery({
-    queryKey: ['users-with-assigned-roles'],
-    queryFn: getUsersOnlyWithRoles,
-    enabled: isOpen,
+  const { data: usersResponse, isFetching: isFetchingUsers } = useQuery({
+    queryKey: ['users-with-assigned-roles', selectedRole],
+    queryFn: () =>
+      getUsersOnlyWithRoles({ role: selectedRole as UserRoleEnum }),
+    enabled:
+      isOpen &&
+      !memberDialogInitialData?.id &&
+      Boolean(selectedRole) &&
+      (roleEnumValues as readonly string[]).includes(selectedRole),
   })
 
   const { data: islandsResponse } = useQuery({
@@ -127,16 +129,6 @@ export function TeamMemberFormDialog({
 
   const users = usersResponse?.data || []
   const islands = islandsResponse?.data?.items ?? []
-
-  const { data: selectedUserRolesResponse } = useQuery({
-    queryKey: ['user-roles-by-id', selectedUserId],
-    queryFn: () => getUserRolesById(selectedUserId),
-    enabled: isOpen && Boolean(selectedUserId),
-  })
-
-  const availableRoles = useMemo(() => {
-    return selectedUserRolesResponse?.data.roles || []
-  }, [selectedUserRolesResponse])
 
   const shouldShowIsland =
     selectedRole === 'Operador' || selectedRole === 'Líder de Ilha'
@@ -214,13 +206,18 @@ export function TeamMemberFormDialog({
       const initialRole = memberDialogInitialData.role as
         | UserRoleEnum
         | undefined
+      const roleInForm =
+        initialRole &&
+        (roleEnumValues as readonly string[]).includes(initialRole)
+          ? (initialRole as MemberForm['role'])
+          : ('' as unknown as MemberForm['role'])
       const needsIsland =
-        initialRole === 'Operador' || initialRole === 'Líder de Ilha'
+        roleInForm === 'Operador' || roleInForm === 'Líder de Ilha'
 
       reset({
         user_id: memberDialogInitialData.user_id || '',
         team_id: memberDialogInitialData.team_id,
-        role: initialRole ?? ('' as unknown as MemberForm['role']),
+        role: roleInForm,
         island_id: needsIsland
           ? (memberDialogInitialData.island_id ?? null)
           : null,
@@ -241,14 +238,11 @@ export function TeamMemberFormDialog({
   }, [memberDialogInitialData, isOpen, reset])
 
   useEffect(() => {
-    if (!selectedUserId || memberDialogInitialData?.id) return
+    if (memberDialogInitialData?.id) return
 
-    setValue('role', '' as unknown as MemberForm['role'], {
-      shouldDirty: true,
-      shouldValidate: false,
-    })
+    setValue('user_id', '', { shouldDirty: true, shouldValidate: false })
     setValue('island_id', null, { shouldDirty: true, shouldValidate: false })
-  }, [selectedUserId, memberDialogInitialData?.id, setValue])
+  }, [selectedRole, memberDialogInitialData?.id, setValue])
 
   useEffect(() => {
     if (selectedRole !== 'Operador' && selectedRole !== 'Líder de Ilha') {
@@ -286,6 +280,71 @@ export function TeamMemberFormDialog({
                 </p>
               </div>
 
+              <div className="flex flex-col gap-1">
+                <div className="flex gap-2">
+                  <Label htmlFor="role" className="equipes-modal-label">
+                    Função
+                  </Label>
+                  <InputError message={errors.role?.message} />
+                </div>
+
+                <Controller
+                  control={control}
+                  name="role"
+                  render={({ field }) => (
+                    <Popover
+                      open={roleSelectOpen}
+                      onOpenChange={setRoleSelectOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <button
+                          id="role"
+                          type="button"
+                          disabled={isLoading}
+                          className="equipes-select-trigger-wrap equipes-select-trigger"
+                        >
+                          <span
+                            className={
+                              !field.value
+                                ? 'equipes-select-trigger-placeholder'
+                                : ''
+                            }
+                          >
+                            {field.value
+                              ? roleLabelMap[field.value]
+                              : 'Selecione a função'}
+                          </span>
+                          <ChevronDown
+                            className="equipes-select-chevron"
+                            size={16}
+                          />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        sideOffset={8}
+                        className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                      >
+                        {roleEnumValues.map((role) => (
+                          <button
+                            key={role}
+                            type="button"
+                            className="equipes-select-option w-full"
+                            onClick={() => {
+                              const value = role as MemberForm['role']
+                              field.onChange(value)
+                              setRoleSelectOpen(false)
+                            }}
+                          >
+                            {roleLabelMap[role]}
+                          </button>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                />
+              </div>
+
               {!memberDialogInitialData?.id && (
                 <div className="flex flex-col gap-1">
                   <div className="flex gap-2">
@@ -307,7 +366,7 @@ export function TeamMemberFormDialog({
                           <button
                             id="user_id"
                             type="button"
-                            disabled={isLoading}
+                            disabled={isLoading || !selectedRole}
                             className="equipes-select-trigger-wrap equipes-select-trigger"
                           >
                             <span
@@ -317,13 +376,17 @@ export function TeamMemberFormDialog({
                                   : ''
                               }
                             >
-                              {field.value
-                                ? users.find((u) => u.id === field.value)
-                                    ?.full_name ||
-                                  users.find((u) => u.id === field.value)
-                                    ?.username ||
-                                  'Selecione um usuário'
-                                : 'Selecione um usuário'}
+                              {!selectedRole
+                                ? 'Selecione a função primeiro'
+                                : isFetchingUsers
+                                  ? 'Carregando usuários...'
+                                  : field.value
+                                    ? users.find((u) => u.id === field.value)
+                                        ?.full_name ||
+                                      users.find((u) => u.id === field.value)
+                                        ?.username ||
+                                      'Selecione um usuário'
+                                    : 'Selecione um usuário'}
                             </span>
                             <ChevronDown
                               className="equipes-select-chevron"
@@ -336,19 +399,29 @@ export function TeamMemberFormDialog({
                           sideOffset={8}
                           className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
                         >
-                          {users.map((user) => (
-                            <button
-                              key={user.id}
-                              type="button"
-                              className="equipes-select-option w-full"
-                              onClick={() => {
-                                field.onChange(user.id)
-                                setUserSelectOpen(false)
-                              }}
-                            >
-                              {user.full_name || user.username}
-                            </button>
-                          ))}
+                          {isFetchingUsers ? (
+                            <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                              Carregando...
+                            </p>
+                          ) : users.length === 0 ? (
+                            <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                              Nenhum usuário encontrado para esta função.
+                            </p>
+                          ) : (
+                            users.map((user) => (
+                              <button
+                                key={user.id}
+                                type="button"
+                                className="equipes-select-option w-full"
+                                onClick={() => {
+                                  field.onChange(user.id)
+                                  setUserSelectOpen(false)
+                                }}
+                              >
+                                {user.full_name || user.username}
+                              </button>
+                            ))
+                          )}
                         </PopoverContent>
                       </Popover>
                     )}
@@ -364,100 +437,6 @@ export function TeamMemberFormDialog({
                   </p>
                 </div>
               )}
-
-              <div className="flex flex-col gap-1">
-                <div className="flex gap-2">
-                  <Label htmlFor="role" className="equipes-modal-label">
-                    Função
-                  </Label>
-                  <InputError message={errors.role?.message} />
-                </div>
-
-                <Controller
-                  control={control}
-                  name="role"
-                  render={({ field }) => {
-                    const roleOptions = memberDialogInitialData?.id
-                      ? availableRoles.length > 0
-                        ? availableRoles
-                        : field.value
-                          ? [field.value as UserRoleEnum]
-                          : []
-                      : availableRoles
-
-                    const placeholder =
-                      !memberDialogInitialData?.id && !selectedUserId
-                        ? 'Selecione um usuário primeiro'
-                        : 'Selecione a função'
-
-                    return (
-                      <Popover
-                        open={roleSelectOpen}
-                        onOpenChange={setRoleSelectOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <button
-                            id="role"
-                            type="button"
-                            disabled={
-                              isLoading ||
-                              (!memberDialogInitialData?.id &&
-                                availableRoles.length === 0)
-                            }
-                            className="equipes-select-trigger-wrap equipes-select-trigger"
-                          >
-                            <span
-                              className={
-                                !field.value
-                                  ? 'equipes-select-trigger-placeholder'
-                                  : ''
-                              }
-                            >
-                              {field.value
-                                ? roleLabelMap[field.value]
-                                : placeholder}
-                            </span>
-                            <ChevronDown
-                              className="equipes-select-chevron"
-                              size={16}
-                            />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          align="start"
-                          sideOffset={8}
-                          className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
-                        >
-                          {roleOptions.map((role) => (
-                            <button
-                              key={role}
-                              type="button"
-                              className="equipes-select-option w-full"
-                              onClick={() => {
-                                const value = role as MemberForm['role']
-                                setValue('role', value, {
-                                  shouldValidate: true,
-                                })
-                                setRoleSelectOpen(false)
-                              }}
-                            >
-                              {roleLabelMap[role]}
-                            </button>
-                          ))}
-                        </PopoverContent>
-                      </Popover>
-                    )
-                  }}
-                />
-
-                {!memberDialogInitialData?.id &&
-                  selectedUserId &&
-                  availableRoles.length === 0 && (
-                    <p className="equipes-modal-label text-sm">
-                      Nenhuma função disponível para este usuário.
-                    </p>
-                  )}
-              </div>
 
               {shouldShowIsland && (
                 <div className="flex flex-col gap-1">

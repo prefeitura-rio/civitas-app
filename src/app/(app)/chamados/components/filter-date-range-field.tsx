@@ -2,8 +2,7 @@
 
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-import { type DateRange } from 'react-day-picker'
+import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -13,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { dateConfig } from '@/lib/date-config'
+import { cn } from '@/lib/utils'
 
 import styles from '../list/components/filter/tickets-general-list-filters.module.css'
 
@@ -31,15 +31,9 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
-function normalizeRange(range: DateRange | undefined): DateRange | undefined {
-  if (!range?.from) return undefined
-  const from = new Date(range.from)
-  const to = range.to ? new Date(range.to) : undefined
-  if (!to) return { from, to: undefined }
-  if (from.getTime() > to.getTime()) {
-    return { from: to, to: from }
-  }
-  return { from, to }
+function formatTrigger(d: Date | undefined): string | null {
+  if (!d) return null
+  return format(d, dateConfig.formats.date, { locale: dateConfig.locale })
 }
 
 export type FilterDateRangeFieldProps = {
@@ -52,6 +46,7 @@ export type FilterDateRangeFieldProps = {
   disabled?: boolean
 }
 
+/** Dois calendários em modo single evitam bugs de pointer-events / RemoveScroll com range em Popover sobre página rolável. */
 export function FilterDateRangeField({
   startValue,
   endValue,
@@ -60,89 +55,127 @@ export function FilterDateRangeField({
   popoverContentClassName = 'z-[100] w-auto p-0',
   disabled = false,
 }: FilterDateRangeFieldProps) {
-  const [open, setOpen] = useState(false)
-  /** Evita completar intervalo ao fechar após seleção completa (props podem ainda não ter atualizado). */
-  const closedAfterFullRangeRef = useRef(false)
+  const [openStart, setOpenStart] = useState(false)
+  const [openEnd, setOpenEnd] = useState(false)
 
-  const value: DateRange | undefined = useMemo(() => {
-    const from = parseDateString(startValue)
-    const to = parseDateString(endValue)
-    if (!from) return undefined
-    if (!to) return { from, to: undefined }
-    if (from.getTime() > to.getTime()) {
-      return { from: to, to: from }
-    }
-    return { from, to }
-  }, [startValue, endValue])
+  const startDate = useMemo(() => parseDateString(startValue), [startValue])
+  const endDate = useMemo(() => parseDateString(endValue), [endValue])
 
-  const handleChange = (range: DateRange | undefined) => {
-    const normalized = normalizeRange(range)
-    if (!normalized?.from) {
-      closedAfterFullRangeRef.current = false
+  const defaultMonthStart = startDate ?? endDate ?? new Date()
+  const defaultMonthEnd = endDate ?? startDate ?? new Date()
+
+  const triggerClass = cn(
+    'h-[42px] w-full justify-between text-left font-normal',
+    styles.dateRangeTrigger,
+  )
+
+  const handleSelectStart = (d: Date | undefined) => {
+    if (!d) {
       onChangeStart('')
+      return
+    }
+    const ymd = toDateString(d)
+    onChangeStart(ymd)
+    if (endDate && endDate < d) {
+      onChangeEnd(ymd)
+    }
+    setOpenStart(false)
+  }
+
+  const handleSelectEnd = (d: Date | undefined) => {
+    if (!d) {
       onChangeEnd('')
       return
     }
-    onChangeStart(toDateString(normalized.from))
-    onChangeEnd(normalized.to ? toDateString(normalized.to) : '')
-    if (normalized.from && normalized.to) {
-      closedAfterFullRangeRef.current = true
-      setOpen(false)
-    } else {
-      closedAfterFullRangeRef.current = false
-    }
+    const ymd = toDateString(d)
+    const nextStart = startDate && startDate <= d ? startDate : d
+    onChangeStart(toDateString(nextStart))
+    onChangeEnd(ymd)
+    setOpenEnd(false)
   }
-
-  const handleOpenChange = (next: boolean) => {
-    if (disabled) return
-    if (next) {
-      closedAfterFullRangeRef.current = false
-    } else if (!closedAfterFullRangeRef.current) {
-      const from = parseDateString(startValue)
-      const to = parseDateString(endValue)
-      if (from && !to) {
-        const day = toDateString(from)
-        onChangeStart(day)
-        onChangeEnd(day)
-      }
-    } else {
-      closedAfterFullRangeRef.current = false
-    }
-    setOpen(next)
-  }
-
-  const triggerLabel =
-    value?.from &&
-    (value.to
-      ? `${format(value.from, dateConfig.formats.date, { locale: dateConfig.locale })} – ${format(value.to, dateConfig.formats.date, { locale: dateConfig.locale })}`
-      : format(value.from, dateConfig.formats.date, {
-          locale: dateConfig.locale,
-        }))
 
   return (
-    <div className={styles.dateRangePickerWrap}>
-      <Popover open={disabled ? false : open} onOpenChange={handleOpenChange}>
+    <div
+      className={cn(
+        styles.dateRangePickerWrap,
+        'grid w-full grid-cols-1 gap-2 sm:grid-cols-2',
+      )}
+    >
+      <Popover
+        open={disabled ? false : openStart}
+        onOpenChange={(o) => {
+          if (disabled) return
+          setOpenStart(o)
+          if (o) setOpenEnd(false)
+        }}
+      >
         <PopoverTrigger asChild>
           <Button
             type="button"
             variant="outline"
             disabled={disabled}
-            className={`h-[42px] w-full justify-between text-left font-normal ${styles.dateRangeTrigger}`}
+            className={triggerClass}
+            aria-label="Data inicial do período"
           >
             <span className="min-w-0 flex-1 truncate text-left">
-              {triggerLabel ?? 'dd/mm/aaaa – dd/mm/aaaa'}
+              {formatTrigger(startDate) ?? 'Início · dd/mm/aaaa'}
             </span>
             <CalendarIcon className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className={popoverContentClassName} align="start">
+        <PopoverContent
+          className={popoverContentClassName}
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
           <Calendar
-            mode="range"
-            selected={value}
-            onSelect={handleChange}
+            mode="single"
+            selected={startDate}
+            onSelect={handleSelectStart}
             locale={dateConfig.locale}
-            numberOfMonths={2}
-            defaultMonth={value?.from}
+            defaultMonth={defaultMonthStart}
+            initialFocus
+            className="rounded-lg border"
+          />
+        </PopoverContent>
+      </Popover>
+
+      <Popover
+        open={disabled ? false : openEnd}
+        onOpenChange={(o) => {
+          if (disabled) return
+          setOpenEnd(o)
+          if (o) setOpenStart(false)
+        }}
+      >
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            className={triggerClass}
+            aria-label="Data final do período"
+          >
+            <span className="min-w-0 flex-1 truncate text-left">
+              {formatTrigger(endDate) ?? 'Fim · dd/mm/aaaa'}
+            </span>
+            <CalendarIcon className="h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className={popoverContentClassName}
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <Calendar
+            mode="single"
+            selected={endDate}
+            onSelect={handleSelectEnd}
+            locale={dateConfig.locale}
+            defaultMonth={defaultMonthEnd}
+            initialFocus
             className="rounded-lg border"
           />
         </PopoverContent>
