@@ -24,13 +24,11 @@ import {
 } from '@/http/tickets/ticket-servicos'
 import { isApiError } from '@/lib/api'
 
-import styles from './ticket-detail.module.css'
-import { TicketServicoAnexos } from './ticket-servico-anexos'
+import styles from '../ticket-detail.module.css'
 import {
   collectAllCompletedServiceErrors,
   completionErrorsForServiceRow,
-} from './ticket-servicos-completion'
-import { ServicosExpandedForm } from './ticket-servicos-expanded-form'
+} from '../ticket-servicos-completion'
 import {
   appendEmptyService,
   cloneTicketServicos,
@@ -39,7 +37,9 @@ import {
   removeServiceAt,
   setServiceConcluido,
   ticketServicosToReplacePayload,
-} from './ticket-servicos-mapper'
+} from '../ticket-servicos-mapper'
+import { TicketServicoAnexos } from './ticket-servico-anexos'
+import { ServicosExpandedForm } from './ticket-servicos-expanded-form'
 
 const SERVICE_KINDS = [
   'busca_por_placa',
@@ -256,27 +256,21 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
   )
 
   if (servicosQuery.isLoading || !draft || !snapshot) {
-    return (
-      <div className={styles.panel} role="tabpanel">
-        <p className={styles.loading}>Carregando serviços…</p>
-      </div>
-    )
+    return <p className={styles.loading}>Carregando serviços…</p>
   }
 
   if (servicosQuery.isError) {
     return (
-      <div className={styles.panel} role="tabpanel">
-        <p className={styles.error}>
-          Não foi possível carregar os serviços. Tente novamente.
-        </p>
-      </div>
+      <p className={styles.error}>
+        Não foi possível carregar os serviços. Tente novamente.
+      </p>
     )
   }
 
   const formSource = isEditing ? draft : snapshot
 
   return (
-    <div className={styles.panel} role="tabpanel">
+    <>
       <div className={styles.fieldStack}>
         <div className={styles.servicosIntro}>
           <p className={styles.servicosSectionLabel}>
@@ -286,17 +280,15 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
 
         {isEditing ? (
           <div className={styles.servicosAddServiceRow}>
-            <Button
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              className={styles.servicosPickServiceBtn}
-              disabled={replaceMutation.isPending}
+              className={`${styles.footerBtn} ${styles.servicosAddExistingBtn}`}
               onClick={() => setAddServicoOpen(true)}
+              disabled={replaceMutation.isPending}
             >
               <Plus className="h-4 w-4" aria-hidden />
-              Selecionar serviço
-            </Button>
+              Novo Serviço
+            </button>
           </div>
         ) : null}
 
@@ -345,6 +337,21 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                         className={`${styles.servicosChevron} ${open ? styles.servicosChevronOpen : ''}`}
                       />
                     </button>
+                    {isEditing ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosRemoveInlineBtn}
+                        onClick={() =>
+                          handleRemoveRow(row.kind, row.index, row.rowId)
+                        }
+                        title="Remover este serviço"
+                        aria-label="Remover este serviço"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ) : null}
                   </div>
 
                   {open ? (
@@ -378,22 +385,6 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                         }}
                         uploadBlocked={isLocalDraftServiceId(row.rowId)}
                       />
-                      {isEditing ? (
-                        <div className={styles.servicosRemoveRow}>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className={styles.servicosRemoveBtn}
-                            onClick={() =>
-                              handleRemoveRow(row.kind, row.index, row.rowId)
-                            }
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Remover este serviço
-                          </Button>
-                        </div>
-                      ) : null}
                     </div>
                   ) : null}
                 </div>
@@ -459,6 +450,6 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }

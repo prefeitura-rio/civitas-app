@@ -6,6 +6,13 @@ import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getOperation } from '@/http/operations/get-operation'
 import { getOperations } from '@/http/operations/get-operations'
@@ -23,12 +30,15 @@ import { isApiError } from '@/lib/api'
 import type { Operation } from '@/models/entities'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 
 const MAX_OFICIO_PROC = 60
 const MAX_APELIDO = 120
 
 const SERVICE_PREVIEW = 3
+
+/** Radix Select não aceita `value=""` em SelectItem; “Nenhum” no órgão. */
+const ORGAO_SELECT_NONE = '__orgao_nenhum__'
 
 type Props = {
   ticketId: string
@@ -312,31 +322,40 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 <span className={styles.subLabelText}>Tipo de chamado</span>
               </div>
               {isEditing ? (
-                <select
-                  className={styles.editableSelect}
-                  value={d.tipo_chamado_id}
-                  onChange={(e) =>
+                <Select
+                  value={
+                    d.tipo_chamado_id.trim() ? d.tipo_chamado_id : undefined
+                  }
+                  onValueChange={(v) =>
                     setDraft((prev) =>
-                      prev
-                        ? { ...prev, tipo_chamado_id: e.target.value }
-                        : prev,
+                      prev ? { ...prev, tipo_chamado_id: v } : prev,
                     )
                   }
                   disabled={ticketTypesQuery.isLoading}
                 >
-                  {ticketTypesQuery.isLoading ? (
-                    <option value="">Carregando…</option>
-                  ) : (
-                    <>
-                      <option value="">Selecione</option>
-                      {ticketTypeOptions.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </>
-                  )}
-                </select>
+                  <SelectTrigger
+                    className={`h-11 ${styles.detailSelectTrigger}`}
+                  >
+                    <SelectValue
+                      placeholder={
+                        ticketTypesQuery.isLoading ? 'Carregando…' : 'Selecione'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className={styles.detailSelectContent}>
+                    {ticketTypesQuery.isLoading
+                      ? null
+                      : ticketTypeOptions.map((t) => (
+                          <SelectItem
+                            key={t.id}
+                            value={t.id}
+                            className={styles.detailSelectItem}
+                          >
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                  </SelectContent>
+                </Select>
               ) : (
                 <div
                   className={`${styles.readonlyInput} ${
@@ -424,36 +443,52 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
               Órgão do procedimento
             </span>
             {isEditing ? (
-              <select
-                className={styles.editableSelect}
-                value={d.orgao_procedimento_id ?? ''}
-                onChange={(e) =>
+              <Select
+                value={
+                  d.orgao_procedimento_id?.trim()
+                    ? d.orgao_procedimento_id
+                    : ORGAO_SELECT_NONE
+                }
+                onValueChange={(v) =>
                   setDraft((prev) =>
                     prev
                       ? {
                           ...prev,
-                          orgao_procedimento_id: e.target.value.trim()
-                            ? e.target.value
-                            : null,
+                          orgao_procedimento_id:
+                            v === ORGAO_SELECT_NONE ? null : v,
                         }
                       : prev,
                   )
                 }
                 disabled={operationsQuery.isLoading}
               >
-                <option value="">Nenhum</option>
-                {operationsQuery.isLoading ? (
-                  <option value={d.orgao_procedimento_id ?? ''}>
-                    Carregando…
-                  </option>
-                ) : (
-                  operationOptions.map((op) => (
-                    <option key={op.id} value={op.id}>
-                      {op.title}
-                    </option>
-                  ))
-                )}
-              </select>
+                <SelectTrigger className={`h-11 ${styles.detailSelectTrigger}`}>
+                  <SelectValue
+                    placeholder={
+                      operationsQuery.isLoading ? 'Carregando…' : undefined
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className={styles.detailSelectContent}>
+                  <SelectItem
+                    value={ORGAO_SELECT_NONE}
+                    className={styles.detailSelectItem}
+                  >
+                    Nenhum
+                  </SelectItem>
+                  {operationsQuery.isLoading
+                    ? null
+                    : operationOptions.map((op) => (
+                        <SelectItem
+                          key={op.id}
+                          value={op.id}
+                          className={styles.detailSelectItem}
+                        >
+                          {op.title}
+                        </SelectItem>
+                      ))}
+                </SelectContent>
+              </Select>
             ) : (
               <div className={styles.readonlySelect}>
                 <span
@@ -479,34 +514,41 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
           <div className={styles.chamadoNatureFull}>
             <span className={styles.fieldLabelUpper}>Natureza</span>
             {isEditing ? (
-              <select
-                className={styles.editableSelect}
-                value={d.natureza_id ?? ''}
-                onChange={(e) =>
+              <Select
+                value={d.natureza_id?.trim() ? d.natureza_id : undefined}
+                onValueChange={(v) =>
                   setDraft((prev) =>
                     prev
                       ? {
                           ...prev,
-                          natureza_id: e.target.value.trim()
-                            ? e.target.value
-                            : null,
+                          natureza_id: v.trim() ? v : null,
                         }
                       : prev,
                   )
                 }
                 disabled={ticketNaturesQuery.isLoading}
               >
-                <option value="">Selecione</option>
-                {ticketNaturesQuery.isLoading ? (
-                  <option value={d.natureza_id ?? ''}>Carregando…</option>
-                ) : (
-                  naturezas.map((n) => (
-                    <option key={n.id} value={n.id}>
-                      {n.name}
-                    </option>
-                  ))
-                )}
-              </select>
+                <SelectTrigger className={`h-11 ${styles.detailSelectTrigger}`}>
+                  <SelectValue
+                    placeholder={
+                      ticketNaturesQuery.isLoading ? 'Carregando…' : 'Selecione'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className={styles.detailSelectContent}>
+                  {ticketNaturesQuery.isLoading
+                    ? null
+                    : naturezas.map((n) => (
+                        <SelectItem
+                          key={n.id}
+                          value={n.id}
+                          className={styles.detailSelectItem}
+                        >
+                          {n.name}
+                        </SelectItem>
+                      ))}
+                </SelectContent>
+              </Select>
             ) : (
               <div className={styles.readonlySelect}>
                 <span
@@ -543,23 +585,33 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 Tem apelido pela imprensa?
               </span>
               {isEditing ? (
-                <select
-                  className={styles.editableSelect}
+                <Select
                   value={d.possui_apelido_imprensa ? 'sim' : 'nao'}
-                  onChange={(e) =>
+                  onValueChange={(v) =>
                     setDraft((prev) =>
                       prev
                         ? {
                             ...prev,
-                            possui_apelido_imprensa: e.target.value === 'sim',
+                            possui_apelido_imprensa: v === 'sim',
                           }
                         : prev,
                     )
                   }
                 >
-                  <option value="nao">Não</option>
-                  <option value="sim">Sim</option>
-                </select>
+                  <SelectTrigger
+                    className={`h-11 ${styles.detailSelectTrigger}`}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={styles.detailSelectContent}>
+                    <SelectItem value="nao" className={styles.detailSelectItem}>
+                      Não
+                    </SelectItem>
+                    <SelectItem value="sim" className={styles.detailSelectItem}>
+                      Sim
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               ) : (
                 <div className={styles.readonlySelect}>
                   <span>{pressSimNao}</span>

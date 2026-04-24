@@ -5,6 +5,13 @@ import { ChevronDown, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { getOperations } from '@/http/operations/get-operations'
 import {
   getTicketSolicitante,
@@ -15,7 +22,7 @@ import {
 import { isApiError } from '@/lib/api'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 
 type Props = {
   ticketId: string
@@ -249,29 +256,36 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
         <div className={styles.fieldBlock}>
           <span className={styles.fieldLabelUpper}>Demandante</span>
           {isEditing ? (
-            <select
-              className={styles.editableSelect}
-              value={d.operation_id}
-              onChange={(e) =>
-                setDraft((prev) =>
-                  prev ? { ...prev, operation_id: e.target.value } : prev,
-                )
+            <Select
+              value={d.operation_id.trim() ? d.operation_id : undefined}
+              onValueChange={(v) =>
+                setDraft((prev) => (prev ? { ...prev, operation_id: v } : prev))
               }
               disabled={operationsQuery.isLoading}
             >
-              {operationsQuery.isLoading ? (
-                <option value="">Carregando…</option>
-              ) : (
-                <>
-                  <option value="">Selecione</option>
-                  {operationOptions.map((op) => (
-                    <option key={op.id} value={op.id}>
-                      {op.title}
-                    </option>
-                  ))}
-                </>
-              )}
-            </select>
+              <SelectTrigger className={`h-11 ${styles.detailSelectTrigger}`}>
+                <SelectValue
+                  placeholder={
+                    operationsQuery.isLoading ? 'Carregando…' : 'Selecione'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent className={styles.detailSelectContent}>
+                {operationsQuery.isLoading ? null : (
+                  <>
+                    {operationOptions.map((op) => (
+                      <SelectItem
+                        key={op.id}
+                        value={op.id}
+                        className={styles.detailSelectItem}
+                      >
+                        {op.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+              </SelectContent>
+            </Select>
           ) : (
             <div className={styles.readonlySelect}>
               <span

@@ -12,7 +12,7 @@ import {
 } from '@/http/tickets/ticket-comentarios'
 import { isApiError } from '@/lib/api'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 import {
   isHtmlEffectivelyEmpty,
   RichToolbar,

@@ -16,7 +16,7 @@ import {
 } from '@/http/tickets/ticket-relatorio-demanda'
 import { isApiError } from '@/lib/api'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 import {
   isHtmlEffectivelyEmpty,
   RichToolbar,

@@ -12,7 +12,7 @@ import {
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`

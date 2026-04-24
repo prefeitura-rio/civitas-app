@@ -5,7 +5,7 @@ import { format, parseISO } from 'date-fns'
 
 import { getTicketLogs } from '@/http/tickets/ticket-logs'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 
 type Props = {
   ticketId: string

@@ -73,11 +73,38 @@ function nowIso() {
   return new Date().toISOString()
 }
 
+function ensureAtLeastOnePlateRow<
+  T extends {
+    plates?: { id?: string; created_at?: string; plate?: string | null }[]
+  },
+>(rows: T[]): T[] {
+  return rows.map((row) => {
+    const plates = row.plates ?? []
+    if (plates.length > 0) return row
+    return {
+      ...row,
+      plates: [{ id: newNestedEntityId(), created_at: nowIso(), plate: '' }],
+    }
+  })
+}
+
+function normalizeServicosForDraft(s: TicketServicosOut): TicketServicosOut {
+  return {
+    ...s,
+    busca_por_placa: ensureAtLeastOnePlateRow(s.busca_por_placa),
+    busca_por_radar: ensureAtLeastOnePlateRow(s.busca_por_radar),
+    placas_correlatas: ensureAtLeastOnePlateRow(s.placas_correlatas),
+    placas_conjuntas: ensureAtLeastOnePlateRow(s.placas_conjuntas),
+  }
+}
+
 export function cloneTicketServicos(s: TicketServicosOut): TicketServicosOut {
   try {
-    return structuredClone(s)
+    return normalizeServicosForDraft(structuredClone(s))
   } catch {
-    return JSON.parse(JSON.stringify(s)) as TicketServicosOut
+    return normalizeServicosForDraft(
+      JSON.parse(JSON.stringify(s)) as TicketServicosOut,
+    )
   }
 }
 
@@ -449,6 +476,24 @@ export function isoToDateInput(iso: string | null | undefined): string {
 export function dateInputToIsoStart(dateYmd: string): string | null {
   if (!dateYmd?.trim()) return null
   const d = new Date(`${dateYmd.trim()}T12:00:00`)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toISOString()
+}
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/** ISO → valor de `<input type="datetime-local">` (hora local). */
+export function isoToDatetimeLocal(iso: string | null | undefined): string {
+  if (iso == null || iso === '') return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+}
+
+/** Valor de `datetime-local` → ISO UTC (ou `null` se vazio / inválido). */
+export function datetimeLocalToIso(local: string): string | null {
+  if (!local?.trim()) return null
+  const d = new Date(local.trim())
   if (Number.isNaN(d.getTime())) return null
   return d.toISOString()
 }

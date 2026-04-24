@@ -2,30 +2,19 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
+  Copy,
   Download,
-  Eye,
   FileText,
-  Image as ImageIcon,
-  Link2,
   Loader2,
   Paperclip,
+  RefreshCw,
   Trash2,
-  Video,
+  X,
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  downloadTicketAttachmentFile,
-  fetchTicketAttachmentBlob,
-} from '@/http/tickets/download-ticket-attachment'
+import { downloadTicketAttachmentFile } from '@/http/tickets/download-ticket-attachment'
 import {
   completeTicketVideoAttachment,
   deleteTicketAttachment,
@@ -38,7 +27,7 @@ import {
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 
 const MAX_MULTIPART_BYTES = 10 * 1024 * 1024
 const MAX_VIDEO_BYTES = 512 * 1024 * 1024
@@ -65,14 +54,6 @@ function isVideoAttachment(att: TicketAttachmentOut): boolean {
   return (att.content_type ?? '').toLowerCase().startsWith('video/')
 }
 
-function isImageAttachment(att: TicketAttachmentOut): boolean {
-  return (att.content_type ?? '').toLowerCase().startsWith('image/')
-}
-
-function isPdfAttachment(att: TicketAttachmentOut): boolean {
-  return (att.content_type ?? '').toLowerCase() === 'application/pdf'
-}
-
 function multipartFileAllowed(file: File): boolean {
   if (file.size > MAX_MULTIPART_BYTES) return false
   const t = file.type.toLowerCase()
@@ -93,10 +74,25 @@ function invalidateAttachmentQueries(
   ]).catch(() => {})
 }
 
-type BlobPreviewState = {
-  kind: 'image' | 'pdf'
-  url: string
-  filename: string
+function getApiDetailUnless500(err: unknown): string | null {
+  if (!isApiError(err)) return null
+  const status = err.response?.status
+  if (status === 500) return null
+  const detail = (err.response?.data as { detail?: unknown } | undefined)
+    ?.detail
+  return typeof detail === 'string' && detail.trim().length > 0 ? detail : null
+}
+
+function formatPlaybackExpiry(expiresAt: string): string {
+  const date = new Date(expiresAt)
+  if (Number.isNaN(date.getTime())) return 'Expiração inválida'
+  return date.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 type Props = {
@@ -120,30 +116,16 @@ export function TicketServicoAnexos({
   uploadBlockedMessage = 'Guarde os serviços para anexar ficheiros a este serviço.',
 }: Props) {
   const queryClient = useQueryClient()
-  const multipartRef = useRef<HTMLInputElement>(null)
-  const videoRef = useRef<HTMLInputElement>(null)
+  const uploadRef = useRef<HTMLInputElement>(null)
 
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [blobPreview, setBlobPreview] = useState<BlobPreviewState | null>(null)
-  const [videoOpen, setVideoOpen] = useState<{
-    src: string
-    filename: string
-  } | null>(null)
-  const [videoLoadingId, setVideoLoadingId] = useState<string | null>(null)
   const [videoCopyingId, setVideoCopyingId] = useState<string | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (blobPreview?.url) URL.revokeObjectURL(blobPreview.url)
-    }
-  }, [blobPreview?.url])
-
-  const closeBlobPreview = useCallback(() => {
-    setBlobPreview((prev) => {
-      if (prev?.url) URL.revokeObjectURL(prev.url)
-      return null
-    })
-  }, [])
+  const [videoRefreshingId, setVideoRefreshingId] = useState<string | null>(
+    null,
+  )
+  const [videoPlaybackOverrides, setVideoPlaybackOverrides] = useState<
+    Record<string, { signedUrl?: string; expiresAt?: string }>
+  >({})
 
   const deleteMutation = useMutation({
     mutationFn: ({ attachmentId }: { attachmentId: string }) =>
@@ -153,11 +135,8 @@ export function TicketServicoAnexos({
       toast.success('Anexo removido.')
     },
     onError: (err: unknown) => {
-      const msg = isApiError(err)
-        ? (err.response?.data as { detail?: string } | undefined)?.detail
-        : undefined
       toast.error(
-        typeof msg === 'string' ? msg : 'Não foi possível excluir o anexo.',
+        getApiDetailUnless500(err) ?? 'Não foi possível excluir o anexo.',
       )
     },
     onSettled: () => setDeletingId(null),
@@ -175,14 +154,11 @@ export function TicketServicoAnexos({
       toast.success(
         serviceScope ? 'Anexos enviados para o serviço.' : 'Anexos enviados.',
       )
-      if (multipartRef.current) multipartRef.current.value = ''
+      if (uploadRef.current) uploadRef.current.value = ''
     },
     onError: (err: unknown) => {
-      const msg = isApiError(err)
-        ? (err.response?.data as { detail?: string } | undefined)?.detail
-        : undefined
       toast.error(
-        typeof msg === 'string' ? msg : 'Não foi possível enviar os anexos.',
+        getApiDetailUnless500(err) ?? 'Não foi possível enviar os anexos.',
       )
     },
   })
@@ -220,18 +196,15 @@ export function TicketServicoAnexos({
           ? 'Vídeo anexado ao serviço.'
           : 'Vídeo anexado ao chamado.',
       )
-      if (videoRef.current) videoRef.current.value = ''
+      if (uploadRef.current) uploadRef.current.value = ''
     },
     onError: (err: unknown) => {
       if (err instanceof Error && !isApiError(err)) {
         toast.error(err.message)
         return
       }
-      const msg = isApiError(err)
-        ? (err.response?.data as { detail?: string } | undefined)?.detail
-        : undefined
       toast.error(
-        typeof msg === 'string' ? msg : 'Não foi possível enviar o vídeo.',
+        getApiDetailUnless500(err) ?? 'Não foi possível enviar o vídeo.',
       )
     },
   })
@@ -259,62 +232,42 @@ export function TicketServicoAnexos({
     [ticketId],
   )
 
-  const handleOpenBlobPreview = useCallback(
-    async (att: TicketAttachmentOut) => {
-      try {
-        const { blob, contentType } = await fetchTicketAttachmentBlob(
-          ticketId,
-          att.id,
-        )
-        const kind: 'image' | 'pdf' = contentType.startsWith('image/')
-          ? 'image'
-          : 'pdf'
-        const url = URL.createObjectURL(blob)
-        setBlobPreview((prev) => {
-          if (prev?.url) URL.revokeObjectURL(prev.url)
-          return { kind, url, filename: att.filename }
-        })
-      } catch {
-        toast.error('Não foi possível carregar a pré-visualização.')
-      }
-    },
-    [ticketId],
+  const resolvePlaybackUrl = useCallback(
+    (att: TicketAttachmentOut) =>
+      videoPlaybackOverrides[att.id]?.signedUrl ??
+      (
+        att as TicketAttachmentOut & {
+          playback?: { signed_url?: string | null } | null
+        }
+      ).playback?.signed_url ??
+      '',
+    [videoPlaybackOverrides],
   )
 
-  const handlePlayVideo = useCallback(
-    async (att: TicketAttachmentOut) => {
-      setVideoLoadingId(att.id)
-      try {
-        const { signed_url: signedUrl } = await getTicketAttachmentPlaybackUrl(
-          ticketId,
-          att.id,
-        )
-        setVideoOpen({ src: signedUrl, filename: att.filename })
-      } catch {
-        toast.error(
-          'Não foi possível obter o link de reprodução. Se o vídeo não abrir, pode ser CORS no armazenamento.',
-        )
-      } finally {
-        setVideoLoadingId(null)
-      }
-    },
-    [ticketId],
+  const resolvePlaybackExpiresAt = useCallback(
+    (att: TicketAttachmentOut) =>
+      videoPlaybackOverrides[att.id]?.expiresAt ??
+      (
+        att as TicketAttachmentOut & {
+          playback?: { expires_at?: string | null } | null
+        }
+      ).playback?.expires_at ??
+      '',
+    [videoPlaybackOverrides],
   )
 
   /** URL assinada no GCS; pedimos o máximo permitido (120 min) para quem receber o link. */
   const handleCopyVideoLink = useCallback(
     async (att: TicketAttachmentOut) => {
+      const playbackUrl = resolvePlaybackUrl(att)
+      if (!playbackUrl) {
+        toast.error('Este vídeo ainda não possui link disponível para cópia.')
+        return
+      }
       setVideoCopyingId(att.id)
       try {
-        const { signed_url: signedUrl } = await getTicketAttachmentPlaybackUrl(
-          ticketId,
-          att.id,
-          120,
-        )
-        await navigator.clipboard.writeText(signedUrl)
-        toast.success(
-          'Link copiado. É temporário (válido por cerca de 2 horas) e aponta para o armazenamento.',
-        )
+        await navigator.clipboard.writeText(playbackUrl)
+        toast.success('Link do vídeo copiado.')
       } catch {
         toast.error(
           'Não foi possível copiar o link. Verifique a permissão da área de transferência ou tente de novo.',
@@ -323,46 +276,82 @@ export function TicketServicoAnexos({
         setVideoCopyingId(null)
       }
     },
+    [resolvePlaybackUrl],
+  )
+
+  const handleRefreshVideoLink = useCallback(
+    async (att: TicketAttachmentOut) => {
+      setVideoRefreshingId(att.id)
+      try {
+        const { signed_url: signedUrl } = await getTicketAttachmentPlaybackUrl(
+          ticketId,
+          att.id,
+          120,
+        )
+        const expiresAt = new Date(Date.now() + 120 * 60 * 1000).toISOString()
+        setVideoPlaybackOverrides((prev) => ({
+          ...prev,
+          [att.id]: { signedUrl, expiresAt },
+        }))
+        toast.success('Link do vídeo atualizado.')
+      } catch (err) {
+        toast.error(
+          getApiDetailUnless500(err) ??
+            'Não foi possível atualizar o link do vídeo.',
+        )
+      } finally {
+        setVideoRefreshingId(null)
+      }
+    },
     [ticketId],
   )
 
-  const onPickMultipart = useCallback(
+  const onPickUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const list = e.target.files
       if (!list?.length) return
       const files = Array.from(list)
-      const bad = files.filter((f) => !multipartFileAllowed(f))
-      if (bad.length) {
+
+      const videoFiles = files.filter((f) => f.type.startsWith('video/'))
+      const nonVideoFiles = files.filter((f) => !f.type.startsWith('video/'))
+
+      if (videoFiles.length > 0 && nonVideoFiles.length > 0) {
         toast.error(
-          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word, até 10 MB cada. Vídeo: use “Enviar vídeo”.',
+          'Envie vídeos separados dos demais anexos para usar o endpoint correto.',
         )
         e.target.value = ''
         return
       }
-      multipartMutation.mutate(files)
-      e.target.value = ''
-    },
-    [multipartMutation],
-  )
 
-  const onPickVideo = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file) return
-      if (!file.type.startsWith('video/')) {
-        toast.error('Escolha um ficheiro de vídeo.')
+      if (videoFiles.length > 0) {
+        const videoFile = videoFiles[0]
+        if (videoFiles.length > 1) {
+          toast.error('Envie apenas um vídeo por vez.')
+          e.target.value = ''
+          return
+        }
+        if (videoFile.size > MAX_VIDEO_BYTES) {
+          toast.error('O vídeo excede o limite de 512 MB.')
+          e.target.value = ''
+          return
+        }
+        videoMutation.mutate(videoFile)
         e.target.value = ''
         return
       }
-      if (file.size > MAX_VIDEO_BYTES) {
-        toast.error('O vídeo excede o limite de 512 MB.')
+
+      const bad = nonVideoFiles.filter((f) => !multipartFileAllowed(f))
+      if (bad.length || nonVideoFiles.length === 0) {
+        toast.error(
+          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word, até 10 MB cada.',
+        )
         e.target.value = ''
         return
       }
-      videoMutation.mutate(file)
+      multipartMutation.mutate(nonVideoFiles)
       e.target.value = ''
     },
-    [videoMutation],
+    [multipartMutation, videoMutation],
   )
 
   const busy =
@@ -371,234 +360,202 @@ export function TicketServicoAnexos({
     deleteMutation.isPending
 
   const canUpload = !readOnly && !uploadBlocked && !busy
+  const nonVideoAttachments = attachments.filter(
+    (att) => !isVideoAttachment(att),
+  )
+  const videoAttachments = attachments.filter((att) => isVideoAttachment(att))
 
   return (
-    <div className={styles.servicoAnexos}>
+    <div
+      className={`${styles.servicoAnexos}${readOnly ? ` ${styles.servicoAnexosReadOnly}` : ''}`}
+    >
       <div className={styles.servicoAnexosHeader}>
-        <Paperclip className={styles.servicoAnexosIcon} aria-hidden size={16} />
         <span className={styles.servicoAnexosTitle}>{title}</span>
+        {canUpload ? (
+          <div className={styles.servicoAnexosHeaderActions}>
+            <input
+              ref={uploadRef}
+              type="file"
+              className={styles.servicoAnexosFileInput}
+              multiple
+              accept="video/*,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx"
+              onChange={onPickUpload}
+              aria-hidden
+              tabIndex={-1}
+            />
+            <button
+              type="button"
+              className={styles.servicoAnexosIconButton}
+              onClick={() => uploadRef.current?.click()}
+              disabled={busy}
+              title="Enviar anexo"
+              aria-label="Enviar anexo"
+            >
+              {busy ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Paperclip size={18} />
+              )}
+            </button>
+            <button
+              type="button"
+              className={styles.servicoAnexosIconButton}
+              disabled
+              title="Download em lote indisponível"
+              aria-label="Download em lote indisponível"
+            >
+              <Download size={18} />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {uploadBlocked && !readOnly ? (
         <p className={styles.servicoAnexosHint}>{uploadBlockedMessage}</p>
       ) : null}
 
-      {canUpload ? (
-        <div className={styles.servicoAnexosActions}>
-          <input
-            ref={multipartRef}
-            type="file"
-            className={styles.servicoAnexosFileInput}
-            multiple
-            accept={MULTIPART_ACCEPT.join(',')}
-            onChange={onPickMultipart}
-            aria-hidden
-            tabIndex={-1}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="inline-flex items-center gap-2"
-            onClick={() => multipartRef.current?.click()}
-            disabled={multipartMutation.isPending}
-          >
-            {multipartMutation.isPending ? (
-              <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-            ) : (
-              <FileText className="h-4 w-4 shrink-0" aria-hidden />
-            )}
-            Anexar ficheiros
-          </Button>
-          <input
-            ref={videoRef}
-            type="file"
-            className={styles.servicoAnexosFileInput}
-            accept="video/*"
-            onChange={onPickVideo}
-            aria-hidden
-            tabIndex={-1}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="inline-flex items-center gap-2"
-            onClick={() => videoRef.current?.click()}
-            disabled={videoMutation.isPending}
-          >
-            {videoMutation.isPending ? (
-              <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-            ) : (
-              <Video className="h-4 w-4 shrink-0" aria-hidden />
-            )}
-            Enviar vídeo
-          </Button>
-        </div>
-      ) : null}
-
       {attachments.length === 0 ? (
         <p className={styles.servicoAnexosEmpty}>Nenhum anexo.</p>
       ) : (
-        <div className={styles.docGrid}>
-          {attachments.map((att) => {
-            const video = isVideoAttachment(att)
-            const image = isImageAttachment(att)
-            const pdf = isPdfAttachment(att)
-            return (
-              <div key={att.id} className={styles.docCard}>
-                <div className={styles.docCardLeft}>
-                  <div className={styles.docPdfIcon} aria-hidden>
-                    {video ? (
-                      <Video size={20} />
-                    ) : image ? (
-                      <ImageIcon size={20} />
-                    ) : (
-                      <FileText size={20} />
-                    )}
-                  </div>
-                  <div className={styles.docInfo}>
-                    <p className={styles.docName} title={att.filename}>
-                      {att.filename}
-                    </p>
-                    <p className={styles.docSize}>
-                      {formatBytes(att.size_bytes)}
-                    </p>
-                  </div>
-                </div>
-                <div className={styles.docCardActions}>
-                  {video ? (
-                    <>
+        <div className={styles.servicoAnexosList}>
+          {nonVideoAttachments.length > 0 ? (
+            <div className={styles.docGrid}>
+              {nonVideoAttachments.map((att) => {
+                return (
+                  <div key={att.id} className={styles.docCard}>
+                    <div className={styles.docCardLeft}>
+                      <div className={styles.docPdfIcon} aria-hidden>
+                        <FileText size={20} />
+                      </div>
+                      <div className={styles.docInfo}>
+                        <p className={styles.docName} title={att.filename}>
+                          {att.filename}
+                        </p>
+                        <p className={styles.docSize}>
+                          {formatBytes(att.size_bytes)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={styles.docCardActions}>
                       <button
                         type="button"
                         className={styles.docIconBtn}
-                        aria-label={`Reproduzir ${att.filename}`}
-                        title="Reproduzir"
+                        aria-label={`Baixar ${att.filename}`}
+                        title="Descarregar"
                         onClick={() => {
-                          handlePlayVideo(att).catch(() => {})
+                          handleDownload(att).catch(() => {})
                         }}
-                        disabled={
-                          deletingId === att.id ||
-                          videoLoadingId === att.id ||
-                          videoCopyingId === att.id ||
-                          busy
-                        }
+                        disabled={deletingId === att.id || busy}
                       >
-                        {videoLoadingId === att.id ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <Video size={18} />
-                        )}
+                        <Download size={16} />
                       </button>
+                      {!readOnly ? (
+                        <button
+                          type="button"
+                          className={styles.docIconBtn}
+                          aria-label={`Remover ${att.filename}`}
+                          title="Remover"
+                          onClick={() => handleDelete(att)}
+                          disabled={deletingId === att.id || busy}
+                        >
+                          <X size={16} />
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : null}
+
+          {videoAttachments.length > 0 ? (
+            <div className={styles.videoList}>
+              {videoAttachments.map((att) => {
+                const expiresAt = resolvePlaybackExpiresAt(att)
+                const expiresDate = expiresAt ? new Date(expiresAt) : null
+                const isExpired = expiresDate
+                  ? expiresDate.getTime() <= Date.now()
+                  : false
+                const expiryText = expiresAt
+                  ? `${isExpired ? 'Expirado em' : 'Expira em'} ${formatPlaybackExpiry(expiresAt)}`
+                  : 'Expiração não informada'
+                return (
+                  <div key={att.id} className={styles.videoRow}>
+                    <p className={styles.videoLabel}>Link do vídeo</p>
+                    <div className={styles.videoActionsRow}>
+                      <div
+                        className={styles.videoUrlBox}
+                        title={resolvePlaybackUrl(att)}
+                      >
+                        {resolvePlaybackUrl(att) || 'Link indisponível'}
+                      </div>
                       <button
                         type="button"
-                        className={styles.docIconBtn}
+                        className={styles.servicoAnexosIconButton}
                         aria-label={`Copiar link do vídeo ${att.filename}`}
-                        title="Copiar link para partilhar"
+                        title="Copiar link"
                         onClick={() => {
                           handleCopyVideoLink(att).catch(() => {})
                         }}
                         disabled={
                           deletingId === att.id ||
-                          videoLoadingId === att.id ||
                           videoCopyingId === att.id ||
+                          videoRefreshingId === att.id ||
                           busy
                         }
                       >
                         {videoCopyingId === att.id ? (
                           <Loader2 size={18} className="animate-spin" />
                         ) : (
-                          <Link2 size={18} />
+                          <Copy size={18} />
                         )}
                       </button>
-                    </>
-                  ) : image || pdf ? (
-                    <button
-                      type="button"
-                      className={styles.docIconBtn}
-                      aria-label={`Ver ${att.filename}`}
-                      title="Ver"
-                      onClick={() => {
-                        handleOpenBlobPreview(att).catch(() => {})
-                      }}
-                      disabled={deletingId === att.id || busy}
+                      <button
+                        type="button"
+                        className={styles.servicoAnexosIconButton}
+                        aria-label={`Atualizar link do vídeo ${att.filename}`}
+                        title="Atualizar link"
+                        onClick={() => {
+                          handleRefreshVideoLink(att).catch(() => {})
+                        }}
+                        disabled={
+                          deletingId === att.id ||
+                          videoCopyingId === att.id ||
+                          videoRefreshingId === att.id ||
+                          busy
+                        }
+                      >
+                        {videoRefreshingId === att.id ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <RefreshCw size={18} />
+                        )}
+                      </button>
+                      {!readOnly ? (
+                        <button
+                          type="button"
+                          className={styles.servicoAnexosIconButton}
+                          aria-label={`Remover ${att.filename}`}
+                          title="Remover"
+                          onClick={() => handleDelete(att)}
+                          disabled={deletingId === att.id || busy}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      ) : null}
+                    </div>
+                    <p
+                      className={`${styles.videoExpiry} ${isExpired ? styles.videoExpiryExpired : ''}`}
                     >
-                      <Eye size={18} />
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={styles.docIconBtn}
-                    aria-label={`Baixar ${att.filename}`}
-                    title="Descarregar"
-                    onClick={() => {
-                      handleDownload(att).catch(() => {})
-                    }}
-                    disabled={deletingId === att.id || busy}
-                  >
-                    <Download size={18} />
-                  </button>
-                  {!readOnly ? (
-                    <button
-                      type="button"
-                      className={styles.docIconBtn}
-                      aria-label={`Remover ${att.filename}`}
-                      title="Remover"
-                      onClick={() => handleDelete(att)}
-                      disabled={deletingId === att.id || busy}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            )
-          })}
+                      {expiryText}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          ) : null}
         </div>
       )}
-
-      <Dialog
-        open={!!blobPreview}
-        onOpenChange={(o) => !o && closeBlobPreview()}
-      >
-        <DialogContent className={styles.servicoAnexosPreviewDialog}>
-          <DialogHeader>
-            <DialogTitle>
-              {blobPreview?.filename ?? 'Pré-visualização'}
-            </DialogTitle>
-          </DialogHeader>
-          {blobPreview?.kind === 'image' ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={blobPreview.url}
-              alt=""
-              className={styles.servicoAnexosPreviewImg}
-            />
-          ) : blobPreview?.kind === 'pdf' ? (
-            <iframe
-              title={blobPreview.filename}
-              src={blobPreview.url}
-              className={styles.servicoAnexosPreviewIframe}
-            />
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!videoOpen} onOpenChange={(o) => !o && setVideoOpen(null)}>
-        <DialogContent className={styles.servicoAnexosVideoDialog}>
-          <DialogHeader>
-            <DialogTitle>{videoOpen?.filename ?? 'Vídeo'}</DialogTitle>
-          </DialogHeader>
-          {videoOpen ? (
-            <video
-              controls
-              playsInline
-              className={styles.servicoAnexosVideo}
-              src={videoOpen.src}
-            />
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

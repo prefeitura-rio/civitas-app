@@ -567,7 +567,16 @@
   flex-wrap: wrap;
   gap: 16px;
   justify-content: flex-end;
+  align-items: flex-end;
   width: 100%;
+}
+
+.footerPrimaryStack {
+  width: 100%;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .footerBtn {
@@ -607,6 +616,20 @@
 .footerBtnPrimary {
   background: var(--td-btn-primary);
   color: var(--td-text);
+}
+
+.servicosAddExistingBtn {
+  border: none;
+  border-radius: 8px;
+  background: #402c4c;
+  color: var(--td-muted);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.servicosAddExistingBtn:hover:not(:disabled) {
+  filter: brightness(1.08);
 }
 
 .editableField {
@@ -658,6 +681,56 @@
 .editableSelect:disabled {
   opacity: 0.75;
   cursor: not-allowed;
+}
+
+/* Selects Radix — mesmo padrão visual da tela criar (tipo de chamado) */
+.detailSelectTrigger {
+  width: 100%;
+  height: 2.75rem;
+  min-height: 44px;
+  background-color: var(--td-label-bg, #152534) !important;
+  border: 1px solid var(--td-border, #4a5d6d) !important;
+  border-radius: var(--td-radius, 8px) !important;
+  color: var(--td-muted, #97a2ab) !important;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.detailSelectTrigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.35);
+}
+
+.detailSelectTrigger[data-state='open'] {
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.35);
+}
+
+.detailSelectTrigger:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.detailSelectContent {
+  background: #101d28 !important;
+  border: 1px solid #4a5d6d !important;
+  color: #f9fafa !important;
+  border-radius: var(--td-radius, 8px) !important;
+}
+
+.detailSelectItem {
+  color: #f9fafa !important;
+}
+
+.detailSelectItem:hover,
+.detailSelectItem:focus,
+.detailSelectItem[data-highlighted] {
+  background: #18344d !important;
+  color: #f9fafa !important;
+}
+
+.detailSelectItem[data-state='checked'] {
+  background: #18344d !important;
+  color: #f9fafa !important;
 }
 
 .focalRowActions {
@@ -920,6 +993,7 @@
   flex-wrap: wrap;
   gap: 16px;
   align-items: flex-start;
+  width: 100%;
 }
 
 .docCard {
@@ -927,12 +1001,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  width: 260px;
+  width: min(272px, 100%);
   max-width: 100%;
   min-height: 64px;
   padding: 12px;
-  background-color: var(--td-label-bg, #152534);
-  border-radius: var(--td-radius);
+  background-color: var(--td-card-bg, #152534);
+  border-radius: 8px;
 }
 
 .docCardLeft {
@@ -940,7 +1014,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 
 .docPdfIcon {
@@ -959,8 +1033,9 @@
   flex-direction: column;
   justify-content: center;
   gap: 2px;
+  width: 119px;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 
 .docName {
@@ -982,21 +1057,22 @@
 }
 
 .docCardActions {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   flex-shrink: 0;
+  padding-top: 2px;
 }
 
 .docIconBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 16px;
+  height: 16px;
   padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--td-muted);
   cursor: pointer;
@@ -1036,6 +1112,7 @@
 .servicosAddServiceRow {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
   width: 100%;
 }
 
@@ -1314,6 +1391,19 @@
   width: 100%;
 }
 
+/* “+” alinhado ao centro vertical e mesma altura do input (44px) / ícone lixo */
+.servicosPlateRow .servicosAddLineBtn {
+  align-self: center;
+  margin-top: 0;
+  flex-shrink: 0;
+  height: 44px !important;
+  width: 44px !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 0 !important;
+  border-radius: var(--td-radius) !important;
+}
+
 .servicosDivider {
   width: 100%;
   height: 0;
@@ -1449,8 +1539,19 @@
 .servicosPlateRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
+}
+
+/* Largura ~30% da faixa do formulário; mesma altura que o botão “+” / lixo (44px) */
+.servicosInput.servicosPlateInput {
+  width: 30%;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  min-width: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .servicosIconBtn {
@@ -1461,11 +1562,19 @@
 }
 
 .servicosAddLineBtn {
-  align-self: flex-start;
-  margin-top: 4px;
-  border-color: var(--td-border) !important;
-  background: transparent !important;
-  color: var(--td-text) !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 0 !important;
+  border-radius: var(--td-radius) !important;
+  border: 0 !important;
+  background: var(--td-btn-tertiary, #1d3449) !important;
+  color: #fff !important;
+}
+
+.servicosAddLineBtn:hover:not(:disabled) {
+  filter: brightness(1.08);
 }
 
 .servicosRemoveRow {
@@ -1477,6 +1586,22 @@
 }
 
 .servicosRemoveBtn {
+  color: #fca5a5 !important;
+}
+
+.servicosRemoveInlineBtn {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: var(--td-radius) !important;
+  border: none !important;
+  background: var(--td-card-bg) !important;
+  color: var(--td-muted) !important;
+  transition: background-color 0.15s ease;
+}
+
+.servicosRemoveInlineBtn:hover:not(:disabled) {
+  filter: brightness(1.06);
   color: #fca5a5 !important;
 }
 
@@ -1980,19 +2105,25 @@
 .servicoAnexos {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   width: 100%;
   min-width: 0;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--td-border);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.servicoAnexosReadOnly {
+  margin-top: 24px;
 }
 
 .servicoAnexosHeader {
-  display: inline-flex;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
+  width: 100%;
 }
 
 .servicoAnexosIcon {
@@ -2002,9 +2133,9 @@
 
 .servicoAnexosTitle {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 16px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   text-transform: uppercase;
   color: var(--td-text);
 }
@@ -2014,13 +2145,6 @@
   font-size: 13px;
   line-height: 18px;
   color: var(--td-muted);
-}
-
-.servicoAnexosActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
 }
 
 .servicoAnexosFileInput {
@@ -2040,6 +2164,107 @@
   font-size: 13px;
   line-height: 18px;
   color: var(--td-muted);
+}
+
+.servicoAnexos .docCard {
+  background-color: var(--td-page-bg, #0c161f);
+}
+
+.servicoAnexosHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.servicoAnexosIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: var(--td-badge-bg);
+  color: var(--td-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.servicoAnexosIconButton:hover:not(:disabled) {
+  color: var(--td-text);
+}
+
+.servicoAnexosIconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.servicoAnexosList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.videoList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.videoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.videoExpiry {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--td-muted);
+}
+
+.videoExpiryExpired {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.videoLabel {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--td-text);
+  text-transform: uppercase;
+}
+
+.videoActionsRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.videoUrlBox {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--td-border);
+  background: #0b1b2a;
+  color: var(--td-text);
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .servicoAnexosPreviewDialog {

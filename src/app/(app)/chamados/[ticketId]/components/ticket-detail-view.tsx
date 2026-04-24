@@ -34,8 +34,8 @@ import { getApiErrorMessage, isNotFoundError } from '@/utils/error-handlers'
 import {
   TICKET_DETAIL_TABS,
   type TicketDetailTabId,
-} from './ticket-detail.constants'
-import styles from './ticket-detail.module.css'
+} from '../ticket-detail.constants'
+import styles from '../ticket-detail.module.css'
 import { TicketDetailTabChamado } from './ticket-detail-tab-chamado'
 import { TicketDetailTabDocumentos } from './ticket-detail-tab-documentos'
 import { TicketDetailTabHistorico } from './ticket-detail-tab-historico'

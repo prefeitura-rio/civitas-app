@@ -8,6 +8,10 @@ export type TicketAttachmentOut = {
   created_at: string
   service_type?: string | null
   service_id?: string | null
+  playback?: {
+    signed_url?: string | null
+    expires_at?: string | null
+  } | null
 }
 
 export type TicketAttachmentServiceScope = {

@@ -3,7 +3,6 @@
 import { Plus, Trash } from 'lucide-react'
 import { Fragment, type ReactNode } from 'react'
 
-import { FilterDateRangeField } from '@/app/(app)/chamados/components/filter-date-range-field'
 import type { OpenServiceKey } from '@/app/(app)/chamados/criar/ticket-create/ticket-create.constant'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,13 +11,13 @@ import type { TicketDetection } from '@/http/tickets/get-ticket-by-id'
 import type { TicketServicosOut } from '@/http/tickets/ticket-servicos'
 import { maskPlateBR } from '@/utils/string-formatters'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 import {
   cloneTicketServicos,
-  dateInputToIsoStart,
-  isoToDateInput,
+  datetimeLocalToIso,
+  isoToDatetimeLocal,
   newNestedEntityId,
-} from './ticket-servicos-mapper'
+} from '../ticket-servicos-mapper'
 
 function nowIso() {
   return new Date().toISOString()
@@ -40,6 +39,68 @@ function servicosReadonlyShell(readOnly: boolean | undefined, node: ReactNode) {
     <fieldset className={styles.servicosReadonlyFieldset} disabled>
       {node}
     </fieldset>
+  )
+}
+
+type ServicosPeriodPatch = {
+  period_start: string | null
+  period_end: string | null
+}
+
+function ServicosSearchPeriodInputs({
+  periodStart,
+  periodEnd,
+  readOnly,
+  onPatch,
+}: {
+  periodStart: string | null | undefined
+  periodEnd: string | null | undefined
+  readOnly?: boolean
+  onPatch: (next: ServicosPeriodPatch) => void
+}) {
+  return (
+    <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
+      <Input
+        type="datetime-local"
+        className={styles.servicosInput}
+        value={isoToDatetimeLocal(periodStart)}
+        onChange={(e) => {
+          const newPeriodStart = datetimeLocalToIso(e.target.value)
+          let nextPeriodEnd: string | null =
+            periodEnd != null && periodEnd !== '' ? periodEnd : null
+          if (
+            newPeriodStart &&
+            nextPeriodEnd &&
+            new Date(nextPeriodEnd) < new Date(newPeriodStart)
+          ) {
+            nextPeriodEnd = newPeriodStart
+          }
+          onPatch({ period_start: newPeriodStart, period_end: nextPeriodEnd })
+        }}
+        disabled={readOnly}
+        aria-label="Início do período da busca"
+      />
+      <Input
+        type="datetime-local"
+        className={styles.servicosInput}
+        value={isoToDatetimeLocal(periodEnd)}
+        onChange={(e) => {
+          const newPeriodEnd = datetimeLocalToIso(e.target.value)
+          let nextPeriodStart: string | null =
+            periodStart != null && periodStart !== '' ? periodStart : null
+          if (
+            nextPeriodStart &&
+            newPeriodEnd &&
+            new Date(newPeriodEnd) < new Date(nextPeriodStart)
+          ) {
+            nextPeriodStart = newPeriodEnd
+          }
+          onPatch({ period_start: nextPeriodStart, period_end: newPeriodEnd })
+        }}
+        disabled={readOnly}
+        aria-label="Fim do período da busca"
+      />
+    </div>
   )
 }
 
@@ -66,27 +127,18 @@ export function ServicosExpandedForm({
         <div className={styles.servicosFields}>
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Período da busca</span>
-            <FilterDateRangeField
-              startValue={isoToDateInput(item.period_start)}
-              endValue={isoToDateInput(item.period_end)}
-              onChangeStart={(v) =>
+            <ServicosSearchPeriodInputs
+              periodStart={item.period_start}
+              periodEnd={item.period_end}
+              readOnly={readOnly}
+              onPatch={(p) =>
                 patch((n) => {
                   n.busca_por_placa[index] = {
                     ...n.busca_por_placa[index],
-                    period_start: dateInputToIsoStart(v),
+                    ...p,
                   }
                 })
               }
-              onChangeEnd={(v) =>
-                patch((n) => {
-                  n.busca_por_placa[index] = {
-                    ...n.busca_por_placa[index],
-                    period_end: dateInputToIsoStart(v),
-                  }
-                })
-              }
-              popoverContentClassName="z-[120] w-auto p-0"
-              disabled={readOnly}
             />
             {(fieldErrors?.period_start || fieldErrors?.period_end) && (
               <p className="text-xs text-destructive">
@@ -101,7 +153,7 @@ export function ServicosExpandedForm({
                 <Fragment key={p.id}>
                   <div className={styles.servicosPlateRow}>
                     <Input
-                      className={styles.servicosInput}
+                      className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
                       value={p.plate ?? ''}
                       onChange={(e) =>
                         patch((n) => {
@@ -149,6 +201,34 @@ export function ServicosExpandedForm({
                         <Trash className="h-4 w-4" />
                       </Button>
                     ) : null}
+                    {pi === item.plates.length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            const plates = [
+                              ...n.busca_por_placa[index].plates,
+                              {
+                                id: newNestedEntityId(),
+                                created_at: nowIso(),
+                                plate: '',
+                              },
+                            ]
+                            n.busca_por_placa[index] = {
+                              ...n.busca_por_placa[index],
+                              plates,
+                            }
+                          })
+                        }
+                        aria-label="Adicionar placa"
+                        title="Adicionar placa"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
                   </div>
                   {fieldErrors?.[`plates.${pi}.plate`] ? (
                     <p className="text-xs text-destructive">
@@ -158,31 +238,6 @@ export function ServicosExpandedForm({
                 </Fragment>
               ))}
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={styles.servicosAddLineBtn}
-              onClick={() =>
-                patch((n) => {
-                  const plates = [
-                    ...n.busca_por_placa[index].plates,
-                    {
-                      id: newNestedEntityId(),
-                      created_at: nowIso(),
-                      plate: '',
-                    },
-                  ]
-                  n.busca_por_placa[index] = {
-                    ...n.busca_por_placa[index],
-                    plates,
-                  }
-                })
-              }
-            >
-              <Plus className="h-4 w-4" />
-              Adicionar placa
-            </Button>
           </div>
         </div>,
       )
@@ -196,27 +251,18 @@ export function ServicosExpandedForm({
         <div className={styles.servicosFields}>
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Período da busca</span>
-            <FilterDateRangeField
-              startValue={isoToDateInput(item.period_start)}
-              endValue={isoToDateInput(item.period_end)}
-              onChangeStart={(v) =>
+            <ServicosSearchPeriodInputs
+              periodStart={item.period_start}
+              periodEnd={item.period_end}
+              readOnly={readOnly}
+              onPatch={(p) =>
                 patch((n) => {
                   n.busca_por_radar[index] = {
                     ...n.busca_por_radar[index],
-                    period_start: dateInputToIsoStart(v),
+                    ...p,
                   }
                 })
               }
-              onChangeEnd={(v) =>
-                patch((n) => {
-                  n.busca_por_radar[index] = {
-                    ...n.busca_por_radar[index],
-                    period_end: dateInputToIsoStart(v),
-                  }
-                })
-              }
-              popoverContentClassName="z-[120] w-auto p-0"
-              disabled={readOnly}
             />
             {(fieldErrors?.period_start || fieldErrors?.period_end) && (
               <p className="text-xs text-destructive">
@@ -273,7 +319,7 @@ export function ServicosExpandedForm({
                 <Fragment key={p.id}>
                   <div className={styles.servicosPlateRow}>
                     <Input
-                      className={styles.servicosInput}
+                      className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
                       value={p.plate ?? ''}
                       onChange={(e) =>
                         patch((n) => {
@@ -319,6 +365,33 @@ export function ServicosExpandedForm({
                         <Trash className="h-4 w-4" />
                       </Button>
                     ) : null}
+                    {pi === item.plates.length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.busca_por_radar[index] = {
+                              ...n.busca_por_radar[index],
+                              plates: [
+                                ...n.busca_por_radar[index].plates,
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  plate: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar placa"
+                        title="Adicionar placa"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
                   </div>
                   {fieldErrors?.[`plates.${pi}.plate`] ? (
                     <p className="text-xs text-destructive">
@@ -328,30 +401,6 @@ export function ServicosExpandedForm({
                 </Fragment>
               ))}
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={styles.servicosAddLineBtn}
-              onClick={() =>
-                patch((n) => {
-                  n.busca_por_radar[index] = {
-                    ...n.busca_por_radar[index],
-                    plates: [
-                      ...n.busca_por_radar[index].plates,
-                      {
-                        id: newNestedEntityId(),
-                        created_at: nowIso(),
-                        plate: '',
-                      },
-                    ],
-                  }
-                })
-              }
-            >
-              <Plus className="h-4 w-4" />
-              Adicionar placa
-            </Button>
           </div>
         </div>,
       )
@@ -366,7 +415,7 @@ export function ServicosExpandedForm({
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Placa do veículo</span>
             <Input
-              className={styles.servicosInput}
+              className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
               value={item.plate ?? ''}
               onChange={(e) =>
                 patch((n) => {
@@ -417,27 +466,18 @@ export function ServicosExpandedForm({
         <div className={styles.servicosFields}>
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Período da busca</span>
-            <FilterDateRangeField
-              startValue={isoToDateInput(item.period_start)}
-              endValue={isoToDateInput(item.period_end)}
-              onChangeStart={(v) =>
+            <ServicosSearchPeriodInputs
+              periodStart={item.period_start}
+              periodEnd={item.period_end}
+              readOnly={readOnly}
+              onPatch={(p) =>
                 patch((n) => {
                   n.busca_por_imagem[index] = {
                     ...n.busca_por_imagem[index],
-                    period_start: dateInputToIsoStart(v),
+                    ...p,
                   }
                 })
               }
-              onChangeEnd={(v) =>
-                patch((n) => {
-                  n.busca_por_imagem[index] = {
-                    ...n.busca_por_imagem[index],
-                    period_end: dateInputToIsoStart(v),
-                  }
-                })
-              }
-              popoverContentClassName="z-[120] w-auto p-0"
-              disabled={readOnly}
             />
             {(fieldErrors?.period_start || fieldErrors?.period_end) && (
               <p className="text-xs text-destructive">
@@ -448,7 +488,7 @@ export function ServicosExpandedForm({
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Placa do veículo</span>
             <Input
-              className={styles.servicosInput}
+              className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
               value={item.plate ?? ''}
               onChange={(e) =>
                 patch((n) => {
@@ -537,27 +577,18 @@ export function ServicosExpandedForm({
         <div className={styles.servicosFields}>
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Período da busca</span>
-            <FilterDateRangeField
-              startValue={isoToDateInput(item.period_start)}
-              endValue={isoToDateInput(item.period_end)}
-              onChangeStart={(v) =>
+            <ServicosSearchPeriodInputs
+              periodStart={item.period_start}
+              periodEnd={item.period_end}
+              readOnly={readOnly}
+              onPatch={(p) =>
                 patch((n) => {
                   n.reserva_de_imagem[index] = {
                     ...n.reserva_de_imagem[index],
-                    period_start: dateInputToIsoStart(v),
+                    ...p,
                   }
                 })
               }
-              onChangeEnd={(v) =>
-                patch((n) => {
-                  n.reserva_de_imagem[index] = {
-                    ...n.reserva_de_imagem[index],
-                    period_end: dateInputToIsoStart(v),
-                  }
-                })
-              }
-              popoverContentClassName="z-[120] w-auto p-0"
-              disabled={readOnly}
             />
             {(fieldErrors?.period_start || fieldErrors?.period_end) && (
               <p className="text-xs text-destructive">
@@ -598,27 +629,18 @@ export function ServicosExpandedForm({
         <div className={styles.servicosFields}>
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Período da busca</span>
-            <FilterDateRangeField
-              startValue={isoToDateInput(item.period_start)}
-              endValue={isoToDateInput(item.period_end)}
-              onChangeStart={(v) =>
+            <ServicosSearchPeriodInputs
+              periodStart={item.period_start}
+              periodEnd={item.period_end}
+              readOnly={readOnly}
+              onPatch={(p) =>
                 patch((n) => {
                   n.analise_de_imagem[index] = {
                     ...n.analise_de_imagem[index],
-                    period_start: dateInputToIsoStart(v),
+                    ...p,
                   }
                 })
               }
-              onChangeEnd={(v) =>
-                patch((n) => {
-                  n.analise_de_imagem[index] = {
-                    ...n.analise_de_imagem[index],
-                    period_end: dateInputToIsoStart(v),
-                  }
-                })
-              }
-              popoverContentClassName="z-[120] w-auto p-0"
-              disabled={readOnly}
             />
             {(fieldErrors?.period_start || fieldErrors?.period_end) && (
               <p className="text-xs text-destructive">
@@ -728,41 +750,25 @@ function CorrelataForm({
     <div className={styles.servicosFields}>
       <div className={styles.servicosFieldBlock}>
         <span className={styles.servicosFieldLabel}>Período da busca</span>
-        <FilterDateRangeField
-          startValue={isoToDateInput(item.period_start)}
-          endValue={isoToDateInput(item.period_end)}
-          onChangeStart={(v) =>
+        <ServicosSearchPeriodInputs
+          periodStart={item.period_start}
+          periodEnd={item.period_end}
+          readOnly={readOnly}
+          onPatch={(p) =>
             patch((n) => {
               if (mode === 'correlatas') {
                 n.placas_correlatas[index] = {
                   ...n.placas_correlatas[index],
-                  period_start: dateInputToIsoStart(v),
+                  ...p,
                 }
               } else {
                 n.placas_conjuntas[index] = {
                   ...n.placas_conjuntas[index],
-                  period_start: dateInputToIsoStart(v),
+                  ...p,
                 }
               }
             })
           }
-          onChangeEnd={(v) =>
-            patch((n) => {
-              if (mode === 'correlatas') {
-                n.placas_correlatas[index] = {
-                  ...n.placas_correlatas[index],
-                  period_end: dateInputToIsoStart(v),
-                }
-              } else {
-                n.placas_conjuntas[index] = {
-                  ...n.placas_conjuntas[index],
-                  period_end: dateInputToIsoStart(v),
-                }
-              }
-            })
-          }
-          popoverContentClassName="z-[120] w-auto p-0"
-          disabled={readOnly}
         />
         {(fieldErrors?.period_start || fieldErrors?.period_end) && (
           <p className="text-xs text-destructive">
@@ -875,7 +881,7 @@ function CorrelataForm({
             <Fragment key={p.id}>
               <div className={styles.servicosPlateRow}>
                 <Input
-                  className={styles.servicosInput}
+                  className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
                   value={p.plate ?? ''}
                   onChange={(e) =>
                     patch((n) => {
@@ -952,6 +958,47 @@ function CorrelataForm({
                     <Trash className="h-4 w-4" />
                   </Button>
                 ) : null}
+                {pi === item.plates.length - 1 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={styles.servicosAddLineBtn}
+                    onClick={() =>
+                      patch((n) => {
+                        if (mode === 'correlatas') {
+                          n.placas_correlatas[index] = {
+                            ...n.placas_correlatas[index],
+                            plates: [
+                              ...n.placas_correlatas[index].plates,
+                              {
+                                id: newNestedEntityId(),
+                                created_at: nowIso(),
+                                plate: '',
+                              },
+                            ],
+                          }
+                        } else {
+                          n.placas_conjuntas[index] = {
+                            ...n.placas_conjuntas[index],
+                            plates: [
+                              ...n.placas_conjuntas[index].plates,
+                              {
+                                id: newNestedEntityId(),
+                                created_at: nowIso(),
+                                plate: '',
+                              },
+                            ],
+                          }
+                        }
+                      })
+                    }
+                    aria-label="Adicionar placa"
+                    title="Adicionar placa"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                ) : null}
               </div>
               {fieldErrors?.[`plates.${pi}.plate`] ? (
                 <p className="text-xs text-destructive">
@@ -961,44 +1008,6 @@ function CorrelataForm({
             </Fragment>
           ))}
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className={styles.servicosAddLineBtn}
-          onClick={() =>
-            patch((n) => {
-              if (mode === 'correlatas') {
-                n.placas_correlatas[index] = {
-                  ...n.placas_correlatas[index],
-                  plates: [
-                    ...n.placas_correlatas[index].plates,
-                    {
-                      id: newNestedEntityId(),
-                      created_at: nowIso(),
-                      plate: '',
-                    },
-                  ],
-                }
-              } else {
-                n.placas_conjuntas[index] = {
-                  ...n.placas_conjuntas[index],
-                  plates: [
-                    ...n.placas_conjuntas[index].plates,
-                    {
-                      id: newNestedEntityId(),
-                      created_at: nowIso(),
-                      plate: '',
-                    },
-                  ],
-                }
-              }
-            })
-          }
-        >
-          <Plus className="h-4 w-4" />
-          Adicionar placa
-        </Button>
       </div>
     </div>,
   )

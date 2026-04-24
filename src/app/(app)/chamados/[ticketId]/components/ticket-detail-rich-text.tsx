@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import type { MouseEvent } from 'react'
 
-import styles from './ticket-detail.module.css'
+import styles from '../ticket-detail.module.css'
 
 export function sanitizeTicketHtml(html: string): string {
   if (typeof window === 'undefined') return html
