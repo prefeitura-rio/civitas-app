@@ -260,6 +260,13 @@
   vertical-align: middle;
 }
 
+.chamadoLink {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .priorityHeader {
   text-align: left;
 }

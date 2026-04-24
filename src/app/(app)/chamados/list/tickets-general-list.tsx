@@ -8,6 +8,7 @@ import {
   Search,
   Tag,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
@@ -193,7 +194,14 @@ function DashboardSectionTable({
 
                 return (
                   <tr key={item.id}>
-                    <td>{item.chamado}</td>
+                    <td>
+                      <Link
+                        href={`/chamados/${encodeURIComponent(item.id)}`}
+                        className={styles.chamadoLink}
+                      >
+                        {item.chamado}
+                      </Link>
+                    </td>
                     <td>
                       {item.data_criacao?.trim() ? item.data_criacao : '—'}
                     </td>
