@@ -18,12 +18,13 @@ import { downloadTicketAttachmentFile } from '@/http/tickets/download-ticket-att
 import {
   completeTicketVideoAttachment,
   deleteTicketAttachment,
-  getTicketAttachmentPlaybackUrl,
+  deleteTicketServiceAttachment,
+  getTicketServiceAttachmentPlaybackUrl,
   putVideoToGcsSignedUrl,
   requestTicketVideoUploadUrl,
   type TicketAttachmentMultipartMetadata,
   type TicketAttachmentOut,
-  uploadTicketAttachmentsMultipart,
+  uploadTicketServiceAttachmentsMultipart,
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
 
@@ -100,7 +101,6 @@ type Props = {
   title: string
   attachments: TicketAttachmentOut[]
   readOnly: boolean
-  /** `null` = anexo geral do chamado (sem `metadata` no multipart / sem escopo no vídeo). */
   serviceScope: TicketAttachmentMultipartMetadata | null
   uploadBlocked?: boolean
   uploadBlockedMessage?: string
@@ -129,7 +129,9 @@ export function TicketServicoAnexos({
 
   const deleteMutation = useMutation({
     mutationFn: ({ attachmentId }: { attachmentId: string }) =>
-      deleteTicketAttachment(ticketId, attachmentId),
+      serviceScope
+        ? deleteTicketServiceAttachment(ticketId, attachmentId)
+        : deleteTicketAttachment(ticketId, attachmentId),
     onSuccess: () => {
       invalidateAttachmentQueries(queryClient, ticketId)
       toast.success('Anexo removido.')
@@ -144,7 +146,7 @@ export function TicketServicoAnexos({
 
   const multipartMutation = useMutation({
     mutationFn: (files: File[]) =>
-      uploadTicketAttachmentsMultipart(
+      uploadTicketServiceAttachmentsMultipart(
         ticketId,
         files,
         serviceScope ?? undefined,
@@ -224,12 +226,14 @@ export function TicketServicoAnexos({
   const handleDownload = useCallback(
     async (att: TicketAttachmentOut) => {
       try {
-        await downloadTicketAttachmentFile(att, ticketId)
+        await downloadTicketAttachmentFile(att, ticketId, {
+          serviceAttachment: Boolean(serviceScope),
+        })
       } catch {
         toast.error('Não foi possível baixar o anexo.')
       }
     },
-    [ticketId],
+    [serviceScope, ticketId],
   )
 
   const resolvePlaybackUrl = useCallback(
@@ -283,11 +287,8 @@ export function TicketServicoAnexos({
     async (att: TicketAttachmentOut) => {
       setVideoRefreshingId(att.id)
       try {
-        const { signed_url: signedUrl } = await getTicketAttachmentPlaybackUrl(
-          ticketId,
-          att.id,
-          120,
-        )
+        const { signed_url: signedUrl } =
+          await getTicketServiceAttachmentPlaybackUrl(ticketId, att.id, 120)
         const expiresAt = new Date(Date.now() + 120 * 60 * 1000).toISOString()
         setVideoPlaybackOverrides((prev) => ({
           ...prev,

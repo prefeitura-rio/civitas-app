@@ -37,10 +37,30 @@ export async function fetchTicketAttachmentBlob(
   return { blob, contentType }
 }
 
+export async function fetchTicketServiceAttachmentBlob(
+  ticketId: string,
+  attachmentId: string,
+): Promise<TicketAttachmentBlobPayload> {
+  const response = await api.get<Blob>(
+    `/tickets/${encodeURIComponent(ticketId)}/attachments/services/${encodeURIComponent(attachmentId)}/download`,
+    { responseType: 'blob' },
+  )
+  const fromHeader = headerContentType(
+    response.headers as RawAxiosResponseHeaders,
+  )
+  const blob = response.data
+  const contentType = blob.type && blob.type.length > 0 ? blob.type : fromHeader
+  return { blob, contentType }
+}
+
 export async function downloadTicketAttachmentFile(
   attachment: TicketAttachmentItem,
   ticketId: string,
+  options?: { serviceAttachment?: boolean },
 ) {
-  const { blob } = await fetchTicketAttachmentBlob(ticketId, attachment.id)
+  const { blob } =
+    options?.serviceAttachment === true
+      ? await fetchTicketServiceAttachmentBlob(ticketId, attachment.id)
+      : await fetchTicketAttachmentBlob(ticketId, attachment.id)
   downloadFile(blob, attachment.filename)
 }
