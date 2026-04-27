@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 interface UseRadarSyncProps {
-  selectedObjects: Radar[]
-  radars: Radar[] | undefined
+  selectedObjects: CollectionPoint[]
+  radars: CollectionPoint[] | undefined
   formattedSearchParams: {
     radarIds: string[]
     date?: { from: string; to: string }

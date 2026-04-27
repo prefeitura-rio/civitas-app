@@ -28,12 +28,13 @@ export function useWazePoliceAlerts(): UseWazePoliceAlerts {
   const { data, isLoading } = useQuery({
     queryKey: ['waze', 'police'],
     queryFn: () => getWazePoliceAlerts(),
+    enabled: isVisible,
     refetchInterval: 1000 * 60 * 5, // 5 min
   })
 
   const layer = new IconLayer<WazeAlert>({
     id: 'waze-police-alert',
-    data,
+    data: data || [],
     getPosition: (info) => [info.longitude, info.latitude],
     getSize: 24,
     getIcon: () => ({
@@ -58,7 +59,7 @@ export function useWazePoliceAlerts(): UseWazePoliceAlerts {
 
   return {
     data: data || [],
-    failed: !data && !isLoading,
+    failed: isVisible && !data && !isLoading,
     layer,
     isLoading,
     isVisible,

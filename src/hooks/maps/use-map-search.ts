@@ -2,14 +2,14 @@
 
 import { useCallback } from 'react'
 
-import type { Camera, Radar } from '@/models/entities'
+import type { Camera, CollectionPoint } from '@/models/entities'
 
 interface SearchSubmitProps {
   address: string
 }
 
 interface UseMapSearchProps {
-  radars: Radar[] | undefined
+  radars: CollectionPoint[] | undefined
   cameras: Camera[] | undefined
   setViewport: (viewport: {
     latitude: number

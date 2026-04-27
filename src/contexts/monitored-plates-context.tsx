@@ -32,30 +32,27 @@ interface MonitoredPlatesContextProviderProps {
   children: ReactNode
 }
 
-export const monitoredPlateFormSchema = z.object({
+const monitoredPlateFormBaseSchema = z.object({
   plate: z
     .string()
     .min(1, { message: '' })
     .toUpperCase()
     .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido'),
-  operation: z.object({
-    id: z.string().min(1, { message: 'Campo obrigatório' }),
-    title: z.string().min(1, { message: 'Campo obrigatório' }),
-  }),
   active: z.boolean().default(true),
   notes: z.string(),
-  contactInfo: z.string(),
-  additionalInfo: z.unknown(),
+  additionalInfo: z.unknown().optional(),
   notificationChannels: z
     .object({
       label: z.string().min(1, { message: 'Campo obrigatório' }),
       value: z.string().min(1, { message: 'Campo obrigatório' }),
     })
     .array()
-    .min(1, { message: 'Pelo menos um canal deve ser selecionado' }),
+    .default([]),
 })
 
-export type MonitoredPlateForm = z.infer<typeof monitoredPlateFormSchema>
+export const monitoredPlateFormSchema = monitoredPlateFormBaseSchema
+
+export type MonitoredPlateForm = z.infer<typeof monitoredPlateFormBaseSchema>
 
 export function MonitoredPlatesContextProvider({
   children,

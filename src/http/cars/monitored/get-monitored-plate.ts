@@ -1,5 +1,7 @@
 import { api } from '@/lib/api'
-import type { BackendMonitoredPlate, MonitoredPlate } from '@/models/entities'
+import type { BackendMonitoredPlate } from '@/models/entities'
+
+import { mapBackendMonitoredPlateToMonitoredPlate } from './map-backend-monitored-plate'
 
 interface GetMonitoredPlateRequest {
   plate: string
@@ -10,21 +12,5 @@ export async function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
     `cars/monitored/${plate}`,
   )
 
-  const data = {
-    id: response.data.id,
-    plate: response.data.plate,
-    active: response.data.active,
-    contactInfo: response.data.contact_info,
-    notes: response.data.notes,
-    operation: {
-      id: response.data.operation.id,
-      title: response.data.operation.title,
-    },
-    createdAt: response.data.created_at,
-    updatedAt: response.data.created_at,
-    additionalInfo: response.data.additional_info,
-    notificationChannels: response.data.notification_channels,
-  } as MonitoredPlate
-
-  return data
+  return mapBackendMonitoredPlateToMonitoredPlate(response.data)
 }
