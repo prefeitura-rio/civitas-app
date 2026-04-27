@@ -1,10 +1,8 @@
 import { api } from '@/lib/api'
+import type { Operation } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
 
-export interface Operation {
-  id: string
-  title: string
-}
+export type { Operation } from '@/models/entities'
 
 export interface GetOperationsResponse extends PaginationResponse {
   items: Operation[]
