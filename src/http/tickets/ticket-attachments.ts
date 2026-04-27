@@ -66,6 +66,15 @@ export async function deleteTicketAttachment(
   )
 }
 
+export async function deleteTicketServiceAttachment(
+  ticketId: string,
+  attachmentId: string,
+) {
+  await api.delete(
+    `/tickets/${encodeURIComponent(ticketId)}/attachments/services/${encodeURIComponent(attachmentId)}`,
+  )
+}
+
 export async function requestTicketVideoUploadUrl(
   ticketId: string,
   body: TicketVideoUploadUrlRequest,
@@ -75,7 +84,7 @@ export async function requestTicketVideoUploadUrl(
     resumable: body.resumable ?? true,
   }
   const { data } = await api.post<TicketVideoUploadUrlResponse>(
-    `/tickets/${encodeURIComponent(ticketId)}/attachments/upload-url`,
+    `/tickets/${encodeURIComponent(ticketId)}/attachments/services/upload-url`,
     payload,
   )
   return data
@@ -86,13 +95,13 @@ export async function completeTicketVideoAttachment(
   body: TicketAttachmentCompleteIn,
 ) {
   const { data } = await api.post<TicketAttachmentOut>(
-    `/tickets/${encodeURIComponent(ticketId)}/attachments/complete`,
+    `/tickets/${encodeURIComponent(ticketId)}/attachments/services/complete`,
     body,
   )
   return data
 }
 
-export async function uploadTicketAttachmentsMultipart(
+export async function uploadTicketServiceAttachmentsMultipart(
   ticketId: string,
   files: File[],
   metadata?: TicketAttachmentMultipartMetadata,
@@ -112,20 +121,20 @@ export async function uploadTicketAttachmentsMultipart(
   }
 
   const { data } = await api.post<TicketAttachmentOut[]>(
-    `/tickets/${encodeURIComponent(ticketId)}/attachments`,
+    `/tickets/${encodeURIComponent(ticketId)}/attachments/services`,
     form,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   )
   return data
 }
 
-export async function getTicketAttachmentPlaybackUrl(
+export async function getTicketServiceAttachmentPlaybackUrl(
   ticketId: string,
   attachmentId: string,
   expirationMinutes?: number,
 ) {
   const { data } = await api.get<TicketAttachmentPlaybackUrlOut>(
-    `/tickets/${encodeURIComponent(ticketId)}/attachments/${encodeURIComponent(attachmentId)}/playback-url`,
+    `/tickets/${encodeURIComponent(ticketId)}/attachments/services/${encodeURIComponent(attachmentId)}/playback-url`,
     {
       params:
         expirationMinutes != null
@@ -136,7 +145,6 @@ export async function getTicketAttachmentPlaybackUrl(
   return data
 }
 
-/** PUT directo ao GCS — não enviar Authorization da app. */
 export async function putVideoToGcsSignedUrl(
   signedUrl: string,
   file: File,

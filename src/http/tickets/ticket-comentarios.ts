@@ -1,6 +1,5 @@
 import { api } from '@/lib/api'
 
-/** Resposta de GET/POST `/tickets/{id}/comentarios` (timeline com badges). */
 export type TicketCommentListItem = {
   id: string
   chamado_id: string
@@ -26,7 +25,7 @@ export async function postTicketComment(
   ticketId: string,
   payload: TicketCommentCreateIn,
 ) {
-  const { data } = await api.post<TicketCommentListItem>(
+  const { data } = await api.post<boolean>(
     `/tickets/${encodeURIComponent(ticketId)}/comentarios`,
     payload,
   )

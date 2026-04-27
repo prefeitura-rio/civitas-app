@@ -7,7 +7,7 @@ interface GetOperationsRequest extends PaginationRequest {}
 export interface GetOperationsResponse extends PaginationResponse {
   items: Operation[]
 }
-
+//
 export function getOperations({ page, size }: GetOperationsRequest) {
   return api.get<GetOperationsResponse>('/operations', {
     params: {
