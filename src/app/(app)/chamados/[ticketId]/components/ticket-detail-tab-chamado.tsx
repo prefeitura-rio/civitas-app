@@ -15,10 +15,7 @@ import {
 } from '@/components/ui/select'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getOperation } from '@/http/operations/get-operation'
-import {
-  getOperations,
-  type Operation as OperationOption,
-} from '@/http/operations/get-operations'
+import { getOperations, type Operation } from '@/http/operations/get-operations'
 import {
   getTicketTypes,
   type TicketType,
@@ -168,7 +165,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
 
   const operationOptions = useMemo(() => {
     const items = operationsQuery.data?.data?.items ?? []
-    const list: OperationOption[] = [...items]
+    const list: Operation[] = [...items]
     if (
       selectedOrgaoId &&
       !list.some((o) => o.id === selectedOrgaoId) &&
@@ -177,6 +174,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
       list.unshift({
         id: orgaoDetailQuery.data.data.id,
         title: orgaoDetailQuery.data.data.title,
+        description: orgaoDetailQuery.data.data.description,
       })
     }
     return list
