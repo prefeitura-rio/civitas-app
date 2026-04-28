@@ -26,7 +26,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'Um ponto de detecção é definido pelo local, data e hora onde uma placa foi detectada por um radar da Prefeitura da cidade do Rio de Janeiro.',
+              'Um ponto de detecção é definido pelo local, data e hora onde uma placa foi detectada por um equipamento de leitura de placa (LPR) da Prefeitura da cidade do Rio de Janeiro.',
           },
           {
             value:
@@ -64,7 +64,8 @@ const bulletPoints: BulletPoint[] = [
               'Viagens são particionadas quando atendem a um ou mais dos seguintes critérios:',
             children: [
               {
-                value: 'Múltiplos pontos de detecção no mesmo radar.',
+                value:
+                  'Múltiplos pontos de detecção no mesmo equipamento de leitura de placa (LPR).',
               },
               {
                 value: 'Viagem contendo mais de 10 pontos de detecção.',
@@ -86,7 +87,7 @@ const bulletPoints: BulletPoint[] = [
           },
           {
             value:
-              'Falhas na leitura dos radares podem, entretanto, gerar situações similares ao exemplo acima.',
+              'Falhas na leitura dos equipamentos de leitura de placa (LPR) podem, entretanto, gerar situações similares ao exemplo acima.',
           },
           {
             value:
@@ -134,7 +135,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'A ausência de um registro de detecção não significa que o veículo não passou por uma área monitorada por radar.',
+              'A ausência de um registro de detecção não significa que o veículo não passou por uma área monitorada por equipamento de leitura de placa (LPR).',
           },
         ],
       },
@@ -158,6 +159,15 @@ const bulletPoints: BulletPoint[] = [
                   'O cálculo é baseado na distância em linha reta entre dois pontos na superfície terrestre, sem levar em conta possíveis rotas reais percorridas pelo veículo.',
               },
             ],
+          },
+        ],
+      },
+      {
+        value: 'Estimativa de velocidade média:',
+        children: [
+          {
+            value:
+              'Nem todas as passagens possuem velocidade associada. A ausência dessa informação pode ocorrer devido a falhas na aferição ou à desativação da funcionalidade de estimativa de velocidade no equipamento.',
           },
         ],
       },

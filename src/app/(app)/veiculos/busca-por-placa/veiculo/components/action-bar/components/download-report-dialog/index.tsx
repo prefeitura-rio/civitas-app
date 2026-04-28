@@ -19,7 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
-import { useRadars } from '@/hooks/useQueries/useRadars'
+import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import { exportToCSV } from '@/utils/csv'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
@@ -39,7 +39,7 @@ export function DownloadReportDialog() {
   const { formattedSearchParams } = useCarPathsSearchParams()
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
-  const { data: radars, isLoading: isLoadingRadars } = useRadars()
+  const { data: radars, isLoading: isLoadingRadars } = useCollectionPoints()
 
   const [open, setOpen] = useState(false)
   const [formType, setFormType] = useState<'viagens' | 'placas conjuntas'>(

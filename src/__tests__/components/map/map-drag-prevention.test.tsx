@@ -61,11 +61,9 @@ const mockRadar: Radar = {
   company: 'Test Company',
   activeInLast24Hours: true,
   lastDetectionTime: new Date().toISOString(),
-  streetName: 'Test Street',
   hasData: true,
   direction: 'Test Direction',
   lane: 'Test Lane',
-  streetNumber: '123',
 }
 
 describe('Map - Drag Prevention', () => {

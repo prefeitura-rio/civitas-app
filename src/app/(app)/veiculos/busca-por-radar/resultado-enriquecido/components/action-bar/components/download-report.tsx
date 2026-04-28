@@ -19,8 +19,8 @@ import {
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchParams'
+import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
-import { useRadars } from '@/hooks/useQueries/useRadars'
 import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/useSearchByRadarEnhancedResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
@@ -57,7 +57,7 @@ export function DownloadReport({
     ApplyFilters.Sim,
   )
 
-  const { data: radars } = useRadars()
+  const { data: radars } = useCollectionPoints()
 
   // function groupData(data: EnhancedDetectionDTO[]) {
   //   if (!radars) throw new Error('radars is required')
@@ -141,7 +141,7 @@ export function DownloadReport({
 
         // Adiciona as detecções ao objeto
         const detections = data.filter(
-          (detection) => detection.cetRioCode === radar.cetRioCode,
+          (detection) => detection.equipmentCode === radar.cetRioCode,
         )
         acc[location].detections.push(...detections)
         return acc
@@ -177,8 +177,14 @@ export function DownloadReport({
       applyFilters === ApplyFilters.Sim ? filters.filteredData : data
 
     if (fileType === 'CSV') {
-      // Download CSV
-      exportToCSV('busca_por_radar', selectedData)
+      const csvRows = (selectedData || []).map((row) => {
+        const copy: Record<string, unknown> = {
+          ...(row as Record<string, unknown>),
+        }
+        delete copy.lane
+        return copy
+      })
+      exportToCSV('busca_por_radar', csvRows)
     } else {
       // Download PDF
       const groupedData = groupData(selectedData)
@@ -224,7 +230,7 @@ export function DownloadReport({
       </Tooltip>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Relatório de Busca por Radar</DialogTitle>
+          <DialogTitle>Relatório de Busca por Equipamento</DialogTitle>
           <DialogDescription>
             Baixe um relatório PDF ou CSV contendo o resultado da busca
             realizada. Você pode escolher por aplicar ou não os filtros

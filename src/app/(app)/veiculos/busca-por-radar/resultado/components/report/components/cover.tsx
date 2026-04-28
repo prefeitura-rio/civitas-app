@@ -27,7 +27,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'A determinação do local de busca é realizada por meio da seleção de um ou mais radares localizados em uma área específica, definida pelo solicitante. A análise é conduzida pelo sistema de forma automática utilizando apenas os dados dos radares selecionados.',
+              'A determinação do local de busca é realizada por meio da seleção de um ou mais equipamentos localizados em uma área específica, definida pelo solicitante. A análise é conduzida pelo sistema de forma automática utilizando apenas os dados dos equipamentos selecionados.',
           },
         ],
       },
@@ -45,22 +45,22 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'Não há um limite máximo para o número de placas a serem detectadas dentro do intervalo de tempo selecionado. O sistema irá registrar todas as placas detectadas nos radares dentro do intervalo de tempo especificado, sem restrições de quantidade.',
+              'Não há um limite máximo para o número de placas a serem detectadas dentro do intervalo de tempo selecionado. O sistema irá registrar todas as placas detectadas nos equipamentos LPR dentro do intervalo de tempo especificado, sem restrições de quantidade.',
           },
         ],
       },
     ],
   },
   {
-    value: 'Radares e localização:',
+    value: 'Equipamentos e localização:',
     children: [
       {
         value:
-          'Cada radar possui um número identificador próprio. Todas as detecções feitas pelo sistema apontam o número identificador do equipamento que fez a leitura.',
+          'Cada equipamento possui um número identificador próprio. Todas as detecções feitas pelo sistema apontam o número identificador do equipamento que fez a leitura.',
       },
       {
         value:
-          'Cada radar possui também informações de localização que incluem coordenadas geográficas e endereços completos. Essas informações também estão disponíveis junto a cada registro.',
+          'Cada equipamento possui também informações de localização que incluem coordenadas geográficas e endereços completos. Essas informações também estão disponíveis junto a cada registro.',
       },
       {
         value:
@@ -85,7 +85,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'Podem ocorrer problemas técnicos que inviabilizam a leitura do OCR de algumas placas, tais como: placas em mau estado de conservação, objetos obstruindo as câmeras de leitura, condições climáticas, períodos de inatividade do equipamento e outros.',
+              'Podem ocorrer problemas técnicos que inviabilizam a leitura do OCR de algumas placas, tais como: placas em mau estado de conservação, objetos obstruindo as câmeras de leitura, condições climáticas, períodos de inatividade do equipamento LPR ou outros.',
           },
           {
             value:
@@ -93,7 +93,7 @@ const bulletPoints: BulletPoint[] = [
           },
           {
             value:
-              'Por razões técnicas, operacionais ou devido ao desgaste das placas, os radares podem não conseguir realizar a leitura completa do OCR. Nesses casos, duas situações podem ocorrer: (1) se o equipamento registrar a passagem do veículo e identificar parte da placa, a linha na planilha será exibida com marcação tracejada ou mostrará os caracteres parciais capturados; (2) se o radar registrar apenas a passagem do veículo, sem conseguir ler nenhum caractere da placa, a linha será exibida em branco na planilha.',
+              'Por razões técnicas, operacionais ou devido ao desgaste das placas, os equipamentos LPR podem não conseguir realizar a leitura completa do OCR. Nesses casos, duas situações podem ocorrer: (1) se o equipamento registrar a passagem do veículo e identificar parte da placa, a linha na planilha será exibida com marcação tracejada ou mostrará os caracteres parciais capturados; (2) se o equipamento LPR registrar apenas a passagem do veículo, sem conseguir ler nenhum caractere da placa, a linha será exibida em branco na planilha.',
           },
         ],
       },
@@ -102,7 +102,16 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'Há a possibilidade de inatividade de radares durante o período solicitado, o que pode resultar na ausência de registros de detecção. Essa inatividade pode ocorrer por diversos motivos técnicos, como falhas no fornecimento de energia, interrupções na comunicação de dados, problemas de calibração do equipamento, ou falhas no funcionamento do próprio radar. Quando um radar está inativo, ele não realiza a detecção das placas de veículos, resultando em lacunas nos dados.',
+              'Há a possibilidade de inatividade de equipamentos LPR durante o período solicitado, o que pode resultar na ausência de registros de detecção. Essa inatividade pode ocorrer por diversos motivos técnicos, como falhas no fornecimento de energia, interrupções na comunicação de dados, problemas de calibração do equipamento, ou falhas no funcionamento do próprio equipamento LPR. Quando um equipamento LPR está inativo, ele não realiza a detecção das placas de veículos, resultando em lacunas nos dados.',
+          },
+        ],
+      },
+      {
+        value: 'Estimativa de velocidade média:',
+        children: [
+          {
+            value:
+              'Nem todas as passagens possuem velocidade associada. A ausência dessa informação pode ocorrer devido a falhas na aferição ou à desativação da funcionalidade de estimativa de velocidade no equipamento.',
           },
         ],
       },
@@ -249,7 +258,7 @@ export function RadarReportCover({
       value: totalDetections,
     },
     {
-      label: 'Radares:',
+      label: 'Equipamentos:',
       value: radarIds.join(', '),
     },
   ]
@@ -260,11 +269,11 @@ export function RadarReportCover({
       <Text style={styles.bulletTitle}>Estrutura do relatório:</Text>
       <Text style={styles.normalBulletTitle}>
         Este relatório apresenta os dados de passagens de veículos com base em
-        uma busca realizada por equipamento de radar ou por um conjunto desses
+        uma busca realizada por equipamento de LPR ou por um conjunto desses
         equipamentos em uma determinada localidade. As placas registradas são
         organizadas em ordem cronológica e as buscas são feitas pelo sistema de
         acordo com os parâmetros definidos pelo solicitante da informação, como
-        período de análise e localização dos radares considerados. Este
+        período de análise e localização dos equipamentos considerados. Este
         documento é gerado automaticamente pelo sistema, sem interferência
         humana. Todo esse documento é auditável.
       </Text>
@@ -281,7 +290,7 @@ export function RadarReportCover({
                 <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
                 <Text
                   style={
-                    topic.value === 'Radares e localização:'
+                    topic.value === 'Equipamentos e localização:'
                       ? styles.normalBulletTitle
                       : styles.bulletTitle
                   }

@@ -19,7 +19,7 @@ export function Header() {
       {/* <CardTitle>Resultado para</CardTitle> */}
       <CardDescription>
         <span className="block text-sm text-muted-foreground">
-          Radares: {radarIds.join(', ')}
+          Equipamentos: {radarIds.join(', ')}
         </span>
         <span className="text-sm text-muted-foreground">
           {`De ${format(from, 'dd MMM, y HH:mm', { locale: dateConfig.locale })} a ${format(to, 'dd MMM, y HH:mm', { locale: dateConfig.locale })}`}

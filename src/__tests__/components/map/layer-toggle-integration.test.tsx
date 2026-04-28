@@ -138,7 +138,7 @@ describe('MapLayerControl Integration', () => {
     fireEvent.click(button)
 
     // Clica na camada de radar
-    const radarButton = screen.getByLabelText('Toggle Radar layer')
+    const radarButton = screen.getByLabelText('Toggle LPR layer')
     fireEvent.click(radarButton)
 
     // Verifica se a função setIsVisible foi chamada
@@ -328,7 +328,7 @@ describe('MapLayerControl Integration', () => {
     fireEvent.click(button)
 
     const layerTests = [
-      { button: 'Toggle Radar layer', mock: mockSetIsRadarVisible },
+      { button: 'Toggle LPR layer', mock: mockSetIsRadarVisible },
       { button: 'Toggle Câmeras layer', mock: mockSetIsCameraVisible },
       { button: 'Toggle Agentes layer', mock: mockSetIsAgentsVisible },
       {

@@ -32,12 +32,13 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
   const { data, isLoading } = useQuery({
     queryKey: ['layers', 'fogocruzado'],
     queryFn: () => getFogoCruzadoIncidents(),
+    enabled: isVisible,
     refetchInterval: 1000 * 60 * 5, // 5 min
   })
 
   const layer = new IconLayer<FogoCruzadoIncident>({
     id: 'fogocruzado-incidents',
-    data,
+    data: data || [],
     pickable: true,
     getSize: 24,
     autoHighlight: true,
@@ -62,7 +63,7 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
 
   return {
     data: data || [],
-    failed: !data && !isLoading,
+    failed: isVisible && !data && !isLoading,
     layer,
     isLoading,
     isVisible,

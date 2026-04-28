@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { DownloadReport } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/action-bar/components/download-report'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
+import { exportToCSV } from '@/utils/csv'
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -71,7 +72,7 @@ const mockDetection: DetectionDTO = {
   plate: 'ABC1234',
   timestamp: '2024-01-15T10:00:00Z',
   location: 'Local Teste',
-  cetRioCode: 'RDR001',
+  equipmentCode: 'RDR001',
   speed: 60,
   lane: 'FX 01',
 }
@@ -103,6 +104,10 @@ const createWrapper = () => {
 }
 
 describe('DownloadReport', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
   it('deve renderizar o botão de download corretamente', () => {
     render(
       <DownloadReport
@@ -131,7 +136,9 @@ describe('DownloadReport', () => {
     const button = screen.getByRole('button')
     fireEvent.click(button)
 
-    expect(screen.getByText('Relatório de Busca por Radar')).toBeInTheDocument()
+    expect(
+      screen.getByText('Relatório de Busca por Equipamento'),
+    ).toBeInTheDocument()
   })
 
   it('deve mostrar opções de formato de arquivo', () => {
@@ -237,13 +244,54 @@ describe('DownloadReport', () => {
     const button = screen.getByRole('button')
     fireEvent.click(button)
 
-    expect(screen.getByText('Relatório de Busca por Radar')).toBeInTheDocument()
+    expect(
+      screen.getByText('Relatório de Busca por Equipamento'),
+    ).toBeInTheDocument()
 
     const cancelButton = screen.getByRole('button', { name: /cancelar/i })
     fireEvent.click(cancelButton)
 
     expect(
-      screen.queryByText('Relatório de Busca por Radar'),
+      screen.queryByText('Relatório de Busca por Equipamento'),
     ).not.toBeInTheDocument()
+  })
+
+  it('exporta CSV com equipmentCode e sem coluna lane', async () => {
+    render(
+      <DownloadReport
+        data={[mockDetection]}
+        isLoading={false}
+        filters={mockFilters}
+      />,
+      { wrapper: createWrapper() },
+    )
+
+    fireEvent.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByLabelText('CSV'))
+    fireEvent.click(screen.getByRole('button', { name: /obter relatório/i }))
+
+    await waitFor(() => {
+      expect(exportToCSV).toHaveBeenCalledTimes(1)
+    })
+
+    expect(exportToCSV).toHaveBeenCalledWith(
+      'busca_por_equipamento',
+      expect.any(Array),
+    )
+
+    const csvRows = (exportToCSV as jest.Mock).mock.calls[0][1] as Record<
+      string,
+      unknown
+    >[]
+
+    expect(csvRows).toHaveLength(1)
+    expect(csvRows[0]).toMatchObject({
+      plate: 'ABC1234',
+      equipmentCode: 'RDR001',
+      location: 'Local Teste',
+      speed: 60,
+      timestamp: '2024-01-15T10:00:00Z',
+    })
+    expect(csvRows[0]).not.toHaveProperty('lane')
   })
 })

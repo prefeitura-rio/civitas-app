@@ -49,13 +49,9 @@ export function EnhancedDetectionsTable({
       cell: ({ row }) => <span>{row.getValue('modelYear')}</span>,
     },
     {
-      accessorKey: 'cetRioCode',
-      header: () => <Label className="w-28">Radar</Label>,
-      cell: ({ row }) => (
-        <span>
-          {row.getValue('plate') === '' ? '--------' : row.getValue('plate')}
-        </span>
-      ),
+      accessorKey: 'equipmentCode',
+      header: () => <Label className="w-28">Equipamento</Label>,
+      cell: ({ row }) => <span>{row.getValue('equipmentCode')}</span>,
     },
     {
       accessorKey: 'location',

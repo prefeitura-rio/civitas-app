@@ -17,11 +17,9 @@ const mockRadar: Radar = {
   company: 'CET-Rio',
   activeInLast24Hours: true,
   lastDetectionTime: '2024-01-15T10:30:00Z',
-  streetName: 'Avenida Brasil',
   hasData: true,
   direction: 'norte',
   lane: 'direita',
-  streetNumber: '123',
 }
 
 const mockRadarInactive: Radar = {
@@ -44,16 +42,20 @@ describe('RadarSelectCard', () => {
   it('should be hidden when no radar is selected', () => {
     render(<RadarSelectCard {...defaultProps} />)
 
-    const card = screen.queryByText('Radar RDR123')
-    expect(card).not.toBeInTheDocument()
+    const title = screen.getByText('Informações do Equipamento')
+    // The component is mounted but hidden via CSS when no object is selected.
+    const card = title.closest('[class*="hidden"]')
+    expect(card).toBeInTheDocument()
   })
 
   it('should display radar information when selected', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('Radar OCR')).toBeInTheDocument()
+    expect(screen.getByText('Informações do Equipamento')).toBeInTheDocument()
     expect(screen.getAllByText('RDR123')).toHaveLength(1)
-    expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
+    expect(
+      screen.getByText('avenida brasil - centro, SENTIDO norte'),
+    ).toBeInTheDocument()
   })
 
   it('should display radar code correctly', () => {
@@ -66,7 +68,9 @@ describe('RadarSelectCard', () => {
   it('should display location and district correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('avenida brasil - centro')).toBeInTheDocument()
+    expect(
+      screen.getByText('avenida brasil - centro, SENTIDO norte'),
+    ).toBeInTheDocument()
   })
 
   it('should display latitude and longitude correctly', () => {
@@ -141,7 +145,7 @@ describe('RadarSelectCard', () => {
   it('should have absolute positioning in top left corner', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    const card = screen.getByText('Radar OCR').closest('div')
+    const card = screen.getByText('Informações do Equipamento').closest('div')
       ?.parentElement?.parentElement
     expect(card).toHaveClass('absolute', 'left-2', 'top-2')
   })
@@ -149,7 +153,7 @@ describe('RadarSelectCard', () => {
   it('should have fixed width of 400px (w-[400px])', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    const card = screen.getByText('Radar OCR').closest('div')
+    const card = screen.getByText('Informações do Equipamento').closest('div')
       ?.parentElement?.parentElement
     expect(card).toHaveClass('w-[400px]')
   })
@@ -157,7 +161,7 @@ describe('RadarSelectCard', () => {
   it('should have tracking-tighter for letter spacing', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    const card = screen.getByText('Radar OCR').closest('div')
+    const card = screen.getByText('Informações do Equipamento').closest('div')
       ?.parentElement?.parentElement
     expect(card).toHaveClass('tracking-tighter')
   })
@@ -175,7 +179,7 @@ describe('RadarSelectCard', () => {
     )
 
     expect(screen.getByText('Localização')).toBeInTheDocument()
-    expect(screen.getByText('null - null')).toBeInTheDocument()
+    expect(screen.getByText('null - null, SENTIDO norte')).toBeInTheDocument()
     expect(screen.getByText('Empresa')).toBeInTheDocument()
   })
 })

@@ -3,20 +3,20 @@ import { useQuery } from '@tanstack/react-query'
 import { getCarsByRadar } from '@/http/cars/radar/get-cars-by-radar'
 
 import { useCarRadarSearchParams } from '../useParams/useCarRadarSearchParams'
-import { useRadars } from './useRadars'
+import { useCollectionPoints } from './useCollectionPoints'
 
 export type DetectionDTO = {
   plate: string
   timestamp: string
   speed: number
-  cetRioCode: string
+  equipmentCode: string
   location: string
   lane: string
 }
 
 export function useRadarsSearch() {
   const { formattedSearchParams, queryKey } = useCarRadarSearchParams()
-  const { data: radars } = useRadars()
+  const { data: radars } = useCollectionPoints()
 
   if (!formattedSearchParams) throw new Error('Missing search params')
 
@@ -47,7 +47,7 @@ export function useRadarsSearch() {
           const joinedData = detections.map((detection) => {
             return {
               ...detection, // plate, timestamp, speed
-              cetRioCode: radar.cetRioCode,
+              equipmentCode: radar.cetRioCode,
               lane: radar.lane || '',
               location: radar.location?.replace(/- FX \d+/, '') || 'N/A',
             } as DetectionDTO
