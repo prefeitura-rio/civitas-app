@@ -117,8 +117,9 @@ export function TripCard({
 
                 <p>
                   No entanto, é importante destacar que os registros de pontos
-                  de detecção estão sujeitos a falhas de leitura dos radares, o
-                  que também poderia explicar o caso mencionado acima.
+                  de detecção estão sujeitos a falhas de leitura dos
+                  equipamentos de leitura de placa (LPR), o que também poderia
+                  explicar o caso mencionado acima.
                 </p>
               </CardContent>
             </Card>

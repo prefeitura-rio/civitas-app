@@ -707,7 +707,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       <h3
         class="text-left text-sm font-semibold tracking-tighter"
       >
-        Radar OCR
+        Informações do Equipamento
       </h3>
     </div>
     <div
@@ -722,7 +722,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm font-medium"
           >
-            Código CET-Rio
+            Código do Equipamento
           </span>
           <span
             class="break-all text-sm text-muted-foreground"
@@ -766,7 +766,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm text-muted-foreground"
           >
-            Avenida Atlântica - Copacabana
+            Avenida Atlântica, SENTIDO Centro - Copacabana, SENTIDO Centro
           </span>
         </div>
         <div
@@ -951,7 +951,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 r="3"
               />
             </svg>
-            Focar no Radar
+            Focar no Equipamento
           </button>
           <button
             class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
@@ -1020,7 +1020,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       <h3
         class="text-left text-sm font-semibold tracking-tighter"
       >
-        Radar OCR
+        Informações do Equipamento
       </h3>
     </div>
     <div
@@ -1035,7 +1035,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm font-medium"
           >
-            Código CET-Rio
+            Código do Equipamento
           </span>
           <span
             class="break-all text-sm text-muted-foreground"
@@ -1079,7 +1079,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm text-muted-foreground"
           >
-            Avenida Atlântica - Copacabana
+            Avenida Atlântica, SENTIDO Centro - Copacabana, SENTIDO Centro
           </span>
         </div>
         <div
@@ -1274,7 +1274,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 Atenção!
               </span>
                
-              Radares são considerados inativos se não enviarem dados há mais de 24 horas. No entanto, essa informação não é atualizada em tempo real e pode seguir desatualizada por várias horas.
+              Equipamentos LPR são considerados inativos se não enviarem dados há mais de 24 horas. No entanto, essa informação não é atualizada em tempo real e pode seguir desatualizada por várias horas.
             </p>
           </div>
         </div>
@@ -1305,7 +1305,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 r="3"
               />
             </svg>
-            Focar no Radar
+            Focar no Equipamento
           </button>
           <button
             class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
@@ -1374,7 +1374,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       <h3
         class="text-left text-sm font-semibold tracking-tighter"
       >
-        Radar OCR
+        Informações do Equipamento
       </h3>
     </div>
     <div
@@ -1389,7 +1389,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           <span
             class="text-sm font-medium"
           >
-            Código CET-Rio
+            Código do Equipamento
           </span>
           <span
             class="break-all text-sm text-muted-foreground"
@@ -1530,47 +1530,6 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           />
         </div>
         <div
-          class="border-l-4 border-yellow-600 bg-secondary p-1.5"
-        >
-          <div
-            class="flex items-start"
-          >
-            <svg
-              class="lucide lucide-triangle-alert mr-1.5 mt-0.5 h-4 w-4 text-yellow-400"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
-              />
-              <path
-                d="M12 9v4"
-              />
-              <path
-                d="M12 17h.01"
-              />
-            </svg>
-            <p
-              class="text-xs text-gray-300"
-            >
-              <span
-                class="font-bold text-yellow-400"
-              >
-                Atenção!
-              </span>
-               
-              Radares são considerados inativos se não enviarem dados há mais de 24 horas. No entanto, essa informação não é atualizada em tempo real e pode seguir desatualizada por várias horas.
-            </p>
-          </div>
-        </div>
-        <div
           class="flex gap-2 pt-2"
         >
           <button
@@ -1597,7 +1556,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
                 r="3"
               />
             </svg>
-            Focar no Radar
+            Focar no Equipamento
           </button>
           <button
             class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
