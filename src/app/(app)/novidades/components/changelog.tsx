@@ -19,6 +19,74 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '28 de Abril de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Integração de LPR da Sentry',
+        content: (
+          <>
+            <p>
+              Foi realizada a integração das leituras de placa (LPR) da{' '}
+              <strong>SENTRY</strong> nos relatórios de ponto de detecção e de
+              busca por radar.
+            </p>
+            <ul>
+              <li>
+                A camada do mapa foi renomeada de <code>radar</code> para{' '}
+                <code>LPR</code>.
+              </li>
+              <li>
+                Foram incluídos ícones de câmeras <code>LPR</code> da{' '}
+                <code>SENTRY</code> na camada <code>LPR</code>, com cores
+                diferentes para distinguir equipamentos da <code>SENTRY</code> e
+                da <code>CET-RIO</code>.
+              </li>
+              <li>
+                Na camada <code>LPR</code>, agora é plotado um grupo de
+                equipamentos que olham para a mesma <code>pista</code>,{' '}
+                <code>sentido</code> e <code>direção</code>, chamado de{' '}
+                <code>ponto de coleta</code>.
+              </li>
+              <li>
+                O identificador da câmera <code>LPR</code> foi alterado de{' '}
+                <code>CODCET</code> para <code>Código do Equipamento</code>.
+              </li>
+            </ul>
+
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-radars-sentry-lpr-distinct-colors.png"
+              alt="Exemplo de cartão de câmera CIVITAS (DC3) com campo de sistema"
+              width={400}
+              height={300}
+              className="mb-4"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Camada de câmeras CIVITAS (DC3) com cores diferentes',
+        content: (
+          <>
+            <p>
+              A camada de câmeras foi alterada para usar cores diferentes para
+              distinguir equipamentos da <code>CIVITAS (DC3)</code> e da{' '}
+              <code>TIXXI</code>.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-cameras-distinct-colors.png"
+              alt="Exemplo de camada de câmeras com cores diferentes"
+              width={400}
+              height={300}
+              className="mb-4"
+            />
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '11 de Fevereiro de 2026',
     subCards: [
       {
