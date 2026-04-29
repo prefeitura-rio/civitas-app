@@ -2,14 +2,14 @@ import axios from 'axios'
 import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
-import { config } from '@/config'
+import { config as appConfig } from '@/config'
 
 import { queryClient } from './react-query'
 
 export const isApiError = axios.isAxiosError
 
 export const api = axios.create({
-  baseURL: config.apiUrl,
+  baseURL: appConfig.apiUrl,
 })
 
 api.interceptors.request.use(async (config) => {
@@ -27,6 +27,7 @@ api.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`
     // config.headers['Content-Type'] = 'application/json'
   }
+
   return config
 })
 

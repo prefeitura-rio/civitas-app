@@ -1,4 +1,5 @@
 import { api } from '@/lib/api'
+import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
 
 export type TicketDashboardFilters = {
   period_days?: number
@@ -24,13 +25,20 @@ export type TicketDashboardFilters = {
   prioridade?: string[]
   equipe?: string[]
   servicos_realizados?: string[]
+  /** Personificação (homolog): UUID do usuário alvo; enviado só no POST do dashboard. */
+  impersonate_user_id?: string | null
 }
 
 export async function getTicketsDashboard(filters: TicketDashboardFilters) {
+  const impersonateId =
+    typeof window !== 'undefined' ? getChamadosImpersonateUserId() : null
+
   const response = await api.post('/tickets/dashboard', {
     period_days: filters.period_days ?? 30,
     overdue_after_days: filters.overdue_after_days ?? 7,
     search: filters.search?.trim() || undefined,
+
+    ...(impersonateId ? { impersonate_user_id: impersonateId } : {}),
 
     tipo_chamado_id: filters.tipo_chamado_id,
     numero_interno: filters.numero_interno,
