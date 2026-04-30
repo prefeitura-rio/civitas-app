@@ -15,11 +15,15 @@ const getConfig = () => {
   }
 
   const enableChamados = isTruthy(process.env.NEXT_PUBLIC_ENABLE_CHAMADOS)
+  const enableImpersonation = isTruthy(
+    process.env.NEXT_PUBLIC_ENABLE_IMPERSONATION,
+  )
 
   return {
     apiUrl: trimmedApiUrl,
     mapboxAccessToken,
     enableChamados,
+    enableImpersonation,
   }
 }
 

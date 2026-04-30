@@ -12,7 +12,7 @@ export interface UserRoleListItem {
   username: string
   full_name: string | null
   email: string | null
-  roles: UserRoleEnum[]
+  role: UserRoleEnum | null
 }
 
 export interface UserRole extends UserRoleListItem {

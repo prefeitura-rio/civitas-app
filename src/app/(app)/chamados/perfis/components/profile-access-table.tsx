@@ -146,9 +146,16 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
                       </span>
                     </div>
                     <div className={styles.perfisTableCellPerfil}>
-                      {user.roles.map((role) => (
-                        <RoleBadge key={`${user.id}-${role}`} role={role} />
-                      ))}
+                      {user.role ? (
+                        <RoleBadge
+                          key={`${user.id}-${user.role}`}
+                          role={user.role}
+                        />
+                      ) : (
+                        <span className={styles.perfisTableCellText}>
+                          Sem perfil
+                        </span>
+                      )}
                     </div>
                   </div>
 

@@ -1,7 +1,12 @@
 'use client'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, UserRoundCog } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  UserRoundCog,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -16,16 +21,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { getTeamMembersByRole } from '@/http/teams/get-team-members-by-role'
+import { getTeamsByRole } from '@/http/teams/get-teams-by-role'
 import { fetchTicketAttachmentBlob } from '@/http/tickets/download-ticket-attachment'
 import { finalizeTicket } from '@/http/tickets/finalize-ticket'
+import { getTicketAllowedActions } from '@/http/tickets/get-ticket-allowed-actions'
 import { getTicketCabecalho } from '@/http/tickets/get-ticket-cabecalho'
 import { getTicketRelatorioCompleto } from '@/http/tickets/get-ticket-relatorio-completo'
+import {
+  reassignTicket,
+  type TicketReassignPriority,
+} from '@/http/tickets/reassign-ticket'
 import { getTicketAttachments } from '@/http/tickets/ticket-attachments'
 import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'
@@ -75,6 +100,12 @@ function displayText(value?: string | null) {
   return t.length ? t : '—'
 }
 
+function formatReassignPriorityLabel(priority: TicketReassignPriority) {
+  if (priority === 'URGENTE') return 'Urgente'
+  if (priority === 'ALTA') return 'Alto'
+  return 'Rotina'
+}
+
 type Props = {
   ticketId: string
 }
@@ -89,6 +120,14 @@ export function TicketDetailView({ ticketId }: Props) {
     null,
   )
   const [finalizeOpen, setFinalizeOpen] = useState(false)
+  const [reassignOpen, setReassignOpen] = useState(false)
+  const [selectedTeamId, setSelectedTeamId] = useState('')
+  const [selectedResponsibleIds, setSelectedResponsibleIds] = useState<
+    string[]
+  >([])
+  const [selectedPriority, setSelectedPriority] =
+    useState<TicketReassignPriority | null>(null)
+  const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false)
 
   const query = useQuery({
     queryKey: ['ticket', ticketId, 'cabecalho'],
@@ -96,6 +135,32 @@ export function TicketDetailView({ ticketId }: Props) {
   })
 
   const cab = query.data
+  const allowedActionsQuery = useQuery({
+    queryKey: ['ticket', ticketId, 'allowed-actions'],
+    queryFn: () => getTicketAllowedActions(ticketId),
+    retry: false,
+  })
+
+  const allowedActionIds = allowedActionsQuery.data?.allowed_action_ids ?? []
+  const canFinalizeTicket = allowedActionIds.includes('FINALIZAR_CHAMADO')
+  const canReassignTicket = allowedActionIds.includes('REATRIBUIR_CHAMADO')
+
+  const teamsByRoleQuery = useQuery({
+    queryKey: ['teams', 'by-role'],
+    queryFn: getTeamsByRole,
+    enabled: reassignOpen,
+    retry: false,
+  })
+
+  const teamMembersByRoleQuery = useQuery({
+    queryKey: ['teams', 'members', 'by-role', selectedTeamId || '__none__'],
+    queryFn: () =>
+      getTeamMembersByRole(
+        selectedTeamId ? { team_id: selectedTeamId } : undefined,
+      ),
+    enabled: reassignOpen && selectedTeamId.length > 0,
+    retry: false,
+  })
 
   const finalizeMutation = useMutation({
     mutationFn: () => finalizeTicket(ticketId),
@@ -103,7 +168,37 @@ export function TicketDetailView({ ticketId }: Props) {
       queryClient
         .invalidateQueries({ queryKey: ['ticket', ticketId] })
         .catch(() => {})
+      queryClient
+        .invalidateQueries({
+          queryKey: ['ticket', ticketId, 'allowed-actions'],
+        })
+        .catch(() => {})
       toast.success('Chamado finalizado e enviado para revisão.')
+    },
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error))
+    },
+  })
+
+  const reassignMutation = useMutation({
+    mutationFn: () =>
+      reassignTicket(ticketId, {
+        equipe_id: selectedTeamId,
+        responsavel_ids: selectedResponsibleIds,
+        prioridade: selectedPriority,
+      }),
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['ticket', ticketId] })
+        .catch(() => {})
+      queryClient
+        .invalidateQueries({
+          queryKey: ['ticket', ticketId, 'allowed-actions'],
+        })
+        .catch(() => {})
+      queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
+      toast.success('Chamado reatribuído com sucesso.')
+      setReassignOpen(false)
     },
     onError: (error: unknown) => {
       toast.error(getApiErrorMessage(error))
@@ -185,6 +280,40 @@ export function TicketDetailView({ ticketId }: Props) {
       if (created) URL.revokeObjectURL(created)
     }
   }, [relatorioOpen, relatorioQuery.data])
+
+  useEffect(() => {
+    if (!reassignOpen) return
+    setSelectedTeamId('')
+    setSelectedResponsibleIds([])
+    setSelectedPriority(null)
+    setResponsiblePopoverOpen(false)
+  }, [reassignOpen])
+
+  useEffect(() => {
+    if (!reassignOpen || selectedTeamId || teamsByRoleQuery.isLoading) return
+    const teams = teamsByRoleQuery.data ?? []
+    if (teams.length === 1 && teams[0]) {
+      setSelectedTeamId(teams[0].id)
+    }
+  }, [
+    reassignOpen,
+    selectedTeamId,
+    teamsByRoleQuery.data,
+    teamsByRoleQuery.isLoading,
+  ])
+
+  useEffect(() => {
+    setSelectedResponsibleIds([])
+  }, [selectedTeamId])
+
+  const selectedResponsibleNames = (teamMembersByRoleQuery.data ?? [])
+    .filter((member) => selectedResponsibleIds.includes(member.user_id))
+    .map((member) => member.user_name)
+
+  const canSubmitReassignment =
+    selectedTeamId.length > 0 &&
+    selectedResponsibleIds.length > 0 &&
+    !reassignMutation.isPending
 
   if (query.isLoading) {
     return (
@@ -301,22 +430,28 @@ export function TicketDetailView({ ticketId }: Props) {
           >
             Gerar Relatório
           </button>
-          <button
-            type="button"
-            className={`${styles.actionSlot} ${styles.actionSecondary}`}
-            onClick={() => setFinalizeOpen(true)}
-            disabled={finalizeMutation.isPending}
-          >
-            {finalizeMutation.isPending ? 'Finalizando…' : 'Finalizar Chamado'}
-          </button>
-          <button
-            type="button"
-            className={`${styles.actionSlot} ${styles.actionPrimary}`}
-            disabled
-          >
-            <UserRoundCog size={20} aria-hidden />
-            Reatribuir Chamado
-          </button>
+          {canFinalizeTicket ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionSecondary}`}
+              onClick={() => setFinalizeOpen(true)}
+              disabled={finalizeMutation.isPending}
+            >
+              {finalizeMutation.isPending
+                ? 'Finalizando…'
+                : 'Finalizar Chamado'}
+            </button>
+          ) : null}
+          {canReassignTicket ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionPrimary}`}
+              onClick={() => setReassignOpen(true)}
+            >
+              <UserRoundCog size={20} aria-hidden />
+              Reatribuir Chamado
+            </button>
+          ) : null}
         </div>
 
         <div className={styles.tabsShell}>
@@ -539,6 +674,196 @@ export function TicketDetailView({ ticketId }: Props) {
                   Não foi possível exibir o arquivo neste navegador.
                 </p>
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={reassignOpen} onOpenChange={setReassignOpen}>
+          <DialogContent
+            className={styles.reassignDialogContent}
+            aria-describedby={undefined}
+          >
+            <div className={styles.reassignDialogInner}>
+              <DialogHeader className={styles.reassignDialogHeader}>
+                <DialogTitle className={styles.reassignDialogTitle}>
+                  Reatribuir chamado
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className={styles.reassignFields}>
+                <div className={styles.reassignField}>
+                  <span className={styles.reassignLabel}>Equipe</span>
+                  <Select
+                    value={selectedTeamId || undefined}
+                    onValueChange={setSelectedTeamId}
+                    disabled={
+                      teamsByRoleQuery.isLoading || reassignMutation.isPending
+                    }
+                  >
+                    <SelectTrigger
+                      className={`h-11 ${styles.detailSelectTrigger}`}
+                    >
+                      <SelectValue
+                        placeholder={
+                          teamsByRoleQuery.isLoading
+                            ? 'Carregando…'
+                            : 'Selecione'
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent className={styles.detailSelectContent}>
+                      {(teamsByRoleQuery.data ?? []).map((team) => (
+                        <SelectItem
+                          key={team.id}
+                          value={team.id}
+                          className={styles.detailSelectItem}
+                        >
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {teamsByRoleQuery.isError ? (
+                    <p className={styles.reassignFieldMessageError}>
+                      {getApiErrorMessage(teamsByRoleQuery.error)}
+                    </p>
+                  ) : !teamsByRoleQuery.isLoading &&
+                    (teamsByRoleQuery.data ?? []).length === 0 ? (
+                    <p className={styles.reassignFieldMessage}>
+                      Nenhuma equipe disponível para seu perfil.
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className={styles.reassignField}>
+                  <span className={styles.reassignLabel}>Responsável</span>
+                  <Popover
+                    open={responsiblePopoverOpen}
+                    onOpenChange={setResponsiblePopoverOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={styles.reassignMultiTrigger}
+                        disabled={
+                          !selectedTeamId ||
+                          teamMembersByRoleQuery.isLoading ||
+                          reassignMutation.isPending
+                        }
+                      >
+                        <span
+                          className={
+                            selectedResponsibleNames.length > 0
+                              ? styles.reassignMultiValue
+                              : styles.reassignMultiPlaceholder
+                          }
+                        >
+                          {selectedResponsibleNames.length > 0
+                            ? selectedResponsibleNames.join(', ')
+                            : teamMembersByRoleQuery.isLoading
+                              ? 'Carregando…'
+                              : 'Selecione'}
+                        </span>
+                        <ChevronDown size={20} aria-hidden />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="start"
+                      className={styles.reassignPopoverContent}
+                    >
+                      {teamMembersByRoleQuery.isLoading ? (
+                        <p className={styles.reassignPopoverMessage}>
+                          Carregando responsáveis…
+                        </p>
+                      ) : teamMembersByRoleQuery.isError ? (
+                        <p
+                          className={`${styles.reassignPopoverMessage} ${styles.reassignPopoverError}`}
+                        >
+                          {getApiErrorMessage(teamMembersByRoleQuery.error)}
+                        </p>
+                      ) : (teamMembersByRoleQuery.data ?? []).length === 0 ? (
+                        <p className={styles.reassignPopoverMessage}>
+                          Nenhum responsável disponível.
+                        </p>
+                      ) : (
+                        <div className={styles.reassignOptions}>
+                          {(teamMembersByRoleQuery.data ?? []).map((member) => {
+                            const checked = selectedResponsibleIds.includes(
+                              member.user_id,
+                            )
+                            return (
+                              <label
+                                key={member.user_id}
+                                className={styles.reassignOption}
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(value) => {
+                                    setSelectedResponsibleIds((prev) => {
+                                      const enabled = value === true
+                                      if (enabled) {
+                                        return prev.includes(member.user_id)
+                                          ? prev
+                                          : [...prev, member.user_id]
+                                      }
+                                      return prev.filter(
+                                        (id) => id !== member.user_id,
+                                      )
+                                    })
+                                  }}
+                                  disabled={reassignMutation.isPending}
+                                />
+                                <span>{member.user_name}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className={styles.reassignPriorityWrap}>
+                  <span className={styles.reassignLabel}>
+                    Definir prioridade
+                  </span>
+                  <div className={styles.reassignPriorityRow}>
+                    {(['URGENTE', 'ALTA', 'ROTINA'] as const).map(
+                      (priority) => {
+                        const active = selectedPriority === priority
+                        return (
+                          <button
+                            key={priority}
+                            type="button"
+                            className={`${styles.reassignPriorityBtn} ${active ? styles.reassignPriorityBtnActive : ''}`}
+                            onClick={() =>
+                              setSelectedPriority((prev) =>
+                                prev === priority ? null : priority,
+                              )
+                            }
+                            disabled={reassignMutation.isPending}
+                          >
+                            {formatReassignPriorityLabel(priority)}
+                          </button>
+                        )
+                      },
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.reassignSubmitRow}>
+                <button
+                  type="button"
+                  className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+                  onClick={() => reassignMutation.mutate()}
+                  disabled={!canSubmitReassignment}
+                >
+                  {reassignMutation.isPending
+                    ? 'Reatribuindo…'
+                    : 'Reatribuir Chamado'}
+                </button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
