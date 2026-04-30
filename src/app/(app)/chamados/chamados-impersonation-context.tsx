@@ -56,6 +56,9 @@ export function ChamadosImpersonationProvider({
       setSubjectUserId(id)
       setSubjectLabel(label)
       invalidateChamadosQueries()
+      if (typeof window !== 'undefined') {
+        window.location.reload()
+      }
     },
     [invalidateChamadosQueries],
   )
@@ -65,6 +68,9 @@ export function ChamadosImpersonationProvider({
     setSubjectUserId(null)
     setSubjectLabel(null)
     invalidateChamadosQueries()
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+    }
   }, [invalidateChamadosQueries])
 
   const value = useMemo(
