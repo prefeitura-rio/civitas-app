@@ -53,7 +53,8 @@ type DashboardSection = {
 type TicketDashboardResponse = {
   pendentes: DashboardSection
   restritos: DashboardSection
-  aguardando_revisao: DashboardSection
+  aguardando_revisao_adjunto: DashboardSection
+  aguardando_revisao_administrativo: DashboardSection
   bloqueados: DashboardSection
   concluidos_total: number
   urgentes: DashboardSection
@@ -71,7 +72,8 @@ type PeriodOption = {
 type SectionKey =
   | 'pendentes'
   | 'restritos'
-  | 'aguardando_revisao'
+  | 'aguardando_revisao_adjunto'
+  | 'aguardando_revisao_administrativo'
   | 'bloqueados'
 
 type SectionConfig = {
@@ -90,7 +92,11 @@ const periodOptions: PeriodOption[] = [
 const sections: SectionConfig[] = [
   { key: 'pendentes', label: 'PENDENTE' },
   { key: 'restritos', label: 'RESTRITO' },
-  { key: 'aguardando_revisao', label: 'AGUARDANDO REVISÃO' },
+  { key: 'aguardando_revisao_adjunto', label: 'AGUARDANDO REVISÃO ADJUNTO' },
+  {
+    key: 'aguardando_revisao_administrativo',
+    label: 'AGUARDANDO REVISÃO ADMINISTRATIVO',
+  },
   { key: 'bloqueados', label: 'BLOQUEADO' },
 ]
 
@@ -300,7 +306,8 @@ export function TicketsGeneralList() {
     {
       pendentes: true,
       restritos: true,
-      aguardando_revisao: true,
+      aguardando_revisao_adjunto: true,
+      aguardando_revisao_administrativo: true,
       bloqueados: true,
     },
   )
