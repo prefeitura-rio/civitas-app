@@ -8,6 +8,7 @@ import {
   UserRoundCog,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -40,10 +41,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getTeamMembersByRole } from '@/http/teams/get-team-members-by-role'
-import { getTeamsByRole } from '@/http/teams/get-teams-by-role'
+import {
+  getTeamMembersByRole,
+  type TeamMemberUserOut,
+} from '@/http/teams/get-team-members-by-role'
+import {
+  getTeamsByRole,
+  type TeamIdNameOut,
+} from '@/http/teams/get-teams-by-role'
+import {
+  applyTicketWorkflowAction,
+  type ApplyTicketWorkflowActionOut,
+} from '@/http/tickets/apply-ticket-workflow-action'
 import { fetchTicketAttachmentBlob } from '@/http/tickets/download-ticket-attachment'
-import { finalizeTicket } from '@/http/tickets/finalize-ticket'
 import { getTicketAllowedActions } from '@/http/tickets/get-ticket-allowed-actions'
 import { getTicketCabecalho } from '@/http/tickets/get-ticket-cabecalho'
 import { getTicketRelatorioCompleto } from '@/http/tickets/get-ticket-relatorio-completo'
@@ -100,6 +110,12 @@ function displayText(value?: string | null) {
   return t.length ? t : '—'
 }
 
+function formatStatusText(value?: string | null) {
+  const status = displayText(value)
+  if (status === '—') return status
+  return status.replaceAll('_', ' ')
+}
+
 function formatReassignPriorityLabel(priority: TicketReassignPriority) {
   if (priority === 'URGENTE') return 'Urgente'
   if (priority === 'ALTA') return 'Alto'
@@ -111,6 +127,7 @@ type Props = {
 }
 
 export function TicketDetailView({ ticketId }: Props) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<TicketDetailTabId>('solicitante')
   const [oficioOpen, setOficioOpen] = useState(false)
   const [oficioAttachmentIndex, setOficioAttachmentIndex] = useState(0)
@@ -144,6 +161,13 @@ export function TicketDetailView({ ticketId }: Props) {
   const allowedActionIds = allowedActionsQuery.data?.allowed_action_ids ?? []
   const canFinalizeTicket = allowedActionIds.includes('FINALIZAR_CHAMADO')
   const canReassignTicket = allowedActionIds.includes('REATRIBUIR_CHAMADO')
+  const canSendEmail = allowedActionIds.includes('ENVIAR_EMAIL')
+  const canSendToReview = allowedActionIds.includes('ENVIAR_PARA_REVISAO')
+  const canBlockTicket = allowedActionIds.includes('BLOQUEAR')
+  const canFinalizeWithoutForwarding = allowedActionIds.includes(
+    'FINALIZAR_SEM_ENCAMINHAR',
+  )
+  const canReopenDemand = allowedActionIds.includes('REABRIR_DEMANDA')
 
   const teamsByRoleQuery = useQuery({
     queryKey: ['teams', 'by-role'],
@@ -163,8 +187,8 @@ export function TicketDetailView({ ticketId }: Props) {
   })
 
   const finalizeMutation = useMutation({
-    mutationFn: () => finalizeTicket(ticketId),
-    onSuccess: () => {
+    mutationFn: () => applyTicketWorkflowAction(ticketId, 'FINALIZAR_CHAMADO'),
+    onSuccess: (response: ApplyTicketWorkflowActionOut) => {
       queryClient
         .invalidateQueries({ queryKey: ['ticket', ticketId] })
         .catch(() => {})
@@ -173,7 +197,11 @@ export function TicketDetailView({ ticketId }: Props) {
           queryKey: ['ticket', ticketId, 'allowed-actions'],
         })
         .catch(() => {})
+      queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
       toast.success('Chamado finalizado e enviado para revisão.')
+      if (!response.is_actor_responsible) {
+        router.push('/chamados')
+      }
     },
     onError: (error: unknown) => {
       toast.error(getApiErrorMessage(error))
@@ -199,6 +227,45 @@ export function TicketDetailView({ ticketId }: Props) {
       queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
       toast.success('Chamado reatribuído com sucesso.')
       setReassignOpen(false)
+    },
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error))
+    },
+  })
+
+  const workflowActionMutation = useMutation({
+    mutationFn: ({ actionId }: { actionId: string }) =>
+      applyTicketWorkflowAction(ticketId, actionId),
+    onSuccess: (
+      response: ApplyTicketWorkflowActionOut,
+      variables: { actionId: string },
+    ) => {
+      queryClient
+        .invalidateQueries({ queryKey: ['ticket', ticketId] })
+        .catch(() => {})
+      queryClient
+        .invalidateQueries({
+          queryKey: ['ticket', ticketId, 'allowed-actions'],
+        })
+        .catch(() => {})
+      queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
+
+      if (variables.actionId === 'ENVIAR_EMAIL') {
+        toast.success('E-mail enviado com sucesso.')
+      } else if (variables.actionId === 'ENVIAR_PARA_REVISAO') {
+        toast.success('Chamado enviado para revisão com sucesso.')
+      } else if (variables.actionId === 'BLOQUEAR') {
+        toast.success('Chamado bloqueado com sucesso.')
+      } else if (variables.actionId === 'FINALIZAR_SEM_ENCAMINHAR') {
+        toast.success('Chamado finalizado sem encaminhamento.')
+      } else if (variables.actionId === 'REABRIR_DEMANDA') {
+        toast.success('Demanda reaberta com sucesso.')
+      } else {
+        toast.success('Ação aplicada com sucesso.')
+      }
+      if (!response.is_actor_responsible) {
+        router.push('/chamados')
+      }
     },
     onError: (error: unknown) => {
       toast.error(getApiErrorMessage(error))
@@ -307,8 +374,10 @@ export function TicketDetailView({ ticketId }: Props) {
   }, [selectedTeamId])
 
   const selectedResponsibleNames = (teamMembersByRoleQuery.data ?? [])
-    .filter((member) => selectedResponsibleIds.includes(member.user_id))
-    .map((member) => member.user_name)
+    .filter((member: TeamMemberUserOut) =>
+      selectedResponsibleIds.includes(member.user_id),
+    )
+    .map((member: TeamMemberUserOut) => member.user_name)
 
   const canSubmitReassignment =
     selectedTeamId.length > 0 &&
@@ -362,7 +431,7 @@ export function TicketDetailView({ ticketId }: Props) {
               </p>
             </div>
             <span className={styles.statusBadge}>
-              {displayText(cab.status).toLocaleUpperCase('pt-BR')}
+              {formatStatusText(cab.status).toLocaleUpperCase('pt-BR')}
             </span>
           </div>
 
@@ -440,6 +509,82 @@ export function TicketDetailView({ ticketId }: Props) {
               {finalizeMutation.isPending
                 ? 'Finalizando…'
                 : 'Finalizar Chamado'}
+            </button>
+          ) : null}
+          {canFinalizeWithoutForwarding ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionSecondary}`}
+              onClick={() =>
+                workflowActionMutation.mutate({
+                  actionId: 'FINALIZAR_SEM_ENCAMINHAR',
+                })
+              }
+              disabled={workflowActionMutation.isPending}
+            >
+              {workflowActionMutation.isPending
+                ? 'Aplicando ação…'
+                : 'Finalizar sem Encaminhar'}
+            </button>
+          ) : null}
+          {canSendEmail ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionSecondary}`}
+              onClick={() =>
+                workflowActionMutation.mutate({ actionId: 'ENVIAR_EMAIL' })
+              }
+              disabled={workflowActionMutation.isPending}
+            >
+              {workflowActionMutation.isPending
+                ? 'Aplicando ação…'
+                : 'Enviar E-mail'}
+            </button>
+          ) : null}
+          {canSendToReview ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionSecondary}`}
+              onClick={() =>
+                workflowActionMutation.mutate({
+                  actionId: 'ENVIAR_PARA_REVISAO',
+                })
+              }
+              disabled={workflowActionMutation.isPending}
+            >
+              {workflowActionMutation.isPending
+                ? 'Aplicando ação…'
+                : 'Enviar para Revisão'}
+            </button>
+          ) : null}
+          {canBlockTicket ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionSecondary}`}
+              onClick={() =>
+                workflowActionMutation.mutate({
+                  actionId: 'BLOQUEAR',
+                })
+              }
+              disabled={workflowActionMutation.isPending}
+            >
+              {workflowActionMutation.isPending
+                ? 'Aplicando ação…'
+                : 'Bloquear'}
+            </button>
+          ) : null}
+          {canReopenDemand ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionSecondary}`}
+              onClick={() =>
+                workflowActionMutation.mutate({ actionId: 'REABRIR_DEMANDA' })
+              }
+              disabled={workflowActionMutation.isPending}
+            >
+              {workflowActionMutation.isPending
+                ? 'Aplicando ação…'
+                : 'Reabrir Demanda'}
             </button>
           ) : null}
           {canReassignTicket ? (
@@ -712,15 +857,17 @@ export function TicketDetailView({ ticketId }: Props) {
                       />
                     </SelectTrigger>
                     <SelectContent className={styles.detailSelectContent}>
-                      {(teamsByRoleQuery.data ?? []).map((team) => (
-                        <SelectItem
-                          key={team.id}
-                          value={team.id}
-                          className={styles.detailSelectItem}
-                        >
-                          {team.name}
-                        </SelectItem>
-                      ))}
+                      {(teamsByRoleQuery.data ?? []).map(
+                        (team: TeamIdNameOut) => (
+                          <SelectItem
+                            key={team.id}
+                            value={team.id}
+                            className={styles.detailSelectItem}
+                          >
+                            {team.name}
+                          </SelectItem>
+                        ),
+                      )}
                     </SelectContent>
                   </Select>
                   {teamsByRoleQuery.isError ? (
@@ -787,36 +934,38 @@ export function TicketDetailView({ ticketId }: Props) {
                         </p>
                       ) : (
                         <div className={styles.reassignOptions}>
-                          {(teamMembersByRoleQuery.data ?? []).map((member) => {
-                            const checked = selectedResponsibleIds.includes(
-                              member.user_id,
-                            )
-                            return (
-                              <label
-                                key={member.user_id}
-                                className={styles.reassignOption}
-                              >
-                                <Checkbox
-                                  checked={checked}
-                                  onCheckedChange={(value) => {
-                                    setSelectedResponsibleIds((prev) => {
-                                      const enabled = value === true
-                                      if (enabled) {
-                                        return prev.includes(member.user_id)
-                                          ? prev
-                                          : [...prev, member.user_id]
-                                      }
-                                      return prev.filter(
-                                        (id) => id !== member.user_id,
-                                      )
-                                    })
-                                  }}
-                                  disabled={reassignMutation.isPending}
-                                />
-                                <span>{member.user_name}</span>
-                              </label>
-                            )
-                          })}
+                          {(teamMembersByRoleQuery.data ?? []).map(
+                            (member: TeamMemberUserOut) => {
+                              const checked = selectedResponsibleIds.includes(
+                                member.user_id,
+                              )
+                              return (
+                                <label
+                                  key={member.user_id}
+                                  className={styles.reassignOption}
+                                >
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(value) => {
+                                      setSelectedResponsibleIds((prev) => {
+                                        const enabled = value === true
+                                        if (enabled) {
+                                          return prev.includes(member.user_id)
+                                            ? prev
+                                            : [...prev, member.user_id]
+                                        }
+                                        return prev.filter(
+                                          (id) => id !== member.user_id,
+                                        )
+                                      })
+                                    }}
+                                    disabled={reassignMutation.isPending}
+                                  />
+                                  <span>{member.user_name}</span>
+                                </label>
+                              )
+                            },
+                          )}
                         </div>
                       )}
                     </PopoverContent>
