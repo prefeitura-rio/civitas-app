@@ -2,14 +2,15 @@ import axios from 'axios'
 import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
-import { config } from '@/config'
+import { config as appConfig } from '@/config'
+import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
 
 import { queryClient } from './react-query'
 
 export const isApiError = axios.isAxiosError
 
 export const api = axios.create({
-  baseURL: config.apiUrl,
+  baseURL: appConfig.apiUrl,
 })
 
 api.interceptors.request.use(async (config) => {
@@ -27,16 +28,42 @@ api.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`
     // config.headers['Content-Type'] = 'application/json'
   }
+
+  const shouldAttachImpersonation =
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/chamados') &&
+    config.url !== '/auth/login' &&
+    config.url !== '/auth/refresh'
+
+  if (shouldAttachImpersonation && appConfig.enableImpersonation) {
+    const impersonateUserId = getChamadosImpersonateUserId()
+    if (impersonateUserId?.trim()) {
+      config.params = {
+        ...(config.params ?? {}),
+        impersonate_user_id: impersonateUserId,
+      }
+    }
+  }
   return config
 })
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const status = error?.response?.status
+
+    if (typeof window !== 'undefined' && status === 401) {
       deleteCookie('token')
       queryClient.clear()
-      window.location.href = '/auth/sign-in'
+      if (window.location.pathname !== '/auth/sign-in') {
+        window.location.href = '/auth/sign-in'
+      }
+    }
+
+    if (typeof window !== 'undefined' && status === 403) {
+      if (window.location.pathname !== '/forbidden') {
+        window.location.href = '/forbidden'
+      }
     }
     return Promise.reject(error)
   },

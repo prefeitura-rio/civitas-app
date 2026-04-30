@@ -65,12 +65,12 @@ const chamadosItem: Category = {
     {
       icon: 'UserCog',
       title: 'Equipes',
-      path: '/equipes',
+      path: '/chamados/equipes',
     },
     {
       icon: 'Shield',
       title: 'Perfis',
-      path: '/perfis',
+      path: '/chamados/perfis',
     },
   ],
 }

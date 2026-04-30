@@ -4,11 +4,11 @@ import type { UserRole, UserRoleEnum } from './get-users-with-roles'
 
 interface UpdateUserRolesRequest {
   userId: string
-  roles: UserRoleEnum[]
+  role?: UserRoleEnum
 }
 
-export function updateUserRoles({ userId, roles }: UpdateUserRolesRequest) {
+export function updateUserRoles({ userId, role }: UpdateUserRolesRequest) {
   return api.put<UserRole>(`/users-roles/${userId}`, {
-    roles,
+    role,
   })
 }

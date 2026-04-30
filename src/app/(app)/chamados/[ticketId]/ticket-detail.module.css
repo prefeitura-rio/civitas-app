@@ -1239,6 +1239,201 @@
   outline-offset: 2px;
 }
 
+.reassignDialogContent {
+  --td-section-bg: #101d28;
+  --td-card-bg: #152534;
+  --td-border: #4a5d6d;
+  --td-muted: #97a2ab;
+  --td-text: #f9fafa;
+  --td-badge-bg: #1d3449;
+  --td-btn-tertiary: #1d3449;
+  --td-btn-primary: #065e47;
+  --td-radius: 8px;
+
+  max-width: min(620px, calc(100vw - 32px)) !important;
+  width: 100%;
+  border: 1px solid var(--td-border) !important;
+  border-radius: 16px;
+  background: var(--td-section-bg) !important;
+  color: var(--td-text);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: hidden;
+}
+
+.reassignDialogInner {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 24px;
+}
+
+.reassignDialogHeader {
+  text-align: left !important;
+  gap: 0;
+}
+
+.reassignDialogTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--td-text);
+}
+
+.reassignFields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.reassignField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.reassignLabel {
+  height: 20px;
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+  color: var(--td-text);
+}
+
+.reassignFieldMessage {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--td-muted);
+}
+
+.reassignFieldMessageError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: #fca5a5;
+}
+
+.reassignMultiTrigger {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--td-border);
+  background: var(--td-card-bg);
+  color: var(--td-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.reassignMultiTrigger:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.reassignMultiValue {
+  color: var(--td-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reassignMultiPlaceholder {
+  color: var(--td-muted);
+}
+
+.reassignPopoverContent {
+  width: min(560px, calc(100vw - 56px));
+  background: var(--td-section-bg, #101d28);
+  border: 1px solid var(--td-border, #4a5d6d);
+  color: var(--td-text, #f9fafa);
+  padding: 8px;
+}
+
+.reassignPopoverMessage {
+  margin: 0;
+  padding: 8px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--td-muted);
+}
+
+.reassignPopoverError {
+  color: #fca5a5;
+}
+
+.reassignOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: min(40vh, 260px);
+  overflow-y: auto;
+}
+
+.reassignOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--td-text);
+  font-size: 14px;
+}
+
+.reassignOption:hover {
+  background: var(--td-card-bg);
+}
+
+.reassignPriorityWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.reassignPriorityRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.reassignPriorityBtn {
+  flex: 1 1 120px;
+  min-height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--td-btn-tertiary, #1d3449);
+  color: var(--td-muted, #97a2ab);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.reassignPriorityBtnActive {
+  color: var(--td-text, #f9fafa);
+  outline: 1px solid rgba(116, 169, 189, 0.5);
+}
+
+.reassignSubmitRow {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
 .servicosIntro {
   width: 100%;
 }

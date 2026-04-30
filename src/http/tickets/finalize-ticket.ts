@@ -1,10 +1,9 @@
-import type { TicketOut } from '@/http/tickets/get-ticket-by-id'
 import { api } from '@/lib/api'
 
-/** POST `/tickets/{id}/finalizar` — resposta `TicketOut` (API). */
+/** POST `/tickets/{ticket_id}/workflow/actions/FINALIZAR_CHAMADO` — resposta `true` (API). */
 export async function finalizeTicket(ticketId: string) {
-  const { data } = await api.post<TicketOut>(
-    `/tickets/${encodeURIComponent(ticketId)}/finalizar`,
+  const { data } = await api.post<boolean>(
+    `/tickets/${encodeURIComponent(ticketId)}/workflow/actions/FINALIZAR_CHAMADO`,
   )
   return data
 }

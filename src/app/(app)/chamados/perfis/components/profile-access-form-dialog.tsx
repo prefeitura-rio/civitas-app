@@ -23,7 +23,7 @@ import type {
 } from '@/http/user-roles/get-users-with-roles'
 import { updateUserRoles } from '@/http/user-roles/update-user-roles'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import styles from '../perfis.module.css'
 
@@ -36,17 +36,15 @@ const roleOptions = [
 ] as const satisfies { value: UserRoleEnum; label: string }[]
 
 const profileAccessFormSchema = z.object({
-  roles: z
-    .array(
-      z.enum([
-        'Coordenador',
-        'Administrativo',
-        'Adjunto',
-        'Líder de Ilha',
-        'Operador',
-      ]),
-    )
-    .default([]),
+  role: z
+    .enum([
+      'Coordenador',
+      'Administrativo',
+      'Adjunto',
+      'Líder de Ilha',
+      'Operador',
+    ])
+    .optional(),
 })
 
 type ProfileAccessForm = z.infer<typeof profileAccessFormSchema>
@@ -75,25 +73,21 @@ export function ProfileAccessFormDialog({
   } = useForm<ProfileAccessForm>({
     resolver: zodResolver(profileAccessFormSchema),
     defaultValues: {
-      roles: [],
+      role: undefined,
     },
   })
 
-  const selectedRoles = watch('roles')
+  const selectedRole = watch('role')
 
   const { mutateAsync: updateUserRolesMutation, isPending } = useMutation({
     mutationFn: updateUserRoles,
-    onSuccess: ({ data }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['users-with-roles'],
       })
-
-      toast.success(
-        `Perfis de ${data.full_name || data.username} atualizados com sucesso.`,
-      )
     },
-    onError: () => {
-      toast.error(genericErrorMessage)
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error))
     },
   })
 
@@ -109,35 +103,24 @@ export function ProfileAccessFormDialog({
   }
 
   function handleToggleRole(role: UserRoleEnum, checked: boolean) {
-    const currentRoles = selectedRoles || []
-
-    if (checked) {
-      if (!currentRoles.includes(role)) {
-        setValue('roles', [...currentRoles, role], {
-          shouldDirty: true,
-          shouldValidate: true,
-        })
-      }
-      return
-    }
-
-    setValue(
-      'roles',
-      currentRoles.filter((item) => item !== role),
-      {
-        shouldDirty: true,
-        shouldValidate: true,
-      },
-    )
+    setValue('role', checked ? role : undefined, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
   }
 
   async function onSubmit(data: ProfileAccessForm) {
     if (!dialogInitialData?.id) return
 
+    const userDisplayName =
+      dialogInitialData.full_name || dialogInitialData.username
+
     await updateUserRolesMutation({
       userId: dialogInitialData.id,
-      roles: data.roles,
+      role: data.role,
     })
+
+    toast.success(`Perfil de ${userDisplayName} atualizado com sucesso.`)
 
     handleOnOpenChange(false)
   }
@@ -145,7 +128,7 @@ export function ProfileAccessFormDialog({
   useEffect(() => {
     if (dialogInitialData && isOpen) {
       reset({
-        roles: dialogInitialData.roles || [],
+        role: dialogInitialData.role || undefined,
       })
     }
   }, [dialogInitialData, isOpen, reset])
@@ -189,16 +172,16 @@ export function ProfileAccessFormDialog({
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <Label className={styles.perfisModalLabel}>
-                Perfis de acesso
+                Perfil de acesso
               </Label>
-              <InputError message={errors.roles?.message} />
+              <InputError message={errors.role?.message} />
             </div>
 
             <div
               className={`${styles.perfisModalSection} grid grid-cols-1 gap-3 sm:grid-cols-2`}
             >
               {roleOptions.map((role) => {
-                const checked = selectedRoles?.includes(role.value)
+                const checked = selectedRole === role.value
 
                 return (
                   <label

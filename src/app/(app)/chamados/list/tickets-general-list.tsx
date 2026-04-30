@@ -19,6 +19,7 @@ import {
   type TicketDashboardFilters,
 } from '@/http/tickets/get-tickets-dashboard'
 
+import { useChamadosImpersonation } from '../chamados-impersonation-context'
 import {
   emptyFilters,
   type FilterFormState,
@@ -286,6 +287,7 @@ function DashboardSectionTable({
 }
 
 export function TicketsGeneralList() {
+  const { subjectUserId } = useChamadosImpersonation()
   const [periodDays, setPeriodDays] = useState<number>(30)
   const [search, setSearch] = useState<string>('')
   const debouncedSearch = useDebounce(search, 350)
@@ -341,7 +343,7 @@ export function TicketsGeneralList() {
   }, [appliedFilters, periodDays, debouncedSearch])
 
   const { data, isLoading, isFetching } = useQuery<TicketDashboardResponse>({
-    queryKey: ['tickets-dashboard', dashboardPayload],
+    queryKey: ['tickets-dashboard', subjectUserId ?? null, dashboardPayload],
     queryFn: () => getTicketsDashboard(dashboardPayload),
     staleTime: 1000 * 60,
   })
