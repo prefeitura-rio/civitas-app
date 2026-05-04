@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getOperation } from '@/http/operations/get-operation'
-import { getOperations } from '@/http/operations/get-operations'
+import { getOperations, type Operation } from '@/http/operations/get-operations'
 import {
   getTicketTypes,
   type TicketType,
@@ -27,7 +27,6 @@ import {
   updateTicketFicha,
 } from '@/http/tickets/ticket-ficha'
 import { isApiError } from '@/lib/api'
-import type { Operation } from '@/models/entities'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import styles from '../ticket-detail.module.css'
@@ -172,7 +171,11 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
       !list.some((o) => o.id === selectedOrgaoId) &&
       orgaoDetailQuery.data?.data
     ) {
-      list.unshift(orgaoDetailQuery.data.data)
+      list.unshift({
+        id: orgaoDetailQuery.data.data.id,
+        title: orgaoDetailQuery.data.data.title,
+        description: orgaoDetailQuery.data.data.description,
+      })
     }
     return list
   }, [operationsQuery.data, orgaoDetailQuery.data, selectedOrgaoId])

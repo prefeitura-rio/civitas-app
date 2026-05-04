@@ -2,8 +2,9 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { isAuthenticated } from '@/auth/auth'
+import { DemandantsContextProvider } from '@/contexts/demandants-context'
 import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-context'
-import { OperationsContextProvider } from '@/contexts/operations-context'
+import { OrganizationsContextProvider } from '@/contexts/organizations-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 import {
   parseTicketModulePermissionsCookie,

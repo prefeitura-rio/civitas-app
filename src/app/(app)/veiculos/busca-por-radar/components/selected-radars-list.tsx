@@ -2,14 +2,18 @@ import { memo, useCallback, useMemo, useRef } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 
 import { RadarItem } from './radar-item'
 
 interface SelectedRadarsListProps {
-  selectedObjects: Radar[]
-  radars: Radar[] | undefined
-  setSelectedObjects: (radars: Radar[] | ((prev: Radar[]) => Radar[])) => void
+  selectedObjects: CollectionPoint[]
+  radars: CollectionPoint[] | undefined
+  setSelectedObjects: (
+    radars:
+      | CollectionPoint[]
+      | ((prev: CollectionPoint[]) => CollectionPoint[]),
+  ) => void
   setViewport: (props: {
     longitude: number
     latitude: number
@@ -45,7 +49,7 @@ export const SelectedRadarsList = memo(function SelectedRadarsList({
   }, [radars, selectedObjects, setSelectedObjects, setViewport])
 
   const handleFocusRadar = useCallback(
-    (radar: Radar) => {
+    (radar: CollectionPoint) => {
       setViewport({
         longitude: radar.longitude,
         latitude: radar.latitude,
@@ -56,7 +60,7 @@ export const SelectedRadarsList = memo(function SelectedRadarsList({
   )
 
   const handleRemoveRadar = useCallback(
-    (radar: Radar) => {
+    (radar: CollectionPoint) => {
       setSelectedObjects((prev) =>
         prev.filter((item) => item.cetRioCode !== radar.cetRioCode),
       )

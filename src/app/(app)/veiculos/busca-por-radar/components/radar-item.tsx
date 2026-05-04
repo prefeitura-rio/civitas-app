@@ -2,12 +2,12 @@ import { NavigationIcon, XCircleIcon } from 'lucide-react'
 import { memo } from 'react'
 
 import { Button } from '@/components/ui/button'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 
 interface RadarItemProps {
-  radar: Radar
-  onFocus: (radar: Radar) => void
-  onRemove: (radar: Radar) => void
+  radar: CollectionPoint
+  onFocus: (radar: CollectionPoint) => void
+  onRemove: (radar: CollectionPoint) => void
 }
 
 export const RadarItem = memo(function RadarItem({

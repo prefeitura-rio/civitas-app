@@ -66,7 +66,7 @@ const mockDetection: DetectionDTO = {
   plate: 'ABC1234',
   timestamp: '2024-01-15T10:00:00Z',
   location: 'Local Teste',
-  cetRioCode: 'RDR001',
+  equipmentCode: 'RDR001',
   speed: 60,
   lane: 'FX 01',
 }
