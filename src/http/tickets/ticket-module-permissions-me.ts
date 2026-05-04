@@ -3,11 +3,9 @@ import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 import { api } from '@/lib/api'
 import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
 
-/** GET `/me/module-screen-permissions` — permissões de telas do módulo Ticket para o usuário. */
 export const TICKET_MODULE_PERMISSIONS_PATH =
   'tickets/me/module-screen-permissions'
 
-/** Nome do cookie preenchido no login com o JSON de `TicketModulePermissionsMeOut`. */
 export const TICKET_MODULE_PERMISSIONS_COOKIE = 'ticket_module_permissions'
 
 export interface TicketModuleScreenActionPermissionOut {
@@ -54,10 +52,6 @@ export function parseTicketModulePermissionsCookie(
   }
 }
 
-/**
- * Com impersonação ativa, o cookie reflete só o login — força nova leitura na API
- * (com `impersonate_user_id` nas rotas `/chamados`).
- */
 export function getEffectiveTicketModulePermissionsFromCookie(
   parsedFromCookie: TicketModulePermissionsMeOut | null,
 ): TicketModulePermissionsMeOut | null {
@@ -71,7 +65,6 @@ export function getEffectiveTicketModulePermissionsFromCookie(
   return parsedFromCookie
 }
 
-/** Segmento estável para `queryKey` (muda ao trocar/limpar impersonação). */
 export function getTicketModulePermissionsImpersonationQuerySegment(): string {
   if (typeof window === 'undefined') return 'ssr'
   if (!config.enableImpersonation) return 'no-imp'

@@ -11,10 +11,6 @@ import {
   TICKET_MODULE_PERMISSIONS_COOKIE,
 } from '@/http/tickets/ticket-module-permissions-me'
 
-/**
- * Resolve permissões (cookie ou API) e redireciona para `/forbidden` se
- * `can_view` for falso para o `screenCode` informado.
- */
 export function useTicketScreenPermissionGate(screenCode: string) {
   const router = useRouter()
   const fromCookie = parseTicketModulePermissionsCookie(

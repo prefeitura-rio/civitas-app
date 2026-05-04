@@ -6,7 +6,6 @@ export interface Module {
   icon: keyof typeof icons
   title: string
   path: string
-  /** Código da tela na API (`screen_code`); ex.: `teams` para Equipes. */
   ticketScreenCode?: string
 }
 

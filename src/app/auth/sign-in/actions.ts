@@ -55,9 +55,7 @@ export async function signInAction(data: FormData) {
           maxAge: expiresIn,
         })
       }
-    } catch {
-      // Cookie opcional; o app pode buscar permissões uma vez no cliente.
-    }
+    } catch {}
   } catch (err) {
     // Log error
     if (isApiError(err)) {

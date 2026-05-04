@@ -17,10 +17,6 @@ const emptyPermissions = (): TicketModulePermissionsMeOut => ({
   role: null,
 })
 
-/**
- * Preferência: JSON do cookie gravado no login.
- * Se não houver cookie (sessões antigas), uma única chamada à API no cliente.
- */
 export function useResolvedTicketModulePermissions(
   fromCookie: TicketModulePermissionsMeOut | null,
 ) {
