@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 
 import { isAuthenticated } from '@/auth/auth'
 import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-context'
+import { OrganizationsContextProvider } from '@/contexts/organizations-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 import {
   parseTicketModulePermissionsCookie,
@@ -26,14 +27,16 @@ export default function AppLayout({
 
   return (
     <CustomQueryClientProvider>
-      <MonitoredPlatesContextProvider>
-        <div className="flex min-h-screen w-full">
-          <Sidebar
-            initialTicketModulePermissions={ticketPermissionsFromCookie}
-          />
-          {children}
-        </div>
-      </MonitoredPlatesContextProvider>
+      <OrganizationsContextProvider>
+        <MonitoredPlatesContextProvider>
+          <div className="flex min-h-screen w-full">
+            <Sidebar
+              initialTicketModulePermissions={ticketPermissionsFromCookie}
+            />
+            {children}
+          </div>
+        </MonitoredPlatesContextProvider>
+      </OrganizationsContextProvider>
     </CustomQueryClientProvider>
   )
 }
