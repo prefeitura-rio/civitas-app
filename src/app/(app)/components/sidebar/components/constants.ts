@@ -6,6 +6,8 @@ export interface Module {
   icon: keyof typeof icons
   title: string
   path: string
+  /** Código da tela na API (`screen_code`); ex.: `teams` para Equipes. */
+  ticketScreenCode?: string
 }
 
 export interface ModuleWithChildren {
@@ -13,6 +15,7 @@ export interface ModuleWithChildren {
   title: string
   path?: string
   children: Module[]
+  ticketScreenCode?: string
 }
 
 export type SidebarModule = Module | ModuleWithChildren
@@ -44,21 +47,25 @@ const chamadosItem: Category = {
       icon: 'CirclePlus',
       title: 'Criar',
       path: '/chamados/criar',
+      ticketScreenCode: 'ticket_create',
     },
     {
       icon: 'Inbox',
       title: 'Caixa de Entrada',
       path: '/chamados/caixa-entrada',
+      ticketScreenCode: 'inbox',
       children: [
         {
           icon: 'Reply',
           title: 'Respondidos',
           path: '/chamados/respondidos',
+          ticketScreenCode: 'responded',
         },
         {
           icon: 'MailWarning',
           title: 'Spam',
           path: '/chamados/spam',
+          ticketScreenCode: 'spam',
         },
       ],
     },
@@ -66,11 +73,13 @@ const chamadosItem: Category = {
       icon: 'UserCog',
       title: 'Equipes',
       path: '/chamados/equipes',
+      ticketScreenCode: 'teams',
     },
     {
       icon: 'Shield',
       title: 'Perfis',
       path: '/chamados/perfis',
+      ticketScreenCode: 'profile',
     },
   ],
 }

@@ -3,6 +3,7 @@ import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
 import { config as appConfig } from '@/config'
+import { TICKET_MODULE_PERMISSIONS_COOKIE } from '@/http/tickets/ticket-module-permissions-me'
 import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
 
 import { queryClient } from './react-query'
@@ -54,6 +55,7 @@ api.interceptors.response.use(
 
     if (typeof window !== 'undefined' && status === 401) {
       deleteCookie('token')
+      deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
       queryClient.clear()
       if (window.location.pathname !== '/auth/sign-in') {
         window.location.href = '/auth/sign-in'

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -67,7 +67,9 @@ import { cn } from '@/lib/utils'
 import { getApiErrorMessage, isNotFoundError } from '@/utils/error-handlers'
 
 import {
-  TICKET_DETAIL_TABS,
+  shouldShowTicketRespostaTab,
+  TICKET_DETAIL_BASE_TABS,
+  TICKET_RESPOSTA_TAB,
   type TicketDetailTabId,
 } from '../ticket-detail.constants'
 import styles from '../ticket-detail.module.css'
@@ -76,6 +78,7 @@ import { TicketDetailTabDocumentos } from './ticket-detail-tab-documentos'
 import { TicketDetailTabHistorico } from './ticket-detail-tab-historico'
 import { TicketDetailTabParecerInterno } from './ticket-detail-tab-parecer-interno'
 import { TicketDetailTabRelatorioDemanda } from './ticket-detail-tab-relatorio-demanda'
+import { TicketDetailTabResposta } from './ticket-detail-tab-resposta'
 import { TicketDetailTabServicos } from './ticket-detail-tab-servicos'
 import { TicketDetailTabSolicitante } from './ticket-detail-tab-solicitante'
 
@@ -157,6 +160,23 @@ export function TicketDetailView({ ticketId }: Props) {
     queryFn: () => getTicketAllowedActions(ticketId),
     retry: false,
   })
+
+  const showRespostaTab = shouldShowTicketRespostaTab(
+    allowedActionsQuery.data?.state_id,
+    cab?.status,
+  )
+  const visibleTabs = useMemo(() => {
+    if (!showRespostaTab) return TICKET_DETAIL_BASE_TABS
+    const idx = TICKET_DETAIL_BASE_TABS.findIndex(
+      (tab) => tab.id === 'historico',
+    )
+    if (idx < 0) return TICKET_DETAIL_BASE_TABS
+    return [
+      ...TICKET_DETAIL_BASE_TABS.slice(0, idx),
+      TICKET_RESPOSTA_TAB,
+      ...TICKET_DETAIL_BASE_TABS.slice(idx),
+    ]
+  }, [showRespostaTab])
 
   const allowedActionIds = allowedActionsQuery.data?.allowed_action_ids ?? []
   const canFinalizeTicket = allowedActionIds.includes('FINALIZAR_CHAMADO')
@@ -372,6 +392,11 @@ export function TicketDetailView({ ticketId }: Props) {
   useEffect(() => {
     setSelectedResponsibleIds([])
   }, [selectedTeamId])
+
+  useEffect(() => {
+    if (showRespostaTab || activeTab !== 'resposta') return
+    setActiveTab('solicitante')
+  }, [showRespostaTab, activeTab])
 
   const selectedResponsibleNames = (teamMembersByRoleQuery.data ?? [])
     .filter((member: TeamMemberUserOut) =>
@@ -605,7 +630,7 @@ export function TicketDetailView({ ticketId }: Props) {
             role="tablist"
             aria-label="Seções do chamado"
           >
-            {TICKET_DETAIL_TABS.map((tab) => {
+            {visibleTabs.map((tab) => {
               const isActive = tab.id === activeTab
               return (
                 <button
@@ -649,9 +674,13 @@ export function TicketDetailView({ ticketId }: Props) {
             <div className={styles.panel} role="tabpanel">
               <TicketDetailTabHistorico ticketId={ticketId} />
             </div>
+          ) : activeTab === 'resposta' ? (
+            <div className={styles.panel} role="tabpanel">
+              <TicketDetailTabResposta ticketId={ticketId} />
+            </div>
           ) : (
             <div className={styles.panelPlaceholder} role="tabpanel">
-              {`Conteúdo da aba "${TICKET_DETAIL_TABS.find((t) => t.id === activeTab)?.label}" será implementado em seguida.`}
+              {`Conteúdo da aba "${visibleTabs.find((t) => t.id === activeTab)?.label}" será implementado em seguida.`}
             </div>
           )}
         </div>

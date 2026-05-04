@@ -2,14 +2,18 @@
 
 import { useState } from 'react'
 
+import { Spinner } from '@/components/custom/spinner'
 import { useDisclosure } from '@/hooks/use-disclosure'
+import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
 
 import { ProfileAccessDialogs } from './components/profile-access-dialogs'
 import { ProfileAccessTable } from './components/profile-access-table'
 import styles from './perfis.module.css'
 
-export default function CadastroPerfilPage() {
+const PROFILE_SCREEN_CODE = 'profile'
+
+function CadastroPerfilPageContent() {
   const formDialogDisclosure = useDisclosure()
   const [dialogInitialData, setDialogInitialData] =
     useState<UserRoleListItem | null>(null)
@@ -34,4 +38,21 @@ export default function CadastroPerfilPage() {
       </div>
     </div>
   )
+}
+
+export default function CadastroPerfilPage() {
+  const { allowed, resolved } =
+    useTicketScreenPermissionGate(PROFILE_SCREEN_CODE)
+
+  if (!resolved || !allowed) {
+    return (
+      <div
+        className={`${styles.perfisPage} flex min-h-screen flex-col items-center justify-center px-6 py-6`}
+      >
+        <Spinner />
+      </div>
+    )
+  }
+
+  return <CadastroPerfilPageContent />
 }

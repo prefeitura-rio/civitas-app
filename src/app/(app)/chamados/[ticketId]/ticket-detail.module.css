@@ -2497,3 +2497,50 @@
   border-radius: var(--td-radius);
   background: #000;
 }
+
+.respostaEmbedRoot {
+  min-height: 0 !important;
+  height: auto;
+  width: 100%;
+  background: transparent!important;
+}
+
+.respostaBody {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.respostaHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.respostaTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--td-text);
+}
+
+.respostaSubtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--td-muted);
+}
+
+.respostaToolbarSpacer {
+  flex: 1 1 auto;
+  min-width: 8px;
+}
+
+.respostaMissingEmail {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--td-muted);
+}

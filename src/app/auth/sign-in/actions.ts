@@ -3,7 +3,12 @@
 import { cookies } from 'next/headers'
 import { z } from 'zod'
 
+import { config } from '@/config'
 import { signIn } from '@/http/auth/sign-in'
+import {
+  TICKET_MODULE_PERMISSIONS_COOKIE,
+  TICKET_MODULE_PERMISSIONS_PATH,
+} from '@/http/tickets/ticket-module-permissions-me'
 import { isApiError } from '@/lib/api'
 import { genericErrorMessage, isGrantError } from '@/utils/error-handlers'
 
@@ -35,6 +40,24 @@ export async function signInAction(data: FormData) {
       path: '/',
       maxAge: expiresIn,
     })
+
+    try {
+      const permRes = await fetch(
+        `${config.apiUrl}${TICKET_MODULE_PERMISSIONS_PATH}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      )
+      if (permRes.ok) {
+        const body = await permRes.text()
+        cookies().set(TICKET_MODULE_PERMISSIONS_COOKIE, body, {
+          path: '/',
+          maxAge: expiresIn,
+        })
+      }
+    } catch {
+      // Cookie opcional; o app pode buscar permissões uma vez no cliente.
+    }
   } catch (err) {
     // Log error
     if (isApiError(err)) {
