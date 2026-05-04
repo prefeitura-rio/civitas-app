@@ -39,11 +39,9 @@ const mockRadar: Radar = {
   company: 'CET-Rio',
   activeInLast24Hours: true,
   lastDetectionTime: '2024-01-15T10:30:00Z',
-  streetName: 'Estrada dos Bandeirantes',
   hasData: true,
   direction: 'norte',
   lane: 'direita',
-  streetNumber: '123',
 }
 
 const mockRadar2: Radar = {
@@ -75,7 +73,7 @@ describe('SearchByRadarForm', () => {
 
     render(<SearchByRadarForm />)
 
-    const radarButton = screen.getByText('Radares (2)')
+    const radarButton = screen.getByText('Equipamentos (2)')
     fireEvent.click(radarButton)
 
     expect(screen.getByText('0540461121')).toBeInTheDocument()
@@ -98,7 +96,7 @@ describe('SearchByRadarForm', () => {
 
     render(<SearchByRadarForm />)
 
-    expect(screen.getByText('Radares (2)')).toBeInTheDocument()
+    expect(screen.getByText('Equipamentos (2)')).toBeInTheDocument()
   })
 
   it('should render form without errors', () => {
@@ -114,7 +112,8 @@ describe('SearchByRadarForm', () => {
 
     render(<SearchByRadarForm />)
 
-    expect(screen.getByText('Radares (0)')).toBeInTheDocument()
+    expect(screen.getByText('Equipamentos (0)')).toBeInTheDocument()
+    expect(screen.getByText('Busca por Equipamento')).toBeInTheDocument()
     expect(screen.getByText('Buscar')).toBeInTheDocument()
   })
 })

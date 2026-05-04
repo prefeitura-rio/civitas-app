@@ -7,7 +7,7 @@ import {
   type RadarSearchFormData,
   radarSearchSchema,
 } from '@/app/(app)/veiculos/components/validationSchemas'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 import { toQueryParams } from '@/utils/to-query-params'
 
 import { useRadarSync } from './useRadarSync'
@@ -18,8 +18,8 @@ const MIN_DATE = new Date(2024, 5, 1)
 const MAX_DATE = new Date()
 
 interface UseRadarSearchFormProps {
-  selectedObjects: Radar[]
-  radars: Radar[] | undefined
+  selectedObjects: CollectionPoint[]
+  radars: CollectionPoint[] | undefined
   formattedSearchParams: {
     radarIds: string[]
     date?: { from: string; to: string }

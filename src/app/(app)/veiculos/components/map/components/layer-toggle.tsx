@@ -64,7 +64,7 @@ export function MapLayerControl() {
 
   const layers: Layer[] = [
     {
-      name: 'Radar',
+      name: 'LPR',
       icon: <Cctv />,
       isVisible: isRadarVisible,
       setIsVisible: setIsRadarVisible,

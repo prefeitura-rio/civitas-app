@@ -1,48 +1,64 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
+import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
-import { useOperations } from '@/hooks/useContexts/use-operations-context'
-import { useOperationsSearchParams } from '@/hooks/useParams/useOperationsSearchParams'
+import { useOrganizations } from '@/hooks/useContexts/use-organizations-context'
 import { useProfile } from '@/hooks/useQueries/useProfile'
-import { getOperations } from '@/http/operations/get-operations'
-import type { Operation } from '@/models/entities'
+import { getOrganizations } from '@/http/organizations/get-organizations'
+import type { Organization } from '@/models/entities'
+import { compareByUpdatedThenCreated } from '@/utils/sort-by-updated-or-created'
 import { notAllowed } from '@/utils/template-messages'
 
-export function OperationsTable() {
-  const { formattedSearchParams, queryKey, handlePaginate } =
-    useOperationsSearchParams()
+export function OrganizationsTable() {
+  const [page, setPage] = useState(1)
+  const [size] = useState(10)
   const {
     formDialogDisclosure,
     setDialogInitialData,
-    setOnDeleteOperationProps,
+    setOnDeleteOrganizationProps,
     deleteAlertDisclosure,
-  } = useOperations()
+  } = useOrganizations()
   const { data: profile } = useProfile()
 
   const { data: response, isLoading } = useQuery({
-    queryKey,
-    queryFn: () =>
-      getOperations({
-        ...formattedSearchParams,
-      }),
+    queryKey: ['organizations', page, size],
+    queryFn: () => getOrganizations({ page, size }),
   })
 
   const data = response?.data
+  const sortedItems = useMemo(
+    () => [...(data?.items ?? [])].sort(compareByUpdatedThenCreated),
+    [data?.items],
+  )
 
-  const columns: ColumnDef<Operation>[] = [
+  const columns: ColumnDef<Organization>[] = [
     {
-      accessorKey: 'title',
+      accessorKey: 'name',
       header: 'Nome',
     },
     {
-      accessorKey: 'description',
-      header: 'Descrição',
+      accessorKey: 'organizationType',
+      header: 'Tipo',
+    },
+    {
+      accessorKey: 'acronym',
+      header: 'Órgão',
+    },
+    {
+      accessorKey: 'jurisdictionLevel',
+      header: 'Competência',
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Criada em',
+      cell: ({ row }) => formatDate(row.original.createdAt, 'dd/MM/yyyy HH:mm'),
     },
     {
       id: 'actions',
@@ -57,7 +73,7 @@ export function OperationsTable() {
             <Tooltip
               text="Editar"
               disabledText={notAllowed}
-              disabled={!profile || !profile.is_admin}
+              disabled={!profile?.is_admin}
               asChild
             >
               <Button
@@ -68,16 +84,16 @@ export function OperationsTable() {
                   setDialogInitialData({ id: row.original.id })
                   formDialogDisclosure.onOpen()
                 }}
-                disabled={!profile || !profile.is_admin}
+                disabled={!profile?.is_admin}
               >
-                <span className="sr-only">Editar linha</span>
+                <span className="sr-only">Editar</span>
                 <PencilLine className="h-4 w-4" />
               </Button>
             </Tooltip>
             <Tooltip
               text="Excluir"
               disabledText={notAllowed}
-              disabled={!profile || !profile.is_admin}
+              disabled={!profile?.is_admin}
               asChild
             >
               <Button
@@ -85,15 +101,15 @@ export function OperationsTable() {
                 className="h-8 w-8 p-0"
                 type="button"
                 onClick={() => {
-                  setOnDeleteOperationProps({
+                  setOnDeleteOrganizationProps({
                     id: row.original.id,
-                    title: row.original.title,
+                    name: row.original.name,
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={!profile || !profile.is_admin}
+                disabled={!profile?.is_admin}
               >
-                <span className="sr-only">Excluir linha</span>
+                <span className="sr-only">Excluir</span>
                 <Trash className="h-4 w-4" />
               </Button>
             </Tooltip>
@@ -104,18 +120,14 @@ export function OperationsTable() {
   ]
 
   return (
-    <div className="flex flex-col gap-8">
-      <DataTable
-        columns={columns}
-        data={data?.items || []}
-        isLoading={isLoading}
-      />
+    <div className="flex flex-col gap-4">
+      <DataTable columns={columns} data={sortedItems} isLoading={isLoading} />
       {data && (
         <Pagination
           page={data.page}
           total={data.total}
           size={data.size}
-          onPageChange={handlePaginate}
+          onPageChange={setPage}
         />
       )}
     </div>

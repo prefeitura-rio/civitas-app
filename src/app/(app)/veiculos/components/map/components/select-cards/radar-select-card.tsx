@@ -16,16 +16,16 @@ import { useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 interface RadarSelectCardProps {
-  selectedObject: Radar | null
-  setSelectedObject: (value: Radar | null) => void
+  selectedObject: CollectionPoint | null
+  setSelectedObject: (value: CollectionPoint | null) => void
   className?: string
   infoMode?: boolean
-  infoObject?: Radar | null
-  setInfoObject?: (value: Radar | null) => void
+  infoObject?: CollectionPoint | null
+  setInfoObject?: (value: CollectionPoint | null) => void
 }
 
 export function RadarSelectCard({
@@ -78,13 +78,13 @@ export function RadarSelectCard({
         </Button>
         <CardHeader className="border-b px-4 py-3">
           <CardTitle className="text-left text-sm font-semibold tracking-tighter">
-            {infoMode ? 'Informações do Radar' : 'Radar OCR'}
+            Informações do Equipamento
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
           <div className="space-y-3 text-sm">
             <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium">Código CET-Rio</span>
+              <span className="text-sm font-medium">Código do Equipamento</span>
               <span className="break-all text-sm text-muted-foreground">
                 {radarData?.cetRioCode}
               </span>
@@ -96,7 +96,7 @@ export function RadarSelectCard({
                 <span className="text-sm font-medium">Localização</span>
               </div>
               <span className="text-sm text-muted-foreground">
-                {`${radarData?.location} - ${radarData?.district}`}
+                {`${radarData?.location} - ${radarData?.district}${radarData?.direction ? `, SENTIDO ${radarData.direction}` : ''}`}
               </span>
             </div>
 
@@ -144,7 +144,7 @@ export function RadarSelectCard({
                   <span className="text-sm font-medium">
                     Ativo nas últimas 24 horas
                   </span>
-                  {radarData?.activeInLast24Hours ? (
+                  {radarData?.activeInLast24Hours === true ? (
                     <span className="text-sm text-emerald-600">Sim</span>
                   ) : (
                     <span className="text-sm text-rose-600">Não</span>
@@ -153,20 +153,24 @@ export function RadarSelectCard({
               </>
             )}
 
-            {!radarData?.activeInLast24Hours && (
-              <div className="border-l-4 border-yellow-600 bg-secondary p-1.5">
-                <div className="flex items-start">
-                  <AlertTriangle className="mr-1.5 mt-0.5 h-4 w-4 text-yellow-400" />
-                  <p className="text-xs text-gray-300">
-                    <span className="font-bold text-yellow-400">Atenção!</span>{' '}
-                    Radares são considerados inativos se não enviarem dados há
-                    mais de 24 horas. No entanto, essa informação não é
-                    atualizada em tempo real e pode seguir desatualizada por
-                    várias horas.
-                  </p>
+            {radarData !== null &&
+              radarData !== undefined &&
+              !radarData.activeInLast24Hours && (
+                <div className="border-l-4 border-yellow-600 bg-secondary p-1.5">
+                  <div className="flex items-start">
+                    <AlertTriangle className="mr-1.5 mt-0.5 h-4 w-4 text-yellow-400" />
+                    <p className="text-xs text-gray-300">
+                      <span className="font-bold text-yellow-400">
+                        Atenção!
+                      </span>{' '}
+                      Equipamentos LPR são considerados inativos se não enviarem
+                      dados há mais de 24 horas. No entanto, essa informação não
+                      é atualizada em tempo real e pode seguir desatualizada por
+                      várias horas.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             <div className="flex gap-2 pt-2">
               <Button
@@ -176,7 +180,7 @@ export function RadarSelectCard({
                 onClick={handleZoomToRadar}
               >
                 <MapPin className="mr-2 h-4 w-4" />
-                Focar no Radar
+                Focar no Equipamento
               </Button>
               {previousViewport && (
                 <Button
