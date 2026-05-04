@@ -2,12 +2,17 @@
 
 import './equipes.css'
 
+import { Spinner } from '@/components/custom/spinner'
+import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
+
 import { TeamsDialogs } from './components/teams-dialogs'
 import { TeamsHeader } from './components/teams-header'
 import { TeamsList } from './components/teams-list'
 import { useTeamsController } from './hooks/use-teams-controller'
 
-export default function EquipesPage() {
+const TEAMS_SCREEN_CODE = 'teams'
+
+function EquipesPageContent() {
   const controller = useTeamsController()
 
   return (
@@ -19,4 +24,18 @@ export default function EquipesPage() {
       </div>
     </div>
   )
+}
+
+export default function EquipesPage() {
+  const { allowed, resolved } = useTicketScreenPermissionGate(TEAMS_SCREEN_CODE)
+
+  if (!resolved || !allowed) {
+    return (
+      <div className="equipes-page page-content flex min-h-screen flex-col items-center justify-center px-6 py-6">
+        <Spinner />
+      </div>
+    )
+  }
+
+  return <EquipesPageContent />
 }

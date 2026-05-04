@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -67,7 +67,9 @@ import { cn } from '@/lib/utils'
 import { getApiErrorMessage, isNotFoundError } from '@/utils/error-handlers'
 
 import {
-  TICKET_DETAIL_TABS,
+  shouldShowTicketRespostaTab,
+  TICKET_DETAIL_BASE_TABS,
+  TICKET_RESPOSTA_TAB,
   type TicketDetailTabId,
 } from '../ticket-detail.constants'
 import styles from '../ticket-detail.module.css'
@@ -76,6 +78,7 @@ import { TicketDetailTabDocumentos } from './ticket-detail-tab-documentos'
 import { TicketDetailTabHistorico } from './ticket-detail-tab-historico'
 import { TicketDetailTabParecerInterno } from './ticket-detail-tab-parecer-interno'
 import { TicketDetailTabRelatorioDemanda } from './ticket-detail-tab-relatorio-demanda'
+import { TicketDetailTabResposta } from './ticket-detail-tab-resposta'
 import { TicketDetailTabServicos } from './ticket-detail-tab-servicos'
 import { TicketDetailTabSolicitante } from './ticket-detail-tab-solicitante'
 
@@ -126,6 +129,11 @@ type Props = {
   ticketId: string
 }
 
+type TicketWorkflowConfirmableAction =
+  | 'FINALIZAR_SEM_ENCAMINHAR'
+  | 'ENVIAR_EMAIL'
+  | 'BLOQUEAR'
+
 export function TicketDetailView({ ticketId }: Props) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TicketDetailTabId>('solicitante')
@@ -137,6 +145,8 @@ export function TicketDetailView({ ticketId }: Props) {
     null,
   )
   const [finalizeOpen, setFinalizeOpen] = useState(false)
+  const [workflowConfirmAction, setWorkflowConfirmAction] =
+    useState<TicketWorkflowConfirmableAction | null>(null)
   const [reassignOpen, setReassignOpen] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [selectedResponsibleIds, setSelectedResponsibleIds] = useState<
@@ -157,6 +167,23 @@ export function TicketDetailView({ ticketId }: Props) {
     queryFn: () => getTicketAllowedActions(ticketId),
     retry: false,
   })
+
+  const showRespostaTab = shouldShowTicketRespostaTab(
+    allowedActionsQuery.data?.state_id,
+    cab?.status,
+  )
+  const visibleTabs = useMemo(() => {
+    if (!showRespostaTab) return TICKET_DETAIL_BASE_TABS
+    const idx = TICKET_DETAIL_BASE_TABS.findIndex(
+      (tab) => tab.id === 'historico',
+    )
+    if (idx < 0) return TICKET_DETAIL_BASE_TABS
+    return [
+      ...TICKET_DETAIL_BASE_TABS.slice(0, idx),
+      TICKET_RESPOSTA_TAB,
+      ...TICKET_DETAIL_BASE_TABS.slice(idx),
+    ]
+  }, [showRespostaTab])
 
   const allowedActionIds = allowedActionsQuery.data?.allowed_action_ids ?? []
   const canFinalizeTicket = allowedActionIds.includes('FINALIZAR_CHAMADO')
@@ -373,6 +400,11 @@ export function TicketDetailView({ ticketId }: Props) {
     setSelectedResponsibleIds([])
   }, [selectedTeamId])
 
+  useEffect(() => {
+    if (showRespostaTab || activeTab !== 'resposta') return
+    setActiveTab('solicitante')
+  }, [showRespostaTab, activeTab])
+
   const selectedResponsibleNames = (teamMembersByRoleQuery.data ?? [])
     .filter((member: TeamMemberUserOut) =>
       selectedResponsibleIds.includes(member.user_id),
@@ -516,9 +548,7 @@ export function TicketDetailView({ ticketId }: Props) {
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
               onClick={() =>
-                workflowActionMutation.mutate({
-                  actionId: 'FINALIZAR_SEM_ENCAMINHAR',
-                })
+                setWorkflowConfirmAction('FINALIZAR_SEM_ENCAMINHAR')
               }
               disabled={workflowActionMutation.isPending}
             >
@@ -531,9 +561,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() =>
-                workflowActionMutation.mutate({ actionId: 'ENVIAR_EMAIL' })
-              }
+              onClick={() => setWorkflowConfirmAction('ENVIAR_EMAIL')}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -561,11 +589,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() =>
-                workflowActionMutation.mutate({
-                  actionId: 'BLOQUEAR',
-                })
-              }
+              onClick={() => setWorkflowConfirmAction('BLOQUEAR')}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -605,7 +629,7 @@ export function TicketDetailView({ ticketId }: Props) {
             role="tablist"
             aria-label="Seções do chamado"
           >
-            {TICKET_DETAIL_TABS.map((tab) => {
+            {visibleTabs.map((tab) => {
               const isActive = tab.id === activeTab
               return (
                 <button
@@ -649,9 +673,13 @@ export function TicketDetailView({ ticketId }: Props) {
             <div className={styles.panel} role="tabpanel">
               <TicketDetailTabHistorico ticketId={ticketId} />
             </div>
+          ) : activeTab === 'resposta' ? (
+            <div className={styles.panel} role="tabpanel">
+              <TicketDetailTabResposta ticketId={ticketId} />
+            </div>
           ) : (
             <div className={styles.panelPlaceholder} role="tabpanel">
-              {`Conteúdo da aba "${TICKET_DETAIL_TABS.find((t) => t.id === activeTab)?.label}" será implementado em seguida.`}
+              {`Conteúdo da aba "${visibleTabs.find((t) => t.id === activeTab)?.label}" será implementado em seguida.`}
             </div>
           )}
         </div>
@@ -673,6 +701,53 @@ export function TicketDetailView({ ticketId }: Props) {
                 onClick={() => finalizeMutation.mutate()}
               >
                 {finalizeMutation.isPending ? 'Finalizando…' : 'Confirmar'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={workflowConfirmAction !== null}
+          onOpenChange={(open) => {
+            if (!open) setWorkflowConfirmAction(null)
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {workflowConfirmAction === 'FINALIZAR_SEM_ENCAMINHAR'
+                  ? 'Finalizar sem encaminhar?'
+                  : workflowConfirmAction === 'ENVIAR_EMAIL'
+                    ? 'Enviar e-mail?'
+                    : workflowConfirmAction === 'BLOQUEAR'
+                      ? 'Bloquear chamado?'
+                      : 'Confirmar ação'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {workflowConfirmAction === 'FINALIZAR_SEM_ENCAMINHAR'
+                  ? 'O chamado será encerrado sem envio de email. Essa ação segue as regras do fluxo configurado para o tipo de demanda.'
+                  : workflowConfirmAction === 'ENVIAR_EMAIL'
+                    ? 'Será disparado o e-mail conforme o fluxo do chamado. Deseja continuar?'
+                    : workflowConfirmAction === 'BLOQUEAR'
+                      ? 'O chamado ficará bloqueado conforme as regras do sistema. Deseja continuar?'
+                      : null}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={workflowActionMutation.isPending}
+                onClick={() => {
+                  if (workflowConfirmAction) {
+                    workflowActionMutation.mutate({
+                      actionId: workflowConfirmAction,
+                    })
+                  }
+                }}
+              >
+                {workflowActionMutation.isPending
+                  ? 'Aplicando ação…'
+                  : 'Confirmar'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

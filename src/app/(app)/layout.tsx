@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { isAuthenticated } from '@/auth/auth'
@@ -5,6 +6,10 @@ import { DemandantsContextProvider } from '@/contexts/demandants-context'
 import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-context'
 import { OrganizationsContextProvider } from '@/contexts/organizations-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
+import {
+  parseTicketModulePermissionsCookie,
+  TICKET_MODULE_PERMISSIONS_COOKIE,
+} from '@/http/tickets/ticket-module-permissions-me'
 
 import { Sidebar } from './components/sidebar'
 
@@ -17,13 +22,19 @@ export default function AppLayout({
     redirect('/auth/sign-in')
   }
 
+  const ticketPermissionsFromCookie = parseTicketModulePermissionsCookie(
+    cookies().get(TICKET_MODULE_PERMISSIONS_COOKIE)?.value,
+  )
+
   return (
     <CustomQueryClientProvider>
       <OrganizationsContextProvider>
         <DemandantsContextProvider>
           <MonitoredPlatesContextProvider>
             <div className="flex min-h-screen w-full">
-              <Sidebar />
+              <Sidebar
+                initialTicketModulePermissions={ticketPermissionsFromCookie}
+              />
               {children}
             </div>
           </MonitoredPlatesContextProvider>

@@ -44,10 +44,18 @@ export function ChamadosImpersonationProvider({
   }, [])
 
   const invalidateChamadosQueries = useCallback(() => {
-    queryClient.invalidateQueries({
-      queryKey: ['tickets'],
-      refetchType: 'active',
-    })
+    queryClient
+      .invalidateQueries({
+        queryKey: ['tickets'],
+        refetchType: 'active',
+      })
+      .catch(() => {})
+    queryClient
+      .invalidateQueries({
+        queryKey: ['tickets', 'module-screen-permissions'],
+        refetchType: 'active',
+      })
+      .catch(() => {})
   }, [queryClient])
 
   const setImpersonation = useCallback(

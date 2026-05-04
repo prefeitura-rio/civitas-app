@@ -1,21 +1,54 @@
 'use client'
 
 import { LogOut } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { Accordion } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useProfile } from '@/hooks/useQueries/useProfile'
+import { useResolvedTicketModulePermissions } from '@/hooks/useQueries/useResolvedTicketModulePermissions'
+import type { TicketModulePermissionsMeOut } from '@/http/tickets/ticket-module-permissions-me'
 import { queryClient } from '@/lib/react-query'
 import { logout } from '@/utils/logout'
 
 import { sidebarItems } from './components/constants'
+import { filterChamadosSidebarModules } from './components/filter-chamados-sidebar-modules'
 import { SidebarAccordion } from './components/sidebar-accordion'
 import { SidebarButton } from './components/sidebar-button'
 
-export function Sidebar() {
+const CHAMADOS_SECTION_TITLE = 'Chamados'
+
+export function Sidebar({
+  initialTicketModulePermissions,
+}: {
+  initialTicketModulePermissions: TicketModulePermissionsMeOut | null
+}) {
   const { data: profile } = useProfile()
+  const {
+    permissions: ticketPermissions,
+    resolved: ticketPermissionsResolved,
+  } = useResolvedTicketModulePermissions(initialTicketModulePermissions)
+
+  const visibleSidebarItems = useMemo(
+    () =>
+      sidebarItems.map((item) => {
+        if (!('modules' in item) || item.title !== CHAMADOS_SECTION_TITLE) {
+          return item
+        }
+        return {
+          ...item,
+          modules: filterChamadosSidebarModules(
+            item.modules,
+            ticketPermissions,
+            ticketPermissionsResolved,
+          ),
+        }
+      }),
+    [ticketPermissions, ticketPermissionsResolved],
+  )
+
   return (
     <div className="relative z-50 h-screen w-14 shrink-0">
       <nav className="group absolute left-0 top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-x-hidden border-r-2 bg-background p-2 transition-all duration-300 ease-in hover:w-64">
@@ -44,7 +77,7 @@ export function Sidebar() {
             type="multiple"
             // defaultValue={modules.map((item) => item.title)}
           >
-            {sidebarItems.map((item, index) => {
+            {visibleSidebarItems.map((item, index) => {
               if ('modules' in item) {
                 return (
                   <SidebarAccordion
