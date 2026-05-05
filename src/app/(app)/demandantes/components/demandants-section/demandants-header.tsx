@@ -21,7 +21,7 @@ export function DemandantsHeader() {
     useDemandantsSearchParams()
 
   const {
-    data: organizations = [],
+    data: requesters = [],
     isLoading: isLoadingOrganizations,
     isError: isOrganizationsError,
   } = useQuery({
@@ -30,12 +30,12 @@ export function DemandantsHeader() {
     staleTime: 60_000,
   })
 
-  const selectedOrg = organizations.find(
+  const selectedOrg = requesters.find(
     (o) => o.id === formattedSearchParams.organizationId,
   )
   const filterDisplay = selectedOrg
     ? `${selectedOrg.name} (${selectedOrg.acronym})`
-    : 'Todas as organizações'
+    : 'Todos os requisitantes'
 
   return (
     <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -43,21 +43,21 @@ export function DemandantsHeader() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-4">
         <div className="flex min-w-[14rem] flex-col gap-1">
           <Label className="text-xs text-muted-foreground">
-            Filtrar por organização
+            Filtrar por requisitante
           </Label>
           <SelectWithSearch
             placeholder={
               isLoadingOrganizations
-                ? 'Carregando organizações…'
+                ? 'Carregando requisitantes…'
                 : isOrganizationsError
-                  ? 'Erro ao carregar organizações'
-                  : 'Todas as organizações'
+                  ? 'Erro ao carregar requisitantes'
+                  : 'Todos os requisitantes'
             }
             value={isLoadingOrganizations ? '' : filterDisplay}
             disabled={isLoadingOrganizations}
             options={[
-              { label: 'Todas as organizações', value: '' },
-              ...organizations.map((o) => ({
+              { label: 'Todos os requisitantes', value: '' },
+              ...requesters.map((o) => ({
                 label: `${o.name} (${o.acronym})`,
                 value: o.id,
               })),
@@ -66,7 +66,7 @@ export function DemandantsHeader() {
           />
           {isOrganizationsError ? (
             <p className="text-xs text-destructive">
-              Não foi possível carregar a lista de organizações. Atualize a
+              Não foi possível carregar a lista de requisitantes. Atualize a
               página ou tente novamente.
             </p>
           ) : null}

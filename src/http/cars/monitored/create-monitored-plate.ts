@@ -12,6 +12,8 @@ export interface MonitoredPlateDemandantLinkInput {
 
 export interface CreateMonitoredPlateRequest {
   plate: string
+  internalReferenceNumber?: string
+  demandantTemp?: string
   notes?: string
   notificationChannels: string[]
   demandantLinks?: MonitoredPlateDemandantLinkInput[]
@@ -19,12 +21,16 @@ export interface CreateMonitoredPlateRequest {
 
 export function createMonitoredPlate({
   plate,
+  internalReferenceNumber,
+  demandantTemp,
   notes,
   notificationChannels,
   demandantLinks,
 }: CreateMonitoredPlateRequest) {
   const body: Record<string, unknown> = {
     plate,
+    internal_reference_number: internalReferenceNumber ?? undefined,
+    demandant_temp: demandantTemp ?? undefined,
     notes: notes ?? undefined,
     notification_channels:
       notificationChannels.length > 0 ? notificationChannels : undefined,

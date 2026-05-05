@@ -41,7 +41,7 @@ export function OrganizationsTable() {
   const columns: ColumnDef<Organization>[] = [
     {
       accessorKey: 'name',
-      header: 'Nome',
+      header: 'Requisitante',
     },
     {
       accessorKey: 'organizationType',

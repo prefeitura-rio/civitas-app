@@ -135,6 +135,8 @@ export type MonitoredPlate = {
   plate: string
   /** Legado / resposta antiga da API; não usado no cadastro atual. */
   numeroControle?: string
+  internalReferenceNumber?: string | null
+  demandantTemp?: string | null
   operation: Operation
   contactInfo: string | null
   notes: string
@@ -150,6 +152,8 @@ export type BackendMonitoredPlate = {
   id: string
   plate: string
   numero_controle?: string
+  internal_reference_number?: string | null
+  demandant_temp?: string | null
   notes: string
   notification_channels: NotificationChannel[]
   created_at: string

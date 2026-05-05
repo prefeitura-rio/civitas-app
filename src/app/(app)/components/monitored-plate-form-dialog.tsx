@@ -75,6 +75,8 @@ export function MonitoredPlateFormDialog({
     resolver: zodResolver(monitoredPlateFormSchema),
     defaultValues: {
       plate: '',
+      internalReferenceNumber: '',
+      demandantTemp: '',
       active: true,
       notes: '',
       notificationChannels: [],
@@ -174,12 +176,18 @@ export function MonitoredPlateFormDialog({
       if (initialData?.plate && shouldFetchData) {
         await updateMonitoredPlateMutation({
           plate: initialData.plate,
+          internalReferenceNumber:
+            props.internalReferenceNumber?.trim() || undefined,
+          demandantTemp: props.demandantTemp?.trim() || undefined,
           notes: props.notes,
           notificationChannels,
         })
       } else {
         await createMonitoredPlateMutation({
           plate: props.plate,
+          internalReferenceNumber:
+            props.internalReferenceNumber?.trim() || undefined,
+          demandantTemp: props.demandantTemp?.trim() || undefined,
           notes: props.notes,
           notificationChannels,
           demandantLinks:
@@ -207,6 +215,8 @@ export function MonitoredPlateFormDialog({
     if (isOpen && !initialData) {
       reset({
         plate: '',
+        internalReferenceNumber: '',
+        demandantTemp: '',
         active: true,
         notes: '',
         additionalInfo: undefined,
@@ -225,6 +235,11 @@ export function MonitoredPlateFormDialog({
       shouldFetchData
     ) {
       setValue('plate', monitoredPlate.plate)
+      setValue(
+        'internalReferenceNumber',
+        monitoredPlate.internalReferenceNumber ?? '',
+      )
+      setValue('demandantTemp', monitoredPlate.demandantTemp ?? '')
       setValue('active', monitoredPlate.active)
       setValue('notes', monitoredPlate.notes)
       if (monitoredPlate.notificationChannels.length > 0) {
@@ -295,6 +310,34 @@ export function MonitoredPlateFormDialog({
                   setValue('plate', e.target.value.toUpperCase())
                 }
                 disabled={isLoading || !!initialData}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label htmlFor="internalReferenceNumber">
+                  Número de Referência Interno/Chamado
+                </Label>
+                <InputError message={errors.internalReferenceNumber?.message} />
+              </div>
+              <Input
+                id="internalReferenceNumber"
+                {...register('internalReferenceNumber')}
+                type="text"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label htmlFor="demandantTemp">Requisitante</Label>
+                <InputError message={errors.demandantTemp?.message} />
+              </div>
+              <Input
+                id="demandantTemp"
+                {...register('demandantTemp')}
+                type="text"
+                disabled={isLoading}
               />
             </div>
 

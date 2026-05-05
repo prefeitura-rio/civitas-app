@@ -80,6 +80,16 @@ export function MonitoredPlatesTable() {
       header: 'Observações',
     },
     {
+      accessorKey: 'internalReferenceNumber',
+      header: 'Número de Referência Interno/Chamado',
+      cell: ({ row }) => row.original.internalReferenceNumber || '—',
+    },
+    {
+      accessorKey: 'demandantTemp',
+      header: 'Requisitante',
+      cell: ({ row }) => row.original.demandantTemp || '—',
+    },
+    {
       id: 'demandantLinks',
       header: 'Demandantes (links)',
       cell: ({ row }) => {

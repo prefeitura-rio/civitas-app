@@ -38,6 +38,8 @@ const monitoredPlateFormBaseSchema = z.object({
     .min(1, { message: '' })
     .toUpperCase()
     .regex(/^[A-Z]{3}\d[A-Z\d]\d{2}$/, 'Formato inválido'),
+  internalReferenceNumber: z.string().optional(),
+  demandantTemp: z.string().optional(),
   active: z.boolean().default(true),
   notes: z.string(),
   additionalInfo: z.unknown().optional(),
