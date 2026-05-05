@@ -61,13 +61,13 @@ export function DemandantFormDialog({
   const { register, handleSubmit, setValue, control, formState, reset } = form
   const { errors, isSubmitting } = formState
 
-  const { data: organizationsResponse } = useQuery({
+  const { data: requestersResponse } = useQuery({
     queryKey: ['organizations', 'options', 100],
     queryFn: () => getOrganizations({ page: 1, size: 100 }),
     enabled: isOpen,
   })
 
-  const organizations = organizationsResponse?.data.items ?? []
+  const requesters = requestersResponse?.data.items ?? []
 
   const { mutateAsync: createMutation, isPending: isPendingCreate } =
     useMutation({
@@ -94,8 +94,8 @@ export function DemandantFormDialog({
   })
 
   /** Garante a org do demandante na lista (pode não estar na primeira página da API). */
-  const organizationOptions = useMemo(() => {
-    const mapped = organizations.map((o) => ({
+  const requesterOptions = useMemo(() => {
+    const mapped = requesters.map((o) => ({
       label: `${o.name} (${o.acronym})`,
       value: o.id,
     }))
@@ -113,7 +113,7 @@ export function DemandantFormDialog({
       ]
     }
     return mapped
-  }, [organizations, demandant, initialData?.id])
+  }, [requesters, demandant, initialData?.id])
 
   function handleOnOpenChange(open: boolean) {
     if (open) onOpen()
@@ -201,14 +201,14 @@ export function DemandantFormDialog({
         <form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label>Organização</Label>
+              <Label>Requisitante</Label>
               <InputError message={errors.organizationId?.message} />
             </div>
             <Controller
               control={control}
               name="organizationId"
               render={({ field }) => {
-                const selected = organizationOptions.find(
+                const selected = requesterOptions.find(
                   (o) => o.value === field.value,
                 )
                 const display = selected?.label ?? ''
@@ -216,8 +216,8 @@ export function DemandantFormDialog({
                   <SelectWithSearch
                     disabled={isLoading}
                     value={display}
-                    placeholder="Selecione a organização"
-                    options={organizationOptions}
+                    placeholder="Selecione o requisitante"
+                    options={requesterOptions}
                     onSelect={(item) => setValue('organizationId', item.value)}
                   />
                 )

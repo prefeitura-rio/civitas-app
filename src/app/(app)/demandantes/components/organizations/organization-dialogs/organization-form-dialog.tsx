@@ -122,7 +122,7 @@ export function OrganizationFormDialog({
         acronym: props.acronym,
         jurisdictionLevel: props.jurisdictionLevel,
       })
-      toast.success('Organização atualizada.')
+      toast.success('Requisitante atualizado.')
     } else {
       await createMutation({
         name: props.name,
@@ -130,7 +130,7 @@ export function OrganizationFormDialog({
         acronym: props.acronym,
         jurisdictionLevel: props.jurisdictionLevel,
       })
-      toast.success('Organização criada.')
+      toast.success('Requisitante criado.')
     }
     handleOnOpenChange(false)
   }
@@ -177,7 +177,7 @@ export function OrganizationFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {initialData?.id ? 'Editar organização' : 'Nova organização'}
+            {initialData?.id ? 'Editar requisitante' : 'Novo requisitante'}
           </DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>

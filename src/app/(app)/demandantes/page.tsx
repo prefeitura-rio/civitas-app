@@ -31,7 +31,7 @@ export default function DemandantesPage() {
       ref={containerRef}
       className="page-content space-y-6 overflow-y-scroll"
     >
-      <h2 className="text-2xl font-semibold">Organizações e demandantes</h2>
+      <h2 className="text-2xl font-semibold">Requisitantes e demandantes</h2>
 
       <Tabs
         defaultValue="demandants"
@@ -39,7 +39,7 @@ export default function DemandantesPage() {
       >
         <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="organizations" className="flex-1 sm:flex-none">
-            Organizações
+            Requisitantes
           </TabsTrigger>
           <TabsTrigger value="demandants" className="flex-1 sm:flex-none">
             Demandantes

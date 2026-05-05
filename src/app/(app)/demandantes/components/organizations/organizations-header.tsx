@@ -11,7 +11,7 @@ export function OrganizationsHeader() {
 
   return (
     <div className="flex w-full items-center justify-between gap-2">
-      <h3 className="text-lg font-semibold">Organizações</h3>
+      <h3 className="text-lg font-semibold">Requisitantes</h3>
       <Tooltip
         disabledText={notAllowed}
         disabled={!profile?.is_admin}
@@ -26,7 +26,7 @@ export function OrganizationsHeader() {
           }}
           size="sm"
         >
-          Adicionar organização
+          Adicionar requisitante
         </Button>
       </Tooltip>
     </div>

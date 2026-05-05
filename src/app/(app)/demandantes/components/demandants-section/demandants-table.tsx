@@ -53,8 +53,8 @@ export function DemandantsTable() {
       header: 'Telefone 1',
     },
     {
-      id: 'organization',
-      header: 'Organização',
+      id: 'requester',
+      header: 'Requisitante',
       cell: ({ row }) => (
         <span>
           {row.original.organization.name} ({row.original.organization.acronym})
