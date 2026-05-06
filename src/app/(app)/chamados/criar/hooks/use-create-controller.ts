@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getOperations } from '@/http/operations/get-operations'
 import { getTeamsList } from '@/http/teams/get-teams'
@@ -70,6 +71,7 @@ export function useTicketCreateController() {
   )
 
   const [ticketSearch, setTicketSearch] = useState('')
+  const debouncedTicketSearch = useDebounce(ticketSearch, 350)
   const [ticketPopoverOpen, setTicketPopoverOpen] = useState(false)
   const [selectedTicketLabel, setSelectedTicketLabel] = useState('')
 
@@ -159,9 +161,9 @@ export function useTicketCreateController() {
   })
 
   const ticketsQuery = useQuery({
-    queryKey: ['tickets', 'search', ticketSearch],
-    queryFn: () => getTicketsSelect({ search: ticketSearch }),
-    enabled: ticketPopoverOpen && ticketSearch.trim().length > 0,
+    queryKey: ['tickets', 'search', debouncedTicketSearch],
+    queryFn: () => getTicketsSelect({ search: debouncedTicketSearch.trim() }),
+    enabled: ticketPopoverOpen,
   })
 
   const teamsQuery = useQuery({

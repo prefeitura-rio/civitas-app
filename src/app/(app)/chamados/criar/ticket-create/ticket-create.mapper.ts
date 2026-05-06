@@ -1,5 +1,9 @@
 import type { TicketOut } from '@/http/tickets/get-ticket-by-id'
-import { padDigitsLeft, unmaskPlateBR } from '@/utils/string-formatters'
+import {
+  normalizeNumeroOficio,
+  padDigitsLeft,
+  unmaskPlateBR,
+} from '@/utils/string-formatters'
 
 import { TICKET_CREATE_STRING_LIMITS as L } from './ticket-create.constant'
 import type { TicketCreateForm } from './ticket-create-schema'
@@ -41,7 +45,7 @@ export function buildTicketCreatePayload(
     numero_procedimento: emptyToNull(
       padDigitsLeft(data.numero_procedimento, L.numero_procedimento),
     ),
-    numero_oficio: emptyToNull(data.numero_oficio),
+    numero_oficio: emptyToNull(normalizeNumeroOficio(data.numero_oficio ?? '')),
     data_base: emptyToNull(data.data_base),
     natureza_id: data.natureza_id.trim(),
     apelido_imprensa: emptyToNull(data.apelido_imprensa),
@@ -166,7 +170,12 @@ export function mapTicketOutToCreateForm(
     numero_procedimento: ticket.numero_procedimento
       ? padDigitsLeft(ticket.numero_procedimento, L.numero_procedimento)
       : null,
-    numero_oficio: ticket.numero_oficio ?? null,
+    numero_oficio: (() => {
+      const raw = ticket.numero_oficio?.trim()
+      if (!raw) return null
+      const normalized = normalizeNumeroOficio(raw)
+      return normalized || null
+    })(),
     data_base: apiDateToDataBaseString(ticket.data_base),
     natureza_id: ticket.natureza_id ?? '',
     possui_apelido_imprensa: ticket.possui_apelido_imprensa,
@@ -194,7 +203,9 @@ export function mapTicketOutToCreateForm(
       if (raw == null) return null
       const t = raw.trim()
       if (!t) return null
-      return t.length > 500 ? t.slice(0, 500) : t
+      return t.length > L.comentario_inicial
+        ? t.slice(0, L.comentario_inicial)
+        : t
     })(),
     busca_por_placa: (ticket.busca_por_placa ?? []).map((s) => ({
       plates: (s.plates ?? []).map((p) => p.plate).filter((p) => p?.trim()),

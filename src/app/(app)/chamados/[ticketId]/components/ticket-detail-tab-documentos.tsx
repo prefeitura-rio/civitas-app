@@ -1,11 +1,14 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, FileText, X } from 'lucide-react'
+import { Download, Eye, FileText, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
-import { downloadTicketAttachmentFile } from '@/http/tickets/download-ticket-attachment'
+import {
+  downloadTicketAttachmentFile,
+  fetchTicketAttachmentBlob,
+} from '@/http/tickets/download-ticket-attachment'
 import {
   deleteTicketAttachment,
   getTicketAttachments,
@@ -29,6 +32,7 @@ type Props = {
 export function TicketDetailTabDocumentos({ ticketId }: Props) {
   const queryClient = useQueryClient()
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewingId, setViewingId] = useState<string | null>(null)
 
   const attachmentsQuery = useQuery({
     queryKey: ['ticket-attachments', ticketId],
@@ -67,6 +71,35 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
         await downloadTicketAttachmentFile(a, ticketId)
       } catch {
         toast.error('Não foi possível baixar o anexo.')
+      }
+    },
+    [ticketId],
+  )
+
+  const handleView = useCallback(
+    async (a: { id: string; filename: string }) => {
+      try {
+        setViewingId(a.id)
+        const { blob, contentType } = await fetchTicketAttachmentBlob(
+          ticketId,
+          a.id,
+        )
+        const previewBlob = new Blob([blob], { type: contentType })
+        const previewUrl = URL.createObjectURL(previewBlob)
+        const newTab = window.open(previewUrl, '_blank', 'noopener,noreferrer')
+
+        if (!newTab) {
+          URL.revokeObjectURL(previewUrl)
+          toast.error('Não foi possível abrir a visualização do anexo.')
+          return
+        }
+
+        // Mantém a URL válida tempo suficiente para o navegador carregar o arquivo.
+        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
+      } catch {
+        toast.error('Não foi possível visualizar o anexo.')
+      } finally {
+        setViewingId(null)
       }
     },
     [ticketId],
@@ -143,9 +176,19 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
                   <button
                     type="button"
                     className={styles.docIconBtn}
+                    aria-label={`Visualizar ${att.filename}`}
+                    title="Visualizar anexo"
+                    onClick={() => handleView(att)}
+                    disabled={deletingId === att.id || viewingId === att.id}
+                  >
+                    <Eye size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.docIconBtn}
                     aria-label={`Baixar ${att.filename}`}
                     onClick={() => handleDownload(att)}
-                    disabled={deletingId === att.id}
+                    disabled={deletingId === att.id || viewingId === att.id}
                   >
                     <Download size={18} />
                   </button>
@@ -155,7 +198,7 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
                     aria-label={`Remover ${att.filename}`}
                     title="Remover anexo"
                     onClick={() => handleDelete(att)}
-                    disabled={deletingId === att.id}
+                    disabled={deletingId === att.id || viewingId === att.id}
                   >
                     <X size={18} />
                   </button>

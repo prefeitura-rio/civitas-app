@@ -137,7 +137,11 @@ export const ticketCreateSchema = z.object({
     .string()
     .max(L.numero_oficio, maxMsg(L.numero_oficio))
     .optional()
-    .nullable(),
+    .nullable()
+    .refine(
+      (v) => v == null || v === '' || /^\d{5}\/\d{4}$/.test(v),
+      'Use o formato 00000/0000 (ex.: 00123/2026)',
+    ),
   data_base: z.string().optional().nullable(),
   natureza_id: z.string().min(1, 'Campo obrigatório'),
 

@@ -6,6 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -13,12 +14,15 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Separator } from '@/components/ui/separator'
+import { useEmailNaoLidosCount } from '@/hooks/useQueries/useEmailNaoLidosCount'
 
 import type { Category, ModuleWithChildren } from './constants'
 import { isModuleWithChildren } from './constants'
 import { SidebarButton } from './sidebar-button'
 
 function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
+  const showUnreadBadge = module.ticketScreenCode === 'inbox'
+  const { data: unreadCount } = useEmailNaoLidosCount(showUnreadBadge)
   const LucideIcon = icons[module.icon]
   return (
     <Collapsible className="w-full">
@@ -30,11 +34,25 @@ function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
               className="min-w-0 flex-1 justify-start px-2 group-hover:w-full"
               asChild
             >
-              <Link href={module.path} className="flex items-center gap-2">
+              <Link
+                href={module.path}
+                className="flex min-w-0 flex-1 items-center gap-2"
+              >
                 <LucideIcon className="shrink-0 text-muted-foreground" />
-                <span className="opacity-0 transition-all duration-300 group-hover:opacity-100">
+                <span className="min-w-0 truncate opacity-0 transition-all duration-300 group-hover:opacity-100">
                   {module.title}
                 </span>
+                {showUnreadBadge &&
+                unreadCount != null &&
+                unreadCount.total > 0 ? (
+                  <Badge
+                    variant="secondary"
+                    className="ml-auto shrink-0 px-1.5 py-0 text-[10px] tabular-nums opacity-0 transition-all duration-300 group-hover:opacity-100"
+                    aria-label={`${unreadCount.total} não lidos`}
+                  >
+                    {unreadCount.total > 99 ? '99+' : unreadCount.total}
+                  </Badge>
+                ) : null}
               </Link>
             </Button>
             <CollapsibleTrigger asChild>

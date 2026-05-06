@@ -3,6 +3,7 @@ import { api } from '@/lib/api'
 export type TicketCabecalhoOut = {
   internal_number: string
   status: string
+  tipo_chamado_nome?: string | null
   prioridade?: string | null
   data_base?: string | null
   equipe?: string | null

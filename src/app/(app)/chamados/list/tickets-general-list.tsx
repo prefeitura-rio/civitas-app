@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
+  ClipboardList,
   Search,
   Tag,
 } from 'lucide-react'
@@ -12,6 +13,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,7 +21,6 @@ import {
   type TicketDashboardFilters,
 } from '@/http/tickets/get-tickets-dashboard'
 
-import { useChamadosImpersonation } from '../chamados-impersonation-context'
 import {
   emptyFilters,
   type FilterFormState,
@@ -30,6 +31,8 @@ import styles from './tickets-general-list.module.css'
 type DashboardServiceTag = {
   label: string
 }
+
+const LEVANTAMENTO_PREVIO_TIPO_NOME = 'Levantamento Prévio'
 
 type DashboardItem = {
   id: string
@@ -43,6 +46,7 @@ type DashboardItem = {
   prioridade: string
   dias_atraso: number
   servicos: DashboardServiceTag[]
+  tipo_chamado_nome?: string | null
 }
 
 type DashboardSection = {
@@ -51,14 +55,14 @@ type DashboardSection = {
 }
 
 type TicketDashboardResponse = {
-  pendentes: DashboardSection
-  restritos: DashboardSection
-  aguardando_revisao_adjunto: DashboardSection
-  aguardando_revisao_administrativo: DashboardSection
-  bloqueados: DashboardSection
+  pendentes: DashboardSection | null
+  restritos: DashboardSection | null
+  aguardando_revisao_adjunto: DashboardSection | null
+  aguardando_revisao_administrativo: DashboardSection | null
+  bloqueados: DashboardSection | null
   concluidos_total: number
-  urgentes: DashboardSection
-  em_atraso: DashboardSection
+  urgentes: DashboardSection | null
+  em_atraso: DashboardSection | null
   total: number
   period_days: number
   overdue_after_days: number
@@ -118,6 +122,10 @@ function getPriorityCountBadgeClass(count: number) {
   if (count <= 15) return styles.prioritySuccessBadge
   if (count <= 24) return styles.priorityWarningBadge
   return styles.priorityDangerBadge
+}
+
+function isLevantamentoPrevioTipo(item: DashboardItem) {
+  return item.tipo_chamado_nome?.trim() === LEVANTAMENTO_PREVIO_TIPO_NOME
 }
 
 function getServiceClassName(label: string) {
@@ -220,7 +228,22 @@ function DashboardSectionTable({
                           <AlertTriangle
                             className={styles.warningIcon}
                             size={14}
+                            aria-hidden
                           />
+                        ) : isLevantamentoPrevioTipo(item) ? (
+                          <Tooltip asChild text={LEVANTAMENTO_PREVIO_TIPO_NOME}>
+                            <span
+                              className={
+                                styles.levantamentoPrevioTooltipTrigger
+                              }
+                            >
+                              <ClipboardList
+                                className={styles.levantamentoPrevioIcon}
+                                size={14}
+                                aria-hidden
+                              />
+                            </span>
+                          </Tooltip>
                         ) : null}
                         <span>{item.responsavel}</span>
                       </div>
@@ -270,8 +293,6 @@ function DashboardSectionTable({
                     </td>
                     <td>
                       <div className={styles.priorityCell}>
-                        <span>{normalizePriority(item.prioridade)}</span>
-
                         {badgeValue ? (
                           <span
                             className={getPriorityCountBadgeClass(badgeValue)}
@@ -279,6 +300,9 @@ function DashboardSectionTable({
                             {badgeValue}
                           </span>
                         ) : null}
+                        <span className={styles.priorityLabel}>
+                          {normalizePriority(item.prioridade)}
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -293,7 +317,6 @@ function DashboardSectionTable({
 }
 
 export function TicketsGeneralList() {
-  const { subjectUserId } = useChamadosImpersonation()
   const [periodDays, setPeriodDays] = useState<number>(30)
   const [search, setSearch] = useState<string>('')
   const debouncedSearch = useDebounce(search, 350)
@@ -343,25 +366,32 @@ export function TicketsGeneralList() {
       equipe: appliedFilters.equipe.length
         ? appliedFilters.equipe.map((item) => item.value)
         : undefined,
-      servicos_realizados: appliedFilters.servicos_realizados.length
-        ? appliedFilters.servicos_realizados
+      servicos: appliedFilters.servicos.length
+        ? appliedFilters.servicos.map((item) => item.value)
         : undefined,
     }
   }, [appliedFilters, periodDays, debouncedSearch])
 
   const { data, isLoading, isFetching } = useQuery<TicketDashboardResponse>({
-    queryKey: ['tickets-dashboard', subjectUserId ?? null, dashboardPayload],
+    queryKey: ['tickets-dashboard', dashboardPayload],
     queryFn: () => getTicketsDashboard(dashboardPayload),
     staleTime: 1000 * 60,
   })
 
   const cards = useMemo(() => {
-    return [
+    const list: { value: number; label: string }[] = [
       { value: data?.concluidos_total ?? 0, label: 'Concluídos' },
-      { value: data?.urgentes.total ?? 0, label: 'Urgentes' },
-      { value: data?.em_atraso.total ?? 0, label: 'Em atraso' },
-      { value: data?.bloqueados.total ?? 0, label: 'Bloqueados' },
     ]
+    if (data?.urgentes != null) {
+      list.push({ value: data.urgentes.total, label: 'Urgentes' })
+    }
+    if (data?.em_atraso != null) {
+      list.push({ value: data.em_atraso.total, label: 'Em atraso' })
+    }
+    if (data?.bloqueados != null) {
+      list.push({ value: data.bloqueados.total, label: 'Bloqueados' })
+    }
+    return list
   }, [data])
 
   const activeFiltersCount = useMemo(() => {
@@ -377,7 +407,7 @@ export function TicketsGeneralList() {
       appliedFilters.status.length,
       appliedFilters.prioridade.length,
       appliedFilters.equipe.length,
-      appliedFilters.servicos_realizados.length,
+      appliedFilters.servicos.length,
       appliedFilters.data_base_inicio ? 1 : 0,
       appliedFilters.data_base_fim ? 1 : 0,
       appliedFilters.data_entrada_inicio ? 1 : 0,
@@ -472,17 +502,22 @@ export function TicketsGeneralList() {
 
         {!isLoading && data ? (
           <>
-            {sections.map((section) => (
-              <DashboardSectionTable
-                key={section.key}
-                title={section.label}
-                total={data[section.key].total}
-                items={data[section.key].items}
-                isOpen={openSections[section.key]}
-                onToggle={() => toggleSection(section.key)}
-                showWarningIcon={section.key === 'bloqueados'}
-              />
-            ))}
+            {sections
+              .filter((section) => data[section.key] != null)
+              .map((section) => {
+                const block = data[section.key]!
+                return (
+                  <DashboardSectionTable
+                    key={section.key}
+                    title={section.label}
+                    total={block.total}
+                    items={block.items}
+                    isOpen={openSections[section.key]}
+                    onToggle={() => toggleSection(section.key)}
+                    showWarningIcon={section.key === 'bloqueados'}
+                  />
+                )
+              })}
           </>
         ) : null}
 

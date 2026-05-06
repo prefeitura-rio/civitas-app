@@ -19,6 +19,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
   Administrativo: 'Administrativo',
   Adjunto: 'Adjunto',
+  Assessor: 'Assessor',
   'Líder de Ilha': 'Líder de Ilha',
   Operador: 'Operador',
 }
@@ -27,6 +28,7 @@ const roleBadgeStyleMap: Record<UserRoleEnum, string> = {
   Coordenador: styles.perfisBadgeCoordenador,
   Administrativo: styles.perfisBadgeAdministrativo,
   Adjunto: styles.perfisBadgeAdjunto,
+  Assessor: styles.perfisBadgeAssessor,
   'Líder de Ilha': styles.perfisBadgeLiderIlha,
   Operador: styles.perfisBadgeOperador,
 }

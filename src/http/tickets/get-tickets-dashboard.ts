@@ -23,7 +23,8 @@ export type TicketDashboardFilters = {
   status?: string[]
   prioridade?: string[]
   equipe?: string[]
-  servicos_realizados?: string[]
+  /** Valores da API, ex.: plate_search_services */
+  servicos?: string[]
 }
 
 export async function getTicketsDashboard(filters: TicketDashboardFilters) {
@@ -50,7 +51,7 @@ export async function getTicketsDashboard(filters: TicketDashboardFilters) {
     status: filters.status,
     prioridade: filters.prioridade,
     equipe: filters.equipe,
-    servicos_realizados: filters.servicos_realizados,
+    servicos: filters.servicos,
   })
 
   return response.data

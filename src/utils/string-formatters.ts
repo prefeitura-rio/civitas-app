@@ -86,6 +86,35 @@ export function unmaskPlateBR(value: string): string {
   return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
 }
 
+const NUMERO_OFICIO_NUM_LEN = 5
+const NUMERO_OFICIO_YEAR_LEN = 4
+const NUMERO_OFICIO_MAX_DIGITS = NUMERO_OFICIO_NUM_LEN + NUMERO_OFICIO_YEAR_LEN
+
+/** Máscara visual: até 5 dígitos do número + / + até 4 dígitos do ano (ex.: 00123/2026). */
+export function maskNumeroOficio(value: string): string {
+  const d = value.replace(/\D/g, '').slice(0, NUMERO_OFICIO_MAX_DIGITS)
+  const num = d.slice(0, NUMERO_OFICIO_NUM_LEN)
+  const year = d.slice(NUMERO_OFICIO_NUM_LEN)
+  if (!year) return num
+  return `${num}/${year}`
+}
+
+/**
+ * Normaliza no blur: número com 5 dígitos (zeros à esquerda) e, se houver ano, / + 4 dígitos.
+ */
+export function normalizeNumeroOficio(value: string): string {
+  const d = value.replace(/\D/g, '').slice(0, NUMERO_OFICIO_MAX_DIGITS)
+  if (!d) return ''
+  const num = padDigitsLeft(
+    d.slice(0, NUMERO_OFICIO_NUM_LEN),
+    NUMERO_OFICIO_NUM_LEN,
+  )
+  const yearDigits = d.slice(NUMERO_OFICIO_NUM_LEN)
+  if (!yearDigits) return num
+  const year = padDigitsLeft(yearDigits, NUMERO_OFICIO_YEAR_LEN)
+  return `${num}/${year}`
+}
+
 export function maskPhoneBR(value: string) {
   const n = value.replace(/\D/g, '').slice(0, 11)
   if (n.length === 0) return ''

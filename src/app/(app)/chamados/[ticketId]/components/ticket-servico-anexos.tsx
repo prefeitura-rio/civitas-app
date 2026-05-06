@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Copy,
   Download,
+  Eye,
   FileText,
   Loader2,
   Paperclip,
@@ -14,7 +15,11 @@ import {
 import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import { downloadTicketAttachmentFile } from '@/http/tickets/download-ticket-attachment'
+import {
+  downloadTicketAttachmentFile,
+  fetchTicketAttachmentBlob,
+  fetchTicketServiceAttachmentBlob,
+} from '@/http/tickets/download-ticket-attachment'
 import {
   completeTicketVideoAttachment,
   deleteTicketAttachment,
@@ -104,6 +109,9 @@ type Props = {
   serviceScope: TicketAttachmentMultipartMetadata | null
   uploadBlocked?: boolean
   uploadBlockedMessage?: string
+  pendingFiles?: File[]
+  onQueuePendingFiles?: (files: File[]) => void
+  onRemovePendingFile?: (index: number) => void
 }
 
 export function TicketServicoAnexos({
@@ -114,11 +122,15 @@ export function TicketServicoAnexos({
   serviceScope,
   uploadBlocked = false,
   uploadBlockedMessage = 'Guarde os serviços para anexar ficheiros a este serviço.',
+  pendingFiles = [],
+  onQueuePendingFiles,
+  onRemovePendingFile,
 }: Props) {
   const queryClient = useQueryClient()
   const uploadRef = useRef<HTMLInputElement>(null)
 
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewingId, setViewingId] = useState<string | null>(null)
   const [videoCopyingId, setVideoCopyingId] = useState<string | null>(null)
   const [videoRefreshingId, setVideoRefreshingId] = useState<string | null>(
     null,
@@ -236,6 +248,33 @@ export function TicketServicoAnexos({
     [serviceScope, ticketId],
   )
 
+  const handleView = useCallback(
+    async (att: TicketAttachmentOut) => {
+      try {
+        setViewingId(att.id)
+        const { blob, contentType } = serviceScope
+          ? await fetchTicketServiceAttachmentBlob(ticketId, att.id)
+          : await fetchTicketAttachmentBlob(ticketId, att.id)
+        const previewBlob = new Blob([blob], { type: contentType })
+        const previewUrl = URL.createObjectURL(previewBlob)
+        const newTab = window.open(previewUrl, '_blank', 'noopener,noreferrer')
+
+        if (!newTab) {
+          URL.revokeObjectURL(previewUrl)
+          toast.error('Não foi possível abrir a visualização do anexo.')
+          return
+        }
+
+        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
+      } catch {
+        toast.error('Não foi possível visualizar o anexo.')
+      } finally {
+        setViewingId(null)
+      }
+    },
+    [serviceScope, ticketId],
+  )
+
   const resolvePlaybackUrl = useCallback(
     (att: TicketAttachmentOut) =>
       videoPlaybackOverrides[att.id]?.signedUrl ??
@@ -336,6 +375,12 @@ export function TicketServicoAnexos({
           e.target.value = ''
           return
         }
+        if (uploadBlocked && onQueuePendingFiles) {
+          onQueuePendingFiles(videoFiles)
+          toast.success('Vídeo adicionado. Será enviado após guardar serviços.')
+          e.target.value = ''
+          return
+        }
         videoMutation.mutate(videoFile)
         e.target.value = ''
         return
@@ -349,10 +394,20 @@ export function TicketServicoAnexos({
         e.target.value = ''
         return
       }
+
+      if (uploadBlocked && onQueuePendingFiles) {
+        onQueuePendingFiles(files)
+        toast.success(
+          'Anexos adicionados. Serão enviados após guardar serviços.',
+        )
+        e.target.value = ''
+        return
+      }
+
       multipartMutation.mutate(nonVideoFiles)
       e.target.value = ''
     },
-    [multipartMutation, videoMutation],
+    [multipartMutation, onQueuePendingFiles, uploadBlocked, videoMutation],
   )
 
   const busy =
@@ -360,7 +415,8 @@ export function TicketServicoAnexos({
     videoMutation.isPending ||
     deleteMutation.isPending
 
-  const canUpload = !readOnly && !uploadBlocked && !busy
+  const canUpload =
+    !readOnly && !busy && (!uploadBlocked || !!onQueuePendingFiles)
   const nonVideoAttachments = attachments.filter(
     (att) => !isVideoAttachment(att),
   )
@@ -368,7 +424,7 @@ export function TicketServicoAnexos({
 
   return (
     <div
-      className={`${styles.servicoAnexos}${readOnly ? ` ${styles.servicoAnexosReadOnly}` : ''}`}
+      className={`${styles.servicoAnexos}${readOnly ? ` ${styles.servicoAnexosReadOnly}` : ''}${uploadBlocked && !readOnly ? ` ${styles.servicoAnexosBlocked}` : ''}`}
     >
       <div className={styles.servicoAnexosHeader}>
         <span className={styles.servicoAnexosTitle}>{title}</span>
@@ -412,7 +468,53 @@ export function TicketServicoAnexos({
       </div>
 
       {uploadBlocked && !readOnly ? (
-        <p className={styles.servicoAnexosHint}>{uploadBlockedMessage}</p>
+        <p className={styles.servicoAnexosHint}>
+          {uploadBlockedMessage}
+          {pendingFiles.length > 0
+            ? ` (${pendingFiles.length} pendente${pendingFiles.length > 1 ? 's' : ''})`
+            : ''}
+        </p>
+      ) : null}
+
+      {pendingFiles.length > 0 ? (
+        <div className={styles.servicoAnexosList}>
+          <div className={styles.docGrid}>
+            {pendingFiles.map((file, index) => (
+              <div
+                key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+                className={styles.docCard}
+              >
+                <div className={styles.docCardLeft}>
+                  <div className={styles.docPdfIcon} aria-hidden>
+                    <FileText size={20} />
+                  </div>
+                  <div className={styles.docInfo}>
+                    <p className={styles.docName} title={file.name}>
+                      {file.name}
+                    </p>
+                    <p className={styles.docSize}>
+                      {formatBytes(file.size)} - Pendente
+                    </p>
+                  </div>
+                </div>
+                <div className={styles.docCardActions}>
+                  {!readOnly && onRemovePendingFile ? (
+                    <button
+                      type="button"
+                      className={styles.docIconBtn}
+                      aria-label={`Remover pendente ${file.name}`}
+                      title="Remover pendente"
+                      onClick={() => onRemovePendingFile(index)}
+                      disabled={busy}
+                    >
+                      <X size={16} />
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : null}
 
       {attachments.length === 0 ? (
@@ -441,12 +543,28 @@ export function TicketServicoAnexos({
                       <button
                         type="button"
                         className={styles.docIconBtn}
+                        aria-label={`Visualizar ${att.filename}`}
+                        title="Visualizar anexo"
+                        onClick={() => {
+                          handleView(att).catch(() => {})
+                        }}
+                        disabled={
+                          deletingId === att.id || viewingId === att.id || busy
+                        }
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.docIconBtn}
                         aria-label={`Baixar ${att.filename}`}
                         title="Descarregar"
                         onClick={() => {
                           handleDownload(att).catch(() => {})
                         }}
-                        disabled={deletingId === att.id || busy}
+                        disabled={
+                          deletingId === att.id || viewingId === att.id || busy
+                        }
                       >
                         <Download size={16} />
                       </button>
@@ -457,7 +575,11 @@ export function TicketServicoAnexos({
                           aria-label={`Remover ${att.filename}`}
                           title="Remover"
                           onClick={() => handleDelete(att)}
-                          disabled={deletingId === att.id || busy}
+                          disabled={
+                            deletingId === att.id ||
+                            viewingId === att.id ||
+                            busy
+                          }
                         >
                           <X size={16} />
                         </button>

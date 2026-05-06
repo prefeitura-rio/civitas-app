@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { TICKET_CREATE_STRING_LIMITS as CREATE_STR_LIMITS } from '@/app/(app)/chamados/criar/ticket-create/ticket-create.constant'
 import {
   Select,
   SelectContent,
@@ -28,6 +29,10 @@ import {
 } from '@/http/tickets/ticket-ficha'
 import { isApiError } from '@/lib/api'
 import { getApiErrorMessage } from '@/utils/error-handlers'
+import {
+  maskNumeroOficio,
+  normalizeNumeroOficio,
+} from '@/utils/string-formatters'
 
 import styles from '../ticket-detail.module.css'
 
@@ -92,7 +97,12 @@ function mapOutToDraft(f: TicketFichaOut): TicketFichaUpdateIn {
     numero_procedimento: f.numero_procedimento?.trim()
       ? f.numero_procedimento.trim()
       : null,
-    numero_oficio: f.numero_oficio?.trim() ? f.numero_oficio.trim() : null,
+    numero_oficio: (() => {
+      const t = f.numero_oficio?.trim()
+      if (!t) return null
+      const n = normalizeNumeroOficio(t)
+      return n || null
+    })(),
     natureza_id: f.natureza_id?.trim() ? f.natureza_id.trim() : null,
     possui_apelido_imprensa: f.possui_apelido_imprensa,
     apelido_imprensa: f.apelido_imprensa?.trim()
@@ -233,10 +243,12 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
       return
     }
 
-    const oficio = draft.numero_oficio?.trim() ?? ''
+    const oficio = normalizeNumeroOficio(draft.numero_oficio?.trim() ?? '')
     const proc = draft.numero_procedimento?.trim() ?? ''
-    if (oficio.length > MAX_OFICIO_PROC) {
-      toast.error(`Nº de ofício: no máximo ${MAX_OFICIO_PROC} caracteres.`)
+    if (oficio && !/^\d{5}\/\d{4}$/.test(oficio)) {
+      toast.error(
+        'Nº de ofício: use o formato 00000/0000 (ex.: 00123/2026), ou deixe em branco.',
+      )
       return
     }
     if (proc.length > MAX_OFICIO_PROC) {
@@ -337,7 +349,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                   disabled={ticketTypesQuery.isLoading}
                 >
                   <SelectTrigger
-                    className={`h-11 ${styles.detailSelectTrigger}`}
+                    className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
                   >
                     <SelectValue
                       placeholder={
@@ -361,9 +373,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 </Select>
               ) : (
                 <div
-                  className={`${styles.readonlyInput} ${
-                    hasTipoNome ? '' : styles.readonlyInputMuted
-                  }`}
+                  className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                 >
                   {tipoNomeReadonly}
                 </div>
@@ -373,7 +383,9 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
               <div className={styles.subLabel}>
                 <span className={styles.subLabelText}>Nº interno</span>
               </div>
-              <div className={styles.readonlyInput}>
+              <div
+                className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
+              >
                 {formatNumeroInterno(view.numero_interno ?? null)}
               </div>
             </div>
@@ -386,22 +398,37 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
               </div>
               {isEditing ? (
                 <input
-                  className={styles.editableField}
+                  className={`${styles.editableField} ${styles.solicitanteEditField}`}
                   value={d.numero_oficio ?? ''}
-                  maxLength={MAX_OFICIO_PROC}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={CREATE_STR_LIMITS.numero_oficio}
+                  onBlur={() =>
+                    setDraft((prev) => {
+                      if (!prev) return prev
+                      const raw = (prev.numero_oficio ?? '').trim()
+                      if (!raw) return { ...prev, numero_oficio: null }
+                      const normalized = normalizeNumeroOficio(raw)
+                      return normalized === prev.numero_oficio
+                        ? prev
+                        : { ...prev, numero_oficio: normalized || null }
+                    })
+                  }
                   onChange={(e) =>
                     setDraft((prev) =>
                       prev
-                        ? { ...prev, numero_oficio: e.target.value || null }
+                        ? {
+                            ...prev,
+                            numero_oficio:
+                              maskNumeroOficio(e.target.value) || null,
+                          }
                         : prev,
                     )
                   }
                 />
               ) : (
                 <div
-                  className={`${styles.readonlyInput} ${
-                    view.numero_oficio?.trim() ? '' : styles.readonlyInputMuted
-                  }`}
+                  className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                 >
                   {displayText(view.numero_oficio)}
                 </div>
@@ -413,7 +440,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
               </div>
               {isEditing ? (
                 <input
-                  className={styles.editableField}
+                  className={`${styles.editableField} ${styles.solicitanteEditField}`}
                   value={d.numero_procedimento ?? ''}
                   maxLength={MAX_OFICIO_PROC}
                   onChange={(e) =>
@@ -429,11 +456,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 />
               ) : (
                 <div
-                  className={`${styles.readonlyInput} ${
-                    view.numero_procedimento?.trim()
-                      ? ''
-                      : styles.readonlyInputMuted
-                  }`}
+                  className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                 >
                   {displayText(view.numero_procedimento)}
                 </div>
@@ -465,7 +488,9 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 }
                 disabled={operationsQuery.isLoading}
               >
-                <SelectTrigger className={`h-11 ${styles.detailSelectTrigger}`}>
+                <SelectTrigger
+                  className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
+                >
                   <SelectValue
                     placeholder={
                       operationsQuery.isLoading ? 'Carregando…' : undefined
@@ -494,13 +519,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
               </Select>
             ) : (
               <div className={styles.readonlySelect}>
-                <span
-                  className={
-                    orgaoReadonlyTitle && orgaoReadonlyTitle !== 'Carregando…'
-                      ? ''
-                      : styles.readonlySelectMuted
-                  }
-                >
+                <span className={styles.solicitanteReadOnlyText}>
                   {selectedOrgaoId
                     ? displayText(orgaoReadonlyTitle || null)
                     : '—'}
@@ -531,7 +550,9 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 }
                 disabled={ticketNaturesQuery.isLoading}
               >
-                <SelectTrigger className={`h-11 ${styles.detailSelectTrigger}`}>
+                <SelectTrigger
+                  className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
+                >
                   <SelectValue
                     placeholder={
                       ticketNaturesQuery.isLoading ? 'Carregando…' : 'Selecione'
@@ -554,11 +575,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
               </Select>
             ) : (
               <div className={styles.readonlySelect}>
-                <span
-                  className={
-                    view.natureza_nome?.trim() ? '' : styles.readonlySelectMuted
-                  }
-                >
+                <span className={styles.solicitanteReadOnlyText}>
                   {view.natureza_nome?.trim()
                     ? view.natureza_nome
                     : 'Selecione'}
@@ -602,7 +619,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                   }
                 >
                   <SelectTrigger
-                    className={`h-11 ${styles.detailSelectTrigger}`}
+                    className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -617,7 +634,9 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 </Select>
               ) : (
                 <div className={styles.readonlySelect}>
-                  <span>{pressSimNao}</span>
+                  <span className={styles.solicitanteReadOnlyText}>
+                    {pressSimNao}
+                  </span>
                   <ChevronDown
                     size={20}
                     className={styles.readonlySelectMuted}
@@ -635,7 +654,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 </div>
                 {isEditing ? (
                   <input
-                    className={styles.editableField}
+                    className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     value={d.apelido_imprensa ?? ''}
                     maxLength={MAX_APELIDO}
                     onChange={(e) =>
@@ -651,11 +670,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                   />
                 ) : (
                   <div
-                    className={`${styles.readonlyInput} ${
-                      view.apelido_imprensa?.trim()
-                        ? ''
-                        : styles.readonlyInputMuted
-                    }`}
+                    className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
                     {displayText(view.apelido_imprensa)}
                   </div>
@@ -667,7 +682,7 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 </div>
                 {isEditing ? (
                   <input
-                    className={styles.editableField}
+                    className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     type="url"
                     value={d.link_materia ?? ''}
                     onChange={(e) =>

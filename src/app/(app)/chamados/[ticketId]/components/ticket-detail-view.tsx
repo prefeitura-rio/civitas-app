@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { type QueryClient, useMutation, useQuery } from '@tanstack/react-query'
 import {
   ChevronDown,
   ChevronLeft,
@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -41,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import {
   getTeamMembersByRole,
   type TeamMemberUserOut,
@@ -125,6 +127,23 @@ function formatReassignPriorityLabel(priority: TicketReassignPriority) {
   return 'Rotina'
 }
 
+/** Refaz o dashboard mesmo com a listagem desmontada (queries inativas). */
+async function invalidateChamadosAfterMutation(
+  client: QueryClient,
+  currentTicketId: string,
+) {
+  await Promise.all([
+    client.invalidateQueries({ queryKey: ['ticket', currentTicketId] }),
+    client.invalidateQueries({
+      queryKey: ['ticket', currentTicketId, 'allowed-actions'],
+    }),
+    client.invalidateQueries({
+      queryKey: ['tickets-dashboard'],
+      refetchType: 'all',
+    }),
+  ])
+}
+
 type Props = {
   ticketId: string
 }
@@ -133,6 +152,7 @@ type TicketWorkflowConfirmableAction =
   | 'FINALIZAR_SEM_ENCAMINHAR'
   | 'ENVIAR_EMAIL'
   | 'BLOQUEAR'
+  | 'DESBLOQUEAR'
 
 export function TicketDetailView({ ticketId }: Props) {
   const router = useRouter()
@@ -147,6 +167,8 @@ export function TicketDetailView({ ticketId }: Props) {
   const [finalizeOpen, setFinalizeOpen] = useState(false)
   const [workflowConfirmAction, setWorkflowConfirmAction] =
     useState<TicketWorkflowConfirmableAction | null>(null)
+  const [sendToReviewOpen, setSendToReviewOpen] = useState(false)
+  const [sendToReviewComment, setSendToReviewComment] = useState('')
   const [reassignOpen, setReassignOpen] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [selectedResponsibleIds, setSelectedResponsibleIds] = useState<
@@ -191,6 +213,7 @@ export function TicketDetailView({ ticketId }: Props) {
   const canSendEmail = allowedActionIds.includes('ENVIAR_EMAIL')
   const canSendToReview = allowedActionIds.includes('ENVIAR_PARA_REVISAO')
   const canBlockTicket = allowedActionIds.includes('BLOQUEAR')
+  const canUnblockTicket = allowedActionIds.includes('DESBLOQUEAR')
   const canFinalizeWithoutForwarding = allowedActionIds.includes(
     'FINALIZAR_SEM_ENCAMINHAR',
   )
@@ -214,21 +237,20 @@ export function TicketDetailView({ ticketId }: Props) {
   })
 
   const finalizeMutation = useMutation({
-    mutationFn: () => applyTicketWorkflowAction(ticketId, 'FINALIZAR_CHAMADO'),
-    onSuccess: (response: ApplyTicketWorkflowActionOut) => {
-      queryClient
-        .invalidateQueries({ queryKey: ['ticket', ticketId] })
-        .catch(() => {})
-      queryClient
-        .invalidateQueries({
-          queryKey: ['ticket', ticketId, 'allowed-actions'],
-        })
-        .catch(() => {})
-      queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
-      toast.success('Chamado finalizado e enviado para revisão.')
-      if (!response.is_actor_responsible) {
-        router.push('/chamados')
+    mutationFn: () =>
+      applyTicketWorkflowAction(ticketId, 'FINALIZAR_CHAMADO', {
+        comentario: null,
+      }),
+    onSuccess: async () => {
+      try {
+        await invalidateChamadosAfterMutation(queryClient, ticketId)
+      } catch {
+        /* noop */
       }
+      toast.success('Chamado finalizado e enviado para revisão.')
+      setTimeout(() => {
+        router.push('/chamados')
+      }, 1500)
     },
     onError: (error: unknown) => {
       toast.error(getApiErrorMessage(error))
@@ -242,18 +264,17 @@ export function TicketDetailView({ ticketId }: Props) {
         responsavel_ids: selectedResponsibleIds,
         prioridade: selectedPriority,
       }),
-    onSuccess: () => {
-      queryClient
-        .invalidateQueries({ queryKey: ['ticket', ticketId] })
-        .catch(() => {})
-      queryClient
-        .invalidateQueries({
-          queryKey: ['ticket', ticketId, 'allowed-actions'],
-        })
-        .catch(() => {})
-      queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
+    onSuccess: async () => {
+      try {
+        await invalidateChamadosAfterMutation(queryClient, ticketId)
+      } catch {
+        /* noop */
+      }
       toast.success('Chamado reatribuído com sucesso.')
       setReassignOpen(false)
+      setTimeout(() => {
+        router.push('/chamados')
+      }, 1500)
     },
     onError: (error: unknown) => {
       toast.error(getApiErrorMessage(error))
@@ -261,28 +282,36 @@ export function TicketDetailView({ ticketId }: Props) {
   })
 
   const workflowActionMutation = useMutation({
-    mutationFn: ({ actionId }: { actionId: string }) =>
-      applyTicketWorkflowAction(ticketId, actionId),
-    onSuccess: (
-      response: ApplyTicketWorkflowActionOut,
-      variables: { actionId: string },
+    mutationFn: ({
+      actionId,
+      comentario,
+    }: {
+      actionId: string
+      comentario?: string | null
+    }) =>
+      applyTicketWorkflowAction(ticketId, actionId, {
+        comentario: comentario ?? null,
+      }),
+    onSuccess: async (
+      _response: ApplyTicketWorkflowActionOut,
+      variables: { actionId: string; comentario?: string | null },
     ) => {
-      queryClient
-        .invalidateQueries({ queryKey: ['ticket', ticketId] })
-        .catch(() => {})
-      queryClient
-        .invalidateQueries({
-          queryKey: ['ticket', ticketId, 'allowed-actions'],
-        })
-        .catch(() => {})
-      queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
+      try {
+        await invalidateChamadosAfterMutation(queryClient, ticketId)
+      } catch {
+        /* noop */
+      }
 
       if (variables.actionId === 'ENVIAR_EMAIL') {
         toast.success('E-mail enviado com sucesso.')
       } else if (variables.actionId === 'ENVIAR_PARA_REVISAO') {
+        setSendToReviewOpen(false)
+        setSendToReviewComment('')
         toast.success('Chamado enviado para revisão com sucesso.')
       } else if (variables.actionId === 'BLOQUEAR') {
         toast.success('Chamado bloqueado com sucesso.')
+      } else if (variables.actionId === 'DESBLOQUEAR') {
+        toast.success('Chamado desbloqueado com sucesso.')
       } else if (variables.actionId === 'FINALIZAR_SEM_ENCAMINHAR') {
         toast.success('Chamado finalizado sem encaminhamento.')
       } else if (variables.actionId === 'REABRIR_DEMANDA') {
@@ -290,9 +319,9 @@ export function TicketDetailView({ ticketId }: Props) {
       } else {
         toast.success('Ação aplicada com sucesso.')
       }
-      if (!response.is_actor_responsible) {
+      setTimeout(() => {
         router.push('/chamados')
-      }
+      }, 1500)
     },
     onError: (error: unknown) => {
       toast.error(getApiErrorMessage(error))
@@ -459,7 +488,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 <ChevronLeft size={18} />
               </Link>
               <p className={styles.title} role="heading" aria-level={1}>
-                {`Chamado #${cab.internal_number}`}
+                {`Chamado #${cab.internal_number} - ${displayText(cab.tipo_chamado_nome)}`}
               </p>
             </div>
             <span className={styles.statusBadge}>
@@ -573,11 +602,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() =>
-                workflowActionMutation.mutate({
-                  actionId: 'ENVIAR_PARA_REVISAO',
-                })
-              }
+              onClick={() => setSendToReviewOpen(true)}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -595,6 +620,18 @@ export function TicketDetailView({ ticketId }: Props) {
               {workflowActionMutation.isPending
                 ? 'Aplicando ação…'
                 : 'Bloquear'}
+            </button>
+          ) : null}
+          {canUnblockTicket ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionSecondary}`}
+              onClick={() => setWorkflowConfirmAction('DESBLOQUEAR')}
+              disabled={workflowActionMutation.isPending}
+            >
+              {workflowActionMutation.isPending
+                ? 'Aplicando ação…'
+                : 'Desbloquear'}
             </button>
           ) : null}
           {canReopenDemand ? (
@@ -721,7 +758,9 @@ export function TicketDetailView({ ticketId }: Props) {
                     ? 'Enviar e-mail?'
                     : workflowConfirmAction === 'BLOQUEAR'
                       ? 'Bloquear chamado?'
-                      : 'Confirmar ação'}
+                      : workflowConfirmAction === 'DESBLOQUEAR'
+                        ? 'Desbloquear chamado?'
+                        : 'Confirmar ação'}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {workflowConfirmAction === 'FINALIZAR_SEM_ENCAMINHAR'
@@ -730,7 +769,9 @@ export function TicketDetailView({ ticketId }: Props) {
                     ? 'Será disparado o e-mail conforme o fluxo do chamado. Deseja continuar?'
                     : workflowConfirmAction === 'BLOQUEAR'
                       ? 'O chamado ficará bloqueado conforme as regras do sistema. Deseja continuar?'
-                      : null}
+                      : workflowConfirmAction === 'DESBLOQUEAR'
+                        ? 'O chamado será desbloqueado e seguirá o fluxo configurado. Deseja continuar?'
+                        : null}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -752,6 +793,63 @@ export function TicketDetailView({ ticketId }: Props) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog
+          open={sendToReviewOpen}
+          onOpenChange={(open) => {
+            setSendToReviewOpen(open)
+            if (!open) setSendToReviewComment('')
+          }}
+        >
+          <DialogContent className="sm:max-w-[540px]">
+            <DialogHeader>
+              <DialogTitle>Enviar para revisão</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Adicione um comentário para registrar o contexto da revisão.
+              </p>
+              <Textarea
+                value={sendToReviewComment}
+                onChange={(event) => setSendToReviewComment(event.target.value)}
+                placeholder="Digite o comentário da revisão"
+                className="min-h-[120px]"
+                disabled={workflowActionMutation.isPending}
+              />
+            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
+                onClick={() => {
+                  setSendToReviewOpen(false)
+                  setSendToReviewComment('')
+                }}
+                disabled={workflowActionMutation.isPending}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+                disabled={
+                  workflowActionMutation.isPending ||
+                  sendToReviewComment.trim().length === 0
+                }
+                onClick={() =>
+                  workflowActionMutation.mutate({
+                    actionId: 'ENVIAR_PARA_REVISAO',
+                    comentario: sendToReviewComment.trim(),
+                  })
+                }
+              >
+                {workflowActionMutation.isPending
+                  ? 'Aplicando ação…'
+                  : 'Confirmar'}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog
           open={oficioOpen}
