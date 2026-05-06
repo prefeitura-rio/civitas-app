@@ -1,6 +1,5 @@
 'use client'
 
-import { useQueryClient } from '@tanstack/react-query'
 import {
   createContext,
   useCallback,
@@ -33,7 +32,6 @@ export function ChamadosImpersonationProvider({
 }: {
   children: React.ReactNode
 }) {
-  const queryClient = useQueryClient()
   const [subjectUserId, setSubjectUserId] = useState<string | null>(null)
   const [subjectLabel, setSubjectLabel] = useState<string | null>(null)
 
@@ -43,43 +41,23 @@ export function ChamadosImpersonationProvider({
     setSubjectLabel(getChamadosImpersonateUserLabel())
   }, [])
 
-  const invalidateChamadosQueries = useCallback(() => {
-    queryClient
-      .invalidateQueries({
-        queryKey: ['tickets'],
-        refetchType: 'active',
-      })
-      .catch(() => {})
-    queryClient
-      .invalidateQueries({
-        queryKey: ['tickets', 'module-screen-permissions'],
-        refetchType: 'active',
-      })
-      .catch(() => {})
-  }, [queryClient])
-
-  const setImpersonation = useCallback(
-    (id: string, label: string) => {
-      setChamadosImpersonationStorage(id, label)
-      setSubjectUserId(id)
-      setSubjectLabel(label)
-      invalidateChamadosQueries()
-      if (typeof window !== 'undefined') {
-        window.location.reload()
-      }
-    },
-    [invalidateChamadosQueries],
-  )
+  const setImpersonation = useCallback((id: string, label: string) => {
+    setChamadosImpersonationStorage(id, label)
+    setSubjectUserId(id)
+    setSubjectLabel(label)
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+    }
+  }, [])
 
   const clearImpersonation = useCallback(() => {
     clearChamadosImpersonationStorage()
     setSubjectUserId(null)
     setSubjectLabel(null)
-    invalidateChamadosQueries()
     if (typeof window !== 'undefined') {
       window.location.reload()
     }
-  }, [invalidateChamadosQueries])
+  }, [])
 
   const value = useMemo(
     () => ({

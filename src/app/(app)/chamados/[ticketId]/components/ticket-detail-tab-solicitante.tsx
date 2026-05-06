@@ -263,7 +263,9 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
               }
               disabled={operationsQuery.isLoading}
             >
-              <SelectTrigger className={`h-11 ${styles.detailSelectTrigger}`}>
+              <SelectTrigger
+                className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
+              >
                 <SelectValue
                   placeholder={
                     operationsQuery.isLoading ? 'Carregando…' : 'Selecione'
@@ -288,11 +290,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
             </Select>
           ) : (
             <div className={styles.readonlySelect}>
-              <span
-                className={
-                  view.demandante?.trim() ? '' : styles.readonlySelectMuted
-                }
-              >
+              <span className={styles.solicitanteReadOnlyText}>
                 {displayText(view.demandante)}
               </span>
               <ChevronDown
@@ -321,7 +319,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                 </div>
                 {isEditing ? (
                   <input
-                    className={styles.editableField}
+                    className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     value={d.requisitante.requisitante_nome}
                     onChange={(e) =>
                       setRequisitante({ requisitante_nome: e.target.value })
@@ -330,11 +328,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                   />
                 ) : (
                   <div
-                    className={`${styles.readonlyInput} ${
-                      view.requisitante.requisitante_nome
-                        ? ''
-                        : styles.readonlyInputMuted
-                    }`}
+                    className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
                     {displayText(view.requisitante.requisitante_nome)}
                   </div>
@@ -348,7 +342,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                 </div>
                 {isEditing ? (
                   <input
-                    className={styles.editableField}
+                    className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     value={d.requisitante.requisitante_telefone ?? ''}
                     onChange={(e) =>
                       setRequisitante({
@@ -359,11 +353,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                   />
                 ) : (
                   <div
-                    className={`${styles.readonlyInput} ${
-                      view.requisitante.requisitante_telefone
-                        ? ''
-                        : styles.readonlyInputMuted
-                    }`}
+                    className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
                     {displayText(view.requisitante.requisitante_telefone)}
                   </div>
@@ -375,7 +365,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                 </div>
                 {isEditing ? (
                   <input
-                    className={styles.editableField}
+                    className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     type="email"
                     value={d.requisitante.requisitante_email}
                     onChange={(e) =>
@@ -384,7 +374,9 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                     autoComplete="email"
                   />
                 ) : (
-                  <div className={styles.readonlyInput}>
+                  <div
+                    className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
+                  >
                     {displayText(view.requisitante.requisitante_email)}
                   </div>
                 )}
@@ -411,7 +403,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                       <span className={styles.subLabelText}>{label}</span>
                     </div>
                     <div
-                      className={`${styles.readonlyInput} ${styles.readonlyInputMuted}`}
+                      className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                     >
                       —
                     </div>
@@ -427,7 +419,9 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                       <div className={styles.subLabel}>
                         <span className={styles.subLabelText}>Nome</span>
                       </div>
-                      <div className={styles.readonlyInput}>
+                      <div
+                        className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
+                      >
                         {displayText(fp.nome)}
                       </div>
                     </div>
@@ -436,9 +430,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                         <span className={styles.subLabelText}>Contato</span>
                       </div>
                       <div
-                        className={`${styles.readonlyInput} ${
-                          fp.telefone ? '' : styles.readonlyInputMuted
-                        }`}
+                        className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                       >
                         {displayText(fp.telefone)}
                       </div>
@@ -448,9 +440,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                         <span className={styles.subLabelText}>Email</span>
                       </div>
                       <div
-                        className={`${styles.readonlyInput} ${
-                          fp.email ? '' : styles.readonlyInputMuted
-                        }`}
+                        className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                       >
                         {displayText(fp.email)}
                       </div>
@@ -465,7 +455,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                           <span className={styles.subLabelText}>Nome</span>
                         </div>
                         <input
-                          className={styles.editableField}
+                          className={`${styles.editableField} ${styles.solicitanteEditField}`}
                           value={fp.nome}
                           onChange={(e) =>
                             setFocal(index, { nome: e.target.value })
@@ -478,7 +468,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                           <span className={styles.subLabelText}>Contato</span>
                         </div>
                         <input
-                          className={styles.editableField}
+                          className={`${styles.editableField} ${styles.solicitanteEditField}`}
                           value={fp.telefone ?? ''}
                           onChange={(e) =>
                             setFocal(index, {
@@ -493,7 +483,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                           <span className={styles.subLabelText}>Email</span>
                         </div>
                         <input
-                          className={styles.editableField}
+                          className={`${styles.editableField} ${styles.solicitanteEditField}`}
                           type="email"
                           value={fp.email ?? ''}
                           onChange={(e) =>

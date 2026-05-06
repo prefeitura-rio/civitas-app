@@ -19,6 +19,10 @@ export interface EmailPageOut {
   total: number
 }
 
+export interface EmailUnreadCountOut {
+  total: number
+}
+
 export function getEmails({
   page,
   pageSize,
@@ -41,6 +45,13 @@ export function getEmailsNaoLidos({
   return api.get<EmailPageOut>('/emails/nao-lidos', {
     params: { page, pageSize },
   })
+}
+
+export async function getEmailNaoLidosCount() {
+  const response = await api.get<EmailUnreadCountOut>(
+    '/emails/nao-lidos/contagem',
+  )
+  return response.data
 }
 
 export function getEmailsAguardandoResposta({

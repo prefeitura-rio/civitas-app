@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { sendStandardizedTemplatedEmail } from '@/http/emails/send-standardized-templated-email'
@@ -79,6 +80,9 @@ export function ResponderEmailView() {
     onSuccess: () => {
       toast.success('E-mail enviado.')
       queryClient.invalidateQueries({ queryKey: ['emails-inbox-nao-lidos'] })
+      queryClient.invalidateQueries({
+        queryKey: EMAIL_NAO_LIDOS_COUNT_QUERY_KEY,
+      })
       queryClient.invalidateQueries({
         queryKey: ['emails-inbox-aguardando-resposta'],
       })

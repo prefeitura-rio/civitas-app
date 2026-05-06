@@ -18,6 +18,12 @@ import {
 } from '@/components/ui/dialog'
 import type { TicketAttachmentOut } from '@/http/tickets/ticket-attachments'
 import {
+  completeTicketVideoAttachment,
+  putVideoToGcsSignedUrl,
+  requestTicketVideoUploadUrl,
+  uploadTicketServiceAttachmentsMultipart,
+} from '@/http/tickets/ticket-attachments'
+import {
   getTicketServicos,
   replaceTicketServicos,
   type TicketServicosOut,
@@ -117,10 +123,14 @@ type Props = {
   ticketId: string
 }
 
+type PendingServiceFilesByRowId = Record<string, File[]>
+
 export function TicketDetailTabServicos({ ticketId }: Props) {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [addServicoOpen, setAddServicoOpen] = useState(false)
+  const [pendingFilesByRowId, setPendingFilesByRowId] =
+    useState<PendingServiceFilesByRowId>({})
 
   const servicosQuery = useQuery({
     queryKey: ['ticket', ticketId, 'servicos'],
@@ -154,24 +164,6 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
   const replaceMutation = useMutation({
     mutationFn: (payload: ReturnType<typeof ticketServicosToReplacePayload>) =>
       replaceTicketServicos(ticketId, payload),
-    onSuccess: (data) => {
-      const c = cloneTicketServicos(data)
-      setDraft(c)
-      setSnapshot(cloneTicketServicos(data))
-      setIsEditing(false)
-      setExpandedId(null)
-      queryClient.setQueryData(['ticket', ticketId, 'servicos'], data)
-      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
-      toast.success('Serviços salvos com sucesso.')
-    },
-    onError: (err: unknown) => {
-      const msg = isApiError(err)
-        ? (err.response?.data as { detail?: string } | undefined)?.detail
-        : undefined
-      toast.error(
-        typeof msg === 'string' ? msg : 'Não foi possível salvar os serviços.',
-      )
-    },
   })
 
   const rows = useMemo(() => {
@@ -187,6 +179,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
   const beginEdit = useCallback(() => {
     if (!snapshot) return
     setDraft(cloneTicketServicos(snapshot))
+    setPendingFilesByRowId({})
     setIsEditing(true)
   }, [snapshot])
 
@@ -194,9 +187,35 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
     if (snapshot) {
       setDraft(cloneTicketServicos(snapshot))
     }
+    setPendingFilesByRowId({})
     setIsEditing(false)
     setExpandedId(null)
   }, [snapshot])
+
+  const queuePendingFiles = useCallback((rowId: string, files: File[]) => {
+    if (!files.length) return
+    setPendingFilesByRowId((prev) => ({
+      ...prev,
+      [rowId]: [...(prev[rowId] ?? []), ...files],
+    }))
+  }, [])
+
+  const removePendingFile = useCallback((rowId: string, index: number) => {
+    setPendingFilesByRowId((prev) => {
+      const rowFiles = prev[rowId] ?? []
+      if (!rowFiles[index]) return prev
+      const nextRowFiles = rowFiles.filter((_, i) => i !== index)
+      if (nextRowFiles.length === 0) {
+        const next = { ...prev }
+        delete next[rowId]
+        return next
+      }
+      return {
+        ...prev,
+        [rowId]: nextRowFiles,
+      }
+    })
+  }, [])
 
   const handleConcluidoChange = useCallback(
     (row: RowMeta, checked: boolean) => {
@@ -209,17 +228,147 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
   )
 
   const handleSave = useCallback(() => {
-    if (!draft || !isEditing) return
-    const invalid = collectAllCompletedServiceErrors(draft)
-    if (invalid.length > 0) {
-      toast.error(
-        'Preencha todos os campos dos serviços marcados como concluídos.',
-      )
-      setExpandedId(invalid[0]?.rowId ?? null)
-      return
+    const save = async () => {
+      if (!draft || !isEditing) return
+      const invalid = collectAllCompletedServiceErrors(draft)
+      if (invalid.length > 0) {
+        toast.error(
+          'Preencha todos os campos dos serviços marcados como concluídos.',
+        )
+        setExpandedId(invalid[0]?.rowId ?? null)
+        return
+      }
+
+      const preSaveDraft = cloneTicketServicos(draft)
+      let saved: TicketServicosOut
+      try {
+        saved = await replaceMutation.mutateAsync(
+          ticketServicosToReplacePayload(draft),
+        )
+      } catch (err: unknown) {
+        const msg = isApiError(err)
+          ? (err.response?.data as { detail?: string } | undefined)?.detail
+          : undefined
+        toast.error(
+          typeof msg === 'string'
+            ? msg
+            : 'Não foi possível salvar os serviços.',
+        )
+        return
+      }
+
+      let pendingUploadFailures = 0
+      const nextPending: PendingServiceFilesByRowId = {}
+      let latestSaved = saved
+
+      try {
+        // Usa o estado mais recente do backend para mapear IDs por posição.
+        latestSaved = await getTicketServicos(ticketId)
+      } catch {
+        // fallback para retorno do PUT quando o refetch falhar
+      }
+
+      for (const kind of SERVICE_KINDS) {
+        const preRows = (preSaveDraft[kind] ?? []) as { id?: string }[]
+        const savedRows = (latestSaved[kind] ?? []) as { id?: string }[]
+
+        for (let index = 0; index < preRows.length; index++) {
+          const preRow = preRows[index]
+          if (!preRow?.id || !isLocalDraftServiceId(preRow.id)) continue
+          const files = pendingFilesByRowId[preRow.id] ?? []
+          if (!files.length) continue
+
+          const persistedServiceId = savedRows[index]?.id
+          if (!persistedServiceId) {
+            pendingUploadFailures += files.length
+            nextPending[preRow.id] = files
+            continue
+          }
+
+          const videoFiles = files.filter((file) =>
+            file.type.startsWith('video/'),
+          )
+          const nonVideoFiles = files.filter(
+            (file) => !file.type.startsWith('video/'),
+          )
+
+          try {
+            if (nonVideoFiles.length > 0) {
+              await uploadTicketServiceAttachmentsMultipart(
+                ticketId,
+                nonVideoFiles,
+                {
+                  service_type: kind,
+                  service_id: persistedServiceId,
+                },
+              )
+            }
+            for (const file of videoFiles) {
+              const contentType = file.type || 'video/mp4'
+              const uploadMeta = await requestTicketVideoUploadUrl(ticketId, {
+                filename: file.name,
+                content_type: contentType,
+                file_size: file.size,
+                resumable: true,
+                service_type: kind,
+                service_id: persistedServiceId,
+              })
+              await putVideoToGcsSignedUrl(
+                uploadMeta.signed_url,
+                file,
+                contentType,
+              )
+              await completeTicketVideoAttachment(ticketId, {
+                storage_key: uploadMeta.storage_key,
+                filename: file.name,
+                content_type: contentType,
+                size_bytes: file.size,
+                service_type: kind,
+                service_id: persistedServiceId,
+              })
+            }
+          } catch {
+            pendingUploadFailures += files.length
+            nextPending[preRow.id] = files
+          }
+        }
+      }
+
+      const c = cloneTicketServicos(latestSaved)
+      setDraft(c)
+      setSnapshot(cloneTicketServicos(latestSaved))
+      setPendingFilesByRowId(nextPending)
+      setIsEditing(false)
+      setExpandedId(null)
+      queryClient.setQueryData(['ticket', ticketId, 'servicos'], latestSaved)
+      queryClient.invalidateQueries({
+        queryKey: ['ticket', ticketId, 'servicos'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['ticket-attachments', ticketId],
+      })
+      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+
+      if (pendingUploadFailures > 0) {
+        toast.error(
+          `Serviços salvos, mas ${pendingUploadFailures} anexo(s) não puderam ser enviados.`,
+        )
+      } else {
+        toast.success('Serviços e anexos salvos com sucesso.')
+      }
     }
-    replaceMutation.mutate(ticketServicosToReplacePayload(draft))
-  }, [draft, isEditing, replaceMutation])
+
+    save().catch(() => {
+      toast.error('Ocorreu um erro ao salvar os serviços.')
+    })
+  }, [
+    draft,
+    isEditing,
+    pendingFilesByRowId,
+    queryClient,
+    replaceMutation,
+    ticketId,
+  ])
 
   const handleAddKind = (kind: (typeof SERVICE_KINDS)[number]) => {
     setDraft((prev) => {
@@ -244,6 +393,13 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
       if (!prev) return prev
       return removeServiceAt(prev, kind, index)
     })
+    if (isLocalDraftServiceId(rowId)) {
+      setPendingFilesByRowId((prev) => {
+        const next = { ...prev }
+        delete next[rowId]
+        return next
+      })
+    }
     if (expandedId === rowId) {
       setExpandedId(null)
     }
@@ -330,7 +486,11 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                         )
                       }
                     >
-                      <span className={styles.servicosBarLabel}>
+                      <span
+                        className={`${styles.servicosBarLabel} ${
+                          isEditing ? styles.servicosBarLabelEditing : ''
+                        }`}
+                      >
                         {row.title}
                       </span>
                       <ChevronDown
@@ -368,23 +528,36 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                             : null
                         }
                       />
-                      <TicketServicoAnexos
-                        ticketId={ticketId}
-                        title="Anexos deste serviço"
-                        attachments={
-                          (
-                            formSource[row.kind]?.[row.index] as
-                              | { anexos?: TicketAttachmentOut[] }
-                              | undefined
-                          )?.anexos ?? []
-                        }
-                        readOnly={!isEditing}
-                        serviceScope={{
-                          service_type: row.kind,
-                          service_id: row.rowId,
-                        }}
-                        uploadBlocked={isLocalDraftServiceId(row.rowId)}
-                      />
+                      {row.kind !== 'cerco_eletronico' ? (
+                        <TicketServicoAnexos
+                          ticketId={ticketId}
+                          title="Anexos deste serviço"
+                          attachments={
+                            (
+                              formSource[row.kind]?.[row.index] as
+                                | { anexos?: TicketAttachmentOut[] }
+                                | undefined
+                            )?.anexos ?? []
+                          }
+                          readOnly={!isEditing}
+                          serviceScope={{
+                            service_type: row.kind,
+                            service_id: row.rowId,
+                          }}
+                          uploadBlocked={isLocalDraftServiceId(row.rowId)}
+                          pendingFiles={pendingFilesByRowId[row.rowId] ?? []}
+                          onQueuePendingFiles={
+                            isLocalDraftServiceId(row.rowId)
+                              ? (files) => queuePendingFiles(row.rowId, files)
+                              : undefined
+                          }
+                          onRemovePendingFile={
+                            isLocalDraftServiceId(row.rowId)
+                              ? (index) => removePendingFile(row.rowId, index)
+                              : undefined
+                          }
+                        />
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

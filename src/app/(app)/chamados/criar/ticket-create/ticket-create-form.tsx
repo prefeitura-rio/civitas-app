@@ -40,7 +40,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
+  maskNumeroOficio,
   maskPhoneBR,
+  normalizeNumeroOficio,
   padDigitsLeft,
 } from '@/utils/string-formatters'
 
@@ -189,7 +191,7 @@ export function TicketCreateForm() {
                       >
                         <span className="truncate">
                           {vm.selectedTicketLabel ||
-                            'Digite para buscar um chamado'}
+                            'Selecione ou busque um chamado'}
                         </span>
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </Button>
@@ -215,20 +217,11 @@ export function TicketCreateForm() {
                             </div>
                           )}
 
-                          {!vm.isTicketsLoading &&
-                            vm.ticketSearch.trim().length === 0 && (
-                              <div className="px-3 py-2 text-sm text-muted-foreground">
-                                Digite para pesquisar.
-                              </div>
-                            )}
-
-                          {!vm.isTicketsLoading &&
-                            vm.ticketSearch.trim().length > 0 &&
-                            vm.tickets.length === 0 && (
-                              <CommandEmpty>
-                                Nenhum chamado encontrado.
-                              </CommandEmpty>
-                            )}
+                          {!vm.isTicketsLoading && vm.tickets.length === 0 && (
+                            <CommandEmpty>
+                              Nenhum chamado encontrado.
+                            </CommandEmpty>
+                          )}
 
                           <CommandGroup>
                             {vm.tickets.map((ticket) => (
@@ -399,10 +392,31 @@ export function TicketCreateForm() {
 
             <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Nº do ofício</Label>
-              <Input
-                className={`h-11 ${styles.inputBg}`}
-                disabled={fieldDisabled}
-                {...vm.register('numero_oficio')}
+              <Controller
+                control={vm.control}
+                name="numero_oficio"
+                render={({ field }) => (
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    disabled={fieldDisabled}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={field.value ?? ''}
+                    onBlur={() => {
+                      field.onBlur()
+                      const raw = (field.value ?? '').trim()
+                      if (raw === '') return
+                      const normalized = normalizeNumeroOficio(raw)
+                      if (normalized !== field.value) {
+                        field.onChange(normalized || null)
+                      }
+                    }}
+                    ref={field.ref}
+                    onChange={(e) =>
+                      field.onChange(maskNumeroOficio(e.target.value) || null)
+                    }
+                  />
+                )}
               />
               <FieldStringError
                 value={vm.watch('numero_oficio')}

@@ -523,6 +523,18 @@
   color: var(--td-muted);
 }
 
+.solicitanteReadOnlyText {
+  color: var(--td-muted) !important;
+}
+
+.solicitanteEditField {
+  color: var(--td-text);
+}
+
+.solicitanteEditSelectTrigger {
+  color: var(--td-text) !important;
+}
+
 .readonlyInputLinkCell {
   align-items: flex-start;
   padding-top: 10px;
@@ -622,7 +634,7 @@
   border: none;
   border-radius: 8px;
   background: #402c4c;
-  color: var(--td-muted);
+  color: var(--td-text);
   font-size: 14px;
   font-weight: 600;
   line-height: 16px;
@@ -708,6 +720,15 @@
 .detailSelectTrigger:disabled {
   opacity: 0.75;
   cursor: not-allowed;
+}
+
+/* Aba Solicitante: valor selecionado em branco no modo edição */
+.solicitanteEditSelectTrigger {
+  color: var(--td-text, #f9fafa) !important;
+}
+
+.solicitanteEditSelectTrigger[data-placeholder] {
+  color: var(--td-muted, #97a2ab) !important;
 }
 
 .detailSelectContent {
@@ -1523,6 +1544,10 @@
   color: var(--td-muted);
 }
 
+.servicosBarLabelEditing {
+  color: var(--td-text);
+}
+
 .servicosChevron {
   width: 20px;
   height: 20px;
@@ -2118,7 +2143,7 @@
   border: none;
   border-radius: var(--td-radius);
   background: var(--td-btn-secondary);
-  color: var(--td-muted);
+  color: #fff;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -2131,7 +2156,7 @@
 }
 
 .parecerSubmit:hover:not(:disabled) {
-  color: var(--td-text);
+  color: #fff;
   filter: brightness(1.08);
 }
 
@@ -2310,6 +2335,12 @@
 
 .servicoAnexosReadOnly {
   margin-top: 24px;
+}
+
+.servicoAnexosBlocked {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--td-border);
 }
 
 .servicoAnexosHeader {

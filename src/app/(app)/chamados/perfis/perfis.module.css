@@ -234,6 +234,11 @@
   color: #5b4db2;
 }
 
+.perfisBadgeAssessor {
+  background: rgba(220, 140, 24, 0.1);
+  color: #dc8c18;
+}
+
 .perfisBadgeLiderIlha {
   background: rgba(140, 62, 122, 0.1);
   color: #8c3e7a;

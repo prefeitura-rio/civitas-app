@@ -24,6 +24,7 @@ import {
   SheetContent,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsSpam } from '@/http/emails/mark-email-spam'
@@ -87,6 +88,9 @@ export function EmailPreviewSheet({
     onSuccess: () => {
       toast.success('E-mail marcado como spam.')
       queryClient.invalidateQueries({ queryKey: ['emails-inbox-nao-lidos'] })
+      queryClient.invalidateQueries({
+        queryKey: EMAIL_NAO_LIDOS_COUNT_QUERY_KEY,
+      })
       queryClient.invalidateQueries({
         queryKey: ['emails-inbox-aguardando-resposta'],
       })

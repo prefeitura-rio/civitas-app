@@ -75,10 +75,9 @@ export type OutrosDraft = {
   orientation: string
 }
 
-/** Limites de caracteres alinhados ao schema de criação de chamado. */
 export const TICKET_CREATE_STRING_LIMITS = {
   numero_procedimento: 12,
-  numero_oficio: 60,
+  numero_oficio: 10,
   apelido_imprensa: 120,
   link_materia: 2048,
   bairro_correspondencia: 120,
@@ -90,7 +89,7 @@ export const TICKET_CREATE_STRING_LIMITS = {
   ponto_focal_nome: 120,
   ponto_focal_telefone: 120,
   ponto_focal_email: 255,
-  comentario_inicial: 500,
+  comentario_inicial: 2000,
 } as const
 
 export const SERVICE_CONFIG = {

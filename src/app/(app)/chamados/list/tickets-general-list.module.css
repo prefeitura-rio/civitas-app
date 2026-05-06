@@ -282,6 +282,17 @@
   flex-shrink: 0;
 }
 
+.levantamentoPrevioTooltipTrigger {
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
+.levantamentoPrevioIcon {
+  color: #6eb5ff;
+  flex-shrink: 0;
+}
+
 .servicesCell {
   display: flex;
   align-items: center;
@@ -397,7 +408,7 @@
 }
 
 /* Largura mínima no rótulo para alinhar os badges de count na mesma coluna */
-.priorityCell > span:first-child {
+.priorityLabel {
   min-width: 72px;
 }
 

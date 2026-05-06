@@ -33,7 +33,7 @@ export type FilterFormState = {
   status: string[]
   prioridade: SearchOption[]
   equipe: SearchOption[]
-  servicos_realizados: string[]
+  servicos: SearchOption[]
 }
 
 const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
@@ -57,7 +57,7 @@ export function emptyFilters(): FilterFormState {
     status: [],
     prioridade: [],
     equipe: [],
-    servicos_realizados: [],
+    servicos: [],
   }
 }
 
@@ -87,6 +87,19 @@ const prioritySearchOptions: SearchOption[] = priorityOptions.map((p) => ({
   value: p,
   label: formatLabel(p),
 }))
+
+/** Labels em português; `value` é o enviado no body (`servicos`). */
+export const dashboardServicosFilterOptions: SearchOption[] = [
+  { value: 'plate_search_services', label: 'Busca por placa' },
+  { value: 'radar_search_services', label: 'Busca por radar' },
+  { value: 'electronic_fence_services', label: 'Cerco eletrônico' },
+  { value: 'image_search_services', label: 'Busca por imagem' },
+  { value: 'correlated_plate_services', label: 'Placas correlatas' },
+  { value: 'joint_plate_services', label: 'Placas conjuntas' },
+  { value: 'image_reservation_services', label: 'Reserva de imagem' },
+  { value: 'image_analysis_services', label: 'Análise de imagem' },
+  { value: 'other_services', label: 'Outros' },
+]
 
 function SearchMultiSelect({
   label,
@@ -387,6 +400,19 @@ export function TicketsDashboardFilterModal({
               }
               staticOptions={teamSearchOptions ?? []}
               optionsLoading={isTeamsLoading}
+            />
+
+            <SearchMultiSelect
+              label="SERVIÇOS"
+              placeholder="Selecione"
+              value={draftFilters.servicos}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  servicos: value,
+                }))
+              }
+              staticOptions={dashboardServicosFilterOptions}
             />
           </div>
         </div>
