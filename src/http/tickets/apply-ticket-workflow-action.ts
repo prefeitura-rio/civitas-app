@@ -5,8 +5,16 @@ export type ApplyTicketWorkflowActionOut = {
   is_actor_responsible: boolean
 }
 
+export type ApplyTicketWorkflowReassignIn = {
+  equipe_id: string
+  responsavel_ids: string[]
+  prioridade?: 'URGENTE' | 'ALTA' | 'ROTINA' | null
+  comentario?: string | null
+}
+
 export type ApplyTicketWorkflowActionIn = {
   comentario?: string | null
+  reatribuicao?: ApplyTicketWorkflowReassignIn | null
 }
 
 export async function applyTicketWorkflowAction(

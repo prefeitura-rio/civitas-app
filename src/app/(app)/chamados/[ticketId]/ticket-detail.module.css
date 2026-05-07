@@ -1342,6 +1342,33 @@
   color: #fca5a5;
 }
 
+.reassignTextarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--td-border);
+  background: var(--td-card-bg);
+  color: var(--td-text);
+  font-size: 14px;
+  line-height: 20px;
+  resize: vertical;
+}
+
+.reassignTextarea::placeholder {
+  color: var(--td-muted);
+}
+
+.reassignTextarea:focus {
+  outline: 2px solid rgba(13, 148, 136, 0.35);
+  outline-offset: 0;
+}
+
+.reassignTextarea:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
 .reassignMultiTrigger {
   width: 100%;
   min-height: 44px;

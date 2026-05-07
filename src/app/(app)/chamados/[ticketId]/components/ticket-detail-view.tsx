@@ -12,16 +12,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
@@ -59,10 +49,7 @@ import { fetchTicketAttachmentBlob } from '@/http/tickets/download-ticket-attach
 import { getTicketAllowedActions } from '@/http/tickets/get-ticket-allowed-actions'
 import { getTicketCabecalho } from '@/http/tickets/get-ticket-cabecalho'
 import { getTicketRelatorioCompleto } from '@/http/tickets/get-ticket-relatorio-completo'
-import {
-  reassignTicket,
-  type TicketReassignPriority,
-} from '@/http/tickets/reassign-ticket'
+import { type TicketReassignPriority } from '@/http/tickets/reassign-ticket'
 import { getTicketAttachments } from '@/http/tickets/ticket-attachments'
 import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'
@@ -153,6 +140,8 @@ type TicketWorkflowConfirmableAction =
   | 'ENVIAR_EMAIL'
   | 'BLOQUEAR'
   | 'DESBLOQUEAR'
+  | 'ENVIAR_PARA_REVISAO'
+  | 'REABRIR_DEMANDA'
 
 export function TicketDetailView({ ticketId }: Props) {
   const router = useRouter()
@@ -165,10 +154,10 @@ export function TicketDetailView({ ticketId }: Props) {
     null,
   )
   const [finalizeOpen, setFinalizeOpen] = useState(false)
-  const [workflowConfirmAction, setWorkflowConfirmAction] =
+  const [finalizeComment, setFinalizeComment] = useState('')
+  const [workflowCommentAction, setWorkflowCommentAction] =
     useState<TicketWorkflowConfirmableAction | null>(null)
-  const [sendToReviewOpen, setSendToReviewOpen] = useState(false)
-  const [sendToReviewComment, setSendToReviewComment] = useState('')
+  const [workflowComment, setWorkflowComment] = useState('')
   const [reassignOpen, setReassignOpen] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [selectedResponsibleIds, setSelectedResponsibleIds] = useState<
@@ -176,6 +165,7 @@ export function TicketDetailView({ ticketId }: Props) {
   >([])
   const [selectedPriority, setSelectedPriority] =
     useState<TicketReassignPriority | null>(null)
+  const [reassignComment, setReassignComment] = useState('')
   const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false)
 
   const query = useQuery({
@@ -237,9 +227,9 @@ export function TicketDetailView({ ticketId }: Props) {
   })
 
   const finalizeMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (comment: string) =>
       applyTicketWorkflowAction(ticketId, 'FINALIZAR_CHAMADO', {
-        comentario: null,
+        comentario: comment,
       }),
     onSuccess: async () => {
       try {
@@ -248,6 +238,8 @@ export function TicketDetailView({ ticketId }: Props) {
         /* noop */
       }
       toast.success('Chamado finalizado e enviado para revisão.')
+      setFinalizeOpen(false)
+      setFinalizeComment('')
       setTimeout(() => {
         router.push('/chamados')
       }, 1500)
@@ -259,10 +251,14 @@ export function TicketDetailView({ ticketId }: Props) {
 
   const reassignMutation = useMutation({
     mutationFn: () =>
-      reassignTicket(ticketId, {
-        equipe_id: selectedTeamId,
-        responsavel_ids: selectedResponsibleIds,
-        prioridade: selectedPriority,
+      applyTicketWorkflowAction(ticketId, 'REATRIBUIR_CHAMADO', {
+        comentario: reassignComment.trim(),
+        reatribuicao: {
+          equipe_id: selectedTeamId,
+          responsavel_ids: selectedResponsibleIds,
+          prioridade: selectedPriority,
+          comentario: reassignComment.trim(),
+        },
       }),
     onSuccess: async () => {
       try {
@@ -272,6 +268,7 @@ export function TicketDetailView({ ticketId }: Props) {
       }
       toast.success('Chamado reatribuído com sucesso.')
       setReassignOpen(false)
+      setReassignComment('')
       setTimeout(() => {
         router.push('/chamados')
       }, 1500)
@@ -305,8 +302,6 @@ export function TicketDetailView({ ticketId }: Props) {
       if (variables.actionId === 'ENVIAR_EMAIL') {
         toast.success('E-mail enviado com sucesso.')
       } else if (variables.actionId === 'ENVIAR_PARA_REVISAO') {
-        setSendToReviewOpen(false)
-        setSendToReviewComment('')
         toast.success('Chamado enviado para revisão com sucesso.')
       } else if (variables.actionId === 'BLOQUEAR') {
         toast.success('Chamado bloqueado com sucesso.')
@@ -319,6 +314,8 @@ export function TicketDetailView({ ticketId }: Props) {
       } else {
         toast.success('Ação aplicada com sucesso.')
       }
+      setWorkflowCommentAction(null)
+      setWorkflowComment('')
       setTimeout(() => {
         router.push('/chamados')
       }, 1500)
@@ -409,6 +406,7 @@ export function TicketDetailView({ ticketId }: Props) {
     setSelectedTeamId('')
     setSelectedResponsibleIds([])
     setSelectedPriority(null)
+    setReassignComment('')
     setResponsiblePopoverOpen(false)
   }, [reassignOpen])
 
@@ -443,6 +441,7 @@ export function TicketDetailView({ ticketId }: Props) {
   const canSubmitReassignment =
     selectedTeamId.length > 0 &&
     selectedResponsibleIds.length > 0 &&
+    reassignComment.trim().length > 0 &&
     !reassignMutation.isPending
 
   if (query.isLoading) {
@@ -577,7 +576,7 @@ export function TicketDetailView({ ticketId }: Props) {
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
               onClick={() =>
-                setWorkflowConfirmAction('FINALIZAR_SEM_ENCAMINHAR')
+                setWorkflowCommentAction('FINALIZAR_SEM_ENCAMINHAR')
               }
               disabled={workflowActionMutation.isPending}
             >
@@ -590,7 +589,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() => setWorkflowConfirmAction('ENVIAR_EMAIL')}
+              onClick={() => setWorkflowCommentAction('ENVIAR_EMAIL')}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -602,7 +601,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() => setSendToReviewOpen(true)}
+              onClick={() => setWorkflowCommentAction('ENVIAR_PARA_REVISAO')}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -614,7 +613,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() => setWorkflowConfirmAction('BLOQUEAR')}
+              onClick={() => setWorkflowCommentAction('BLOQUEAR')}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -626,7 +625,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() => setWorkflowConfirmAction('DESBLOQUEAR')}
+              onClick={() => setWorkflowCommentAction('DESBLOQUEAR')}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -638,9 +637,7 @@ export function TicketDetailView({ ticketId }: Props) {
             <button
               type="button"
               className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() =>
-                workflowActionMutation.mutate({ actionId: 'REABRIR_DEMANDA' })
-              }
+              onClick={() => setWorkflowCommentAction('REABRIR_DEMANDA')}
               disabled={workflowActionMutation.isPending}
             >
               {workflowActionMutation.isPending
@@ -721,133 +718,157 @@ export function TicketDetailView({ ticketId }: Props) {
           )}
         </div>
 
-        <AlertDialog open={finalizeOpen} onOpenChange={setFinalizeOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Finalizar chamado?</AlertDialogTitle>
-              <AlertDialogDescription>
-                O sistema validará os dados obrigatórios e a completude dos
-                serviços. Se estiver tudo correto, o status passará para
-                aguardando revisão.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                disabled={finalizeMutation.isPending}
-                onClick={() => finalizeMutation.mutate()}
-              >
-                {finalizeMutation.isPending ? 'Finalizando…' : 'Confirmar'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog
-          open={workflowConfirmAction !== null}
+        <Dialog
+          open={finalizeOpen}
           onOpenChange={(open) => {
-            if (!open) setWorkflowConfirmAction(null)
+            setFinalizeOpen(open)
+            if (!open) setFinalizeComment('')
           }}
         >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {workflowConfirmAction === 'FINALIZAR_SEM_ENCAMINHAR'
-                  ? 'Finalizar sem encaminhar?'
-                  : workflowConfirmAction === 'ENVIAR_EMAIL'
-                    ? 'Enviar e-mail?'
-                    : workflowConfirmAction === 'BLOQUEAR'
-                      ? 'Bloquear chamado?'
-                      : workflowConfirmAction === 'DESBLOQUEAR'
-                        ? 'Desbloquear chamado?'
-                        : 'Confirmar ação'}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {workflowConfirmAction === 'FINALIZAR_SEM_ENCAMINHAR'
-                  ? 'O chamado será encerrado sem envio de email. Essa ação segue as regras do fluxo configurado para o tipo de demanda.'
-                  : workflowConfirmAction === 'ENVIAR_EMAIL'
-                    ? 'Será disparado o e-mail conforme o fluxo do chamado. Deseja continuar?'
-                    : workflowConfirmAction === 'BLOQUEAR'
-                      ? 'O chamado ficará bloqueado conforme as regras do sistema. Deseja continuar?'
-                      : workflowConfirmAction === 'DESBLOQUEAR'
-                        ? 'O chamado será desbloqueado e seguirá o fluxo configurado. Deseja continuar?'
-                        : null}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                disabled={workflowActionMutation.isPending}
-                onClick={() => {
-                  if (workflowConfirmAction) {
-                    workflowActionMutation.mutate({
-                      actionId: workflowConfirmAction,
-                    })
+          <DialogContent className={styles.reassignDialogContent}>
+            <div className={styles.reassignDialogInner}>
+              <DialogHeader className={styles.reassignDialogHeader}>
+                <DialogTitle className={styles.reassignDialogTitle}>
+                  Finalizar chamado?
+                </DialogTitle>
+              </DialogHeader>
+              <div className={styles.reassignFields}>
+                <div className={styles.reassignField}>
+                  <p className={styles.reassignFieldMessage}>
+                    O sistema validará os dados obrigatórios e a completude dos
+                    serviços. Se estiver tudo correto, o status passará para
+                    aguardando revisão.
+                  </p>
+                </div>
+                <div className={styles.reassignField}>
+                  <span className={styles.reassignLabel}>Comentário</span>
+                  <Textarea
+                    value={finalizeComment}
+                    onChange={(event) => setFinalizeComment(event.target.value)}
+                    placeholder="Digite o comentário da finalização"
+                    className={styles.reassignTextarea}
+                    disabled={finalizeMutation.isPending}
+                  />
+                </div>
+              </div>
+              <DialogFooter className={styles.footerActions}>
+                <button
+                  type="button"
+                  className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
+                  onClick={() => setFinalizeOpen(false)}
+                  disabled={finalizeMutation.isPending}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+                  disabled={
+                    finalizeMutation.isPending ||
+                    finalizeComment.trim().length === 0
                   }
-                }}
-              >
-                {workflowActionMutation.isPending
-                  ? 'Aplicando ação…'
-                  : 'Confirmar'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                  onClick={() =>
+                    finalizeMutation.mutate(finalizeComment.trim())
+                  }
+                >
+                  {finalizeMutation.isPending ? 'Finalizando…' : 'Confirmar'}
+                </button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog
-          open={sendToReviewOpen}
+          open={workflowCommentAction !== null}
           onOpenChange={(open) => {
-            setSendToReviewOpen(open)
-            if (!open) setSendToReviewComment('')
+            if (!open) {
+              setWorkflowCommentAction(null)
+              setWorkflowComment('')
+            }
           }}
         >
-          <DialogContent className="sm:max-w-[540px]">
-            <DialogHeader>
-              <DialogTitle>Enviar para revisão</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Adicione um comentário para registrar o contexto da revisão.
-              </p>
-              <Textarea
-                value={sendToReviewComment}
-                onChange={(event) => setSendToReviewComment(event.target.value)}
-                placeholder="Digite o comentário da revisão"
-                className="min-h-[120px]"
-                disabled={workflowActionMutation.isPending}
-              />
+          <DialogContent className={styles.reassignDialogContent}>
+            <div className={styles.reassignDialogInner}>
+              <DialogHeader className={styles.reassignDialogHeader}>
+                <DialogTitle className={styles.reassignDialogTitle}>
+                  {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
+                    ? 'Finalizar sem encaminhar?'
+                    : workflowCommentAction === 'ENVIAR_EMAIL'
+                      ? 'Enviar e-mail?'
+                      : workflowCommentAction === 'BLOQUEAR'
+                        ? 'Bloquear chamado?'
+                        : workflowCommentAction === 'DESBLOQUEAR'
+                          ? 'Desbloquear chamado?'
+                          : workflowCommentAction === 'ENVIAR_PARA_REVISAO'
+                            ? 'Enviar para revisão?'
+                            : workflowCommentAction === 'REABRIR_DEMANDA'
+                              ? 'Reabrir demanda?'
+                              : 'Confirmar ação'}
+                </DialogTitle>
+              </DialogHeader>
+              <div className={styles.reassignFields}>
+                <div className={styles.reassignField}>
+                  <p className={styles.reassignFieldMessage}>
+                    {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
+                      ? 'O chamado será encerrado sem envio de email. Essa ação segue as regras do fluxo configurado para o tipo de demanda.'
+                      : workflowCommentAction === 'ENVIAR_EMAIL'
+                        ? 'Será disparado o e-mail conforme o fluxo do chamado. Deseja continuar?'
+                        : workflowCommentAction === 'BLOQUEAR'
+                          ? 'O chamado ficará bloqueado conforme as regras do sistema. Deseja continuar?'
+                          : workflowCommentAction === 'DESBLOQUEAR'
+                            ? 'O chamado será desbloqueado e seguirá o fluxo configurado. Deseja continuar?'
+                            : workflowCommentAction === 'ENVIAR_PARA_REVISAO'
+                              ? 'Adicione um comentário para registrar o contexto da revisão.'
+                              : workflowCommentAction === 'REABRIR_DEMANDA'
+                                ? 'A demanda será reaberta e retornará ao fluxo de trabalho.'
+                                : 'A ação será aplicada ao chamado.'}
+                  </p>
+                </div>
+                <div className={styles.reassignField}>
+                  <span className={styles.reassignLabel}>Comentário</span>
+                  <Textarea
+                    value={workflowComment}
+                    onChange={(event) => setWorkflowComment(event.target.value)}
+                    placeholder="Digite o comentário"
+                    className={styles.reassignTextarea}
+                    disabled={workflowActionMutation.isPending}
+                  />
+                </div>
+              </div>
+              <DialogFooter className={styles.footerActions}>
+                <button
+                  type="button"
+                  className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
+                  onClick={() => {
+                    setWorkflowCommentAction(null)
+                    setWorkflowComment('')
+                  }}
+                  disabled={workflowActionMutation.isPending}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+                  disabled={
+                    workflowActionMutation.isPending ||
+                    workflowComment.trim().length === 0
+                  }
+                  onClick={() => {
+                    if (workflowCommentAction) {
+                      workflowActionMutation.mutate({
+                        actionId: workflowCommentAction,
+                        comentario: workflowComment.trim(),
+                      })
+                    }
+                  }}
+                >
+                  {workflowActionMutation.isPending
+                    ? 'Aplicando ação…'
+                    : 'Confirmar'}
+                </button>
+              </DialogFooter>
             </div>
-            <DialogFooter>
-              <button
-                type="button"
-                className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
-                onClick={() => {
-                  setSendToReviewOpen(false)
-                  setSendToReviewComment('')
-                }}
-                disabled={workflowActionMutation.isPending}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
-                disabled={
-                  workflowActionMutation.isPending ||
-                  sendToReviewComment.trim().length === 0
-                }
-                onClick={() =>
-                  workflowActionMutation.mutate({
-                    actionId: 'ENVIAR_PARA_REVISAO',
-                    comentario: sendToReviewComment.trim(),
-                  })
-                }
-              >
-                {workflowActionMutation.isPending
-                  ? 'Aplicando ação…'
-                  : 'Confirmar'}
-              </button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 
@@ -996,7 +1017,13 @@ export function TicketDetailView({ ticketId }: Props) {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={reassignOpen} onOpenChange={setReassignOpen}>
+        <Dialog
+          open={reassignOpen}
+          onOpenChange={(open) => {
+            setReassignOpen(open)
+            if (!open) setReassignComment('')
+          }}
+        >
           <DialogContent
             className={styles.reassignDialogContent}
             aria-describedby={undefined}
@@ -1171,6 +1198,17 @@ export function TicketDetailView({ ticketId }: Props) {
                       },
                     )}
                   </div>
+                </div>
+
+                <div className={styles.reassignField}>
+                  <span className={styles.reassignLabel}>Comentário</span>
+                  <Textarea
+                    value={reassignComment}
+                    onChange={(event) => setReassignComment(event.target.value)}
+                    placeholder="Digite o comentário da reatribuição"
+                    className={styles.reassignTextarea}
+                    disabled={reassignMutation.isPending}
+                  />
                 </div>
               </div>
 
