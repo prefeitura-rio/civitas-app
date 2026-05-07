@@ -10,7 +10,6 @@ import { getTeamsList } from '@/http/teams/get-teams'
 import {
   searchOperations,
   type SearchOption,
-  searchRequesters,
 } from '@/http/tickets/tickets-dashboard-filters'
 
 import styles from './tickets-general-list-filters.module.css'
@@ -22,7 +21,6 @@ export type FilterFormState = {
   numero_oficio: SearchOption[]
   natureza_id: SearchOption[]
   demandante_id: SearchOption[]
-  requisitante: SearchOption[]
   ponto_focal: SearchOption[]
 
   data_base_inicio: string
@@ -46,7 +44,6 @@ export function emptyFilters(): FilterFormState {
     numero_oficio: [],
     natureza_id: [],
     demandante_id: [],
-    requisitante: [],
     ponto_focal: [],
 
     data_base_inicio: '',
@@ -319,18 +316,6 @@ export function TicketsDashboardFilterModal({
                 }))
               }
               searchFn={searchOperations}
-            />
-
-            <SearchMultiSelect
-              label="REQUISITANTE"
-              value={draftFilters.requisitante}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  requisitante: value,
-                }))
-              }
-              searchFn={searchRequesters}
             />
 
             <div className={styles.filterBlock}>

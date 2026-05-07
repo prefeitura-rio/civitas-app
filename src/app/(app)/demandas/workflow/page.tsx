@@ -17,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Switch } from '@/components/ui/switch'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import {
   getWorkflowRoleConfig,
@@ -77,7 +76,6 @@ function WorkflowRolesPageContent() {
       )
       return {
         state_code: state.code,
-        can_view: existing?.can_view ?? false,
         allowed_action_codes: existing?.allowed_action_codes ?? [],
       }
     })
@@ -146,9 +144,6 @@ function WorkflowRolesPageContent() {
         !transition.to_state_code
       ) {
         return 'Preencha from_state, action e to_state em todas as transições.'
-      }
-      if (transition.target_profile_codes.length === 0) {
-        return 'Selecione ao menos um perfil de destino em cada transição.'
       }
     }
 
@@ -249,7 +244,6 @@ function WorkflowRolesPageContent() {
               <thead>
                 <tr>
                   <th>Estado</th>
-                  <th>Can view</th>
                   <th>Ações permitidas</th>
                 </tr>
               </thead>
@@ -257,18 +251,6 @@ function WorkflowRolesPageContent() {
                 {permissions.map((permission, index) => (
                   <tr key={permission.state_code}>
                     <td>{permission.state_code}</td>
-                    <td>
-                      <Switch
-                        checked={permission.can_view}
-                        onCheckedChange={(checked) =>
-                          updatePermission(index, {
-                            ...permission,
-                            can_view: checked,
-                          })
-                        }
-                        disabled={saveMutation.isPending}
-                      />
-                    </td>
                     <td className="min-w-[320px]">
                       <MultiSelectWithSearch
                         options={actionOptions}

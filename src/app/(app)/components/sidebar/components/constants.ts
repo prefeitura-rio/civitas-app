@@ -45,6 +45,12 @@ const demandasItem: Category = {
       path: '/demandas',
     },
     {
+      icon: 'Archive',
+      title: 'Arquivados',
+      path: '/demandas/arquivados',
+      ticketScreenCode: 'archive',
+    },
+    {
       icon: 'CirclePlus',
       title: 'Criar',
       path: '/demandas/criar',

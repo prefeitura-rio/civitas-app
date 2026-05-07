@@ -351,7 +351,6 @@ export function TicketsGeneralList() {
       numero_oficio: appliedFilters.numero_oficio.map((item) => item.value),
       natureza_id: appliedFilters.natureza_id.map((item) => item.value),
       demandante_id: appliedFilters.demandante_id.map((item) => item.value),
-      requisitante: appliedFilters.requisitante.map((item) => item.value),
       ponto_focal: appliedFilters.ponto_focal.map((item) => item.value),
 
       data_base_inicio: appliedFilters.data_base_inicio || undefined,
@@ -402,7 +401,6 @@ export function TicketsGeneralList() {
       appliedFilters.numero_oficio.length,
       appliedFilters.natureza_id.length,
       appliedFilters.demandante_id.length,
-      appliedFilters.requisitante.length,
       appliedFilters.ponto_focal.length,
       appliedFilters.status.length,
       appliedFilters.prioridade.length,

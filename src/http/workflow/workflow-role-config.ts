@@ -10,7 +10,6 @@ export interface WorkflowCatalogItem {
 
 export interface WorkflowPermission {
   state_code: string
-  can_view: boolean
   allowed_action_codes: string[]
 }
 

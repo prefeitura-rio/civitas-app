@@ -48,6 +48,7 @@ import {
 import { fetchTicketAttachmentBlob } from '@/http/tickets/download-ticket-attachment'
 import { getTicketAllowedActions } from '@/http/tickets/get-ticket-allowed-actions'
 import { getTicketCabecalho } from '@/http/tickets/get-ticket-cabecalho'
+import { getTicketNotificationEmails } from '@/http/tickets/get-ticket-notification-emails'
 import { getTicketRelatorioCompleto } from '@/http/tickets/get-ticket-relatorio-completo'
 import { type TicketReassignPriority } from '@/http/tickets/reassign-ticket'
 import { getTicketAttachments } from '@/http/tickets/ticket-attachments'
@@ -140,6 +141,7 @@ export function TicketDetailView({ ticketId }: Props) {
   const [workflowCommentAction, setWorkflowCommentAction] =
     useState<TicketWorkflowConfirmableAction | null>(null)
   const [workflowComment, setWorkflowComment] = useState('')
+  const [selectedNotificationEmail, setSelectedNotificationEmail] = useState('')
   const [reassignOpen, setReassignOpen] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [selectedResponsibleIds, setSelectedResponsibleIds] = useState<
@@ -205,6 +207,13 @@ export function TicketDetailView({ ticketId }: Props) {
         selectedTeamId ? { team_id: selectedTeamId } : undefined,
       ),
     enabled: reassignOpen && selectedTeamId.length > 0,
+    retry: false,
+  })
+
+  const notificationEmailsQuery = useQuery({
+    queryKey: ['ticket', ticketId, 'notification-emails'],
+    queryFn: () => getTicketNotificationEmails(ticketId),
+    enabled: workflowCommentAction === 'ENVIAR_EMAIL',
     retry: false,
   })
 
@@ -394,6 +403,15 @@ export function TicketDetailView({ ticketId }: Props) {
   }, [selectedTeamId])
 
   useEffect(() => {
+    if (workflowCommentAction !== 'ENVIAR_EMAIL') {
+      setSelectedNotificationEmail('')
+      return
+    }
+    const firstEmail = notificationEmailsQuery.data?.[0] ?? ''
+    setSelectedNotificationEmail(firstEmail)
+  }, [workflowCommentAction, notificationEmailsQuery.data])
+
+  useEffect(() => {
     if (showRespostaTab || activeTab !== 'resposta') return
     setActiveTab('solicitante')
   }, [showRespostaTab, activeTab])
@@ -403,6 +421,8 @@ export function TicketDetailView({ ticketId }: Props) {
       selectedResponsibleIds.includes(member.user_id),
     )
     .map((member: TeamMemberUserOut) => member.user_name)
+
+  const isWorkflowEmailAction = workflowCommentAction === 'ENVIAR_EMAIL'
 
   const canSubmitReassignment =
     selectedTeamId.length > 0 &&
@@ -707,11 +727,11 @@ export function TicketDetailView({ ticketId }: Props) {
                   </p>
                 </div>
                 <div className={styles.reassignField}>
-                  <span className={styles.reassignLabel}>Comentário</span>
+                  <span className={styles.reassignLabel}>Despacho</span>
                   <Textarea
                     value={finalizeComment}
                     onChange={(event) => setFinalizeComment(event.target.value)}
-                    placeholder="Digite o comentário da finalização"
+                    placeholder="Digite o despacho da finalização"
                     className={styles.reassignTextarea}
                     disabled={finalizeMutation.isPending}
                   />
@@ -754,13 +774,17 @@ export function TicketDetailView({ ticketId }: Props) {
           }}
         >
           <DialogContent className={styles.reassignDialogContent}>
-            <div className={styles.reassignDialogInner}>
-              <DialogHeader className={styles.reassignDialogHeader}>
-                <DialogTitle className={styles.reassignDialogTitle}>
-                  {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
-                    ? 'Finalizar sem encaminhar?'
-                    : workflowCommentAction === 'ENVIAR_EMAIL'
-                      ? 'Enviar e-mail?'
+            <div
+              className={cn(
+                styles.reassignDialogInner,
+                isWorkflowEmailAction && styles.workflowEmailDialogInner,
+              )}
+            >
+              {!isWorkflowEmailAction ? (
+                <DialogHeader className={styles.reassignDialogHeader}>
+                  <DialogTitle className={styles.reassignDialogTitle}>
+                    {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
+                      ? 'Finalizar sem encaminhar?'
                       : workflowCommentAction === 'BLOQUEAR'
                         ? 'Bloquear demanda?'
                         : workflowCommentAction === 'DESBLOQUEAR'
@@ -770,36 +794,87 @@ export function TicketDetailView({ ticketId }: Props) {
                             : workflowCommentAction === 'REABRIR_DEMANDA'
                               ? 'Reabrir demanda?'
                               : 'Confirmar ação'}
-                </DialogTitle>
-              </DialogHeader>
+                  </DialogTitle>
+                </DialogHeader>
+              ) : null}
               <div className={styles.reassignFields}>
-                <div className={styles.reassignField}>
-                  <p className={styles.reassignFieldMessage}>
-                    {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
-                      ? 'A demanda será encerrada sem envio de email. Essa ação segue as regras do fluxo configurado para o tipo de demanda.'
-                      : workflowCommentAction === 'ENVIAR_EMAIL'
-                        ? 'Será disparado o e-mail conforme o fluxo da demanda. Deseja continuar?'
+                {!isWorkflowEmailAction ? (
+                  <div className={styles.reassignField}>
+                    <p className={styles.reassignFieldMessage}>
+                      {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
+                        ? 'A demanda será encerrada sem envio de email. Essa ação segue as regras do fluxo configurado para o tipo de demanda.'
                         : workflowCommentAction === 'BLOQUEAR'
                           ? 'A demanda ficará bloqueada conforme as regras do sistema. Deseja continuar?'
                           : workflowCommentAction === 'DESBLOQUEAR'
                             ? 'A demanda será desbloqueada e seguirá o fluxo configurado. Deseja continuar?'
                             : workflowCommentAction === 'ENVIAR_PARA_REVISAO'
-                              ? 'Adicione um comentário para registrar o contexto da revisão.'
+                              ? 'Adicione um despacho para registrar o contexto da revisão.'
                               : workflowCommentAction === 'REABRIR_DEMANDA'
                                 ? 'A demanda será reaberta e retornará ao fluxo de trabalho.'
                                 : 'A ação será aplicada à demanda.'}
-                  </p>
-                </div>
-                <div className={styles.reassignField}>
-                  <span className={styles.reassignLabel}>Comentário</span>
-                  <Textarea
-                    value={workflowComment}
-                    onChange={(event) => setWorkflowComment(event.target.value)}
-                    placeholder="Digite o comentário"
-                    className={styles.reassignTextarea}
-                    disabled={workflowActionMutation.isPending}
-                  />
-                </div>
+                    </p>
+                  </div>
+                ) : null}
+                {isWorkflowEmailAction ? (
+                  <div className={styles.workflowEmailContent}>
+                    <h3 className={styles.workflowEmailTitle}>
+                      Confirmar o envio do e-mail com a resposta do chamado
+                      para:
+                    </h3>
+                    <div className={styles.workflowEmailSelectWrap}>
+                      <Select
+                        value={selectedNotificationEmail || undefined}
+                        onValueChange={() => {}}
+                        disabled={
+                          workflowActionMutation.isPending ||
+                          notificationEmailsQuery.isLoading
+                        }
+                      >
+                        <SelectTrigger
+                          className={styles.workflowEmailSelectTrigger}
+                        >
+                          <SelectValue
+                            placeholder={
+                              notificationEmailsQuery.isLoading
+                                ? 'Carregando e-mails...'
+                                : 'Sem e-mails para exibir'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent className={styles.detailSelectContent}>
+                          {(notificationEmailsQuery.data ?? []).map((email) => (
+                            <SelectItem
+                              key={email}
+                              value={email}
+                              disabled
+                              className={styles.detailSelectItem}
+                            >
+                              {email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {notificationEmailsQuery.isError ? (
+                        <p className={styles.reassignFieldMessageError}>
+                          {getApiErrorMessage(notificationEmailsQuery.error)}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.reassignField}>
+                    <span className={styles.reassignLabel}>Despacho</span>
+                    <Textarea
+                      value={workflowComment}
+                      onChange={(event) =>
+                        setWorkflowComment(event.target.value)
+                      }
+                      placeholder="Digite o despacho"
+                      className={styles.reassignTextarea}
+                      disabled={workflowActionMutation.isPending}
+                    />
+                  </div>
+                )}
               </div>
               <DialogFooter className={styles.footerActions}>
                 <button
@@ -818,13 +893,19 @@ export function TicketDetailView({ ticketId }: Props) {
                   className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
                   disabled={
                     workflowActionMutation.isPending ||
-                    workflowComment.trim().length === 0
+                    (!isWorkflowEmailAction &&
+                      workflowComment.trim().length === 0) ||
+                    (isWorkflowEmailAction &&
+                      (notificationEmailsQuery.isLoading ||
+                        (notificationEmailsQuery.data ?? []).length === 0))
                   }
                   onClick={() => {
                     if (workflowCommentAction) {
                       workflowActionMutation.mutate({
                         actionId: workflowCommentAction,
-                        comentario: workflowComment.trim(),
+                        comentario: isWorkflowEmailAction
+                          ? undefined
+                          : workflowComment.trim(),
                       })
                     }
                   }}
@@ -1167,11 +1248,11 @@ export function TicketDetailView({ ticketId }: Props) {
                 </div>
 
                 <div className={styles.reassignField}>
-                  <span className={styles.reassignLabel}>Comentário</span>
+                  <span className={styles.reassignLabel}>Despacho</span>
                   <Textarea
                     value={reassignComment}
                     onChange={(event) => setReassignComment(event.target.value)}
-                    placeholder="Digite o comentário da reatribuição"
+                    placeholder="Digite o despacho da reatribuição"
                     className={styles.reassignTextarea}
                     disabled={reassignMutation.isPending}
                   />
