@@ -33,37 +33,39 @@ export interface Category {
 
 export type SideBarItem = Module | Category
 
-const chamadosItem: Category = {
+export const DEMANDAS_SIDEBAR_CATEGORY_TITLE = 'Demandas' as const
+
+const demandasItem: Category = {
   icon: 'ClipboardList',
-  title: 'Chamados',
+  title: DEMANDAS_SIDEBAR_CATEGORY_TITLE,
   modules: [
     {
       icon: 'List',
       title: 'Lista Geral',
-      path: '/chamados',
+      path: '/demandas',
     },
     {
       icon: 'CirclePlus',
       title: 'Criar',
-      path: '/chamados/criar',
+      path: '/demandas/criar',
       ticketScreenCode: 'ticket_create',
     },
     {
       icon: 'Inbox',
       title: 'Caixa de Entrada',
-      path: '/chamados/caixa-entrada',
+      path: '/demandas/caixa-entrada',
       ticketScreenCode: 'inbox',
       children: [
         {
           icon: 'Reply',
           title: 'Respondidos',
-          path: '/chamados/respondidos',
+          path: '/demandas/respondidos',
           ticketScreenCode: 'responded',
         },
         {
           icon: 'MailWarning',
           title: 'Spam',
-          path: '/chamados/spam',
+          path: '/demandas/spam',
           ticketScreenCode: 'spam',
         },
       ],
@@ -71,20 +73,32 @@ const chamadosItem: Category = {
     {
       icon: 'UserCog',
       title: 'Equipes',
-      path: '/chamados/equipes',
+      path: '/demandas/equipes',
       ticketScreenCode: 'teams',
     },
     {
       icon: 'Shield',
       title: 'Perfis',
-      path: '/chamados/perfis',
+      path: '/demandas/perfis',
       ticketScreenCode: 'profile',
+    },
+    {
+      icon: 'GitBranch',
+      title: 'Workflow',
+      path: '/demandas/workflow',
+      ticketScreenCode: 'workflow',
+    },
+    {
+      icon: 'ShieldCheck',
+      title: 'Permissões Telas',
+      path: '/demandas/permissoes-telas',
+      ticketScreenCode: 'screen_permissions',
     },
   ],
 }
 
 export const sidebarItems: SideBarItem[] = [
-  ...(config.enableChamados ? [chamadosItem] : []),
+  ...(config.enableChamados ? [demandasItem] : []),
   {
     icon: 'Car',
     title: 'Veículos',

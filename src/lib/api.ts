@@ -32,7 +32,8 @@ api.interceptors.request.use(async (config) => {
 
   const shouldAttachImpersonation =
     typeof window !== 'undefined' &&
-    window.location.pathname.startsWith('/chamados') &&
+    (window.location.pathname.startsWith('/chamados') ||
+      window.location.pathname.startsWith('/demandas')) &&
     config.url !== '/auth/login' &&
     config.url !== '/auth/refresh'
 
