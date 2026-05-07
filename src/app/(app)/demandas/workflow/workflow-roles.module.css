@@ -1,0 +1,103 @@
+.page {
+  --workflow-bg-page: #0c161f;
+  --workflow-bg-section: #101d28;
+  --workflow-bg-button: #1d3449;
+  --workflow-border: #4a5d6d;
+  --workflow-text-default: #f9fafa;
+  --workflow-text-subtle: #97a2ab;
+  background-color: var(--workflow-bg-page);
+  min-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  color: var(--workflow-text-default);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--workflow-text-subtle);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.card {
+  border: 1px solid var(--workflow-border);
+  background: var(--workflow-bg-section);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.sectionTitle {
+  color: var(--workflow-text-default);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--workflow-border);
+  padding: 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  color: var(--workflow-text-subtle);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.table td {
+  color: var(--workflow-text-default);
+  font-size: 13px;
+}
+
+.select,
+.input {
+  width: 100%;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--workflow-border);
+  background: #0d1822;
+  color: var(--workflow-text-default);
+  padding: 0 10px;
+}
+
+.button {
+  border: 1px solid var(--workflow-border);
+  background: var(--workflow-bg-button);
+  color: var(--workflow-text-default);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.button:disabled {
+  opacity: 0.6;
+}
+
+.buttonSecondary {
+  background: transparent;
+}
+
+.errorText {
+  color: #fca5a5;
+  font-size: 12px;
+}

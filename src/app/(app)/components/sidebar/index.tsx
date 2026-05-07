@@ -13,12 +13,13 @@ import type { TicketModulePermissionsMeOut } from '@/http/tickets/ticket-module-
 import { queryClient } from '@/lib/react-query'
 import { logout } from '@/utils/logout'
 
-import { sidebarItems } from './components/constants'
+import {
+  DEMANDAS_SIDEBAR_CATEGORY_TITLE,
+  sidebarItems,
+} from './components/constants'
 import { filterChamadosSidebarModules } from './components/filter-chamados-sidebar-modules'
 import { SidebarAccordion } from './components/sidebar-accordion'
 import { SidebarButton } from './components/sidebar-button'
-
-const CHAMADOS_SECTION_TITLE = 'Chamados'
 
 export function Sidebar({
   initialTicketModulePermissions,
@@ -34,7 +35,10 @@ export function Sidebar({
   const visibleSidebarItems = useMemo(
     () =>
       sidebarItems.map((item) => {
-        if (!('modules' in item) || item.title !== CHAMADOS_SECTION_TITLE) {
+        if (
+          !('modules' in item) ||
+          item.title !== DEMANDAS_SIDEBAR_CATEGORY_TITLE
+        ) {
           return item
         }
         return {

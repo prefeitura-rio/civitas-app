@@ -6,6 +6,7 @@ export type TicketReassignIn = {
   equipe_id: string
   responsavel_ids: string[]
   prioridade?: TicketReassignPriority | null
+  comentario?: string | null
 }
 
 export type TicketReassignOut = {
