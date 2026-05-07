@@ -21,6 +21,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
   Administrativo: 'Administrativo',
   Adjunto: 'Adjunto',
+  Assessor: 'Assessor',
   'Líder de Ilha': 'Líder de Ilha',
   Operador: 'Operador',
 }
