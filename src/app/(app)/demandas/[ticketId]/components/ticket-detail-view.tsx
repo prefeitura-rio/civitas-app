@@ -49,7 +49,11 @@ import { fetchTicketAttachmentBlob } from '@/http/tickets/download-ticket-attach
 import { getTicketAllowedActions } from '@/http/tickets/get-ticket-allowed-actions'
 import { getTicketCabecalho } from '@/http/tickets/get-ticket-cabecalho'
 import { getTicketNotificationEmails } from '@/http/tickets/get-ticket-notification-emails'
-import { getTicketRelatorioCompleto } from '@/http/tickets/get-ticket-relatorio-completo'
+import {
+  defaultTicketRelatorioCompletoTopics,
+  getTicketRelatorioCompleto,
+  type TicketRelatorioCompletoTopics,
+} from '@/http/tickets/get-ticket-relatorio-completo'
 import { type TicketReassignPriority } from '@/http/tickets/reassign-ticket'
 import { getTicketAttachments } from '@/http/tickets/ticket-attachments'
 import { cn } from '@/lib/utils'
@@ -114,6 +118,21 @@ function formatReassignPriorityLabel(priority: TicketReassignPriority) {
   return 'Rotina'
 }
 
+type RelatorioCompletoTopicKey = keyof TicketRelatorioCompletoTopics
+
+const RELATORIO_COMPLETO_TOPIC_ITEMS: {
+  key: RelatorioCompletoTopicKey
+  title: string
+}[] = [
+  { key: 't1', title: 'Solicitação Original' },
+  { key: 't2', title: 'Registro do Chamado no Sistema' },
+  { key: 't3', title: 'Relatório Técnico de Atendimento' },
+  { key: 't4', title: 'Parecer Interno' },
+  { key: 't5', title: 'Relatório da Demanda' },
+  { key: 't6', title: 'Histórico de Movimentações' },
+  { key: 't7', title: 'Conclusão Administrativa' },
+]
+
 type Props = {
   ticketId: string
 }
@@ -132,6 +151,17 @@ export function TicketDetailView({ ticketId }: Props) {
   const [oficioOpen, setOficioOpen] = useState(false)
   const [oficioAttachmentIndex, setOficioAttachmentIndex] = useState(0)
   const [oficioPreviewUrl, setOficioPreviewUrl] = useState<string | null>(null)
+  const [relatorioTopicsModalOpen, setRelatorioTopicsModalOpen] =
+    useState(false)
+  const [relatorioTopicsDraft, setRelatorioTopicsDraft] =
+    useState<TicketRelatorioCompletoTopics>(() =>
+      defaultTicketRelatorioCompletoTopics(),
+    )
+  const [relatorioFetchTopics, setRelatorioFetchTopics] =
+    useState<TicketRelatorioCompletoTopics>(() =>
+      defaultTicketRelatorioCompletoTopics(),
+    )
+  const [relatorioRequestId, setRelatorioRequestId] = useState(0)
   const [relatorioOpen, setRelatorioOpen] = useState(false)
   const [relatorioPreviewUrl, setRelatorioPreviewUrl] = useState<string | null>(
     null,
@@ -351,11 +381,22 @@ export function TicketDetailView({ ticketId }: Props) {
   }, [oficioOpen, oficioBlobQuery.data])
 
   const relatorioQuery = useQuery({
-    queryKey: ['ticket', ticketId, 'relatorio-completo'],
-    queryFn: () => getTicketRelatorioCompleto(ticketId),
+    queryKey: [
+      'ticket',
+      ticketId,
+      'relatorio-completo',
+      relatorioFetchTopics,
+      relatorioRequestId,
+    ],
+    queryFn: () => getTicketRelatorioCompleto(ticketId, relatorioFetchTopics),
     enabled: relatorioOpen,
     retry: false,
   })
+
+  useEffect(() => {
+    if (!relatorioTopicsModalOpen) return
+    setRelatorioTopicsDraft(defaultTicketRelatorioCompletoTopics())
+  }, [relatorioTopicsModalOpen])
 
   useEffect(() => {
     let created: string | null = null
@@ -541,7 +582,7 @@ export function TicketDetailView({ ticketId }: Props) {
           <button
             type="button"
             className={`${styles.actionSlot} ${styles.actionTertiary}`}
-            onClick={() => setRelatorioOpen(true)}
+            onClick={() => setRelatorioTopicsModalOpen(true)}
           >
             Gerar Relatório
           </button>
@@ -860,6 +901,18 @@ export function TicketDetailView({ ticketId }: Props) {
                         </p>
                       ) : null}
                     </div>
+                    <div className={styles.reassignField}>
+                      <span className={styles.reassignLabel}>Despacho</span>
+                      <Textarea
+                        value={workflowComment}
+                        onChange={(event) =>
+                          setWorkflowComment(event.target.value)
+                        }
+                        placeholder="Digite o despacho"
+                        className={styles.reassignTextarea}
+                        disabled={workflowActionMutation.isPending}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className={styles.reassignField}>
@@ -893,8 +946,7 @@ export function TicketDetailView({ ticketId }: Props) {
                   className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
                   disabled={
                     workflowActionMutation.isPending ||
-                    (!isWorkflowEmailAction &&
-                      workflowComment.trim().length === 0) ||
+                    workflowComment.trim().length === 0 ||
                     (isWorkflowEmailAction &&
                       (notificationEmailsQuery.isLoading ||
                         (notificationEmailsQuery.data ?? []).length === 0))
@@ -903,16 +955,16 @@ export function TicketDetailView({ ticketId }: Props) {
                     if (workflowCommentAction) {
                       workflowActionMutation.mutate({
                         actionId: workflowCommentAction,
-                        comentario: isWorkflowEmailAction
-                          ? undefined
-                          : workflowComment.trim(),
+                        comentario: workflowComment.trim(),
                       })
                     }
                   }}
                 >
                   {workflowActionMutation.isPending
                     ? 'Aplicando ação…'
-                    : 'Confirmar'}
+                    : isWorkflowEmailAction
+                      ? 'Enviar E-mail'
+                      : 'Confirmar'}
                 </button>
               </DialogFooter>
             </div>
@@ -1018,6 +1070,110 @@ export function TicketDetailView({ ticketId }: Props) {
                   Não foi possível exibir o arquivo neste navegador.
                 </p>
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={relatorioTopicsModalOpen}
+          onOpenChange={setRelatorioTopicsModalOpen}
+        >
+          <DialogContent
+            className={styles.reassignDialogContent}
+            aria-describedby={undefined}
+          >
+            <div className={styles.reassignDialogInner}>
+              <DialogHeader className={styles.reassignDialogHeader}>
+                <DialogTitle className={styles.reassignDialogTitle}>
+                  Conteúdo do relatório PDF
+                </DialogTitle>
+              </DialogHeader>
+              <div className={styles.reassignFields}>
+                <div className={styles.reassignField}>
+                  <p className={styles.reassignFieldMessage}>
+                    Escolha quais seções incluir no relatório completo. Por
+                    padrão, todas vêm marcadas.
+                  </p>
+                  <div className={styles.relatorioTopicsActionsRow}>
+                    <button
+                      type="button"
+                      className={styles.relatorioTopicsToggleBtn}
+                      onClick={() =>
+                        setRelatorioTopicsDraft(
+                          defaultTicketRelatorioCompletoTopics(),
+                        )
+                      }
+                    >
+                      Marcar todos
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.relatorioTopicsToggleBtn}
+                      onClick={() =>
+                        setRelatorioTopicsDraft({
+                          t1: false,
+                          t2: false,
+                          t3: false,
+                          t4: false,
+                          t5: false,
+                          t6: false,
+                          t7: false,
+                        })
+                      }
+                    >
+                      Desmarcar todos
+                    </button>
+                  </div>
+                  <div className={styles.relatorioTopicsList}>
+                    {RELATORIO_COMPLETO_TOPIC_ITEMS.map((item, index) => (
+                      <label
+                        key={item.key}
+                        className={styles.relatorioTopicCheckLabel}
+                      >
+                        <Checkbox
+                          checked={relatorioTopicsDraft[item.key]}
+                          onCheckedChange={(value) => {
+                            setRelatorioTopicsDraft((prev) => ({
+                              ...prev,
+                              [item.key]: value === true,
+                            }))
+                          }}
+                        />
+                        <span className={styles.relatorioTopicCheckTitle}>
+                          {`Tópico ${index + 1} — ${item.title}`}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className={styles.footerActions}>
+                <button
+                  type="button"
+                  className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
+                  onClick={() => setRelatorioTopicsModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+                  onClick={() => {
+                    const anySelected =
+                      Object.values(relatorioTopicsDraft).some(Boolean)
+                    if (!anySelected) {
+                      toast.error('Selecione pelo menos um tópico.')
+                      return
+                    }
+                    setRelatorioFetchTopics({ ...relatorioTopicsDraft })
+                    setRelatorioRequestId((n) => n + 1)
+                    setRelatorioTopicsModalOpen(false)
+                    setRelatorioOpen(true)
+                  }}
+                >
+                  Gerar relatório
+                </button>
+              </DialogFooter>
             </div>
           </DialogContent>
         </Dialog>

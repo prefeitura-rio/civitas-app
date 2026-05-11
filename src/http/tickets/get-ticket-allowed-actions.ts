@@ -11,7 +11,7 @@ export type TicketAllowedActionsOut = {
 /** GET `/tickets/{ticket_id}/workflow/allowed-actions` */
 export async function getTicketAllowedActions(ticketId: string) {
   const { data } = await api.get<TicketAllowedActionsOut>(
-    `/tickets/${encodeURIComponent(ticketId)}/workflow/allowed-actions`,
+    `/workflow/${encodeURIComponent(ticketId)}/allowed-actions`,
   )
   return data
 }

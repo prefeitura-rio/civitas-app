@@ -23,7 +23,7 @@ export async function applyTicketWorkflowAction(
   payload: ApplyTicketWorkflowActionIn,
 ) {
   const { data } = await api.post<ApplyTicketWorkflowActionOut>(
-    `/tickets/${encodeURIComponent(ticketId)}/workflow/actions/${encodeURIComponent(actionId)}`,
+    `/workflow/${encodeURIComponent(ticketId)}/actions/${encodeURIComponent(actionId)}`,
     payload,
   )
   return data
