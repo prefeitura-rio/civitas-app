@@ -6,11 +6,13 @@ import {
   ChevronDown,
   ChevronUp,
   ClipboardList,
+  Download,
   Search,
   Tag,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Tooltip } from '@/components/custom/tooltip'
@@ -20,6 +22,7 @@ import {
   getTicketsDashboard,
   type TicketDashboardFilters,
 } from '@/http/tickets/get-tickets-dashboard'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import {
   emptyFilters,
@@ -103,6 +106,79 @@ const sections: SectionConfig[] = [
   },
   { key: 'bloqueados', label: 'BLOQUEADO' },
 ]
+
+function escapeCsvCell(value: string): string {
+  const needsQuotes = /[",\n\r]/.test(value)
+  const escaped = value.replace(/"/g, '""')
+  return needsQuotes ? `"${escaped}"` : escaped
+}
+
+function triggerCsvDownload(csv: string, filename: string) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.rel = 'noopener'
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
+
+function formatDashboardDataCriacao(item: DashboardItem): string {
+  const raw = item.data_criacao?.trim()
+  return raw && raw.length > 0 ? raw : '—'
+}
+
+function formatDashboardServicos(item: DashboardItem): string {
+  return item.servicos.map((s) => s.label).join('; ')
+}
+
+function formatDashboardPriorityCell(item: DashboardItem): string {
+  return normalizePriority(item.prioridade) ?? item.prioridade?.trim() ?? ''
+}
+
+function collectDashboardExportRows(
+  payload: TicketDashboardResponse,
+): DashboardItem[] {
+  const rows: DashboardItem[] = []
+  for (const section of sections) {
+    const block = payload[section.key]
+    if (block?.items?.length) rows.push(...block.items)
+  }
+  return rows
+}
+
+function buildDashboardCsv(rows: DashboardItem[]): string {
+  const header = [
+    'CHAMADO',
+    'DATA CRIAÇÃO',
+    'DEMANDANTE',
+    'EQUIPE',
+    'RESPONSÁVEL',
+    'SERVIÇOS',
+    'PRIORIDADE',
+  ]
+    .map(escapeCsvCell)
+    .join(',')
+
+  const body = rows
+    .map((item) =>
+      [
+        item.chamado,
+        formatDashboardDataCriacao(item),
+        item.demandante,
+        item.equipe?.trim() || '-',
+        item.responsavel,
+        formatDashboardServicos(item),
+        formatDashboardPriorityCell(item),
+      ]
+        .map(escapeCsvCell)
+        .join(','),
+    )
+    .join('\r\n')
+
+  return `\uFEFF${header}\r\n${body}`
+}
 
 function normalizePriority(priority: string) {
   const value = priority?.trim().toUpperCase()
@@ -321,6 +397,7 @@ export function TicketsGeneralList() {
   const [search, setSearch] = useState<string>('')
   const debouncedSearch = useDebounce(search, 350)
 
+  const [isExporting, setIsExporting] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] =
     useState<FilterFormState>(emptyFilters())
@@ -351,6 +428,12 @@ export function TicketsGeneralList() {
       numero_oficio: appliedFilters.numero_oficio.map((item) => item.value),
       natureza_id: appliedFilters.natureza_id.map((item) => item.value),
       demandante_id: appliedFilters.demandante_id.map((item) => item.value),
+      requisitante: appliedFilters.requisitante.length
+        ? appliedFilters.requisitante.map((item) => item.value)
+        : undefined,
+      responsavel_id: appliedFilters.responsavel_id.length
+        ? appliedFilters.responsavel_id.map((item) => item.value)
+        : undefined,
       ponto_focal: appliedFilters.ponto_focal.map((item) => item.value),
 
       data_base_inicio: appliedFilters.data_base_inicio || undefined,
@@ -375,6 +458,7 @@ export function TicketsGeneralList() {
     queryKey: ['tickets-dashboard', dashboardPayload],
     queryFn: () => getTicketsDashboard(dashboardPayload),
     staleTime: 1000 * 60,
+    refetchOnMount: 'always',
   })
 
   const cards = useMemo(() => {
@@ -401,6 +485,8 @@ export function TicketsGeneralList() {
       appliedFilters.numero_oficio.length,
       appliedFilters.natureza_id.length,
       appliedFilters.demandante_id.length,
+      appliedFilters.requisitante.length,
+      appliedFilters.responsavel_id.length,
       appliedFilters.ponto_focal.length,
       appliedFilters.status.length,
       appliedFilters.prioridade.length,
@@ -427,6 +513,28 @@ export function TicketsGeneralList() {
   const clearAppliedFilters = () => {
     setAppliedFilters(emptyFilters())
   }
+
+  const handleExportCsv = useCallback(async () => {
+    setIsExporting(true)
+    try {
+      const fresh = (await getTicketsDashboard(
+        dashboardPayload,
+      )) as TicketDashboardResponse
+      const rows = collectDashboardExportRows(fresh)
+      if (rows.length === 0) {
+        toast.message('Nenhum chamado para exportar com os filtros atuais.')
+        return
+      }
+      const csv = buildDashboardCsv(rows)
+      const dateStamp = new Date().toISOString().slice(0, 10)
+      triggerCsvDownload(csv, `dashboard-demandas-${dateStamp}.csv`)
+      toast.success(`Exportação concluída (${rows.length} linhas).`)
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
+    } finally {
+      setIsExporting(false)
+    }
+  }, [dashboardPayload])
 
   return (
     <div className={styles.dashboardContainer}>
@@ -479,8 +587,16 @@ export function TicketsGeneralList() {
               Limpar filtro
             </button>
           ) : null}
-          <Button type="button" className={styles.toolbarButton}>
-            Exportar
+          <Button
+            type="button"
+            className={styles.toolbarButton}
+            disabled={isExporting || isLoading}
+            onClick={() => {
+              handleExportCsv()
+            }}
+          >
+            <Download size={16} />
+            {isExporting ? 'Exportando…' : 'Exportar'}
           </Button>
 
           <Button

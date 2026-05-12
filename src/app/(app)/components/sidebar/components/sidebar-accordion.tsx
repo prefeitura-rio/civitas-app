@@ -48,7 +48,7 @@ function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
                   <Badge
                     variant="secondary"
                     className="ml-auto shrink-0 px-1.5 py-0 text-[10px] tabular-nums opacity-0 transition-all duration-300 group-hover:opacity-100"
-                    aria-label={`${unreadCount.total} não lidos`}
+                    aria-label={`${unreadCount.total} e-mails não lidos ou aguardando resposta`}
                   >
                     {unreadCount.total > 99 ? '99+' : unreadCount.total}
                   </Badge>

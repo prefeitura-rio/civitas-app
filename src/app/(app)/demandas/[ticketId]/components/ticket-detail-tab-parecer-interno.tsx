@@ -173,7 +173,7 @@ export function TicketDetailTabParecerInterno({ ticketId }: Props) {
 
       <div className={styles.parecerComposer}>
         <div className={styles.parecerEditorShell}>
-          <RichToolbar onCommand={runCommand} />
+          <RichToolbar editorRef={editorRef} onCommand={runCommand} />
           <div className={styles.parecerEditorArea}>
             {empty ? (
               <span className={styles.parecerPlaceholder} aria-hidden>

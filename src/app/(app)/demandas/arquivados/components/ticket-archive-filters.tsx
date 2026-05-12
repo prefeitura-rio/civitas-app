@@ -1,20 +1,26 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, ChevronDown, Filter, Search, X } from 'lucide-react'
+import { ChevronDown, Filter, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { FilterDateRangeField } from '@/app/(app)/demandas/components/filter-date-range-field'
+import filterModalStyles from '@/app/(app)/demandas/list/components/filter/tickets-general-list-filters.module.css'
 import { Button } from '@/components/ui/button'
 import { getTeamsList } from '@/http/teams/get-teams'
 import {
   searchOperations,
   type SearchOption,
+  searchRequesters,
+  searchTicketResponsibles,
 } from '@/http/tickets/tickets-dashboard-filters'
 
 import styles from './ticket-archive-filters.module.css'
 
 export type TicketArchiveFilterState = {
   demandante_id: SearchOption[]
+  requisitante: SearchOption[]
+  responsavel_id: SearchOption[]
   data_base_inicio: string
   data_base_fim: string
   data_entrada_inicio: string
@@ -77,6 +83,8 @@ function useDebouncedValue<T>(value: T, delay = 400) {
 export function emptyArchiveFilters(): TicketArchiveFilterState {
   return {
     demandante_id: [],
+    requisitante: [],
+    responsavel_id: [],
     data_base_inicio: '',
     data_base_fim: '',
     data_entrada_inicio: '',
@@ -157,11 +165,11 @@ function SearchMultiSelect({
   }
 
   return (
-    <div className={styles.filterField} ref={containerRef}>
-      <span className={styles.filterLabel}>{label}</span>
+    <div className={filterModalStyles.filterBlock} ref={containerRef}>
+      <span className={filterModalStyles.filterLabel}>{label}</span>
 
-      <div className={styles.multiSelectBox}>
-        <div className={styles.multiSelectInputWrapper}>
+      <div className={filterModalStyles.multiSelectBox}>
+        <div className={filterModalStyles.multiSelectInputWrapper}>
           <input
             value={search}
             onFocus={() => setIsOpen(true)}
@@ -170,26 +178,37 @@ function SearchMultiSelect({
               setIsOpen(true)
             }}
             placeholder={value.length > 0 ? '' : placeholder}
-            className={styles.multiSelectInput}
+            className={filterModalStyles.multiSelectInput}
           />
-          <ChevronDown className={styles.multiSelectChevron} size={16} />
+          <ChevronDown
+            className={filterModalStyles.multiSelectChevron}
+            size={16}
+          />
 
           {isOpen ? (
-            <div className={styles.multiSelectDropdown}>
+            <div className={filterModalStyles.multiSelectDropdown}>
               {optionsLoading ? (
-                <div className={styles.dropdownHint}>Buscando...</div>
+                <div className={filterModalStyles.dropdownHint}>
+                  Buscando...
+                </div>
               ) : !staticOptions && debouncedSearch.trim().length < 2 ? (
-                <div className={styles.dropdownHint}>{minCharsMessage}</div>
+                <div className={filterModalStyles.dropdownHint}>
+                  {minCharsMessage}
+                </div>
               ) : isFetching ? (
-                <div className={styles.dropdownHint}>Buscando...</div>
+                <div className={filterModalStyles.dropdownHint}>
+                  Buscando...
+                </div>
               ) : options.length === 0 ? (
-                <div className={styles.dropdownHint}>Nenhum resultado</div>
+                <div className={filterModalStyles.dropdownHint}>
+                  Nenhum resultado
+                </div>
               ) : (
                 options.map((item) => (
                   <button
                     key={item.value}
                     type="button"
-                    className={styles.dropdownOption}
+                    className={filterModalStyles.dropdownOption}
                     onClick={() => addItem(item)}
                   >
                     {item.label}
@@ -201,13 +220,13 @@ function SearchMultiSelect({
         </div>
 
         {value.length > 0 ? (
-          <div className={styles.selectedChips}>
+          <div className={filterModalStyles.selectedChips}>
             {value.map((item) => (
-              <span key={item.value} className={styles.selectedChip}>
+              <span key={item.value} className={filterModalStyles.selectedChip}>
                 {item.label}
                 <button
                   type="button"
-                  className={styles.selectedChipRemove}
+                  className={filterModalStyles.selectedChipRemove}
                   onClick={() => removeItem(item.value)}
                 >
                   <X size={12} />
@@ -216,47 +235,6 @@ function SearchMultiSelect({
             ))}
           </div>
         ) : null}
-      </div>
-    </div>
-  )
-}
-
-function DateRangeField({
-  label,
-  startValue,
-  endValue,
-  onChangeStart,
-  onChangeEnd,
-}: {
-  label: string
-  startValue: string
-  endValue: string
-  onChangeStart: (value: string) => void
-  onChangeEnd: (value: string) => void
-}) {
-  return (
-    <div className={styles.filterField}>
-      <span className={styles.filterLabel}>{label}</span>
-      <div className={styles.dateRange}>
-        <label className={styles.dateInputWrap}>
-          <CalendarDays size={14} />
-          <input
-            type="date"
-            value={startValue}
-            onChange={(event) => onChangeStart(event.target.value)}
-          />
-        </label>
-
-        <span className={styles.dateRangeSeparator}>até</span>
-
-        <label className={styles.dateInputWrap}>
-          <CalendarDays size={14} />
-          <input
-            type="date"
-            value={endValue}
-            onChange={(event) => onChangeEnd(event.target.value)}
-          />
-        </label>
       </div>
     </div>
   )
@@ -319,7 +297,7 @@ export function TicketArchiveFiltersModal({
 
           <button
             type="button"
-            className={styles.closeButton}
+            className={filterModalStyles.filterModalClose}
             onClick={onClose}
           >
             <X size={18} />
@@ -327,7 +305,7 @@ export function TicketArchiveFiltersModal({
         </header>
 
         <div className={styles.modalBody}>
-          <div className={styles.grid}>
+          <div className={filterModalStyles.filterGrid}>
             <SearchMultiSelect
               label="DEMANDANTE"
               value={draftFilters.demandante_id}
@@ -339,46 +317,39 @@ export function TicketArchiveFiltersModal({
               }
               searchFn={searchOperations}
             />
-          </div>
-
-          <div className={styles.grid}>
-            <DateRangeField
-              label="DATA BASE"
-              startValue={draftFilters.data_base_inicio}
-              endValue={draftFilters.data_base_fim}
-              onChangeStart={(value) =>
+            <SearchMultiSelect
+              label="REQUISITANTE"
+              value={draftFilters.requisitante}
+              onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  data_base_inicio: value,
+                  requisitante: value,
                 }))
               }
-              onChangeEnd={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  data_base_fim: value,
-                }))
-              }
+              searchFn={searchRequesters}
             />
-            <DateRangeField
-              label="DATA DE ENTRADA"
-              startValue={draftFilters.data_entrada_inicio}
-              endValue={draftFilters.data_entrada_fim}
-              onChangeStart={(value) =>
+            <SearchMultiSelect
+              label="RESPONSÁVEL"
+              value={draftFilters.responsavel_id}
+              onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  data_entrada_inicio: value,
+                  responsavel_id: value,
                 }))
               }
-              onChangeEnd={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  data_entrada_fim: value,
-                }))
+              searchFn={searchTicketResponsibles}
+            />
+            <SearchMultiSelect
+              label="SERVIÇOS"
+              value={draftFilters.servicos}
+              onChange={(value) =>
+                setDraftFilters((current) => ({ ...current, servicos: value }))
               }
+              staticOptions={servicoOptions}
             />
           </div>
 
-          <div className={styles.grid}>
+          <div className={filterModalStyles.filterTogglesGrid}>
             <SearchMultiSelect
               label="PRIORIDADE"
               value={draftFilters.prioridade}
@@ -399,22 +370,55 @@ export function TicketArchiveFiltersModal({
               staticOptions={teamSearchOptions ?? []}
               optionsLoading={isTeamsLoading}
             />
+            <div className={filterModalStyles.filterBlock}>
+              <span className={filterModalStyles.filterLabel}>DATA BASE</span>
+              <FilterDateRangeField
+                popoverContentClassName="z-[140] w-auto p-0"
+                startValue={draftFilters.data_base_inicio}
+                endValue={draftFilters.data_base_fim}
+                onChangeStart={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_base_inicio: value,
+                  }))
+                }
+                onChangeEnd={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_base_fim: value,
+                  }))
+                }
+              />
+            </div>
+            <div className={filterModalStyles.filterBlock}>
+              <span className={filterModalStyles.filterLabel}>
+                DATA DE ENTRADA
+              </span>
+              <FilterDateRangeField
+                popoverContentClassName="z-[140] w-auto p-0"
+                startValue={draftFilters.data_entrada_inicio}
+                endValue={draftFilters.data_entrada_fim}
+                onChangeStart={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_entrada_inicio: value,
+                  }))
+                }
+                onChangeEnd={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    data_entrada_fim: value,
+                  }))
+                }
+              />
+            </div>
           </div>
-
-          <SearchMultiSelect
-            label="SERVIÇOS"
-            value={draftFilters.servicos}
-            onChange={(value) =>
-              setDraftFilters((current) => ({ ...current, servicos: value }))
-            }
-            staticOptions={servicoOptions}
-          />
         </div>
 
         <footer className={styles.modalFooter}>
           <Button
             type="button"
-            className={styles.clearButton}
+            className={filterModalStyles.filterSecondaryButton}
             onClick={clearFilters}
           >
             Limpar filtro
@@ -422,7 +426,7 @@ export function TicketArchiveFiltersModal({
 
           <Button
             type="button"
-            className={styles.saveButton}
+            className={filterModalStyles.filterPrimaryButton}
             onClick={applyFilters}
           >
             <Filter size={16} />

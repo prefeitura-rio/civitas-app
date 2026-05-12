@@ -1,15 +1,10 @@
 'use client'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  UserRoundCog,
-} from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Checkbox } from '@/components/ui/checkbox'
@@ -114,8 +109,19 @@ function formatStatusText(value?: string | null) {
 
 function formatReassignPriorityLabel(priority: TicketReassignPriority) {
   if (priority === 'URGENTE') return 'Urgente'
-  if (priority === 'ALTA') return 'Alto'
+  if (priority === 'ALTA') return 'Alta'
   return 'Rotina'
+}
+
+function cabecalhoPrioridadeToReassign(
+  prioridade?: string | null,
+): TicketReassignPriority | null {
+  if (!prioridade?.trim()) return null
+  const v = prioridade.trim().toUpperCase()
+  if (v === 'URGENTE') return 'URGENTE'
+  if (v === 'ALTA') return 'ALTA'
+  if (v === 'ROTINA') return 'ROTINA'
+  return null
 }
 
 type RelatorioCompletoTopicKey = keyof TicketRelatorioCompletoTopics
@@ -181,6 +187,7 @@ export function TicketDetailView({ ticketId }: Props) {
     useState<TicketReassignPriority | null>(null)
   const [reassignComment, setReassignComment] = useState('')
   const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false)
+  const reassignDialogEnteredRef = useRef(false)
 
   const query = useQuery({
     queryKey: ['ticket', ticketId, 'cabecalho'],
@@ -418,13 +425,23 @@ export function TicketDetailView({ ticketId }: Props) {
   }, [relatorioOpen, relatorioQuery.data])
 
   useEffect(() => {
-    if (!reassignOpen) return
-    setSelectedTeamId('')
-    setSelectedResponsibleIds([])
-    setSelectedPriority(null)
-    setReassignComment('')
-    setResponsiblePopoverOpen(false)
-  }, [reassignOpen])
+    if (!reassignOpen) {
+      reassignDialogEnteredRef.current = false
+      return
+    }
+
+    const firstOpenPaint = !reassignDialogEnteredRef.current
+    reassignDialogEnteredRef.current = true
+
+    if (firstOpenPaint) {
+      setSelectedTeamId('')
+      setSelectedResponsibleIds([])
+      setReassignComment('')
+      setResponsiblePopoverOpen(false)
+    }
+
+    setSelectedPriority(cabecalhoPrioridadeToReassign(cab?.prioridade))
+  }, [reassignOpen, cab?.prioridade])
 
   useEffect(() => {
     if (!reassignOpen || selectedTeamId || teamsByRoleQuery.isLoading) return
@@ -457,11 +474,13 @@ export function TicketDetailView({ ticketId }: Props) {
     setActiveTab('solicitante')
   }, [showRespostaTab, activeTab])
 
-  const selectedResponsibleNames = (teamMembersByRoleQuery.data ?? [])
+  const selectedResponsibleLabels = (teamMembersByRoleQuery.data ?? [])
     .filter((member: TeamMemberUserOut) =>
       selectedResponsibleIds.includes(member.user_id),
     )
-    .map((member: TeamMemberUserOut) => member.user_name)
+    .map((member: TeamMemberUserOut) =>
+      member.role ? `${member.user_name} (${member.role})` : member.user_name,
+    )
 
   const isWorkflowEmailAction = workflowCommentAction === 'ENVIAR_EMAIL'
 
@@ -678,7 +697,6 @@ export function TicketDetailView({ ticketId }: Props) {
               className={`${styles.actionSlot} ${styles.actionPrimary}`}
               onClick={() => setReassignOpen(true)}
             >
-              <UserRoundCog size={20} aria-hidden />
               Reatribuir Demanda
             </button>
           ) : null}
@@ -929,7 +947,12 @@ export function TicketDetailView({ ticketId }: Props) {
                   </div>
                 )}
               </div>
-              <DialogFooter className={styles.footerActions}>
+              <DialogFooter
+                className={cn(
+                  styles.footerActions,
+                  isWorkflowEmailAction && styles.footerActionsCentered,
+                )}
+              >
                 <button
                   type="button"
                   className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
@@ -1303,13 +1326,13 @@ export function TicketDetailView({ ticketId }: Props) {
                       >
                         <span
                           className={
-                            selectedResponsibleNames.length > 0
+                            selectedResponsibleLabels.length > 0
                               ? styles.reassignMultiValue
                               : styles.reassignMultiPlaceholder
                           }
                         >
-                          {selectedResponsibleNames.length > 0
-                            ? selectedResponsibleNames.join(', ')
+                          {selectedResponsibleLabels.length > 0
+                            ? selectedResponsibleLabels.join(', ')
                             : teamMembersByRoleQuery.isLoading
                               ? 'Carregando…'
                               : 'Selecione'}
@@ -1364,7 +1387,11 @@ export function TicketDetailView({ ticketId }: Props) {
                                     }}
                                     disabled={reassignMutation.isPending}
                                   />
-                                  <span>{member.user_name}</span>
+                                  <span className={styles.reassignOptionLabel}>
+                                    {member.role
+                                      ? `${member.user_name} (${member.role})`
+                                      : member.user_name}
+                                  </span>
                                 </label>
                               )
                             },

@@ -12,6 +12,7 @@ export type TicketDashboardFilters = {
   natureza_id?: string[]
   demandante_id?: string[]
   requisitante?: string[]
+  responsavel_id?: string[]
   ponto_focal?: string[]
 
   data_base_inicio?: string
@@ -40,6 +41,7 @@ export async function getTicketsDashboard(filters: TicketDashboardFilters) {
     natureza_id: filters.natureza_id,
     demandante_id: filters.demandante_id,
     requisitante: filters.requisitante,
+    responsavel_id: filters.responsavel_id,
     ponto_focal: filters.ponto_focal,
 
     data_base_inicio: filters.data_base_inicio,

@@ -8,7 +8,6 @@ export type TicketFichaOut = {
   numero_interno: number
   numero_oficio?: string | null
   numero_procedimento?: string | null
-  orgao_procedimento_id?: string | null
   natureza_id?: string | null
   natureza_nome?: string | null
   possui_apelido_imprensa: boolean
@@ -19,7 +18,6 @@ export type TicketFichaOut = {
 
 export type TicketFichaUpdateIn = {
   tipo_chamado_id: string
-  orgao_procedimento_id?: string | null
   numero_procedimento?: string | null
   numero_oficio?: string | null
   natureza_id?: string | null

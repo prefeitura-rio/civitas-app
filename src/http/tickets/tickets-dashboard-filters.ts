@@ -44,6 +44,11 @@ type RequesterSearchResponse = {
   requisitante: string
 }
 
+type ResponsibleSearchResponse = {
+  user_id: string
+  user_name: string
+}
+
 type FocalPointSearchResponse = {
   ponto_focal: string
 }
@@ -157,6 +162,22 @@ export async function searchRequesters(
   return response.data.map((item) => ({
     label: item.requisitante,
     value: item.requisitante,
+  }))
+}
+
+export async function searchTicketResponsibles(
+  search: string,
+): Promise<SearchOption[]> {
+  const response = await api.get<ResponsibleSearchResponse[]>(
+    '/tickets/responsibles/search',
+    {
+      params: { search },
+    },
+  )
+
+  return response.data.map((item) => ({
+    label: item.user_name,
+    value: item.user_id,
   }))
 }
 

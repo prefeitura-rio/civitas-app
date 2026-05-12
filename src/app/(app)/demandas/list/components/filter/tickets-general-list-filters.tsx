@@ -10,6 +10,8 @@ import { getTeamsList } from '@/http/teams/get-teams'
 import {
   searchOperations,
   type SearchOption,
+  searchRequesters,
+  searchTicketResponsibles,
 } from '@/http/tickets/tickets-dashboard-filters'
 
 import styles from './tickets-general-list-filters.module.css'
@@ -21,6 +23,8 @@ export type FilterFormState = {
   numero_oficio: SearchOption[]
   natureza_id: SearchOption[]
   demandante_id: SearchOption[]
+  requisitante: SearchOption[]
+  responsavel_id: SearchOption[]
   ponto_focal: SearchOption[]
 
   data_base_inicio: string
@@ -44,6 +48,8 @@ export function emptyFilters(): FilterFormState {
     numero_oficio: [],
     natureza_id: [],
     demandante_id: [],
+    requisitante: [],
+    responsavel_id: [],
     ponto_focal: [],
 
     data_base_inicio: '',
@@ -318,6 +324,72 @@ export function TicketsDashboardFilterModal({
               searchFn={searchOperations}
             />
 
+            <SearchMultiSelect
+              label="REQUISITANTE"
+              value={draftFilters.requisitante}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  requisitante: value,
+                }))
+              }
+              searchFn={searchRequesters}
+            />
+
+            <SearchMultiSelect
+              label="RESPONSÁVEL"
+              value={draftFilters.responsavel_id}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  responsavel_id: value,
+                }))
+              }
+              searchFn={searchTicketResponsibles}
+            />
+
+            <SearchMultiSelect
+              label="SERVIÇOS"
+              placeholder="Selecione"
+              value={draftFilters.servicos}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  servicos: value,
+                }))
+              }
+              staticOptions={dashboardServicosFilterOptions}
+            />
+          </div>
+
+          <div className={styles.filterTogglesGrid}>
+            <SearchMultiSelect
+              label="PRIORIDADE"
+              placeholder="Selecione"
+              value={draftFilters.prioridade}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  prioridade: value,
+                }))
+              }
+              staticOptions={prioritySearchOptions}
+            />
+
+            <SearchMultiSelect
+              label="EQUIPE"
+              placeholder="Selecione"
+              value={draftFilters.equipe}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  equipe: value,
+                }))
+              }
+              staticOptions={teamSearchOptions ?? []}
+              optionsLoading={isTeamsLoading}
+            />
+
             <div className={styles.filterBlock}>
               <span className={styles.filterLabel}>DATA BASE</span>
               <FilterDateRangeField
@@ -357,48 +429,6 @@ export function TicketsDashboardFilterModal({
                 }
               />
             </div>
-          </div>
-
-          <div className={styles.filterTogglesGrid}>
-            <SearchMultiSelect
-              label="PRIORIDADE"
-              placeholder="Selecione"
-              value={draftFilters.prioridade}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  prioridade: value,
-                }))
-              }
-              staticOptions={prioritySearchOptions}
-            />
-
-            <SearchMultiSelect
-              label="EQUIPE"
-              placeholder="Selecione"
-              value={draftFilters.equipe}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  equipe: value,
-                }))
-              }
-              staticOptions={teamSearchOptions ?? []}
-              optionsLoading={isTeamsLoading}
-            />
-
-            <SearchMultiSelect
-              label="SERVIÇOS"
-              placeholder="Selecione"
-              value={draftFilters.servicos}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  servicos: value,
-                }))
-              }
-              staticOptions={dashboardServicosFilterOptions}
-            />
           </div>
         </div>
 

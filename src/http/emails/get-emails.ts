@@ -19,9 +19,13 @@ export interface EmailPageOut {
   total: number
 }
 
-export interface EmailUnreadCountOut {
+/** Contagem de e-mails não lidos + aguardando resposta (menu lateral / caixa de entrada). */
+export interface EmailAttentionCountsOut {
   total: number
 }
+
+/** @deprecated Use EmailAttentionCountsOut */
+export type EmailUnreadCountOut = EmailAttentionCountsOut
 
 export function getEmails({
   page,
@@ -48,8 +52,8 @@ export function getEmailsNaoLidos({
 }
 
 export async function getEmailNaoLidosCount() {
-  const response = await api.get<EmailUnreadCountOut>(
-    '/emails/nao-lidos/contagem',
+  const response = await api.get<EmailAttentionCountsOut>(
+    '/emails/unread/count',
   )
   return response.data
 }

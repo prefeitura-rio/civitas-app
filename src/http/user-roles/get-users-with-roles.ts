@@ -14,6 +14,8 @@ export interface UserRoleListItem {
   full_name: string | null
   email: string | null
   role: UserRoleEnum | null
+  /** Presente em `/users-roles/assigned`: indica se o usuário já está em alguma equipe. */
+  belongs_to_team?: boolean
 }
 
 export interface UserRole extends UserRoleListItem {

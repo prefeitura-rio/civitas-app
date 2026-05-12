@@ -27,7 +27,10 @@ import { listIslandsByTeam } from '@/http/islands/list-islands'
 import { createTeamMember } from '@/http/teams/create-team-member'
 import { updateTeamMember } from '@/http/teams/update-team-member'
 import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-roles'
-import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
+import type {
+  UserRoleEnum,
+  UserRoleListItem,
+} from '@/http/user-roles/get-users-with-roles'
 import { queryClient } from '@/lib/react-query'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
@@ -62,6 +65,12 @@ const memberFormSchema = z
   })
 
 type MemberForm = z.infer<typeof memberFormSchema>
+
+function userDisplayName(
+  user: Pick<UserRoleListItem, 'full_name' | 'username'>,
+) {
+  return user.full_name?.trim() || user.username
+}
 
 const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
@@ -358,74 +367,122 @@ export function TeamMemberFormDialog({
                   <Controller
                     control={control}
                     name="user_id"
-                    render={({ field }) => (
-                      <Popover
-                        open={userSelectOpen}
-                        onOpenChange={setUserSelectOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <button
-                            id="user_id"
-                            type="button"
-                            disabled={isLoading || !selectedRole}
-                            className="equipes-select-trigger-wrap equipes-select-trigger"
-                          >
-                            <span
-                              className={
-                                !field.value
-                                  ? 'equipes-select-trigger-placeholder'
-                                  : ''
-                              }
-                            >
-                              {!selectedRole
-                                ? 'Selecione a função primeiro'
-                                : isFetchingUsers
-                                  ? 'Carregando usuários...'
-                                  : field.value
-                                    ? users.find((u) => u.id === field.value)
-                                        ?.full_name ||
-                                      users.find((u) => u.id === field.value)
-                                        ?.username ||
-                                      'Selecione um usuário'
-                                    : 'Selecione um usuário'}
-                            </span>
-                            <ChevronDown
-                              className="equipes-select-chevron"
-                              size={16}
-                            />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          align="start"
-                          sideOffset={8}
-                          className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                    render={({ field }) => {
+                      const selectedUser = users.find(
+                        (u) => u.id === field.value,
+                      )
+                      return (
+                        <Popover
+                          open={userSelectOpen}
+                          onOpenChange={setUserSelectOpen}
                         >
-                          {isFetchingUsers ? (
-                            <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
-                              Carregando...
-                            </p>
-                          ) : users.length === 0 ? (
-                            <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
-                              Nenhum usuário encontrado para esta função.
-                            </p>
-                          ) : (
-                            users.map((user) => (
-                              <button
-                                key={user.id}
-                                type="button"
-                                className="equipes-select-option w-full"
-                                onClick={() => {
-                                  field.onChange(user.id)
-                                  setUserSelectOpen(false)
-                                }}
-                              >
-                                {user.full_name || user.username}
-                              </button>
-                            ))
-                          )}
-                        </PopoverContent>
-                      </Popover>
-                    )}
+                          <PopoverTrigger asChild>
+                            <button
+                              id="user_id"
+                              type="button"
+                              disabled={isLoading || !selectedRole}
+                              className="equipes-select-trigger-wrap equipes-select-trigger"
+                            >
+                              {!selectedRole ? (
+                                <span className="equipes-select-trigger-placeholder">
+                                  Selecione a função primeiro
+                                </span>
+                              ) : isFetchingUsers ? (
+                                <span className="equipes-select-trigger-placeholder">
+                                  Carregando usuários...
+                                </span>
+                              ) : field.value ? (
+                                <span className="flex min-w-0 flex-1 items-center gap-2">
+                                  <span className="truncate">
+                                    {selectedUser
+                                      ? userDisplayName(selectedUser)
+                                      : 'Selecione um usuário'}
+                                  </span>
+                                  {selectedUser?.belongs_to_team ? (
+                                    <span className="equipes-select-trigger-user-badge">
+                                      Em equipe
+                                    </span>
+                                  ) : null}
+                                </span>
+                              ) : (
+                                <span className="equipes-select-trigger-placeholder">
+                                  Selecione um usuário
+                                </span>
+                              )}
+                              <ChevronDown
+                                className="equipes-select-chevron"
+                                size={16}
+                              />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            align="start"
+                            sideOffset={8}
+                            className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                          >
+                            {isFetchingUsers ? (
+                              <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                                Carregando...
+                              </p>
+                            ) : users.length === 0 ? (
+                              <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                                Nenhum usuário encontrado para esta função.
+                              </p>
+                            ) : (
+                              <>
+                                {users.some((u) => u.belongs_to_team) ? (
+                                  <p
+                                    className="equipes-select-dropdown-hint"
+                                    role="note"
+                                  >
+                                    A etiqueta &quot;Em equipe&quot; indica quem
+                                    já está em alguma equipe.
+                                  </p>
+                                ) : null}
+                                {users.map((user) => {
+                                  const inTeam = Boolean(user.belongs_to_team)
+                                  const label = userDisplayName(user)
+                                  return (
+                                    <button
+                                      key={user.id}
+                                      type="button"
+                                      className={`equipes-select-option w-full${inTeam ? 'equipes-select-option--in-team' : ''}`}
+                                      title={
+                                        inTeam
+                                          ? 'Este usuário já está em uma equipe.'
+                                          : undefined
+                                      }
+                                      onClick={() => {
+                                        field.onChange(user.id)
+                                        setUserSelectOpen(false)
+                                      }}
+                                    >
+                                      {inTeam ? (
+                                        <>
+                                          <span className="equipes-select-option-user-cell">
+                                            <span className="equipes-select-option-user-name">
+                                              {label}
+                                            </span>
+                                            <span className="equipes-select-option-user-note">
+                                              Já está em uma equipe
+                                            </span>
+                                          </span>
+                                          <span className="equipes-user-in-team-badge">
+                                            Em equipe
+                                          </span>
+                                        </>
+                                      ) : (
+                                        label
+                                      )}
+                                    </button>
+                                  )
+                                })}
+                              </>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      )
+                    }}
                   />
                 </div>
               )}

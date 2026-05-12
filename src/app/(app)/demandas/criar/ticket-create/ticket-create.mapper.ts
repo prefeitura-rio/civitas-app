@@ -41,7 +41,6 @@ export function buildTicketCreatePayload(
   return {
     ...data,
     associar_chamado_id: emptyToNull(data.associar_chamado_id),
-    orgao_procedimento_id: emptyToNull(data.orgao_procedimento_id),
     numero_procedimento: emptyToNull(
       padDigitsLeft(data.numero_procedimento, L.numero_procedimento),
     ),
@@ -166,7 +165,6 @@ export function mapTicketOutToCreateForm(
     associar_chamado_id: options.associar_chamado_id,
     tipo_chamado_id: options.tipo_chamado_id,
     operation_id: ticket.operation_id ?? '',
-    orgao_procedimento_id: ticket.orgao_procedimento_id ?? '',
     numero_procedimento: ticket.numero_procedimento
       ? padDigitsLeft(ticket.numero_procedimento, L.numero_procedimento)
       : null,

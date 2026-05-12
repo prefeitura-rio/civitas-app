@@ -165,7 +165,6 @@ export type TicketOut = {
   tipo_chamado_nome?: string
   natureza_nome?: string | null
   operation_id?: string | null
-  orgao_procedimento_id?: string | null
   numero_procedimento?: string | null
   numero_oficio?: string | null
   data_base?: string | null

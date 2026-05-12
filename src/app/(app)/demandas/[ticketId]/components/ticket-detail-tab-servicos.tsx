@@ -28,7 +28,7 @@ import {
   replaceTicketServicos,
   type TicketServicosOut,
 } from '@/http/tickets/ticket-servicos'
-import { isApiError } from '@/lib/api'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import styles from '../ticket-detail.module.css'
 import {
@@ -131,6 +131,8 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
   const [addServicoOpen, setAddServicoOpen] = useState(false)
   const [pendingFilesByRowId, setPendingFilesByRowId] =
     useState<PendingServiceFilesByRowId>({})
+  /** Cobre PUT + refetch + uploads de anexos pendentes (não só `replaceMutation.isPending`). */
+  const [saveFlowPending, setSaveFlowPending] = useState(false)
 
   const servicosQuery = useQuery({
     queryKey: ['ticket', ticketId, 'servicos'],
@@ -239,122 +241,120 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
         return
       }
 
-      const preSaveDraft = cloneTicketServicos(draft)
-      let saved: TicketServicosOut
+      setSaveFlowPending(true)
       try {
-        saved = await replaceMutation.mutateAsync(
-          ticketServicosToReplacePayload(draft),
-        )
-      } catch (err: unknown) {
-        const msg = isApiError(err)
-          ? (err.response?.data as { detail?: string } | undefined)?.detail
-          : undefined
-        toast.error(
-          typeof msg === 'string'
-            ? msg
-            : 'Não foi possível salvar os serviços.',
-        )
-        return
-      }
-
-      let pendingUploadFailures = 0
-      const nextPending: PendingServiceFilesByRowId = {}
-      let latestSaved = saved
-
-      try {
-        // Usa o estado mais recente do backend para mapear IDs por posição.
-        latestSaved = await getTicketServicos(ticketId)
-      } catch {
-        // fallback para retorno do PUT quando o refetch falhar
-      }
-
-      for (const kind of SERVICE_KINDS) {
-        const preRows = (preSaveDraft[kind] ?? []) as { id?: string }[]
-        const savedRows = (latestSaved[kind] ?? []) as { id?: string }[]
-
-        for (let index = 0; index < preRows.length; index++) {
-          const preRow = preRows[index]
-          if (!preRow?.id || !isLocalDraftServiceId(preRow.id)) continue
-          const files = pendingFilesByRowId[preRow.id] ?? []
-          if (!files.length) continue
-
-          const persistedServiceId = savedRows[index]?.id
-          if (!persistedServiceId) {
-            pendingUploadFailures += files.length
-            nextPending[preRow.id] = files
-            continue
-          }
-
-          const videoFiles = files.filter((file) =>
-            file.type.startsWith('video/'),
+        const preSaveDraft = cloneTicketServicos(draft)
+        let saved: TicketServicosOut
+        try {
+          saved = await replaceMutation.mutateAsync(
+            ticketServicosToReplacePayload(draft),
           )
-          const nonVideoFiles = files.filter(
-            (file) => !file.type.startsWith('video/'),
-          )
+        } catch (err: unknown) {
+          toast.error(getApiErrorMessage(err))
+          return
+        }
 
-          try {
-            if (nonVideoFiles.length > 0) {
-              await uploadTicketServiceAttachmentsMultipart(
-                ticketId,
-                nonVideoFiles,
-                {
+        let pendingUploadFailures = 0
+        const nextPending: PendingServiceFilesByRowId = {}
+        let latestSaved = saved
+
+        try {
+          // Usa o estado mais recente do backend para mapear IDs por posição.
+          latestSaved = await getTicketServicos(ticketId)
+        } catch {
+          // fallback para retorno do PUT quando o refetch falhar
+        }
+
+        for (const kind of SERVICE_KINDS) {
+          const preRows = (preSaveDraft[kind] ?? []) as { id?: string }[]
+          const savedRows = (latestSaved[kind] ?? []) as { id?: string }[]
+
+          for (let index = 0; index < preRows.length; index++) {
+            const preRow = preRows[index]
+            if (!preRow?.id || !isLocalDraftServiceId(preRow.id)) continue
+            const files = pendingFilesByRowId[preRow.id] ?? []
+            if (!files.length) continue
+
+            const persistedServiceId = savedRows[index]?.id
+            if (!persistedServiceId) {
+              pendingUploadFailures += files.length
+              nextPending[preRow.id] = files
+              continue
+            }
+
+            const videoFiles = files.filter((file) =>
+              file.type.startsWith('video/'),
+            )
+            const nonVideoFiles = files.filter(
+              (file) => !file.type.startsWith('video/'),
+            )
+
+            try {
+              if (nonVideoFiles.length > 0) {
+                await uploadTicketServiceAttachmentsMultipart(
+                  ticketId,
+                  nonVideoFiles,
+                  {
+                    service_type: kind,
+                    service_id: persistedServiceId,
+                  },
+                )
+              }
+              for (const file of videoFiles) {
+                const contentType = file.type || 'video/mp4'
+                const uploadMeta = await requestTicketVideoUploadUrl(ticketId, {
+                  filename: file.name,
+                  content_type: contentType,
+                  file_size: file.size,
+                  resumable: true,
                   service_type: kind,
                   service_id: persistedServiceId,
-                },
-              )
+                })
+                await putVideoToGcsSignedUrl(
+                  uploadMeta.signed_url,
+                  file,
+                  contentType,
+                )
+                await completeTicketVideoAttachment(ticketId, {
+                  storage_key: uploadMeta.storage_key,
+                  filename: file.name,
+                  content_type: contentType,
+                  size_bytes: file.size,
+                  service_type: kind,
+                  service_id: persistedServiceId,
+                })
+              }
+            } catch {
+              pendingUploadFailures += files.length
+              nextPending[preRow.id] = files
             }
-            for (const file of videoFiles) {
-              const contentType = file.type || 'video/mp4'
-              const uploadMeta = await requestTicketVideoUploadUrl(ticketId, {
-                filename: file.name,
-                content_type: contentType,
-                file_size: file.size,
-                resumable: true,
-                service_type: kind,
-                service_id: persistedServiceId,
-              })
-              await putVideoToGcsSignedUrl(
-                uploadMeta.signed_url,
-                file,
-                contentType,
-              )
-              await completeTicketVideoAttachment(ticketId, {
-                storage_key: uploadMeta.storage_key,
-                filename: file.name,
-                content_type: contentType,
-                size_bytes: file.size,
-                service_type: kind,
-                service_id: persistedServiceId,
-              })
-            }
-          } catch {
-            pendingUploadFailures += files.length
-            nextPending[preRow.id] = files
           }
         }
-      }
 
-      const c = cloneTicketServicos(latestSaved)
-      setDraft(c)
-      setSnapshot(cloneTicketServicos(latestSaved))
-      setPendingFilesByRowId(nextPending)
-      setIsEditing(false)
-      setExpandedId(null)
-      queryClient.setQueryData(['ticket', ticketId, 'servicos'], latestSaved)
-      queryClient.invalidateQueries({
-        queryKey: ['ticket', ticketId, 'servicos'],
-      })
-      queryClient.invalidateQueries({
-        queryKey: ['ticket-attachments', ticketId],
-      })
-      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+        const c = cloneTicketServicos(latestSaved)
+        setDraft(c)
+        setSnapshot(cloneTicketServicos(latestSaved))
+        setPendingFilesByRowId(nextPending)
+        setIsEditing(false)
+        setExpandedId(null)
+        queryClient.setQueryData(['ticket', ticketId, 'servicos'], latestSaved)
+        queryClient.invalidateQueries({
+          queryKey: ['ticket', ticketId, 'servicos'],
+        })
+        queryClient.invalidateQueries({
+          queryKey: ['ticket-attachments', ticketId],
+        })
+        queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
 
-      if (pendingUploadFailures > 0) {
-        toast.error(
-          `Serviços salvos, mas ${pendingUploadFailures} anexo(s) não puderam ser enviados.`,
-        )
-      } else {
-        toast.success('Serviços e anexos salvos com sucesso.')
+        if (pendingUploadFailures > 0) {
+          toast.error(
+            `Serviços salvos, mas ${pendingUploadFailures} anexo(s) não puderam ser enviados.`,
+          )
+        } else {
+          toast.success('Serviços e anexos salvos com sucesso.')
+        }
+      } finally {
+        setSaveFlowPending(false)
       }
     }
 
@@ -369,6 +369,8 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
     replaceMutation,
     ticketId,
   ])
+
+  const saveOrUploadBusy = saveFlowPending || replaceMutation.isPending
 
   const handleAddKind = (kind: (typeof SERVICE_KINDS)[number]) => {
     setDraft((prev) => {
@@ -440,7 +442,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
               type="button"
               className={`${styles.footerBtn} ${styles.servicosAddExistingBtn}`}
               onClick={() => setAddServicoOpen(true)}
-              disabled={replaceMutation.isPending}
+              disabled={saveOrUploadBusy}
             >
               <Plus className="h-4 w-4" aria-hidden />
               Novo Serviço
@@ -468,7 +470,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                     >
                       <Checkbox
                         checked={readConcluido(formSource, row.kind, row.index)}
-                        disabled={!isEditing || replaceMutation.isPending}
+                        disabled={!isEditing || saveOrUploadBusy}
                         onCheckedChange={(v) =>
                           handleConcluidoChange(row, v === true)
                         }
@@ -503,6 +505,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                         variant="ghost"
                         size="icon"
                         className={styles.servicosRemoveInlineBtn}
+                        disabled={saveOrUploadBusy}
                         onClick={() =>
                           handleRemoveRow(row.kind, row.index, row.rowId)
                         }
@@ -520,8 +523,10 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                         kind={row.kind}
                         index={row.index}
                         draft={formSource}
-                        onChange={isEditing ? setDraft : noopDraft}
-                        readOnly={!isEditing}
+                        onChange={
+                          isEditing && !saveOrUploadBusy ? setDraft : noopDraft
+                        }
+                        readOnly={!isEditing || saveOrUploadBusy}
                         fieldErrors={
                           isEditing
                             ? (serviceFieldErrors[row.rowId] ?? null)
@@ -539,7 +544,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                                 | undefined
                             )?.anexos ?? []
                           }
-                          readOnly={!isEditing}
+                          readOnly={!isEditing || saveOrUploadBusy}
                           serviceScope={{
                             service_type: row.kind,
                             service_id: row.rowId,
@@ -573,7 +578,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
             type="button"
             className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
             onClick={cancelEdit}
-            disabled={replaceMutation.isPending}
+            disabled={saveOrUploadBusy}
           >
             Cancelar
           </button>
@@ -590,9 +595,9 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
           type="button"
           className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
           onClick={handleSave}
-          disabled={!isEditing || replaceMutation.isPending}
+          disabled={!isEditing || saveOrUploadBusy}
         >
-          {replaceMutation.isPending ? 'Salvando…' : 'Salvar'}
+          {saveOrUploadBusy ? 'Salvando…' : 'Salvar'}
         </button>
       </div>
 

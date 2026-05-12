@@ -583,6 +583,11 @@
   width: 100%;
 }
 
+.footerActionsCentered {
+  justify-content: center;
+  align-items: center;
+}
+
 .footerPrimaryStack {
   width: 100%;
   max-width: 220px;
@@ -1486,6 +1491,12 @@
   font-size: 14px;
 }
 
+.reassignOptionLabel {
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+
 .reassignOption:hover {
   background: var(--td-card-bg);
 }
@@ -2206,6 +2217,24 @@
   }
 }
 
+/* Links no composer (contentEditable): mesmo tratamento visual do corpo renderizado */
+.parecerEditor :global(a),
+.parecerEditor :global(a:visited) {
+  color: #7dd3fc;
+  text-decoration: underline;
+  cursor: text;
+}
+
+.parecerToolbarBtnActive {
+  background: rgba(125, 211, 252, 0.14);
+  color: #7dd3fc;
+}
+
+.parecerToolbarBtnActive:hover:not(:disabled) {
+  background: rgba(125, 211, 252, 0.22);
+  color: #a5f3fc;
+}
+
 .parecerSubmit {
   align-self: flex-end;
   width: 100%;
@@ -2400,16 +2429,6 @@
   gap: 16px;
   width: 100%;
   min-width: 0;
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-}
-
-.servicoAnexosReadOnly {
-  margin-top: 24px;
-}
-
-.servicoAnexosBlocked {
   margin-top: 24px;
   padding-top: 16px;
   border-top: 1px solid var(--td-border);
@@ -2645,6 +2664,78 @@
   margin: 0;
   font-size: 14px;
   line-height: 20px;
+  color: var(--td-muted);
+}
+
+.respostaAnexosBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--td-section-bg);
+  border: 1px solid var(--td-border);
+  border-radius: var(--td-radius);
+}
+
+.respostaAnexosHint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--td-muted);
+}
+
+.respostaAnexosFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .respostaAnexosFields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 12px;
+  }
+}
+
+.respostaAnexosLista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.respostaAnexosListaItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--td-card-bg);
+  border-radius: var(--td-radius);
+  border: 1px solid var(--td-border);
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--td-text);
+}
+
+.respostaAnexosListaMeta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.respostaAnexosListaNome {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.respostaAnexosListaSub {
+  font-size: 12px;
   color: var(--td-muted);
 }
 

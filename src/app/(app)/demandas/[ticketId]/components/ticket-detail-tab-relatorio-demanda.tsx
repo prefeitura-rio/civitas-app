@@ -254,6 +254,7 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
       <div className={styles.relatorioCardWrap}>
         <div className={styles.parecerEditorShell}>
           <RichToolbar
+            editorRef={editorRef}
             onCommand={runCommand}
             attachmentDisabled={saveMutation.isPending}
             onInsertImage={openImagePicker}
