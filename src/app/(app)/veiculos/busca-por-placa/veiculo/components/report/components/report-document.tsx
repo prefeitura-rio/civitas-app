@@ -3,6 +3,7 @@ import React from 'react'
 
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
+import type { GetCirculationIndicatorsResponse } from '@/http/cars/circulation-indicators/get-circulation-indicators'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 import type { Trip, Vehicle } from '@/models/entities'
 
@@ -22,12 +23,18 @@ const styles = StyleSheet.create({
 })
 
 interface ReportProps {
+  circulationIndicators?: GetCirculationIndicatorsResponse
   trips: Trip[]
   searchParams: GetCarPathRequest
   vehicle?: Vehicle
 }
 
-export function ReportDocument({ trips, searchParams, vehicle }: ReportProps) {
+export function ReportDocument({
+  circulationIndicators,
+  trips,
+  searchParams,
+  vehicle,
+}: ReportProps) {
   let imgCounter = 1
   let tableCounter = 1
 
@@ -48,6 +55,7 @@ export function ReportDocument({ trips, searchParams, vehicle }: ReportProps) {
       <Page size="A4" style={styles.page}>
         <ReportHeader title={reportTitle} />
         <ReportCover
+          circulationIndicators={circulationIndicators}
           searchParams={searchParams}
           totalPoints={totalPoints}
           cloneAlert={!!trips.find((item) => item.cloneAlert)}
