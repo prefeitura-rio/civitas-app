@@ -22,6 +22,7 @@ import {
   getWorkflowRoleConfig,
   updateWorkflowRoleConfig,
   type UpdateWorkflowRoleConfigRequest,
+  type WorkflowCatalogItem,
   type WorkflowPermission,
   type WorkflowRoleEnum,
   type WorkflowTransition,
@@ -39,6 +40,11 @@ const ROLE_OPTIONS: WorkflowRoleEnum[] = [
   'Líder de Ilha',
   'Operador',
   'Assessor',
+]
+
+/** Perfis destino garantidos no seletor além do catálogo da API. */
+const WORKFLOW_TARGET_PROFILE_FALLBACKS: WorkflowCatalogItem[] = [
+  { code: 'EXECUTOR_DA_ACAO', label: 'Executor da ação' },
 ]
 
 function createTransition(): WorkflowTransition {
@@ -109,14 +115,20 @@ function WorkflowRolesPageContent() {
       })),
     [data?.actions],
   )
-  const profileOptions = useMemo(
-    () =>
-      (data?.profiles ?? []).map((profile) => ({
-        value: profile.code,
-        label: profile.label ?? profile.code,
-      })),
-    [data?.profiles],
-  )
+  const profileOptions = useMemo(() => {
+    const fromApi = (data?.profiles ?? []).map((profile) => ({
+      value: profile.code,
+      label: profile.label ?? profile.code,
+    }))
+    const codes = new Set(fromApi.map((option) => option.value))
+    const fallbacks = WORKFLOW_TARGET_PROFILE_FALLBACKS.filter(
+      (profile) => !codes.has(profile.code),
+    ).map((profile) => ({
+      value: profile.code,
+      label: profile.label ?? profile.code,
+    }))
+    return [...fromApi, ...fallbacks]
+  }, [data?.profiles])
 
   function updatePermission(index: number, next: WorkflowPermission) {
     setPermissions((current) =>

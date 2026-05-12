@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Download, Filter, Tag } from 'lucide-react'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ import {
   type TicketArchiveFilters,
   type TicketArchiveListItem,
 } from '@/http/tickets/get-ticket-archive'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import {
   ArchiveSearchField,
@@ -72,21 +74,104 @@ function normalizeArchiveItem(item: unknown): TicketArchiveListItem {
   }
 }
 
+const ARCHIVE_EXPORT_PAGE_SIZE = 200
+
+type TicketArchiveQueryFilters = Omit<
+  TicketArchiveFilters,
+  'page' | 'page_size'
+>
+
+async function fetchAllTicketArchiveItems(
+  filters: TicketArchiveQueryFilters,
+): Promise<TicketArchiveListItem[]> {
+  const all: TicketArchiveListItem[] = []
+  let page = 1
+  let total = 0
+
+  for (;;) {
+    const res = await getTicketArchive({
+      ...filters,
+      page,
+      page_size: ARCHIVE_EXPORT_PAGE_SIZE,
+    })
+    total = res.total
+    const batch = (res.items ?? []).map((item) => normalizeArchiveItem(item))
+    all.push(...batch)
+    if (batch.length === 0 || all.length >= total) break
+    page += 1
+    if (page > 10_000) break
+  }
+
+  return all
+}
+
+function escapeCsvCell(value: string): string {
+  const needsQuotes = /[",\n\r]/.test(value)
+  const escaped = value.replace(/"/g, '""')
+  return needsQuotes ? `"${escaped}"` : escaped
+}
+
+function buildArchiveCsv(rows: TicketArchiveListItem[]): string {
+  const header = [
+    'CHAMADO',
+    'DEMANDANTE',
+    'EQUIPE',
+    'RESPONSÁVEL',
+    'SERVIÇOS',
+    'STATUS',
+  ]
+    .map(escapeCsvCell)
+    .join(',')
+
+  const body = rows
+    .map((item) =>
+      [
+        item.chamado,
+        item.demandante,
+        item.equipe,
+        item.responsavel,
+        item.servicos.join('; '),
+        item.status,
+      ]
+        .map(escapeCsvCell)
+        .join(','),
+    )
+    .join('\r\n')
+
+  return `\uFEFF${header}\r\n${body}`
+}
+
+function triggerCsvDownload(csv: string, filename: string) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.rel = 'noopener'
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
+
 export function TicketArchiveList() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize] = useState(20)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [appliedFilters, setAppliedFilters] =
     useState<TicketArchiveFilterState>(emptyArchiveFilters())
   const debouncedSearch = useDebounce(search, 350)
 
-  const payload = useMemo<TicketArchiveFilters>(
+  const archiveQueryFilters = useMemo<TicketArchiveQueryFilters>(
     () => ({
       search: debouncedSearch.trim() || undefined,
-      page,
-      page_size: pageSize,
       demandante_id: appliedFilters.demandante_id.map((item) => item.value),
+      requisitante: appliedFilters.requisitante.length
+        ? appliedFilters.requisitante.map((item) => item.value)
+        : undefined,
+      responsavel_id: appliedFilters.responsavel_id.length
+        ? appliedFilters.responsavel_id.map((item) => item.value)
+        : undefined,
       data_base_inicio: appliedFilters.data_base_inicio || undefined,
       data_base_fim: appliedFilters.data_base_fim || undefined,
       data_entrada_inicio: appliedFilters.data_entrada_inicio || undefined,
@@ -97,13 +182,23 @@ export function TicketArchiveList() {
         (item) => item.value,
       ) as TicketArchiveFilters['servicos'],
     }),
-    [appliedFilters, debouncedSearch, page, pageSize],
+    [appliedFilters, debouncedSearch],
+  )
+
+  const payload = useMemo<TicketArchiveFilters>(
+    () => ({
+      ...archiveQueryFilters,
+      page,
+      page_size: pageSize,
+    }),
+    [archiveQueryFilters, page, pageSize],
   )
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['tickets-archive', payload],
     queryFn: () => getTicketArchive(payload),
     staleTime: 1000 * 60,
+    refetchOnMount: 'always',
   })
 
   const items = useMemo(
@@ -115,6 +210,8 @@ export function TicketArchiveList() {
     () =>
       [
         appliedFilters.demandante_id.length,
+        appliedFilters.requisitante.length,
+        appliedFilters.responsavel_id.length,
         appliedFilters.prioridade.length,
         appliedFilters.equipe.length,
         appliedFilters.servicos.length,
@@ -130,6 +227,25 @@ export function TicketArchiveList() {
     setAppliedFilters(emptyArchiveFilters())
     setPage(1)
   }
+
+  const handleExportCsv = useCallback(async () => {
+    setIsExporting(true)
+    try {
+      const rows = await fetchAllTicketArchiveItems(archiveQueryFilters)
+      if (rows.length === 0) {
+        toast.message('Nenhum chamado para exportar com os filtros atuais.')
+        return
+      }
+      const csv = buildArchiveCsv(rows)
+      const dateStamp = new Date().toISOString().slice(0, 10)
+      triggerCsvDownload(csv, `arquivo-chamados-${dateStamp}.csv`)
+      toast.success(`Exportação concluída (${rows.length} linhas).`)
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
+    } finally {
+      setIsExporting(false)
+    }
+  }, [archiveQueryFilters])
 
   return (
     <div className={styles.container}>
@@ -158,9 +274,16 @@ export function TicketArchiveList() {
             </button>
           ) : null}
 
-          <Button type="button" className={styles.actionButton}>
+          <Button
+            type="button"
+            className={styles.actionButton}
+            disabled={isExporting || isLoading}
+            onClick={() => {
+              handleExportCsv()
+            }}
+          >
             <Download size={16} />
-            Exportar
+            {isExporting ? 'Exportando…' : 'Exportar'}
           </Button>
 
           <Button

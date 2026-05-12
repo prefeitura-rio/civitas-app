@@ -319,41 +319,6 @@ export function TicketCreateForm() {
         >
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Órgão procedimento</Label>
-              <Controller
-                control={vm.control}
-                name="orgao_procedimento_id"
-                render={({ field }) => (
-                  <Select
-                    value={field.value ?? ''}
-                    onValueChange={(v) => field.onChange(v || null)}
-                    disabled={fieldDisabled || vm.isOperationsLoading}
-                  >
-                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className={styles.selectContentForm}>
-                      {vm.operations.map((op) => (
-                        <SelectItem
-                          key={op.id}
-                          value={op.id}
-                          className={styles.selectItemForm}
-                        >
-                          {op.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {vm.errors.orgao_procedimento_id?.message && (
-                <p className="text-xs text-destructive">
-                  {vm.errors.orgao_procedimento_id.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
               <Label className={styles.fieldLabel}>Nº de procedimento</Label>
               <Controller
                 control={vm.control}
@@ -616,41 +581,6 @@ export function TicketCreateForm() {
           onToggle={() => vm.toggleSection('requester')}
         >
           <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Demandante</Label>
-              <Controller
-                control={vm.control}
-                name="operation_id"
-                render={({ field }) => (
-                  <Select
-                    value={field.value ?? ''}
-                    onValueChange={(v) => field.onChange(v || null)}
-                    disabled={fieldDisabled || vm.isOperationsLoading}
-                  >
-                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className={styles.selectContentForm}>
-                      {vm.operations.map((op) => (
-                        <SelectItem
-                          key={op.id}
-                          value={op.id}
-                          className={styles.selectItemForm}
-                        >
-                          {op.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {vm.errors.operation_id?.message && (
-                <p className="text-xs text-destructive">
-                  {vm.errors.operation_id.message}
-                </p>
-              )}
-            </div>
-
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div className="space-y-1.5">
                 <Label className={styles.fieldLabel}>Requisitante</Label>
@@ -719,6 +649,41 @@ export function TicketCreateForm() {
                   message={vm.errors.requisitante?.requisitante_email?.message}
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Demandante</Label>
+              <Controller
+                control={vm.control}
+                name="operation_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(v) => field.onChange(v || null)}
+                    disabled={fieldDisabled || vm.isOperationsLoading}
+                  >
+                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent className={styles.selectContentForm}>
+                      {vm.operations.map((op) => (
+                        <SelectItem
+                          key={op.id}
+                          value={op.id}
+                          className={styles.selectItemForm}
+                        >
+                          {op.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {vm.errors.operation_id?.message && (
+                <p className="text-xs text-destructive">
+                  {vm.errors.operation_id.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-3">

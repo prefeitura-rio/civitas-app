@@ -15,8 +15,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
-import { getOperation } from '@/http/operations/get-operation'
-import { getOperations, type Operation } from '@/http/operations/get-operations'
 import {
   getTicketTypes,
   type TicketType,
@@ -40,9 +38,6 @@ const MAX_OFICIO_PROC = 60
 const MAX_APELIDO = 120
 
 const SERVICE_PREVIEW = 3
-
-/** Radix Select não aceita `value=""` em SelectItem; “Nenhum” no órgão. */
-const ORGAO_SELECT_NONE = '__orgao_nenhum__'
 
 type Props = {
   ticketId: string
@@ -91,9 +86,6 @@ function rtTagClass(label: string) {
 function mapOutToDraft(f: TicketFichaOut): TicketFichaUpdateIn {
   return {
     tipo_chamado_id: f.tipo_chamado_id,
-    orgao_procedimento_id: f.orgao_procedimento_id?.trim()
-      ? f.orgao_procedimento_id.trim()
-      : null,
     numero_procedimento: f.numero_procedimento?.trim()
       ? f.numero_procedimento.trim()
       : null,
@@ -135,12 +127,6 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
     queryFn: () => getTicketFicha(ticketId),
   })
 
-  const operationsQuery = useQuery({
-    queryKey: ['operations', 'select', 'chamado-tab'],
-    queryFn: () => getOperations({ page: 1, size: 100 }),
-    enabled: isEditing,
-  })
-
   const ticketTypesQuery = useQuery({
     queryKey: ['ticket-types', 'select', 'chamado-tab'],
     queryFn: () => getTicketTypes({ isActive: true }),
@@ -155,40 +141,10 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
 
   const ficha = fichaQuery.data
 
-  const selectedOrgaoId = useMemo(() => {
-    if (isEditing && draft) {
-      return draft.orgao_procedimento_id?.trim() ?? ''
-    }
-    return ficha?.orgao_procedimento_id?.trim() ?? ''
-  }, [draft, ficha?.orgao_procedimento_id, isEditing])
-
-  const orgaoDetailQuery = useQuery({
-    queryKey: ['operation', selectedOrgaoId, 'chamado-ficha'],
-    queryFn: () => getOperation({ id: selectedOrgaoId }),
-    enabled: selectedOrgaoId.length > 0,
-  })
-
   useEffect(() => {
     if (!ficha || isEditing) return
     setDraft(mapOutToDraft(ficha))
   }, [ficha, isEditing])
-
-  const operationOptions = useMemo(() => {
-    const items = operationsQuery.data?.data?.items ?? []
-    const list: Operation[] = [...items]
-    if (
-      selectedOrgaoId &&
-      !list.some((o) => o.id === selectedOrgaoId) &&
-      orgaoDetailQuery.data?.data
-    ) {
-      list.unshift({
-        id: orgaoDetailQuery.data.data.id,
-        title: orgaoDetailQuery.data.data.title,
-        description: orgaoDetailQuery.data.data.description,
-      })
-    }
-    return list
-  }, [operationsQuery.data, orgaoDetailQuery.data, selectedOrgaoId])
 
   const ticketTypeOptions = useMemo((): TicketType[] => {
     const list = [...(ticketTypesQuery.data?.data ?? [])]
@@ -277,9 +233,6 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
 
     const payload: TicketFichaUpdateIn = {
       tipo_chamado_id: draft.tipo_chamado_id.trim(),
-      orgao_procedimento_id: draft.orgao_procedimento_id?.trim()
-        ? draft.orgao_procedimento_id.trim()
-        : null,
       numero_oficio: oficio || null,
       numero_procedimento: proc || null,
       natureza_id: draft.natureza_id?.trim() ? draft.natureza_id.trim() : null,
@@ -317,10 +270,6 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
   const tipoNomeTrim = view.tipo_chamado_nome?.trim() ?? ''
   const hasTipoNome = tipoNomeTrim.length > 0
   const tipoNomeReadonly = hasTipoNome ? tipoNomeTrim : displayText(null)
-
-  const orgaoReadonlyTitle =
-    orgaoDetailQuery.data?.data?.title?.trim() ||
-    (selectedOrgaoId && orgaoDetailQuery.isLoading ? 'Carregando…' : '')
 
   const naturezas = ticketNaturesQuery.data?.data ?? []
   const pressSimNao = d.possui_apelido_imprensa ? 'Sim' : 'Não'
@@ -462,75 +411,6 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
                 </div>
               )}
             </div>
-          </div>
-
-          <div className={styles.chamadoNatureFull}>
-            <span className={styles.fieldLabelUpper}>
-              Órgão do procedimento
-            </span>
-            {isEditing ? (
-              <Select
-                value={
-                  d.orgao_procedimento_id?.trim()
-                    ? d.orgao_procedimento_id
-                    : ORGAO_SELECT_NONE
-                }
-                onValueChange={(v) =>
-                  setDraft((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          orgao_procedimento_id:
-                            v === ORGAO_SELECT_NONE ? null : v,
-                        }
-                      : prev,
-                  )
-                }
-                disabled={operationsQuery.isLoading}
-              >
-                <SelectTrigger
-                  className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
-                >
-                  <SelectValue
-                    placeholder={
-                      operationsQuery.isLoading ? 'Carregando…' : undefined
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent className={styles.detailSelectContent}>
-                  <SelectItem
-                    value={ORGAO_SELECT_NONE}
-                    className={styles.detailSelectItem}
-                  >
-                    Nenhum
-                  </SelectItem>
-                  {operationsQuery.isLoading
-                    ? null
-                    : operationOptions.map((op) => (
-                        <SelectItem
-                          key={op.id}
-                          value={op.id}
-                          className={styles.detailSelectItem}
-                        >
-                          {op.title}
-                        </SelectItem>
-                      ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className={styles.readonlySelect}>
-                <span className={styles.solicitanteReadOnlyText}>
-                  {selectedOrgaoId
-                    ? displayText(orgaoReadonlyTitle || null)
-                    : '—'}
-                </span>
-                <ChevronDown
-                  size={20}
-                  className={styles.readonlySelectMuted}
-                  aria-hidden
-                />
-              </div>
-            )}
           </div>
 
           <div className={styles.chamadoNatureFull}>

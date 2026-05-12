@@ -286,6 +286,16 @@ textarea.equipes-modal-input-wrap {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
 }
 
+.equipes-select-dropdown-hint {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #c9d4de;
+  border-bottom: 1px solid rgba(77, 109, 137, 0.35);
+  background: rgba(212, 160, 84, 0.06);
+}
+
 .equipes-select-option {
   display: flex;
   align-items: center;
@@ -303,6 +313,65 @@ textarea.equipes-modal-input-wrap {
 
 .equipes-select-option:hover {
   background: rgba(255, 255, 255, 0.04);
+}
+
+.equipes-select-option--in-team {
+  border-left: 3px solid #d4a054;
+  padding-left: 11px;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  min-height: auto;
+}
+
+.equipes-select-option-user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  padding-right: 8px;
+}
+
+.equipes-select-option-user-name {
+  color: #e4eef9;
+  font-weight: 500;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.equipes-select-option-user-note {
+  font-size: 12px;
+  line-height: 1.2;
+  color: #e8c27a;
+}
+
+.equipes-user-in-team-badge {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(212, 160, 84, 0.18);
+  color: #f2d49a;
+  border: 1px solid rgba(212, 160, 84, 0.45);
+}
+
+.equipes-select-trigger-user-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(212, 160, 84, 0.18);
+  color: #f2d49a;
+  border: 1px solid rgba(212, 160, 84, 0.45);
+  margin-right: 8px;
 }
 
 .equipes-modal-card {

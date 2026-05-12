@@ -36,7 +36,8 @@ import { isApiError } from '@/lib/api'
 import styles from '../ticket-detail.module.css'
 
 const MAX_MULTIPART_BYTES = 10 * 1024 * 1024
-const MAX_VIDEO_BYTES = 512 * 1024 * 1024
+const MAX_VIDEO_GB = 20
+const MAX_VIDEO_BYTES = MAX_VIDEO_GB * 1024 * 1024 * 1024
 
 const MULTIPART_ACCEPT = [
   'application/pdf',
@@ -369,7 +370,7 @@ export function TicketServicoAnexos({
           return
         }
         if (videoFile.size > MAX_VIDEO_BYTES) {
-          toast.error('O vídeo excede o limite de 512 MB.')
+          toast.error(`O vídeo excede o limite de ${MAX_VIDEO_GB} GB.`)
           e.target.value = ''
           return
         }
@@ -421,9 +422,7 @@ export function TicketServicoAnexos({
   const videoAttachments = attachments.filter((att) => isVideoAttachment(att))
 
   return (
-    <div
-      className={`${styles.servicoAnexos}${readOnly ? ` ${styles.servicoAnexosReadOnly}` : ''}${uploadBlocked && !readOnly ? ` ${styles.servicoAnexosBlocked}` : ''}`}
-    >
+    <div className={styles.servicoAnexos}>
       <div className={styles.servicoAnexosHeader}>
         <span className={styles.servicoAnexosTitle}>{title}</span>
         {canUpload ? (

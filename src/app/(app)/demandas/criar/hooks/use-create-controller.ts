@@ -80,7 +80,6 @@ export function useTicketCreateController() {
       associar_chamado_id: null,
       tipo_chamado_id: '',
       operation_id: '',
-      orgao_procedimento_id: '',
       numero_procedimento: null,
       numero_oficio: null,
       data_base: null,

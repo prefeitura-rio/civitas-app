@@ -845,47 +845,6 @@ export function EmailToTicketView() {
                     <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1.5">
                         <Label className={styles.fieldLabel}>
-                          Órgão procedimento
-                        </Label>
-                        <Controller
-                          control={vm.control}
-                          name="orgao_procedimento_id"
-                          render={({ field }) => (
-                            <Select
-                              value={field.value ?? ''}
-                              onValueChange={(v) => field.onChange(v || null)}
-                              disabled={vm.isLoading || vm.isOperationsLoading}
-                            >
-                              <SelectTrigger
-                                className={`h-11 ${styles.inputBg}`}
-                              >
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                              <SelectContent
-                                className={styles.selectContentForm}
-                              >
-                                {vm.operations.map((op) => (
-                                  <SelectItem
-                                    key={op.id}
-                                    value={op.id}
-                                    className={styles.selectItemForm}
-                                  >
-                                    {op.title}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                        {vm.errors.orgao_procedimento_id?.message && (
-                          <p className="text-xs text-destructive">
-                            {vm.errors.orgao_procedimento_id.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className={styles.fieldLabel}>
                           Nº de procedimento
                         </Label>
                         <Controller
@@ -1174,45 +1133,6 @@ export function EmailToTicketView() {
                     className="min-w-0 border-0 p-0 [&:disabled]:opacity-100"
                   >
                     <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <Label className={styles.fieldLabel}>Demandante</Label>
-                        <Controller
-                          control={vm.control}
-                          name="operation_id"
-                          render={({ field }) => (
-                            <Select
-                              value={field.value ?? ''}
-                              onValueChange={(v) => field.onChange(v || null)}
-                              disabled={vm.isLoading || vm.isOperationsLoading}
-                            >
-                              <SelectTrigger
-                                className={`h-11 ${styles.inputBg}`}
-                              >
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                              <SelectContent
-                                className={styles.selectContentForm}
-                              >
-                                {vm.operations.map((op) => (
-                                  <SelectItem
-                                    key={op.id}
-                                    value={op.id}
-                                    className={styles.selectItemForm}
-                                  >
-                                    {op.title}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                        {vm.errors.operation_id?.message && (
-                          <p className="text-xs text-destructive">
-                            {vm.errors.operation_id.message}
-                          </p>
-                        )}
-                      </div>
-
                       <div className="grid grid-cols-1 gap-3">
                         <div className="space-y-1.5">
                           <Label className={styles.fieldLabel}>
@@ -1296,6 +1216,45 @@ export function EmailToTicketView() {
                             }
                           />
                         </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className={styles.fieldLabel}>Demandante</Label>
+                        <Controller
+                          control={vm.control}
+                          name="operation_id"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value ?? ''}
+                              onValueChange={(v) => field.onChange(v || null)}
+                              disabled={vm.isLoading || vm.isOperationsLoading}
+                            >
+                              <SelectTrigger
+                                className={`h-11 ${styles.inputBg}`}
+                              >
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent
+                                className={styles.selectContentForm}
+                              >
+                                {vm.operations.map((op) => (
+                                  <SelectItem
+                                    key={op.id}
+                                    value={op.id}
+                                    className={styles.selectItemForm}
+                                  >
+                                    {op.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                        {vm.errors.operation_id?.message && (
+                          <p className="text-xs text-destructive">
+                            {vm.errors.operation_id.message}
+                          </p>
+                        )}
                       </div>
 
                       <button

@@ -17,6 +17,7 @@ export type TicketArchiveFilters = {
   page_size?: number
   demandante_id?: string[]
   requisitante?: string[]
+  responsavel_id?: string[]
   data_base_inicio?: string
   data_base_fim?: string
   data_entrada_inicio?: string
@@ -51,6 +52,7 @@ export async function getTicketArchive(filters: TicketArchiveFilters) {
     page_size: filters.page_size ?? 20,
     demandante_id: filters.demandante_id,
     requisitante: filters.requisitante,
+    responsavel_id: filters.responsavel_id,
     data_base_inicio: filters.data_base_inicio || undefined,
     data_base_fim: filters.data_base_fim || undefined,
     data_entrada_inicio: filters.data_entrada_inicio || undefined,
