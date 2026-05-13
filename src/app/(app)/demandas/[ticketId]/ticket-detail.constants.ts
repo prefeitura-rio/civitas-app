@@ -32,16 +32,6 @@ export const TICKET_RESPOSTA_TAB = {
 
 const RESPOSTA_TAB_STATE_ID = 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
 
-/** Alinha rótulos humanos ou snake_case do cabeçalho ao id de estado do workflow. */
-function normalizeTicketStatusKey(value: string): string {
-  return value
-    .trim()
-    .toUpperCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, '_')
-}
-
 export function shouldShowTicketRespostaTab(
   stateId: string | null | undefined,
   status: string | null | undefined,
@@ -49,7 +39,7 @@ export function shouldShowTicketRespostaTab(
   const normalizedStateId = stateId?.trim().toUpperCase() ?? ''
   if (normalizedStateId === RESPOSTA_TAB_STATE_ID) return true
 
-  const raw = status?.trim() ?? ''
-  if (!raw) return false
-  return normalizeTicketStatusKey(raw) === RESPOSTA_TAB_STATE_ID
+  const normalizedStatus = status?.trim().toUpperCase() ?? ''
+  if (!normalizedStatus) return false
+  return normalizedStatus === RESPOSTA_TAB_STATE_ID
 }
