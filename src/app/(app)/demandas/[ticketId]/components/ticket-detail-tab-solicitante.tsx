@@ -21,6 +21,7 @@ import {
 } from '@/http/tickets/ticket-solicitante'
 import { isApiError } from '@/lib/api'
 import { getApiErrorMessage } from '@/utils/error-handlers'
+import { maskPhoneBR } from '@/utils/string-formatters'
 
 import styles from '../ticket-detail.module.css'
 
@@ -469,10 +470,11 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                         </div>
                         <input
                           className={`${styles.editableField} ${styles.solicitanteEditField}`}
+                          inputMode="tel"
                           value={fp.telefone ?? ''}
                           onChange={(e) =>
                             setFocal(index, {
-                              telefone: e.target.value || null,
+                              telefone: maskPhoneBR(e.target.value) || null,
                             })
                           }
                           autoComplete="tel"

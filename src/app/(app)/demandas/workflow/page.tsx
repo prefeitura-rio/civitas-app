@@ -17,7 +17,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
+import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
 import {
   getWorkflowRoleConfig,
   updateWorkflowRoleConfig,
@@ -29,6 +39,7 @@ import {
 } from '@/http/workflow/workflow-role-config'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
+import tcFormStyles from '../criar/ticket-create/ticket-create-form.module.css'
 import styles from './workflow-roles.module.css'
 
 const WORKFLOW_SCREEN_CODE = 'workflow'
@@ -57,10 +68,28 @@ function createTransition(): WorkflowTransition {
 }
 
 function WorkflowRolesPageContent() {
+  const [ticketTypeId, setTicketTypeId] = useState<string | null>(null)
   const [role, setRole] = useState<WorkflowRoleEnum>('Coordenador')
   const [permissions, setPermissions] = useState<WorkflowPermission[]>([])
   const [transitions, setTransitions] = useState<WorkflowTransition[]>([])
   const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const ticketTypesQuery = useQuery({
+    queryKey: ['ticket-types', 'select', 'workflow'],
+    queryFn: () => getTicketTypes({ isActive: true }),
+  })
+
+  const ticketTypes = ticketTypesQuery.data?.data ?? []
+
+  useEffect(() => {
+    if (ticketTypes.length === 0) return
+    setTicketTypeId((current) => {
+      if (current && ticketTypes.some((t) => t.id === current)) {
+        return current
+      }
+      return ticketTypes[0]?.id ?? null
+    })
+  }, [ticketTypes])
 
   const {
     data,
@@ -70,8 +99,9 @@ function WorkflowRolesPageContent() {
     isFetching,
     refetch: refetchConfig,
   } = useQuery({
-    queryKey: ['workflow-role-config', role],
-    queryFn: () => getWorkflowRoleConfig(role),
+    queryKey: ['workflow-role-config', ticketTypeId, role],
+    queryFn: () => getWorkflowRoleConfig(ticketTypeId!, role),
+    enabled: Boolean(ticketTypeId),
   })
 
   useEffect(() => {
@@ -177,7 +207,13 @@ function WorkflowRolesPageContent() {
       return
     }
 
+    if (!ticketTypeId) {
+      toast.error('Selecione um tipo de demanda.')
+      return
+    }
+
     await saveMutation.mutateAsync({
+      ticket_type_id: ticketTypeId,
       role,
       permissions,
       transitions,
@@ -190,239 +226,398 @@ function WorkflowRolesPageContent() {
   }
 
   return (
-    <div className={`${styles.page} page-content flex flex-col px-6 py-6`}>
-      <div className={`content ${styles.content}`}>
-        <header className="flex flex-col gap-2">
-          <h1 className={styles.title}>Configuração de Workflow por Role</h1>
-          <p className={styles.subtitle}>
-            Defina permissões por estado e transições permitidas para o role
-            selecionado.
-          </p>
-        </header>
-
-        <section className={styles.card}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="w-full max-w-xs">
-              <label className="mb-2 block text-xs uppercase text-[var(--workflow-text-subtle)]">
-                Role
-              </label>
-              <select
-                className={styles.select}
-                value={role}
-                onChange={(event) =>
-                  setRole(event.target.value as WorkflowRoleEnum)
-                }
-                disabled={isLoading || saveMutation.isPending}
+    <div
+      className="page-content space-y-4 overflow-y-scroll pb-24"
+      style={{ backgroundColor: '#0c161f' }}
+    >
+      <div className="content">
+        <div className={tcFormStyles.root}>
+          <div className="w-full space-y-8">
+            <header className="w-full space-y-2">
+              <h1
+                className="font-semibold leading-10 text-[var(--tc-heading,#f9fafa)]"
+                style={{ fontSize: '20px' }}
               >
-                {ROLE_OPTIONS.map((roleOption) => (
-                  <option key={roleOption} value={roleOption}>
-                    {roleOption}
-                  </option>
-                ))}
-              </select>
-            </div>
+                Configuração de Workflow por Role
+              </h1>
+              <p className="mt-0 text-[length:12px] leading-4 text-[var(--tc-muted,#97a2ab)]">
+                Defina permissões por estado e transições para o tipo de demanda
+                e role selecionados. A API mescla com a configuração global
+                quando não houver linhas específicas daquele tipo.
+              </p>
+            </header>
 
-            <div className="flex items-center gap-2 self-end">
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonSecondary} flex items-center gap-2`}
-                onClick={handleReload}
-                disabled={isFetching || saveMutation.isPending}
-              >
-                <RefreshCw className="size-4" />
-                Recarregar
-              </button>
-              <button
-                type="button"
-                className={`${styles.button} flex items-center gap-2`}
-                onClick={() => setConfirmOpen(true)}
-                disabled={isLoading || saveMutation.isPending}
-              >
-                {saveMutation.isPending ? <Spinner /> : 'Salvar alterações'}
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.card}>
-          <h2 className={styles.sectionTitle}>Permissões por estado</h2>
-
-          {isLoading ? (
-            <div className="flex h-24 items-center justify-center">
-              <Spinner />
-            </div>
-          ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Estado</th>
-                  <th>Ações permitidas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {permissions.map((permission, index) => (
-                  <tr key={permission.state_code}>
-                    <td>{permission.state_code}</td>
-                    <td className="min-w-[320px]">
-                      <MultiSelectWithSearch
-                        options={actionOptions}
-                        onValueChange={(values) =>
-                          updatePermission(index, {
-                            ...permission,
-                            allowed_action_codes: values,
-                          })
-                        }
-                        defaultValue={permission.allowed_action_codes}
-                        placeholder="Selecione ações"
-                        className="min-h-9 bg-transparent text-white"
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
-
-        <section className={styles.card}>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className={styles.sectionTitle}>Transições</h2>
-            <button
-              type="button"
-              className={`${styles.button} flex items-center gap-2`}
-              onClick={() =>
-                setTransitions((current) => [...current, createTransition()])
-              }
-              disabled={saveMutation.isPending}
+            <div
+              className={`${tcFormStyles.sectionCard} ${tcFormStyles.sectionCardFirst}`}
             >
-              <Plus className="size-4" />
-              Adicionar transição
-            </button>
-          </div>
+              <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
+                <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className={tcFormStyles.fieldLabel}>
+                      Tipo de demanda
+                    </Label>
+                    <Select
+                      value={ticketTypeId ?? ''}
+                      onValueChange={(value) => setTicketTypeId(value || null)}
+                      disabled={
+                        ticketTypesQuery.isLoading ||
+                        saveMutation.isPending ||
+                        ticketTypes.length === 0
+                      }
+                    >
+                      <SelectTrigger
+                        className={`h-11 w-full ${tcFormStyles.inputBg}`}
+                      >
+                        <SelectValue
+                          placeholder={
+                            ticketTypesQuery.isLoading
+                              ? 'Carregando…'
+                              : ticketTypes.length === 0
+                                ? 'Nenhum tipo disponível'
+                                : 'Selecione'
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent className={tcFormStyles.selectContentForm}>
+                        {ticketTypes.map((type) => (
+                          <SelectItem
+                            key={type.id}
+                            value={type.id}
+                            className={tcFormStyles.selectItemForm}
+                          >
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>From</th>
-                <th>Action</th>
-                <th>To</th>
-                <th>Perfis destino</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {transitions.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="text-center text-[var(--workflow-text-subtle)]"
+                  <div className="space-y-1.5">
+                    <Label className={tcFormStyles.fieldLabel}>Role</Label>
+                    <Select
+                      value={role}
+                      onValueChange={(value) =>
+                        setRole(value as WorkflowRoleEnum)
+                      }
+                      disabled={
+                        !ticketTypeId || isLoading || saveMutation.isPending
+                      }
+                    >
+                      <SelectTrigger
+                        className={`h-11 w-full ${tcFormStyles.inputBg}`}
+                      >
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent className={tcFormStyles.selectContentForm}>
+                        {ROLE_OPTIONS.map((roleOption) => (
+                          <SelectItem
+                            key={roleOption}
+                            value={roleOption}
+                            className={tcFormStyles.selectItemForm}
+                          >
+                            {roleOption}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className={`${tcFormStyles.cancelButton} !min-w-0 gap-2`}
+                    onClick={handleReload}
+                    disabled={
+                      !ticketTypeId ||
+                      isFetching ||
+                      saveMutation.isPending ||
+                      ticketTypesQuery.isLoading
+                    }
                   >
-                    Nenhuma transição cadastrada.
-                  </td>
-                </tr>
+                    <RefreshCw className="size-4" />
+                    Recarregar
+                  </Button>
+                  <Button
+                    type="button"
+                    className={`${tcFormStyles.saveButton} gap-2`}
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={
+                      !ticketTypeId ||
+                      isLoading ||
+                      saveMutation.isPending ||
+                      ticketTypesQuery.isLoading
+                    }
+                  >
+                    {saveMutation.isPending ? <Spinner /> : 'Salvar alterações'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`${tcFormStyles.sectionCard} ${tcFormStyles.sectionCardFirst}`}
+            >
+              <h2 className={styles.sectionTitle}>Permissões por estado</h2>
+
+              {ticketTypesQuery.isError && (
+                <p className={`mb-3 ${styles.errorText}`}>
+                  {getApiErrorMessage(ticketTypesQuery.error)}
+                </p>
               )}
 
-              {transitions.map((transition, index) => (
-                <tr
-                  key={`${transition.from_state_code}-${transition.action_code}-${index}`}
+              {isLoading ? (
+                <div className="flex h-24 items-center justify-center">
+                  <Spinner />
+                </div>
+              ) : (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Estado</th>
+                      <th>Ações permitidas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {permissions.map((permission, index) => (
+                      <tr key={permission.state_code}>
+                        <td>{permission.state_code}</td>
+                        <td className="min-w-[320px]">
+                          <MultiSelectWithSearch
+                            options={actionOptions}
+                            onValueChange={(values) =>
+                              updatePermission(index, {
+                                ...permission,
+                                allowed_action_codes: values,
+                              })
+                            }
+                            defaultValue={permission.allowed_action_codes}
+                            placeholder="Selecione ações"
+                            className="min-h-9 bg-transparent text-white"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div
+              className={`${tcFormStyles.sectionCard} ${tcFormStyles.sectionCardFirst}`}
+            >
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 className={styles.sectionTitle}>Transições</h2>
+                <Button
+                  type="button"
+                  className={`${tcFormStyles.saveButton} gap-2`}
+                  onClick={() =>
+                    setTransitions((current) => [
+                      ...current,
+                      createTransition(),
+                    ])
+                  }
+                  disabled={saveMutation.isPending}
                 >
-                  <td className="min-w-[170px]">
-                    <select
-                      className={styles.select}
-                      value={transition.from_state_code}
-                      onChange={(event) =>
-                        updateTransition(index, {
-                          ...transition,
-                          from_state_code: event.target.value,
-                        })
-                      }
-                      disabled={saveMutation.isPending}
-                    >
-                      <option value="">Selecione</option>
-                      {(data?.states ?? []).map((state) => (
-                        <option key={state.code} value={state.code}>
-                          {state.label ?? state.code}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+                  <Plus className="size-4" />
+                  Adicionar transição
+                </Button>
+              </div>
 
-                  <td className="min-w-[170px]">
-                    <select
-                      className={styles.select}
-                      value={transition.action_code}
-                      onChange={(event) =>
-                        updateTransition(index, {
-                          ...transition,
-                          action_code: event.target.value,
-                        })
-                      }
-                      disabled={saveMutation.isPending}
-                    >
-                      <option value="">Selecione</option>
-                      {(data?.actions ?? []).map((action) => (
-                        <option key={action.code} value={action.code}>
-                          {action.label ?? action.code}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>From</th>
+                    <th>Action</th>
+                    <th>To</th>
+                    <th>Perfis destino</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {transitions.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="text-center text-[var(--tc-muted,#97a2ab)]"
+                      >
+                        Nenhuma transição cadastrada.
+                      </td>
+                    </tr>
+                  )}
 
-                  <td className="min-w-[170px]">
-                    <select
-                      className={styles.select}
-                      value={transition.to_state_code}
-                      onChange={(event) =>
-                        updateTransition(index, {
-                          ...transition,
-                          to_state_code: event.target.value,
-                        })
-                      }
-                      disabled={saveMutation.isPending}
+                  {transitions.map((transition, index) => (
+                    <tr
+                      key={`${transition.from_state_code}-${transition.action_code}-${index}`}
                     >
-                      <option value="">Selecione</option>
-                      {(data?.states ?? []).map((state) => (
-                        <option key={state.code} value={state.code}>
-                          {state.label ?? state.code}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+                      <td className="min-w-[170px]">
+                        <Select
+                          value={
+                            transition.from_state_code
+                              ? transition.from_state_code
+                              : '__none__'
+                          }
+                          onValueChange={(value) =>
+                            updateTransition(index, {
+                              ...transition,
+                              from_state_code:
+                                value === '__none__' ? '' : value,
+                            })
+                          }
+                          disabled={saveMutation.isPending}
+                        >
+                          <SelectTrigger
+                            className={`h-11 w-full ${tcFormStyles.inputBg} ${styles.transitionSelectTrigger}`}
+                          >
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent
+                            className={tcFormStyles.selectContentForm}
+                          >
+                            <SelectItem
+                              value="__none__"
+                              className={tcFormStyles.selectItemForm}
+                            >
+                              Selecione
+                            </SelectItem>
+                            {(data?.states ?? []).map((state) => (
+                              <SelectItem
+                                key={state.code}
+                                value={state.code}
+                                className={tcFormStyles.selectItemForm}
+                              >
+                                {state.label ?? state.code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
 
-                  <td className="min-w-[320px]">
-                    <MultiSelectWithSearch
-                      options={profileOptions}
-                      onValueChange={(values) =>
-                        updateTransition(index, {
-                          ...transition,
-                          target_profile_codes: values,
-                        })
-                      }
-                      defaultValue={transition.target_profile_codes}
-                      placeholder="Selecione perfis"
-                      className="min-h-9 bg-transparent text-white"
-                    />
-                  </td>
+                      <td className="min-w-[170px]">
+                        <Select
+                          value={
+                            transition.action_code
+                              ? transition.action_code
+                              : '__none__'
+                          }
+                          onValueChange={(value) =>
+                            updateTransition(index, {
+                              ...transition,
+                              action_code: value === '__none__' ? '' : value,
+                            })
+                          }
+                          disabled={saveMutation.isPending}
+                        >
+                          <SelectTrigger
+                            className={`h-11 w-full ${tcFormStyles.inputBg} ${styles.transitionSelectTrigger}`}
+                          >
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent
+                            className={tcFormStyles.selectContentForm}
+                          >
+                            <SelectItem
+                              value="__none__"
+                              className={tcFormStyles.selectItemForm}
+                            >
+                              Selecione
+                            </SelectItem>
+                            {(data?.actions ?? []).map((action) => (
+                              <SelectItem
+                                key={action.code}
+                                value={action.code}
+                                className={tcFormStyles.selectItemForm}
+                              >
+                                {action.label ?? action.code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
 
-                  <td>
-                    <button
-                      type="button"
-                      className={`${styles.button} ${styles.buttonSecondary}`}
-                      onClick={() => removeTransition(index)}
-                      disabled={saveMutation.isPending}
-                      aria-label="Remover transição"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {validationMessage && (
-            <p className={`mt-3 ${styles.errorText}`}>{validationMessage}</p>
-          )}
-        </section>
+                      <td className="min-w-[170px]">
+                        <Select
+                          value={
+                            transition.to_state_code
+                              ? transition.to_state_code
+                              : '__none__'
+                          }
+                          onValueChange={(value) =>
+                            updateTransition(index, {
+                              ...transition,
+                              to_state_code: value === '__none__' ? '' : value,
+                            })
+                          }
+                          disabled={saveMutation.isPending}
+                        >
+                          <SelectTrigger
+                            className={`h-11 w-full ${tcFormStyles.inputBg} ${styles.transitionSelectTrigger}`}
+                          >
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent
+                            className={tcFormStyles.selectContentForm}
+                          >
+                            <SelectItem
+                              value="__none__"
+                              className={tcFormStyles.selectItemForm}
+                            >
+                              Selecione
+                            </SelectItem>
+                            {(data?.states ?? []).map((state) => (
+                              <SelectItem
+                                key={state.code}
+                                value={state.code}
+                                className={tcFormStyles.selectItemForm}
+                              >
+                                {state.label ?? state.code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+
+                      <td className="min-w-[320px]">
+                        <MultiSelectWithSearch
+                          options={profileOptions}
+                          onValueChange={(values) =>
+                            updateTransition(index, {
+                              ...transition,
+                              target_profile_codes: values,
+                            })
+                          }
+                          defaultValue={transition.target_profile_codes}
+                          placeholder="Selecione perfis"
+                          className="min-h-9 bg-transparent text-white"
+                        />
+                      </td>
+
+                      <td>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-11 w-11 shrink-0 text-[var(--tc-icon-subtle,#97a2ab)] hover:bg-[var(--tc-soft,#18344d)] hover:text-[var(--tc-text,#f9fafa)]"
+                          onClick={() => removeTransition(index)}
+                          disabled={saveMutation.isPending}
+                          aria-label="Remover transição"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {validationMessage && (
+                <p className={`mt-3 ${styles.errorText}`}>
+                  {validationMessage}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -430,7 +625,8 @@ function WorkflowRolesPageContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Salvar alterações?</AlertDialogTitle>
             <AlertDialogDescription>
-              As regras de workflow do role {role} serão atualizadas.
+              As regras específicas do tipo selecionado e do role {role} serão
+              gravadas (a configuração global não é alterada).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -452,7 +648,8 @@ export default function WorkflowRolesPage() {
   if (!resolved || !allowed) {
     return (
       <div
-        className={`${styles.page} flex min-h-screen flex-col items-center justify-center px-6 py-6`}
+        className="page-content flex min-h-screen flex-col items-center justify-center pb-24"
+        style={{ backgroundColor: '#0c161f' }}
       >
         <Spinner />
       </div>

@@ -28,6 +28,8 @@ interface DatePickerProps {
   timePickerDisableFuture?: boolean
   disabled?: boolean
   placeholder?: string
+  popoverContentClassName?: string
+  timePickerContentClassName?: string
 }
 
 export function DatePicker({
@@ -40,11 +42,14 @@ export function DatePicker({
   timePickerDisableFuture = true,
   disabled = false,
   placeholder = 'Escolha uma data', // Default placeholder
+  popoverContentClassName,
+  timePickerContentClassName,
 }: DatePickerProps) {
   return (
     <Popover modal={false}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant={'outline'}
           className={cn(
             'w-full justify-start text-left font-normal',
@@ -61,7 +66,7 @@ export function DatePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className={cn('w-auto p-0', popoverContentClassName)}>
         <Calendar
           mode="single"
           selected={value}
@@ -102,6 +107,7 @@ export function DatePicker({
                 defaultValue={value}
                 onChange={onChange}
                 disabled={!value}
+                selectContentClassName={timePickerContentClassName}
               />
             </div>
           </>
