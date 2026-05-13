@@ -56,6 +56,7 @@ const ROLE_OPTIONS: WorkflowRoleEnum[] = [
 /** Perfis destino garantidos no seletor além do catálogo da API. */
 const WORKFLOW_TARGET_PROFILE_FALLBACKS: WorkflowCatalogItem[] = [
   { code: 'EXECUTOR_DA_ACAO', label: 'Executor da ação' },
+  { code: 'MANTER_ATUAL', label: 'Manter Atual' },
 ]
 
 function createTransition(): WorkflowTransition {

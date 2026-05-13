@@ -7,6 +7,14 @@ import { toast } from 'sonner'
 
 import { MultiSelectWithSearch } from '@/components/custom/multi-select-with-search'
 import { Spinner } from '@/components/custom/spinner'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import {
@@ -18,6 +26,7 @@ import {
 import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
+import tcFormStyles from '../criar/ticket-create/ticket-create-form.module.css'
 import styles from './permissoes-por-role.module.css'
 
 const SCREEN_PERMISSIONS_SCREEN_CODE = 'screen_permissions'
@@ -130,7 +139,7 @@ function TicketModulePermissionsByRolePageContent() {
 
   return (
     <div className={`${styles.page} page-content flex flex-col px-6 py-6`}>
-      <div className={`content ${styles.content}`}>
+      <div className={`${tcFormStyles.root} content ${styles.content}`}>
         <header className="flex flex-col gap-2">
           <h1 className={styles.title}>Permissões de Tela por Role</h1>
           <p className={styles.subtitle}>
@@ -140,24 +149,30 @@ function TicketModulePermissionsByRolePageContent() {
 
         <section className={styles.card}>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="w-full max-w-xs">
-              <label className="mb-2 block text-xs uppercase text-[var(--perm-text-subtle)]">
-                Role
-              </label>
-              <select
-                className={styles.select}
+            <div className="w-full max-w-xs space-y-1.5">
+              <Label className={tcFormStyles.fieldLabel}>Role</Label>
+              <Select
                 value={role}
-                onChange={(event) =>
-                  setRole(event.target.value as UserRoleEnum)
-                }
+                onValueChange={(value) => setRole(value as UserRoleEnum)}
                 disabled={isLoading || saveMutation.isPending}
               >
-                {ROLE_OPTIONS.map((roleOption) => (
-                  <option key={roleOption} value={roleOption}>
-                    {roleOption}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  className={`h-11 w-full ${tcFormStyles.inputBg}`}
+                >
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent className={tcFormStyles.selectContentForm}>
+                  {ROLE_OPTIONS.map((roleOption) => (
+                    <SelectItem
+                      key={roleOption}
+                      value={roleOption}
+                      className={tcFormStyles.selectItemForm}
+                    >
+                      {roleOption}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center gap-2 self-end">
