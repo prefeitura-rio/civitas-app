@@ -1,10 +1,11 @@
 'use client'
 
 import { Plus, Trash } from 'lucide-react'
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type ReactNode, type SetStateAction } from 'react'
 
 import type { OpenServiceKey } from '@/app/(app)/demandas/criar/ticket-create/ticket-create.constant'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { TicketDetection } from '@/http/tickets/get-ticket-by-id'
@@ -14,8 +15,6 @@ import { maskPlateBR } from '@/utils/string-formatters'
 import styles from '../ticket-detail.module.css'
 import {
   cloneTicketServicos,
-  datetimeLocalToIso,
-  isoToDatetimeLocal,
   newNestedEntityId,
 } from '../ticket-servicos-mapper'
 
@@ -47,6 +46,22 @@ type ServicosPeriodPatch = {
   period_end: string | null
 }
 
+function isoToDateValue(iso: string | null | undefined): Date | undefined {
+  if (iso == null || iso === '') return undefined
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? undefined : date
+}
+
+function datePickerValueToIso(
+  value: SetStateAction<Date | undefined>,
+  previousIso: string | null | undefined,
+): string | null {
+  const previousDate = isoToDateValue(previousIso)
+  const nextDate = typeof value === 'function' ? value(previousDate) : value
+  if (!nextDate || Number.isNaN(nextDate.getTime())) return null
+  return nextDate.toISOString()
+}
+
 function ServicosSearchPeriodInputs({
   periodStart,
   periodEnd,
@@ -58,14 +73,17 @@ function ServicosSearchPeriodInputs({
   readOnly?: boolean
   onPatch: (next: ServicosPeriodPatch) => void
 }) {
+  const startDate = isoToDateValue(periodStart)
+  const endDate = isoToDateValue(periodEnd)
+
   return (
     <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
-      <Input
+      <DatePicker
         type="datetime-local"
-        className={styles.servicosInput}
-        value={isoToDatetimeLocal(periodStart)}
-        onChange={(e) => {
-          const newPeriodStart = datetimeLocalToIso(e.target.value)
+        className={styles.servicosDateTimeInput}
+        value={startDate}
+        onChange={(value) => {
+          const newPeriodStart = datePickerValueToIso(value, periodStart)
           let nextPeriodEnd: string | null =
             periodEnd != null && periodEnd !== '' ? periodEnd : null
           if (
@@ -77,15 +95,17 @@ function ServicosSearchPeriodInputs({
           }
           onPatch({ period_start: newPeriodStart, period_end: nextPeriodEnd })
         }}
+        toDate={endDate}
+        timePickerDisableFuture={false}
         disabled={readOnly}
-        aria-label="Início do período da busca"
+        placeholder="Início"
       />
-      <Input
+      <DatePicker
         type="datetime-local"
-        className={styles.servicosInput}
-        value={isoToDatetimeLocal(periodEnd)}
-        onChange={(e) => {
-          const newPeriodEnd = datetimeLocalToIso(e.target.value)
+        className={styles.servicosDateTimeInput}
+        value={endDate}
+        onChange={(value) => {
+          const newPeriodEnd = datePickerValueToIso(value, periodEnd)
           let nextPeriodStart: string | null =
             periodStart != null && periodStart !== '' ? periodStart : null
           if (
@@ -97,8 +117,10 @@ function ServicosSearchPeriodInputs({
           }
           onPatch({ period_start: nextPeriodStart, period_end: newPeriodEnd })
         }}
+        fromDate={startDate}
+        timePickerDisableFuture={false}
         disabled={readOnly}
-        aria-label="Fim do período da busca"
+        placeholder="Fim"
       />
     </div>
   )

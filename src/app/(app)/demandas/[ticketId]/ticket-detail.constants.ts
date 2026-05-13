@@ -30,23 +30,16 @@ export const TICKET_RESPOSTA_TAB = {
   label: 'Resposta',
 }
 
-const TICKET_STATE_IDS_WITH_RESPOSTA_TAB = new Set([
-  'AGUARDANDO_REVISAO_ADMINISTRATIVO',
-  'AGUARDANDO_REVISAO_ADJUNTO',
-  'ADJUNTO',
-  'ADMINISTRATIVO',
-])
+const RESPOSTA_TAB_STATE_ID = 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
 
 export function shouldShowTicketRespostaTab(
   stateId: string | null | undefined,
   status: string | null | undefined,
 ) {
   const normalizedStateId = stateId?.trim().toUpperCase() ?? ''
-  if (TICKET_STATE_IDS_WITH_RESPOSTA_TAB.has(normalizedStateId)) return true
+  if (normalizedStateId === RESPOSTA_TAB_STATE_ID) return true
 
   const normalizedStatus = status?.trim().toUpperCase() ?? ''
-  return (
-    normalizedStatus === 'AGUARDANDO_REVISAO_ADMINISTRATIVO' ||
-    normalizedStatus === 'AGUARDANDO_REVISAO_ADJUNTO'
-  )
+  if (!normalizedStatus) return false
+  return normalizedStatus === RESPOSTA_TAB_STATE_ID
 }

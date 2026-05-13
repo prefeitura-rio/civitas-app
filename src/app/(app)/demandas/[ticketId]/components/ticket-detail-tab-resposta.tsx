@@ -147,12 +147,12 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
     queryKey: [
       'standardized-responses',
       'list',
-      { isActive: true, category: 'RECEBIMENTO_SOLICITACOES' as const },
+      { isActive: true, category: 'RESPOSTAS_POSITIVAS' as const },
     ],
     queryFn: async () => {
       const r = await listStandardizedResponses({
         isActive: true,
-        category: 'RECEBIMENTO_SOLICITACOES',
+        category: 'RESPOSTAS_POSITIVAS',
       })
       return r.data
     },

@@ -165,16 +165,17 @@
 }
 
 .actionsRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  display: grid;
   width: 100%;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
 
 .actionSlot {
-  flex: 1 1 160px;
+  width: 100%;
   min-height: 40px;
   min-width: 0;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1278,6 +1279,7 @@
 
   max-width: min(620px, calc(100vw - 32px)) !important;
   width: 100%;
+  min-width: 0;
   border: 1px solid var(--td-border) !important;
   border-radius: 16px;
   background: var(--td-section-bg) !important;
@@ -1293,6 +1295,9 @@
   flex-direction: column;
   gap: 40px;
   padding: 24px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .workflowEmailDialogInner {
@@ -1320,6 +1325,8 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .workflowEmailContent {
@@ -1363,11 +1370,45 @@
   color: var(--td-muted, #97a2ab);
 }
 
+.workflowEmailRecipientPopover {
+  max-height: min(240px, 40vh);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.workflowEmailRecipientRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #f9fafa;
+}
+
+.workflowEmailRecipientCheck {
+  height: 16px;
+  width: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #f9fafa;
+}
+
+.workflowEmailRecipientText {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
 .reassignField {
   display: flex;
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .reassignLabel {
@@ -1421,8 +1462,11 @@
 
 .reassignMultiTrigger {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 44px;
-  padding: 0 16px;
+  padding: 10px 16px;
   border-radius: 8px;
   border: 1px solid var(--td-border);
   background: var(--td-card-bg);
@@ -1436,20 +1480,36 @@
   font-size: 14px;
 }
 
+.reassignMultiTrigger > svg {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
 .reassignMultiTrigger:disabled {
   opacity: 0.75;
   cursor: not-allowed;
 }
 
 .reassignMultiValue {
+  flex: 1 1 0%;
+  min-width: 0;
   color: var(--td-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+  max-height: 7.5rem;
+  overflow-y: auto;
 }
 
 .reassignMultiPlaceholder {
+  flex: 1 1 0%;
+  min-width: 0;
   color: var(--td-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .reassignPopoverContent {
@@ -1512,10 +1572,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .reassignPriorityBtn {
-  flex: 1 1 120px;
+  flex: 1 1 min(120px, 100%);
+  min-width: 0;
   min-height: 40px;
   border: none;
   border-radius: 8px;
@@ -1536,6 +1599,9 @@
   display: flex;
   justify-content: flex-end;
   width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .servicosIntro {
@@ -1818,6 +1884,35 @@
 .servicosInput:focus {
   outline: 2px solid rgba(116, 169, 189, 0.45);
   outline-offset: 0;
+}
+
+.servicosDateTimeInput {
+  min-height: 44px !important;
+  height: 44px;
+  padding: 0 16px !important;
+  border-radius: var(--td-radius) !important;
+  border: 1px solid var(--td-border) !important;
+  background-color: var(--td-label-bg) !important;
+  color: var(--td-text) !important;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.servicosDateTimeInput:hover:not(:disabled) {
+  background-color: var(--td-label-bg) !important;
+  filter: brightness(1.06);
+}
+
+.servicosDateTimeInput:focus-visible {
+  outline: 2px solid rgba(116, 169, 189, 0.45);
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.servicosDateTimeInput:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
 }
 
 .servicosTextarea {

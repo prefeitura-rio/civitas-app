@@ -237,7 +237,7 @@ export function useTicketCreateController() {
         setFiles([])
         closeServiceModal()
       } else {
-        router.push('/chamados')
+        router.push('/demandas')
       }
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -271,7 +271,7 @@ export function useTicketCreateController() {
         setFiles([])
         closeServiceModal()
       } else {
-        router.push('/chamados')
+        router.push('/demandas')
       }
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),

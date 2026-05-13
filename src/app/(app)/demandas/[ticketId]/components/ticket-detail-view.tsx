@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -177,7 +177,6 @@ export function TicketDetailView({ ticketId }: Props) {
   const [workflowCommentAction, setWorkflowCommentAction] =
     useState<TicketWorkflowConfirmableAction | null>(null)
   const [workflowComment, setWorkflowComment] = useState('')
-  const [selectedNotificationEmail, setSelectedNotificationEmail] = useState('')
   const [reassignOpen, setReassignOpen] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [selectedResponsibleIds, setSelectedResponsibleIds] = useState<
@@ -459,15 +458,6 @@ export function TicketDetailView({ ticketId }: Props) {
   useEffect(() => {
     setSelectedResponsibleIds([])
   }, [selectedTeamId])
-
-  useEffect(() => {
-    if (workflowCommentAction !== 'ENVIAR_EMAIL') {
-      setSelectedNotificationEmail('')
-      return
-    }
-    const firstEmail = notificationEmailsQuery.data?.[0] ?? ''
-    setSelectedNotificationEmail(firstEmail)
-  }, [workflowCommentAction, notificationEmailsQuery.data])
 
   useEffect(() => {
     if (showRespostaTab || activeTab !== 'resposta') return
@@ -881,38 +871,67 @@ export function TicketDetailView({ ticketId }: Props) {
                       para:
                     </h3>
                     <div className={styles.workflowEmailSelectWrap}>
-                      <Select
-                        value={selectedNotificationEmail || undefined}
-                        onValueChange={() => {}}
-                        disabled={
-                          workflowActionMutation.isPending ||
-                          notificationEmailsQuery.isLoading
-                        }
-                      >
-                        <SelectTrigger
-                          className={styles.workflowEmailSelectTrigger}
-                        >
-                          <SelectValue
-                            placeholder={
-                              notificationEmailsQuery.isLoading
-                                ? 'Carregando e-mails...'
-                                : 'Sem e-mails para exibir'
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className={cn(
+                              styles.workflowEmailSelectTrigger,
+                              'flex w-full cursor-pointer items-center justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
+                            )}
+                            disabled={
+                              workflowActionMutation.isPending ||
+                              notificationEmailsQuery.isLoading ||
+                              (notificationEmailsQuery.data ?? []).length === 0
                             }
-                          />
-                        </SelectTrigger>
-                        <SelectContent className={styles.detailSelectContent}>
+                          >
+                            <span className="min-w-0 flex-1 truncate">
+                              {notificationEmailsQuery.isLoading
+                                ? 'Carregando e-mails...'
+                                : (notificationEmailsQuery.data ?? [])
+                                      .length === 0
+                                  ? 'Sem e-mails para exibir'
+                                  : (notificationEmailsQuery.data ?? [])[0]}
+                            </span>
+                            <ChevronDown
+                              size={16}
+                              className="shrink-0"
+                              aria-hidden
+                            />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="center"
+                          sideOffset={4}
+                          onOpenAutoFocus={(event) => event.preventDefault()}
+                          className={cn(
+                            styles.detailSelectContent,
+                            styles.workflowEmailRecipientPopover,
+                            'w-[var(--radix-popover-trigger-width)] max-w-none p-1',
+                          )}
+                          role="listbox"
+                          aria-label="Destinatários do e-mail"
+                        >
                           {(notificationEmailsQuery.data ?? []).map((email) => (
-                            <SelectItem
+                            <div
                               key={email}
-                              value={email}
-                              disabled
-                              className={styles.detailSelectItem}
+                              className={styles.workflowEmailRecipientRow}
+                              role="option"
+                              aria-selected="true"
                             >
-                              {email}
-                            </SelectItem>
+                              <Check
+                                className={styles.workflowEmailRecipientCheck}
+                                aria-hidden
+                              />
+                              <span
+                                className={styles.workflowEmailRecipientText}
+                              >
+                                {email}
+                              </span>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </PopoverContent>
+                      </Popover>
                       {notificationEmailsQuery.isError ? (
                         <p className={styles.reassignFieldMessageError}>
                           {getApiErrorMessage(notificationEmailsQuery.error)}

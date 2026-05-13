@@ -533,7 +533,8 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                             : null
                         }
                       />
-                      {row.kind !== 'cerco_eletronico' ? (
+                      {row.kind !== 'cerco_eletronico' &&
+                      row.kind !== 'reserva_de_imagem' ? (
                         <TicketServicoAnexos
                           ticketId={ticketId}
                           title="Anexos deste serviço"

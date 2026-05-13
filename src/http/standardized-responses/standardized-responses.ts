@@ -2,6 +2,7 @@ import { api } from '@/lib/api'
 
 export type StandardizedResponseCategory =
   | 'RECEBIMENTO_SOLICITACOES'
+  | 'RESPOSTAS_POSITIVAS'
   | 'RELATORIOS_PLACAS_RADARES'
   | 'INSERCAO_PLACAS_CERCO'
   | 'SOLICITACAO_IMAGENS'
