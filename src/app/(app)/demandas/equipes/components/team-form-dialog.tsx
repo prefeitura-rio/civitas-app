@@ -78,10 +78,16 @@ export function TeamFormDialog({
   const { mutateAsync: createTeamMutation, isPending: isPendingCreate } =
     useMutation({
       mutationFn: createTeam,
-      onSuccess: ({ data }) => {
+      onSuccess: (response, variables) => {
         queryClient.invalidateQueries({ queryKey: ['teams'] })
         queryClient.invalidateQueries({ queryKey: ['islands'] })
-        toast.success(`Equipe ${data.name} criada com sucesso.`)
+        const teamName =
+          variables.name?.trim() || response.data.name?.trim() || ''
+        toast.success(
+          teamName
+            ? `Equipe ${teamName} criada com sucesso.`
+            : 'Equipe criada com sucesso.',
+        )
       },
       onError: (error) => {
         toast.error(getApiErrorMessage(error))
@@ -91,10 +97,16 @@ export function TeamFormDialog({
   const { mutateAsync: updateTeamMutation, isPending: isPendingUpdate } =
     useMutation({
       mutationFn: updateTeam,
-      onSuccess: ({ data }) => {
+      onSuccess: (response, variables) => {
         queryClient.invalidateQueries({ queryKey: ['teams'] })
         queryClient.invalidateQueries({ queryKey: ['islands'] })
-        toast.success(`Equipe ${data.name} atualizada com sucesso.`)
+        const teamName =
+          variables.name?.trim() || response.data.name?.trim() || ''
+        toast.success(
+          teamName
+            ? `Equipe ${teamName} atualizada com sucesso.`
+            : 'Equipe atualizada com sucesso.',
+        )
       },
       onError: (error) => {
         toast.error(getApiErrorMessage(error))
