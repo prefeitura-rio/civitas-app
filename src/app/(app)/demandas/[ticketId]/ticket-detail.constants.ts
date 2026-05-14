@@ -31,15 +31,24 @@ export const TICKET_RESPOSTA_TAB = {
 }
 
 const RESPOSTA_TAB_STATE_ID = 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
+const RESPOSTA_TAB_STATUS_RESTRITO = 'RESTRITO'
 
 export function shouldShowTicketRespostaTab(
   stateId: string | null | undefined,
   status: string | null | undefined,
 ) {
   const normalizedStateId = stateId?.trim().toUpperCase() ?? ''
-  if (normalizedStateId === RESPOSTA_TAB_STATE_ID) return true
+  if (
+    normalizedStateId === RESPOSTA_TAB_STATE_ID ||
+    normalizedStateId === RESPOSTA_TAB_STATUS_RESTRITO
+  ) {
+    return true
+  }
 
   const normalizedStatus = status?.trim().toUpperCase() ?? ''
   if (!normalizedStatus) return false
-  return normalizedStatus === RESPOSTA_TAB_STATE_ID
+  return (
+    normalizedStatus === RESPOSTA_TAB_STATE_ID ||
+    normalizedStatus === RESPOSTA_TAB_STATUS_RESTRITO
+  )
 }

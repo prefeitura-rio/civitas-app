@@ -139,6 +139,12 @@ export function TicketServicoAnexos({
   const [videoPlaybackOverrides, setVideoPlaybackOverrides] = useState<
     Record<string, { signedUrl?: string; expiresAt?: string }>
   >({})
+  const [videoUploadUi, setVideoUploadUi] = useState<{
+    fileName: string
+    phase: 'preparing' | 'uploading' | 'finalizing'
+    percent: number
+  } | null>(null)
+  const lastReportedVideoPercent = useRef(-1)
 
   const deleteMutation = useMutation({
     mutationFn: ({ attachmentId }: { attachmentId: string }) =>
@@ -179,6 +185,14 @@ export function TicketServicoAnexos({
   })
 
   const videoMutation = useMutation({
+    onMutate: (file) => {
+      lastReportedVideoPercent.current = -1
+      setVideoUploadUi({
+        fileName: file.name,
+        phase: 'preparing',
+        percent: 0,
+      })
+    },
     mutationFn: async (file: File) => {
       const contentType = file.type || 'video/mp4'
       const scope =
@@ -195,7 +209,32 @@ export function TicketServicoAnexos({
         resumable: true,
         ...scope,
       })
-      await putVideoToGcsSignedUrl(uploadMeta.signed_url, file, contentType)
+      setVideoUploadUi({
+        fileName: file.name,
+        phase: 'uploading',
+        percent: 0,
+      })
+      lastReportedVideoPercent.current = 0
+      await putVideoToGcsSignedUrl(uploadMeta.signed_url, file, contentType, {
+        onProgress: ({ loaded, total }) => {
+          const t = total > 0 ? total : file.size
+          if (t <= 0) return
+          const raw = Math.floor((loaded / t) * 100)
+          const pct = Math.min(99, raw)
+          if (pct === lastReportedVideoPercent.current) return
+          lastReportedVideoPercent.current = pct
+          setVideoUploadUi({
+            fileName: file.name,
+            phase: 'uploading',
+            percent: pct,
+          })
+        },
+      })
+      setVideoUploadUi({
+        fileName: file.name,
+        phase: 'finalizing',
+        percent: 100,
+      })
       await completeTicketVideoAttachment(ticketId, {
         storage_key: uploadMeta.storage_key,
         filename: file.name,
@@ -219,6 +258,10 @@ export function TicketServicoAnexos({
       toast.error(
         getApiDetailUnless500(err) ?? 'Não foi possível enviar o vídeo.',
       )
+    },
+    onSettled: () => {
+      setVideoUploadUi(null)
+      lastReportedVideoPercent.current = -1
     },
   })
 
@@ -463,6 +506,47 @@ export function TicketServicoAnexos({
           </div>
         ) : null}
       </div>
+
+      {videoUploadUi ? (
+        <div
+          className={styles.servicoAnexosUploadProgress}
+          role="status"
+          aria-live="polite"
+          aria-busy={videoMutation.isPending}
+        >
+          <div className={styles.servicoAnexosUploadProgressTop}>
+            <span className={styles.servicoAnexosUploadProgressLabel}>
+              {videoUploadUi.phase === 'preparing' && 'A preparar envio…'}
+              {videoUploadUi.phase === 'uploading' &&
+                `A enviar vídeo — ${videoUploadUi.percent}%`}
+              {videoUploadUi.phase === 'finalizing' &&
+                'A concluir no servidor…'}
+            </span>
+            <span
+              className={styles.servicoAnexosUploadProgressName}
+              title={videoUploadUi.fileName}
+            >
+              {videoUploadUi.fileName}
+            </span>
+          </div>
+          <div
+            className={`${styles.servicoAnexosUploadProgressTrack} ${
+              videoUploadUi.phase === 'preparing'
+                ? styles.servicoAnexosUploadProgressIndeterminate
+                : ''
+            }`}
+          >
+            <div
+              className={styles.servicoAnexosUploadProgressFill}
+              style={
+                videoUploadUi.phase === 'preparing'
+                  ? undefined
+                  : { width: `${videoUploadUi.percent}%` }
+              }
+            />
+          </div>
+        </div>
+      ) : null}
 
       {uploadBlocked && !readOnly ? (
         <p className={styles.servicoAnexosHint}>

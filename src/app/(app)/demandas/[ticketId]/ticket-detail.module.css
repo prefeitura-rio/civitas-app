@@ -2582,6 +2582,68 @@
   background-color: var(--td-page-bg, #0c161f);
 }
 
+.servicoAnexosUploadProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--td-card-bg);
+  border-radius: var(--td-radius);
+  border: 1px solid var(--td-border);
+}
+
+.servicoAnexosUploadProgressTop {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.servicoAnexosUploadProgressLabel {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--td-text);
+}
+
+.servicoAnexosUploadProgressName {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--td-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.servicoAnexosUploadProgressTrack {
+  height: 8px;
+  background: var(--td-badge-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.servicoAnexosUploadProgressFill {
+  height: 100%;
+  width: 0%;
+  background: var(--td-btn-primary);
+  border-radius: inherit;
+  transition: width 0.15s ease-out;
+}
+
+.servicoAnexosUploadProgressIndeterminate .servicoAnexosUploadProgressFill {
+  width: 40%;
+  animation: servicoAnexosUploadIndeterminate 1.1s ease-in-out infinite;
+}
+
+@keyframes servicoAnexosUploadIndeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
 .servicoAnexosHeaderActions {
   display: inline-flex;
   align-items: center;

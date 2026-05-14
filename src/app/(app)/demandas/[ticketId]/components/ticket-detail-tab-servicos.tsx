@@ -47,6 +47,8 @@ import {
 import { TicketServicoAnexos } from './ticket-servico-anexos'
 import { ServicosExpandedForm } from './ticket-servicos-expanded-form'
 
+const SERVICOS_SAVE_VIDEO_TOAST_ID = 'servicos-save-video-upload'
+
 const SERVICE_KINDS = [
   'busca_por_placa',
   'busca_por_radar',
@@ -271,11 +273,13 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
 
           for (let index = 0; index < preRows.length; index++) {
             const preRow = preRows[index]
-            if (!preRow?.id || !isLocalDraftServiceId(preRow.id)) continue
+            if (!preRow?.id) continue
             const files = pendingFilesByRowId[preRow.id] ?? []
             if (!files.length) continue
 
-            const persistedServiceId = savedRows[index]?.id
+            const persistedServiceId = isLocalDraftServiceId(preRow.id)
+              ? savedRows[index]?.id
+              : (savedRows[index]?.id ?? preRow.id)
             if (!persistedServiceId) {
               pendingUploadFailures += files.length
               nextPending[preRow.id] = files
@@ -302,27 +306,58 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
               }
               for (const file of videoFiles) {
                 const contentType = file.type || 'video/mp4'
-                const uploadMeta = await requestTicketVideoUploadUrl(ticketId, {
-                  filename: file.name,
-                  content_type: contentType,
-                  file_size: file.size,
-                  resumable: true,
-                  service_type: kind,
-                  service_id: persistedServiceId,
+                toast.loading(`A enviar vídeo: ${file.name} — 0%`, {
+                  id: SERVICOS_SAVE_VIDEO_TOAST_ID,
+                  duration: Infinity,
                 })
-                await putVideoToGcsSignedUrl(
-                  uploadMeta.signed_url,
-                  file,
-                  contentType,
-                )
-                await completeTicketVideoAttachment(ticketId, {
-                  storage_key: uploadMeta.storage_key,
-                  filename: file.name,
-                  content_type: contentType,
-                  size_bytes: file.size,
-                  service_type: kind,
-                  service_id: persistedServiceId,
-                })
+                try {
+                  const uploadMeta = await requestTicketVideoUploadUrl(
+                    ticketId,
+                    {
+                      filename: file.name,
+                      content_type: contentType,
+                      file_size: file.size,
+                      resumable: true,
+                      service_type: kind,
+                      service_id: persistedServiceId,
+                    },
+                  )
+                  await putVideoToGcsSignedUrl(
+                    uploadMeta.signed_url,
+                    file,
+                    contentType,
+                    {
+                      onProgress: ({ loaded, total }) => {
+                        const t = total > 0 ? total : file.size
+                        const pct =
+                          t > 0
+                            ? Math.min(100, Math.round((loaded / t) * 100))
+                            : 0
+                        toast.loading(
+                          `A enviar vídeo: ${file.name} — ${pct}%`,
+                          {
+                            id: SERVICOS_SAVE_VIDEO_TOAST_ID,
+                            duration: Infinity,
+                          },
+                        )
+                      },
+                    },
+                  )
+                  toast.loading(`A finalizar: ${file.name}…`, {
+                    id: SERVICOS_SAVE_VIDEO_TOAST_ID,
+                    duration: Infinity,
+                  })
+                  await completeTicketVideoAttachment(ticketId, {
+                    storage_key: uploadMeta.storage_key,
+                    filename: file.name,
+                    content_type: contentType,
+                    size_bytes: file.size,
+                    service_type: kind,
+                    service_id: persistedServiceId,
+                  })
+                } finally {
+                  toast.dismiss(SERVICOS_SAVE_VIDEO_TOAST_ID)
+                }
               }
             } catch {
               pendingUploadFailures += files.length
@@ -395,13 +430,12 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
       if (!prev) return prev
       return removeServiceAt(prev, kind, index)
     })
-    if (isLocalDraftServiceId(rowId)) {
-      setPendingFilesByRowId((prev) => {
-        const next = { ...prev }
-        delete next[rowId]
-        return next
-      })
-    }
+    setPendingFilesByRowId((prev) => {
+      if (!(rowId in prev)) return prev
+      const next = { ...prev }
+      delete next[rowId]
+      return next
+    })
     if (expandedId === rowId) {
       setExpandedId(null)
     }
@@ -550,17 +584,14 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                             service_type: row.kind,
                             service_id: row.rowId,
                           }}
-                          uploadBlocked={isLocalDraftServiceId(row.rowId)}
+                          uploadBlocked={isEditing}
+                          uploadBlockedMessage="Os anexos serão enviados ao salvar as alterações dos serviços."
                           pendingFiles={pendingFilesByRowId[row.rowId] ?? []}
-                          onQueuePendingFiles={
-                            isLocalDraftServiceId(row.rowId)
-                              ? (files) => queuePendingFiles(row.rowId, files)
-                              : undefined
+                          onQueuePendingFiles={(files) =>
+                            queuePendingFiles(row.rowId, files)
                           }
-                          onRemovePendingFile={
-                            isLocalDraftServiceId(row.rowId)
-                              ? (index) => removePendingFile(row.rowId, index)
-                              : undefined
+                          onRemovePendingFile={(index) =>
+                            removePendingFile(row.rowId, index)
                           }
                         />
                       ) : null}

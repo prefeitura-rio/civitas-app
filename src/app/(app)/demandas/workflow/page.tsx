@@ -239,7 +239,7 @@ function WorkflowRolesPageContent() {
                 className="font-semibold leading-10 text-[var(--tc-heading,#f9fafa)]"
                 style={{ fontSize: '20px' }}
               >
-                Configuração de Workflow por Role
+                Configuração de Workflow por Tipo de Demanda e Role
               </h1>
               <p className="mt-0 text-[length:12px] leading-4 text-[var(--tc-muted,#97a2ab)]">
                 Defina permissões por estado e transições para o tipo de demanda
