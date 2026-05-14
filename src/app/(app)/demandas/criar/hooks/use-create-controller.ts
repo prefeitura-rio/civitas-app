@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { AxiosResponse } from 'axios'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -37,6 +37,13 @@ import {
 
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 const ALLOWED_ATTACHMENT_EXT = new Set(['.pdf', '.doc', '.docx'])
+
+const TICKET_TYPE_RESTRITA_LABEL = 'requisição restrita'
+const TEAM_COORDENADORES_LABEL = 'coordenadores'
+
+function normalizeCatalogLabel(value: string) {
+  return value.trim().toLowerCase()
+}
 
 function attachmentExtension(name: string): string {
   const dot = name.lastIndexOf('.')
@@ -132,6 +139,7 @@ export function useTicketCreateController() {
 
   const possuiApelido = watch('possui_apelido_imprensa')
   const possuiEnderecoCorrespondencia = watch('possui_endereco_correspondencia')
+  const tipoChamadoId = watch('tipo_chamado_id')
 
   const focalPoints = useFieldArray({ control, name: 'pontos_focais' })
   const buscaPorPlaca = useFieldArray({ control, name: 'busca_por_placa' })
@@ -282,6 +290,30 @@ export function useTicketCreateController() {
   const ticketNatures = ticketNaturesQuery.data?.data ?? []
   const tickets = ticketsQuery.data?.data ?? []
   const teams = teamsQuery.data?.data ?? []
+
+  useEffect(() => {
+    if (!tipoChamadoId || ticketTypes.length === 0 || teams.length === 0) return
+
+    const selectedType = ticketTypes.find((t) => t.id === tipoChamadoId)
+    if (!selectedType) return
+
+    const isRestrita =
+      normalizeCatalogLabel(selectedType.name) === TICKET_TYPE_RESTRITA_LABEL
+    if (!isRestrita) return
+
+    const coordTeam = teams.find(
+      (team) => normalizeCatalogLabel(team.name) === TEAM_COORDENADORES_LABEL,
+    )
+    if (!coordTeam) return
+
+    const currentEquipeId = getValues('equipe_id')
+    if (currentEquipeId === coordTeam.id) return
+
+    setValue('equipe_id', coordTeam.id, {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
+  }, [tipoChamadoId, ticketTypes, teams, getValues, setValue])
 
   const isOperationsLoading = operationsQuery.isLoading
   const isTicketTypesLoading = ticketTypesQuery.isLoading
