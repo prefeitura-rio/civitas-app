@@ -151,7 +151,6 @@ export type PutVideoToGcsProgress = {
 }
 
 export type PutVideoToGcsSignedUrlOptions = {
-  /** Só disponível com envio via XMLHttpRequest (necessário para progresso). */
   onProgress?: (p: PutVideoToGcsProgress) => void
 }
 
