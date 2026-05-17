@@ -44,6 +44,11 @@ import {
   setServiceConcluido,
   ticketServicosToReplacePayload,
 } from '../ticket-servicos-mapper'
+import {
+  createPendingServiceAttachments,
+  pendingAttachmentAsUploadFile,
+  type PendingServiceAttachment,
+} from './ticket-pending-attachment'
 import { TicketServicoAnexos } from './ticket-servico-anexos'
 import { ServicosExpandedForm } from './ticket-servicos-expanded-form'
 
@@ -125,7 +130,7 @@ type Props = {
   ticketId: string
 }
 
-type PendingServiceFilesByRowId = Record<string, File[]>
+type PendingServiceFilesByRowId = Record<string, PendingServiceAttachment[]>
 
 export function TicketDetailTabServicos({ ticketId }: Props) {
   const queryClient = useQueryClient()
@@ -200,9 +205,27 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
     if (!files.length) return
     setPendingFilesByRowId((prev) => ({
       ...prev,
-      [rowId]: [...(prev[rowId] ?? []), ...files],
+      [rowId]: [
+        ...(prev[rowId] ?? []),
+        ...createPendingServiceAttachments(files),
+      ],
     }))
   }, [])
+
+  const renamePendingFile = useCallback(
+    (rowId: string, index: number, filename: string) => {
+      setPendingFilesByRowId((prev) => {
+        const rowFiles = prev[rowId] ?? []
+        const item = rowFiles[index]
+        if (!item) return prev
+        const nextRowFiles = rowFiles.map((entry, i) =>
+          i === index ? { ...entry, filename } : entry,
+        )
+        return { ...prev, [rowId]: nextRowFiles }
+      })
+    },
+    [],
+  )
 
   const removePendingFile = useCallback((rowId: string, index: number) => {
     setPendingFilesByRowId((prev) => {
@@ -274,37 +297,38 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
           for (let index = 0; index < preRows.length; index++) {
             const preRow = preRows[index]
             if (!preRow?.id) continue
-            const files = pendingFilesByRowId[preRow.id] ?? []
-            if (!files.length) continue
+            const pendingItems = pendingFilesByRowId[preRow.id] ?? []
+            if (!pendingItems.length) continue
 
             const persistedServiceId = isLocalDraftServiceId(preRow.id)
               ? savedRows[index]?.id
               : (savedRows[index]?.id ?? preRow.id)
             if (!persistedServiceId) {
-              pendingUploadFailures += files.length
-              nextPending[preRow.id] = files
+              pendingUploadFailures += pendingItems.length
+              nextPending[preRow.id] = pendingItems
               continue
             }
 
-            const videoFiles = files.filter((file) =>
-              file.type.startsWith('video/'),
+            const videoItems = pendingItems.filter((item) =>
+              item.file.type.startsWith('video/'),
             )
-            const nonVideoFiles = files.filter(
-              (file) => !file.type.startsWith('video/'),
+            const nonVideoItems = pendingItems.filter(
+              (item) => !item.file.type.startsWith('video/'),
             )
 
             try {
-              if (nonVideoFiles.length > 0) {
+              if (nonVideoItems.length > 0) {
                 await uploadTicketServiceAttachmentsMultipart(
                   ticketId,
-                  nonVideoFiles,
+                  nonVideoItems.map(pendingAttachmentAsUploadFile),
                   {
                     service_type: kind,
                     service_id: persistedServiceId,
                   },
                 )
               }
-              for (const file of videoFiles) {
+              for (const item of videoItems) {
+                const file = pendingAttachmentAsUploadFile(item)
                 const contentType = file.type || 'video/mp4'
                 toast.loading(`A enviar vídeo: ${file.name} — 0%`, {
                   id: SERVICOS_SAVE_VIDEO_TOAST_ID,
@@ -360,8 +384,8 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                 }
               }
             } catch {
-              pendingUploadFailures += files.length
-              nextPending[preRow.id] = files
+              pendingUploadFailures += pendingItems.length
+              nextPending[preRow.id] = pendingItems
             }
           }
         }
@@ -567,8 +591,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                             : null
                         }
                       />
-                      {row.kind !== 'cerco_eletronico' &&
-                      row.kind !== 'reserva_de_imagem' ? (
+                      {row.kind !== 'cerco_eletronico' ? (
                         <TicketServicoAnexos
                           ticketId={ticketId}
                           title="Anexos deste serviço"
@@ -589,6 +612,9 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                           pendingFiles={pendingFilesByRowId[row.rowId] ?? []}
                           onQueuePendingFiles={(files) =>
                             queuePendingFiles(row.rowId, files)
+                          }
+                          onRenamePendingFile={(index, filename) =>
+                            renamePendingFile(row.rowId, index, filename)
                           }
                           onRemovePendingFile={(index) =>
                             removePendingFile(row.rowId, index)

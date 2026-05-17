@@ -7,6 +7,7 @@ import { Spinner } from '@/components/custom/spinner'
 import { config } from '@/config'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 
+import { CHAMADOS_IMPERSONATION_BAR_HEIGHT } from '../chamados-impersonation-bar'
 import { EmailToTicketView } from './components/email-to-ticket-view'
 
 const TICKET_CONVERT_SCREEN_CODE = 'ticket_convert'
@@ -38,5 +39,16 @@ export default function ConverterChamadoPage() {
     )
   }
 
-  return <ConverterChamadoPageContent />
+  const shellHeight = config.enableImpersonation
+    ? `calc(100dvh - ${CHAMADOS_IMPERSONATION_BAR_HEIGHT})`
+    : '100dvh'
+
+  return (
+    <div
+      className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
+      style={{ height: shellHeight, maxHeight: shellHeight }}
+    >
+      <ConverterChamadoPageContent />
+    </div>
+  )
 }

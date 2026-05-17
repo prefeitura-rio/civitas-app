@@ -8,13 +8,22 @@ import {
   FileText,
   Loader2,
   Paperclip,
+  Pencil,
   RefreshCw,
   Trash2,
   X,
 } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import {
   downloadTicketAttachmentFile,
   fetchTicketAttachmentBlob,
@@ -34,10 +43,21 @@ import {
 import { isApiError } from '@/lib/api'
 
 import styles from '../ticket-detail.module.css'
+import {
+  getFilenameExtension,
+  getPendingAttachmentBaseName,
+  normalizePendingFilename,
+  type PendingServiceAttachment,
+  renamePendingAttachmentBase,
+} from './ticket-pending-attachment'
+
+export type { PendingServiceAttachment } from './ticket-pending-attachment'
 
 const MAX_MULTIPART_BYTES = 10 * 1024 * 1024
 const MAX_VIDEO_GB = 20
 const MAX_VIDEO_BYTES = MAX_VIDEO_GB * 1024 * 1024 * 1024
+/** Validade do link de reprodução ao atualizar (7 h, em minutos). */
+const VIDEO_PLAYBACK_EXPIRATION_MINUTES = 7 * 60
 
 const MULTIPART_ACCEPT = [
   'application/pdf',
@@ -110,8 +130,9 @@ type Props = {
   serviceScope: TicketAttachmentMultipartMetadata | null
   uploadBlocked?: boolean
   uploadBlockedMessage?: string
-  pendingFiles?: File[]
+  pendingFiles?: PendingServiceAttachment[]
   onQueuePendingFiles?: (files: File[]) => void
+  onRenamePendingFile?: (index: number, filename: string) => void
   onRemovePendingFile?: (index: number) => void
 }
 
@@ -125,6 +146,7 @@ export function TicketServicoAnexos({
   uploadBlockedMessage = 'Guarde os serviços para anexar ficheiros a este serviço.',
   pendingFiles = [],
   onQueuePendingFiles,
+  onRenamePendingFile,
   onRemovePendingFile,
 }: Props) {
   const queryClient = useQueryClient()
@@ -145,6 +167,42 @@ export function TicketServicoAnexos({
     percent: number
   } | null>(null)
   const lastReportedVideoPercent = useRef(-1)
+  const renameInputRef = useRef<HTMLInputElement>(null)
+  const [renameDialog, setRenameDialog] = useState<{
+    index: number
+    item: PendingServiceAttachment
+    baseDraft: string
+  } | null>(null)
+
+  useEffect(() => {
+    if (!renameDialog) return
+    const t = window.setTimeout(() => renameInputRef.current?.focus(), 0)
+    return () => window.clearTimeout(t)
+  }, [renameDialog])
+
+  const openRenameDialog = useCallback(
+    (index: number, item: PendingServiceAttachment) => {
+      setRenameDialog({
+        index,
+        item,
+        baseDraft: getPendingAttachmentBaseName(item),
+      })
+    },
+    [],
+  )
+
+  const confirmRenameDialog = useCallback(() => {
+    if (!renameDialog || !onRenamePendingFile) return
+    const { index, item, baseDraft } = renameDialog
+    onRenamePendingFile(
+      index,
+      normalizePendingFilename(
+        renamePendingAttachmentBase(item, baseDraft),
+        item.file.name,
+      ),
+    )
+    setRenameDialog(null)
+  }, [onRenamePendingFile, renameDialog])
 
   const deleteMutation = useMutation({
     mutationFn: ({ attachmentId }: { attachmentId: string }) =>
@@ -341,7 +399,7 @@ export function TicketServicoAnexos({
     [videoPlaybackOverrides],
   )
 
-  /** URL assinada no GCS; pedimos o máximo permitido (120 min) para quem receber o link. */
+  /** URL assinada no GCS; validade de 7 h para quem receber o link. */
   const handleCopyVideoLink = useCallback(
     async (att: TicketAttachmentOut) => {
       const playbackUrl = resolvePlaybackUrl(att)
@@ -369,8 +427,14 @@ export function TicketServicoAnexos({
       setVideoRefreshingId(att.id)
       try {
         const { signed_url: signedUrl } =
-          await getTicketServiceAttachmentPlaybackUrl(ticketId, att.id, 120)
-        const expiresAt = new Date(Date.now() + 120 * 60 * 1000).toISOString()
+          await getTicketServiceAttachmentPlaybackUrl(
+            ticketId,
+            att.id,
+            VIDEO_PLAYBACK_EXPIRATION_MINUTES,
+          )
+        const expiresAt = new Date(
+          Date.now() + VIDEO_PLAYBACK_EXPIRATION_MINUTES * 60 * 1000,
+        ).toISOString()
         setVideoPlaybackOverrides((prev) => ({
           ...prev,
           [att.id]: { signedUrl, expiresAt },
@@ -464,203 +528,151 @@ export function TicketServicoAnexos({
   )
   const videoAttachments = attachments.filter((att) => isVideoAttachment(att))
 
+  const renameLockedExtension = renameDialog
+    ? getFilenameExtension(renameDialog.item.file.name)
+    : ''
+
   return (
-    <div className={styles.servicoAnexos}>
-      <div className={styles.servicoAnexosHeader}>
-        <span className={styles.servicoAnexosTitle}>{title}</span>
-        {canUpload ? (
-          <div className={styles.servicoAnexosHeaderActions}>
-            <input
-              ref={uploadRef}
-              type="file"
-              className={styles.servicoAnexosFileInput}
-              multiple
-              accept="video/*,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx"
-              onChange={onPickUpload}
-              aria-hidden
-              tabIndex={-1}
-            />
-            <button
-              type="button"
-              className={styles.servicoAnexosIconButton}
-              onClick={() => uploadRef.current?.click()}
-              disabled={busy}
-              title="Enviar anexo"
-              aria-label="Enviar anexo"
+    <>
+      <div className={styles.servicoAnexos}>
+        <div className={styles.servicoAnexosHeader}>
+          <span className={styles.servicoAnexosTitle}>{title}</span>
+          {canUpload ? (
+            <div className={styles.servicoAnexosHeaderActions}>
+              <input
+                ref={uploadRef}
+                type="file"
+                className={styles.servicoAnexosFileInput}
+                multiple
+                accept="video/*,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx"
+                onChange={onPickUpload}
+                aria-hidden
+                tabIndex={-1}
+              />
+              <button
+                type="button"
+                className={styles.servicoAnexosIconButton}
+                onClick={() => uploadRef.current?.click()}
+                disabled={busy}
+                title="Enviar anexo"
+                aria-label="Enviar anexo"
+              >
+                {busy ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Paperclip size={18} />
+                )}
+              </button>
+              <button
+                type="button"
+                className={styles.servicoAnexosIconButton}
+                disabled
+                title="Download em lote indisponível"
+                aria-label="Download em lote indisponível"
+              >
+                <Download size={18} />
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        {videoUploadUi ? (
+          <div
+            className={styles.servicoAnexosUploadProgress}
+            role="status"
+            aria-live="polite"
+            aria-busy={videoMutation.isPending}
+          >
+            <div className={styles.servicoAnexosUploadProgressTop}>
+              <span className={styles.servicoAnexosUploadProgressLabel}>
+                {videoUploadUi.phase === 'preparing' && 'A preparar envio…'}
+                {videoUploadUi.phase === 'uploading' &&
+                  `A enviar vídeo — ${videoUploadUi.percent}%`}
+                {videoUploadUi.phase === 'finalizing' &&
+                  'A concluir no servidor…'}
+              </span>
+              <span
+                className={styles.servicoAnexosUploadProgressName}
+                title={videoUploadUi.fileName}
+              >
+                {videoUploadUi.fileName}
+              </span>
+            </div>
+            <div
+              className={`${styles.servicoAnexosUploadProgressTrack} ${
+                videoUploadUi.phase === 'preparing'
+                  ? styles.servicoAnexosUploadProgressIndeterminate
+                  : ''
+              }`}
             >
-              {busy ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : (
-                <Paperclip size={18} />
-              )}
-            </button>
-            <button
-              type="button"
-              className={styles.servicoAnexosIconButton}
-              disabled
-              title="Download em lote indisponível"
-              aria-label="Download em lote indisponível"
-            >
-              <Download size={18} />
-            </button>
+              <div
+                className={styles.servicoAnexosUploadProgressFill}
+                style={
+                  videoUploadUi.phase === 'preparing'
+                    ? undefined
+                    : { width: `${videoUploadUi.percent}%` }
+                }
+              />
+            </div>
           </div>
         ) : null}
-      </div>
 
-      {videoUploadUi ? (
-        <div
-          className={styles.servicoAnexosUploadProgress}
-          role="status"
-          aria-live="polite"
-          aria-busy={videoMutation.isPending}
-        >
-          <div className={styles.servicoAnexosUploadProgressTop}>
-            <span className={styles.servicoAnexosUploadProgressLabel}>
-              {videoUploadUi.phase === 'preparing' && 'A preparar envio…'}
-              {videoUploadUi.phase === 'uploading' &&
-                `A enviar vídeo — ${videoUploadUi.percent}%`}
-              {videoUploadUi.phase === 'finalizing' &&
-                'A concluir no servidor…'}
-            </span>
-            <span
-              className={styles.servicoAnexosUploadProgressName}
-              title={videoUploadUi.fileName}
-            >
-              {videoUploadUi.fileName}
-            </span>
-          </div>
-          <div
-            className={`${styles.servicoAnexosUploadProgressTrack} ${
-              videoUploadUi.phase === 'preparing'
-                ? styles.servicoAnexosUploadProgressIndeterminate
-                : ''
-            }`}
-          >
-            <div
-              className={styles.servicoAnexosUploadProgressFill}
-              style={
-                videoUploadUi.phase === 'preparing'
-                  ? undefined
-                  : { width: `${videoUploadUi.percent}%` }
-              }
-            />
-          </div>
-        </div>
-      ) : null}
+        {uploadBlocked && !readOnly ? (
+          <p className={styles.servicoAnexosHint}>
+            {uploadBlockedMessage}
+            {pendingFiles.length > 0
+              ? ` (${pendingFiles.length} pendente${pendingFiles.length > 1 ? 's' : ''})`
+              : ''}
+          </p>
+        ) : null}
 
-      {uploadBlocked && !readOnly ? (
-        <p className={styles.servicoAnexosHint}>
-          {uploadBlockedMessage}
-          {pendingFiles.length > 0
-            ? ` (${pendingFiles.length} pendente${pendingFiles.length > 1 ? 's' : ''})`
-            : ''}
-        </p>
-      ) : null}
-
-      {pendingFiles.length > 0 ? (
-        <div className={styles.servicoAnexosList}>
-          <div className={styles.docGrid}>
-            {pendingFiles.map((file, index) => (
-              <div
-                key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                className={styles.docCard}
-              >
-                <div className={styles.docCardLeft}>
-                  <div className={styles.docPdfIcon} aria-hidden>
-                    <FileText size={20} />
-                  </div>
-                  <div className={styles.docInfo}>
-                    <p className={styles.docName} title={file.name}>
-                      {file.name}
-                    </p>
-                    <p className={styles.docSize}>
-                      {formatBytes(file.size)} - Pendente
-                    </p>
-                  </div>
-                </div>
-                <div className={styles.docCardActions}>
-                  {!readOnly && onRemovePendingFile ? (
-                    <button
-                      type="button"
-                      className={styles.docIconBtn}
-                      aria-label={`Remover pendente ${file.name}`}
-                      title="Remover pendente"
-                      onClick={() => onRemovePendingFile(index)}
-                      disabled={busy}
-                    >
-                      <X size={16} />
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {attachments.length === 0 ? (
-        <p className={styles.servicoAnexosEmpty}>Nenhum anexo.</p>
-      ) : (
-        <div className={styles.servicoAnexosList}>
-          {nonVideoAttachments.length > 0 ? (
+        {pendingFiles.length > 0 ? (
+          <div className={styles.servicoAnexosList}>
             <div className={styles.docGrid}>
-              {nonVideoAttachments.map((att) => {
+              {pendingFiles.map((item, index) => {
+                const canRename = !readOnly && !!onRenamePendingFile
+                const displayName = normalizePendingFilename(
+                  item.filename,
+                  item.file.name,
+                )
                 return (
-                  <div key={att.id} className={styles.docCard}>
+                  <div key={item.id} className={styles.docCard}>
                     <div className={styles.docCardLeft}>
                       <div className={styles.docPdfIcon} aria-hidden>
                         <FileText size={20} />
                       </div>
-                      <div className={styles.docInfo}>
-                        <p className={styles.docName} title={att.filename}>
-                          {att.filename}
+                      <div
+                        className={`${styles.docInfo} ${styles.servicoAnexosPendingDocInfo}`}
+                      >
+                        <p className={styles.docName} title={displayName}>
+                          {displayName}
                         </p>
                         <p className={styles.docSize}>
-                          {formatBytes(att.size_bytes)}
+                          {formatBytes(item.file.size)} - Pendente
                         </p>
                       </div>
                     </div>
                     <div className={styles.docCardActions}>
-                      <button
-                        type="button"
-                        className={styles.docIconBtn}
-                        aria-label={`Visualizar ${att.filename}`}
-                        title="Visualizar anexo"
-                        onClick={() => {
-                          handleView(att).catch(() => {})
-                        }}
-                        disabled={
-                          deletingId === att.id || viewingId === att.id || busy
-                        }
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.docIconBtn}
-                        aria-label={`Baixar ${att.filename}`}
-                        title="Descarregar"
-                        onClick={() => {
-                          handleDownload(att).catch(() => {})
-                        }}
-                        disabled={
-                          deletingId === att.id || viewingId === att.id || busy
-                        }
-                      >
-                        <Download size={16} />
-                      </button>
-                      {!readOnly ? (
+                      {canRename ? (
                         <button
                           type="button"
                           className={styles.docIconBtn}
-                          aria-label={`Remover ${att.filename}`}
-                          title="Remover"
-                          onClick={() => handleDelete(att)}
-                          disabled={
-                            deletingId === att.id ||
-                            viewingId === att.id ||
-                            busy
-                          }
+                          aria-label={`Editar nome de ${displayName}`}
+                          title="Editar nome"
+                          onClick={() => openRenameDialog(index, item)}
+                          disabled={busy}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      ) : null}
+                      {!readOnly && onRemovePendingFile ? (
+                        <button
+                          type="button"
+                          className={styles.docIconBtn}
+                          aria-label={`Remover pendente ${displayName}`}
+                          title="Remover pendente"
+                          onClick={() => onRemovePendingFile(index)}
+                          disabled={busy}
                         >
                           <X size={16} />
                         </button>
@@ -670,96 +682,260 @@ export function TicketServicoAnexos({
                 )
               })}
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {videoAttachments.length > 0 ? (
-            <div className={styles.videoList}>
-              {videoAttachments.map((att) => {
-                const expiresAt = resolvePlaybackExpiresAt(att)
-                const expiresDate = expiresAt ? new Date(expiresAt) : null
-                const isExpired = expiresDate
-                  ? expiresDate.getTime() <= Date.now()
-                  : false
-                const expiryText = expiresAt
-                  ? `${isExpired ? 'Expirado em' : 'Expira em'} ${formatPlaybackExpiry(expiresAt)}`
-                  : 'Expiração não informada'
-                return (
-                  <div key={att.id} className={styles.videoRow}>
-                    <p className={styles.videoLabel}>Link do vídeo</p>
-                    <div className={styles.videoActionsRow}>
-                      <div
-                        className={styles.videoUrlBox}
-                        title={resolvePlaybackUrl(att)}
-                      >
-                        {resolvePlaybackUrl(att) || 'Link indisponível'}
+        {attachments.length === 0 ? (
+          <p className={styles.servicoAnexosEmpty}>Nenhum anexo.</p>
+        ) : (
+          <div className={styles.servicoAnexosList}>
+            {nonVideoAttachments.length > 0 ? (
+              <div className={styles.docGrid}>
+                {nonVideoAttachments.map((att) => {
+                  return (
+                    <div key={att.id} className={styles.docCard}>
+                      <div className={styles.docCardLeft}>
+                        <div className={styles.docPdfIcon} aria-hidden>
+                          <FileText size={20} />
+                        </div>
+                        <div className={styles.docInfo}>
+                          <p className={styles.docName} title={att.filename}>
+                            {att.filename}
+                          </p>
+                          <p className={styles.docSize}>
+                            {formatBytes(att.size_bytes)}
+                          </p>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        className={styles.servicoAnexosIconButton}
-                        aria-label={`Copiar link do vídeo ${att.filename}`}
-                        title="Copiar link"
-                        onClick={() => {
-                          handleCopyVideoLink(att).catch(() => {})
-                        }}
-                        disabled={
-                          deletingId === att.id ||
-                          videoCopyingId === att.id ||
-                          videoRefreshingId === att.id ||
-                          busy
-                        }
-                      >
-                        {videoCopyingId === att.id ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <Copy size={18} />
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.servicoAnexosIconButton}
-                        aria-label={`Atualizar link do vídeo ${att.filename}`}
-                        title="Atualizar link"
-                        onClick={() => {
-                          handleRefreshVideoLink(att).catch(() => {})
-                        }}
-                        disabled={
-                          deletingId === att.id ||
-                          videoCopyingId === att.id ||
-                          videoRefreshingId === att.id ||
-                          busy
-                        }
-                      >
-                        {videoRefreshingId === att.id ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <RefreshCw size={18} />
-                        )}
-                      </button>
-                      {!readOnly ? (
+                      <div className={styles.docCardActions}>
+                        <button
+                          type="button"
+                          className={styles.docIconBtn}
+                          aria-label={`Visualizar ${att.filename}`}
+                          title="Visualizar anexo"
+                          onClick={() => {
+                            handleView(att).catch(() => {})
+                          }}
+                          disabled={
+                            deletingId === att.id ||
+                            viewingId === att.id ||
+                            busy
+                          }
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.docIconBtn}
+                          aria-label={`Baixar ${att.filename}`}
+                          title="Descarregar"
+                          onClick={() => {
+                            handleDownload(att).catch(() => {})
+                          }}
+                          disabled={
+                            deletingId === att.id ||
+                            viewingId === att.id ||
+                            busy
+                          }
+                        >
+                          <Download size={16} />
+                        </button>
+                        {!readOnly ? (
+                          <button
+                            type="button"
+                            className={styles.docIconBtn}
+                            aria-label={`Remover ${att.filename}`}
+                            title="Remover"
+                            onClick={() => handleDelete(att)}
+                            disabled={
+                              deletingId === att.id ||
+                              viewingId === att.id ||
+                              busy
+                            }
+                          >
+                            <X size={16} />
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : null}
+
+            {videoAttachments.length > 0 ? (
+              <div className={styles.videoList}>
+                {videoAttachments.map((att) => {
+                  const playbackUrl = resolvePlaybackUrl(att)
+                  const expiresAt = resolvePlaybackExpiresAt(att)
+                  const expiresDate = expiresAt ? new Date(expiresAt) : null
+                  const isExpired = expiresDate
+                    ? expiresDate.getTime() <= Date.now()
+                    : false
+                  const expiryText = expiresAt
+                    ? `${isExpired ? 'Expirado em' : 'Expira em'} ${formatPlaybackExpiry(expiresAt)}`
+                    : 'Expiração não informada'
+                  const displayName = att.filename?.trim() || 'Vídeo'
+                  return (
+                    <div key={att.id} className={styles.videoRow}>
+                      <p className={styles.videoLabel}>Vídeo</p>
+                      <div className={styles.videoActionsRow}>
+                        <div
+                          className={styles.videoUrlBox}
+                          title={playbackUrl || undefined}
+                        >
+                          {displayName}
+                        </div>
                         <button
                           type="button"
                           className={styles.servicoAnexosIconButton}
-                          aria-label={`Remover ${att.filename}`}
-                          title="Remover"
-                          onClick={() => handleDelete(att)}
-                          disabled={deletingId === att.id || busy}
+                          aria-label={`Copiar link do vídeo ${displayName}`}
+                          title={
+                            playbackUrl
+                              ? 'Copiar link'
+                              : 'Link indisponível para cópia'
+                          }
+                          onClick={() => {
+                            handleCopyVideoLink(att).catch(() => {})
+                          }}
+                          disabled={
+                            !playbackUrl ||
+                            deletingId === att.id ||
+                            videoCopyingId === att.id ||
+                            videoRefreshingId === att.id ||
+                            busy
+                          }
                         >
-                          <Trash2 size={18} />
+                          {videoCopyingId === att.id ? (
+                            <Loader2 size={18} className="animate-spin" />
+                          ) : (
+                            <Copy size={18} />
+                          )}
                         </button>
-                      ) : null}
+                        <button
+                          type="button"
+                          className={styles.servicoAnexosIconButton}
+                          aria-label={`Atualizar link do vídeo ${att.filename}`}
+                          title="Atualizar link"
+                          onClick={() => {
+                            handleRefreshVideoLink(att).catch(() => {})
+                          }}
+                          disabled={
+                            deletingId === att.id ||
+                            videoCopyingId === att.id ||
+                            videoRefreshingId === att.id ||
+                            busy
+                          }
+                        >
+                          {videoRefreshingId === att.id ? (
+                            <Loader2 size={18} className="animate-spin" />
+                          ) : (
+                            <RefreshCw size={18} />
+                          )}
+                        </button>
+                        {!readOnly ? (
+                          <button
+                            type="button"
+                            className={styles.servicoAnexosIconButton}
+                            aria-label={`Remover ${att.filename}`}
+                            title="Remover"
+                            onClick={() => handleDelete(att)}
+                            disabled={deletingId === att.id || busy}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        ) : null}
+                      </div>
+                      <p
+                        className={`${styles.videoExpiry} ${isExpired ? styles.videoExpiryExpired : ''}`}
+                      >
+                        {expiryText}
+                      </p>
                     </div>
-                    <p
-                      className={`${styles.videoExpiry} ${isExpired ? styles.videoExpiryExpired : ''}`}
-                    >
-                      {expiryText}
-                    </p>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      <Dialog
+        open={renameDialog !== null}
+        onOpenChange={(open) => {
+          if (!open) setRenameDialog(null)
+        }}
+      >
+        <DialogContent className={styles.reassignDialogContent}>
+          <div className={styles.reassignDialogInner}>
+            <DialogHeader className={styles.reassignDialogHeader}>
+              <DialogTitle className={styles.reassignDialogTitle}>
+                Editar nome do anexo
+              </DialogTitle>
+            </DialogHeader>
+            <div className={styles.reassignFields}>
+              <div className={styles.reassignField}>
+                <p className={styles.reassignFieldMessage}>
+                  A extensão do ficheiro não pode ser alterada.
+                </p>
+              </div>
+              <div className={styles.reassignField}>
+                <span
+                  className={styles.reassignLabel}
+                  id="pending-attachment-rename-label"
+                >
+                  Nome
+                </span>
+                <div className={styles.reassignFilenameRow}>
+                  <Input
+                    ref={renameInputRef}
+                    id="pending-attachment-rename"
+                    type="text"
+                    className={styles.reassignInput}
+                    value={renameDialog?.baseDraft ?? ''}
+                    onChange={(e) =>
+                      setRenameDialog((prev) =>
+                        prev ? { ...prev, baseDraft: e.target.value } : prev,
+                      )
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        confirmRenameDialog()
+                      }
+                    }}
+                    disabled={busy}
+                    aria-labelledby="pending-attachment-rename-label"
+                  />
+                  {renameLockedExtension ? (
+                    <span className={styles.reassignFilenameExt} aria-hidden>
+                      {renameLockedExtension}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
             </div>
-          ) : null}
-        </div>
-      )}
-    </div>
+            <DialogFooter className={styles.footerActions}>
+              <button
+                type="button"
+                className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
+                onClick={() => setRenameDialog(null)}
+                disabled={busy}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+                onClick={confirmRenameDialog}
+                disabled={busy}
+              >
+                Guardar
+              </button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
