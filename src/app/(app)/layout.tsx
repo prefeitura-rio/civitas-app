@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { isAuthenticated } from '@/auth/auth'
 import { DemandantsContextProvider } from '@/contexts/demandants-context'
 import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-context'
+import { OperationsContextProvider } from '@/contexts/operations-context'
 import { OrganizationsContextProvider } from '@/contexts/organizations-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 import {
@@ -30,14 +31,16 @@ export default function AppLayout({
     <CustomQueryClientProvider>
       <OrganizationsContextProvider>
         <DemandantsContextProvider>
-          <MonitoredPlatesContextProvider>
-            <div className="flex min-h-screen w-full">
-              <Sidebar
-                initialTicketModulePermissions={ticketPermissionsFromCookie}
-              />
-              {children}
-            </div>
-          </MonitoredPlatesContextProvider>
+          <OperationsContextProvider>
+            <MonitoredPlatesContextProvider>
+              <div className="flex min-h-screen w-full">
+                <Sidebar
+                  initialTicketModulePermissions={ticketPermissionsFromCookie}
+                />
+                {children}
+              </div>
+            </MonitoredPlatesContextProvider>
+          </OperationsContextProvider>
         </DemandantsContextProvider>
       </OrganizationsContextProvider>
     </CustomQueryClientProvider>
