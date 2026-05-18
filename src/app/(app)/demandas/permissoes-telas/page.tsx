@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw } from 'lucide-react'
+import { notFound } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { config } from '@/config'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import {
   getTicketModulePermissionsByRole,
@@ -274,6 +276,10 @@ function TicketModulePermissionsByRolePageContent() {
 }
 
 export default function TicketModulePermissionsByRolePage() {
+  if (!config.enableChamados) {
+    notFound()
+  }
+
   const { allowed, resolved } = useTicketScreenPermissionGate(
     SCREEN_PERMISSIONS_SCREEN_CODE,
   )
