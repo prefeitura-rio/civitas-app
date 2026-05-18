@@ -89,6 +89,12 @@ export const changelog: Card[] = [
               height={300}
               className="mb-4"
             />
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '30 de Março de 2026',
     subCards: [
       {
