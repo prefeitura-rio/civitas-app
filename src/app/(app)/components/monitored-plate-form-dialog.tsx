@@ -2,11 +2,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { Controller, useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { InputError } from '@/components/custom/input-error'
 import MultipleSelector from '@/components/custom/multiselect-with-search'
+import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,19 +24,17 @@ import {
   type MonitoredPlateForm,
   monitoredPlateFormSchema,
 } from '@/contexts/monitored-plates-context'
-import { useDemandantsContext } from '@/hooks/useContexts/use-demandants-context'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
+import { useOperations } from '@/hooks/useContexts/use-operations-context'
 import { createMonitoredPlate } from '@/http/cars/monitored/create-monitored-plate'
 import { getMonitoredPlate } from '@/http/cars/monitored/get-monitored-plate'
 import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
-import { getDemandants } from '@/http/demandants/get-demandants'
 import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
+import { getOperations } from '@/http/operations/get-operations'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
 
-import { DemandantFormDialog } from '../demandantes/components/demandants-section/demandant-dialogs/demandant-form-dialog'
-import { MonitoredPlateDemandantLinksPanel } from './monitored-plate-demandant-links-panel'
-import type { MonitoredPlateDraftDemandantLink } from './monitored-plate-draft-demandant-link'
+import { OperationFormDialog } from '../demandantes/components/operation-dialogs/components/operation-form-dialog'
 
 interface MonitoredPlateDialogProps {
   isOpen: boolean
@@ -51,13 +50,7 @@ export function MonitoredPlateFormDialog({
   shouldFetchData = true,
 }: MonitoredPlateDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [draftLinks, setDraftLinks] = useState<
-    MonitoredPlateDraftDemandantLink[]
-  >([])
-  const {
-    formDialogDisclosure,
-    setDialogInitialData: setDemandantDialogInitial,
-  } = useDemandantsContext()
+  const { formDialogDisclosure } = useOperations()
 
   const {
     dialogInitialData: initialData,
@@ -74,18 +67,15 @@ export function MonitoredPlateFormDialog({
   } = useForm<MonitoredPlateForm>({
     resolver: zodResolver(monitoredPlateFormSchema),
     defaultValues: {
-      plate: '',
-      internalReferenceNumber: '',
-      demandantTemp: '',
       active: true,
       notes: '',
-      notificationChannels: [],
+      contactInfo: '',
+      operation: {
+        id: '',
+        title: '',
+      },
     },
   })
-
-  const currentPlate = useWatch({ control, name: 'plate', defaultValue: '' })
-
-  const isEditingExistingPlate = Boolean(initialData && shouldFetchData)
 
   const {
     mutateAsync: createMonitoredPlateMutation,
@@ -104,7 +94,7 @@ export function MonitoredPlateFormDialog({
     onError: (error, variables) => {
       console.error('Error:', error)
       if (isConflictError(error)) {
-        toast.error(`Esta placa já está cadastrada (${variables.plate}).`)
+        toast.error(`A placa ${variables.plate} já existe`)
       } else {
         toast.error(genericErrorMessage)
       }
@@ -125,12 +115,10 @@ export function MonitoredPlateFormDialog({
       })
       toast.success(`A placa ${data.plate} foi atualizada com sucesso!`)
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       console.error('Error2:', error)
       if (isConflictError(error)) {
-        toast.error(
-          'Não foi possível atualizar: conflito com outro cadastro desta placa.',
-        )
+        toast.error(`A placa ${variables.plate} já existe`)
       } else {
         toast.error(genericErrorMessage)
       }
@@ -145,26 +133,26 @@ export function MonitoredPlateFormDialog({
     },
   )
 
-  const { data: demandantsResponse } = useQuery({
-    queryKey: ['demandants', 'options'],
-    queryFn: () => getDemandants({}),
+  const { data: operationsResponse } = useQuery({
+    queryKey: ['operations'],
+    queryFn: () => getOperations({ size: 999 }),
   })
   const { data: NotificationChannelResponse } = useQuery({
     queryKey: ['notification-channels'],
     queryFn: () => getNotificationChannels({ size: 100 }),
   })
 
-  const demandants = demandantsResponse?.data.items || []
-
+  const operations = operationsResponse?.data.items || []
   function handleOnOpenChange(open: boolean) {
     if (open) {
       onOpen()
     } else {
       onClose()
       reset()
-      setDraftLinks([])
       setInitialData(null)
       setValue('notificationChannels', [])
+      setValue('operation.id', '')
+      setValue('operation.title', '')
     }
   }
 
@@ -175,34 +163,21 @@ export function MonitoredPlateFormDialog({
       )
       if (initialData?.plate && shouldFetchData) {
         await updateMonitoredPlateMutation({
-          plate: initialData.plate,
-          internalReferenceNumber:
-            props.internalReferenceNumber?.trim() || undefined,
-          demandantTemp: props.demandantTemp?.trim() || undefined,
+          plate: props.plate,
+          active: props.active,
+          contactInfo: props.contactInfo,
           notes: props.notes,
+          operationId: props.operation.id,
           notificationChannels,
         })
       } else {
         await createMonitoredPlateMutation({
           plate: props.plate,
-          internalReferenceNumber:
-            props.internalReferenceNumber?.trim() || undefined,
-          demandantTemp: props.demandantTemp?.trim() || undefined,
+          active: true,
+          operationId: props.operation.id,
+          contactInfo: props.contactInfo,
           notes: props.notes,
           notificationChannels,
-          demandantLinks:
-            draftLinks.length > 0
-              ? draftLinks.map((d) => ({
-                  demandantId: d.demandantId,
-                  referenceNumber: d.referenceNumber.trim(),
-                  validUntil: d.validUntil,
-                  notes: d.notes?.trim() || undefined,
-                  lprEquipmentIds:
-                    d.lprEquipmentIds && d.lprEquipmentIds.length > 0
-                      ? d.lprEquipmentIds
-                      : undefined,
-                }))
-              : undefined,
         })
       }
       handleOnOpenChange(false)
@@ -210,21 +185,6 @@ export function MonitoredPlateFormDialog({
       // Errors are already handled in the onError callback, so no need to do anything here
     }
   }
-
-  useEffect(() => {
-    if (isOpen && !initialData) {
-      reset({
-        plate: '',
-        internalReferenceNumber: '',
-        demandantTemp: '',
-        active: true,
-        notes: '',
-        additionalInfo: undefined,
-        notificationChannels: [],
-      })
-      setDraftLinks([])
-    }
-  }, [isOpen, initialData, reset])
 
   useEffect(() => {
     if (
@@ -235,13 +195,12 @@ export function MonitoredPlateFormDialog({
       shouldFetchData
     ) {
       setValue('plate', monitoredPlate.plate)
-      setValue(
-        'internalReferenceNumber',
-        monitoredPlate.internalReferenceNumber ?? '',
-      )
-      setValue('demandantTemp', monitoredPlate.demandantTemp ?? '')
       setValue('active', monitoredPlate.active)
+      setValue('additionalInfo', monitoredPlate.additionalInfo)
       setValue('notes', monitoredPlate.notes)
+      setValue('contactInfo', monitoredPlate.contactInfo || '')
+      setValue('operation.id', monitoredPlate.operation.id || '')
+      setValue('operation.title', monitoredPlate.operation.title || '')
       if (monitoredPlate.notificationChannels.length > 0) {
         const channelOptions = monitoredPlate.notificationChannels.map(
           (item) => {
@@ -252,8 +211,6 @@ export function MonitoredPlateFormDialog({
           },
         )
         setValue('notificationChannels', channelOptions)
-      } else {
-        setValue('notificationChannels', [])
       }
       setIsLoading(false)
     }
@@ -261,14 +218,7 @@ export function MonitoredPlateFormDialog({
     if (initialData && isOpen && !shouldFetchData) {
       setValue('plate', initialData.plate)
     }
-  }, [
-    isOpen,
-    isLoading,
-    monitoredPlate,
-    initialData,
-    shouldFetchData,
-    setValue,
-  ])
+  }, [isOpen, isLoading, monitoredPlate])
 
   useEffect(() => {
     if (
@@ -286,11 +236,17 @@ export function MonitoredPlateFormDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Placa monitorada</DialogTitle>
+            <DialogTitle>
+              {initialData && shouldFetchData
+                ? 'Atualizar placa monitorada'
+                : 'Monitorar nova placa'}
+            </DialogTitle>
             <DialogDescription>
-              Dados da placa, canais de notificação e vínculos com demandantes.
+              {initialData && shouldFetchData
+                ? 'Gerencie o monitoramento dessa placa.'
+                : 'Cadastre uma nova placa a ser monitorada.'}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -315,41 +271,64 @@ export function MonitoredPlateFormDialog({
 
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
-                <Label htmlFor="internalReferenceNumber">
-                  Número de Referência Interno/Chamado
-                </Label>
-                <InputError message={errors.internalReferenceNumber?.message} />
+                <Label htmlFor="contactInfo">Contatos</Label>
+                <InputError message={errors.contactInfo?.message} />
               </div>
-              <Input
-                id="internalReferenceNumber"
-                {...register('internalReferenceNumber')}
-                type="text"
+              <Textarea
+                id="contactInfo"
+                {...register('contactInfo')}
                 disabled={isLoading}
               />
             </div>
 
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
-                <Label htmlFor="demandantTemp">Requisitante</Label>
-                <InputError message={errors.demandantTemp?.message} />
-              </div>
-              <Input
-                id="demandantTemp"
-                {...register('demandantTemp')}
-                type="text"
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label htmlFor="notes">Observações (placa)</Label>
+                <Label htmlFor="notes">Observações</Label>
                 <InputError message={errors.notes?.message} />
               </div>
               <Textarea
                 id="notes"
                 {...register('notes')}
                 disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <Label>Demandante</Label>
+                <InputError message={errors.operation?.title?.message} />
+              </div>
+              <Controller
+                control={control}
+                name="operation.title"
+                render={({ field }) => (
+                  <SelectWithSearch
+                    onSelect={(item) => {
+                      setValue('operation.title', item.label)
+                      setValue('operation.id', item.value)
+                    }}
+                    options={operations.map((item) => ({
+                      label: item.title,
+                      value: item.id,
+                    }))}
+                    disabled={isLoading}
+                    value={field.value}
+                    placeholder="Selecione uma operação"
+                    topAction={
+                      <div className="flex justify-center p-2">
+                        <Button
+                          variant="link"
+                          className="h-auto p-0"
+                          onClick={() => formDialogDisclosure.onOpen()}
+                        >
+                          Criar novo demandante
+                        </Button>
+                      </div>
+                    }
+
+                    // emptyIndicator={<p>Nenhum resoltado encontrado.</p>}
+                  />
+                )}
               />
             </div>
 
@@ -380,34 +359,23 @@ export function MonitoredPlateFormDialog({
               />
             </div>
 
-            {isEditingExistingPlate && monitoredPlate && (
-              <MonitoredPlateDemandantLinksPanel
-                mode="persisted"
-                plate={monitoredPlate.plate}
-                links={monitoredPlate.demandantLinks}
-                demandants={demandants}
-                disabled={isLoading}
-                onOpenCreateDemandant={() => {
-                  setDemandantDialogInitial(null)
-                  formDialogDisclosure.onOpen()
-                }}
-              />
-            )}
-
-            {!isEditingExistingPlate && (
-              <MonitoredPlateDemandantLinksPanel
-                mode="draft"
-                plate={currentPlate?.trim() ?? ''}
-                draftLinks={draftLinks}
-                onDraftLinksChange={setDraftLinks}
-                demandants={demandants}
-                disabled={isLoading}
-                onOpenCreateDemandant={() => {
-                  setDemandantDialogInitial(null)
-                  formDialogDisclosure.onOpen()
-                }}
-              />
-            )}
+            {/* <Controller
+              control={control}
+              name="active"
+              render={({ field }) => {
+                return (
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="mapStyle"
+                      size="sm"
+                      checked={field.value}
+                      onCheckedChange={(checked) => setValue('active', checked)}
+                    />
+                    <span>{field.value ? 'Ativo' : 'Inativo'}</span>
+                  </div>
+                )
+              }}
+            /> */}
 
             <div className="mt-4 flex w-full justify-end">
               <Button type="submit" disabled={isLoading}>
@@ -424,7 +392,7 @@ export function MonitoredPlateFormDialog({
         </DialogContent>
       </Dialog>
 
-      <DemandantFormDialog
+      <OperationFormDialog
         isOpen={formDialogDisclosure.isOpen}
         onClose={formDialogDisclosure.onClose}
         onOpen={formDialogDisclosure.onOpen}
