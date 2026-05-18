@@ -27,6 +27,36 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '18 de Maio de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title:
+          'Inserção de Indicadores de Passagem no Relatório de Pontos de Detecção',
+        content: (
+          <>
+            <p>
+              O relatório de busca por placa agora inclui indicadores de
+              circulação para oferecer mais contexto aos operadores.
+            </p>
+            <ul>
+              <li>
+                Foram adicionados os indicadores de Local com maior número de
+                passagens, Bairros com mais detecções, Bairro com mais viagens
+                distintas e Turno com mais detecções.
+              </li>
+              <li>
+                O indicador de detecções por turno utiliza os períodos
+                <code>Madrugada (00h-06h)</code>, <code>Manhã (06h-12h)</code>,
+                <code>Tarde (12h-18h)</code> e <code>Noite (18h-00h)</code>.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '28 de Abril de 2026',
     subCards: [
       {
