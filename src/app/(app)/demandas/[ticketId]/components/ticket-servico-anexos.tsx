@@ -44,6 +44,13 @@ import { isApiError } from '@/lib/api'
 
 import styles from '../ticket-detail.module.css'
 import {
+  gcsAttachmentLabel,
+  isZipFile,
+  resolveGcsUploadContentType,
+  usesGcsSignedUrlAttachment,
+  usesGcsSignedUrlUpload,
+} from './ticket-gcs-upload'
+import {
   getFilenameExtension,
   getPendingAttachmentBaseName,
   normalizePendingFilename,
@@ -54,8 +61,8 @@ import {
 export type { PendingServiceAttachment } from './ticket-pending-attachment'
 
 const MAX_MULTIPART_BYTES = 10 * 1024 * 1024
-const MAX_VIDEO_GB = 20
-const MAX_VIDEO_BYTES = MAX_VIDEO_GB * 1024 * 1024 * 1024
+const MAX_GCS_UPLOAD_GB = 20
+const MAX_GCS_UPLOAD_BYTES = MAX_GCS_UPLOAD_GB * 1024 * 1024 * 1024
 /** Validade do link de reprodução ao atualizar (7 h, em minutos). */
 const VIDEO_PLAYBACK_EXPIRATION_MINUTES = 7 * 60
 
@@ -77,11 +84,8 @@ function formatBytes(bytes: number): string {
   return `${mb.toFixed(1)} MB`
 }
 
-function isVideoAttachment(att: TicketAttachmentOut): boolean {
-  return (att.content_type ?? '').toLowerCase().startsWith('video/')
-}
-
 function multipartFileAllowed(file: File): boolean {
+  if (usesGcsSignedUrlUpload(file)) return false
   if (file.size > MAX_MULTIPART_BYTES) return false
   const t = file.type.toLowerCase()
   if (MULTIPART_ACCEPT.includes(t as (typeof MULTIPART_ACCEPT)[number]))
@@ -252,7 +256,7 @@ export function TicketServicoAnexos({
       })
     },
     mutationFn: async (file: File) => {
-      const contentType = file.type || 'video/mp4'
+      const contentType = resolveGcsUploadContentType(file)
       const scope =
         serviceScope != null
           ? {
@@ -301,10 +305,13 @@ export function TicketServicoAnexos({
         ...scope,
       })
     },
-    onSuccess: () => {
+    onSuccess: (_data, file) => {
       invalidateAttachmentQueries(queryClient, ticketId)
+      const kind = isZipFile(file) ? 'ZIP' : 'Vídeo'
       toast.success(
-        serviceScope ? 'Vídeo anexado ao serviço.' : 'Vídeo anexado à demanda.',
+        serviceScope
+          ? `${kind} anexado ao serviço.`
+          : `${kind} anexado à demanda.`,
       )
       if (uploadRef.current) uploadRef.current.value = ''
     },
@@ -314,7 +321,8 @@ export function TicketServicoAnexos({
         return
       }
       toast.error(
-        getApiDetailUnless500(err) ?? 'Não foi possível enviar o vídeo.',
+        getApiDetailUnless500(err) ??
+          'Não foi possível enviar o ficheiro (vídeo ou ZIP).',
       )
     },
     onSettled: () => {
@@ -399,18 +407,18 @@ export function TicketServicoAnexos({
     [videoPlaybackOverrides],
   )
 
-  /** URL assinada no GCS; validade de 7 h para quem receber o link. */
   const handleCopyVideoLink = useCallback(
     async (att: TicketAttachmentOut) => {
       const playbackUrl = resolvePlaybackUrl(att)
+      const kind = gcsAttachmentLabel(att).toLowerCase()
       if (!playbackUrl) {
-        toast.error('Este vídeo ainda não possui link disponível para cópia.')
+        toast.error(`Este ${kind} ainda não possui link disponível para cópia.`)
         return
       }
       setVideoCopyingId(att.id)
       try {
         await navigator.clipboard.writeText(playbackUrl)
-        toast.success('Link do vídeo copiado.')
+        toast.success(`Link do ${kind} copiado.`)
       } catch {
         toast.error(
           'Não foi possível copiar o link. Verifique a permissão da área de transferência ou tente de novo.',
@@ -439,11 +447,13 @@ export function TicketServicoAnexos({
           ...prev,
           [att.id]: { signedUrl, expiresAt },
         }))
-        toast.success('Link do vídeo atualizado.')
+        toast.success(
+          `Link do ${gcsAttachmentLabel(att).toLowerCase()} atualizado.`,
+        )
       } catch (err) {
         toast.error(
           getApiDetailUnless500(err) ??
-            'Não foi possível atualizar o link do vídeo.',
+            'Não foi possível atualizar o link do anexo.',
         )
       } finally {
         setVideoRefreshingId(null)
@@ -458,42 +468,46 @@ export function TicketServicoAnexos({
       if (!list?.length) return
       const files = Array.from(list)
 
-      const videoFiles = files.filter((f) => f.type.startsWith('video/'))
-      const nonVideoFiles = files.filter((f) => !f.type.startsWith('video/'))
+      const gcsFiles = files.filter(usesGcsSignedUrlUpload)
+      const otherFiles = files.filter((f) => !usesGcsSignedUrlUpload(f))
 
-      if (videoFiles.length > 0 && nonVideoFiles.length > 0) {
+      if (gcsFiles.length > 0 && otherFiles.length > 0) {
         toast.error(
-          'Envie vídeos separados dos demais anexos para usar o endpoint correto.',
+          'Envie vídeos ou ZIP separados dos demais anexos para usar o endpoint correto.',
         )
         e.target.value = ''
         return
       }
 
-      if (videoFiles.length > 0) {
-        const videoFile = videoFiles[0]
-        if (videoFiles.length > 1) {
-          toast.error('Envie apenas um vídeo por vez.')
+      if (gcsFiles.length > 0) {
+        const gcsFile = gcsFiles[0]
+        if (gcsFiles.length > 1) {
+          toast.error('Envie apenas um vídeo ou ZIP por vez.')
           e.target.value = ''
           return
         }
-        if (videoFile.size > MAX_VIDEO_BYTES) {
-          toast.error(`O vídeo excede o limite de ${MAX_VIDEO_GB} GB.`)
+        if (gcsFile.size > MAX_GCS_UPLOAD_BYTES) {
+          const label = isZipFile(gcsFile) ? 'O ZIP' : 'O vídeo'
+          toast.error(`${label} excede o limite de ${MAX_GCS_UPLOAD_GB} GB.`)
           e.target.value = ''
           return
         }
         if (uploadBlocked && onQueuePendingFiles) {
-          onQueuePendingFiles(videoFiles)
-          toast.success('Vídeo adicionado. Será enviado após guardar serviços.')
+          onQueuePendingFiles(gcsFiles)
+          const pendingLabel = isZipFile(gcsFile) ? 'ZIP' : 'Vídeo'
+          toast.success(
+            `${pendingLabel} adicionado. Será enviado após guardar serviços.`,
+          )
           e.target.value = ''
           return
         }
-        videoMutation.mutate(videoFile)
+        videoMutation.mutate(gcsFile)
         e.target.value = ''
         return
       }
 
-      const bad = nonVideoFiles.filter((f) => !multipartFileAllowed(f))
-      if (bad.length || nonVideoFiles.length === 0) {
+      const bad = otherFiles.filter((f) => !multipartFileAllowed(f))
+      if (bad.length || otherFiles.length === 0) {
         toast.error(
           'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word, até 10 MB cada.',
         )
@@ -510,7 +524,7 @@ export function TicketServicoAnexos({
         return
       }
 
-      multipartMutation.mutate(nonVideoFiles)
+      multipartMutation.mutate(otherFiles)
       e.target.value = ''
     },
     [multipartMutation, onQueuePendingFiles, uploadBlocked, videoMutation],
@@ -523,10 +537,10 @@ export function TicketServicoAnexos({
 
   const canUpload =
     !readOnly && !busy && (!uploadBlocked || !!onQueuePendingFiles)
-  const nonVideoAttachments = attachments.filter(
-    (att) => !isVideoAttachment(att),
+  const multipartAttachments = attachments.filter(
+    (att) => !usesGcsSignedUrlAttachment(att),
   )
-  const videoAttachments = attachments.filter((att) => isVideoAttachment(att))
+  const gcsUploadAttachments = attachments.filter(usesGcsSignedUrlAttachment)
 
   const renameLockedExtension = renameDialog
     ? getFilenameExtension(renameDialog.item.file.name)
@@ -544,7 +558,7 @@ export function TicketServicoAnexos({
                 type="file"
                 className={styles.servicoAnexosFileInput}
                 multiple
-                accept="video/*,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx"
+                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx"
                 onChange={onPickUpload}
                 aria-hidden
                 tabIndex={-1}
@@ -587,7 +601,7 @@ export function TicketServicoAnexos({
               <span className={styles.servicoAnexosUploadProgressLabel}>
                 {videoUploadUi.phase === 'preparing' && 'A preparar envio…'}
                 {videoUploadUi.phase === 'uploading' &&
-                  `A enviar vídeo — ${videoUploadUi.percent}%`}
+                  `A enviar — ${videoUploadUi.percent}%`}
                 {videoUploadUi.phase === 'finalizing' &&
                   'A concluir no servidor…'}
               </span>
@@ -689,9 +703,9 @@ export function TicketServicoAnexos({
           <p className={styles.servicoAnexosEmpty}>Nenhum anexo.</p>
         ) : (
           <div className={styles.servicoAnexosList}>
-            {nonVideoAttachments.length > 0 ? (
+            {multipartAttachments.length > 0 ? (
               <div className={styles.docGrid}>
-                {nonVideoAttachments.map((att) => {
+                {multipartAttachments.map((att) => {
                   return (
                     <div key={att.id} className={styles.docCard}>
                       <div className={styles.docCardLeft}>
@@ -763,9 +777,9 @@ export function TicketServicoAnexos({
               </div>
             ) : null}
 
-            {videoAttachments.length > 0 ? (
+            {gcsUploadAttachments.length > 0 ? (
               <div className={styles.videoList}>
-                {videoAttachments.map((att) => {
+                {gcsUploadAttachments.map((att) => {
                   const playbackUrl = resolvePlaybackUrl(att)
                   const expiresAt = resolvePlaybackExpiresAt(att)
                   const expiresDate = expiresAt ? new Date(expiresAt) : null
@@ -775,10 +789,11 @@ export function TicketServicoAnexos({
                   const expiryText = expiresAt
                     ? `${isExpired ? 'Expirado em' : 'Expira em'} ${formatPlaybackExpiry(expiresAt)}`
                     : 'Expiração não informada'
-                  const displayName = att.filename?.trim() || 'Vídeo'
+                  const kindLabel = gcsAttachmentLabel(att)
+                  const displayName = att.filename?.trim() || kindLabel
                   return (
                     <div key={att.id} className={styles.videoRow}>
-                      <p className={styles.videoLabel}>Vídeo</p>
+                      <p className={styles.videoLabel}>{kindLabel}</p>
                       <div className={styles.videoActionsRow}>
                         <div
                           className={styles.videoUrlBox}
@@ -789,7 +804,7 @@ export function TicketServicoAnexos({
                         <button
                           type="button"
                           className={styles.servicoAnexosIconButton}
-                          aria-label={`Copiar link do vídeo ${displayName}`}
+                          aria-label={`Copiar link do ${kindLabel.toLowerCase()} ${displayName}`}
                           title={
                             playbackUrl
                               ? 'Copiar link'
@@ -815,7 +830,7 @@ export function TicketServicoAnexos({
                         <button
                           type="button"
                           className={styles.servicoAnexosIconButton}
-                          aria-label={`Atualizar link do vídeo ${att.filename}`}
+                          aria-label={`Atualizar link do ${kindLabel.toLowerCase()} ${att.filename}`}
                           title="Atualizar link"
                           onClick={() => {
                             handleRefreshVideoLink(att).catch(() => {})
@@ -915,7 +930,9 @@ export function TicketServicoAnexos({
                 </div>
               </div>
             </div>
-            <DialogFooter className={styles.footerActions}>
+            <DialogFooter
+              className={`${styles.footerActions} ${styles.footerActionsCentered}`}
+            >
               <button
                 type="button"
                 className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
