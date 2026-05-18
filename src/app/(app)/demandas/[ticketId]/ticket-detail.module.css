@@ -1460,6 +1460,54 @@
   cursor: not-allowed;
 }
 
+.reassignInput {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--td-border);
+  background: var(--td-card-bg);
+  color: var(--td-text);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.reassignInput::placeholder {
+  color: var(--td-muted);
+}
+
+.reassignInput:focus-visible {
+  outline: 2px solid rgba(13, 148, 136, 0.35);
+  outline-offset: 0;
+}
+
+.reassignInput:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.reassignFilenameRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.reassignFilenameRow .reassignInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.reassignFilenameExt {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--td-muted);
+  user-select: none;
+}
+
 .reassignMultiTrigger {
   width: 100%;
   max-width: 100%;
@@ -2582,6 +2630,12 @@
   background-color: var(--td-page-bg, #0c161f);
 }
 
+.servicoAnexosPendingDocInfo {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .servicoAnexosUploadProgress {
   display: flex;
   flex-direction: column;
@@ -2735,7 +2789,6 @@
   color: var(--td-text);
   font-size: 12px;
   line-height: 16px;
-  text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
