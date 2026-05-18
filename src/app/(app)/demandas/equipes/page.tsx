@@ -2,7 +2,10 @@
 
 import './equipes.css'
 
+import { notFound } from 'next/navigation'
+
 import { Spinner } from '@/components/custom/spinner'
+import { config } from '@/config'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 
 import { TeamsDialogs } from './components/teams-dialogs'
@@ -27,6 +30,10 @@ function EquipesPageContent() {
 }
 
 export default function EquipesPage() {
+  if (!config.enableChamados) {
+    notFound()
+  }
+
   const { allowed, resolved } = useTicketScreenPermissionGate(TEAMS_SCREEN_CODE)
 
   if (!resolved || !allowed) {
