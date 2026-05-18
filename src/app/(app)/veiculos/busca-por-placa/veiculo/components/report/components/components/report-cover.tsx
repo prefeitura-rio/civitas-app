@@ -297,7 +297,7 @@ export function ReportCover({
       .join(' | ') ?? 'Não disponível'
 
   const topTimePeriodText = circulationIndicators?.top_time_period
-    ? `${periodsLabels[circulationIndicators.top_time_period.period]} (${circulationIndicators.top_time_period.detections} detecções)`
+    ? `${periodsLabels[circulationIndicators.top_time_period.period]}: ${circulationIndicators.top_time_period.detections} detecções`
     : 'Sem detecções no período'
 
   function renderTableRow(
