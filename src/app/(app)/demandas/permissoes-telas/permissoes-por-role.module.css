@@ -1,0 +1,87 @@
+.page {
+  --perm-bg-page: #0c161f;
+  --perm-bg-section: #101d28;
+  --perm-bg-button: #1d3449;
+  --perm-border: #4a5d6d;
+  --perm-text-default: #f9fafa;
+  --perm-text-subtle: #97a2ab;
+  background-color: var(--perm-bg-page);
+  min-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  color: var(--perm-text-default);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--perm-text-subtle);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.card {
+  border: 1px solid var(--perm-border);
+  background: var(--perm-bg-section);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.sectionTitle {
+  color: var(--perm-text-default);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--perm-border);
+  padding: 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  color: var(--perm-text-subtle);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.table td {
+  color: var(--perm-text-default);
+  font-size: 13px;
+}
+
+.button {
+  border: 1px solid var(--perm-border);
+  background: var(--perm-bg-button);
+  color: var(--perm-text-default);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.button:disabled {
+  opacity: 0.6;
+}
+
+.buttonSecondary {
+  background: transparent;
+}
