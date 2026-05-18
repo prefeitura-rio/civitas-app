@@ -1,10 +1,10 @@
 import { api } from '@/lib/api'
 
 export const periodsLabels = {
-  madrugada: 'Madrugada',
-  manha: 'Manhã',
-  tarde: 'Tarde',
-  noite: 'Noite',
+  madrugada: 'Madrugada (00h-06h)',
+  manha: 'Manhã (06h-12h)',
+  tarde: 'Tarde (12h-18h)',
+  noite: 'Noite (18h-00h)',
 } as const
 
 export type Period = keyof typeof periodsLabels
