@@ -45,6 +45,11 @@ import {
   ticketServicosToReplacePayload,
 } from '../ticket-servicos-mapper'
 import {
+  isZipFile,
+  resolveGcsUploadContentType,
+  usesGcsSignedUrlUpload,
+} from './ticket-gcs-upload'
+import {
   createPendingServiceAttachments,
   pendingAttachmentAsUploadFile,
   type PendingServiceAttachment,
@@ -309,28 +314,29 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
               continue
             }
 
-            const videoItems = pendingItems.filter((item) =>
-              item.file.type.startsWith('video/'),
+            const gcsItems = pendingItems.filter((item) =>
+              usesGcsSignedUrlUpload(item.file),
             )
-            const nonVideoItems = pendingItems.filter(
-              (item) => !item.file.type.startsWith('video/'),
+            const multipartItems = pendingItems.filter(
+              (item) => !usesGcsSignedUrlUpload(item.file),
             )
 
             try {
-              if (nonVideoItems.length > 0) {
+              if (multipartItems.length > 0) {
                 await uploadTicketServiceAttachmentsMultipart(
                   ticketId,
-                  nonVideoItems.map(pendingAttachmentAsUploadFile),
+                  multipartItems.map(pendingAttachmentAsUploadFile),
                   {
                     service_type: kind,
                     service_id: persistedServiceId,
                   },
                 )
               }
-              for (const item of videoItems) {
+              for (const item of gcsItems) {
                 const file = pendingAttachmentAsUploadFile(item)
-                const contentType = file.type || 'video/mp4'
-                toast.loading(`A enviar vídeo: ${file.name} — 0%`, {
+                const contentType = resolveGcsUploadContentType(file)
+                const uploadKind = isZipFile(file) ? 'ZIP' : 'vídeo'
+                toast.loading(`A enviar ${uploadKind}: ${file.name} — 0%`, {
                   id: SERVICOS_SAVE_VIDEO_TOAST_ID,
                   duration: Infinity,
                 })
@@ -358,7 +364,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
                             ? Math.min(100, Math.round((loaded / t) * 100))
                             : 0
                         toast.loading(
-                          `A enviar vídeo: ${file.name} — ${pct}%`,
+                          `A enviar ${uploadKind}: ${file.name} — ${pct}%`,
                           {
                             id: SERVICOS_SAVE_VIDEO_TOAST_ID,
                             duration: Infinity,
