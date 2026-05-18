@@ -1,8 +1,10 @@
 'use client'
 
+import { notFound } from 'next/navigation'
 import { useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
+import { config } from '@/config'
 import { useDisclosure } from '@/hooks/use-disclosure'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
@@ -41,6 +43,10 @@ function CadastroPerfilPageContent() {
 }
 
 export default function CadastroPerfilPage() {
+  if (!config.enableChamados) {
+    notFound()
+  }
+
   const { allowed, resolved } =
     useTicketScreenPermissionGate(PROFILE_SCREEN_CODE)
 

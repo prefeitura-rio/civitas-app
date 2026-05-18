@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { notFound } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -26,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { config } from '@/config'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
 import {
@@ -643,6 +645,10 @@ function WorkflowRolesPageContent() {
 }
 
 export default function WorkflowRolesPage() {
+  if (!config.enableChamados) {
+    notFound()
+  }
+
   const { allowed, resolved } =
     useTicketScreenPermissionGate(WORKFLOW_SCREEN_CODE)
 
