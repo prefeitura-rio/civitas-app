@@ -1,13 +1,11 @@
 import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
 
-import type { GetCirculationIndicatorsResponse } from '@/http/cars/circulation-indicators/get-circulation-indicators'
-import { periodsLabels } from '@/http/cars/circulation-indicators/get-circulation-indicators'
+import { ReportFooter } from '@/components/custom/report-footer'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 import type { Vehicle } from '@/models/entities'
 
 interface ReportCoverProps {
-  circulationIndicators?: GetCirculationIndicatorsResponse
   searchParams: GetCarPathRequest
   totalPoints: number
   cloneAlert: boolean
@@ -240,30 +238,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     border: 1,
     borderColor: 'black',
-    alignItems: 'stretch',
+    alignItems: 'center',
     marginTop: -1,
   },
   tableRowTitle: {
+    fontFamily: 'Open Sans',
+    fontWeight: 600,
     borderRight: 1,
     borderColor: 'black',
     padding: 4,
     width: 180,
   },
-  tableRowValue: {
-    flex: 1,
-    padding: 4,
-  },
-  tableRowTitleText: {
-    fontFamily: 'Open Sans',
-    fontWeight: 600,
-  },
-  tableRowValueCompactText: {
-    fontSize: 10,
-  },
 })
 
 export function ReportCover({
-  circulationIndicators,
   searchParams,
   totalPoints,
   cloneAlert,
@@ -271,55 +259,6 @@ export function ReportCover({
 }: ReportCoverProps) {
   const from = formatDate(searchParams.startTime, "dd/MM/yyyy 'às' HH:mm:ss")
   const to = formatDate(searchParams.endTime, "dd/MM/yyyy 'às' HH:mm:ss")
-
-  const topLocationText = circulationIndicators?.top_location
-    ? `${circulationIndicators.top_location.localidade.capitalizeFirstLetter()} (${circulationIndicators.top_location.detections} detecções)`
-    : 'Não identificado'
-
-  const topNeighborhoodsText = circulationIndicators?.top_neighborhoods.length
-    ? circulationIndicators.top_neighborhoods
-        .map(
-          (item) =>
-            `${item.bairro.capitalizeFirstLetter()} (${item.detections})`,
-        )
-        .join(', ')
-    : 'Não identificados'
-  const hasTopNeighborhoods = !!circulationIndicators?.top_neighborhoods.length
-
-  const neighborhoodWithMostDistinctTripsText =
-    circulationIndicators?.neighborhood_with_most_distinct_trips
-      ? `${circulationIndicators.neighborhood_with_most_distinct_trips.bairro.capitalizeFirstLetter()} (${circulationIndicators.neighborhood_with_most_distinct_trips.distinct_trips} viagens)`
-      : 'Não identificado'
-
-  const timePeriodsText =
-    circulationIndicators?.time_periods
-      .map((item) => `${periodsLabels[item.period]}: ${item.detections}`)
-      .join(' | ') ?? 'Não disponível'
-
-  const topTimePeriodText = circulationIndicators?.top_time_period
-    ? `${periodsLabels[circulationIndicators.top_time_period.period]}: ${circulationIndicators.top_time_period.detections} detecções`
-    : 'Sem detecções no período'
-
-  function renderTableRow(
-    title: string,
-    value: string | number,
-    compact = false,
-  ) {
-    return (
-      <View style={styles.tableRow}>
-        <View style={styles.tableRowTitle}>
-          <Text style={styles.tableRowTitleText}>{title}</Text>
-        </View>
-        <View style={styles.tableRowValue}>
-          {compact ? (
-            <Text style={styles.tableRowValueCompactText}>{value}</Text>
-          ) : (
-            <Text>{value}</Text>
-          )}
-        </View>
-      </View>
-    )
-  }
 
   return (
     <>
@@ -371,37 +310,46 @@ export function ReportCover({
         ))}
 
         <View style={{ flexDirection: 'column', marginTop: 28 }}>
-          {renderTableRow('Placa monitorada:', searchParams.plate)}
+          <View style={styles.tableRow}>
+            <Text style={styles.tableRowTitle}>Placa monitorada:</Text>
+            <Text style={{ padding: 4 }}>{searchParams.plate}</Text>
+          </View>
 
           {vehicle && (
             <>
-              {renderTableRow('Marca/Modelo:', vehicle.marcaModelo)}
-              {renderTableRow('Cor:', vehicle.cor)}
-              {renderTableRow('Ano Modelo:', vehicle.anoModelo)}
+              <View style={styles.tableRow}>
+                <Text style={styles.tableRowTitle}>Marca/Modelo:</Text>
+                <Text style={{ padding: 4 }}>{vehicle.marcaModelo}</Text>
+              </View>
+
+              <View style={styles.tableRow}>
+                <Text style={styles.tableRowTitle}>Cor:</Text>
+                <Text style={{ padding: 4 }}>{vehicle.cor}</Text>
+              </View>
+
+              <View style={styles.tableRow}>
+                <Text style={styles.tableRowTitle}>Ano Modelo:</Text>
+                <Text style={{ padding: 4 }}>{vehicle.anoModelo}</Text>
+              </View>
             </>
           )}
 
-          {renderTableRow('Período analisado:', `De ${from} até ${to}`)}
-          {renderTableRow('Total de pontos detectados:', totalPoints)}
-          {renderTableRow(
-            'Suspeita de placa clonada:',
-            cloneAlert ? 'Sim' : 'Não',
-          )}
-          {renderTableRow(
-            'Local com maior número de passagens:',
-            topLocationText,
-          )}
-          {renderTableRow(
-            'Bairros com mais detecções:',
-            topNeighborhoodsText,
-            hasTopNeighborhoods,
-          )}
-          {renderTableRow(
-            'Bairro com mais viagens distintas:',
-            neighborhoodWithMostDistinctTripsText,
-          )}
-          {renderTableRow('Turno com mais detecções:', topTimePeriodText)}
-          {renderTableRow('Detecções por turnos:', timePeriodsText)}
+          <View style={styles.tableRow}>
+            <Text style={styles.tableRowTitle}>Período analisado:</Text>
+            <Text style={{ padding: 4 }}>{`De ${from} até ${to}`}</Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={styles.tableRowTitle}>
+              Total de pontos detectados:
+            </Text>
+            <Text style={{ padding: 4 }}>{totalPoints}</Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={styles.tableRowTitle}>Suspeita de placa clonada:</Text>
+            <Text style={{ padding: 4 }}>{cloneAlert ? 'Sim' : 'Não'}</Text>
+          </View>
         </View>
       </View>
 
@@ -417,6 +365,7 @@ export function ReportCover({
         Este relatório foi gerado automaticamente com base nos dados do sistema
         Cerco Digital.
       </Text>
+      <ReportFooter />
     </>
   )
 }
