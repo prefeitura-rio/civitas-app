@@ -1,15 +1,13 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook } from '@testing-library/react'
-import type { ReactNode } from 'react'
 
 import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
-import type { CollectionPoint } from '@/models/entities'
+import type { Radar } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 jest.mock('@/stores/use-map-store')
 
-jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
-  useCollectionPoints: () => ({
+jest.mock('@/hooks/useQueries/useRadars', () => ({
+  useRadars: () => ({
     data: [
       {
         cetRioCode: '0540461121',
@@ -56,25 +54,9 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
         company: 'CET-Rio',
         activeInLast24Hours: true,
       },
-    ] as CollectionPoint[],
+    ] as Radar[],
   }),
 }))
-
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  })
-
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    )
-  }
-}
 
 describe('useRadarLayer - Multi-selection bug', () => {
   let mockSetMultipleSelectedRadars: jest.Mock
@@ -93,16 +75,15 @@ describe('useRadarLayer - Multi-selection bug', () => {
   })
 
   it('should reproduce bug: select 4+ radars, deselect some, reselect', () => {
-    const { result, rerender } = renderHook(
-      () => useRadarLayer(mockMultipleSelectedRadars),
-      { wrapper: createWrapper() },
+    const { result, rerender } = renderHook(() =>
+      useRadarLayer(mockMultipleSelectedRadars),
     )
 
     const radars = [
-      { cetRioCode: '0540461121' } as CollectionPoint,
-      { cetRioCode: '0540461122' } as CollectionPoint,
-      { cetRioCode: '0540461123' } as CollectionPoint,
-      { cetRioCode: '0540461124' } as CollectionPoint,
+      { cetRioCode: '0540461121' } as Radar,
+      { cetRioCode: '0540461122' } as Radar,
+      { cetRioCode: '0540461123' } as Radar,
+      { cetRioCode: '0540461124' } as Radar,
     ]
 
     act(() => {
@@ -140,7 +121,7 @@ describe('useRadarLayer - Multi-selection bug', () => {
     act(() => {
       result.current.handleMultiSelectObject({
         cetRioCode: '0540461122',
-      } as CollectionPoint)
+      } as Radar)
     })
 
     mockMultipleSelectedRadars = ['0540461124', '0540461123', '0540461121']
@@ -149,7 +130,7 @@ describe('useRadarLayer - Multi-selection bug', () => {
     act(() => {
       result.current.handleMultiSelectObject({
         cetRioCode: '0540461125',
-      } as CollectionPoint)
+      } as Radar)
     })
 
     expect(mockSetMultipleSelectedRadars).toHaveBeenCalledTimes(6)
@@ -158,9 +139,8 @@ describe('useRadarLayer - Multi-selection bug', () => {
   it('should verify if selectedObjects is calculated correctly', () => {
     mockMultipleSelectedRadars = ['0540461121', '0540461123']
 
-    const { result } = renderHook(
-      () => useRadarLayer(mockMultipleSelectedRadars),
-      { wrapper: createWrapper() },
+    const { result } = renderHook(() =>
+      useRadarLayer(mockMultipleSelectedRadars),
     )
 
     expect(result.current.selectedObjects).toHaveLength(2)
@@ -173,9 +153,8 @@ describe('useRadarLayer - Multi-selection bug', () => {
   it('should verify if state does not change when it should not', () => {
     mockMultipleSelectedRadars = ['0540461121', '0540461122']
 
-    const { result, rerender } = renderHook(
-      () => useRadarLayer(mockMultipleSelectedRadars),
-      { wrapper: createWrapper() },
+    const { result, rerender } = renderHook(() =>
+      useRadarLayer(mockMultipleSelectedRadars),
     )
 
     const initialSelectedObjects = result.current.selectedObjects
