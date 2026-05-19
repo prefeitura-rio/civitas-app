@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
+
+import { config } from '@/config'
 
 import { PrivacyNoticeContent } from './content'
 
@@ -14,9 +17,13 @@ export const metadata: Metadata = {
 }
 
 export default function PrivacidadePage() {
+  if (!config.enablePrivacyPage) {
+    notFound()
+  }
+
   return (
     <div className="min-h-screen px-4 py-8">
-      <div className="page-content mx-auto max-w-3xl overflow-y-scroll">
+      <div className="page-content mx-auto overflow-y-scroll">
         <div className="markdown">
           <h1>Aviso de Privacidade</h1>
           <PrivacyNoticeContent />

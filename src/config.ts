@@ -18,12 +18,16 @@ const getConfig = () => {
   const enableImpersonation = isTruthy(
     process.env.NEXT_PUBLIC_ENABLE_IMPERSONATION,
   )
+  const enablePrivacyPage = isTruthy(
+    process.env.NEXT_PUBLIC_ENABLE_PRIVACY_PAGE,
+  )
 
   return {
     apiUrl: trimmedApiUrl,
     mapboxAccessToken,
     enableChamados,
     enableImpersonation,
+    enablePrivacyPage,
   }
 }
 
