@@ -54,6 +54,7 @@ const demandasItem: Category = {
       icon: 'CalendarClock',
       title: 'Fechamentos',
       path: '/demandas/fechamentos',
+      ticketScreenCode: 'shift_closing',
     },
     {
       icon: 'CirclePlus',
@@ -104,6 +105,12 @@ const demandasItem: Category = {
       title: 'Permissões Telas',
       path: '/demandas/permissoes-telas',
       ticketScreenCode: 'screen_permissions',
+    },
+    {
+      icon: 'Gauge',
+      title: 'Dashboard SLA',
+      path: '/demandas/dashboard/sla',
+      ticketScreenCode: 'sla_config',
     },
   ],
 }
