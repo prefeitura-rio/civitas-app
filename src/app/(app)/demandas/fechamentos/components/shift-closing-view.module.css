@@ -1,0 +1,326 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-bottom: 40px;
+}
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #152534;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: #152534;
+  color: #f9fafa;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.backLink:hover {
+  opacity: 0.9;
+  background: #1d3449;
+}
+
+.pageTitle {
+  margin: 0;
+  color: #f9fafa;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 40px;
+}
+
+.periodSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  width: 100%;
+}
+
+.periodLabel {
+  align-self: flex-start;
+  color: #f9fafa;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.periodRow {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.periodGroup {
+  display: flex;
+  flex: 1 1 0;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dateTrigger {
+  display: flex;
+  height: 44px;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #152534;
+  color: #97a2ab;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 0 16px;
+}
+
+.dateTrigger:hover {
+  background: #152534;
+  color: #f9fafa;
+}
+
+.dateReadOnly {
+  display: flex;
+  height: 44px;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #101d28;
+  color: #97a2ab;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 0 16px;
+  cursor: default;
+  user-select: none;
+}
+
+.timeInput {
+  width: 120px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #152534;
+  color: #97a2ab;
+  font-size: 14px;
+  padding: 0 16px;
+  outline: none;
+}
+
+.timeInput:focus {
+  border-color: rgba(116, 154, 189, 0.8);
+}
+
+.timeReadOnly {
+  display: flex;
+  width: 120px;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #101d28;
+  color: #97a2ab;
+  font-size: 14px;
+  padding: 0 16px;
+  cursor: default;
+  user-select: none;
+}
+
+.timeInput::-webkit-calendar-picker-indicator {
+  filter: invert(0.75);
+  cursor: pointer;
+}
+
+.selectedCount {
+  color: #97a2ab;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ticketsList {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.ticketsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyState,
+.loadingState,
+.errorState {
+  padding: 32px 16px;
+  text-align: center;
+  color: #97a2ab;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.errorState {
+  color: #f87171;
+}
+
+.commentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.commentHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.commentTitle {
+  margin: 0;
+  color: #f9fafa;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 40px;
+}
+
+.commentSubtitle {
+  margin: 0;
+  color: #97a2ab;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.commentActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.editorWrap {
+  width: 100%;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #152534;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #4a5d6d;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 24px;
+  background: #4a5d6d;
+  flex-shrink: 0;
+}
+
+.toolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #97a2ab;
+  cursor: pointer;
+}
+
+.toolbarBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f9fafa;
+}
+
+.textarea {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  padding: 16px;
+  border: none;
+  background: transparent;
+  color: #f9fafa;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.textarea::placeholder {
+  color: #97a2ab;
+}
+
+.textarea:focus {
+  outline: none;
+}
+
+.submitButton {
+  min-width: 220px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: #402c4c;
+  color: #f9fafa;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #4d355c;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .periodRow {
+    flex-direction: column;
+  }
+
+  .periodGroup {
+    width: 100%;
+  }
+
+  .timeInput {
+    width: 100%;
+  }
+}

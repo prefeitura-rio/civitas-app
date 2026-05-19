@@ -1,0 +1,281 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-bottom: 40px;
+}
+
+.topActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  width: 100%;
+}
+
+.closeShiftButton {
+  min-width: 220px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: #065e47;
+  color: #f9fafa;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.closeShiftButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.closeShiftButton a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.filtersRow {
+  display: flex;
+  align-items: flex-end;
+  align-self: stretch;
+  gap: 16px;
+  width: 100%;
+}
+
+.filterField {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.filterLabel {
+  color: #f9fafa;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.filterSelectTrigger {
+  height: 44px;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #152534;
+  color: #97a2ab;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.filterSelectTrigger[data-placeholder] {
+  color: #97a2ab;
+}
+
+.filterSelectTrigger:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.filterSelectContent {
+  border: 1px solid #4a5d6d;
+  background: #152534;
+  color: #f9fafa;
+}
+
+.filterSelectItem {
+  color: #f9fafa;
+}
+
+.filterSelectItem:focus {
+  background: #1d3449;
+  color: #f9fafa;
+}
+
+.filterDateTrigger {
+  display: flex;
+  height: 44px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #152534;
+  color: #f9fafa;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 0 16px;
+}
+
+.filterDateTrigger:hover {
+  background: #152534;
+  color: #f9fafa;
+}
+
+.filterDatePlaceholder {
+  color: #97a2ab;
+}
+
+.tableCard {
+  width: 100%;
+  border-radius: 8px;
+  background: #101d28;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 16px;
+}
+
+.tableCardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #1d3449;
+  color: #f9fafa;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.sectionCount {
+  color: #97a2ab;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.collapseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #97a2ab;
+  cursor: pointer;
+}
+
+.tableBody {
+  padding: 16px 16px 32px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table th {
+  border-bottom: 1px solid #4a5d6d;
+  color: #97a2ab;
+  text-align: left;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.table td {
+  border-bottom: 0.8px solid #4a5d6d;
+  color: #97a2ab;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.colShiftDate {
+  width: 19%;
+}
+
+.colClosedAt {
+  width: 19%;
+}
+
+.shiftDateLink {
+  color: #8fa7bd;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.shiftDateLink:hover {
+  color: #f9fafa;
+  text-decoration: underline;
+}
+
+.colAdjunct {
+  width: 26%;
+}
+
+.colTeam {
+  width: 14%;
+}
+
+.colTicketCount {
+  width: 22%;
+  text-align: center;
+}
+
+.colTicketCountHeader {
+  text-align: center;
+}
+
+.emptyRow {
+  text-align: center;
+  color: #97a2ab;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  padding: 24px !important;
+}
+
+.paginationWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.paginationWrap :global(button) {
+  border: none;
+  background: #1d3449;
+  color: #f9fafa;
+}
+
+.fetchingText {
+  color: #8fa7bd;
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .filtersRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
