@@ -7,6 +7,7 @@ import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
 import logoPrefeitura from '@/assets/prefeitura_icon.png'
 import { isAuthenticated } from '@/auth/auth'
+import { config } from '@/config'
 
 export const metadata: Metadata = {
   title: 'CIVITAS',
@@ -53,11 +54,19 @@ export default function AuthLayout({
           {children}
         </div>
         <span className="mb-4 block w-full text-center text-xs text-muted-foreground">
+          {config.enablePrivacyPage && (
+            <>
+              <Link href="/privacidade" className="underline">
+                Aviso de Privacidade
+              </Link>
+              {' · '}
+            </>
+          )}
           Copyright ©{' '}
-          <Link href="https://www.iplan.rio/" className="underline">
-            IplanRio
+          <Link href="https://civitas.rio/" className="underline">
+            CIVITAS Rio
           </Link>{' '}
-          2025.
+          2026.
         </span>
       </div>
     </>

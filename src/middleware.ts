@@ -3,6 +3,15 @@ import { NextResponse } from 'next/server'
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value
+  const enablePrivacyPage =
+    process.env.NEXT_PUBLIC_ENABLE_PRIVACY_PAGE?.toLowerCase() === 'true'
+
+  if (request.nextUrl.pathname.startsWith('/privacidade')) {
+    if (!enablePrivacyPage) {
+      return NextResponse.redirect(new URL('/auth/sign-in', request.url))
+    }
+    return NextResponse.next()
+  }
 
   // Allow requests to /auth/* paths and static files
   if (
