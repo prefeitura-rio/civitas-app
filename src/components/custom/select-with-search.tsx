@@ -62,20 +62,20 @@ export function SelectWithSearch({
       <PopoverContent className="w-[29rem] p-0">
         <Command>
           <CommandInput placeholder="Pesquise" className="h-9" />
-          <CommandEmpty className="flex justify-center p-2">
-            {emptyIndicator || (
-              <span className="text-muted-foreground">
-                Nenhum resultado encontrado
-              </span>
-            )}
-          </CommandEmpty>
-          <CommandGroup>
-            <CommandList>
+          <CommandList>
+            <CommandEmpty className="flex justify-center p-2">
+              {emptyIndicator || (
+                <span className="text-muted-foreground">
+                  Nenhum resultado encontrado
+                </span>
+              )}
+            </CommandEmpty>
+            <CommandGroup>
               {topAction}
               {options.map((item) => (
                 <CommandItem
                   value={item.label}
-                  key={item.label}
+                  key={`${String(item.value)}:${item.label}`}
                   onSelect={() => {
                     onSelect({ label: item.label, value: item.value })
                     setIsOpen(false)
@@ -90,8 +90,8 @@ export function SelectWithSearch({
                   />
                 </CommandItem>
               ))}
-            </CommandList>
-          </CommandGroup>
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

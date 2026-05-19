@@ -1,0 +1,424 @@
+/* Tokens do layout Figma Civitas - Equipes (node 1317:12560) */
+
+.equipes-page,
+.equipes-modal,
+.equipes-alert-content {
+  --equipes-bg-page: #0c161f;
+  --equipes-bg-section: #101d28;
+  --equipes-bg-label: #1d3449;
+  --equipes-border: #4a5d6d;
+  --equipes-text-default: #f9fafa;
+  --equipes-text-subtle: #97a2ab;
+  --equipes-btn-primary: #065e47;
+  --equipes-btn-primary-hover: #076b52;
+  --equipes-btn-secondary: #402c4c;
+  --equipes-btn-secondary-hover: #4d3559;
+  --equipes-btn-editar: #1d3449;
+  --equipes-btn-editar-hover: #243d54;
+  --equipes-radius-sm: 8px;
+  --equipes-radius-md: 16px;
+  --equipes-gap-section: 40px;
+  --equipes-gap-subsection: 24px;
+}
+
+.equipes-page {
+  background-color: var(--equipes-bg-page);
+  min-height: 100vh;
+}
+
+/* Header */
+.equipes-header-title {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 40px;
+  color: var(--equipes-text-default);
+}
+
+.equipes-header-subtitle {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--equipes-text-subtle);
+}
+
+.equipes-btn-criar {
+  background-color: var(--equipes-btn-primary);
+  color: var(--equipes-text-default);
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--equipes-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.equipes-btn-criar:hover {
+  background-color: var(--equipes-btn-primary-hover);
+}
+
+/* Card de equipe (acordeão) */
+.equipes-card {
+  background-color: var(--equipes-bg-section);
+  border-radius: var(--equipes-radius-sm);
+  overflow: hidden;
+}
+
+.equipes-card-header {
+  height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.equipes-card-badge {
+  background-color: var(--equipes-bg-label);
+  color: var(--equipes-text-default);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  height: 24px;
+  padding: 4px 12px;
+  border-radius: var(--equipes-radius-sm);
+}
+
+.equipes-card-count {
+  font-size: 14px;
+  color: var(--equipes-text-subtle);
+}
+
+/* Tabela de membros */
+.equipes-table-wrap {
+  padding: 16px;
+  border-radius: var(--equipes-radius-md);
+}
+
+.equipes-table-row {
+  height: 40px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  border-bottom: 0.8px solid var(--equipes-border);
+}
+
+.equipes-table-row:last-child {
+  border-bottom: none;
+}
+
+.equipes-table-header .equipes-table-cell {
+  font-size: 14px;
+  color: var(--equipes-text-subtle);
+  text-transform: uppercase;
+}
+
+.equipes-table-cell {
+  padding: 8px;
+  font-size: 14px;
+  color: var(--equipes-text-subtle);
+}
+
+.equipes-table-cell-ilha {
+  width: 160px;
+  min-width: 160px;
+}
+
+.equipes-table-cell-funcao {
+  width: 160px;
+  min-width: 160px;
+}
+
+.equipes-table-cell-nome {
+  width: 220px;
+  min-width: 220px;
+  flex: 1;
+}
+
+/* Botão Editar (linha) */
+.equipes-btn-editar {
+  background-color: var(--equipes-btn-editar);
+  color: var(--equipes-text-default);
+  font-size: 10px;
+  font-weight: 600;
+  height: 24px;
+  padding: 4px 12px;
+  border-radius: var(--equipes-radius-sm);
+}
+
+.equipes-btn-editar:hover {
+  background-color: var(--equipes-btn-editar-hover);
+}
+
+/* Botão Adicionar Colaborador */
+.equipes-btn-adicionar {
+  background-color: var(--equipes-btn-secondary);
+  color: var(--equipes-text-default);
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--equipes-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  width: 220px;
+}
+
+.equipes-btn-adicionar:hover {
+  background-color: var(--equipes-btn-secondary-hover);
+}
+
+/* Footer da tabela (ações da equipe) */
+.equipes-table-footer {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Modais - mesmo tema da página */
+.equipes-modal {
+  background-color: var(--equipes-bg-section);
+  border: 1px solid var(--equipes-border);
+  color: var(--equipes-text-default);
+  border-radius: var(--equipes-radius-sm);
+}
+
+.equipes-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--equipes-text-default);
+}
+
+/* Labels e inputs no mesmo estilo do filter de chamados */
+.equipes-modal-label {
+  color: #d9e5f0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.equipes-modal-input-wrap {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(77, 109, 137, 0.55);
+  border-radius: 8px;
+  background: #0d1c28;
+  color: #d9e7f5;
+  font-size: 14px;
+  outline: none;
+}
+
+.equipes-modal-input-wrap::placeholder {
+  color: #7f98af;
+}
+
+.equipes-modal-input-wrap:focus,
+.equipes-modal-input-wrap:focus-within {
+  border-color: rgba(116, 154, 189, 0.8);
+  outline: none;
+}
+
+textarea.equipes-modal-input-wrap {
+  min-height: 80px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  resize: vertical;
+}
+
+/* Select customizado – mesmo layout do filter de chamados (listagem dos itens) */
+.equipes-select-trigger-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.equipes-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 40px 0 14px;
+  border: 1px solid rgba(77, 109, 137, 0.55);
+  border-radius: 8px;
+  background: #0d1c28;
+  color: #d9e7f5;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.equipes-select-trigger:hover:not(:disabled) {
+  border-color: rgba(116, 154, 189, 0.8);
+}
+
+.equipes-select-trigger:focus,
+.equipes-select-trigger[data-state='open'] {
+  border-color: rgba(116, 154, 189, 0.8);
+  outline: none;
+}
+
+.equipes-select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.equipes-select-trigger-placeholder {
+  color: #7f98af;
+}
+
+.equipes-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: #92a9bf;
+  pointer-events: none;
+}
+
+/* Dropdown (lista) – igual ao .multiSelectDropdown do filter */
+.equipes-select-dropdown {
+  min-width: var(--radix-popover-trigger-width);
+  max-height: 240px;
+  overflow: auto;
+  padding: 0;
+  border: 1px solid rgba(77, 109, 137, 0.55);
+  border-radius: 10px;
+  background: #0d1c28;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+}
+
+.equipes-select-dropdown-hint {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #c9d4de;
+  border-bottom: 1px solid rgba(77, 109, 137, 0.35);
+  background: rgba(212, 160, 84, 0.06);
+}
+
+.equipes-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  color: #e4eef9;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.equipes-select-option:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.equipes-select-option--in-team {
+  border-left: 3px solid #d4a054;
+  padding-left: 11px;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  min-height: auto;
+}
+
+.equipes-select-option-user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  padding-right: 8px;
+}
+
+.equipes-select-option-user-name {
+  color: #e4eef9;
+  font-weight: 500;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.equipes-select-option-user-note {
+  font-size: 12px;
+  line-height: 1.2;
+  color: #e8c27a;
+}
+
+.equipes-user-in-team-badge {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(212, 160, 84, 0.18);
+  color: #f2d49a;
+  border: 1px solid rgba(212, 160, 84, 0.45);
+}
+
+.equipes-select-trigger-user-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(212, 160, 84, 0.18);
+  color: #f2d49a;
+  border: 1px solid rgba(212, 160, 84, 0.45);
+  margin-right: 8px;
+}
+
+.equipes-modal-card {
+  background-color: #112235;
+  border: 1px solid var(--equipes-border);
+  border-radius: var(--equipes-radius-sm);
+  padding: 16px;
+}
+
+.equipes-modal-btn-salvar {
+  background-color: var(--equipes-btn-primary);
+  color: var(--equipes-text-default);
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--equipes-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.equipes-modal-btn-salvar:hover {
+  background-color: var(--equipes-btn-primary-hover);
+}
+
+.equipes-alert-content {
+  background-color: var(--equipes-bg-section);
+  border: 1px solid var(--equipes-border);
+  color: var(--equipes-text-default);
+  border-radius: var(--equipes-radius-sm);
+}
+
+.equipes-alert-title {
+  color: var(--equipes-text-default);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.equipes-alert-description {
+  color: var(--equipes-text-subtle);
+  font-size: 14px;
+}
+
+/* Botão fechar do Dialog (tema escuro) */
+.equipes-modal button[class*='rounded-sm'][class*='opacity-70'] {
+  color: var(--equipes-text-subtle);
+}
+
+.equipes-modal button[class*='rounded-sm'][class*='opacity-70']:hover {
+  color: var(--equipes-text-default);
+  opacity: 1;
+}

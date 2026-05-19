@@ -1,4 +1,12 @@
-import { Clock, LayoutDashboard, MapPinned } from 'lucide-react'
+import {
+  Clock,
+  FileText,
+  Filter,
+  LayoutDashboard,
+  Mail,
+  MapPinned,
+  Users,
+} from 'lucide-react'
 import Image from 'next/image'
 import type { ReactNode } from 'react'
 
@@ -49,68 +57,70 @@ export const changelog: Card[] = [
     ],
   },
   {
-    title: '28 de Abril de 2026',
+    title: '30 de Março de 2026',
     subCards: [
       {
         tag: 'Adicionado',
-        title: 'Integração de LPR da Sentry',
+        title: 'Evolução do módulo de Chamados (primeira fase)',
         content: (
           <>
             <p>
-              Foi realizada a integração das leituras de placa (LPR) da{' '}
-              <strong>SENTRY</strong> nos relatórios de ponto de detecção e de
-              busca por radar.
+              Foi disponibilizada a primeira fase do novo módulo de Chamados,
+              com funcionalidades iniciais para cadastro, visualização e
+              organização das solicitações dentro da plataforma.
             </p>
-            <ul>
-              <li>
-                A camada do mapa foi renomeada de <code>radar</code> para{' '}
-                <code>LPR</code>.
-              </li>
-              <li>
-                Foram incluídos ícones de câmeras <code>LPR</code> da{' '}
-                <code>SENTRY</code> na camada <code>LPR</code>, com cores
-                diferentes para distinguir equipamentos da <code>SENTRY</code> e
-                da <code>CET-RIO</code>.
-              </li>
-              <li>
-                Na camada <code>LPR</code>, agora é plotado um grupo de
-                equipamentos que olham para a mesma <code>pista</code>,{' '}
-                <code>sentido</code> e <code>direção</code>, chamado de{' '}
-                <code>ponto de coleta</code>.
-              </li>
-              <li>
-                O identificador da câmera <code>LPR</code> foi alterado de{' '}
-                <code>CODCET</code> para <code>Código do Equipamento</code>.
-              </li>
-            </ul>
-
-            <Image
-              src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-radars-sentry-lpr-distinct-colors.png"
-              alt="Exemplo de cartão de câmera CIVITAS (DC3) com campo de sistema"
-              width={400}
-              height={300}
-              className="mb-4"
-            />
-          </>
-        ),
-      },
-      {
-        tag: 'Alterado',
-        title: 'Camada de câmeras CIVITAS (DC3) com cores diferentes',
-        content: (
-          <>
+            <div className="flex gap-2">
+              <LayoutDashboard className="mb-4 mt-6 size-6" />
+              <h4>Visão centralizada e busca</h4>
+            </div>
             <p>
-              A camada de câmeras foi alterada para usar cores diferentes para
-              distinguir equipamentos da <code>CIVITAS (DC3)</code> e da{' '}
-              <code>TIXXI</code>.
+              A nova interface permite acompanhar os chamados de forma
+              centralizada, com indicadores de status como concluídos, urgentes,
+              em atraso e bloqueados, além de busca rápida e organização por
+              informações como demandante, equipe, responsável e serviços
+              vinculados.
             </p>
-            <Image
-              src="https://storage.googleapis.com/rj-civitas-public/assets/map-layers-cameras-distinct-colors.png"
-              alt="Exemplo de camada de câmeras com cores diferentes"
-              width={400}
-              height={300}
-              className="mb-4"
-            />
+            <div className="flex gap-2">
+              <Filter className="mb-4 mt-6 size-6" />
+              <h4>Filtros avançados</h4>
+            </div>
+            <p>
+              Também foi adicionada uma área de filtros avançados,
+              possibilitando refinar os resultados por critérios como
+              demandante, requisitante, períodos de data, prioridade e equipe.
+            </p>
+            <div className="flex gap-2">
+              <FileText className="mb-4 mt-6 size-6" />
+              <h4>Cadastro manual</h4>
+            </div>
+            <p>
+              No fluxo de criação, foi implementado o cadastro manual de
+              chamados, com definição de tipo, associação com outros chamados e
+              preenchimento das principais informações, incluindo campos
+              condicionais como apelido na imprensa e endereço de
+              correspondência.
+            </p>
+            <div className="flex gap-2">
+              <Mail className="mb-4 mt-6 size-6" />
+              <h4>Integração com e-mail e triagem</h4>
+            </div>
+            <p>
+              O módulo passa a contar com a Caixa de Entrada, onde é possível
+              visualizar mensagens não lidas e aguardando resposta, com listagem
+              paginada, pré-visualização do conteúdo e indicação de anexos. Na
+              tela Converter e-mail, um e-mail selecionado pode ser transformado
+              em chamado, reaproveitando o mesmo fluxo de cadastro (serviços,
+              correlatas, anexos e demais campos).
+            </p>
+            <div className="flex gap-2">
+              <Users className="mb-4 mt-6 size-6" />
+              <h4>Equipes e perfis</h4>
+            </div>
+            <p>
+              Como suporte ao módulo, foram incluídas as telas de gestão de
+              equipes e perfis, permitindo organizar responsáveis e controlar
+              níveis de acesso.
+            </p>
           </>
         ),
       },

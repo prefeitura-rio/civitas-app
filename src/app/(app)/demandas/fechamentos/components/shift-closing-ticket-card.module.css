@@ -1,0 +1,92 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #101d28;
+}
+
+.ticketBadge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 24px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #1d3449;
+  color: #f9fafa;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.ticketBadge:hover {
+  background: #274764;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 240px;
+  max-width: 300px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.detailLabel {
+  color: #97a2ab;
+  flex-shrink: 0;
+}
+
+.detailValue {
+  color: #f9fafa;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.servicesRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 20px;
+}
+
+.servicesList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .detailRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .detail {
+    max-width: none;
+  }
+}
