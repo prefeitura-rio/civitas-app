@@ -10,7 +10,7 @@ export function Card({ title, subCards }: Card) {
         <Calendar className="inline-block" /> {title}
       </h2>
 
-      <ul className="list-inside list-disc">
+      <ul className="list-outside list-disc space-y-6 pl-6">
         {subCards.map((subCard, index) => (
           <SubCard
             key={index}
