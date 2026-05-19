@@ -1,0 +1,22 @@
+import { notFound } from 'next/navigation'
+
+import { config } from '@/config'
+
+import { ShiftClosingView } from '../components/shift-closing-view'
+
+export default function ShiftClosingPage() {
+  if (!config.enableChamados) {
+    notFound()
+  }
+
+  return (
+    <div
+      className="page-content space-y-4 overflow-y-scroll pb-24"
+      style={{ backgroundColor: '#0c161f' }}
+    >
+      <div className="content">
+        <ShiftClosingView />
+      </div>
+    </div>
+  )
+}

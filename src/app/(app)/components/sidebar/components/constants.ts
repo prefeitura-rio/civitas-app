@@ -51,6 +51,11 @@ const demandasItem: Category = {
       ticketScreenCode: 'archive',
     },
     {
+      icon: 'CalendarClock',
+      title: 'Fechamentos',
+      path: '/demandas/fechamentos',
+    },
+    {
       icon: 'CirclePlus',
       title: 'Criar',
       path: '/demandas/criar',
