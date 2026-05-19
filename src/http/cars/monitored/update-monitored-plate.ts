@@ -1,33 +1,35 @@
 import { api } from '@/lib/api'
-import type { MonitoredPlate, Operation } from '@/models/entities'
+import type { BackendMonitoredPlate } from '@/models/entities'
 
-interface UpdateMonitoredPlateRequest
-  extends Partial<
-    Omit<MonitoredPlate, 'id' | 'operation' | 'notificationChannels'>
-  > {
-  plate: MonitoredPlate['plate']
-  operationId?: Operation['id']
+/**
+ * `PUT /cars/monitored/{plate}` — apenas campos da entidade placa e canais
+ * (sem `demandant_links`, conforme documentação da API).
+ */
+export interface UpdateMonitoredPlateRequest {
+  plate: string
+  newPlate?: string
+  internalReferenceNumber?: string
+  demandantTemp?: string
+  notes?: string
   notificationChannels?: string[]
 }
 
 export function updateMonitoredPlate({
   plate,
-  operationId,
-  contactInfo,
+  newPlate,
+  internalReferenceNumber,
+  demandantTemp,
   notes,
-  active,
-  additionalInfo,
   notificationChannels,
 }: UpdateMonitoredPlateRequest) {
-  const response = api.put<MonitoredPlate>(`/cars/monitored/${plate}`, {
-    plate,
-    operation_id: operationId,
-    active,
-    contact_info: contactInfo,
-    notes,
-    additional_info: additionalInfo,
-    notification_channels: notificationChannels,
-  })
+  const body: Record<string, unknown> = {}
+  if (typeof newPlate !== 'undefined') body.plate = newPlate
+  if (typeof internalReferenceNumber !== 'undefined')
+    body.internal_reference_number = internalReferenceNumber
+  if (typeof demandantTemp !== 'undefined') body.demandant_temp = demandantTemp
+  if (typeof notes !== 'undefined') body.notes = notes
+  if (typeof notificationChannels !== 'undefined')
+    body.notification_channels = notificationChannels
 
-  return response
+  return api.put<BackendMonitoredPlate>(`/cars/monitored/${plate}`, body)
 }

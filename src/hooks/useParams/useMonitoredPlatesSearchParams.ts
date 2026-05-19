@@ -5,9 +5,10 @@ type MonitoredPlatesQueryKey = [
   'cars',
   'monitored',
   plateContains?: string,
-  operationTitle?: string,
+  organizationId?: string,
+  organizationName?: string,
   NotificationChannelTitle?: string,
-  active?: boolean,
+  demandantLinkActive?: boolean,
   page?: number,
   size?: number,
   createdAtFrom?: string,
@@ -16,14 +17,17 @@ type MonitoredPlatesQueryKey = [
 
 export interface FormattedSearchParams {
   plateContains?: string
-  operationTitle?: string
+  organizationId?: string
+  organizationName?: string
   notificationChannelTitle?: string
-  active?: boolean
+  /** Enviado à API como `demandant_link_active` (status do vínculo, não só da placa). */
+  demandantLinkActive?: boolean
   page?: number
   size?: number
   createdAtFrom?: string
   createdAtTo?: string
 }
+
 interface UseMonitoredPlatesSearchParamsReturn {
   searchParams: URLSearchParams
   formattedSearchParams: FormattedSearchParams
@@ -37,12 +41,20 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const pathName = usePathname()
 
   const plateContains = searchParams.get('plateContains') || undefined
-  const operationTitle = searchParams.get('operationTitle') || undefined
+  const organizationId =
+    searchParams.get('organizationId') ||
+    searchParams.get('organization_id') ||
+    undefined
+  const organizationName =
+    searchParams.get('organizationName') ||
+    searchParams.get('operationTitle') ||
+    undefined
   const notificationChannelTitle =
     searchParams.get('notificationChannelTitle') || undefined
 
+  /** Query `active`; API recebe `demandant_link_active` (`true` / `false`). */
   const pActive = searchParams.get('active')
-  const active = pActive === null ? undefined : pActive === 'true'
+  const demandantLinkActive = pActive === null ? undefined : pActive === 'true'
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
@@ -53,10 +65,13 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   function handlePaginate(index: number) {
     const params = new URLSearchParams(searchParams.toString())
     if (plateContains) params.set('plateContains', plateContains)
-    if (operationTitle) params.set('operationTitle', operationTitle)
+    if (organizationId) params.set('organizationId', organizationId)
+    params.delete('organization_id')
+    if (organizationName) params.set('organizationName', organizationName)
     if (notificationChannelTitle)
       params.set('notificationChannelTitle', notificationChannelTitle)
-    if (typeof active !== 'undefined') params.set('active', String(active))
+    if (typeof demandantLinkActive !== 'undefined')
+      params.set('active', String(demandantLinkActive))
     if (page) params.set('page', index.toString())
     if (size) params.set('size', size.toString())
 
@@ -68,9 +83,10 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     handlePaginate,
     formattedSearchParams: {
       plateContains,
-      operationTitle,
+      organizationId,
+      organizationName,
       notificationChannelTitle,
-      active,
+      demandantLinkActive,
       page,
       size,
       createdAtFrom,
@@ -80,9 +96,10 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       'cars',
       'monitored',
       plateContains,
-      operationTitle,
+      organizationId,
+      organizationName,
       notificationChannelTitle,
-      active,
+      demandantLinkActive,
       page,
       size,
       createdAtFrom,

@@ -6,13 +6,15 @@ import { MonitoredPlateFormDialog } from '../../../components/monitored-plate-fo
 import { DeleteMonitoredPlateAlertDialog } from './components/delete-monitored-plate-alert-dialog'
 
 export function Dialogs() {
-  const { formDialogDisclosure, deleteAlertDisclosure } = useMonitoredPlates()
+  const { formDialogDisclosure, deleteAlertDisclosure, dialogInitialData } =
+    useMonitoredPlates()
   return (
     <>
       <MonitoredPlateFormDialog
         isOpen={formDialogDisclosure.isOpen}
         onClose={formDialogDisclosure.onClose}
         onOpen={formDialogDisclosure.onOpen}
+        shouldFetchData={!!dialogInitialData}
       />
       <DeleteMonitoredPlateAlertDialog
         isOpen={deleteAlertDisclosure.isOpen}

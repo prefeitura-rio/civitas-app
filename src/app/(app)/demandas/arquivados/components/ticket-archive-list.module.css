@@ -1,0 +1,234 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-bottom: 40px;
+}
+
+.header h1 {
+  color: #f9fafa;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.header p {
+  margin-top: 4px;
+  color: #97a2ab;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  min-width: 180px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: #1d3449;
+  color: #f9fafa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.actionButton:hover {
+  background: #274764;
+}
+
+.clearFilters {
+  height: 40px;
+  padding: 8px 16px;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: transparent;
+  color: #97a2ab;
+}
+
+.tableCard {
+  border-radius: 16px;
+  padding: 16px 16px 20px;
+  background: #101d28;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  border-bottom: 1px solid #4a5d6d;
+  color: #97a2ab;
+  text-align: left;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.table td {
+  border-bottom: 1px solid #30475c;
+  color: #97a2ab;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.chamadoLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.servicesCell {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.serviceTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.serviceTagPink {
+  background: rgba(140, 62, 122, 0.1);
+  color: #8c3e7a;
+}
+
+.serviceTagGreen {
+  background: rgba(15, 122, 92, 0.1);
+  color: #0f7a5c;
+}
+
+.serviceTagYellow {
+  background: rgba(199, 146, 27, 0.1);
+  color: #c7921b;
+}
+
+.serviceTagCyan {
+  background: rgba(15, 143, 150, 0.1);
+  color: #06b2bb;
+}
+
+.serviceTagBlue {
+  background: rgba(42, 98, 199, 0.1);
+  color: #2a62c7;
+}
+
+.serviceTagOrange {
+  background: rgba(210, 100, 42, 0.1);
+  color: #d2642a;
+}
+
+.serviceTagPurple {
+  background: rgba(91, 77, 178, 0.1);
+  color: #5b4db2;
+}
+
+.serviceTagRed {
+  background: rgba(181, 72, 90, 0.1);
+  color: #b93d52;
+}
+
+.serviceTagDefault {
+  background: rgba(89, 101, 116, 0.1);
+  color: #97a2ab;
+}
+
+.extraTag {
+  min-height: 20px;
+  min-width: 28px;
+  border-radius: 4px;
+  padding: 1px 7px;
+  background: #1d3449;
+  color: #f9fafa;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  border-radius: 10px;
+  padding: 4px 12px;
+  background: #1d3449;
+  color: #f9fafa;
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.emptyRow {
+  text-align: center;
+  color: #97a2ab;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  padding: 24px !important;
+}
+
+.paginationWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.paginationWrap :global(button) {
+  border: none;
+  background: #1d3449;
+  color: #f9fafa;
+}
+
+.fetchingText {
+  color: #8fa7bd;
+  font-size: 13px;
+}
+
+@media (max-width: 1200px) {
+  .toolbar {
+    flex-wrap: wrap;
+  }
+
+  .toolbarActions {
+    width: 100%;
+  }
+
+  .actionButton {
+    min-width: 130px;
+    flex: 1;
+  }
+}
