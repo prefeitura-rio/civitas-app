@@ -92,48 +92,163 @@ export default function JointPlatesReportDownloadProgressAlert({
       const diff =
         new Date(formattedSearchParams.to).getTime() -
         new Date(formattedSearchParams.from).getTime()
+      const monitoredPlateDetectionTime = formatDate(
+        new Date(new Date(formattedSearchParams.from).getTime() + diff / 2),
+        'dd/MM/yyyy HH:mm:ss',
+      )
 
-      exportToCSV(
-        `placas_conjuntas_${formattedSearchParams.plate}`,
-        data.groups.flatMap((g, i) =>
-          g.detections.map((d, j) => ({
-            'Índice Grupo': i + 1,
-            'Índice Detecção': j + 1,
-            'Data Hora Detecção Placa Monitorada': formatDate(
-              new Date(
-                new Date(formattedSearchParams.from).getTime() + diff / 2,
-              ),
-              'dd/MM/yyyy HH:mm:ss',
-            ),
-            'Início Período Analisado': formatDate(
-              g.start_time,
-              'dd/MM/yyyy HH:mm:ss',
-            ),
-            'Fim Período Analisado': formatDate(
-              g.end_time,
-              'dd/MM/yyyy HH:mm:ss',
-            ),
-            Radares: g.radars.join(', '),
-            Latitude: g.latitude.toString().replace('.', ','),
-            Longitude: g.longitude.toString().replace('.', ','),
-            Endereço: g.location,
-            'Total Detecções Grupo': g.total_detections,
-            'Data e Hora Detecção': d.timestamp,
-            Placa: d.plate,
-            Radar: d.codcet,
-            Faixa: d.lane,
-            'Velocidade (km/h)': d.speed,
-            'Nº Ocorrências': d.count,
-          })),
+      const metadataLines = [
+        `Gerado em: ${formatDate(new Date(), 'dd/MM/yyyy HH:mm:ss')}`,
+        `Placa pesquisada: ${formattedSearchParams.plate}`,
+        `Período da busca: De ${formatDate(
+          new Date(formattedSearchParams.from),
+          'dd/MM/yyyy HH:mm:ss',
+        )} até ${formatDate(
+          new Date(formattedSearchParams.to),
+          'dd/MM/yyyy HH:mm:ss',
+        )}`,
+        `Intervalo de interesse ao redor das detecções: ${nMinutes} min`,
+        `Número máximo de placas ao redor das detecções: ${nPlates}`,
+      ]
+
+      type JointPlates = (typeof data.groups)[number]
+      type JointPlatesDetection = JointPlates['detections'][number]
+      type JointPlatesCsvColumnContext = {
+        group: JointPlates
+        groupIndex: number
+        detection: JointPlatesDetection
+        detectionIndex: number
+      }
+
+      const jointPlatesCsvColumns = [
+        {
+          header: 'Índice Grupo',
+          getValue: ({ groupIndex }: JointPlatesCsvColumnContext) =>
+            groupIndex + 1,
+        },
+        {
+          header: 'Índice Detecção',
+          getValue: ({ detectionIndex }: JointPlatesCsvColumnContext) =>
+            detectionIndex + 1,
+        },
+        {
+          header: 'Data Hora Detecção Placa Monitorada',
+          getValue: () => monitoredPlateDetectionTime,
+        },
+        {
+          header: 'Início Período Analisado',
+          getValue: ({ group }: JointPlatesCsvColumnContext) =>
+            formatDate(group.start_time, 'dd/MM/yyyy HH:mm:ss'),
+        },
+        {
+          header: 'Fim Período Analisado',
+          getValue: ({ group }: JointPlatesCsvColumnContext) =>
+            formatDate(group.end_time, 'dd/MM/yyyy HH:mm:ss'),
+        },
+        {
+          header: 'Radares',
+          getValue: ({ group }: JointPlatesCsvColumnContext) =>
+            group.radars.join(', '),
+        },
+        {
+          header: 'Latitude',
+          getValue: ({ group }: JointPlatesCsvColumnContext) =>
+            group.latitude.toString().replace('.', ','),
+        },
+        {
+          header: 'Longitude',
+          getValue: ({ group }: JointPlatesCsvColumnContext) =>
+            group.longitude.toString().replace('.', ','),
+        },
+        {
+          header: 'Endereço',
+          getValue: ({ group }: JointPlatesCsvColumnContext) => group.location,
+        },
+        {
+          header: 'Total Detecções Grupo',
+          getValue: ({ group }: JointPlatesCsvColumnContext) =>
+            group.total_detections,
+        },
+        {
+          header: 'Data e Hora Detecção',
+          getValue: ({ detection }: JointPlatesCsvColumnContext) =>
+            detection.timestamp,
+        },
+        {
+          header: 'Placa',
+          getValue: ({ detection }: JointPlatesCsvColumnContext) =>
+            detection.plate,
+        },
+        {
+          header: 'Radar',
+          getValue: ({ detection }: JointPlatesCsvColumnContext) =>
+            detection.codcet,
+        },
+        {
+          header: 'Faixa',
+          getValue: ({ detection }: JointPlatesCsvColumnContext) =>
+            detection.lane,
+        },
+        {
+          header: 'Velocidade (km/h)',
+          getValue: ({ detection }: JointPlatesCsvColumnContext) =>
+            detection.speed,
+        },
+        {
+          header: 'Nº Ocorrências',
+          getValue: ({ detection }: JointPlatesCsvColumnContext) =>
+            detection.count,
+        },
+      ] as const
+      const jointPlatesCsvHeaders = jointPlatesCsvColumns.map(
+        (column) => column.header,
+      )
+      const jointPlatesCsvDataRows = data.groups.flatMap((group, groupIndex) =>
+        group.detections.map((detection, detectionIndex) =>
+          jointPlatesCsvColumns.map((column) =>
+            column.getValue({
+              group,
+              groupIndex,
+              detection,
+              detectionIndex,
+            }),
+          ),
         ),
       )
-      exportToCSV(
-        `placas_conjuntas_${formattedSearchParams.plate}_ranking`,
-        data.ranking.map((r) => ({
-          Placa: r.plate,
-          Contagem: r.count,
-        })),
-      )
+
+      exportToCSV(`placas_conjuntas_${formattedSearchParams.plate}`, {
+        topRows: [
+          [
+            [
+              'Nome do relatório: Relatório de Placas Conjuntas',
+              ...metadataLines,
+            ].join('\n'),
+          ],
+          [],
+        ],
+        headers: jointPlatesCsvHeaders,
+        dataRows: jointPlatesCsvDataRows,
+      })
+
+      const jointPlatesRankingCsvHeaders = ['Placa', 'Contagem']
+      const jointPlatesRankingCsvDataRows = data.ranking.map((r) => [
+        r.plate,
+        r.count,
+      ])
+
+      exportToCSV(`placas_conjuntas_${formattedSearchParams.plate}_ranking`, {
+        topRows: [
+          [
+            [
+              'Nome do relatório: Relatório de Placas Conjuntas (Ranking)',
+              ...metadataLines,
+            ].join('\n'),
+          ],
+          [],
+        ],
+        headers: jointPlatesRankingCsvHeaders,
+        dataRows: jointPlatesRankingCsvDataRows,
+      })
 
       setOpen(false)
     }
