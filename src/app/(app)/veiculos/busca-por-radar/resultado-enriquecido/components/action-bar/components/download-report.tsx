@@ -1,6 +1,7 @@
 'use client'
 // import { pdf } from '@react-pdf/renderer'
 import { pdf } from '@react-pdf/renderer'
+import { formatDate } from 'date-fns'
 import { Download } from 'lucide-react'
 import { useState } from 'react'
 
@@ -177,14 +178,103 @@ export function DownloadReport({
       applyFilters === ApplyFilters.Sim ? filters.filteredData : data
 
     if (fileType === 'CSV') {
-      const csvRows = (selectedData || []).map((row) => {
-        const copy: Record<string, unknown> = {
-          ...(row as Record<string, unknown>),
+      const csvData = selectedData || []
+      const isUsingDynamicFilters = applyFilters === ApplyFilters.Sim
+      const metadataLines = [
+        'Nome do relatório: Relatório de Busca Enriquecida por Radar',
+        `Gerado em: ${formatDate(new Date(), 'dd/MM/yyyy HH:mm:ss')}`,
+        `Período da busca: De ${formatDate(
+          new Date(formattedSearchParams.date.from),
+          'dd/MM/yyyy HH:mm:ss',
+        )} até ${formatDate(
+          new Date(formattedSearchParams.date.to),
+          'dd/MM/yyyy HH:mm:ss',
+        )}`,
+        `Radares pesquisados: ${formattedSearchParams.radarIds.join(', ')}`,
+      ]
+
+      if (formattedSearchParams.plate) {
+        metadataLines.push(`Placa pesquisada: ${formattedSearchParams.plate}`)
+      }
+
+      if (isUsingDynamicFilters) {
+        if (filters.selectedPlate) {
+          metadataLines.push(`Placa filtrada: ${filters.selectedPlate}`)
         }
-        delete copy.lane
-        return copy
+        if (filters.selectedLocations.length > 0) {
+          metadataLines.push(
+            `Localizações filtradas: ${filters.selectedLocations.join(', ')}`,
+          )
+        }
+        if (filters.selectedRadars.length > 0) {
+          metadataLines.push(
+            `Radares selecionados para exportação: ${filters.selectedRadars.join(', ')}`,
+          )
+        }
+        if (filters.selectedColors.length > 0) {
+          metadataLines.push(
+            `Cores filtradas: ${filters.selectedColors.join(', ')}`,
+          )
+        }
+        if (filters.selectedBrandModel.length > 0) {
+          metadataLines.push(
+            `Marcas/Modelos filtrados: ${filters.selectedBrandModel.join(', ')}`,
+          )
+        }
+      }
+
+      type EnrichedRadarCsvRow = (typeof csvData)[number]
+      type EnrichedRadarCsvColumnContext = {
+        row: EnrichedRadarCsvRow
+      }
+
+      const enrichedRadarCsvColumns = [
+        {
+          header: 'Placa',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.plate,
+        },
+        {
+          header: 'Data e Hora',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.timestamp,
+        },
+        {
+          header: 'Velocidade',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.speed,
+        },
+        {
+          header: 'Marca/Modelo',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.brandModel,
+        },
+        {
+          header: 'Cor',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.color,
+        },
+        {
+          header: 'Ano do Modelo',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.modelYear,
+        },
+        {
+          header: 'Radar',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.equipmentCode,
+        },
+        {
+          header: 'Endereço',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.location,
+        },
+      ] as const
+      const enrichedRadarCsvHeaders = enrichedRadarCsvColumns.map(
+        (column) => column.header,
+      )
+      const enrichedRadarCsvDataRows = csvData.map((row) =>
+        enrichedRadarCsvColumns.map((column) => column.getValue({ row })),
+      )
+
+      exportToCSV('busca_por_radar', {
+        topRows: [[metadataLines.join('\n')], []],
+        headers: enrichedRadarCsvHeaders,
+        dataRows: enrichedRadarCsvDataRows,
       })
-      exportToCSV('busca_por_radar', csvRows)
     } else {
       // Download PDF
       const groupedData = groupData(selectedData)
