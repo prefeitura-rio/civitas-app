@@ -1,9 +1,6 @@
 'use client'
 
-import { notFound } from 'next/navigation'
-
 import { Spinner } from '@/components/custom/spinner'
-import { config } from '@/config'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 
 import { SlaConfigForm } from './components/sla-config-form'
@@ -15,10 +12,6 @@ function SlaConfigPageContent() {
 }
 
 export default function SlaConfigPage() {
-  if (!config.enableChamados) {
-    notFound()
-  }
-
   const { allowed, resolved } = useTicketScreenPermissionGate(
     SLA_CONFIG_SCREEN_CODE,
   )

@@ -112,6 +112,12 @@ const demandasItem: Category = {
       path: '/demandas/dashboard/sla',
       ticketScreenCode: 'sla_config',
     },
+    {
+      icon: 'BarChart2',
+      title: 'Dashboard Tático',
+      path: '/demandas/dashboard-tatico/volume',
+      ticketScreenCode: 'tactical_dashboard',
+    },
   ],
 }
 

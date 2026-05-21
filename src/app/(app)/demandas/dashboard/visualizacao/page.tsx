@@ -1,9 +1,6 @@
 'use client'
 
-import { notFound } from 'next/navigation'
-
 import { Spinner } from '@/components/custom/spinner'
-import { config } from '@/config'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 
 import { WidgetsConfigForm } from './components/widgets-config-form'
@@ -15,10 +12,6 @@ function DashboardVisualizacaoPageContent() {
 }
 
 export default function DashboardVisualizacaoPage() {
-  if (!config.enableChamados) {
-    notFound()
-  }
-
   const { allowed, resolved } = useTicketScreenPermissionGate(
     SLA_CONFIG_SCREEN_CODE,
   )

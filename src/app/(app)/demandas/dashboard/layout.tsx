@@ -1,5 +1,9 @@
 'use client'
 
+import { notFound } from 'next/navigation'
+
+import { config } from '@/config'
+
 import tcFormStyles from '../criar/ticket-create/ticket-create-form.module.css'
 import { DashboardTabs } from './components/dashboard-tabs'
 
@@ -8,6 +12,10 @@ export default function DemandasDashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  if (!config.enableChamados) {
+    notFound()
+  }
+
   return (
     <div
       className="page-content overflow-y-scroll pb-24"

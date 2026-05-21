@@ -1,0 +1,238 @@
+.summarySection {
+  background-color: #152534;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  padding: 20px 24px 24px;
+}
+
+.summaryHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+/* Selects da página — mesmo padrão de demandas/criar (.inputBg + dropdown) */
+.pageSelectWrapWide {
+  min-width: 140px;
+}
+
+.pageSelectWrapCompact {
+  min-width: 120px;
+}
+
+.pageSelectTrigger {
+  background-color: #152534;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  min-height: 44px;
+  color: #97a2ab;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.pageSelectTrigger:hover:not(:disabled) {
+  border-color: #507290;
+}
+
+.pageSelectTrigger:focus {
+  border-color: #507290;
+  outline: none;
+  box-shadow: none;
+}
+
+.pageSelectTrigger:focus-visible {
+  outline: 2px solid rgba(80, 114, 144, 0.45);
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.selectContentForm {
+  background: #101d28 !important;
+  border: 1px solid #4a5d6d !important;
+  color: #f9fafa !important;
+}
+
+.selectItemForm {
+  color: #f9fafa !important;
+}
+
+.selectItemForm:hover,
+.selectItemForm:focus,
+.selectItemForm[data-highlighted] {
+  background: #18344d !important;
+  color: #f9fafa !important;
+}
+
+.selectItemForm[data-state='checked'] {
+  background: #18344d !important;
+  color: #f9fafa !important;
+}
+
+.summaryCardsRow {
+  display: flex;
+  gap: 16px;
+}
+
+.summaryCard {
+  flex: 1;
+  min-width: 0;
+  background-color: #101d28;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.summaryCardLabel {
+  font-size: 12px;
+  color: #97a2ab;
+  margin: 0 0 8px;
+}
+
+.summaryCardValue {
+  font-size: 28px;
+  font-weight: 600;
+  color: #f9fafa;
+  line-height: 40px;
+  margin: 0 0 4px;
+}
+
+.summaryCardSublabel {
+  font-size: 12px;
+  color: #97a2ab;
+  margin: 0;
+}
+
+.periodBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.periodBarLabelBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.periodBarLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f9fafa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.dateFieldsRow {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.dateFieldWrap {
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+
+.dateTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background-color: #101d28;
+  color: #97a2ab;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  outline: none;
+  text-align: left;
+}
+
+.dateTrigger:hover {
+  border-color: #6a7d8d;
+}
+
+.dateTriggerValue {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f9fafa;
+}
+
+.dateTriggerPlaceholder {
+  flex: 1;
+  min-width: 0;
+  color: #97a2ab;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background-color: #1d3449;
+  color: #f9fafa;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.iconButton:hover:not(:disabled) {
+  background-color: #254a66;
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.periodBarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.filterButtonWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.filterBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background-color: #06b2bb;
+  color: #101d28;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.chartHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
