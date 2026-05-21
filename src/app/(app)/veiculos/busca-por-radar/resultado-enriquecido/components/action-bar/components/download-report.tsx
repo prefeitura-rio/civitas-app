@@ -263,6 +263,16 @@ export function DownloadReport({
           header: 'Endereço',
           getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.location,
         },
+        {
+          header: 'Latitude',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.latitude.toString().replace('.', ','),
+        },
+        {
+          header: 'Longitude',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.longitude.toString().replace('.', ','),
+        },
       ] as const
       const enrichedRadarCsvHeaders = enrichedRadarCsvColumns.map(
         (column) => column.header,
