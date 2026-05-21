@@ -187,6 +187,16 @@ export function DownloadReport({
           header: 'Endereço',
           getValue: ({ row }: RadarCsvColumnContext) => row.location,
         },
+        {
+          header: 'Latitude',
+          getValue: ({ row }: RadarCsvColumnContext) =>
+            row.latitude.toString().replace('.', ','),
+        },
+        {
+          header: 'Longitude',
+          getValue: ({ row }: RadarCsvColumnContext) =>
+            row.longitude.toString().replace('.', ','),
+        },
       ] as const
       const radarCsvHeaders = radarCsvColumns.map((column) => column.header)
       const radarCsvDataRows = csvData.map((row) =>

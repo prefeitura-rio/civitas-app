@@ -14,6 +14,8 @@ export type EnhancedDetectionDTO = {
   modelYear: string
   equipmentCode: string
   location: string
+  latitude: number
+  longitude: number
   lane: string
 }
 
