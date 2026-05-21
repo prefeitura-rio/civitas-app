@@ -25,6 +25,7 @@ import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
+import { toCsvSpreadsheetText } from '@/utils/csv-text'
 import { downloadFile } from '@/utils/download-file'
 
 import {
@@ -180,7 +181,8 @@ export function DownloadReport({
         },
         {
           header: 'Radar',
-          getValue: ({ row }: RadarCsvColumnContext) => row.equipmentCode,
+          getValue: ({ row }: RadarCsvColumnContext) =>
+            toCsvSpreadsheetText(row.equipmentCode),
         },
         {
           header: 'Endereço',
