@@ -23,7 +23,7 @@ import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchPara
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
 import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/useSearchByRadarEnhancedResultDynamicFilter'
-import { exportToCSV } from '@/utils/csv'
+import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 import { toCsvSpreadsheetText } from '@/utils/csv-text'
 import { downloadFile } from '@/utils/download-file'
 
@@ -236,7 +236,8 @@ export function DownloadReport({
         },
         {
           header: 'Data e Hora',
-          getValue: ({ row }: EnrichedRadarCsvColumnContext) => row.timestamp,
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            formatCsvDateTime(row.timestamp),
         },
         {
           header: 'Velocidade',
