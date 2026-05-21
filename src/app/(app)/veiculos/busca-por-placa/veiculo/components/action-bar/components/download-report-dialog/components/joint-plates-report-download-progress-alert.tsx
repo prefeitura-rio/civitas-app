@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useNCarsBeforeAfter } from '@/hooks/useQueries/cars/useNBeforeAfter'
 import { generatePDFReport } from '@/http/cars/n-before-after/get-n-cars-before-after'
-import { exportToCSV } from '@/utils/csv'
+import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 import { toCsvSpreadsheetText } from '@/utils/csv-text'
 import { downloadFile } from '@/utils/download-file'
 
@@ -173,7 +173,7 @@ export default function JointPlatesReportDownloadProgressAlert({
         {
           header: 'Data e Hora Detecção',
           getValue: ({ detection }: JointPlatesCsvColumnContext) =>
-            detection.timestamp,
+            formatCsvDateTime(detection.timestamp),
         },
         {
           header: 'Placa',

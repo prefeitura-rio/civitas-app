@@ -1,9 +1,13 @@
+import { formatDate } from 'date-fns'
 import Papa from 'papaparse'
 
 import { downloadFile } from './download-file'
 
 type CsvCell = string | number | boolean | null
 type CsvRow = readonly CsvCell[]
+
+export const formatCsvDateTime = (value: string | Date) =>
+  formatDate(new Date(value), 'dd/MM/yyyy HH:mm:ss')
 
 export const exportToCSV = (
   filename: string,
