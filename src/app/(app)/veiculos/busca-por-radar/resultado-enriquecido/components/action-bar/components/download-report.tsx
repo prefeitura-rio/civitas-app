@@ -24,6 +24,7 @@ import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
 import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/useSearchByRadarEnhancedResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
+import { toCsvSpreadsheetText } from '@/utils/csv-text'
 import { downloadFile } from '@/utils/download-file'
 
 import {
@@ -256,7 +257,7 @@ export function DownloadReport({
         {
           header: 'Radar',
           getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
-            row.equipmentCode,
+            toCsvSpreadsheetText(row.equipmentCode),
         },
         {
           header: 'Endereço',

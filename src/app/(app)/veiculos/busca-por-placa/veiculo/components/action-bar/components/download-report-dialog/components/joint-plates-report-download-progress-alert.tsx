@@ -8,6 +8,7 @@ import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchPara
 import { useNCarsBeforeAfter } from '@/hooks/useQueries/cars/useNBeforeAfter'
 import { generatePDFReport } from '@/http/cars/n-before-after/get-n-cars-before-after'
 import { exportToCSV } from '@/utils/csv'
+import { toCsvSpreadsheetText } from '@/utils/csv-text'
 import { downloadFile } from '@/utils/download-file'
 
 enum FileType {
@@ -182,7 +183,7 @@ export default function JointPlatesReportDownloadProgressAlert({
         {
           header: 'Radar',
           getValue: ({ detection }: JointPlatesCsvColumnContext) =>
-            detection.codcet,
+            toCsvSpreadsheetText(detection.codcet),
         },
         {
           header: 'Faixa',
