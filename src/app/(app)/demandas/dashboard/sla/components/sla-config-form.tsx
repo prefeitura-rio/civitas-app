@@ -96,7 +96,14 @@ export function SlaConfigForm() {
       defaultValues: SLA_CONFIG_DEFAULT_VALUES,
     })
 
-  const currentValues = useWatch({ control }) ?? SLA_CONFIG_DEFAULT_VALUES
+  const watchedValues = useWatch({
+    control,
+    defaultValue: SLA_CONFIG_DEFAULT_VALUES,
+  })
+  const currentValues: TicketDashboardSlaFormValues = {
+    ...SLA_CONFIG_DEFAULT_VALUES,
+    ...watchedValues,
+  }
 
   const hasChanges = useMemo(
     () => !areFormValuesEqual(currentValues, savedValues),

@@ -25,7 +25,7 @@ export interface DemandVolumeFilterIn {
   prioridade?: TicketPriority[]
   status?: TicketStatus[]
   tipo_chamado_id?: string[]
-  relevante_imprensa?: boolean
+  relevante_imprensa?: boolean | null
 }
 
 export interface DemandVolumeSummaryOut {
@@ -93,10 +93,7 @@ export function sanitizeDemandVolumeFilters(
   if (!payload.prioridade?.length) delete payload.prioridade
   if (!payload.status?.length) delete payload.status
   if (!payload.tipo_chamado_id?.length) delete payload.tipo_chamado_id
-  if (
-    payload.relevante_imprensa !== true &&
-    payload.relevante_imprensa !== false
-  ) {
+  if (payload.relevante_imprensa === undefined) {
     delete payload.relevante_imprensa
   }
 

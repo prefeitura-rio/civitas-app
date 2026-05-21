@@ -5,14 +5,12 @@ import type {
 } from '@/http/tickets/get-demand-volume'
 import type { SearchOption } from '@/http/tickets/tickets-dashboard-filters'
 
-export type DemandVolumePressFilter = 'all' | 'yes' | 'no'
-
 export type DemandVolumeAdvancedFilterForm = {
   requisitante: SearchOption[]
   prioridade: SearchOption[]
   status: SearchOption[]
   tipo_chamado_id: SearchOption[]
-  relevanteImprensa: DemandVolumePressFilter
+  relevanteImprensa: boolean
 }
 
 export const DEMAND_VOLUME_PRIORITY_OPTIONS: SearchOption[] = [
@@ -42,7 +40,7 @@ export function emptyDemandVolumeAdvancedFilters(): DemandVolumeAdvancedFilterFo
     prioridade: [],
     status: [],
     tipo_chamado_id: [],
-    relevanteImprensa: 'all',
+    relevanteImprensa: false,
   }
 }
 
@@ -54,7 +52,7 @@ export function countDemandVolumeAdvancedFilters(
   count += form.prioridade.length
   count += form.status.length
   count += form.tipo_chamado_id.length
-  if (form.relevanteImprensa !== 'all') count += 1
+  if (form.relevanteImprensa) count += 1
   return count
 }
 
@@ -66,10 +64,7 @@ export function countDemandVolumeAdvancedFiltersFromApi(
   count += filters.prioridade?.length ?? 0
   count += filters.status?.length ?? 0
   count += filters.tipo_chamado_id?.length ?? 0
-  if (
-    filters.relevante_imprensa === true ||
-    filters.relevante_imprensa === false
-  ) {
+  if (filters.relevante_imprensa === true) {
     count += 1
   }
   return count
@@ -89,10 +84,6 @@ function toSearchOptions(
 export function advancedFiltersFromApi(
   filters: DemandVolumeFilterIn,
 ): DemandVolumeAdvancedFilterForm {
-  let relevanteImprensa: DemandVolumePressFilter = 'all'
-  if (filters.relevante_imprensa === true) relevanteImprensa = 'yes'
-  if (filters.relevante_imprensa === false) relevanteImprensa = 'no'
-
   return {
     requisitante: (filters.requisitante ?? []).map((value) => ({
       value,
@@ -110,7 +101,7 @@ export function advancedFiltersFromApi(
       value,
       label: value,
     })),
-    relevanteImprensa,
+    relevanteImprensa: filters.relevante_imprensa === true,
   }
 }
 
@@ -137,12 +128,7 @@ export function advancedFiltersToApiPatch(
     tipo_chamado_id: form.tipo_chamado_id.length
       ? form.tipo_chamado_id.map((item) => item.value)
       : undefined,
-    relevante_imprensa:
-      form.relevanteImprensa === 'yes'
-        ? true
-        : form.relevanteImprensa === 'no'
-          ? false
-          : undefined,
+    relevante_imprensa: form.relevanteImprensa ? true : null,
   }
 }
 
@@ -182,9 +168,6 @@ export function formatDemandVolumeAdvancedFiltersSummary(
   }
   if (filters.relevante_imprensa === true) {
     lines.push('Relevante para imprensa: Sim')
-  }
-  if (filters.relevante_imprensa === false) {
-    lines.push('Relevante para imprensa: Não')
   }
   return lines
 }

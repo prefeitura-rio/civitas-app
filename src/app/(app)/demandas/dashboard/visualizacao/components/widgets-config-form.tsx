@@ -94,7 +94,14 @@ export function WidgetsConfigForm() {
       defaultValues: WIDGETS_CONFIG_DEFAULT_VALUES,
     })
 
-  const currentValues = useWatch({ control }) ?? WIDGETS_CONFIG_DEFAULT_VALUES
+  const watchedValues = useWatch({
+    control,
+    defaultValue: WIDGETS_CONFIG_DEFAULT_VALUES,
+  })
+  const currentValues: TicketDashboardWidgetsFormValues = {
+    ...WIDGETS_CONFIG_DEFAULT_VALUES,
+    ...watchedValues,
+  }
 
   const hasChanges = useMemo(
     () => !areFormValuesEqual(currentValues, savedValues),
