@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import filterModalStyles from '@/app/(app)/demandas/list/components/filter/tickets-general-list-filters.module.css'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
 import {
   type SearchOption,
@@ -16,7 +17,6 @@ import {
   DEMAND_VOLUME_PRIORITY_OPTIONS,
   DEMAND_VOLUME_STATUS_OPTIONS,
   type DemandVolumeAdvancedFilterForm,
-  type DemandVolumePressFilter,
   emptyDemandVolumeAdvancedFilters,
 } from './demand-volume-filter-utils'
 
@@ -189,35 +189,22 @@ function PressRelevanceField({
   value,
   onChange,
 }: {
-  value: DemandVolumePressFilter
-  onChange: (value: DemandVolumePressFilter) => void
+  value: boolean
+  onChange: (value: boolean) => void
 }) {
-  const options: { value: DemandVolumePressFilter; label: string }[] = [
-    { value: 'all', label: 'Todos' },
-    { value: 'yes', label: 'Sim' },
-    { value: 'no', label: 'Não' },
-  ]
-
   return (
     <div className={filterModalStyles.filterBlock}>
       <span className={filterModalStyles.filterLabel}>
         RELEVANTE PARA IMPRENSA?
       </span>
-      <div
-        className={`${filterModalStyles.toggleGrid} ${filterModalStyles.toggleGridLastFull}`}
-      >
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`${filterModalStyles.toggleButton} ${
-              value === option.value ? filterModalStyles.toggleButtonActive : ''
-            }`}
-            onClick={() => onChange(option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
+      <div className="flex items-center gap-2 pt-1">
+        <Switch
+          id="demand-volume-relevante-imprensa"
+          size="sm"
+          checked={value}
+          onCheckedChange={onChange}
+        />
+        <span className="text-sm text-[#91a6bc]">{value ? 'Sim' : 'Não'}</span>
       </div>
     </div>
   )
