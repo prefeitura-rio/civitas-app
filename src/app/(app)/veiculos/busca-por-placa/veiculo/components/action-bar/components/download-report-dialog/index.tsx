@@ -21,7 +21,6 @@ import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
-import { toCsvSpreadsheetText } from '@/utils/csv-text'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
@@ -235,7 +234,7 @@ export function DownloadReportDialog() {
                         {
                           header: 'Radar',
                           getValue: ({ point }: TripsCsvColumnContext) =>
-                            toCsvSpreadsheetText(point.cetRioCode),
+                            point.cetRioCode,
                         },
                         {
                           header: 'Latitude',
