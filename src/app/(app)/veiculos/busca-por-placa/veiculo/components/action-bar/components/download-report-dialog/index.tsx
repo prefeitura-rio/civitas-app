@@ -274,7 +274,7 @@ export function DownloadReportDialog() {
                         {
                           header: 'Alerta Placa Clonada',
                           getValue: ({ point }: TripsCsvColumnContext) =>
-                            point.cloneAlert,
+                            point.cloneAlert ? 'Sim' : 'Não',
                         },
                       ] as const
                       const tripsCsvHeaders = tripsCsvColumns.map(
