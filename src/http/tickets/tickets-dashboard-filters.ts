@@ -53,33 +53,53 @@ type FocalPointSearchResponse = {
   ponto_focal: string
 }
 
+function normalizeTicketTypeItems(
+  data: TicketTypePageResponse | TicketTypeItem[],
+): TicketTypeItem[] {
+  if (Array.isArray(data)) return data
+  return data.items ?? []
+}
+
 export async function searchTicketTypes(
   search: string,
 ): Promise<SearchOption[]> {
-  const response = await api.get<TicketTypePageResponse>('/ticket-types', {
-    params: {
-      search,
-      isActive: true,
+  const response = await api.get<TicketTypePageResponse | TicketTypeItem[]>(
+    '/ticket-types',
+    {
+      params: {
+        search,
+        isActive: true,
+      },
     },
-  })
+  )
 
-  return response.data.items.map((item) => ({
+  return normalizeTicketTypeItems(response.data).map((item) => ({
     label: item.name,
     value: item.id,
   }))
 }
 
+function normalizeTicketNatureItems(
+  data: TicketNaturePageResponse | TicketNatureItem[],
+): TicketNatureItem[] {
+  if (Array.isArray(data)) return data
+  return data.items ?? []
+}
+
 export async function searchTicketNatures(
   search: string,
 ): Promise<SearchOption[]> {
-  const response = await api.get<TicketNaturePageResponse>('/ticket-natures', {
-    params: {
-      search,
-      isActive: true,
+  const response = await api.get<TicketNaturePageResponse | TicketNatureItem[]>(
+    '/ticket-natures',
+    {
+      params: {
+        search,
+        isActive: true,
+      },
     },
-  })
+  )
 
-  return response.data.items.map((item) => ({
+  return normalizeTicketNatureItems(response.data).map((item) => ({
     label: item.name,
     value: item.id,
   }))
