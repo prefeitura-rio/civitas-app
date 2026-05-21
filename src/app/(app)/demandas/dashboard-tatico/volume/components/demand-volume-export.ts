@@ -15,6 +15,18 @@ function csvRow(cells: (string | number | boolean)[]): string {
   return cells.map(escapeCsvCell).join(',')
 }
 
+function toCsvScalar(value: unknown): string | number | boolean {
+  if (value === null || value === undefined) return ''
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value
+  }
+  return String(value)
+}
+
 function flattenTicketItem(item: DemandVolumeTicketItemOut): FlatRow {
   const row: FlatRow = {}
 
@@ -27,8 +39,7 @@ function flattenTicketItem(item: DemandVolumeTicketItemOut): FlatRow {
     if (typeof value === 'object') {
       for (const [nestedKey, nestedValue] of Object.entries(value)) {
         const column = `${key}.${nestedKey}`
-        row[column] =
-          nestedValue === null || nestedValue === undefined ? '' : nestedValue
+        row[column] = toCsvScalar(nestedValue)
       }
       continue
     }
