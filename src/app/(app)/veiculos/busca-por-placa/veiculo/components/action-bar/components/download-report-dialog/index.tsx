@@ -20,7 +20,7 @@ import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
-import { exportToCSV } from '@/utils/csv'
+import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 import { toCsvSpreadsheetText } from '@/utils/csv-text'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
@@ -230,7 +230,7 @@ export function DownloadReportDialog() {
                         {
                           header: 'Data Hora',
                           getValue: ({ point }: TripsCsvColumnContext) =>
-                            formatDate(point.startTime, 'dd/MM/yyyy HH:mm:ss'),
+                            formatCsvDateTime(point.startTime),
                         },
                         {
                           header: 'Radar',
