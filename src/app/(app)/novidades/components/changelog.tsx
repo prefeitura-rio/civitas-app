@@ -27,6 +27,37 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '21 de Maio de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Adição dos Parâmetros de Busca nos relatórios CSV de veículos',
+        content: (
+          <>
+            <p>
+              Os relatórios em formato <code>CSV</code> das buscas de veículos
+              foram ajustados para incluir todos os parâmetros da busca na
+              primeira linha, antes da tabela, facilitando a identificação do
+              conteúdo exportado.
+            </p>
+            <ul>
+              <li>
+                Informando o nome do relatório, a data de geração e o período da
+                busca. E quaisquer outros parâmetros a mais dependendo do tipo
+                de relatório a ser gerado.
+              </li>
+              <li>
+                Quando filtros dinâmicos são aplicados nas buscas por radar, os
+                metadados exibem apenas os filtros efetivamente selecionados
+                para a exportação.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '18 de Maio de 2026',
     subCards: [
       {

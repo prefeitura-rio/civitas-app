@@ -2,6 +2,7 @@
 
 // import { pdf } from '@react-pdf/renderer'
 import { pdf } from '@react-pdf/renderer'
+import { formatDate } from 'date-fns'
 import { Download } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
@@ -23,7 +24,7 @@ import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchPara
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
-import { exportToCSV } from '@/utils/csv'
+import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
 
 import {
@@ -123,14 +124,90 @@ export function DownloadReport({
       throw new Error('formattedSearchParams is required')
 
     if (fileType === 'CSV') {
-      const csvRows = (selectedData || []).map((row) => {
-        const copy: Record<string, unknown> = {
-          ...(row as Record<string, unknown>),
+      const csvData = selectedData || []
+      const isUsingDynamicFilters = applyFilters === ApplyFilters.Sim
+      const metadataLines = [
+        'Nome do relatório: Relatório de Busca por Equipamento',
+        `Gerado em: ${formatDate(new Date(), 'dd/MM/yyyy HH:mm:ss')}`,
+        `Período da busca: De ${formatDate(
+          new Date(formattedSearchParams.date.from),
+          'dd/MM/yyyy HH:mm:ss',
+        )} até ${formatDate(
+          new Date(formattedSearchParams.date.to),
+          'dd/MM/yyyy HH:mm:ss',
+        )}`,
+        `Radares pesquisados: ${formattedSearchParams.radarIds.join(', ')}`,
+      ]
+
+      if (formattedSearchParams.plate) {
+        metadataLines.push(`Placa pesquisada: ${formattedSearchParams.plate}`)
+      }
+
+      if (isUsingDynamicFilters) {
+        if (filters.selectedPlate) {
+          metadataLines.push(`Placa filtrada: ${filters.selectedPlate}`)
         }
-        delete copy.lane
-        return copy
+        if (filters.selectedLocations.length > 0) {
+          metadataLines.push(
+            `Localizações filtradas: ${filters.selectedLocations.join(', ')}`,
+          )
+        }
+        if (filters.selectedRadars.length > 0) {
+          metadataLines.push(
+            `Radares selecionados para exportação: ${filters.selectedRadars.join(', ')}`,
+          )
+        }
+      }
+
+      const metadataCell = metadataLines.join('\n')
+      type RadarCsvRow = (typeof csvData)[number]
+      type RadarCsvColumnContext = {
+        row: RadarCsvRow
+      }
+
+      const radarCsvColumns = [
+        {
+          header: 'Placa',
+          getValue: ({ row }: RadarCsvColumnContext) => row.plate,
+        },
+        {
+          header: 'Data e Hora',
+          getValue: ({ row }: RadarCsvColumnContext) =>
+            formatCsvDateTime(row.timestamp),
+        },
+        {
+          header: 'Velocidade',
+          getValue: ({ row }: RadarCsvColumnContext) => row.speed,
+        },
+        {
+          header: 'Radar',
+          getValue: ({ row }: RadarCsvColumnContext) => row.equipmentCode,
+        },
+        {
+          header: 'Endereço',
+          getValue: ({ row }: RadarCsvColumnContext) => row.location,
+        },
+        {
+          header: 'Latitude',
+          getValue: ({ row }: RadarCsvColumnContext) =>
+            row.latitude.toString().replace('.', ','),
+        },
+        {
+          header: 'Longitude',
+          getValue: ({ row }: RadarCsvColumnContext) =>
+            row.longitude.toString().replace('.', ','),
+        },
+      ] as const
+      const radarCsvHeaders = radarCsvColumns.map((column) => column.header)
+      const radarCsvDataRows = csvData.map((row) =>
+        radarCsvColumns.map((column) => column.getValue({ row })),
+      )
+
+      exportToCSV('busca_por_equipamento', {
+        topRows: [[metadataCell], []],
+        headers: radarCsvHeaders,
+        dataRows: radarCsvDataRows,
       })
-      exportToCSV('busca_por_equipamento', csvRows)
     } else {
       // Download PDF
       const groupedData = groupData(selectedData || [])
@@ -166,7 +243,9 @@ export function DownloadReport({
     fileType,
     selectedData,
     groupData,
+    filters.selectedLocations,
     filters.selectedPlate,
+    filters.selectedRadars,
   ])
 
   const handleFileTypeChange = useCallback(
