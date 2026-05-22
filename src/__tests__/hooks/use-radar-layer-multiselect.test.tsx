@@ -1,60 +1,90 @@
 import { act, renderHook } from '@testing-library/react'
 
 import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 
 jest.mock('@/stores/use-map-store')
 
-jest.mock('@/hooks/useQueries/useRadars', () => ({
-  useRadars: () => ({
+jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
+  useCollectionPoints: () => ({
     data: [
       {
         cetRioCode: '0540461121',
+        codigoPontoColeta: '1121',
         location: 'ESTRADA DOS BANDEIRANTES',
         district: 'centro',
         latitude: -22.9068,
         longitude: -43.1729,
         company: 'CET-Rio',
         activeInLast24Hours: true,
+        lastDetectionTime: null,
+        statusAtivo: 'ativo',
+        totalDetections: 10,
+        direction: null,
+        lane: null,
       },
       {
         cetRioCode: '0540461122',
+        codigoPontoColeta: '1122',
         location: 'AVENIDA BRASIL',
         district: 'zona norte',
         latitude: -22.9069,
         longitude: -43.173,
         company: 'CET-Rio',
         activeInLast24Hours: true,
+        lastDetectionTime: null,
+        statusAtivo: 'ativo',
+        totalDetections: 10,
+        direction: null,
+        lane: null,
       },
       {
         cetRioCode: '0540461123',
+        codigoPontoColeta: '1123',
         location: 'COPACABANA',
         district: 'zona sul',
         latitude: -22.907,
         longitude: -43.1731,
         company: 'CET-Rio',
         activeInLast24Hours: true,
+        lastDetectionTime: null,
+        statusAtivo: 'ativo',
+        totalDetections: 10,
+        direction: null,
+        lane: null,
       },
       {
         cetRioCode: '0540461124',
+        codigoPontoColeta: '1124',
         location: 'TIJUCA',
         district: 'zona norte',
         latitude: -22.9071,
         longitude: -43.1732,
         company: 'CET-Rio',
         activeInLast24Hours: true,
+        lastDetectionTime: null,
+        statusAtivo: 'ativo',
+        totalDetections: 10,
+        direction: null,
+        lane: null,
       },
       {
         cetRioCode: '0540461125',
+        codigoPontoColeta: '1125',
         location: 'BARRA DA TIJUCA',
         district: 'zona oeste',
         latitude: -22.9072,
         longitude: -43.1733,
         company: 'CET-Rio',
         activeInLast24Hours: true,
+        lastDetectionTime: null,
+        statusAtivo: 'ativo',
+        totalDetections: 10,
+        direction: null,
+        lane: null,
       },
-    ] as Radar[],
+    ] as CollectionPoint[],
   }),
 }))
 
@@ -80,10 +110,10 @@ describe('useRadarLayer - Multi-selection bug', () => {
     )
 
     const radars = [
-      { cetRioCode: '0540461121' } as Radar,
-      { cetRioCode: '0540461122' } as Radar,
-      { cetRioCode: '0540461123' } as Radar,
-      { cetRioCode: '0540461124' } as Radar,
+      { cetRioCode: '0540461121' } as CollectionPoint,
+      { cetRioCode: '0540461122' } as CollectionPoint,
+      { cetRioCode: '0540461123' } as CollectionPoint,
+      { cetRioCode: '0540461124' } as CollectionPoint,
     ]
 
     act(() => {
@@ -121,7 +151,7 @@ describe('useRadarLayer - Multi-selection bug', () => {
     act(() => {
       result.current.handleMultiSelectObject({
         cetRioCode: '0540461122',
-      } as Radar)
+      } as CollectionPoint)
     })
 
     mockMultipleSelectedRadars = ['0540461124', '0540461123', '0540461121']
@@ -130,7 +160,7 @@ describe('useRadarLayer - Multi-selection bug', () => {
     act(() => {
       result.current.handleMultiSelectObject({
         cetRioCode: '0540461125',
-      } as Radar)
+      } as CollectionPoint)
     })
 
     expect(mockSetMultipleSelectedRadars).toHaveBeenCalledTimes(6)
