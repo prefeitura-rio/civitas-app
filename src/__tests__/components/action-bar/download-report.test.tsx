@@ -25,27 +25,35 @@ jest.mock('@/hooks/useParams/useCarRadarSearchParams', () => ({
   }),
 }))
 
-jest.mock('@/hooks/useQueries/useRadars', () => ({
-  useRadars: () => ({
+jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
+  useCollectionPoints: () => ({
     data: [
       {
-        id: '1',
         cetRioCode: 'RDR001',
+        codigoPontoColeta: '001',
         location: 'Local Teste - FX 01',
-        active: true,
         company: 'Empresa Teste',
-        neighborhood: 'Bairro Teste',
+        district: 'Bairro Teste',
         latitude: -22.9068,
         longitude: -43.1729,
         lastDetectionTime: '2024-01-15T10:00:00Z',
+        activeInLast24Hours: true,
+        statusAtivo: 'ativo',
+        totalDetections: 1,
+        direction: null,
+        lane: 'FX 01',
       },
     ],
   }),
 }))
 
-jest.mock('@/utils/csv', () => ({
-  exportToCSV: jest.fn(),
-}))
+jest.mock('@/utils/csv', () => {
+  const actual = jest.requireActual('@/utils/csv')
+  return {
+    ...actual,
+    exportToCSV: jest.fn(),
+  }
+})
 
 jest.mock('@/utils/download-file', () => ({
   downloadFile: jest.fn(),
@@ -75,6 +83,8 @@ const mockDetection: DetectionDTO = {
   equipmentCode: 'RDR001',
   speed: 60,
   lane: 'FX 01',
+  latitude: -22.9068,
+  longitude: -43.1729,
 }
 
 const mockFilters: UseSearchByRadarResultDynamicFilter = {
@@ -276,22 +286,33 @@ describe('DownloadReport', () => {
 
     expect(exportToCSV).toHaveBeenCalledWith(
       'busca_por_equipamento',
-      expect.any(Array),
+      expect.objectContaining({
+        headers: [
+          'Placa',
+          'Data e Hora',
+          'Velocidade',
+          'Radar',
+          'Endereço',
+          'Latitude',
+          'Longitude',
+        ],
+        dataRows: expect.any(Array),
+      }),
     )
 
-    const csvRows = (exportToCSV as jest.Mock).mock.calls[0][1] as Record<
-      string,
-      unknown
-    >[]
+    const { headers, dataRows } = (exportToCSV as jest.Mock).mock.calls[0][1]
 
-    expect(csvRows).toHaveLength(1)
-    expect(csvRows[0]).toMatchObject({
-      plate: 'ABC1234',
-      equipmentCode: 'RDR001',
-      location: 'Local Teste',
-      speed: 60,
-      timestamp: '2024-01-15T10:00:00Z',
-    })
-    expect(csvRows[0]).not.toHaveProperty('lane')
+    expect(headers).not.toContain('Faixa')
+    expect(headers).not.toContain('lane')
+    expect(dataRows).toHaveLength(1)
+    expect(dataRows[0]).toEqual([
+      'ABC1234',
+      '15/01/2024 07:00:00',
+      60,
+      'RDR001',
+      'Local Teste',
+      '-22,9068',
+      '-43,1729',
+    ])
   })
 })
