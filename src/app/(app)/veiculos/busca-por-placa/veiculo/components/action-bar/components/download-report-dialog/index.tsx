@@ -20,7 +20,7 @@ import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
-import { exportToCSV } from '@/utils/csv'
+import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
@@ -191,34 +191,116 @@ export function DownloadReportDialog() {
                       setShowViagens(true)
                     }
                     if (fileType === FileType.CSV && trips) {
-                      console.log('lon: ', trips?.[0].points?.[0].from[0])
-                      console.log(
-                        'lat: ',
-                        trips?.[0].points?.[0].from[0]
-                          .toString()
-                          .replace('.', ','),
+                      const metadataCell = [
+                        'Nome do relatório: Relatório de Pontos de Detecção (viagens)',
+                        `Gerado em: ${formatDate(
+                          new Date(),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}`,
+                        `Placa pesquisada: ${formattedSearchParams.plate}`,
+                        `Período da busca: De ${formatDate(
+                          new Date(formattedSearchParams.from),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )} até ${formatDate(
+                          new Date(formattedSearchParams.to),
+                          'dd/MM/yyyy HH:mm:ss',
+                        )}`,
+                      ].join('\n')
+                      type Trip = (typeof trips)[number]
+                      type TripPoint = Trip['points'][number]
+                      type TripsCsvColumnContext = {
+                        trip: Trip
+                        tripIndex: number
+                        point: TripPoint
+                        pointIndex: number
+                      }
+
+                      const tripsCsvColumns = [
+                        {
+                          header: 'Índice Viagem',
+                          getValue: ({ tripIndex }: TripsCsvColumnContext) =>
+                            tripIndex + 1,
+                        },
+                        {
+                          header: 'Índice Detecção',
+                          getValue: ({ pointIndex }: TripsCsvColumnContext) =>
+                            pointIndex + 1,
+                        },
+                        {
+                          header: 'Data Hora',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            formatCsvDateTime(point.startTime),
+                        },
+                        {
+                          header: 'Radar',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.cetRioCode,
+                        },
+                        {
+                          header: 'Latitude',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.from[1].toString().replace('.', ','),
+                        },
+                        {
+                          header: 'Longitude',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.from[0].toString().replace('.', ','),
+                        },
+                        {
+                          header: 'Bairro',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.district,
+                        },
+                        {
+                          header: 'Logradouro',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.location,
+                        },
+                        {
+                          header: 'Direção',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.direction,
+                        },
+                        {
+                          header: 'Velocidade',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.speed,
+                        },
+                        {
+                          header: 'Faixa',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.lane,
+                        },
+                        {
+                          header: 'Alerta Placa Clonada',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.cloneAlert ? 'Sim' : 'Não',
+                        },
+                      ] as const
+                      const tripsCsvHeaders = tripsCsvColumns.map(
+                        (column) => column.header,
                       )
+                      const tripsCsvDataRows = trips.flatMap(
+                        (trip, tripIndex) =>
+                          trip.points.map((point, pointIndex) =>
+                            tripsCsvColumns.map((column) =>
+                              column.getValue({
+                                trip,
+                                tripIndex,
+                                point,
+                                pointIndex,
+                              }),
+                            ),
+                          ),
+                      )
+
                       exportToCSV(
                         `pontos_de_deteccao_${formattedSearchParams.plate}`,
-                        trips.flatMap((t, i) =>
-                          t.points.map((p, j) => ({
-                            'Índice Viagem': i + 1,
-                            'Índice Detecção': j + 1,
-                            'Data Hora': formatDate(
-                              p.startTime,
-                              'dd/MM/yyyy HH:mm:ss',
-                            ),
-                            Radar: p.cetRioCode,
-                            Latitude: p.from[1].toString().replace('.', ','),
-                            Longitude: p.from[0].toString().replace('.', ','),
-                            Bairro: p.district,
-                            Logradouro: p.location,
-                            Direção: p.direction,
-                            Velocidade: p.speed,
-                            Faixa: p.lane,
-                            'Alerta Placa Clonada': p.cloneAlert,
-                          })),
-                        ),
+                        {
+                          topRows: [[metadataCell], []],
+                          headers: tripsCsvHeaders,
+                          dataRows: tripsCsvDataRows,
+                        },
                       )
                     }
                   } else {

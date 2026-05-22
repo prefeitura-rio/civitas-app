@@ -11,6 +11,8 @@ export type DetectionDTO = {
   speed: number
   equipmentCode: string
   location: string
+  latitude: number
+  longitude: number
   lane: string
 }
 
@@ -50,6 +52,8 @@ export function useRadarsSearch() {
               equipmentCode: radar.cetRioCode,
               lane: radar.lane || '',
               location: radar.location?.replace(/- FX \d+/, '') || 'N/A',
+              latitude: radar.latitude,
+              longitude: radar.longitude,
             } as DetectionDTO
           })
 
