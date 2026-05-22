@@ -3,9 +3,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
-import logoPrefeitura from '@/assets/prefeitura_icon.png'
+import logoPrefeituraCivitas from '@/assets/pref-civitas-horizontal-03-bco-cor-SB.png'
 import { isAuthenticated } from '@/auth/auth'
 
 export const metadata: Metadata = {
@@ -34,13 +33,8 @@ export default function AuthLayout({
       <div className="min-h-screen px-4 pt-4">
         <div className="flex h-10 w-full items-center justify-start gap-8">
           <Image
-            src={logoPrefeitura}
+            src={logoPrefeituraCivitas}
             alt="Logo Prefeitura Rio"
-            className="h-[100%] w-auto"
-          />
-          <Image
-            src={logoCivitas}
-            alt="Logo Civitas"
             className="h-[100%] w-auto"
           />
           <Image
