@@ -5,6 +5,22 @@ import type { ReactNode } from 'react'
 import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
 import type { CollectionPoint } from '@/models/entities'
 
+const mockCollectionPoint: CollectionPoint = {
+  cetRioCode: 'RDR123',
+  codigoPontoColeta: '123',
+  location: 'avenida brasil',
+  district: 'centro',
+  latitude: -22.9068,
+  longitude: -43.1729,
+  company: 'CET-Rio',
+  activeInLast24Hours: true,
+  lastDetectionTime: '2024-01-15T10:30:00Z',
+  statusAtivo: 'ativo',
+  totalDetections: 100,
+  direction: 'norte',
+  lane: 'direita',
+}
+
 jest.mock('deck.gl', () => ({
   IconLayer: jest.fn().mockImplementation(() => ({
     id: 'radars',
@@ -12,11 +28,18 @@ jest.mock('deck.gl', () => ({
   })),
 }))
 
+jest.mock('@/stores/use-map-store', () => ({
+  useMapStore: (
+    selector: (state: { setMultipleSelectedRadars: jest.Mock }) => unknown,
+  ) => selector({ setMultipleSelectedRadars: jest.fn() }),
+}))
+
 jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
   useCollectionPoints: () => ({
     data: [
       {
         cetRioCode: 'RDR123',
+        codigoPontoColeta: '123',
         location: 'avenida brasil',
         district: 'centro',
         latitude: -22.9068,
@@ -24,20 +47,23 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
         company: 'CET-Rio',
         activeInLast24Hours: true,
         lastDetectionTime: '2024-01-15T10:30:00Z',
-        hasData: true,
+        statusAtivo: 'ativo',
+        totalDetections: 100,
         direction: 'norte',
         lane: 'direita',
       },
       {
         cetRioCode: 'RDR456',
+        codigoPontoColeta: '456',
         location: 'copacabana',
         district: 'zona sul',
         latitude: -22.9707,
         longitude: -43.1824,
         company: 'CET-Rio',
         activeInLast24Hours: false,
-        lastDetectionTime: undefined,
-        hasData: true,
+        lastDetectionTime: null,
+        statusAtivo: 'inativo',
+        totalDetections: 0,
         direction: 'sul',
         lane: 'esquerda',
       },
@@ -121,84 +147,36 @@ describe('useRadarLayer', () => {
   })
 
   it('deve selecionar radar quando handleSelectObject é chamado com radar diferente', () => {
-    const { result } = renderUseRadarLayer()
-    const mockRadar = {
-      cetRioCode: 'RDR123',
-      codigoPontoColeta: 'PC123',
-      location: 'avenida brasil',
-      district: 'centro',
-      latitude: -22.9068,
-      longitude: -43.1729,
-      company: 'CET-Rio',
-      statusAtivo: 'ATIVO',
-      activeInLast24Hours: true,
-      totalDetections: 1,
-      lastDetectionTime: '2024-01-15T10:30:00Z',
-      hasData: true,
-      direction: 'norte',
-      lane: 'direita',
-    } as CollectionPoint
+    const { result } = renderHook(() => useRadarLayer())
 
     act(() => {
-      result.current.handleSelectObject(mockRadar)
+      result.current.handleSelectObject(mockCollectionPoint)
     })
 
-    expect(result.current.selectedObject).toEqual(mockRadar)
+    expect(result.current.selectedObject).toEqual(mockCollectionPoint)
   })
 
   it('deve desselecionar radar quando handleSelectObject é chamado com mesmo radar', () => {
-    const { result } = renderUseRadarLayer()
-    const mockRadar = {
-      cetRioCode: 'RDR123',
-      codigoPontoColeta: 'PC123',
-      location: 'avenida brasil',
-      district: 'centro',
-      latitude: -22.9068,
-      longitude: -43.1729,
-      company: 'CET-Rio',
-      statusAtivo: 'ATIVO',
-      activeInLast24Hours: true,
-      totalDetections: 1,
-      lastDetectionTime: '2024-01-15T10:30:00Z',
-      hasData: true,
-      direction: 'norte',
-      lane: 'direita',
-    } as CollectionPoint
+    const { result } = renderHook(() => useRadarLayer())
 
     act(() => {
-      result.current.handleSelectObject(mockRadar)
+      result.current.handleSelectObject(mockCollectionPoint)
     })
-    expect(result.current.selectedObject).toEqual(mockRadar)
+    expect(result.current.selectedObject).toEqual(mockCollectionPoint)
 
     // Depois desseleciona
     act(() => {
-      result.current.handleSelectObject(mockRadar)
+      result.current.handleSelectObject(mockCollectionPoint)
     })
     expect(result.current.selectedObject).toBeNull()
   })
 
   it('deve chamar clearCamera quando fornecido', () => {
-    const { result } = renderUseRadarLayer()
-    const mockRadar = {
-      cetRioCode: 'RDR123',
-      codigoPontoColeta: 'PC123',
-      location: 'avenida brasil',
-      district: 'centro',
-      latitude: -22.9068,
-      longitude: -43.1729,
-      company: 'CET-Rio',
-      statusAtivo: 'ATIVO',
-      activeInLast24Hours: true,
-      totalDetections: 1,
-      lastDetectionTime: '2024-01-15T10:30:00Z',
-      hasData: true,
-      direction: 'norte',
-      lane: 'direita',
-    } as CollectionPoint
+    const { result } = renderHook(() => useRadarLayer())
     const mockClearCamera = jest.fn()
 
     act(() => {
-      result.current.handleSelectObject(mockRadar, mockClearCamera)
+      result.current.handleSelectObject(mockCollectionPoint, mockClearCamera)
     })
 
     expect(mockClearCamera).toHaveBeenCalled()
@@ -242,8 +220,8 @@ describe('useRadarLayer', () => {
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve retornar dados corretos do useRadars', () => {
-    const { result } = renderUseRadarLayer()
+  it('deve retornar dados corretos do useCollectionPoints', () => {
+    const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.data).toHaveLength(2)
     expect(result.current.data?.[0]?.cetRioCode).toBe('RDR123')
