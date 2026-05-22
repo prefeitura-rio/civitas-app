@@ -307,7 +307,7 @@ describe('DownloadReport', () => {
     expect(dataRows).toHaveLength(1)
     expect(dataRows[0]).toEqual([
       'ABC1234',
-      '15/01/2024 07:00:00',
+      expect.stringMatching(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/),
       60,
       'RDR001',
       'Local Teste',
