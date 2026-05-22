@@ -11,7 +11,7 @@ steps:
         pnpm install --frozen-lockfile --prefer-offline
     id: "install-deps"
 
-  # Run only critical tests in parallel
+  # Run unit tests
   - name: "node:20-alpine"
     dir: "/workspace"
     entrypoint: "sh"
@@ -20,7 +20,7 @@ steps:
       - |
         corepack enable && \
         corepack prepare pnpm@9.15.2 --activate && \
-        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathPatterns="(critical|integration|radar.*bug)" --maxWorkers=2
+        pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathIgnorePatterns="e2e" --maxWorkers=2
     waitFor: ["install-deps"]
     id: "run-tests"
 
