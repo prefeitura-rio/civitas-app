@@ -183,6 +183,21 @@
     ol {
       @apply list-decimal pl-8;
     }
+
+    ol.list-alpha-paren {
+      list-style: none;
+      counter-reset: alpha;
+      @apply pl-4;
+    }
+    
+    ol.list-alpha-paren > li {
+      counter-increment: alpha;
+    }
+    
+    ol.list-alpha-paren > li::before {
+      content: counter(alpha, lower-alpha) ") ";
+    }
+
   }
 
   .CollapsibleContent {
