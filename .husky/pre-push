@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+# Load nvm if available
+if [ -f ~/.nvm/nvm.sh ]; then
+  . ~/.nvm/nvm.sh
+  nvm use
+fi
+
+run_tests() {
+  pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathIgnorePatterns="e2e" --maxWorkers=2
+}
+
+# Try to find node in common locations
+if command -v node >/dev/null 2>&1; then
+  run_tests
+elif [ -f /opt/homebrew/bin/node ]; then
+  PATH="/opt/homebrew/bin:$PATH" run_tests
+elif [ -f /usr/local/bin/node ]; then
+  PATH="/usr/local/bin:$PATH" run_tests
+else
+  echo "Node.js not found. Skipping tests."
+  exit 0
+fi
