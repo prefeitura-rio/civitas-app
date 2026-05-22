@@ -22,7 +22,10 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "next lint --fix -- ./"
+    "*.{js,jsx,ts,tsx}": [
+      "next lint --fix -- ./",
+      "jest --bail --findRelatedTests --passWithNoTests"
+    ]
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.1.0",
