@@ -156,6 +156,9 @@ export function ticketServicosToReplacePayload(
       plate: strOrNull(x.plate),
       address: strOrNull(x.address),
       description: strOrNull(x.description),
+      cameras: (x.cameras ?? [])
+        .map((c) => c.camera_code.trim())
+        .filter(Boolean),
     })),
     placas_correlatas: n.placas_correlatas.map((x) => ({
       ...persistedId(x.id),
@@ -187,6 +190,9 @@ export function ticketServicosToReplacePayload(
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
+      cameras: (x.cameras ?? [])
+        .map((c) => c.camera_code.trim())
+        .filter(Boolean),
     })),
     analise_de_imagem: n.analise_de_imagem.map((x) => ({
       ...persistedId(x.id),
@@ -194,6 +200,9 @@ export function ticketServicosToReplacePayload(
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
+      cameras: (x.cameras ?? [])
+        .map((c) => c.camera_code.trim())
+        .filter(Boolean),
     })),
     outros: n.outros.map((x) => ({
       ...persistedId(x.id),
@@ -330,6 +339,7 @@ export function appendEmptyService(
           plate: null,
           address: null,
           description: null,
+          cameras: [],
         },
       ]
       break
@@ -375,6 +385,7 @@ export function appendEmptyService(
           period_start: null,
           period_end: null,
           orientation: null,
+          cameras: [],
         },
       ]
       break
@@ -388,6 +399,7 @@ export function appendEmptyService(
           period_start: null,
           period_end: null,
           orientation: null,
+          cameras: [],
         },
       ]
       break

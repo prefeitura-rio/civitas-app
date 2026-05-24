@@ -13,6 +13,8 @@ export type TicketFichaOut = {
   possui_apelido_imprensa: boolean
   apelido_imprensa?: string | null
   link_materia?: string | null
+  numero_processo_sei?: string | null
+  link_processo_sei?: string | null
   chamados_relacionados: TicketRelacionadoOut[]
 }
 
@@ -24,6 +26,8 @@ export type TicketFichaUpdateIn = {
   possui_apelido_imprensa: boolean
   apelido_imprensa?: string | null
   link_materia?: string | null
+  numero_processo_sei?: string | null
+  link_processo_sei?: string | null
 }
 
 export async function getTicketFicha(ticketId: string) {

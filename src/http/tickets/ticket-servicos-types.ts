@@ -33,6 +33,7 @@ export type TicketServicosReplaceIn = {
     plate?: string | null
     address?: string | null
     description?: string | null
+    cameras?: string[]
   }>
   placas_correlatas: Array<{
     id?: string
@@ -60,6 +61,7 @@ export type TicketServicosReplaceIn = {
     period_start?: string | null
     period_end?: string | null
     orientation?: string | null
+    cameras?: string[]
   }>
   analise_de_imagem: Array<{
     id?: string
@@ -67,6 +69,7 @@ export type TicketServicosReplaceIn = {
     period_start?: string | null
     period_end?: string | null
     orientation?: string | null
+    cameras?: string[]
   }>
   outros: Array<{
     id?: string

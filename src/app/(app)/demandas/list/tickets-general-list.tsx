@@ -37,6 +37,9 @@ type DashboardServiceTag = {
 
 const LEVANTAMENTO_PREVIO_TIPO_NOME = 'Levantamento Prévio'
 
+const SEARCH_TOOLTIP_TEXT =
+  'Buscar por nº interno, requisitante, demandante, ofício, procedimento, ponto focal, equipe, responsável, comentários, relatório da demanda, placa, orientações ou observações'
+
 type DashboardItem = {
   id: string
   numero_interno: number
@@ -575,6 +578,11 @@ export function TicketsGeneralList() {
             placeholder="Buscar"
             className={styles.searchInput}
           />
+          <div className={styles.searchTooltip} role="tooltip">
+            <div className={styles.searchTooltipContent}>
+              <p>{SEARCH_TOOLTIP_TEXT}</p>
+            </div>
+          </div>
         </div>
 
         <div className={styles.toolbarActions}>

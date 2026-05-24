@@ -1,0 +1,145 @@
+import { api } from '@/lib/api'
+
+import type {
+  DemandVolumeTicketItemOut,
+  DemandVolumeTicketsOut,
+} from './get-demand-volume'
+
+export type OperationalViewGranularity = 'monthly' | 'weekly' | 'yearly'
+
+export type OperationalViewSummaryPeriod =
+  | 'current_year'
+  | 'current_month'
+  | 'current_week'
+
+export type OperationalViewPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
+
+export type OperationalViewStatus =
+  | 'PENDENTE'
+  | 'BLOQUEADO'
+  | 'AGUARDANDO_REVISAO_ADJUNTO'
+  | 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
+  | 'FINALIZADO'
+  | 'DEMANDA_RESPONDIDA'
+  | 'RESTRITO'
+
+export interface OperationalViewFilterIn {
+  date_from?: string
+  date_to?: string
+  summary_period?: OperationalViewSummaryPeriod
+  requisitante?: string[]
+  prioridade?: OperationalViewPriority[]
+  status?: OperationalViewStatus[]
+  tipo_chamado_id?: string[]
+  relevante_imprensa?: boolean | null
+}
+
+export interface OperationalViewSummaryOut {
+  total_pendentes: number
+  total_bloqueados: number
+  total_aguardando_revisao: number
+  total_finalizados: number
+}
+
+export interface OpenTicketsByTeamItemOut {
+  team: string
+  pendente: number
+  bloqueado: number
+  aguardando_revisao: number
+}
+
+export interface OpenTicketsPeriodPointOut {
+  period_label: string
+  pendente: number
+  bloqueado: number
+  aguardando_revisao: number
+}
+
+export interface OpenTicketsTeamPeriodSeriesOut {
+  team: string
+  data: OpenTicketsPeriodPointOut[]
+}
+
+export interface TeamPeriodValueOut {
+  period_label: string
+  value: number
+}
+
+export interface TeamPeriodSeriesOut {
+  team: string
+  data: TeamPeriodValueOut[]
+}
+
+export interface OperationalViewGranularitySeries<T> {
+  monthly: T[]
+  weekly: T[]
+  yearly: T[]
+}
+
+export interface SlaPerformancePeriodOut {
+  period_label: string
+  sla_percent: number
+  is_above_average: boolean
+}
+
+export interface SlaPerformanceByTeamRowOut {
+  label: string
+  periods: SlaPerformancePeriodOut[]
+}
+
+export interface OperationalViewOut {
+  summary: OperationalViewSummaryOut
+  open_tickets_by_team: OperationalViewGranularitySeries<OpenTicketsTeamPeriodSeriesOut>
+  closed_volume_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
+  avg_resolution_time_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
+  sla_performance_by_team: SlaPerformanceByTeamRowOut[]
+}
+
+export function pickOperationalViewGranularitySeries<T>(
+  series: OperationalViewGranularitySeries<T> | undefined,
+  granularity: OperationalViewGranularity,
+): T[] {
+  if (!series) return []
+  return series[granularity] ?? []
+}
+
+export function sanitizeOperationalViewFilters(
+  filters: OperationalViewFilterIn,
+): OperationalViewFilterIn {
+  const payload: OperationalViewFilterIn = { ...filters }
+
+  if (!payload.requisitante?.length) delete payload.requisitante
+  if (!payload.prioridade?.length) delete payload.prioridade
+  if (!payload.status?.length) delete payload.status
+  if (!payload.tipo_chamado_id?.length) delete payload.tipo_chamado_id
+  if (payload.relevante_imprensa === undefined) {
+    delete payload.relevante_imprensa
+  }
+
+  return payload
+}
+
+export async function getOperationalView(
+  filters: OperationalViewFilterIn,
+): Promise<OperationalViewOut> {
+  const response = await api.post(
+    '/ticket-dashboard/operational-view',
+    sanitizeOperationalViewFilters(filters),
+  )
+  return response.data
+}
+
+/** Mesmos campos do export de volume de demandas (DemandVolumeTicketExportItemOut). */
+export type OperationalViewTicketItemOut = DemandVolumeTicketItemOut
+
+export type OperationalViewTicketsOut = DemandVolumeTicketsOut
+
+export async function getOperationalViewTickets(
+  filters: OperationalViewFilterIn,
+): Promise<OperationalViewTicketsOut> {
+  const response = await api.post<OperationalViewTicketsOut>(
+    '/ticket-dashboard/operational-view/tickets',
+    sanitizeOperationalViewFilters(filters),
+  )
+  return response.data
+}

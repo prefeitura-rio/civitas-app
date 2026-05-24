@@ -1938,6 +1938,7 @@ export function EmailToTicketView() {
             period_end: nullIfEmpty(value.period_end),
             address: nullIfEmpty(value.address),
             description: nullIfEmpty(value.description),
+            cameras: value.cameras ?? [],
           }
           if (editIndex !== null) {
             vm.buscaPorImagem.update(editIndex, normalized)
@@ -1987,6 +1988,7 @@ export function EmailToTicketView() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            cameras: value.cameras ?? [],
           }
           if (editIndex !== null) {
             vm.reservaDeImagem.update(editIndex, normalized)
@@ -2000,6 +2002,7 @@ export function EmailToTicketView() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            cameras: value.cameras ?? [],
           }
           if (editIndex !== null) {
             vm.analiseDeImagem.update(editIndex, normalized)

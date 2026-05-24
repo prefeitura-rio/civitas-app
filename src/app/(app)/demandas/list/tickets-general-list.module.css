@@ -123,6 +123,64 @@
   color: #97a2ab;
 }
 
+.searchTooltip {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  z-index: 50;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease;
+
+  transform: translateY(6px);
+}
+
+.searchWrapper:hover .searchTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.searchTooltipContent {
+  position: relative;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(91, 141, 197, 0.22);
+  background: #0e1a24;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.searchTooltipContent p {
+  margin: 0;
+  color: #97a2ab;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.searchTooltipContent::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 24px;
+  width: 14px;
+  height: 14px;
+  background: #0e1a24;
+  border-top: 1px solid rgba(91, 141, 197, 0.22);
+  border-left: 1px solid rgba(91, 141, 197, 0.22);
+  transform: rotate(45deg);
+}
+
 .toolbarActions {
   display: flex;
   gap: 16px;

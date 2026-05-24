@@ -95,6 +95,7 @@ export function buildTicketCreatePayload(
       period_end: toIsoDateTime(item.period_end),
       address: emptyToNull(item.address),
       description: emptyToNull(item.description),
+      cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
     placas_correlatas: data.placas_correlatas.map((group) => ({
@@ -123,12 +124,14 @@ export function buildTicketCreatePayload(
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       orientation: emptyToNull(item.orientation),
+      cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
     analise_de_imagem: data.analise_de_imagem.map((item) => ({
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       orientation: emptyToNull(item.orientation),
+      cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
     outros: data.outros.map((item) => ({
@@ -226,6 +229,7 @@ export function mapTicketOutToCreateForm(
       plate: s.plate ?? null,
       address: s.address ?? null,
       description: s.description ?? null,
+      cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
     placas_correlatas: (ticket.placas_correlatas ?? []).map((g) => ({
       period_start: isoToDatetimeLocal(g.period_start),
@@ -247,11 +251,13 @@ export function mapTicketOutToCreateForm(
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
+      cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
     analise_de_imagem: (ticket.analise_de_imagem ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
+      cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
     outros: (ticket.outros ?? []).map((s) => ({
       orientation: s.orientation ?? null,

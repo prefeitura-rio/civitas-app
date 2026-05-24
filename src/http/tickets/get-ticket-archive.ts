@@ -30,11 +30,13 @@ export type TicketArchiveFilters = {
 export type TicketArchiveListItem = {
   id: string
   chamado: string
+  data_conclusao?: string | null
   demandante: string
   equipe: string
   responsavel: string
   servicos: string[]
   status: string
+  sei_preenchido?: boolean
 }
 
 export type TicketArchivePageOut = {

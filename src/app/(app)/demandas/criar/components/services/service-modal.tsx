@@ -328,6 +328,7 @@ function normalizeBuscaPorImagemPlateForForm(
     plate: null,
     address: null,
     description: null,
+    cameras: [],
   }
   return {
     ...base,
@@ -335,6 +336,7 @@ function normalizeBuscaPorImagemPlateForForm(
       base.plate != null && String(base.plate).trim() !== ''
         ? maskPlateBR(String(base.plate))
         : '',
+    cameras: base.cameras ?? [],
   }
 }
 
@@ -711,6 +713,20 @@ function BuscaPorImagemForm({
     formState: { errors },
   } = form
 
+  const cameras = form.watch('cameras') ?? []
+
+  const addCamera = () => {
+    form.setValue('cameras', [...cameras, ''], { shouldValidate: true })
+  }
+
+  const removeCamera = (index: number) => {
+    form.setValue(
+      'cameras',
+      cameras.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
   return (
     <form
       className={styles.serviceModalFormScroll}
@@ -792,6 +808,48 @@ function BuscaPorImagemForm({
                   {errors.description.message}
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Câmeras</Label>
+              {cameras.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`cameras.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Código da câmera"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeCamera(index)}
+                    title="Remover câmera"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addCamera}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar câmera
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1039,6 +1097,20 @@ function ReservaImagemForm({
     formState: { errors },
   } = form
 
+  const cameras = form.watch('cameras') ?? []
+
+  const addCamera = () => {
+    form.setValue('cameras', [...cameras, ''], { shouldValidate: true })
+  }
+
+  const removeCamera = (index: number) => {
+    form.setValue(
+      'cameras',
+      cameras.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
   return (
     <form
       className={styles.serviceModalFormScroll}
@@ -1083,6 +1155,48 @@ function ReservaImagemForm({
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Câmeras</Label>
+              {cameras.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`cameras.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Código da câmera"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeCamera(index)}
+                    title="Remover câmera"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addCamera}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar câmera
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </fieldset>
@@ -1123,6 +1237,20 @@ function AnaliseImagemForm({
   const {
     formState: { errors },
   } = form
+
+  const cameras = form.watch('cameras') ?? []
+
+  const addCamera = () => {
+    form.setValue('cameras', [...cameras, ''], { shouldValidate: true })
+  }
+
+  const removeCamera = (index: number) => {
+    form.setValue(
+      'cameras',
+      cameras.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
 
   return (
     <form
@@ -1167,6 +1295,48 @@ function AnaliseImagemForm({
                   {errors.orientation.message}
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Câmeras</Label>
+              {cameras.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`cameras.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Código da câmera"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeCamera(index)}
+                    title="Remover câmera"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addCamera}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar câmera
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -47,7 +47,7 @@ export type TicketAttachmentMultipartMetadata = {
 
 export type TicketAttachmentPlaybackUrlOut = {
   signed_url: string
-  expires_in_seconds: number
+  expires_at: string
 }
 
 export async function getTicketAttachments(ticketId: string) {

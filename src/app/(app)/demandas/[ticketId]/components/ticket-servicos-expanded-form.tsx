@@ -564,6 +564,110 @@ export function ServicosExpandedForm({
               </p>
             ) : null}
           </div>
+          <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>Câmeras</span>
+            <div className={styles.servicosStack}>
+              {(item.cameras ?? []).map((cam, ci) => (
+                <Fragment key={cam.id}>
+                  <div className={styles.servicosPlateRow}>
+                    <Input
+                      className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
+                      placeholder="Código da câmera"
+                      value={cam.camera_code}
+                      onChange={(e) =>
+                        patch((n) => {
+                          const cameras = [
+                            ...(n.busca_por_imagem[index].cameras ?? []),
+                          ]
+                          cameras[ci] = {
+                            ...cameras[ci],
+                            camera_code: e.target.value,
+                          }
+                          n.busca_por_imagem[index] = {
+                            ...n.busca_por_imagem[index],
+                            cameras,
+                          }
+                        })
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      title="Remover câmera"
+                      onClick={() =>
+                        patch((n) => {
+                          const cameras = (
+                            n.busca_por_imagem[index].cameras ?? []
+                          ).filter((_, i) => i !== ci)
+                          n.busca_por_imagem[index] = {
+                            ...n.busca_por_imagem[index],
+                            cameras,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {ci === (item.cameras ?? []).length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.busca_por_imagem[index] = {
+                              ...n.busca_por_imagem[index],
+                              cameras: [
+                                ...(n.busca_por_imagem[index].cameras ?? []),
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  camera_code: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar câmera"
+                        title="Adicionar câmera"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </Fragment>
+              ))}
+              {(item.cameras ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.busca_por_imagem[index] = {
+                        ...n.busca_por_imagem[index],
+                        cameras: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            camera_code: '',
+                          },
+                        ],
+                      }
+                    })
+                  }
+                  aria-label="Adicionar câmera"
+                  title="Adicionar câmera"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
+          </div>
         </div>,
       )
     }
@@ -639,6 +743,110 @@ export function ServicosExpandedForm({
               </p>
             ) : null}
           </div>
+          <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>Câmeras</span>
+            <div className={styles.servicosStack}>
+              {(item.cameras ?? []).map((cam, ci) => (
+                <Fragment key={cam.id}>
+                  <div className={styles.servicosPlateRow}>
+                    <Input
+                      className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
+                      placeholder="Código da câmera"
+                      value={cam.camera_code}
+                      onChange={(e) =>
+                        patch((n) => {
+                          const cameras = [
+                            ...(n.reserva_de_imagem[index].cameras ?? []),
+                          ]
+                          cameras[ci] = {
+                            ...cameras[ci],
+                            camera_code: e.target.value,
+                          }
+                          n.reserva_de_imagem[index] = {
+                            ...n.reserva_de_imagem[index],
+                            cameras,
+                          }
+                        })
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      title="Remover câmera"
+                      onClick={() =>
+                        patch((n) => {
+                          const cameras = (
+                            n.reserva_de_imagem[index].cameras ?? []
+                          ).filter((_, i) => i !== ci)
+                          n.reserva_de_imagem[index] = {
+                            ...n.reserva_de_imagem[index],
+                            cameras,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {ci === (item.cameras ?? []).length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.reserva_de_imagem[index] = {
+                              ...n.reserva_de_imagem[index],
+                              cameras: [
+                                ...(n.reserva_de_imagem[index].cameras ?? []),
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  camera_code: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar câmera"
+                        title="Adicionar câmera"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </Fragment>
+              ))}
+              {(item.cameras ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.reserva_de_imagem[index] = {
+                        ...n.reserva_de_imagem[index],
+                        cameras: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            camera_code: '',
+                          },
+                        ],
+                      }
+                    })
+                  }
+                  aria-label="Adicionar câmera"
+                  title="Adicionar câmera"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
+          </div>
         </div>,
       )
     }
@@ -690,6 +898,110 @@ export function ServicosExpandedForm({
                 {fieldErrors.orientation}
               </p>
             ) : null}
+          </div>
+          <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>Câmeras</span>
+            <div className={styles.servicosStack}>
+              {(item.cameras ?? []).map((cam, ci) => (
+                <Fragment key={cam.id}>
+                  <div className={styles.servicosPlateRow}>
+                    <Input
+                      className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
+                      placeholder="Código da câmera"
+                      value={cam.camera_code}
+                      onChange={(e) =>
+                        patch((n) => {
+                          const cameras = [
+                            ...(n.analise_de_imagem[index].cameras ?? []),
+                          ]
+                          cameras[ci] = {
+                            ...cameras[ci],
+                            camera_code: e.target.value,
+                          }
+                          n.analise_de_imagem[index] = {
+                            ...n.analise_de_imagem[index],
+                            cameras,
+                          }
+                        })
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      title="Remover câmera"
+                      onClick={() =>
+                        patch((n) => {
+                          const cameras = (
+                            n.analise_de_imagem[index].cameras ?? []
+                          ).filter((_, i) => i !== ci)
+                          n.analise_de_imagem[index] = {
+                            ...n.analise_de_imagem[index],
+                            cameras,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {ci === (item.cameras ?? []).length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.analise_de_imagem[index] = {
+                              ...n.analise_de_imagem[index],
+                              cameras: [
+                                ...(n.analise_de_imagem[index].cameras ?? []),
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  camera_code: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar câmera"
+                        title="Adicionar câmera"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </Fragment>
+              ))}
+              {(item.cameras ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.analise_de_imagem[index] = {
+                        ...n.analise_de_imagem[index],
+                        cameras: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            camera_code: '',
+                          },
+                        ],
+                      }
+                    })
+                  }
+                  aria-label="Adicionar câmera"
+                  title="Adicionar câmera"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
           </div>
         </div>,
       )

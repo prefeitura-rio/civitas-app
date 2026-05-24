@@ -32,15 +32,20 @@ import {
   normalizeNumeroOficio,
 } from '@/utils/string-formatters'
 
+import { shouldShowTicketSeiFields } from '../ticket-detail.constants'
 import styles from '../ticket-detail.module.css'
 
 const MAX_OFICIO_PROC = 60
 const MAX_APELIDO = 120
+const MAX_NUMERO_SEI = 60
+const MAX_LINK_SEI = 2048
 
 const SERVICE_PREVIEW = 3
 
 type Props = {
   ticketId: string
+  ticketStateId?: string | null
+  ticketStatus?: string | null
 }
 
 function displayText(value?: string | null) {
@@ -101,6 +106,12 @@ function mapOutToDraft(f: TicketFichaOut): TicketFichaUpdateIn {
       ? f.apelido_imprensa.trim()
       : null,
     link_materia: f.link_materia?.trim() ? f.link_materia.trim() : null,
+    numero_processo_sei: f.numero_processo_sei?.trim()
+      ? f.numero_processo_sei.trim()
+      : null,
+    link_processo_sei: f.link_processo_sei?.trim()
+      ? f.link_processo_sei.trim()
+      : null,
   }
 }
 
@@ -117,7 +128,11 @@ function normalizeHttpUrl(raw: string): string | null {
   return null
 }
 
-export function TicketDetailTabChamado({ ticketId }: Props) {
+export function TicketDetailTabChamado({
+  ticketId,
+  ticketStateId,
+  ticketStatus,
+}: Props) {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState<TicketFichaUpdateIn | null>(null)
@@ -231,6 +246,27 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
       linkOut = normalized
     }
 
+    const numeroSei = draft.numero_processo_sei?.trim() ?? ''
+    if (numeroSei.length > MAX_NUMERO_SEI) {
+      toast.error(`Nº SEI: no máximo ${MAX_NUMERO_SEI} caracteres.`)
+      return
+    }
+
+    let linkSeiOut: string | null = null
+    const linkSeiRaw = draft.link_processo_sei?.trim() ?? ''
+    if (linkSeiRaw) {
+      if (linkSeiRaw.length > MAX_LINK_SEI) {
+        toast.error(`Link SEI: no máximo ${MAX_LINK_SEI} caracteres.`)
+        return
+      }
+      const normalized = normalizeHttpUrl(linkSeiRaw)
+      if (!normalized) {
+        toast.error('Informe um link válido (URL) para o processo SEI.')
+        return
+      }
+      linkSeiOut = normalized
+    }
+
     const payload: TicketFichaUpdateIn = {
       tipo_chamado_id: draft.tipo_chamado_id.trim(),
       numero_oficio: oficio || null,
@@ -239,6 +275,8 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
       possui_apelido_imprensa: draft.possui_apelido_imprensa,
       apelido_imprensa: apelido || null,
       link_materia: linkOut,
+      numero_processo_sei: numeroSei || null,
+      link_processo_sei: linkSeiOut,
     }
 
     updateMutation.mutate(payload)
@@ -275,6 +313,12 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
   const pressSimNao = d.possui_apelido_imprensa ? 'Sim' : 'Não'
   const linkRaw =
     (isEditing && draft ? draft.link_materia : view.link_materia)?.trim() ?? ''
+  const showSeiFields = shouldShowTicketSeiFields(ticketStateId, ticketStatus)
+  const linkSeiRaw =
+    (isEditing && draft
+      ? draft.link_processo_sei
+      : view.link_processo_sei
+    )?.trim() ?? ''
 
   return (
     <div className={styles.panel} role="tabpanel">
@@ -596,6 +640,87 @@ export function TicketDetailTabChamado({ ticketId }: Props) {
             </div>
           </div>
         </div>
+
+        {showSeiFields ? (
+          <div className={styles.fieldBlock}>
+            <div>
+              <p className={styles.sectionTitle} role="heading" aria-level={2}>
+                Processo SEI
+              </p>
+            </div>
+            <div className={styles.chamadoTwoCol}>
+              <div className={styles.chamadoCol}>
+                <div className={styles.subLabel}>
+                  <span className={styles.subLabelText}>Número SEI</span>
+                </div>
+                {isEditing ? (
+                  <input
+                    className={`${styles.editableField} ${styles.solicitanteEditField}`}
+                    value={d.numero_processo_sei ?? ''}
+                    maxLength={MAX_NUMERO_SEI}
+                    onChange={(e) =>
+                      setDraft((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              numero_processo_sei: e.target.value || null,
+                            }
+                          : prev,
+                      )
+                    }
+                  />
+                ) : (
+                  <div
+                    className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
+                  >
+                    {displayText(view.numero_processo_sei)}
+                  </div>
+                )}
+              </div>
+              <div className={styles.chamadoCol}>
+                <div className={styles.subLabel}>
+                  <span className={styles.subLabelText}>Link SEI</span>
+                </div>
+                {isEditing ? (
+                  <input
+                    className={`${styles.editableField} ${styles.solicitanteEditField}`}
+                    type="url"
+                    value={d.link_processo_sei ?? ''}
+                    maxLength={MAX_LINK_SEI}
+                    onChange={(e) =>
+                      setDraft((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              link_processo_sei: e.target.value || null,
+                            }
+                          : prev,
+                      )
+                    }
+                    placeholder="https://…"
+                  />
+                ) : (
+                  <div
+                    className={`${styles.readonlyInput} ${styles.readonlyInputLinkCell}`}
+                  >
+                    {linkSeiRaw ? (
+                      <a
+                        href={linkSeiRaw}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.linkExternal}
+                      >
+                        {linkSeiRaw}
+                      </a>
+                    ) : (
+                      <span className={styles.readonlyInputMuted}>—</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className={styles.fieldBlock}>
           <div>

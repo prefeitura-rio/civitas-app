@@ -60,6 +60,12 @@ export type ServiceCercoEletronicoOut = {
   anexos?: TicketAttachmentOut[]
 }
 
+export type ServiceCameraOut = {
+  id: string
+  created_at: string
+  camera_code: string
+}
+
 export type ServiceBuscaPorImagemOut = {
   id: string
   created_at: string
@@ -69,6 +75,7 @@ export type ServiceBuscaPorImagemOut = {
   plate?: string | null
   address?: string | null
   description?: string | null
+  cameras?: ServiceCameraOut[]
   anexos?: TicketAttachmentOut[]
 }
 
@@ -113,6 +120,7 @@ export type ServiceReservaDeImagemOut = {
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
+  cameras?: ServiceCameraOut[]
   anexos?: TicketAttachmentOut[]
 }
 
@@ -123,6 +131,7 @@ export type ServiceAnaliseDeImagemOut = {
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
+  cameras?: ServiceCameraOut[]
   anexos?: TicketAttachmentOut[]
 }
 
