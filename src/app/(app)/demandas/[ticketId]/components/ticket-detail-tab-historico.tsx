@@ -28,6 +28,47 @@ function badgeClassForPapel(papel: string): string {
   return styles.parecerBadgeDefault
 }
 
+/** Limite para exibir ação longa em bloco colapsável. */
+const HISTORICO_ACAO_LONG_MIN_CHARS = 160
+
+function formatAcaoDisplay(raw: string): string {
+  const trimmed = raw.trim()
+  if (!trimmed) return ''
+  return trimmed.startsWith('-') ? trimmed : `- ${trimmed}`
+}
+
+function isHistoricoAcaoLong(raw: string): boolean {
+  const trimmed = raw.trim()
+  if (!trimmed) return false
+  return (
+    trimmed.includes('\n') || trimmed.length > HISTORICO_ACAO_LONG_MIN_CHARS
+  )
+}
+
+function historicoAcaoSummaryLine(raw: string): string {
+  const first = raw.trim().split('\n')[0]?.trim() ?? ''
+  if (first.length <= 120) return first
+  return `${first.slice(0, 117)}…`
+}
+
+function HistoricoAcao({ acaoRaw }: { acaoRaw: string }) {
+  const text = formatAcaoDisplay(acaoRaw)
+  if (!text) return null
+
+  if (!isHistoricoAcaoLong(acaoRaw)) {
+    return <p className={styles.historicoAction}>{text}</p>
+  }
+
+  return (
+    <details className={styles.historicoActionDetails}>
+      <summary className={styles.historicoActionSummary}>
+        {historicoAcaoSummaryLine(acaoRaw)}
+      </summary>
+      <p className={styles.historicoActionBody}>{text}</p>
+    </details>
+  )
+}
+
 export function TicketDetailTabHistorico({ ticketId }: Props) {
   const query = useQuery({
     queryKey: ['ticket-logs', ticketId],
@@ -67,9 +108,10 @@ export function TicketDetailTabHistorico({ ticketId }: Props) {
       >
         {items.map((item, index) => {
           const isLast = index === items.length - 1
-          const nome = (item.autor_nome || '').trim() || '—'
+          const autorNome = (item.autor_nome || '').trim()
           const papel = (item.autor_papeis[0] || '').trim()
           const acaoRaw = (item.acao || '').trim()
+          const hasAuthor = Boolean(autorNome) || Boolean(papel)
           return (
             <li key={item.id} className={styles.historicoRow}>
               <div className={styles.historicoRail} aria-hidden>
@@ -83,24 +125,22 @@ export function TicketDetailTabHistorico({ ticketId }: Props) {
                 >
                   {formatHistoricoTimestamp(item.criado_em)}
                 </time>
-                <div className={styles.historicoTextRow}>
-                  <span className={styles.historicoNameGroup}>
-                    <span className={styles.historicoName}>{nome}</span>
-                    {papel ? (
-                      <span
-                        className={`${styles.parecerBadge} ${badgeClassForPapel(papel)}`}
-                      >
-                        {papel}
+                <div className={styles.historicoEntry}>
+                  {hasAuthor ? (
+                    <div className={styles.historicoEntryHeader}>
+                      <span className={styles.historicoName}>
+                        {autorNome || '—'}
                       </span>
-                    ) : null}
-                  </span>
-                  {acaoRaw ? (
-                    <span className={styles.historicoAction}>
-                      {acaoRaw.startsWith('-')
-                        ? ` ${acaoRaw}`
-                        : ` - ${acaoRaw}`}
-                    </span>
+                      {papel ? (
+                        <span
+                          className={`${styles.parecerBadge} ${badgeClassForPapel(papel)}`}
+                        >
+                          {papel}
+                        </span>
+                      ) : null}
+                    </div>
                   ) : null}
+                  <HistoricoAcao acaoRaw={acaoRaw} />
                 </div>
               </div>
             </li>

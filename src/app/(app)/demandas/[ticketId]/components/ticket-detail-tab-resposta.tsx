@@ -19,11 +19,14 @@ import {
   getStandardizedResponseById,
   listStandardizedResponses,
 } from '@/http/standardized-responses/standardized-responses'
+import { fetchTicketServiceAttachmentBlob } from '@/http/tickets/download-ticket-attachment'
+import { getTicketAllServicoAnexos } from '@/http/tickets/get-ticket-all-servico-anexos'
 import { getTicketServicoAnexos } from '@/http/tickets/get-ticket-servico-anexos'
 import {
   getTicketServicosIndice,
   type TicketServicoIndiceItem,
 } from '@/http/tickets/get-ticket-servicos-indice'
+import { getTicketServiceAttachmentPlaybackUrl } from '@/http/tickets/ticket-attachments'
 import {
   getTicketResposta,
   putTicketResposta,
@@ -34,10 +37,13 @@ import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import responderStyles from '../../caixa-entrada/responder/[emailId]/components/responder-email-view.module.css'
 import detailStyles from '../ticket-detail.module.css'
+import { usesGcsSignedUrlAttachment } from './ticket-gcs-upload'
 
 const EMPTY_POP_VALUE = '__civitas_pop_empty__'
 const EMPTY_SERVICE_VALUE = '__civitas_service_empty__'
 const EMPTY_ANEXO_VALUE = '__civitas_anexo_empty__'
+/** Validade do link ao abrir vídeo/ZIP na aba Resposta (15 min). */
+const RESPOSTA_PLAYBACK_EXPIRATION_MINUTES = 15
 
 type RespostaAnexoSelecionado = TicketAttachmentWithPlaybackOut & {
   servico_label: string
@@ -112,6 +118,8 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
   const [anexosResposta, setAnexosResposta] = useState<
     RespostaAnexoSelecionado[]
   >([])
+  const [isSelectingAllAnexos, setIsSelectingAllAnexos] = useState(false)
+  const [viewingAnexoId, setViewingAnexoId] = useState<string | null>(null)
 
   const respostaQuery = useQuery({
     queryKey: RESPOSTA_QUERY_KEY(ticketId),
@@ -236,6 +244,78 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
     setDirty(true)
   }, [])
 
+  const handleAbrirAnexo = useCallback(
+    async (att: RespostaAnexoSelecionado) => {
+      if (usesGcsSignedUrlAttachment(att)) {
+        try {
+          setViewingAnexoId(att.id)
+          const { signed_url: signedUrl } =
+            await getTicketServiceAttachmentPlaybackUrl(
+              ticketId,
+              att.id,
+              RESPOSTA_PLAYBACK_EXPIRATION_MINUTES,
+            )
+          window.open(signedUrl, '_blank', 'noopener,noreferrer')
+        } catch {
+          toast.error('Não foi possível abrir o anexo.')
+        } finally {
+          setViewingAnexoId(null)
+        }
+        return
+      }
+
+      try {
+        setViewingAnexoId(att.id)
+        const { blob, contentType } = await fetchTicketServiceAttachmentBlob(
+          ticketId,
+          att.id,
+        )
+        const previewBlob = new Blob([blob], { type: contentType })
+        const previewUrl = URL.createObjectURL(previewBlob)
+        window.open(previewUrl, '_blank', 'noopener,noreferrer')
+        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
+      } catch {
+        toast.error('Não foi possível abrir o anexo.')
+      } finally {
+        setViewingAnexoId(null)
+      }
+    },
+    [ticketId],
+  )
+
+  const handleSelecionarTodosAnexos = useCallback(async () => {
+    setIsSelectingAllAnexos(true)
+    try {
+      const todos = await getTicketAllServicoAnexos(ticketId)
+      const existingIds = new Set(anexosResposta.map((a) => a.id))
+      const novos = toRespostaAnexosSelecionados(
+        todos,
+        servicosIndiceQuery.data,
+      ).filter((a) => !existingIds.has(a.id))
+
+      if (novos.length === 0) {
+        if (todos.length === 0) {
+          toast.info('Nenhum anexo encontrado nos serviços deste chamado.')
+        } else {
+          toast.info('Todos os anexos já estão na lista.')
+        }
+        return
+      }
+
+      setAnexosResposta((prev) => [...prev, ...novos])
+      setDirty(true)
+      toast.success(
+        novos.length === 1
+          ? '1 anexo incluído na lista.'
+          : `${novos.length} anexos incluídos na lista.`,
+      )
+    } catch {
+      toast.error('Não foi possível carregar os anexos dos serviços.')
+    } finally {
+      setIsSelectingAllAnexos(false)
+    }
+  }, [ticketId, servicosIndiceQuery.data, anexosResposta])
+
   useEffect(() => {
     if (respostaQuery.isLoading || respostaQuery.isError || dirty) return
     const initialBody = respostaQuery.data?.conteudo_html ?? ''
@@ -354,14 +434,28 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
           </div>
 
           <div className={detailStyles.respostaAnexosBlock}>
-            <div className="space-y-1.5">
-              <Label className={tcStyles.fieldLabel}>
-                Anexos de serviços (para enviar com a resposta)
-              </Label>
-              <p className={detailStyles.respostaAnexosHint}>
-                Escolha o serviço do chamado, depois um anexo, e inclua na
-                lista. A ordem na lista é a ordem enviada ao gravar a resposta.
-              </p>
+            <div className={detailStyles.respostaAnexosHeader}>
+              <div className="min-w-0 space-y-1.5">
+                <Label className={tcStyles.fieldLabel}>
+                  Anexos de serviços (para enviar com a resposta)
+                </Label>
+                <p className={detailStyles.respostaAnexosHint}>
+                  Escolha o serviço do chamado, depois um anexo, e inclua na
+                  lista. A ordem na lista é a ordem enviada ao gravar a
+                  resposta.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="shrink-0"
+                disabled={isSelectingAllAnexos}
+                onClick={handleSelecionarTodosAnexos}
+              >
+                {isSelectingAllAnexos
+                  ? 'Carregando anexos…'
+                  : 'Selecionar todos os anexos'}
+              </Button>
             </div>
 
             {servicosIndiceQuery.isError ? (
@@ -493,9 +587,38 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
                       className={detailStyles.respostaAnexosListaItem}
                     >
                       <div className={detailStyles.respostaAnexosListaMeta}>
-                        <span className={detailStyles.respostaAnexosListaNome}>
-                          {a.filename}
-                        </span>
+                        {usesGcsSignedUrlAttachment(a) ? (
+                          <button
+                            type="button"
+                            className={detailStyles.respostaAnexosListaNomeLink}
+                            disabled={viewingAnexoId === a.id}
+                            onClick={() => {
+                              handleAbrirAnexo(a).catch(() => {})
+                            }}
+                          >
+                            {a.filename}
+                          </button>
+                        ) : a.playback?.signed_url?.trim() ? (
+                          <a
+                            href={a.playback.signed_url.trim()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={detailStyles.respostaAnexosListaNomeLink}
+                          >
+                            {a.filename}
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            className={detailStyles.respostaAnexosListaNomeLink}
+                            disabled={viewingAnexoId === a.id}
+                            onClick={() => {
+                              handleAbrirAnexo(a).catch(() => {})
+                            }}
+                          >
+                            {a.filename}
+                          </button>
+                        )}
                         <span className={detailStyles.respostaAnexosListaSub}>
                           {a.servico_label}
                           {' · '}

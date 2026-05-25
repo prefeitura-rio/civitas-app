@@ -63,9 +63,6 @@ export type { PendingServiceAttachment } from './ticket-pending-attachment'
 const MAX_MULTIPART_BYTES = 10 * 1024 * 1024
 const MAX_GCS_UPLOAD_GB = 20
 const MAX_GCS_UPLOAD_BYTES = MAX_GCS_UPLOAD_GB * 1024 * 1024 * 1024
-/** Validade do link de reprodução ao atualizar (7 h, em minutos). */
-const VIDEO_PLAYBACK_EXPIRATION_MINUTES = 7 * 60
-
 const MULTIPART_ACCEPT = [
   'application/pdf',
   'image/jpeg',
@@ -365,14 +362,7 @@ export function TicketServicoAnexos({
           : await fetchTicketAttachmentBlob(ticketId, att.id)
         const previewBlob = new Blob([blob], { type: contentType })
         const previewUrl = URL.createObjectURL(previewBlob)
-        const newTab = window.open(previewUrl, '_blank', 'noopener,noreferrer')
-
-        if (!newTab) {
-          URL.revokeObjectURL(previewUrl)
-          toast.error('Não foi possível abrir a visualização do anexo.')
-          return
-        }
-
+        window.open(previewUrl, '_blank', 'noopener,noreferrer')
         window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
       } catch {
         toast.error('Não foi possível visualizar o anexo.')
@@ -434,15 +424,8 @@ export function TicketServicoAnexos({
     async (att: TicketAttachmentOut) => {
       setVideoRefreshingId(att.id)
       try {
-        const { signed_url: signedUrl } =
-          await getTicketServiceAttachmentPlaybackUrl(
-            ticketId,
-            att.id,
-            VIDEO_PLAYBACK_EXPIRATION_MINUTES,
-          )
-        const expiresAt = new Date(
-          Date.now() + VIDEO_PLAYBACK_EXPIRATION_MINUTES * 60 * 1000,
-        ).toISOString()
+        const { signed_url: signedUrl, expires_at: expiresAt } =
+          await getTicketServiceAttachmentPlaybackUrl(ticketId, att.id)
         setVideoPlaybackOverrides((prev) => ({
           ...prev,
           [att.id]: { signedUrl, expiresAt },

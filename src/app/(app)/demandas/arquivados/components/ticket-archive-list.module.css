@@ -64,10 +64,12 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow: visible;
 }
 
 .tableWrap {
   overflow-x: auto;
+  overflow-y: visible;
 }
 
 .table {
@@ -92,7 +94,14 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
+  vertical-align: middle;
   white-space: nowrap;
+}
+
+.chamadoCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chamadoLink {
@@ -100,23 +109,48 @@
   text-decoration: none;
 }
 
+.seiTooltipTrigger {
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.seiIcon {
+  color: #6eb5ff;
+  flex-shrink: 0;
+}
+
 .servicesCell {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  overflow: visible;
 }
 
 .serviceTag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  height: auto;
   min-height: 20px;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
   line-height: 16px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.serviceTagIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 
 .serviceTagPink {
@@ -165,18 +199,99 @@
 }
 
 .extraTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 20px;
-  min-width: 28px;
-  border-radius: 4px;
+  min-width: 27px;
   padding: 1px 7px;
+  border-radius: 4px;
   background: #1d3449;
+  border: none;
   color: #f9fafa;
   font-size: 10px;
   font-weight: 600;
   line-height: 16px;
+  white-space: nowrap;
+}
+
+.extraTagWrapper {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+}
+
+.extraTooltip {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  z-index: 50;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease;
+}
+
+.extraTagWrapper:hover .extraTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.extraTooltipContent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  min-width: 220px;
+  max-width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding: 14px 16px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(91, 141, 197, 0.22);
+
+  background: #0e1a24;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.extraTooltipContent .serviceTag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.extraTooltipContent::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  background: rgba(4, 24, 44, 0.98);
+
+  border-top: 1px solid rgba(91, 141, 197, 0.22);
+  border-left: 1px solid rgba(91, 141, 197, 0.22);
+
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .statusBadge {

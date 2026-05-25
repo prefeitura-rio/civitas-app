@@ -44,6 +44,7 @@ export type BuscaPorImagemDraft = {
   plate: string
   address: string
   description: string
+  cameras: string[]
 }
 
 export type CorrelataDraftItem = {
@@ -63,12 +64,14 @@ export type ReservaImagemDraft = {
   period_start: string
   period_end: string
   orientation: string
+  cameras: string[]
 }
 
 export type AnaliseImagemDraft = {
   period_start: string
   period_end: string
   orientation: string
+  cameras: string[]
 }
 
 export type OutrosDraft = {
@@ -200,6 +203,7 @@ export function emptyBuscaPorImagemDraft(): BuscaPorImagemDraft {
     plate: '',
     address: '',
     description: '',
+    cameras: [],
   }
 }
 
@@ -219,11 +223,11 @@ export function emptyCorrelataDraft(): CorrelataDraft {
 }
 
 export function emptyReservaImagemDraft(): ReservaImagemDraft {
-  return { period_start: '', period_end: '', orientation: '' }
+  return { period_start: '', period_end: '', orientation: '', cameras: [] }
 }
 
 export function emptyAnaliseImagemDraft(): AnaliseImagemDraft {
-  return { period_start: '', period_end: '', orientation: '' }
+  return { period_start: '', period_end: '', orientation: '', cameras: [] }
 }
 
 export function emptyOutrosDraft(): OutrosDraft {

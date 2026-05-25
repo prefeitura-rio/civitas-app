@@ -76,6 +76,7 @@ export const serviceBuscaPorImagemSchema = z.object({
   plate: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
+  cameras: z.array(z.string()).default([]),
 })
 
 const correlataPlateItemSchema = z.object({
@@ -104,12 +105,14 @@ export const serviceReservaDeImagemSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   orientation: z.string().optional().nullable(),
+  cameras: z.array(z.string()).default([]),
 })
 
 export const serviceAnaliseDeImagemSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   orientation: z.string().optional().nullable(),
+  cameras: z.array(z.string()).default([]),
 })
 
 export const serviceOutrosSchema = z.object({

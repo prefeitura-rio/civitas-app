@@ -2483,7 +2483,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
 }
 
@@ -2535,20 +2535,20 @@
   color: var(--td-border);
 }
 
-.historicoTextRow {
+.historicoEntry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.historicoEntryHeader {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   row-gap: 4px;
-}
-
-.historicoNameGroup {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
 }
 
 .historicoName {
@@ -2559,10 +2559,60 @@
 }
 
 .historicoAction {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
   color: var(--td-muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+}
+
+.historicoActionDetails {
+  width: 100%;
+  min-width: 0;
+}
+
+.historicoActionSummary {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--td-muted);
+  cursor: pointer;
+  list-style-position: outside;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+}
+
+.historicoActionSummary:hover {
+  color: var(--td-text);
+}
+
+.historicoActionDetails[open] > .historicoActionSummary {
+  color: var(--td-text);
+  margin-bottom: 4px;
+}
+
+.historicoActionBody {
+  margin: 0;
+  padding: 8px 12px;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--td-radius);
+  background: rgba(151, 162, 171, 0.08);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--td-muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
 }
 
 /* —— Anexos por serviço / gerais (aba Serviços) —— */
@@ -2887,6 +2937,14 @@
   border-radius: var(--td-radius);
 }
 
+.respostaAnexosHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .respostaAnexosHint {
   margin: 0;
   font-size: 12px;
@@ -2942,6 +3000,31 @@
 .respostaAnexosListaNome {
   font-weight: 600;
   word-break: break-word;
+}
+
+.respostaAnexosListaNomeLink {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  line-height: inherit;
+  text-align: left;
+  word-break: break-word;
+  color: var(--td-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.respostaAnexosListaNomeLink:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.respostaAnexosListaNomeLink:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .respostaAnexosListaSub {

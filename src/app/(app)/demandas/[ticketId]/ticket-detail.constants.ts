@@ -18,8 +18,8 @@ export const TICKET_DETAIL_BASE_TABS: {
 }[] = [
   { id: 'solicitante', label: 'Solicitante' },
   { id: 'chamado', label: 'Demanda' },
-  { id: 'documentos', label: 'Documentos' },
-  { id: 'servicos', label: 'Serviços' },
+  { id: 'documentos', label: 'Documentos Recebidos' },
+  { id: 'servicos', label: 'Serviços e Documentos Elaborados' },
   { id: 'parecer_interno', label: 'Parecer Interno' },
   { id: 'relatorio_demanda', label: 'Relatório de Demanda' },
   { id: 'historico', label: 'Histórico' },
@@ -30,25 +30,44 @@ export const TICKET_RESPOSTA_TAB = {
   label: 'Resposta',
 }
 
-const RESPOSTA_TAB_STATE_ID = 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
-const RESPOSTA_TAB_STATUS_RESTRITO = 'RESTRITO'
+const RESPOSTA_TAB_VISIBLE_IDS = new Set([
+  'AGUARDANDO_REVISAO_ADMINISTRATIVO',
+  'RESTRITO',
+  'DEMANDA_RESPONDIDA',
+])
 
-export function shouldShowTicketRespostaTab(
+const SEI_FIELDS_VISIBLE_STATE_IDS = new Set([
+  'FINALIZADO',
+  'DEMANDA_RESPONDIDA',
+])
+
+export function shouldShowTicketSeiFields(
   stateId: string | null | undefined,
   status: string | null | undefined,
 ) {
   const normalizedStateId = stateId?.trim().toUpperCase() ?? ''
   if (
-    normalizedStateId === RESPOSTA_TAB_STATE_ID ||
-    normalizedStateId === RESPOSTA_TAB_STATUS_RESTRITO
+    normalizedStateId &&
+    SEI_FIELDS_VISIBLE_STATE_IDS.has(normalizedStateId)
   ) {
     return true
   }
 
   const normalizedStatus = status?.trim().toUpperCase() ?? ''
   if (!normalizedStatus) return false
-  return (
-    normalizedStatus === RESPOSTA_TAB_STATE_ID ||
-    normalizedStatus === RESPOSTA_TAB_STATUS_RESTRITO
-  )
+  return SEI_FIELDS_VISIBLE_STATE_IDS.has(normalizedStatus)
+}
+
+export function shouldShowTicketRespostaTab(
+  stateId: string | null | undefined,
+  status: string | null | undefined,
+) {
+  const normalizedStateId = stateId?.trim().toUpperCase() ?? ''
+  if (normalizedStateId && RESPOSTA_TAB_VISIBLE_IDS.has(normalizedStateId)) {
+    return true
+  }
+
+  const normalizedStatus = status?.trim().toUpperCase() ?? ''
+  if (!normalizedStatus) return false
+  return RESPOSTA_TAB_VISIBLE_IDS.has(normalizedStatus)
 }

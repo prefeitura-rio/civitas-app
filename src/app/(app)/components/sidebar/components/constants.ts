@@ -108,7 +108,7 @@ const demandasItem: Category = {
     },
     {
       icon: 'Gauge',
-      title: 'Dashboard SLA',
+      title: 'Configuração SLA',
       path: '/demandas/dashboard/sla',
       ticketScreenCode: 'sla_config',
     },

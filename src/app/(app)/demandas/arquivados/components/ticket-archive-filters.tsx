@@ -41,6 +41,9 @@ type SearchMultiSelectProps = {
   minCharsMessage?: string
 }
 
+const SEARCH_TOOLTIP_TEXT =
+  'Buscar por nº interno, requisitante, demandante, ofício, procedimento, ponto focal, equipe, responsável, comentários, relatório da demanda, placa, orientações ou observações'
+
 const prioridadeOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
 
 const servicoOptions: SearchOption[] = [
@@ -454,6 +457,11 @@ export function ArchiveSearchField({
         onChange={(event) => onChange(event.target.value)}
         placeholder="Buscar"
       />
+      <div className={styles.searchTooltip} role="tooltip">
+        <div className={styles.searchTooltipContent}>
+          <p>{SEARCH_TOOLTIP_TEXT}</p>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,12 +1,13 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Download, Filter, Tag } from 'lucide-react'
+import { Download, FileText, Filter, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
+import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/ui/pagination'
 import {
@@ -55,6 +56,30 @@ function parseServices(rawServices: unknown): string[] {
     .filter(Boolean)
 }
 
+function pickOptionalDate(row: Record<string, unknown>, ...keys: string[]) {
+  for (const key of keys) {
+    const value = row[key]
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return null
+}
+
+function formatArchiveDate(value?: string | null) {
+  const raw = value?.trim()
+  return raw && raw.length > 0 ? raw : '—'
+}
+
+const SEI_PREENCHIDO_TOOLTIP = 'Processo SEI preenchido.'
+
+function parseSeiPreenchido(value: unknown): boolean {
+  if (value === true || value === 1) return true
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    return normalized === 'true' || normalized === '1'
+  }
+  return false
+}
+
 function normalizeArchiveItem(item: unknown): TicketArchiveListItem {
   const row = (item as Record<string, unknown>) ?? {}
 
@@ -66,11 +91,18 @@ function normalizeArchiveItem(item: unknown): TicketArchiveListItem {
   return {
     id,
     chamado,
+    data_conclusao: pickOptionalDate(
+      row,
+      'data_conclusao',
+      'completed_at',
+      'concluded_at',
+    ),
     demandante: String(row.demandante ?? row.demandante_nome ?? '-'),
     equipe: String(row.equipe ?? row.team_name ?? '-'),
     responsavel: String(row.responsavel ?? row.responsavel_nome ?? '-'),
     servicos: parseServices(row.servicos ?? row.services),
     status: String(row.status ?? row.situacao ?? '-'),
+    sei_preenchido: parseSeiPreenchido(row.sei_preenchido),
   }
 }
 
@@ -114,6 +146,7 @@ function escapeCsvCell(value: string): string {
 function buildArchiveCsv(rows: TicketArchiveListItem[]): string {
   const header = [
     'CHAMADO',
+    'DATA CONCLUSÃO',
     'DEMANDANTE',
     'EQUIPE',
     'RESPONSÁVEL',
@@ -127,6 +160,7 @@ function buildArchiveCsv(rows: TicketArchiveListItem[]): string {
     .map((item) =>
       [
         item.chamado,
+        formatArchiveDate(item.data_conclusao),
         item.demandante,
         item.equipe,
         item.responsavel,
@@ -303,6 +337,7 @@ export function TicketArchiveList() {
             <thead>
               <tr>
                 <th>CHAMADO</th>
+                <th>DATA CONCLUSÃO</th>
                 <th>DEMANDANTE</th>
                 <th>EQUIPE</th>
                 <th>RESPONSÁVEL</th>
@@ -314,58 +349,109 @@ export function TicketArchiveList() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className={styles.emptyRow}>
+                  <td colSpan={7} className={styles.emptyRow}>
                     Carregando arquivo...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={styles.emptyRow}>
+                  <td colSpan={7} className={styles.emptyRow}>
                     Nenhum chamado encontrado.
                   </td>
                 </tr>
               ) : (
-                items.map((item) => (
-                  <tr key={`${item.id}-${item.chamado}`}>
-                    <td>
-                      <Link
-                        href={
-                          item.id
-                            ? `/demandas/${encodeURIComponent(item.id)}`
-                            : '#'
-                        }
-                        className={styles.chamadoLink}
-                      >
-                        {item.chamado}
-                      </Link>
-                    </td>
-                    <td>{item.demandante}</td>
-                    <td>{item.equipe}</td>
-                    <td>{item.responsavel}</td>
-                    <td>
-                      <div className={styles.servicesCell}>
-                        {item.servicos.slice(0, 3).map((service) => (
-                          <span
-                            key={`${item.id}-${service}`}
-                            className={`${styles.serviceTag} ${getServiceClassName(service)}`}
-                          >
-                            <Tag size={12} />
-                            {service}
-                          </span>
-                        ))}
+                items.map((item) => {
+                  const previewServices = item.servicos.slice(0, 2)
+                  const extraCount = Math.max(
+                    item.servicos.length - previewServices.length,
+                    0,
+                  )
 
-                        {item.servicos.length > 3 ? (
-                          <span className={styles.extraTag}>
-                            +{item.servicos.length - 3}
-                          </span>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td>
-                      <span className={styles.statusBadge}>{item.status}</span>
-                    </td>
-                  </tr>
-                ))
+                  return (
+                    <tr key={`${item.id}-${item.chamado}`}>
+                      <td>
+                        <div className={styles.chamadoCell}>
+                          <Link
+                            href={
+                              item.id
+                                ? `/demandas/${encodeURIComponent(item.id)}`
+                                : '#'
+                            }
+                            className={styles.chamadoLink}
+                          >
+                            {item.chamado}
+                          </Link>
+                          {item.sei_preenchido ? (
+                            <Tooltip asChild text={SEI_PREENCHIDO_TOOLTIP}>
+                              <span
+                                className={styles.seiTooltipTrigger}
+                                aria-label={SEI_PREENCHIDO_TOOLTIP}
+                              >
+                                <FileText
+                                  className={styles.seiIcon}
+                                  size={14}
+                                  aria-hidden
+                                />
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td>{formatArchiveDate(item.data_conclusao)}</td>
+                      <td>{item.demandante}</td>
+                      <td>{item.equipe}</td>
+                      <td>{item.responsavel}</td>
+                      <td>
+                        <div className={styles.servicesCell}>
+                          {previewServices.map((service, index) => (
+                            <span
+                              key={`${item.id}-${service}-${index}`}
+                              className={`${styles.serviceTag} ${getServiceClassName(service)}`}
+                            >
+                              <Tag
+                                className={styles.serviceTagIcon}
+                                strokeWidth={2}
+                              />
+                              <span>{service}</span>
+                            </span>
+                          ))}
+
+                          {extraCount > 0 ? (
+                            <div className={styles.extraTagWrapper}>
+                              <span className={styles.extraTag}>
+                                +{extraCount}
+                              </span>
+
+                              <div className={styles.extraTooltip}>
+                                <div className={styles.extraTooltipContent}>
+                                  {item.servicos
+                                    .slice(2)
+                                    .map((service, index) => (
+                                      <span
+                                        key={`${item.id}-extra-${service}-${index}`}
+                                        className={`${styles.serviceTag} ${getServiceClassName(service)}`}
+                                      >
+                                        <Tag
+                                          className={styles.serviceTagIcon}
+                                          strokeWidth={2}
+                                        />
+                                        {service}
+                                      </span>
+                                    ))}
+                                </div>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td>
+                        <span className={styles.statusBadge}>
+                          {item.status}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

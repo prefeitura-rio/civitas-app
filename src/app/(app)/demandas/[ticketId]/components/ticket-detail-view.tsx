@@ -621,18 +621,6 @@ export function TicketDetailView({ ticketId }: Props) {
                 : 'Finalizar sem Encaminhar'}
             </button>
           ) : null}
-          {canSendEmail ? (
-            <button
-              type="button"
-              className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() => setWorkflowCommentAction('ENVIAR_EMAIL')}
-              disabled={workflowActionMutation.isPending}
-            >
-              {workflowActionMutation.isPending
-                ? 'Aplicando ação…'
-                : 'Enviar E-mail'}
-            </button>
-          ) : null}
           {canSendToReview ? (
             <button
               type="button"
@@ -690,6 +678,18 @@ export function TicketDetailView({ ticketId }: Props) {
               Reatribuir Demanda
             </button>
           ) : null}
+          {canSendEmail ? (
+            <button
+              type="button"
+              className={`${styles.actionSlot} ${styles.actionPrimary}`}
+              onClick={() => setWorkflowCommentAction('ENVIAR_EMAIL')}
+              disabled={workflowActionMutation.isPending}
+            >
+              {workflowActionMutation.isPending
+                ? 'Aplicando ação…'
+                : 'Enviar E-mail'}
+            </button>
+          ) : null}
         </div>
 
         <div className={styles.tabsShell}>
@@ -718,7 +718,11 @@ export function TicketDetailView({ ticketId }: Props) {
           {activeTab === 'solicitante' ? (
             <TicketDetailTabSolicitante ticketId={ticketId} />
           ) : activeTab === 'chamado' ? (
-            <TicketDetailTabChamado ticketId={ticketId} />
+            <TicketDetailTabChamado
+              ticketId={ticketId}
+              ticketStateId={allowedActionsQuery.data?.state_id}
+              ticketStatus={cab?.status}
+            />
           ) : activeTab === 'documentos' ? (
             <div className={styles.panel} role="tabpanel">
               <TicketDetailTabDocumentos ticketId={ticketId} />
