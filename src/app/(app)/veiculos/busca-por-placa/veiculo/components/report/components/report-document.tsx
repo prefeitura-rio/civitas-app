@@ -72,6 +72,7 @@ export function ReportDocument({
               <ReportTrip
                 trip={trip}
                 plate={searchParams.plate}
+                totalTrips={trips.length}
                 useImgCounter={useImgCounter}
                 useTableCounter={useTableCounter}
               />

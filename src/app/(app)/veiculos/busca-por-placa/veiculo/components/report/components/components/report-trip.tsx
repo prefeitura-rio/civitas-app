@@ -9,6 +9,7 @@ import { TripTable } from './trip/trip-table'
 interface ReportTripProps {
   trip: Trip
   plate: string
+  totalTrips: number
   useImgCounter: () => number
   useTableCounter: () => number
 }
@@ -26,7 +27,13 @@ Font.register({
   ],
 })
 
-export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
+export function ReportTrip({
+  trip,
+  plate,
+  totalTrips,
+  useImgCounter,
+}: ReportTripProps) {
+  const reportTripNumber = totalTrips - trip.index
   const hash = new Set<string>() // Conjunto de hash para armazenar as coordenadas dos pontos no chunk atual
   let mapPoints: Point[] = [] // Array para armazenar os pontos no chunk atual
   const tripChuncks: Point[][] = [] // Array para armazenar os chunks de pontos
@@ -94,7 +101,7 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
                 fontSize: 14,
                 textAlign: 'center',
               }}
-            >{`Viagem ${trip.index + 1}${tripChuncks.length > 1 ? ` - Parte ${index + 1} de ${tripChuncks.length}` : ''}:`}</Text>
+            >{`Viagem ${reportTripNumber}${tripChuncks.length > 1 ? ` - Parte ${index + 1} de ${tripChuncks.length}` : ''}:`}</Text>
             <MapView points={tripChunck} />
             <Text
               style={{
@@ -104,8 +111,8 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
               }}
             >
               {tripChunck.length === 1
-                ? `Figura ${useImgCounter()}: Mapa do ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${trip.index + 1}.`
-                : `Figura ${useImgCounter()}: Mapa dos pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${trip.index + 1}.`}
+                ? `Figura ${useImgCounter()}: Mapa do ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${reportTripNumber}.`
+                : `Figura ${useImgCounter()}: Mapa dos pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${reportTripNumber}.`}
             </Text>
           </View>
 
@@ -119,8 +126,8 @@ export function ReportTrip({ trip, plate, useImgCounter }: ReportTripProps) {
               }}
             >
               {tripChunck.length === 1
-                ? `Tabela ${useImgCounter()}: Ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${trip.index + 1}.`
-                : `Tabela ${useImgCounter()}: Pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${trip.index + 1}.`}
+                ? `Tabela ${useImgCounter()}: Ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${reportTripNumber}.`
+                : `Tabela ${useImgCounter()}: Pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${reportTripNumber}.`}
             </Text>
           </View>
         </View>
