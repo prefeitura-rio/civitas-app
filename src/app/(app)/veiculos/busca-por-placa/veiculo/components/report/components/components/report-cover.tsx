@@ -388,6 +388,10 @@ export function ReportCover({
             cloneAlert ? 'Sim' : 'Não',
           )}
           {renderTableRow(
+            'Bairro com mais viagens distintas:',
+            neighborhoodWithMostDistinctTripsText,
+          )}
+          {renderTableRow(
             'Local com maior número de passagens:',
             topLocationText,
           )}
@@ -395,10 +399,6 @@ export function ReportCover({
             'Bairros com mais detecções:',
             topNeighborhoodsText,
             hasTopNeighborhoods,
-          )}
-          {renderTableRow(
-            'Bairro com mais viagens distintas:',
-            neighborhoodWithMostDistinctTripsText,
           )}
           {renderTableRow('Turno com mais detecções:', topTimePeriodText)}
           {renderTableRow('Detecções por turnos:', timePeriodsText)}
