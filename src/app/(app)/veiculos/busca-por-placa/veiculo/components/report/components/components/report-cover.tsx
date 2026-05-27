@@ -50,6 +50,10 @@ const bulletPoints: BulletPoint[] = [
           },
           {
             value:
+              'As viagens são exibidas da mais recente para a mais antiga, e por isso a numeração da viagem é apresentada em ordem decrescente.',
+          },
+          {
+            value:
               'As viagens podem ser particionadas para facilitar a visualização dos pontos de detecção.',
           },
           {
