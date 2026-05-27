@@ -34,7 +34,7 @@ export function ReportFooter() {
   return (
     <View style={styles.container} fixed debug>
       <Text>
-        Este relatório foi gerado com base nos dados do Sistema Cerco Digital
+        Este relatório foi gerado com base nos dados do Sistema Cerco Eletrônico
       </Text>
       <View style={styles.images}>
         <Image style={styles.image} src={logoPrefeitura.src} />

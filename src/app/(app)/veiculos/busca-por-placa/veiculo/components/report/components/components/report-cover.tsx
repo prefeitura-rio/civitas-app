@@ -415,7 +415,7 @@ export function ReportCover({
         }}
       >
         Este relatório foi gerado automaticamente com base nos dados do sistema
-        Cerco Digital.
+        Cerco Eletrônico.
       </Text>
     </>
   )
