@@ -1,8 +1,7 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Font, Image, StyleSheet, Text, View } from '@react-pdf/renderer'
 
-import logoCivitas from '@/assets/CIVITAS_h_azul_completa.png'
-import logoPrefeitura from '@/assets/prefeitura-do-rio-logo.png'
+import logoPrefeituraCivitas from '@/assets/pref-civitas-horizontal_Azul_transparente.png'
 
 Font.registerHyphenationCallback((word) => [word])
 
@@ -16,7 +15,7 @@ const styles = StyleSheet.create({
   headerRow: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     width: '100%',
   },
   headerRowSecond: {
@@ -30,29 +29,36 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   column: {
-    width: '35%',
+    width: 180,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  images: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    width: '100%',
+    flexShrink: 0,
     borderRightWidth: 1,
     borderRightColor: '#000',
+  },
+  images: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
     paddingVertical: 2,
+    paddingHorizontal: 2,
   },
   image: {
-    width: 'auto',
-    height: 30,
+    width: 171,
+    height: 22.46,
+  },
+  titleContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 2,
   },
   title: {
-    width: '65%',
+    width: '100%',
     textAlign: 'center',
     fontSize: 14,
-    padding: 2,
+    lineHeight: 1.1,
   },
   subTitle: {
     textAlign: 'center',
@@ -73,11 +79,12 @@ export function ReportHeader({ title }: ReportHeaderProps) {
       <View style={styles.headerRow}>
         <View style={styles.column}>
           <View style={styles.images}>
-            <Image style={styles.image} src={logoPrefeitura.src} />
-            <Image style={styles.image} src={logoCivitas.src} />
+            <Image style={styles.image} src={logoPrefeituraCivitas.src} />
           </View>
         </View>
-        <Text style={styles.title}>{title.toUpperCase()}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{title.toUpperCase()}</Text>
+        </View>
       </View>
       <View style={styles.headerRowSecond}>
         <Text style={styles.subTitle}>{`ID: ${code}`}</Text>
