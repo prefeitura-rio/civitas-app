@@ -1,3 +1,4 @@
+import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
 export type DemandVolumeGranularity = 'monthly' | 'weekly' | 'yearly'
@@ -9,18 +10,14 @@ export type DemandVolumeSummaryPeriod =
 
 export type TicketPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
-export type TicketStatus =
-  | 'PENDENTE'
-  | 'RESTRITO'
-  | 'BLOQUEADO'
-  | 'AGUARDANDO_REVISAO'
-  | 'CONCLUIDO'
+export type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 
 export interface DemandVolumeFilterIn {
   date_from?: string
   date_to?: string
   /** Afeta apenas summary (Total, Em aberto, Bloqueadas). Padrão: current_year */
   summary_period?: DemandVolumeSummaryPeriod
+  demandante_id?: string[]
   requisitante?: string[]
   prioridade?: TicketPriority[]
   status?: TicketStatus[]
@@ -52,6 +49,7 @@ export interface PeriodUrgencyItemOut {
   urgent: number
   high: number
   routine: number
+  no_priority: number
 }
 
 export interface MatrixRowOut {
@@ -89,6 +87,7 @@ export function sanitizeDemandVolumeFilters(
 ): DemandVolumeFilterIn {
   const payload: DemandVolumeFilterIn = { ...filters }
 
+  if (!payload.demandante_id?.length) delete payload.demandante_id
   if (!payload.requisitante?.length) delete payload.requisitante
   if (!payload.prioridade?.length) delete payload.prioridade
   if (!payload.status?.length) delete payload.status

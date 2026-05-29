@@ -8,6 +8,7 @@ export type OpenServiceKey =
   | 'reserva_de_imagem'
   | 'analise_de_imagem'
   | 'outros'
+  | 'atlas_civitas'
   | null
 
 export type SectionKey =
@@ -41,8 +42,7 @@ export type CercoEletronicoDraft = {
 export type BuscaPorImagemDraft = {
   period_start: string
   period_end: string
-  plate: string
-  address: string
+  addresses: string[]
   description: string
   cameras: string[]
 }
@@ -64,6 +64,7 @@ export type ReservaImagemDraft = {
   period_start: string
   period_end: string
   orientation: string
+  addresses: string[]
   cameras: string[]
 }
 
@@ -71,11 +72,19 @@ export type AnaliseImagemDraft = {
   period_start: string
   period_end: string
   orientation: string
+  addresses: string[]
   cameras: string[]
 }
 
 export type OutrosDraft = {
   orientation: string
+}
+
+export type AtlasCivitasDraft = {
+  name: string
+  email: string
+  cpf: string
+  registration: string
 }
 
 export const TICKET_CREATE_STRING_LIMITS = {
@@ -93,6 +102,9 @@ export const TICKET_CREATE_STRING_LIMITS = {
   ponto_focal_telefone: 120,
   ponto_focal_email: 255,
   comentario_inicial: 2000,
+  atlas_civitas_name: 120,
+  atlas_civitas_email: 255,
+  atlas_civitas_registration: 50,
 } as const
 
 export const SERVICE_CONFIG = {
@@ -105,6 +117,7 @@ export const SERVICE_CONFIG = {
   reserva_de_imagem: { label: 'Reserva de imagem' },
   analise_de_imagem: { label: 'Análise de imagem' },
   outros: { label: 'Outros' },
+  atlas_civitas: { label: 'Atlas Civitas' },
 } satisfies Record<Exclude<OpenServiceKey, null>, { label: string }>
 
 export function emptyBuscaPorPlacaDraft(): BuscaPorPlacaDraft {
@@ -200,8 +213,7 @@ export function emptyBuscaPorImagemDraft(): BuscaPorImagemDraft {
   return {
     period_start: '',
     period_end: '',
-    plate: '',
-    address: '',
+    addresses: [],
     description: '',
     cameras: [],
   }
@@ -223,13 +235,29 @@ export function emptyCorrelataDraft(): CorrelataDraft {
 }
 
 export function emptyReservaImagemDraft(): ReservaImagemDraft {
-  return { period_start: '', period_end: '', orientation: '', cameras: [] }
+  return {
+    period_start: '',
+    period_end: '',
+    orientation: '',
+    addresses: [],
+    cameras: [],
+  }
 }
 
 export function emptyAnaliseImagemDraft(): AnaliseImagemDraft {
-  return { period_start: '', period_end: '', orientation: '', cameras: [] }
+  return {
+    period_start: '',
+    period_end: '',
+    orientation: '',
+    addresses: [],
+    cameras: [],
+  }
 }
 
 export function emptyOutrosDraft(): OutrosDraft {
   return { orientation: '' }
+}
+
+export function emptyAtlasCivitasDraft(): AtlasCivitasDraft {
+  return { name: '', email: '', cpf: '', registration: '' }
 }

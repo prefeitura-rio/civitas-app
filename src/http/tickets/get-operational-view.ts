@@ -1,3 +1,4 @@
+import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
 import type {
@@ -14,19 +15,13 @@ export type OperationalViewSummaryPeriod =
 
 export type OperationalViewPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
-export type OperationalViewStatus =
-  | 'PENDENTE'
-  | 'BLOQUEADO'
-  | 'AGUARDANDO_REVISAO_ADJUNTO'
-  | 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
-  | 'FINALIZADO'
-  | 'DEMANDA_RESPONDIDA'
-  | 'RESTRITO'
+export type OperationalViewStatus = TicketStatus
 
 export interface OperationalViewFilterIn {
   date_from?: string
   date_to?: string
   summary_period?: OperationalViewSummaryPeriod
+  demandante_id?: string[]
   requisitante?: string[]
   prioridade?: OperationalViewPriority[]
   status?: OperationalViewStatus[]
@@ -45,19 +40,9 @@ export interface OpenTicketsByTeamItemOut {
   team: string
   pendente: number
   bloqueado: number
-  aguardando_revisao: number
-}
-
-export interface OpenTicketsPeriodPointOut {
-  period_label: string
-  pendente: number
-  bloqueado: number
-  aguardando_revisao: number
-}
-
-export interface OpenTicketsTeamPeriodSeriesOut {
-  team: string
-  data: OpenTicketsPeriodPointOut[]
+  aguardando_revisao?: number
+  aguardando_revisao_adjunto?: number
+  aguardando_revisao_administrativo?: number
 }
 
 export interface TeamPeriodValueOut {
@@ -89,7 +74,7 @@ export interface SlaPerformanceByTeamRowOut {
 
 export interface OperationalViewOut {
   summary: OperationalViewSummaryOut
-  open_tickets_by_team: OperationalViewGranularitySeries<OpenTicketsTeamPeriodSeriesOut>
+  open_tickets_by_team: OpenTicketsByTeamItemOut[]
   closed_volume_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
   avg_resolution_time_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
   sla_performance_by_team: SlaPerformanceByTeamRowOut[]
@@ -108,6 +93,7 @@ export function sanitizeOperationalViewFilters(
 ): OperationalViewFilterIn {
   const payload: OperationalViewFilterIn = { ...filters }
 
+  if (!payload.demandante_id?.length) delete payload.demandante_id
   if (!payload.requisitante?.length) delete payload.requisitante
   if (!payload.prioridade?.length) delete payload.prioridade
   if (!payload.status?.length) delete payload.status

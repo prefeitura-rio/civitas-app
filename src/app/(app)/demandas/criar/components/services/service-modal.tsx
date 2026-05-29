@@ -17,12 +17,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { maskPlateBR } from '@/utils/string-formatters'
+import { formatCPF, maskPlateBR } from '@/utils/string-formatters'
 
 import {
   type CorrelataDraft,
   type CorrelataDraftItem,
   emptyAnaliseImagemDraft,
+  emptyAtlasCivitasDraft,
   emptyBuscaPorImagemDraft,
   emptyCercoDraft,
   emptyCorrelataDraft,
@@ -37,6 +38,7 @@ import {
 import styles from '../../ticket-create/ticket-create-form.module.css'
 import {
   serviceAnaliseDeImagemSchema,
+  serviceAtlasCivitasSchema,
   serviceBuscaPorImagemSchema,
   serviceBuscaPorPlacaSchema,
   serviceBuscaPorRadarSchema,
@@ -64,6 +66,7 @@ type Props = {
   initialReservaImagem?: TicketCreateForm['reserva_de_imagem'][number]
   initialAnaliseImagem?: TicketCreateForm['analise_de_imagem'][number]
   initialOutros?: TicketCreateForm['outros'][number]
+  initialAtlasCivitas?: TicketCreateForm['atlas_civitas'][number]
 
   onSaveBuscaPorPlaca: (
     value: TicketCreateForm['busca_por_placa'][number],
@@ -99,6 +102,10 @@ type Props = {
   ) => void
   onSaveOutros: (
     value: TicketCreateForm['outros'][number],
+    editIndex: number | null,
+  ) => void
+  onSaveAtlasCivitas: (
+    value: TicketCreateForm['atlas_civitas'][number],
     editIndex: number | null,
   ) => void
 
@@ -210,6 +217,16 @@ export function ServiceModal(props: Props) {
           readOnly={readOnly}
         />
       )}
+
+      {serviceModalOpen === 'atlas_civitas' && (
+        <AtlasCivitasForm
+          initialValue={props.initialAtlasCivitas}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveAtlasCivitas}
+          readOnly={readOnly}
+        />
+      )}
     </>
   )
 
@@ -318,24 +335,20 @@ function normalizeCercoPlateForForm(
   }
 }
 
-function normalizeBuscaPorImagemPlateForForm(
+function normalizeBuscaPorImagemForForm(
   initial?: TicketCreateForm['busca_por_imagem'][number],
 ) {
   const base = initial ?? {
     ...emptyBuscaPorImagemDraft(),
     period_start: null,
     period_end: null,
-    plate: null,
-    address: null,
+    addresses: [],
     description: null,
     cameras: [],
   }
   return {
     ...base,
-    plate:
-      base.plate != null && String(base.plate).trim() !== ''
-        ? maskPlateBR(String(base.plate))
-        : '',
+    addresses: base.addresses ?? [],
     cameras: base.cameras ?? [],
   }
 }
@@ -702,11 +715,11 @@ function BuscaPorImagemForm({
 }: SimpleFormProps<TicketCreateForm['busca_por_imagem'][number]>) {
   const form = useForm<TicketCreateForm['busca_por_imagem'][number]>({
     resolver: zodResolver(serviceBuscaPorImagemSchema),
-    defaultValues: normalizeBuscaPorImagemPlateForForm(initialValue),
+    defaultValues: normalizeBuscaPorImagemForForm(initialValue),
   })
 
   useEffect(() => {
-    form.reset(normalizeBuscaPorImagemPlateForForm(initialValue))
+    form.reset(normalizeBuscaPorImagemForForm(initialValue))
   }, [initialValue, form])
 
   const {
@@ -723,6 +736,20 @@ function BuscaPorImagemForm({
     form.setValue(
       'cameras',
       cameras.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
+  const addresses = form.watch('addresses') ?? []
+
+  const addAddress = () => {
+    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+  }
+
+  const removeAddress = (index: number) => {
+    form.setValue(
+      'addresses',
+      addresses.filter((_, i) => i !== index),
       { shouldValidate: true },
     )
   }
@@ -759,42 +786,46 @@ function BuscaPorImagemForm({
               </p>
             )}
 
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Placa do veículo</Label>
-              <Controller
-                control={form.control}
-                name="plate"
-                render={({ field }) => (
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(maskPlateBR(e.target.value))
-                    }
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Endereços</Label>
+              {addresses.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`addresses.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Endereço"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.plate?.message && (
-                <p className="text-xs text-destructive">
-                  {errors.plate.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Endereço</Label>
-              <Input
-                className={`h-11 ${styles.inputBg}`}
-                {...form.register('address')}
-              />
-              {errors.address?.message && (
-                <p className="text-xs text-destructive">
-                  {errors.address.message}
-                </p>
-              )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeAddress(index)}
+                    title="Remover endereço"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addAddress}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar endereço
+                </button>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -1111,6 +1142,20 @@ function ReservaImagemForm({
     )
   }
 
+  const addresses = form.watch('addresses') ?? []
+
+  const addAddress = () => {
+    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+  }
+
+  const removeAddress = (index: number) => {
+    form.setValue(
+      'addresses',
+      addresses.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
   return (
     <form
       className={styles.serviceModalFormScroll}
@@ -1154,6 +1199,48 @@ function ReservaImagemForm({
                   {errors.orientation.message}
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Endereços</Label>
+              {addresses.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`addresses.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Endereço"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeAddress(index)}
+                    title="Remover endereço"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addAddress}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar endereço
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -1252,6 +1339,20 @@ function AnaliseImagemForm({
     )
   }
 
+  const addresses = form.watch('addresses') ?? []
+
+  const addAddress = () => {
+    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+  }
+
+  const removeAddress = (index: number) => {
+    form.setValue(
+      'addresses',
+      addresses.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
   return (
     <form
       className={styles.serviceModalFormScroll}
@@ -1298,6 +1399,48 @@ function AnaliseImagemForm({
             </div>
 
             <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Endereços</Label>
+              {addresses.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`addresses.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Endereço"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeAddress(index)}
+                    title="Remover endereço"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addAddress}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar endereço
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label className={styles.fieldLabel}>Câmeras</Label>
               {cameras.map((_, index) => (
                 <div key={index} className="flex gap-2">
@@ -1337,6 +1480,110 @@ function AnaliseImagemForm({
                   Adicionar câmera
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
+    </form>
+  )
+}
+
+function AtlasCivitasForm({
+  initialValue,
+  editIndex,
+  onCancel,
+  onSave,
+  readOnly = false,
+}: SimpleFormProps<TicketCreateForm['atlas_civitas'][number]>) {
+  const form = useForm<TicketCreateForm['atlas_civitas'][number]>({
+    resolver: zodResolver(serviceAtlasCivitasSchema),
+    defaultValues: initialValue ?? emptyAtlasCivitasDraft(),
+  })
+
+  useEffect(() => {
+    form.reset(initialValue ?? emptyAtlasCivitasDraft())
+  }, [initialValue, form])
+
+  const {
+    formState: { errors },
+  } = form
+
+  return (
+    <form
+      className={styles.serviceModalFormScroll}
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Nome</Label>
+              <Input
+                className={`h-11 ${styles.inputBg}`}
+                {...form.register('name')}
+              />
+              {errors.name?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>E-mail</Label>
+              <Input
+                className={`h-11 ${styles.inputBg}`}
+                type="email"
+                {...form.register('email')}
+              />
+              {errors.email?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>CPF</Label>
+              <Controller
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                )}
+              />
+              {errors.cpf?.message && (
+                <p className="text-xs text-destructive">{errors.cpf.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Matrícula</Label>
+              <Input
+                className={`h-11 ${styles.inputBg}`}
+                {...form.register('registration')}
+              />
+              {errors.registration?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.registration.message}
+                </p>
+              )}
             </div>
           </div>
         </div>

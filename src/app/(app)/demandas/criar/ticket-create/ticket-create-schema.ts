@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { validateCPF } from '@/utils/validate-cpf'
+
 import { TICKET_CREATE_STRING_LIMITS as L } from './ticket-create.constant'
 
 export const ticketPriorityEnum = z.enum(['URGENTE', 'ALTA', 'ROTINA'])
@@ -73,8 +75,9 @@ export const serviceCercoSchema = z.object({
 export const serviceBuscaPorImagemSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
-  plate: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
+  addresses: z
+    .array(z.string().max(50_000, 'Máximo de 50000 caracteres'))
+    .default([]),
   description: z.string().optional().nullable(),
   cameras: z.array(z.string()).default([]),
 })
@@ -105,6 +108,9 @@ export const serviceReservaDeImagemSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   orientation: z.string().optional().nullable(),
+  addresses: z
+    .array(z.string().max(50_000, 'Máximo de 50000 caracteres'))
+    .default([]),
   cameras: z.array(z.string()).default([]),
 })
 
@@ -112,11 +118,34 @@ export const serviceAnaliseDeImagemSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   orientation: z.string().optional().nullable(),
+  addresses: z
+    .array(z.string().max(50_000, 'Máximo de 50000 caracteres'))
+    .default([]),
   cameras: z.array(z.string()).default([]),
 })
 
 export const serviceOutrosSchema = z.object({
   orientation: z.string().optional().nullable(),
+})
+
+export const serviceAtlasCivitasSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Campo obrigatório')
+    .max(L.atlas_civitas_name, maxMsg(L.atlas_civitas_name)),
+  email: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(L.atlas_civitas_email, maxMsg(L.atlas_civitas_email))
+    .email('Email inválido'),
+  cpf: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .refine((v) => validateCPF(v), 'CPF inválido'),
+  registration: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(L.atlas_civitas_registration, maxMsg(L.atlas_civitas_registration)),
 })
 
 export const ticketCreateSchema = z.object({
@@ -140,8 +169,8 @@ export const ticketCreateSchema = z.object({
     .optional()
     .nullable()
     .refine(
-      (v) => v == null || v === '' || /^\d{5}\/\d{4}$/.test(v),
-      'Use o formato 00000/0000 (ex.: 00123/2026)',
+      (v) => v == null || v === '' || /^[A-Z0-9/]+$/.test(v),
+      'Use apenas letras, números e barra (/)',
     ),
   data_base: z.string().optional().nullable(),
   natureza_id: z.string().min(1, 'Campo obrigatório'),
@@ -201,6 +230,7 @@ export const ticketCreateSchema = z.object({
   reserva_de_imagem: z.array(serviceReservaDeImagemSchema).default([]),
   analise_de_imagem: z.array(serviceAnaliseDeImagemSchema).default([]),
   outros: z.array(serviceOutrosSchema).default([]),
+  atlas_civitas: z.array(serviceAtlasCivitasSchema).default([]),
 })
 
 export type TicketCreateForm = z.infer<typeof ticketCreateSchema>

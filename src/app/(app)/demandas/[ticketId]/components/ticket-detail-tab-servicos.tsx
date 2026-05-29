@@ -2,7 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import type { OpenServiceKey } from '@/app/(app)/demandas/criar/ticket-create/ticket-create.constant'
@@ -44,6 +52,7 @@ import {
   setServiceConcluido,
   ticketServicosToReplacePayload,
 } from '../ticket-servicos-mapper'
+import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 import {
   isZipFile,
   resolveGcsUploadContentType,
@@ -69,9 +78,16 @@ const SERVICE_KINDS = [
   'reserva_de_imagem',
   'analise_de_imagem',
   'outros',
+  'atlas_civitas',
 ] as const satisfies readonly OpenServiceKey[]
 
 type TicketServiceRowKind = Exclude<OpenServiceKey, null>
+
+/** Serviços sem seção de anexos na aba Serviços do detalhe do ticket. */
+const SERVICE_KINDS_WITHOUT_ATTACHMENTS = new Set<TicketServiceRowKind>([
+  'cerco_eletronico',
+  'atlas_civitas',
+])
 
 type RowMeta = {
   rowId: string
@@ -137,151 +153,163 @@ type Props = {
 
 type PendingServiceFilesByRowId = Record<string, PendingServiceAttachment[]>
 
-export function TicketDetailTabServicos({ ticketId }: Props) {
-  const queryClient = useQueryClient()
-  const [isEditing, setIsEditing] = useState(false)
-  const [addServicoOpen, setAddServicoOpen] = useState(false)
-  const [pendingFilesByRowId, setPendingFilesByRowId] =
-    useState<PendingServiceFilesByRowId>({})
-  /** Cobre PUT + refetch + uploads de anexos pendentes (não só `replaceMutation.isPending`). */
-  const [saveFlowPending, setSaveFlowPending] = useState(false)
+export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
+  function TicketDetailTabServicos({ ticketId }, ref) {
+    const queryClient = useQueryClient()
+    const [isEditing, setIsEditing] = useState(false)
+    const [addServicoOpen, setAddServicoOpen] = useState(false)
+    const [pendingFilesByRowId, setPendingFilesByRowId] =
+      useState<PendingServiceFilesByRowId>({})
+    /** Cobre PUT + refetch + uploads de anexos pendentes (não só `replaceMutation.isPending`). */
+    const [saveFlowPending, setSaveFlowPending] = useState(false)
 
-  const servicosQuery = useQuery({
-    queryKey: ['ticket', ticketId, 'servicos'],
-    queryFn: () => getTicketServicos(ticketId),
-  })
+    const servicosQuery = useQuery({
+      queryKey: ['ticket', ticketId, 'servicos'],
+      queryFn: () => getTicketServicos(ticketId),
+    })
 
-  const [draft, setDraft] = useState<TicketServicosOut | null>(null)
-  const [snapshot, setSnapshot] = useState<TicketServicosOut | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+    const [draft, setDraft] = useState<TicketServicosOut | null>(null)
+    const [snapshot, setSnapshot] = useState<TicketServicosOut | null>(null)
+    const [expandedId, setExpandedId] = useState<string | null>(null)
+    const isEditingRef = useRef(isEditing)
+    const draftRef = useRef(draft)
+    const snapshotRef = useRef(snapshot)
+    const pendingFilesRef = useRef(pendingFilesByRowId)
 
-  useEffect(() => {
-    if (!servicosQuery.data) return
-    if (!isEditing) {
-      const c = cloneTicketServicos(servicosQuery.data)
-      setDraft(c)
-      setSnapshot(cloneTicketServicos(servicosQuery.data))
-      return
-    }
-    setDraft((prev) =>
-      prev
-        ? mergeServicosAnexosFromServer(prev, servicosQuery.data!)
-        : cloneTicketServicos(servicosQuery.data),
-    )
-    setSnapshot((prev) =>
-      prev
-        ? mergeServicosAnexosFromServer(prev, servicosQuery.data!)
-        : cloneTicketServicos(servicosQuery.data),
-    )
-  }, [servicosQuery.data, isEditing])
+    isEditingRef.current = isEditing
+    draftRef.current = draft
+    snapshotRef.current = snapshot
+    pendingFilesRef.current = pendingFilesByRowId
 
-  const replaceMutation = useMutation({
-    mutationFn: (payload: ReturnType<typeof ticketServicosToReplacePayload>) =>
-      replaceTicketServicos(ticketId, payload),
-  })
+    useEffect(() => {
+      if (!servicosQuery.data) return
+      if (!isEditing) {
+        const c = cloneTicketServicos(servicosQuery.data)
+        setDraft(c)
+        setSnapshot(cloneTicketServicos(servicosQuery.data))
+        return
+      }
+      setDraft((prev) =>
+        prev
+          ? mergeServicosAnexosFromServer(prev, servicosQuery.data!)
+          : cloneTicketServicos(servicosQuery.data),
+      )
+      setSnapshot((prev) =>
+        prev
+          ? mergeServicosAnexosFromServer(prev, servicosQuery.data!)
+          : cloneTicketServicos(servicosQuery.data),
+      )
+    }, [servicosQuery.data, isEditing])
 
-  const rows = useMemo(() => {
-    if (!draft || !snapshot) return []
-    return buildRows(isEditing ? draft : snapshot)
-  }, [draft, snapshot, isEditing])
+    const replaceMutation = useMutation({
+      mutationFn: (
+        payload: ReturnType<typeof ticketServicosToReplacePayload>,
+      ) => replaceTicketServicos(ticketId, payload),
+    })
 
-  const serviceFieldErrors = useMemo(() => {
-    if (!isEditing || !draft) return {}
-    return computeCompletedServicoFieldErrors(draft)
-  }, [draft, isEditing])
+    const rows = useMemo(() => {
+      if (!draft || !snapshot) return []
+      return buildRows(isEditing ? draft : snapshot)
+    }, [draft, snapshot, isEditing])
 
-  const beginEdit = useCallback(() => {
-    if (!snapshot) return
-    setDraft(cloneTicketServicos(snapshot))
-    setPendingFilesByRowId({})
-    setIsEditing(true)
-  }, [snapshot])
+    const serviceFieldErrors = useMemo(() => {
+      if (!isEditing || !draft) return {}
+      return computeCompletedServicoFieldErrors(draft)
+    }, [draft, isEditing])
 
-  const cancelEdit = useCallback(() => {
-    if (snapshot) {
+    const beginEdit = useCallback(() => {
+      if (!snapshot) return
       setDraft(cloneTicketServicos(snapshot))
-    }
-    setPendingFilesByRowId({})
-    setIsEditing(false)
-    setExpandedId(null)
-  }, [snapshot])
+      setPendingFilesByRowId({})
+      setIsEditing(true)
+    }, [snapshot])
 
-  const queuePendingFiles = useCallback((rowId: string, files: File[]) => {
-    if (!files.length) return
-    setPendingFilesByRowId((prev) => ({
-      ...prev,
-      [rowId]: [
-        ...(prev[rowId] ?? []),
-        ...createPendingServiceAttachments(files),
-      ],
-    }))
-  }, [])
+    const cancelEdit = useCallback(() => {
+      if (snapshot) {
+        setDraft(cloneTicketServicos(snapshot))
+      }
+      setPendingFilesByRowId({})
+      setIsEditing(false)
+      setExpandedId(null)
+    }, [snapshot])
 
-  const renamePendingFile = useCallback(
-    (rowId: string, index: number, filename: string) => {
+    const queuePendingFiles = useCallback((rowId: string, files: File[]) => {
+      if (!files.length) return
+      setPendingFilesByRowId((prev) => ({
+        ...prev,
+        [rowId]: [
+          ...(prev[rowId] ?? []),
+          ...createPendingServiceAttachments(files),
+        ],
+      }))
+    }, [])
+
+    const renamePendingFile = useCallback(
+      (rowId: string, index: number, filename: string) => {
+        setPendingFilesByRowId((prev) => {
+          const rowFiles = prev[rowId] ?? []
+          const item = rowFiles[index]
+          if (!item) return prev
+          const nextRowFiles = rowFiles.map((entry, i) =>
+            i === index ? { ...entry, filename } : entry,
+          )
+          return { ...prev, [rowId]: nextRowFiles }
+        })
+      },
+      [],
+    )
+
+    const removePendingFile = useCallback((rowId: string, index: number) => {
       setPendingFilesByRowId((prev) => {
         const rowFiles = prev[rowId] ?? []
-        const item = rowFiles[index]
-        if (!item) return prev
-        const nextRowFiles = rowFiles.map((entry, i) =>
-          i === index ? { ...entry, filename } : entry,
-        )
-        return { ...prev, [rowId]: nextRowFiles }
+        if (!rowFiles[index]) return prev
+        const nextRowFiles = rowFiles.filter((_, i) => i !== index)
+        if (nextRowFiles.length === 0) {
+          const next = { ...prev }
+          delete next[rowId]
+          return next
+        }
+        return {
+          ...prev,
+          [rowId]: nextRowFiles,
+        }
       })
-    },
-    [],
-  )
+    }, [])
 
-  const removePendingFile = useCallback((rowId: string, index: number) => {
-    setPendingFilesByRowId((prev) => {
-      const rowFiles = prev[rowId] ?? []
-      if (!rowFiles[index]) return prev
-      const nextRowFiles = rowFiles.filter((_, i) => i !== index)
-      if (nextRowFiles.length === 0) {
-        const next = { ...prev }
-        delete next[rowId]
-        return next
-      }
-      return {
-        ...prev,
-        [rowId]: nextRowFiles,
-      }
-    })
-  }, [])
+    const handleConcluidoChange = useCallback(
+      (row: RowMeta, checked: boolean) => {
+        setDraft((prev) => {
+          if (!prev) return prev
+          return setServiceConcluido(prev, row.kind, row.index, checked)
+        })
+      },
+      [],
+    )
 
-  const handleConcluidoChange = useCallback(
-    (row: RowMeta, checked: boolean) => {
-      setDraft((prev) => {
-        if (!prev) return prev
-        return setServiceConcluido(prev, row.kind, row.index, checked)
-      })
-    },
-    [],
-  )
-
-  const handleSave = useCallback(() => {
-    const save = async () => {
-      if (!draft || !isEditing) return
-      const invalid = collectAllCompletedServiceErrors(draft)
+    const handleSave = useCallback(async (): Promise<boolean> => {
+      const currentDraft = draftRef.current
+      if (!currentDraft || !isEditingRef.current) return false
+      const invalid = collectAllCompletedServiceErrors(currentDraft)
       if (invalid.length > 0) {
         toast.error(
           'Preencha todos os campos dos serviços marcados como concluídos.',
         )
         setExpandedId(invalid[0]?.rowId ?? null)
-        return
+        return false
       }
 
       setSaveFlowPending(true)
       try {
-        const preSaveDraft = cloneTicketServicos(draft)
+        const preSaveDraft = cloneTicketServicos(currentDraft)
+        const currentPending = pendingFilesRef.current
         let saved: TicketServicosOut
         try {
           saved = await replaceMutation.mutateAsync(
-            ticketServicosToReplacePayload(draft),
+            ticketServicosToReplacePayload(currentDraft),
           )
         } catch (err: unknown) {
           toast.error(getApiErrorMessage(err))
-          return
+          return false
         }
 
         let pendingUploadFailures = 0
@@ -289,10 +317,9 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
         let latestSaved = saved
 
         try {
-          // Usa o estado mais recente do backend para mapear IDs por posição.
           latestSaved = await getTicketServicos(ticketId)
         } catch {
-          // fallback para retorno do PUT quando o refetch falhar
+          /* fallback para retorno do PUT quando o refetch falhar */
         }
 
         for (const kind of SERVICE_KINDS) {
@@ -302,7 +329,7 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
           for (let index = 0; index < preRows.length; index++) {
             const preRow = preRows[index]
             if (!preRow?.id) continue
-            const pendingItems = pendingFilesByRowId[preRow.id] ?? []
+            const pendingItems = currentPending[preRow.id] ?? []
             if (!pendingItems.length) continue
 
             const persistedServiceId = isLocalDraftServiceId(preRow.id)
@@ -418,280 +445,310 @@ export function TicketDetailTabServicos({ ticketId }: Props) {
         } else {
           toast.success('Serviços e anexos salvos com sucesso.')
         }
+        return true
+      } catch {
+        toast.error('Ocorreu um erro ao salvar os serviços.')
+        return false
       } finally {
         setSaveFlowPending(false)
       }
-    }
+    }, [queryClient, replaceMutation, ticketId])
 
-    save().catch(() => {
-      toast.error('Ocorreu um erro ao salvar os serviços.')
-    })
-  }, [
-    draft,
-    isEditing,
-    pendingFilesByRowId,
-    queryClient,
-    replaceMutation,
-    ticketId,
-  ])
-
-  const saveOrUploadBusy = saveFlowPending || replaceMutation.isPending
-
-  const handleAddKind = (kind: (typeof SERVICE_KINDS)[number]) => {
-    setDraft((prev) => {
-      if (!prev) return prev
-      const next = appendEmptyService(prev, kind)
-      const list = next[kind as keyof TicketServicosOut] as { id: string }[]
-      const newItem = list[list.length - 1]
-      if (newItem) {
-        setExpandedId(newItem.id)
-      }
-      return next
-    })
-    setAddServicoOpen(false)
-  }
-
-  const handleRemoveRow = (
-    kind: OpenServiceKey,
-    index: number,
-    rowId: string,
-  ) => {
-    setDraft((prev) => {
-      if (!prev) return prev
-      return removeServiceAt(prev, kind, index)
-    })
-    setPendingFilesByRowId((prev) => {
-      if (!(rowId in prev)) return prev
-      const next = { ...prev }
-      delete next[rowId]
-      return next
-    })
-    if (expandedId === rowId) {
-      setExpandedId(null)
-    }
-  }
-
-  const noopDraft = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- modo leitura: alterações ignoradas
-    (_next: TicketServicosOut) => {},
-    [],
-  )
-
-  if (servicosQuery.isLoading || !draft || !snapshot) {
-    return <p className={styles.loading}>Carregando serviços…</p>
-  }
-
-  if (servicosQuery.isError) {
-    return (
-      <p className={styles.error}>
-        Não foi possível carregar os serviços. Tente novamente.
-      </p>
+    useImperativeHandle(
+      ref,
+      () => ({
+        isDirty: () => {
+          if (
+            !isEditingRef.current ||
+            !draftRef.current ||
+            !snapshotRef.current
+          ) {
+            return false
+          }
+          const hasPendingFiles =
+            Object.keys(pendingFilesRef.current).length > 0
+          const draftPayload = ticketServicosToReplacePayload(draftRef.current)
+          const snapshotPayload = ticketServicosToReplacePayload(
+            snapshotRef.current,
+          )
+          const payloadChanged =
+            JSON.stringify(draftPayload) !== JSON.stringify(snapshotPayload)
+          return payloadChanged || hasPendingFiles
+        },
+        save: handleSave,
+        discard: cancelEdit,
+      }),
+      [cancelEdit, handleSave],
     )
-  }
 
-  const formSource = isEditing ? draft : snapshot
+    const triggerSave = useCallback(() => {
+      handleSave().catch(() => {})
+    }, [handleSave])
 
-  return (
-    <>
-      <div className={styles.fieldStack}>
-        <div className={styles.servicosIntro}>
-          <p className={styles.servicosSectionLabel}>
-            Serviços prestados nesta demanda
-          </p>
-        </div>
+    const saveOrUploadBusy = saveFlowPending || replaceMutation.isPending
 
-        {isEditing ? (
-          <div className={styles.servicosAddServiceRow}>
-            <button
-              type="button"
-              className={`${styles.footerBtn} ${styles.servicosAddExistingBtn}`}
-              onClick={() => setAddServicoOpen(true)}
-              disabled={saveOrUploadBusy}
-            >
-              <Plus className="h-4 w-4" aria-hidden />
-              Novo Serviço
-            </button>
+    const handleAddKind = (kind: (typeof SERVICE_KINDS)[number]) => {
+      setDraft((prev) => {
+        if (!prev) return prev
+        const next = appendEmptyService(prev, kind)
+        const list = next[kind as keyof TicketServicosOut] as { id: string }[]
+        const newItem = list[list.length - 1]
+        if (newItem) {
+          setExpandedId(newItem.id)
+        }
+        return next
+      })
+      setAddServicoOpen(false)
+    }
+
+    const handleRemoveRow = (
+      kind: OpenServiceKey,
+      index: number,
+      rowId: string,
+    ) => {
+      setDraft((prev) => {
+        if (!prev) return prev
+        return removeServiceAt(prev, kind, index)
+      })
+      setPendingFilesByRowId((prev) => {
+        if (!(rowId in prev)) return prev
+        const next = { ...prev }
+        delete next[rowId]
+        return next
+      })
+      if (expandedId === rowId) {
+        setExpandedId(null)
+      }
+    }
+
+    const noopDraft = useCallback(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- modo leitura: alterações ignoradas
+      (_next: TicketServicosOut) => {},
+      [],
+    )
+
+    if (servicosQuery.isLoading || !draft || !snapshot) {
+      return <p className={styles.loading}>Carregando serviços…</p>
+    }
+
+    if (servicosQuery.isError) {
+      return (
+        <p className={styles.error}>
+          Não foi possível carregar os serviços. Tente novamente.
+        </p>
+      )
+    }
+
+    const formSource = isEditing ? draft : snapshot
+
+    return (
+      <>
+        <div className={styles.fieldStack}>
+          <div className={styles.servicosIntro}>
+            <p className={styles.servicosSectionLabel}>
+              Serviços prestados nesta demanda
+            </p>
           </div>
-        ) : null}
 
-        {rows.length === 0 ? (
-          <p className={styles.servicosEmpty}>
-            {isEditing
-              ? 'Nenhum serviço cadastrado. Use “Selecionar serviço” para adicionar.'
-              : 'Nenhum serviço cadastrado. Clique em “Editar” para incluir serviços.'}
-          </p>
-        ) : (
-          <div className={styles.servicosList}>
-            {rows.map((row) => {
-              const open = expandedId === row.rowId
-              return (
-                <div key={row.rowId} className={styles.servicosItem}>
-                  <div className={styles.servicosCollapsedRow}>
-                    <span
-                      className={styles.servicosMark}
-                      onClick={(e) => e.stopPropagation()}
-                      onPointerDown={(e) => e.stopPropagation()}
-                    >
-                      <Checkbox
-                        checked={readConcluido(formSource, row.kind, row.index)}
-                        disabled={!isEditing || saveOrUploadBusy}
-                        onCheckedChange={(v) =>
-                          handleConcluidoChange(row, v === true)
-                        }
-                        aria-label="Serviço concluído"
-                        className="border-[var(--td-border)] data-[state=checked]:bg-[var(--td-btn-primary)]"
-                      />
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.servicosBar}
-                      aria-expanded={open}
-                      onClick={() =>
-                        setExpandedId((prev) =>
-                          prev === row.rowId ? null : row.rowId,
-                        )
-                      }
-                    >
+          {isEditing ? (
+            <div className={styles.servicosAddServiceRow}>
+              <button
+                type="button"
+                className={`${styles.footerBtn} ${styles.servicosAddExistingBtn}`}
+                onClick={() => setAddServicoOpen(true)}
+                disabled={saveOrUploadBusy}
+              >
+                <Plus className="h-4 w-4" aria-hidden />
+                Novo Serviço
+              </button>
+            </div>
+          ) : null}
+
+          {rows.length === 0 ? (
+            <p className={styles.servicosEmpty}>
+              {isEditing
+                ? 'Nenhum serviço cadastrado. Use “Selecionar serviço” para adicionar.'
+                : 'Nenhum serviço cadastrado. Clique em “Editar” para incluir serviços.'}
+            </p>
+          ) : (
+            <div className={styles.servicosList}>
+              {rows.map((row) => {
+                const open = expandedId === row.rowId
+                return (
+                  <div key={row.rowId} className={styles.servicosItem}>
+                    <div className={styles.servicosCollapsedRow}>
                       <span
-                        className={`${styles.servicosBarLabel} ${
-                          isEditing ? styles.servicosBarLabelEditing : ''
-                        }`}
+                        className={styles.servicosMark}
+                        onClick={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
                       >
-                        {row.title}
-                      </span>
-                      <ChevronDown
-                        className={`${styles.servicosChevron} ${open ? styles.servicosChevronOpen : ''}`}
-                      />
-                    </button>
-                    {isEditing ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className={styles.servicosRemoveInlineBtn}
-                        disabled={saveOrUploadBusy}
-                        onClick={() =>
-                          handleRemoveRow(row.kind, row.index, row.rowId)
-                        }
-                        title="Remover este serviço"
-                        aria-label="Remover este serviço"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    ) : null}
-                  </div>
-
-                  {open ? (
-                    <div className={styles.servicosExpanded}>
-                      <ServicosExpandedForm
-                        kind={row.kind}
-                        index={row.index}
-                        draft={formSource}
-                        onChange={
-                          isEditing && !saveOrUploadBusy ? setDraft : noopDraft
-                        }
-                        readOnly={!isEditing || saveOrUploadBusy}
-                        fieldErrors={
-                          isEditing
-                            ? (serviceFieldErrors[row.rowId] ?? null)
-                            : null
-                        }
-                      />
-                      {row.kind !== 'cerco_eletronico' ? (
-                        <TicketServicoAnexos
-                          ticketId={ticketId}
-                          title="Anexos deste serviço"
-                          attachments={
-                            (
-                              formSource[row.kind]?.[row.index] as
-                                | { anexos?: TicketAttachmentOut[] }
-                                | undefined
-                            )?.anexos ?? []
+                        <Checkbox
+                          checked={readConcluido(
+                            formSource,
+                            row.kind,
+                            row.index,
+                          )}
+                          disabled={!isEditing || saveOrUploadBusy}
+                          onCheckedChange={(v) =>
+                            handleConcluidoChange(row, v === true)
                           }
-                          readOnly={!isEditing || saveOrUploadBusy}
-                          serviceScope={{
-                            service_type: row.kind,
-                            service_id: row.rowId,
-                          }}
-                          uploadBlocked={isEditing}
-                          uploadBlockedMessage="Os anexos serão enviados ao salvar as alterações dos serviços."
-                          pendingFiles={pendingFilesByRowId[row.rowId] ?? []}
-                          onQueuePendingFiles={(files) =>
-                            queuePendingFiles(row.rowId, files)
-                          }
-                          onRenamePendingFile={(index, filename) =>
-                            renamePendingFile(row.rowId, index, filename)
-                          }
-                          onRemovePendingFile={(index) =>
-                            removePendingFile(row.rowId, index)
-                          }
+                          aria-label="Serviço concluído"
+                          className="border-[var(--td-border)] data-[state=checked]:bg-[var(--td-btn-primary)]"
                         />
+                      </span>
+                      <button
+                        type="button"
+                        className={styles.servicosBar}
+                        aria-expanded={open}
+                        onClick={() =>
+                          setExpandedId((prev) =>
+                            prev === row.rowId ? null : row.rowId,
+                          )
+                        }
+                      >
+                        <span
+                          className={`${styles.servicosBarLabel} ${
+                            isEditing ? styles.servicosBarLabelEditing : ''
+                          }`}
+                        >
+                          {row.title}
+                        </span>
+                        <ChevronDown
+                          className={`${styles.servicosChevron} ${open ? styles.servicosChevronOpen : ''}`}
+                        />
+                      </button>
+                      {isEditing ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={styles.servicosRemoveInlineBtn}
+                          disabled={saveOrUploadBusy}
+                          onClick={() =>
+                            handleRemoveRow(row.kind, row.index, row.rowId)
+                          }
+                          title="Remover este serviço"
+                          aria-label="Remover este serviço"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       ) : null}
                     </div>
-                  ) : null}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
 
-      <div className={styles.footerActions}>
-        {isEditing ? (
+                    {open ? (
+                      <div className={styles.servicosExpanded}>
+                        <ServicosExpandedForm
+                          kind={row.kind}
+                          index={row.index}
+                          draft={formSource}
+                          onChange={
+                            isEditing && !saveOrUploadBusy
+                              ? setDraft
+                              : noopDraft
+                          }
+                          readOnly={!isEditing || saveOrUploadBusy}
+                          fieldErrors={
+                            isEditing
+                              ? (serviceFieldErrors[row.rowId] ?? null)
+                              : null
+                          }
+                        />
+                        {!SERVICE_KINDS_WITHOUT_ATTACHMENTS.has(row.kind) ? (
+                          <TicketServicoAnexos
+                            ticketId={ticketId}
+                            title="Anexos deste serviço"
+                            attachments={
+                              (
+                                formSource[row.kind]?.[row.index] as
+                                  | { anexos?: TicketAttachmentOut[] }
+                                  | undefined
+                              )?.anexos ?? []
+                            }
+                            readOnly={!isEditing || saveOrUploadBusy}
+                            serviceScope={{
+                              service_type: row.kind,
+                              service_id: row.rowId,
+                            }}
+                            uploadBlocked={isEditing}
+                            uploadBlockedMessage="Os anexos serão enviados ao salvar as alterações dos serviços."
+                            pendingFiles={pendingFilesByRowId[row.rowId] ?? []}
+                            onQueuePendingFiles={(files) =>
+                              queuePendingFiles(row.rowId, files)
+                            }
+                            onRenamePendingFile={(index, filename) =>
+                              renamePendingFile(row.rowId, index, filename)
+                            }
+                            onRemovePendingFile={(index) =>
+                              removePendingFile(row.rowId, index)
+                            }
+                          />
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.footerActions}>
+          {isEditing ? (
+            <button
+              type="button"
+              className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
+              onClick={cancelEdit}
+              disabled={saveOrUploadBusy}
+            >
+              Cancelar
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
+              onClick={beginEdit}
+            >
+              Editar
+            </button>
+          )}
           <button
             type="button"
-            className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
-            onClick={cancelEdit}
-            disabled={saveOrUploadBusy}
+            className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
+            onClick={triggerSave}
+            disabled={!isEditing || saveOrUploadBusy}
           >
-            Cancelar
+            {saveOrUploadBusy ? 'Salvando…' : 'Salvar'}
           </button>
-        ) : (
-          <button
-            type="button"
-            className={`${styles.footerBtn} ${styles.footerBtnDefault}`}
-            onClick={beginEdit}
-          >
-            Editar
-          </button>
-        )}
-        <button
-          type="button"
-          className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
-          onClick={handleSave}
-          disabled={!isEditing || saveOrUploadBusy}
-        >
-          {saveOrUploadBusy ? 'Salvando…' : 'Salvar'}
-        </button>
-      </div>
+        </div>
 
-      <Dialog open={addServicoOpen} onOpenChange={setAddServicoOpen}>
-        <DialogContent className={styles.servicosDialogContent}>
-          <div className={styles.servicosDialogInner}>
-            <DialogHeader className={styles.servicosDialogHeader}>
-              <DialogTitle className={styles.servicosDialogTitle}>
-                Selecionar serviço
-              </DialogTitle>
-              <DialogDescription className={styles.servicosDialogDesc}>
-                Escolha o tipo de serviço a incluir nesta demanda.
-              </DialogDescription>
-            </DialogHeader>
-            <ul className={styles.servicosDialogList}>
-              {SERVICE_KINDS.map((k) => (
-                <li key={k}>
-                  <button
-                    type="button"
-                    className={styles.servicosDialogOption}
-                    onClick={() => handleAddKind(k)}
-                  >
-                    {SERVICE_CONFIG[k].label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  )
-}
+        <Dialog open={addServicoOpen} onOpenChange={setAddServicoOpen}>
+          <DialogContent className={styles.servicosDialogContent}>
+            <div className={styles.servicosDialogInner}>
+              <DialogHeader className={styles.servicosDialogHeader}>
+                <DialogTitle className={styles.servicosDialogTitle}>
+                  Selecionar serviço
+                </DialogTitle>
+                <DialogDescription className={styles.servicosDialogDesc}>
+                  Escolha o tipo de serviço a incluir nesta demanda.
+                </DialogDescription>
+              </DialogHeader>
+              <ul className={styles.servicosDialogList}>
+                {SERVICE_KINDS.map((k) => (
+                  <li key={k}>
+                    <button
+                      type="button"
+                      className={styles.servicosDialogOption}
+                      onClick={() => handleAddKind(k)}
+                    >
+                      {SERVICE_CONFIG[k].label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    )
+  },
+)

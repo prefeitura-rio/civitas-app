@@ -9,7 +9,8 @@ export type TicketDashboardSlaConfigUpdateIn = Partial<
     | 'related_license_plates_days'
     | 'joint_license_plates_days'
     | 'image_analysis_days'
-    | 'others_days',
+    | 'others_days'
+    | 'atlas_civitas_days',
     number
   >
 >
@@ -26,6 +27,7 @@ export type TicketDashboardSlaConfigOut = {
   joint_license_plates_days: number
   image_analysis_days: number
   others_days: number
+  atlas_civitas_days: number
 }
 
 export type TicketDashboardSlaFormValues = {
@@ -37,6 +39,7 @@ export type TicketDashboardSlaFormValues = {
   joint_license_plates_days: number
   image_analysis_days: number
   others_days: number
+  atlas_civitas_days: number
 }
 
 export const SLA_CONFIG_DEFAULT_VALUES: TicketDashboardSlaFormValues = {
@@ -48,6 +51,7 @@ export const SLA_CONFIG_DEFAULT_VALUES: TicketDashboardSlaFormValues = {
   joint_license_plates_days: 3,
   image_analysis_days: 1,
   others_days: 3,
+  atlas_civitas_days: 3,
 }
 
 export function mapSlaConfigOutToFormValues(
@@ -62,6 +66,7 @@ export function mapSlaConfigOutToFormValues(
     joint_license_plates_days: config.joint_license_plates_days,
     image_analysis_days: config.image_analysis_days,
     others_days: config.others_days,
+    atlas_civitas_days: config.atlas_civitas_days,
   }
 }
 

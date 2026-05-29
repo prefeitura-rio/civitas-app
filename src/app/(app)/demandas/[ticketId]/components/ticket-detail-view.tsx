@@ -4,7 +4,14 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import { Checkbox } from '@/components/ui/checkbox'
@@ -55,6 +62,11 @@ import { cn } from '@/lib/utils'
 import { getApiErrorMessage, isNotFoundError } from '@/utils/error-handlers'
 
 import {
+  releaseTicketUnsavedBackTrap,
+  useTicketUnsavedGuard,
+} from '../hooks/use-ticket-unsaved-guard'
+import {
+  isTicketDetailUnsavedGuardTab,
   shouldShowTicketRespostaTab,
   TICKET_DETAIL_BASE_TABS,
   TICKET_RESPOSTA_TAB,
@@ -63,12 +75,17 @@ import {
 import styles from '../ticket-detail.module.css'
 import { TicketDetailTabChamado } from './ticket-detail-tab-chamado'
 import { TicketDetailTabDocumentos } from './ticket-detail-tab-documentos'
+import type {
+  TicketDetailPendingNavigation,
+  TicketDetailTabHandle,
+} from './ticket-detail-tab-handle'
 import { TicketDetailTabHistorico } from './ticket-detail-tab-historico'
 import { TicketDetailTabParecerInterno } from './ticket-detail-tab-parecer-interno'
 import { TicketDetailTabRelatorioDemanda } from './ticket-detail-tab-relatorio-demanda'
 import { TicketDetailTabResposta } from './ticket-detail-tab-resposta'
 import { TicketDetailTabServicos } from './ticket-detail-tab-servicos'
 import { TicketDetailTabSolicitante } from './ticket-detail-tab-solicitante'
+import { TicketDetailUnsavedDialog } from './ticket-detail-unsaved-dialog'
 
 function normalizePriority(priority?: string | null) {
   if (!priority) return '—'
@@ -187,6 +204,29 @@ export function TicketDetailView({ ticketId }: Props) {
   const [reassignComment, setReassignComment] = useState('')
   const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false)
   const reassignDialogEnteredRef = useRef(false)
+  const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false)
+  const [guardActionPending, setGuardActionPending] = useState(false)
+  const [pendingNavigation, setPendingNavigation] =
+    useState<TicketDetailPendingNavigation | null>(null)
+
+  const solicitanteRef = useRef<TicketDetailTabHandle>(null)
+  const chamadoRef = useRef<TicketDetailTabHandle>(null)
+  const servicosRef = useRef<TicketDetailTabHandle>(null)
+  const parecerRef = useRef<TicketDetailTabHandle>(null)
+  const relatorioRef = useRef<TicketDetailTabHandle>(null)
+
+  const tabHandleRefs = useMemo(
+    (): Partial<
+      Record<TicketDetailTabId, RefObject<TicketDetailTabHandle | null>>
+    > => ({
+      solicitante: solicitanteRef,
+      chamado: chamadoRef,
+      servicos: servicosRef,
+      parecer_interno: parecerRef,
+      relatorio_demanda: relatorioRef,
+    }),
+    [],
+  )
 
   const query = useQuery({
     queryKey: ['ticket', ticketId, 'cabecalho'],
@@ -216,6 +256,115 @@ export function TicketDetailView({ ticketId }: Props) {
       ...TICKET_DETAIL_BASE_TABS.slice(idx),
     ]
   }, [showRespostaTab])
+
+  const getActiveTabHandle = useCallback((): TicketDetailTabHandle | null => {
+    if (!isTicketDetailUnsavedGuardTab(activeTab)) return null
+    return tabHandleRefs[activeTab]?.current ?? null
+  }, [activeTab, tabHandleRefs])
+
+  const isActiveTabDirty = useCallback(() => {
+    const handle = getActiveTabHandle()
+    return handle?.isDirty() ?? false
+  }, [getActiveTabHandle])
+
+  const proceedNavigation = useCallback(
+    (target: TicketDetailPendingNavigation) => {
+      if (target.type === 'tab') {
+        setActiveTab(target.tabId)
+        return
+      }
+      if (target.type === 'route') {
+        router.push(target.href)
+        return
+      }
+      releaseTicketUnsavedBackTrap()
+      router.back()
+    },
+    [router],
+  )
+
+  const openUnsavedDialog = useCallback(
+    (target: TicketDetailPendingNavigation) => {
+      setPendingNavigation(target)
+      setUnsavedDialogOpen(true)
+    },
+    [],
+  )
+
+  const requestTabChange = useCallback(
+    (nextTab: TicketDetailTabId) => {
+      if (nextTab === activeTab) return
+      const handle = getActiveTabHandle()
+      if (handle?.isDirty()) {
+        openUnsavedDialog({ type: 'tab', tabId: nextTab })
+        return
+      }
+      setActiveTab(nextTab)
+    },
+    [activeTab, getActiveTabHandle, openUnsavedDialog],
+  )
+
+  const requestRouteNavigation = useCallback(
+    (href: string) => {
+      const handle = getActiveTabHandle()
+      if (handle?.isDirty()) {
+        openUnsavedDialog({ type: 'route', href })
+        return
+      }
+      router.push(href)
+    },
+    [getActiveTabHandle, openUnsavedDialog, router],
+  )
+
+  const closeUnsavedDialog = useCallback(() => {
+    setUnsavedDialogOpen(false)
+    setPendingNavigation(null)
+  }, [])
+
+  const handleUnsavedDiscard = useCallback(() => {
+    const target = pendingNavigation
+    if (!target) {
+      closeUnsavedDialog()
+      return
+    }
+    getActiveTabHandle()?.discard()
+    closeUnsavedDialog()
+    proceedNavigation(target)
+  }, [
+    closeUnsavedDialog,
+    getActiveTabHandle,
+    pendingNavigation,
+    proceedNavigation,
+  ])
+
+  const handleUnsavedSave = useCallback(async () => {
+    const target = pendingNavigation
+    const handle = getActiveTabHandle()
+    if (!target || !handle) return
+
+    setGuardActionPending(true)
+    try {
+      const saved = await handle.save()
+      if (!saved) return
+      closeUnsavedDialog()
+      proceedNavigation(target)
+    } finally {
+      setGuardActionPending(false)
+    }
+  }, [
+    closeUnsavedDialog,
+    getActiveTabHandle,
+    pendingNavigation,
+    proceedNavigation,
+  ])
+
+  useTicketUnsavedGuard({
+    enabled: Boolean(cab),
+    isDirty: isActiveTabDirty,
+    isDirtyNow: isActiveTabDirty(),
+    onNavigateAttempt: openUnsavedDialog,
+    dialogOpen: unsavedDialogOpen,
+  })
 
   const allowedActionIds = allowedActionsQuery.data?.allowed_action_ids ?? []
   const canFinalizeTicket = allowedActionIds.includes('FINALIZAR_CHAMADO')
@@ -461,8 +610,8 @@ export function TicketDetailView({ ticketId }: Props) {
 
   useEffect(() => {
     if (showRespostaTab || activeTab !== 'resposta') return
-    setActiveTab('solicitante')
-  }, [showRespostaTab, activeTab])
+    requestTabChange('solicitante')
+  }, [showRespostaTab, activeTab, requestTabChange])
 
   const selectedResponsibleLabels = (teamMembersByRoleQuery.data ?? [])
     .filter((member: TeamMemberUserOut) =>
@@ -515,13 +664,14 @@ export function TicketDetailView({ ticketId }: Props) {
         <div className={styles.topBlock}>
           <div className={styles.headerBar}>
             <div className={styles.titleRow}>
-              <Link
-                href="/demandas"
+              <button
+                type="button"
                 className={styles.backLink}
                 aria-label="Voltar para lista de demandas"
+                onClick={() => requestRouteNavigation('/demandas')}
               >
                 <ChevronLeft size={18} />
-              </Link>
+              </button>
               <p className={styles.title} role="heading" aria-level={1}>
                 {`Demanda #${cab.internal_number} - ${displayText(cab.tipo_chamado_nome)}`}
               </p>
@@ -707,7 +857,7 @@ export function TicketDetailView({ ticketId }: Props) {
                   role="tab"
                   aria-selected={isActive}
                   className={`${styles.tabButton} ${isActive ? styles.tabButtonActive : ''}`}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => requestTabChange(tab.id)}
                 >
                   {tab.label}
                 </button>
@@ -716,9 +866,13 @@ export function TicketDetailView({ ticketId }: Props) {
           </div>
 
           {activeTab === 'solicitante' ? (
-            <TicketDetailTabSolicitante ticketId={ticketId} />
+            <TicketDetailTabSolicitante
+              ref={solicitanteRef}
+              ticketId={ticketId}
+            />
           ) : activeTab === 'chamado' ? (
             <TicketDetailTabChamado
+              ref={chamadoRef}
               ticketId={ticketId}
               ticketStateId={allowedActionsQuery.data?.state_id}
               ticketStatus={cab?.status}
@@ -729,15 +883,19 @@ export function TicketDetailView({ ticketId }: Props) {
             </div>
           ) : activeTab === 'servicos' ? (
             <div className={styles.panel} role="tabpanel">
-              <TicketDetailTabServicos ticketId={ticketId} />
+              <TicketDetailTabServicos ref={servicosRef} ticketId={ticketId} />
             </div>
           ) : activeTab === 'parecer_interno' ? (
             <div className={styles.panel} role="tabpanel">
-              <TicketDetailTabParecerInterno ticketId={ticketId} />
+              <TicketDetailTabParecerInterno
+                ref={parecerRef}
+                ticketId={ticketId}
+              />
             </div>
           ) : activeTab === 'relatorio_demanda' ? (
             <div className={styles.panel} role="tabpanel">
               <TicketDetailTabRelatorioDemanda
+                ref={relatorioRef}
                 key={ticketId}
                 ticketId={ticketId}
               />
@@ -1150,7 +1308,7 @@ export function TicketDetailView({ ticketId }: Props) {
                         )
                       }
                     >
-                      Marcar todos
+                      Inteiro teor
                     </button>
                     <button
                       type="button"
@@ -1480,6 +1638,19 @@ export function TicketDetailView({ ticketId }: Props) {
             </div>
           </DialogContent>
         </Dialog>
+
+        <TicketDetailUnsavedDialog
+          open={unsavedDialogOpen}
+          onOpenChange={(open) => {
+            if (!open && !guardActionPending) closeUnsavedDialog()
+          }}
+          pending={guardActionPending}
+          onCancel={closeUnsavedDialog}
+          onDiscard={handleUnsavedDiscard}
+          onSave={() => {
+            handleUnsavedSave().catch(() => {})
+          }}
+        />
       </div>
     </div>
   )

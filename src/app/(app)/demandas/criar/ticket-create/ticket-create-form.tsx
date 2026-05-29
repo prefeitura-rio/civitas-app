@@ -146,6 +146,11 @@ export function TicketCreateForm() {
       ? vm.getValues().outros?.[vm.serviceModalEditIndex]
       : undefined
 
+  const initialAtlasCivitas =
+    vm.serviceModalOpen === 'atlas_civitas' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().atlas_civitas?.[vm.serviceModalEditIndex]
+      : undefined
+
   return (
     <div className={styles.root}>
       <div className="w-full space-y-8">
@@ -364,7 +369,6 @@ export function TicketCreateForm() {
                   <Input
                     className={`h-11 ${styles.inputBg}`}
                     disabled={fieldDisabled}
-                    inputMode="numeric"
                     autoComplete="off"
                     value={field.value ?? ''}
                     onBlur={() => {
@@ -391,7 +395,7 @@ export function TicketCreateForm() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Data base</Label>
+              <Label className={styles.fieldLabel}>Data base do fato</Label>
               <Controller
                 control={vm.control}
                 name="data_base"
@@ -852,6 +856,11 @@ export function TicketCreateForm() {
               onAdd={() => vm.handleOpenService('outros')}
               disabled={fieldDisabled}
             />
+            <ServiceAddCard
+              title="Atlas Civitas"
+              onAdd={() => vm.handleOpenService('atlas_civitas')}
+              disabled={fieldDisabled}
+            />
           </div>
 
           <div className="mt-4 space-y-4">
@@ -972,6 +981,16 @@ export function TicketCreateForm() {
               fields={vm.outros.fields}
               onRemove={vm.outros.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('outros', idx)}
+              renderRow={() => null}
+              disabled={fieldDisabled}
+              openModalDisabled={vm.isLoading}
+            />
+
+            <ServiceList
+              label="Atlas Civitas"
+              fields={vm.atlasCivitas.fields}
+              onRemove={vm.atlasCivitas.remove}
+              onEdit={(idx) => vm.openServiceModalForEdit('atlas_civitas', idx)}
               renderRow={() => null}
               disabled={fieldDisabled}
               openModalDisabled={vm.isLoading}
@@ -1186,6 +1205,7 @@ export function TicketCreateForm() {
         initialReservaImagem={initialReservaImagem}
         initialAnaliseImagem={initialAnaliseImagem}
         initialOutros={initialOutros}
+        initialAtlasCivitas={initialAtlasCivitas}
         onSaveBuscaPorPlaca={(value, editIndex) => {
           const normalized = {
             plates: (value.plates ?? [])
@@ -1237,10 +1257,9 @@ export function TicketCreateForm() {
         }}
         onSaveBuscaPorImagem={(value, editIndex) => {
           const normalized = {
-            plate: nullIfEmpty(value.plate),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
-            address: nullIfEmpty(value.address),
+            addresses: value.addresses ?? [],
             description: nullIfEmpty(value.description),
             cameras: value.cameras ?? [],
           }
@@ -1298,6 +1317,7 @@ export function TicketCreateForm() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            addresses: value.addresses ?? [],
             cameras: value.cameras ?? [],
           }
 
@@ -1314,6 +1334,7 @@ export function TicketCreateForm() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            addresses: value.addresses ?? [],
             cameras: value.cameras ?? [],
           }
 
@@ -1334,6 +1355,22 @@ export function TicketCreateForm() {
             vm.outros.update(editIndex, normalized)
           } else {
             vm.outros.append(normalized)
+          }
+
+          vm.closeServiceModal()
+        }}
+        onSaveAtlasCivitas={(value, editIndex) => {
+          const normalized = {
+            name: value.name.trim(),
+            email: value.email.trim(),
+            cpf: value.cpf,
+            registration: value.registration.trim(),
+          }
+
+          if (editIndex !== null) {
+            vm.atlasCivitas.update(editIndex, normalized)
+          } else {
+            vm.atlasCivitas.append(normalized)
           }
 
           vm.closeServiceModal()

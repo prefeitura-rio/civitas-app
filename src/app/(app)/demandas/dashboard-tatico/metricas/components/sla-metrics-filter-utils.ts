@@ -1,36 +1,23 @@
 import type {
   SlaDashboardFilterIn,
+  SlaPerformanceRowOut,
   SlaTicketStatus,
   TicketPriority,
 } from '@/http/tickets/get-sla-dashboard'
 import type { SearchOption } from '@/http/tickets/tickets-dashboard-filters'
 
-export type SlaMetricsAdvancedFilterForm = {
-  requisitante: SearchOption[]
-  prioridade: SearchOption[]
-  status: SearchOption[]
-  tipo_chamado_id: SearchOption[]
-  relevanteImprensa: boolean
-}
+import {
+  DASHBOARD_TATICO_PRIORITY_OPTIONS,
+  type DashboardTaticoAdvancedFilterForm,
+  emptyDashboardTaticoAdvancedFilters,
+  SLA_METRICS_STATUS_OPTIONS,
+} from '../../components/filters'
 
-export const SLA_METRICS_PRIORITY_OPTIONS: SearchOption[] = [
-  { value: 'URGENTE', label: 'Urgente' },
-  { value: 'ALTA', label: 'Alta' },
-  { value: 'ROTINA', label: 'Rotina' },
-]
+export type SlaMetricsAdvancedFilterForm = DashboardTaticoAdvancedFilterForm
 
-export const SLA_METRICS_STATUS_OPTIONS: SearchOption[] = [
-  { value: 'PENDENTE', label: 'Pendente' },
-  { value: 'AGUARDANDO_REVISAO_ADJUNTO', label: 'Aguardando revisão adjunto' },
-  {
-    value: 'AGUARDANDO_REVISAO_ADMINISTRATIVO',
-    label: 'Aguardando revisão administrativo',
-  },
-  { value: 'FINALIZADO', label: 'Finalizado' },
-  { value: 'DEMANDA_RESPONDIDA', label: 'Demanda respondida' },
-  { value: 'BLOQUEADO', label: 'Bloqueado' },
-  { value: 'RESTRITO', label: 'Restrito' },
-]
+export const SLA_METRICS_PRIORITY_OPTIONS = DASHBOARD_TATICO_PRIORITY_OPTIONS
+
+export { SLA_METRICS_STATUS_OPTIONS }
 
 const priorityLabelByValue = new Map(
   SLA_METRICS_PRIORITY_OPTIONS.map((o) => [o.value, o.label]),
@@ -39,20 +26,14 @@ const statusLabelByValue = new Map(
   SLA_METRICS_STATUS_OPTIONS.map((o) => [o.value, o.label]),
 )
 
-export function emptySlaMetricsAdvancedFilters(): SlaMetricsAdvancedFilterForm {
-  return {
-    requisitante: [],
-    prioridade: [],
-    status: [],
-    tipo_chamado_id: [],
-    relevanteImprensa: false,
-  }
-}
+export const emptySlaMetricsAdvancedFilters =
+  emptyDashboardTaticoAdvancedFilters
 
 export function countSlaMetricsAdvancedFiltersFromApi(
   filters: SlaDashboardFilterIn,
 ): number {
   let count = 0
+  count += filters.demandante_id?.length ?? 0
   count += filters.requisitante?.length ?? 0
   count += filters.prioridade?.length ?? 0
   count += filters.status?.length ?? 0
@@ -78,6 +59,10 @@ export function advancedFiltersFromApi(
   filters: SlaDashboardFilterIn,
 ): SlaMetricsAdvancedFilterForm {
   return {
+    demandante_id: (filters.demandante_id ?? []).map((value) => ({
+      value,
+      label: value,
+    })),
     requisitante: (filters.requisitante ?? []).map((value) => ({
       value,
       label: value,
@@ -102,6 +87,7 @@ export function advancedFiltersToApiPatch(
   form: SlaMetricsAdvancedFilterForm,
 ): Pick<
   SlaDashboardFilterIn,
+  | 'demandante_id'
   | 'requisitante'
   | 'prioridade'
   | 'status'
@@ -109,6 +95,9 @@ export function advancedFiltersToApiPatch(
   | 'relevante_imprensa'
 > {
   return {
+    demandante_id: form.demandante_id.length
+      ? form.demandante_id.map((item) => item.value)
+      : undefined,
     requisitante: form.requisitante.length
       ? form.requisitante.map((item) => item.value)
       : undefined,
@@ -129,6 +118,7 @@ export function stripAdvancedFiltersFromApi(
   filters: SlaDashboardFilterIn,
 ): SlaDashboardFilterIn {
   const rest = { ...filters }
+  delete rest.demandante_id
   delete rest.requisitante
   delete rest.prioridade
   delete rest.status
@@ -141,6 +131,9 @@ export function formatSlaMetricsAdvancedFiltersSummary(
   filters: SlaDashboardFilterIn,
 ): string[] {
   const lines: string[] = []
+  if (filters.demandante_id?.length) {
+    lines.push(`Demandante: ${filters.demandante_id.length} selecionado(s)`)
+  }
   if (filters.requisitante?.length) {
     lines.push(`Requisitante: ${filters.requisitante.join(', ')}`)
   }
@@ -169,6 +162,29 @@ export const SLA_PRIORITY_ROW_LABELS: Record<string, string> = {
   URGENTE: 'Urgente',
   ALTA: 'Alta',
   ROTINA: 'Rotina',
+  'SEM PRIORIDADE': 'Sem Prioridade',
+  SEM_PRIORIDADE: 'Sem Prioridade',
+}
+
+const SLA_PRIORITY_ROW_ORDER = [
+  'URGENTE',
+  'ALTA',
+  'ROTINA',
+  'SEM PRIORIDADE',
+  'SEM_PRIORIDADE',
+] as const
+
+export function sortSlaPerformancePriorityRows(
+  rows: SlaPerformanceRowOut[],
+): SlaPerformanceRowOut[] {
+  const orderIndex = (label: string) => {
+    const index = SLA_PRIORITY_ROW_ORDER.indexOf(
+      label as (typeof SLA_PRIORITY_ROW_ORDER)[number],
+    )
+    return index === -1 ? SLA_PRIORITY_ROW_ORDER.length : index
+  }
+
+  return [...rows].sort((a, b) => orderIndex(a.label) - orderIndex(b.label))
 }
 
 export function formatSlaPerformanceRowLabel(label: string): string {

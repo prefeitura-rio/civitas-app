@@ -16,6 +16,7 @@ const SERVICO_ROW_KEYS = [
   'reserva_de_imagem',
   'analise_de_imagem',
   'outros',
+  'atlas_civitas',
 ] as const satisfies readonly Exclude<OpenServiceKey, null>[]
 
 /** Mantém rascunho do utilizador e atualiza só `anexos_gerais` e `anexos` por serviço após refetch. */
@@ -153,8 +154,9 @@ export function ticketServicosToReplacePayload(
       concluido: Boolean(x.concluido),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
-      plate: strOrNull(x.plate),
-      address: strOrNull(x.address),
+      addresses: (x.addresses ?? [])
+        .map((a) => a.address.trim())
+        .filter(Boolean),
       description: strOrNull(x.description),
       cameras: (x.cameras ?? [])
         .map((c) => c.camera_code.trim())
@@ -190,6 +192,9 @@ export function ticketServicosToReplacePayload(
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
+      addresses: (x.addresses ?? [])
+        .map((a) => a.address.trim())
+        .filter(Boolean),
       cameras: (x.cameras ?? [])
         .map((c) => c.camera_code.trim())
         .filter(Boolean),
@@ -200,6 +205,9 @@ export function ticketServicosToReplacePayload(
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
+      addresses: (x.addresses ?? [])
+        .map((a) => a.address.trim())
+        .filter(Boolean),
       cameras: (x.cameras ?? [])
         .map((c) => c.camera_code.trim())
         .filter(Boolean),
@@ -208,6 +216,18 @@ export function ticketServicosToReplacePayload(
       ...persistedId(x.id),
       concluido: Boolean(x.concluido),
       orientation: strOrNull(x.orientation),
+    })),
+    atlas_civitas: n.atlas_civitas.map((x) => ({
+      ...persistedId(x.id),
+      concluido: Boolean(x.concluido),
+      name: strOrNull(x.name),
+      email: strOrNull(x.email),
+      cpf: (() => {
+        if (x.cpf == null) return null
+        const d = String(x.cpf).replace(/\D/g, '')
+        return d.length ? d : null
+      })(),
+      registration: strOrNull(x.registration),
     })),
   }
 }
@@ -270,6 +290,11 @@ export function setServiceConcluido(
     case 'outros': {
       const row = next.outros[index]
       if (row) next.outros[index] = { ...row, concluido }
+      break
+    }
+    case 'atlas_civitas': {
+      const row = next.atlas_civitas[index]
+      if (row) next.atlas_civitas[index] = { ...row, concluido }
       break
     }
     default:
@@ -336,8 +361,7 @@ export function appendEmptyService(
           concluido: false,
           period_start: null,
           period_end: null,
-          plate: null,
-          address: null,
+          addresses: [],
           description: null,
           cameras: [],
         },
@@ -385,6 +409,7 @@ export function appendEmptyService(
           period_start: null,
           period_end: null,
           orientation: null,
+          addresses: [],
           cameras: [],
         },
       ]
@@ -399,6 +424,7 @@ export function appendEmptyService(
           period_start: null,
           period_end: null,
           orientation: null,
+          addresses: [],
           cameras: [],
         },
       ]
@@ -411,6 +437,20 @@ export function appendEmptyService(
           created_at: created,
           concluido: false,
           orientation: null,
+        },
+      ]
+      break
+    case 'atlas_civitas':
+      next.atlas_civitas = [
+        ...next.atlas_civitas,
+        {
+          id,
+          created_at: created,
+          concluido: false,
+          name: null,
+          email: null,
+          cpf: null,
+          registration: null,
         },
       ]
       break
@@ -466,6 +506,9 @@ export function removeServiceAt(
       break
     case 'outros':
       next.outros = next.outros.filter((_, i) => i !== index)
+      break
+    case 'atlas_civitas':
+      next.atlas_civitas = next.atlas_civitas.filter((_, i) => i !== index)
       break
     default:
       break

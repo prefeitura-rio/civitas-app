@@ -104,6 +104,7 @@ const SERVICE_ORDER: Exclude<OpenServiceKey, null>[] = [
   'reserva_de_imagem',
   'analise_de_imagem',
   'outros',
+  'atlas_civitas',
 ]
 
 function nullIfEmpty(value?: string | null) {
@@ -432,6 +433,11 @@ export function EmailToTicketView() {
   const initialOutros =
     vm.serviceModalOpen === 'outros' && vm.serviceModalEditIndex !== null
       ? vm.getValues().outros?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialAtlasCivitas =
+    vm.serviceModalOpen === 'atlas_civitas' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().atlas_civitas?.[vm.serviceModalEditIndex]
       : undefined
 
   const isManualFileIncluded = useCallback(
@@ -899,7 +905,6 @@ export function EmailToTicketView() {
                             <Input
                               className={`h-11 ${styles.inputBg}`}
                               disabled={vm.isLoading}
-                              inputMode="numeric"
                               autoComplete="off"
                               value={field.value ?? ''}
                               onBlur={() => {
@@ -928,7 +933,9 @@ export function EmailToTicketView() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className={styles.fieldLabel}>Data base</Label>
+                        <Label className={styles.fieldLabel}>
+                          Data base do fato
+                        </Label>
                         <Controller
                           control={vm.control}
                           name="data_base"
@@ -1534,6 +1541,18 @@ export function EmailToTicketView() {
                       disabled={fieldDisabled}
                       openModalDisabled={vm.isLoading}
                     />
+
+                    <CompactServiceList
+                      label="Atlas Civitas"
+                      fields={vm.atlasCivitas.fields}
+                      onRemove={vm.atlasCivitas.remove}
+                      onEdit={(idx) =>
+                        vm.openServiceModalForEdit('atlas_civitas', idx)
+                      }
+                      renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
+                    />
                   </div>
                 </ConverterPanelSection>
 
@@ -1888,6 +1907,7 @@ export function EmailToTicketView() {
         initialReservaImagem={initialReservaImagem}
         initialAnaliseImagem={initialAnaliseImagem}
         initialOutros={initialOutros}
+        initialAtlasCivitas={initialAtlasCivitas}
         onSaveBuscaPorPlaca={(value, editIndex) => {
           const normalized = {
             plates: (value.plates ?? [])
@@ -1933,10 +1953,9 @@ export function EmailToTicketView() {
         }}
         onSaveBuscaPorImagem={(value, editIndex) => {
           const normalized = {
-            plate: nullIfEmpty(value.plate),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
-            address: nullIfEmpty(value.address),
+            addresses: value.addresses ?? [],
             description: nullIfEmpty(value.description),
             cameras: value.cameras ?? [],
           }
@@ -1988,6 +2007,7 @@ export function EmailToTicketView() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            addresses: value.addresses ?? [],
             cameras: value.cameras ?? [],
           }
           if (editIndex !== null) {
@@ -2002,6 +2022,7 @@ export function EmailToTicketView() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            addresses: value.addresses ?? [],
             cameras: value.cameras ?? [],
           }
           if (editIndex !== null) {
@@ -2019,6 +2040,20 @@ export function EmailToTicketView() {
             vm.outros.update(editIndex, normalized)
           } else {
             vm.outros.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveAtlasCivitas={(value, editIndex) => {
+          const normalized = {
+            name: value.name.trim(),
+            email: value.email.trim(),
+            cpf: value.cpf,
+            registration: value.registration.trim(),
+          }
+          if (editIndex !== null) {
+            vm.atlasCivitas.update(editIndex, normalized)
+          } else {
+            vm.atlasCivitas.append(normalized)
           }
           vm.closeServiceModal()
         }}

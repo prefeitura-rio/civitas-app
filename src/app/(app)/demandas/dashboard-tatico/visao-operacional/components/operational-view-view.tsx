@@ -12,7 +12,7 @@ import {
 
 import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-volume-date-range'
 import {
-  pivotOpenTicketsForBarChart,
+  mapOpenTicketsByTeamForBarChart,
   pivotTeamPeriodSeries,
 } from './operational-view-chart-utils'
 import {
@@ -37,8 +37,6 @@ export function OperationalViewView() {
   const [appliedFilters, setAppliedFilters] = useState<OperationalViewFilterIn>(
     createDefaultOperationalViewFilters,
   )
-  const [openTicketsGranularity, setOpenTicketsGranularity] =
-    useState<OperationalViewGranularity>('monthly')
   const [closedVolumeGranularity, setClosedVolumeGranularity] =
     useState<OperationalViewGranularity>('monthly')
   const [resolutionTimeGranularity, setResolutionTimeGranularity] =
@@ -61,20 +59,9 @@ export function OperationalViewView() {
     staleTime: 60_000,
   })
 
-  const openTicketsChart = useMemo(
-    () =>
-      pivotOpenTicketsForBarChart(
-        data?.open_tickets_by_team,
-        openTicketsGranularity,
-        appliedFilters.date_from,
-        appliedFilters.date_to,
-      ),
-    [
-      data?.open_tickets_by_team,
-      openTicketsGranularity,
-      appliedFilters.date_from,
-      appliedFilters.date_to,
-    ],
+  const openTicketsChartData = useMemo(
+    () => mapOpenTicketsByTeamForBarChart(data?.open_tickets_by_team),
+    [data?.open_tickets_by_team],
   )
 
   const closedVolumeSeries = useMemo(
@@ -118,6 +105,18 @@ export function OperationalViewView() {
     setAppliedFilters(next)
   }
 
+  const canApplyPeriod = useMemo(
+    () =>
+      (draftFilters.date_from ?? '') !== (appliedFilters.date_from ?? '') ||
+      (draftFilters.date_to ?? '') !== (appliedFilters.date_to ?? ''),
+    [
+      draftFilters.date_from,
+      draftFilters.date_to,
+      appliedFilters.date_from,
+      appliedFilters.date_to,
+    ],
+  )
+
   function handlePeriodDatesChange(
     patch: Partial<{ dateFrom: string; dateTo: string }>,
     changed: 'from' | 'to',
@@ -135,10 +134,18 @@ export function OperationalViewView() {
       ))
     }
 
-    applyFilters({
-      ...appliedFilters,
+    setDraftFilters({
+      ...draftFilters,
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
+    })
+  }
+
+  function handleApplyPeriodFilter() {
+    setAppliedFilters({
+      ...appliedFilters,
+      date_from: draftFilters.date_from,
+      date_to: draftFilters.date_to,
     })
   }
 
@@ -170,6 +177,8 @@ export function OperationalViewView() {
           handlePeriodDatesChange({ dateFrom }, 'from')
         }
         onDateToChange={(dateTo) => handlePeriodDatesChange({ dateTo }, 'to')}
+        onApplyPeriod={handleApplyPeriodFilter}
+        canApplyPeriod={canApplyPeriod}
         isLoading={isFetching}
         appliedFilters={appliedFilters}
         onApplyAdvancedFilters={handleApplyAdvancedFilters}
@@ -191,10 +200,8 @@ export function OperationalViewView() {
       )}
 
       <OperationalViewOpenTicketsChart
-        chartData={openTicketsChart.chartData}
-        teams={openTicketsChart.teams}
-        granularity={openTicketsGranularity}
-        onGranularityChange={setOpenTicketsGranularity}
+        chartData={openTicketsChartData}
+        openTicketsByTeam={data?.open_tickets_by_team}
         isLoading={isFetching}
       />
 

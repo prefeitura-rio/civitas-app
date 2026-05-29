@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { TicketDetection } from '@/http/tickets/get-ticket-by-id'
 import type { TicketServicosOut } from '@/http/tickets/ticket-servicos'
-import { maskPlateBR } from '@/utils/string-formatters'
+import { formatCPF, maskPlateBR } from '@/utils/string-formatters'
 
 import styles from '../ticket-detail.module.css'
 import {
@@ -508,40 +508,108 @@ export function ServicosExpandedForm({
             )}
           </div>
           <div className={styles.servicosFieldBlock}>
-            <span className={styles.servicosFieldLabel}>Placa do veículo</span>
-            <Input
-              className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
-              value={item.plate ?? ''}
-              onChange={(e) =>
-                patch((n) => {
-                  n.busca_por_imagem[index] = {
-                    ...n.busca_por_imagem[index],
-                    plate: maskPlateBR(e.target.value) || null,
+            <span className={styles.servicosFieldLabel}>Endereços</span>
+            <div className={styles.servicosStack}>
+              {(item.addresses ?? []).map((addr, ai) => (
+                <Fragment key={addr.id}>
+                  <div className={styles.servicosPlateRow}>
+                    <Input
+                      className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
+                      placeholder="Endereço"
+                      value={addr.address}
+                      onChange={(e) =>
+                        patch((n) => {
+                          const addresses = [
+                            ...(n.busca_por_imagem[index].addresses ?? []),
+                          ]
+                          addresses[ai] = {
+                            ...addresses[ai],
+                            address: e.target.value,
+                          }
+                          n.busca_por_imagem[index] = {
+                            ...n.busca_por_imagem[index],
+                            addresses,
+                          }
+                        })
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      title="Remover endereço"
+                      onClick={() =>
+                        patch((n) => {
+                          const addresses = (
+                            n.busca_por_imagem[index].addresses ?? []
+                          ).filter((_, i) => i !== ai)
+                          n.busca_por_imagem[index] = {
+                            ...n.busca_por_imagem[index],
+                            addresses,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {ai === (item.addresses ?? []).length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.busca_por_imagem[index] = {
+                              ...n.busca_por_imagem[index],
+                              addresses: [
+                                ...(n.busca_por_imagem[index].addresses ?? []),
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  address: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar endereço"
+                        title="Adicionar endereço"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </Fragment>
+              ))}
+              {(item.addresses ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.busca_por_imagem[index] = {
+                        ...n.busca_por_imagem[index],
+                        addresses: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            address: '',
+                          },
+                        ],
+                      }
+                    })
                   }
-                })
-              }
-            />
-            {fieldErrors?.plate ? (
-              <p className="text-xs text-destructive">{fieldErrors.plate}</p>
-            ) : null}
-          </div>
-          <div className={styles.servicosFieldBlock}>
-            <span className={styles.servicosFieldLabel}>Endereço</span>
-            <Input
-              className={styles.servicosInput}
-              value={item.address ?? ''}
-              onChange={(e) =>
-                patch((n) => {
-                  n.busca_por_imagem[index] = {
-                    ...n.busca_por_imagem[index],
-                    address: e.target.value || null,
-                  }
-                })
-              }
-            />
-            {fieldErrors?.address ? (
-              <p className="text-xs text-destructive">{fieldErrors.address}</p>
-            ) : null}
+                  aria-label="Adicionar endereço"
+                  title="Adicionar endereço"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
           </div>
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Orientação</span>
@@ -744,6 +812,110 @@ export function ServicosExpandedForm({
             ) : null}
           </div>
           <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>Endereços</span>
+            <div className={styles.servicosStack}>
+              {(item.addresses ?? []).map((addr, ai) => (
+                <Fragment key={addr.id}>
+                  <div className={styles.servicosPlateRow}>
+                    <Input
+                      className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
+                      placeholder="Endereço"
+                      value={addr.address}
+                      onChange={(e) =>
+                        patch((n) => {
+                          const addresses = [
+                            ...(n.reserva_de_imagem[index].addresses ?? []),
+                          ]
+                          addresses[ai] = {
+                            ...addresses[ai],
+                            address: e.target.value,
+                          }
+                          n.reserva_de_imagem[index] = {
+                            ...n.reserva_de_imagem[index],
+                            addresses,
+                          }
+                        })
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      title="Remover endereço"
+                      onClick={() =>
+                        patch((n) => {
+                          const addresses = (
+                            n.reserva_de_imagem[index].addresses ?? []
+                          ).filter((_, i) => i !== ai)
+                          n.reserva_de_imagem[index] = {
+                            ...n.reserva_de_imagem[index],
+                            addresses,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {ai === (item.addresses ?? []).length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.reserva_de_imagem[index] = {
+                              ...n.reserva_de_imagem[index],
+                              addresses: [
+                                ...(n.reserva_de_imagem[index].addresses ?? []),
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  address: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar endereço"
+                        title="Adicionar endereço"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </Fragment>
+              ))}
+              {(item.addresses ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.reserva_de_imagem[index] = {
+                        ...n.reserva_de_imagem[index],
+                        addresses: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            address: '',
+                          },
+                        ],
+                      }
+                    })
+                  }
+                  aria-label="Adicionar endereço"
+                  title="Adicionar endereço"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Câmeras</span>
             <div className={styles.servicosStack}>
               {(item.cameras ?? []).map((cam, ci) => (
@@ -900,6 +1072,110 @@ export function ServicosExpandedForm({
             ) : null}
           </div>
           <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>Endereços</span>
+            <div className={styles.servicosStack}>
+              {(item.addresses ?? []).map((addr, ai) => (
+                <Fragment key={addr.id}>
+                  <div className={styles.servicosPlateRow}>
+                    <Input
+                      className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
+                      placeholder="Endereço"
+                      value={addr.address}
+                      onChange={(e) =>
+                        patch((n) => {
+                          const addresses = [
+                            ...(n.analise_de_imagem[index].addresses ?? []),
+                          ]
+                          addresses[ai] = {
+                            ...addresses[ai],
+                            address: e.target.value,
+                          }
+                          n.analise_de_imagem[index] = {
+                            ...n.analise_de_imagem[index],
+                            addresses,
+                          }
+                        })
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      title="Remover endereço"
+                      onClick={() =>
+                        patch((n) => {
+                          const addresses = (
+                            n.analise_de_imagem[index].addresses ?? []
+                          ).filter((_, i) => i !== ai)
+                          n.analise_de_imagem[index] = {
+                            ...n.analise_de_imagem[index],
+                            addresses,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {ai === (item.addresses ?? []).length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.analise_de_imagem[index] = {
+                              ...n.analise_de_imagem[index],
+                              addresses: [
+                                ...(n.analise_de_imagem[index].addresses ?? []),
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  address: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar endereço"
+                        title="Adicionar endereço"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </Fragment>
+              ))}
+              {(item.addresses ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.analise_de_imagem[index] = {
+                        ...n.analise_de_imagem[index],
+                        addresses: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            address: '',
+                          },
+                        ],
+                      }
+                    })
+                  }
+                  aria-label="Adicionar endereço"
+                  title="Adicionar endereço"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Câmeras</span>
             <div className={styles.servicosStack}>
               {(item.cameras ?? []).map((cam, ci) => (
@@ -1031,6 +1307,92 @@ export function ServicosExpandedForm({
             {fieldErrors?.orientation ? (
               <p className="text-xs text-destructive">
                 {fieldErrors.orientation}
+              </p>
+            ) : null}
+          </div>
+        </div>,
+      )
+    }
+
+    case 'atlas_civitas': {
+      const item = draft.atlas_civitas[index]
+      if (!item) return null
+      return servicosReadonlyShell(
+        readOnly,
+        <div className={styles.servicosFields}>
+          <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>Nome</span>
+            <Input
+              className={styles.servicosInput}
+              value={item.name ?? ''}
+              onChange={(e) =>
+                patch((n) => {
+                  n.atlas_civitas[index] = {
+                    ...n.atlas_civitas[index],
+                    name: e.target.value || null,
+                  }
+                })
+              }
+            />
+            {fieldErrors?.name ? (
+              <p className="text-xs text-destructive">{fieldErrors.name}</p>
+            ) : null}
+          </div>
+          <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>E-mail</span>
+            <Input
+              className={styles.servicosInput}
+              type="email"
+              value={item.email ?? ''}
+              onChange={(e) =>
+                patch((n) => {
+                  n.atlas_civitas[index] = {
+                    ...n.atlas_civitas[index],
+                    email: e.target.value || null,
+                  }
+                })
+              }
+            />
+            {fieldErrors?.email ? (
+              <p className="text-xs text-destructive">{fieldErrors.email}</p>
+            ) : null}
+          </div>
+          <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>CPF</span>
+            <Input
+              className={styles.servicosInput}
+              value={item.cpf ? formatCPF(String(item.cpf)) : ''}
+              onChange={(e) =>
+                patch((n) => {
+                  const digits = e.target.value.replace(/\D/g, '')
+                  n.atlas_civitas[index] = {
+                    ...n.atlas_civitas[index],
+                    cpf: digits.length ? digits : null,
+                  }
+                })
+              }
+            />
+            {fieldErrors?.cpf ? (
+              <p className="text-xs text-destructive">{fieldErrors.cpf}</p>
+            ) : null}
+          </div>
+          <div className={styles.servicosFieldBlock}>
+            <span className={styles.servicosFieldLabel}>Matrícula</span>
+            <Input
+              className={styles.servicosInput}
+              value={item.registration ?? ''}
+              onChange={(e) =>
+                patch((n) => {
+                  n.atlas_civitas[index] = {
+                    ...n.atlas_civitas[index],
+                    registration: e.target.value || null,
+                  }
+                })
+              }
+            />
+            {fieldErrors?.registration ? (
+              <p className="text-xs text-destructive">
+                {fieldErrors.registration}
               </p>
             ) : null}
           </div>

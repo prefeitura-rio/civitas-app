@@ -5,27 +5,18 @@ import type {
 } from '@/http/tickets/get-demand-volume'
 import type { SearchOption } from '@/http/tickets/tickets-dashboard-filters'
 
-export type DemandVolumeAdvancedFilterForm = {
-  requisitante: SearchOption[]
-  prioridade: SearchOption[]
-  status: SearchOption[]
-  tipo_chamado_id: SearchOption[]
-  relevanteImprensa: boolean
-}
+import {
+  DASHBOARD_TATICO_PRIORITY_OPTIONS,
+  type DashboardTaticoAdvancedFilterForm,
+  DEMAND_VOLUME_STATUS_OPTIONS,
+  emptyDashboardTaticoAdvancedFilters,
+} from '../../components/filters'
 
-export const DEMAND_VOLUME_PRIORITY_OPTIONS: SearchOption[] = [
-  { value: 'URGENTE', label: 'Urgente' },
-  { value: 'ALTA', label: 'Alta' },
-  { value: 'ROTINA', label: 'Rotina' },
-]
+export type DemandVolumeAdvancedFilterForm = DashboardTaticoAdvancedFilterForm
 
-export const DEMAND_VOLUME_STATUS_OPTIONS: SearchOption[] = [
-  { value: 'PENDENTE', label: 'Pendente' },
-  { value: 'RESTRITO', label: 'Restrito' },
-  { value: 'BLOQUEADO', label: 'Bloqueado' },
-  { value: 'AGUARDANDO_REVISAO', label: 'Aguardando revisão' },
-  { value: 'CONCLUIDO', label: 'Concluído' },
-]
+export const DEMAND_VOLUME_PRIORITY_OPTIONS = DASHBOARD_TATICO_PRIORITY_OPTIONS
+
+export { DEMAND_VOLUME_STATUS_OPTIONS }
 
 const priorityLabelByValue = new Map(
   DEMAND_VOLUME_PRIORITY_OPTIONS.map((o) => [o.value, o.label]),
@@ -34,20 +25,14 @@ const statusLabelByValue = new Map(
   DEMAND_VOLUME_STATUS_OPTIONS.map((o) => [o.value, o.label]),
 )
 
-export function emptyDemandVolumeAdvancedFilters(): DemandVolumeAdvancedFilterForm {
-  return {
-    requisitante: [],
-    prioridade: [],
-    status: [],
-    tipo_chamado_id: [],
-    relevanteImprensa: false,
-  }
-}
+export const emptyDemandVolumeAdvancedFilters =
+  emptyDashboardTaticoAdvancedFilters
 
 export function countDemandVolumeAdvancedFilters(
   form: DemandVolumeAdvancedFilterForm,
 ): number {
   let count = 0
+  count += form.demandante_id.length
   count += form.requisitante.length
   count += form.prioridade.length
   count += form.status.length
@@ -60,6 +45,7 @@ export function countDemandVolumeAdvancedFiltersFromApi(
   filters: DemandVolumeFilterIn,
 ): number {
   let count = 0
+  count += filters.demandante_id?.length ?? 0
   count += filters.requisitante?.length ?? 0
   count += filters.prioridade?.length ?? 0
   count += filters.status?.length ?? 0
@@ -85,6 +71,10 @@ export function advancedFiltersFromApi(
   filters: DemandVolumeFilterIn,
 ): DemandVolumeAdvancedFilterForm {
   return {
+    demandante_id: (filters.demandante_id ?? []).map((value) => ({
+      value,
+      label: value,
+    })),
     requisitante: (filters.requisitante ?? []).map((value) => ({
       value,
       label: value,
@@ -109,6 +99,7 @@ export function advancedFiltersToApiPatch(
   form: DemandVolumeAdvancedFilterForm,
 ): Pick<
   DemandVolumeFilterIn,
+  | 'demandante_id'
   | 'requisitante'
   | 'prioridade'
   | 'status'
@@ -116,6 +107,9 @@ export function advancedFiltersToApiPatch(
   | 'relevante_imprensa'
 > {
   return {
+    demandante_id: form.demandante_id.length
+      ? form.demandante_id.map((item) => item.value)
+      : undefined,
     requisitante: form.requisitante.length
       ? form.requisitante.map((item) => item.value)
       : undefined,
@@ -136,6 +130,7 @@ export function stripAdvancedFiltersFromApi(
   filters: DemandVolumeFilterIn,
 ): DemandVolumeFilterIn {
   const rest = { ...filters }
+  delete rest.demandante_id
   delete rest.requisitante
   delete rest.prioridade
   delete rest.status
@@ -148,6 +143,9 @@ export function formatDemandVolumeAdvancedFiltersSummary(
   filters: DemandVolumeFilterIn,
 ): string[] {
   const lines: string[] = []
+  if (filters.demandante_id?.length) {
+    lines.push(`Demandante: ${filters.demandante_id.length} selecionado(s)`)
+  }
   if (filters.requisitante?.length) {
     lines.push(`Requisitante: ${filters.requisitante.join(', ')}`)
   }

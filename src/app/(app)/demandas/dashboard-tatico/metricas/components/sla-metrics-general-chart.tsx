@@ -86,7 +86,7 @@ export function SlaMetricsGeneralChart({
             margin: 0,
           }}
         >
-          Tempo Médio de Resolução de Demandas (Geral)
+          Tempo Médio de Resposta de Demandas (Geral)
         </h2>
         <DemandVolumeChartGranularity
           value={granularity}

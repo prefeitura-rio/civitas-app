@@ -90,10 +90,9 @@ export function buildTicketCreatePayload(
     })),
 
     busca_por_imagem: data.busca_por_imagem.map((item) => ({
-      plate: plateToPayload(item.plate),
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
-      address: emptyToNull(item.address),
+      addresses: (item.addresses ?? []).map((a) => a.trim()).filter(Boolean),
       description: emptyToNull(item.description),
       cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
@@ -124,6 +123,7 @@ export function buildTicketCreatePayload(
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       orientation: emptyToNull(item.orientation),
+      addresses: (item.addresses ?? []).map((a) => a.trim()).filter(Boolean),
       cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
@@ -131,11 +131,19 @@ export function buildTicketCreatePayload(
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       orientation: emptyToNull(item.orientation),
+      addresses: (item.addresses ?? []).map((a) => a.trim()).filter(Boolean),
       cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
     outros: data.outros.map((item) => ({
       orientation: emptyToNull(item.orientation),
+    })),
+
+    atlas_civitas: data.atlas_civitas.map((item) => ({
+      name: item.name.trim(),
+      email: item.email.trim(),
+      cpf: item.cpf.replace(/\D/g, ''),
+      registration: item.registration.trim(),
     })),
   }
 }
@@ -226,8 +234,7 @@ export function mapTicketOutToCreateForm(
     busca_por_imagem: (ticket.busca_por_imagem ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
-      plate: s.plate ?? null,
-      address: s.address ?? null,
+      addresses: (s.addresses ?? []).map((a) => a.address),
       description: s.description ?? null,
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
@@ -251,16 +258,24 @@ export function mapTicketOutToCreateForm(
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
+      addresses: (s.addresses ?? []).map((a) => a.address),
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
     analise_de_imagem: (ticket.analise_de_imagem ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
+      addresses: (s.addresses ?? []).map((a) => a.address),
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
     outros: (ticket.outros ?? []).map((s) => ({
       orientation: s.orientation ?? null,
+    })),
+    atlas_civitas: (ticket.atlas_civitas ?? []).map((s) => ({
+      name: s.name ?? '',
+      email: s.email ?? '',
+      cpf: s.cpf ?? '',
+      registration: s.registration ?? '',
     })),
   }
 }

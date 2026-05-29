@@ -2,7 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -18,6 +26,7 @@ import {
   RichToolbar,
   sanitizeTicketHtml,
 } from './ticket-detail-rich-text'
+import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
 type Props = {
   ticketId: string
@@ -64,10 +73,16 @@ function CommentBody({ corpo }: { corpo: string }) {
   )
 }
 
-export function TicketDetailTabParecerInterno({ ticketId }: Props) {
+export const TicketDetailTabParecerInterno = forwardRef<
+  TicketDetailTabHandle,
+  Props
+>(function TicketDetailTabParecerInterno({ ticketId }, ref) {
   const queryClient = useQueryClient()
   const editorRef = useRef<HTMLDivElement>(null)
   const [empty, setEmpty] = useState(true)
+  const emptyRef = useRef(empty)
+
+  emptyRef.current = empty
 
   const commentsQuery = useQuery({
     queryKey: ['ticket-comentarios', ticketId],
@@ -123,15 +138,41 @@ export function TicketDetailTabParecerInterno({ ticketId }: Props) {
     },
   })
 
-  const handleSubmit = () => {
+  const discardComposer = useCallback(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = ''
+      setEmpty(true)
+    }
+  }, [])
+
+  const saveComposer = useCallback(async (): Promise<boolean> => {
     const el = editorRef.current
-    if (!el) return
+    if (!el) return false
     const html = el.innerHTML
     if (isHtmlEffectivelyEmpty(html)) {
       toast.error('Escreva um comentário antes de enviar.')
-      return
+      return false
     }
-    mutation.mutate(html.trim())
+    try {
+      await mutation.mutateAsync(html.trim())
+      return true
+    } catch {
+      return false
+    }
+  }, [mutation])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      isDirty: () => !emptyRef.current,
+      save: saveComposer,
+      discard: discardComposer,
+    }),
+    [discardComposer, saveComposer],
+  )
+
+  const handleSubmit = () => {
+    saveComposer().catch(() => {})
   }
 
   const items: TicketCommentListItem[] = commentsQuery.data ?? []
@@ -204,4 +245,4 @@ export function TicketDetailTabParecerInterno({ ticketId }: Props) {
       </div>
     </div>
   )
-}
+})

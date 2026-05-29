@@ -16,6 +16,7 @@ export const SLA_CONFIG_FIELDS: SlaConfigField[] = [
   { name: 'joint_license_plates_days', label: 'placas conjuntas' },
   { name: 'image_analysis_days', label: 'análise de imagem' },
   { name: 'others_days', label: 'outros' },
+  { name: 'atlas_civitas_days', label: 'atlas civitas' },
 ]
 
 export const SLA_DAY_OPTIONS = Array.from({ length: 30 }, (_, index) => {

@@ -70,8 +70,10 @@ const MULTIPART_ACCEPT = [
   'image/gif',
   'image/webp',
   'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ] as const
+
+const BLOCKED_DOCX = /\.docx$/i
+const BLOCKED_MOV = /\.mov$/i
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -88,7 +90,7 @@ function multipartFileAllowed(file: File): boolean {
   if (MULTIPART_ACCEPT.includes(t as (typeof MULTIPART_ACCEPT)[number]))
     return true
   const n = file.name.toLowerCase()
-  return /\.(pdf|jpe?g|png|gif|webp|doc|docx)$/i.test(n)
+  return /\.(pdf|jpe?g|png|gif|webp|doc)$/i.test(n)
 }
 
 function invalidateAttachmentQueries(
@@ -451,6 +453,20 @@ export function TicketServicoAnexos({
       if (!list?.length) return
       const files = Array.from(list)
 
+      const hasDocx = files.some((f) => BLOCKED_DOCX.test(f.name))
+      const hasMov = files.some((f) => BLOCKED_MOV.test(f.name))
+      if (hasDocx || hasMov) {
+        if (hasDocx && hasMov) {
+          toast.error('Ficheiros DOCX e MOV não são permitidos.')
+        } else if (hasDocx) {
+          toast.error('Ficheiros DOCX não são permitidos. Use o formato .doc.')
+        } else {
+          toast.error('Ficheiros MOV não são permitidos.')
+        }
+        e.target.value = ''
+        return
+      }
+
       const gcsFiles = files.filter(usesGcsSignedUrlUpload)
       const otherFiles = files.filter((f) => !usesGcsSignedUrlUpload(f))
 
@@ -492,7 +508,7 @@ export function TicketServicoAnexos({
       const bad = otherFiles.filter((f) => !multipartFileAllowed(f))
       if (bad.length || otherFiles.length === 0) {
         toast.error(
-          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word, até 10 MB cada.',
+          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word (.doc), até 10 MB cada.',
         )
         e.target.value = ''
         return
@@ -541,7 +557,7 @@ export function TicketServicoAnexos({
                 type="file"
                 className={styles.servicoAnexosFileInput}
                 multiple
-                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx"
+                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc"
                 onChange={onPickUpload}
                 aria-hidden
                 tabIndex={-1}

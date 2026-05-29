@@ -41,6 +41,13 @@ export function canViewTicketScreen(
   return screen?.can_view === true
 }
 
+export function canViewAnyTicketScreen(
+  permissions: TicketModulePermissionsMeOut | undefined,
+  screenCodes: readonly string[],
+): boolean {
+  return screenCodes.some((code) => canViewTicketScreen(permissions, code))
+}
+
 export function parseTicketModulePermissionsCookie(
   raw: string | undefined,
 ): TicketModulePermissionsMeOut | null {

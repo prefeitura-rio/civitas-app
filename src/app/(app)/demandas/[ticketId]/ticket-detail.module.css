@@ -1320,6 +1320,36 @@
   color: var(--td-text);
 }
 
+.unsavedDialogInner {
+  gap: 24px;
+}
+
+.unsavedDialogFooter {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.unsavedDialogFooter .footerBtn {
+  width: auto;
+  max-width: none;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.unsavedDialogContent > button:last-of-type {
+  color: var(--td-muted);
+  opacity: 1;
+}
+
+.unsavedDialogContent > button:last-of-type:hover {
+  color: var(--td-text);
+}
+
 .reassignFields {
   display: flex;
   flex-direction: column;
@@ -1992,6 +2022,16 @@
 /* Largura ~30% da faixa do formulário; mesma altura que o botão “+” / lixo (44px) */
 .servicosInput.servicosPlateInput {
   width: 30%;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  min-width: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.servicosInput.servicosAddressInput {
+  width: 60%;
   height: 44px;
   min-height: 44px;
   max-height: 44px;

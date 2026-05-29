@@ -6,9 +6,9 @@ export type ShiftClosingPeriodForm = {
   end_time: string
 }
 
-const DEFAULT_START_TIME = '09:00:00'
-const DEFAULT_END_TIME = '18:00:00'
-const SHIFT_START_HOUR = 9
+const DEFAULT_START_TIME = '07:00:00'
+const DEFAULT_END_TIME = '07:00:00'
+const SHIFT_START_HOUR = 7
 
 export function getDefaultShiftClosingPeriod(): ShiftClosingPeriodForm {
   const now = new Date()
@@ -42,7 +42,7 @@ export function toApiTime(value: string): string {
 
 export function toInputTime(value: string): string {
   const trimmed = value.trim()
-  if (!trimmed) return '09:00'
+  if (!trimmed) return '07:00'
   return trimmed.slice(0, 5)
 }
 

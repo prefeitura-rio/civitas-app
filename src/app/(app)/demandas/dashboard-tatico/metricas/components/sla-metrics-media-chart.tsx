@@ -74,7 +74,7 @@ export function SlaMetricsMediaChart({
             margin: 0,
           }}
         >
-          Tempo de Entrega para Demandas Relevantes à Mídia
+          Tempo Médio de Resposta das Demandas Relevantes à Mídia
         </h2>
         <DemandVolumeChartGranularity
           value={granularity}

@@ -1,6 +1,7 @@
 import type { OpenServiceKey } from '@/app/(app)/demandas/criar/ticket-create/ticket-create.constant'
 import type { TicketServicosOut } from '@/http/tickets/ticket-servicos'
 import { unmaskPlateBR } from '@/utils/string-formatters'
+import { validateCPF } from '@/utils/validate-cpf'
 
 type TicketServiceRowKind = Exclude<OpenServiceKey, null>
 
@@ -123,13 +124,6 @@ export function completionErrorsForServiceRow(
       if (!filledText(item.period_end)) {
         out.period_end = SERVICO_CAMPO_OBRIGATORIO
       }
-      {
-        const msg = plateCompletionMessage(item.plate)
-        if (msg) out.plate = msg
-      }
-      if (!filledText(item.address)) {
-        out.address = SERVICO_CAMPO_OBRIGATORIO
-      }
       if (!filledText(item.description)) {
         out.description = SERVICO_CAMPO_OBRIGATORIO
       }
@@ -223,6 +217,32 @@ export function completionErrorsForServiceRow(
       }
       return out
     }
+    case 'atlas_civitas': {
+      const item = draft.atlas_civitas[index]
+      if (!item?.concluido) return out
+      if (!filledText(item.name)) {
+        out.name = SERVICO_CAMPO_OBRIGATORIO
+      }
+      if (!filledText(item.email)) {
+        out.email = SERVICO_CAMPO_OBRIGATORIO
+      } else if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(item.email).trim())
+      ) {
+        out.email = 'Email inválido'
+      }
+      {
+        const digits = String(item.cpf ?? '').replace(/\D/g, '')
+        if (digits.length === 0) {
+          out.cpf = SERVICO_CAMPO_OBRIGATORIO
+        } else if (!validateCPF(digits)) {
+          out.cpf = 'CPF inválido'
+        }
+      }
+      if (!filledText(item.registration)) {
+        out.registration = SERVICO_CAMPO_OBRIGATORIO
+      }
+      return out
+    }
     default:
       return out
   }
@@ -251,6 +271,7 @@ export function collectAllCompletedServiceErrors(draft: TicketServicosOut): {
     'reserva_de_imagem',
     'analise_de_imagem',
     'outros',
+    'atlas_civitas',
   ] as const satisfies readonly TicketServiceRowKind[]
 
   for (const kind of kinds) {

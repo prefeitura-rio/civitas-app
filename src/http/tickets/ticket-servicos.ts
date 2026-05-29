@@ -16,6 +16,7 @@ export type TicketServicosOut = Pick<
   | 'reserva_de_imagem'
   | 'analise_de_imagem'
   | 'outros'
+  | 'atlas_civitas'
 > & {
   anexos_gerais: TicketAttachmentOut[]
 }
@@ -35,6 +36,7 @@ export function normalizeTicketServicosOut(
     reserva_de_imagem: data?.reserva_de_imagem ?? [],
     analise_de_imagem: data?.analise_de_imagem ?? [],
     outros: data?.outros ?? [],
+    atlas_civitas: data?.atlas_civitas ?? [],
   }
 }
 

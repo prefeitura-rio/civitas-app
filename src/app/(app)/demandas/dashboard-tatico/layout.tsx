@@ -1,13 +1,13 @@
 'use client'
 
-import { notFound } from 'next/navigation'
+import { notFound, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { config } from '@/config'
-import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
+import { useTacticalDashboardTabPermissions } from '@/hooks/useTacticalDashboardTabPermissions'
 
 import { DashboardTaticoTabs } from './components/dashboard-tatico-tabs'
-import { TACTICAL_DASHBOARD_SCREEN_CODE } from './constants'
 
 export default function DashboardTaticoLayout({
   children,
@@ -18,11 +18,17 @@ export default function DashboardTaticoLayout({
     notFound()
   }
 
-  const { allowed, resolved } = useTicketScreenPermissionGate(
-    TACTICAL_DASHBOARD_SCREEN_CODE,
-  )
+  const router = useRouter()
+  const { canAccessDashboard, resolved } = useTacticalDashboardTabPermissions()
 
-  if (!resolved || !allowed) {
+  useEffect(() => {
+    if (!resolved) return
+    if (!canAccessDashboard) {
+      router.replace('/forbidden')
+    }
+  }, [canAccessDashboard, resolved, router])
+
+  if (!resolved || !canAccessDashboard) {
     return (
       <div
         className="flex min-h-[240px] items-center justify-center"

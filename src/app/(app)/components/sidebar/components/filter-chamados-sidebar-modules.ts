@@ -1,4 +1,5 @@
 import {
+  canViewAnyTicketScreen,
   canViewTicketScreen,
   type TicketModulePermissionsMeOut,
 } from '@/http/tickets/ticket-module-permissions-me'
@@ -6,16 +7,28 @@ import {
 import type { Module, ModuleWithChildren, SidebarModule } from './constants'
 import { isModuleWithChildren } from './constants'
 
+function moduleTicketScreenVisible(
+  mod: Pick<Module, 'ticketScreenCode' | 'ticketScreenCodes'>,
+  permissions: TicketModulePermissionsMeOut | undefined,
+  permissionsResolved: boolean,
+): boolean {
+  if (mod.ticketScreenCodes?.length) {
+    if (!permissionsResolved) return false
+    return canViewAnyTicketScreen(permissions, mod.ticketScreenCodes)
+  }
+  if (mod.ticketScreenCode) {
+    if (!permissionsResolved) return false
+    return canViewTicketScreen(permissions, mod.ticketScreenCode)
+  }
+  return true
+}
+
 function childVisible(
   child: Module,
   permissions: TicketModulePermissionsMeOut | undefined,
   permissionsResolved: boolean,
 ): boolean {
-  if (child.ticketScreenCode) {
-    if (!permissionsResolved) return false
-    return canViewTicketScreen(permissions, child.ticketScreenCode)
-  }
-  return true
+  return moduleTicketScreenVisible(child, permissions, permissionsResolved)
 }
 
 export function filterChamadosSidebarModules(
@@ -30,18 +43,18 @@ export function filterChamadosSidebarModules(
         const filteredChildren = mw.children.filter((child) =>
           childVisible(child, permissions, permissionsResolved),
         )
-        if (mw.ticketScreenCode) {
-          if (!permissionsResolved) return null
-          if (!canViewTicketScreen(permissions, mw.ticketScreenCode)) {
+        if (mw.ticketScreenCode || mw.ticketScreenCodes?.length) {
+          if (
+            !moduleTicketScreenVisible(mw, permissions, permissionsResolved)
+          ) {
             return null
           }
         }
         return { ...mw, children: filteredChildren } as ModuleWithChildren
       }
       const mod = m as Module
-      if (mod.ticketScreenCode) {
-        if (!permissionsResolved) return null
-        if (!canViewTicketScreen(permissions, mod.ticketScreenCode)) {
+      if (mod.ticketScreenCode || mod.ticketScreenCodes?.length) {
+        if (!moduleTicketScreenVisible(mod, permissions, permissionsResolved)) {
           return null
         }
       }

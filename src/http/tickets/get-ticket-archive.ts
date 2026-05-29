@@ -10,6 +10,7 @@ export type TicketArchiveServiceFilter =
   | 'image_reservation_services'
   | 'image_analysis_services'
   | 'other_services'
+  | 'atlas_civitas_services'
 
 export type TicketArchiveFilters = {
   search?: string

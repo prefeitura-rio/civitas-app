@@ -2,7 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -24,6 +32,7 @@ import { getApiErrorMessage } from '@/utils/error-handlers'
 import { maskPhoneBR } from '@/utils/string-formatters'
 
 import styles from '../ticket-detail.module.css'
+import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
 type Props = {
   ticketId: string
@@ -55,10 +64,74 @@ function emptyFocalRow(): TicketSolicitanteUpsertIn['pontos_focais'][number] {
   return { nome: '', telefone: null, email: null }
 }
 
-export function TicketDetailTabSolicitante({ ticketId }: Props) {
+function buildSolicitantePayload(
+  draft: TicketSolicitanteUpsertIn,
+): TicketSolicitanteUpsertIn | null {
+  const nomeReq = draft.requisitante.requisitante_nome.trim()
+  const emailReq = draft.requisitante.requisitante_email.trim()
+  if (nomeReq.length < 2) {
+    toast.error('Informe o nome do requisitante (mínimo 2 caracteres).')
+    return null
+  }
+  if (!emailReq) {
+    toast.error('Informe o e-mail do requisitante.')
+    return null
+  }
+  if (!draft.operation_id?.trim()) {
+    toast.error('Selecione o demandante.')
+    return null
+  }
+
+  const pontos = draft.pontos_focais
+    .map((fp) => ({
+      nome: fp.nome.trim(),
+      telefone: fp.telefone?.trim() ? fp.telefone.trim() : null,
+      email: fp.email?.trim() ? fp.email.trim() : null,
+    }))
+    .filter((fp) => fp.nome.length >= 2)
+
+  for (const fp of pontos) {
+    if (fp.email != null && fp.email !== '') {
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fp.email)
+      if (!ok) {
+        toast.error('E-mail inválido em um dos pontos focais.')
+        return null
+      }
+    }
+  }
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailReq)
+  if (!emailOk) {
+    toast.error('E-mail do requisitante inválido.')
+    return null
+  }
+
+  return {
+    operation_id: draft.operation_id.trim(),
+    requisitante: {
+      requisitante_nome: nomeReq,
+      requisitante_telefone: draft.requisitante.requisitante_telefone?.trim()
+        ? draft.requisitante.requisitante_telefone.trim()
+        : null,
+      requisitante_email: emailReq,
+    },
+    pontos_focais: pontos,
+  }
+}
+
+export const TicketDetailTabSolicitante = forwardRef<
+  TicketDetailTabHandle,
+  Props
+>(function TicketDetailTabSolicitante({ ticketId }, ref) {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState<TicketSolicitanteUpsertIn | null>(null)
+  const isEditingRef = useRef(isEditing)
+  const draftRef = useRef(draft)
+  const solicitanteRef = useRef<TicketSolicitanteOut | undefined>(undefined)
+
+  isEditingRef.current = isEditing
+  draftRef.current = draft
 
   const solicitanteQuery = useQuery({
     queryKey: ['ticket', ticketId, 'solicitante'],
@@ -72,6 +145,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
   })
 
   const solicitante = solicitanteQuery.data
+  solicitanteRef.current = solicitante
 
   useEffect(() => {
     if (!solicitante || isEditing) return
@@ -125,6 +199,43 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
     setIsEditing(false)
   }, [solicitante])
 
+  const saveDraft = useCallback(async (): Promise<boolean> => {
+    const currentDraft = draftRef.current
+    if (!currentDraft) return false
+    const payload = buildSolicitantePayload(currentDraft)
+    if (!payload) return false
+    try {
+      await updateMutation.mutateAsync(payload)
+      return true
+    } catch {
+      return false
+    }
+  }, [updateMutation])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      isDirty: () => {
+        if (
+          !isEditingRef.current ||
+          !draftRef.current ||
+          !solicitanteRef.current
+        ) {
+          return false
+        }
+        const baseline = mapOutToDraft(solicitanteRef.current)
+        return JSON.stringify(draftRef.current) !== JSON.stringify(baseline)
+      },
+      save: saveDraft,
+      discard: cancelEdit,
+    }),
+    [cancelEdit, saveDraft],
+  )
+
+  const handleSave = useCallback(() => {
+    saveDraft().catch(() => {})
+  }, [saveDraft])
+
   const setRequisitante = useCallback(
     (patch: Partial<TicketSolicitanteUpsertIn['requisitante']>) => {
       setDraft((prev) => {
@@ -172,62 +283,6 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
       }
     })
   }, [])
-
-  const handleSave = useCallback(() => {
-    if (!draft) return
-    const nomeReq = draft.requisitante.requisitante_nome.trim()
-    const emailReq = draft.requisitante.requisitante_email.trim()
-    if (nomeReq.length < 2) {
-      toast.error('Informe o nome do requisitante (mínimo 2 caracteres).')
-      return
-    }
-    if (!emailReq) {
-      toast.error('Informe o e-mail do requisitante.')
-      return
-    }
-    if (!draft.operation_id?.trim()) {
-      toast.error('Selecione o demandante.')
-      return
-    }
-
-    const pontos = draft.pontos_focais
-      .map((fp) => ({
-        nome: fp.nome.trim(),
-        telefone: fp.telefone?.trim() ? fp.telefone.trim() : null,
-        email: fp.email?.trim() ? fp.email.trim() : null,
-      }))
-      .filter((fp) => fp.nome.length >= 2)
-
-    for (const fp of pontos) {
-      if (fp.email != null && fp.email !== '') {
-        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fp.email)
-        if (!ok) {
-          toast.error('E-mail inválido em um dos pontos focais.')
-          return
-        }
-      }
-    }
-
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailReq)
-    if (!emailOk) {
-      toast.error('E-mail do requisitante inválido.')
-      return
-    }
-
-    const payload: TicketSolicitanteUpsertIn = {
-      operation_id: draft.operation_id.trim(),
-      requisitante: {
-        requisitante_nome: nomeReq,
-        requisitante_telefone: draft.requisitante.requisitante_telefone?.trim()
-          ? draft.requisitante.requisitante_telefone.trim()
-          : null,
-        requisitante_email: emailReq,
-      },
-      pontos_focais: pontos,
-    }
-
-    updateMutation.mutate(payload)
-  }, [draft, updateMutation])
 
   if (solicitanteQuery.isLoading) {
     return (
@@ -557,4 +612,4 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
       </div>
     </div>
   )
-}
+})

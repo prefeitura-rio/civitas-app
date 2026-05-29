@@ -1,3 +1,4 @@
+import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
 import type {
@@ -9,20 +10,14 @@ export type SlaDashboardGranularity = 'monthly' | 'weekly' | 'yearly'
 
 export type TicketPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
-export type SlaTicketStatus =
-  | 'PENDENTE'
-  | 'AGUARDANDO_REVISAO_ADJUNTO'
-  | 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
-  | 'FINALIZADO'
-  | 'DEMANDA_RESPONDIDA'
-  | 'BLOQUEADO'
-  | 'RESTRITO'
+export type SlaTicketStatus = TicketStatus
 
 export interface SlaDashboardFilterIn {
   date_from?: string
   date_to?: string
   /** Herdado do volume; ignorado no SLA. */
   summary_period?: 'current_week' | 'current_month' | 'current_year'
+  demandante_id?: string[]
   requisitante?: string[]
   prioridade?: TicketPriority[]
   status?: SlaTicketStatus[]
@@ -48,6 +43,7 @@ export interface AvgResolutionTimeByPriorityItemOut {
   urgent_days: number | null
   high_days: number | null
   routine_days: number | null
+  no_priority_days: number | null
 }
 
 export interface DeliveryTimeMediaItemOut {
@@ -95,6 +91,7 @@ export function sanitizeSlaDashboardFilters(
   const payload: SlaDashboardFilterIn = { ...filters }
 
   delete payload.summary_period
+  if (!payload.demandante_id?.length) delete payload.demandante_id
   if (!payload.requisitante?.length) delete payload.requisitante
   if (!payload.prioridade?.length) delete payload.prioridade
   if (!payload.status?.length) delete payload.status

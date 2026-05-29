@@ -14,12 +14,15 @@ import type { SlaDashboardFilterIn } from '@/http/tickets/get-sla-dashboard'
 import { dateConfig } from '@/lib/date-config'
 
 import {
+  DashboardTaticoFilterModal,
+  SLA_METRICS_STATUS_OPTIONS,
+} from '../../components/filters'
+import {
   parseDemandVolumeDate,
   toDemandVolumeDateString,
 } from '../../volume/components/demand-volume-date-range'
 import styles from '../../volume/components/demand-volume-top.module.css'
 import { SlaMetricsExportDialog } from './sla-metrics-export-dialog'
-import { SlaMetricsFilterModal } from './sla-metrics-filter-modal'
 import {
   advancedFiltersFromApi,
   countSlaMetricsAdvancedFiltersFromApi,
@@ -31,6 +34,8 @@ interface SlaMetricsFiltersProps {
   dateTo: string
   onDateFromChange: (dateFrom: string) => void
   onDateToChange: (dateTo: string) => void
+  onApplyPeriod: () => void
+  canApplyPeriod: boolean
   isLoading: boolean
   appliedFilters: SlaDashboardFilterIn
   onApplyAdvancedFilters: (filters: SlaMetricsAdvancedFilterForm) => void
@@ -123,6 +128,8 @@ export function SlaMetricsFilters({
   dateTo,
   onDateFromChange,
   onDateToChange,
+  onApplyPeriod,
+  canApplyPeriod,
   isLoading,
   appliedFilters,
   onApplyAdvancedFilters,
@@ -160,6 +167,14 @@ export function SlaMetricsFilters({
             disabled={isLoading}
             minDate={startDate}
           />
+          <button
+            type="button"
+            className={styles.periodApplyButton}
+            disabled={isLoading || !canApplyPeriod}
+            onClick={onApplyPeriod}
+          >
+            Aplicar
+          </button>
         </div>
       </div>
 
@@ -188,7 +203,9 @@ export function SlaMetricsFilters({
         />
       </div>
 
-      <SlaMetricsFilterModal
+      <DashboardTaticoFilterModal
+        scope="sla-metrics"
+        statusOptions={SLA_METRICS_STATUS_OPTIONS}
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         filters={advancedFiltersForm}

@@ -116,6 +116,7 @@ export function useTicketCreateController() {
       reserva_de_imagem: [],
       analise_de_imagem: [],
       outros: [],
+      atlas_civitas: [],
     }),
     [],
   )
@@ -151,6 +152,7 @@ export function useTicketCreateController() {
   const reservaDeImagem = useFieldArray({ control, name: 'reserva_de_imagem' })
   const analiseDeImagem = useFieldArray({ control, name: 'analise_de_imagem' })
   const outros = useFieldArray({ control, name: 'outros' })
+  const atlasCivitas = useFieldArray({ control, name: 'atlas_civitas' })
 
   const operationsQuery = useQuery({
     queryKey: ['operations', 'select'],
@@ -241,6 +243,7 @@ export function useTicketCreateController() {
           reserva_de_imagem: [],
           analise_de_imagem: [],
           outros: [],
+          atlas_civitas: [],
         })
         setFiles([])
         closeServiceModal()
@@ -275,6 +278,7 @@ export function useTicketCreateController() {
           reserva_de_imagem: [],
           analise_de_imagem: [],
           outros: [],
+          atlas_civitas: [],
         })
         setFiles([])
         closeServiceModal()
@@ -501,6 +505,7 @@ export function useTicketCreateController() {
     reservaDeImagem,
     analiseDeImagem,
     outros,
+    atlasCivitas,
 
     defaultValues,
 

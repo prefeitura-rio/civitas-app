@@ -1,22 +1,13 @@
 import type { SlaDashboardFilterIn } from '@/http/tickets/get-sla-dashboard'
 
-function toDateString(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
+import { getDefaultTacticalDashboardSearchPeriod } from '../../utils/default-search-period'
 
-/** Período padrão: 1º de janeiro do ano corrente → hoje. */
+/** Período padrão: últimos 6 meses → hoje. */
 export function getDefaultSlaMetricsDateRange(): Pick<
   SlaDashboardFilterIn,
   'date_from' | 'date_to'
 > {
-  const now = new Date()
-  return {
-    date_from: `${now.getFullYear()}-01-01`,
-    date_to: toDateString(now),
-  }
+  return getDefaultTacticalDashboardSearchPeriod()
 }
 
 export function createDefaultSlaMetricsFilters(): SlaDashboardFilterIn {

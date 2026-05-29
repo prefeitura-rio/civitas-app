@@ -1,8 +1,6 @@
 import type {
   OpenTicketsByTeamItemOut,
-  OpenTicketsTeamPeriodSeriesOut,
   OperationalViewGranularity,
-  OperationalViewGranularitySeries,
   TeamPeriodSeriesOut,
 } from '@/http/tickets/get-operational-view'
 
@@ -13,132 +11,113 @@ export type TeamLineChartPoint = {
   period_label: string
 } & Record<string, number | string | null>
 
-export type OpenTicketsPeriodBarPoint = {
+export interface OpenTicketsTeamBarPoint {
+  team: string
   label: string
-  period_label: string
-} & Record<string, number | string>
+  [statusKey: string]: number | string
+}
 
-const OPEN_TICKETS_STATUS_KEYS = [
+const OPEN_TICKETS_STATUS_ORDER = [
   'pendente',
   'bloqueado',
   'aguardando_revisao',
+  'aguardando_revisao_adjunto',
+  'aguardando_revisao_administrativo',
 ] as const
 
-export type OpenTicketsStatusKey = (typeof OPEN_TICKETS_STATUS_KEYS)[number]
-
-export function openTicketsBarDataKey(
-  team: string,
-  status: OpenTicketsStatusKey,
-): string {
-  return `${team}__${status}`
+const OPEN_TICKETS_STATUS_LABELS: Record<string, string> = {
+  pendente: 'Pendente',
+  bloqueado: 'Bloqueado',
+  aguardando_revisao: 'Aguardando revisão',
+  aguardando_revisao_adjunto: 'Aguardando revisão adjunto',
+  aguardando_revisao_administrativo: 'Aguardando revisão administrativo',
 }
 
-function isPeriodWithinDateRange(
-  periodLabel: string,
-  dateFrom: string | undefined,
-  dateTo: string | undefined,
-  granularity: OperationalViewGranularity,
-): boolean {
-  if (!dateFrom && !dateTo) return true
-
-  if (granularity === 'monthly') {
-    const [year, month] = periodLabel.split('-').map(Number)
-    if (!year || !month) return true
-    const periodStart = `${year}-${String(month).padStart(2, '0')}-01`
-    const lastDay = new Date(year, month, 0).getDate()
-    const periodEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
-    if (dateFrom && periodEnd < dateFrom) return false
-    if (dateTo && periodStart > dateTo) return false
-    return true
-  }
-
-  if (granularity === 'yearly') {
-    const year = Number(periodLabel)
-    if (!year) return true
-    const periodStart = `${year}-01-01`
-    const periodEnd = `${year}-12-31`
-    if (dateFrom && periodEnd < dateFrom) return false
-    if (dateTo && periodStart > dateTo) return false
-    return true
-  }
-
-  // Semanal: mantém todos os pontos retornados pelo backend no intervalo filtrado.
-  return true
+export const OPEN_TICKETS_STATUS_COLORS: Record<string, string> = {
+  pendente: '#06b2bb',
+  bloqueado: '#b93d52',
+  aguardando_revisao: '#5b4db2',
+  aguardando_revisao_adjunto: '#4a6eb5',
+  aguardando_revisao_administrativo: '#7c5cbf',
 }
 
-/** Barras empilhadas por equipe ao longo dos períodos da granularidade selecionada. */
-export function pivotOpenTicketsForBarChart(
-  series:
-    | OperationalViewGranularitySeries<OpenTicketsTeamPeriodSeriesOut>
-    | undefined,
-  granularity: OperationalViewGranularity,
-  dateFrom?: string,
-  dateTo?: string,
-): { chartData: OpenTicketsPeriodBarPoint[]; teams: string[] } {
-  const teamSeries = series?.[granularity] ?? []
-  if (!teamSeries.length) return { chartData: [], teams: [] }
+const DEFAULT_OPEN_TICKETS_STATUS_COLOR = '#6b7c8a'
 
-  const teams = [...new Set(teamSeries.map((item) => item.team))].sort((a, b) =>
-    a.localeCompare(b, 'pt-BR'),
-  )
-
-  const filteredPeriodLabels = [
-    ...new Set(
-      teamSeries.flatMap(({ data }) =>
-        data
-          .filter((point) =>
-            isPeriodWithinDateRange(
-              point.period_label,
-              dateFrom,
-              dateTo,
-              granularity,
-            ),
-          )
-          .map((point) => point.period_label),
-      ),
-    ),
-  ].sort()
-
-  const periodLabels =
-    filteredPeriodLabels.length > 0
-      ? filteredPeriodLabels
-      : [
-          ...new Set(
-            teamSeries.flatMap((item) =>
-              item.data.map((point) => point.period_label),
-            ),
-          ),
-        ].sort()
-
-  const valueByTeamPeriod = new Map<string, OpenTicketsByTeamItemOut>()
-  for (const { team, data } of teamSeries) {
-    for (const point of data) {
-      valueByTeamPeriod.set(`${team}::${point.period_label}`, {
-        team,
-        pendente: point.pendente,
-        bloqueado: point.bloqueado,
-        aguardando_revisao: point.aguardando_revisao,
-      })
+function collectOpenTicketsStatusKeys(
+  items: OpenTicketsByTeamItemOut[],
+): string[] {
+  const keys = new Set<string>()
+  for (const item of items) {
+    for (const [key, value] of Object.entries(item)) {
+      if (key === 'team' || typeof value !== 'number') continue
+      keys.add(key)
     }
   }
-
-  const chartData = periodLabels.map((periodLabel) => {
-    const row: OpenTicketsPeriodBarPoint = {
-      period_label: periodLabel,
-      label: formatPeriodLabel(periodLabel, granularity),
-    }
-
-    for (const team of teams) {
-      const values = valueByTeamPeriod.get(`${team}::${periodLabel}`)
-      for (const status of OPEN_TICKETS_STATUS_KEYS) {
-        row[openTicketsBarDataKey(team, status)] = values?.[status] ?? 0
-      }
-    }
-
-    return row
+  return [...keys].sort((a, b) => {
+    const orderA = OPEN_TICKETS_STATUS_ORDER.indexOf(
+      a as (typeof OPEN_TICKETS_STATUS_ORDER)[number],
+    )
+    const orderB = OPEN_TICKETS_STATUS_ORDER.indexOf(
+      b as (typeof OPEN_TICKETS_STATUS_ORDER)[number],
+    )
+    const rankA = orderA === -1 ? OPEN_TICKETS_STATUS_ORDER.length : orderA
+    const rankB = orderB === -1 ? OPEN_TICKETS_STATUS_ORDER.length : orderB
+    if (rankA !== rankB) return rankA - rankB
+    return a.localeCompare(b, 'pt-BR')
   })
+}
 
-  return { chartData, teams }
+export function getOpenTicketsStatusLabel(key: string): string {
+  return (
+    OPEN_TICKETS_STATUS_LABELS[key] ??
+    key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
+  )
+}
+
+export function getOpenTicketsStatusColor(key: string): string {
+  return OPEN_TICKETS_STATUS_COLORS[key] ?? DEFAULT_OPEN_TICKETS_STATUS_COLOR
+}
+
+export type OpenTicketsStatusSeries = {
+  key: string
+  label: string
+  color: string
+}
+
+export function getOpenTicketsStatusSeries(
+  items: OpenTicketsByTeamItemOut[] | undefined,
+): OpenTicketsStatusSeries[] {
+  if (!items?.length) return []
+  return collectOpenTicketsStatusKeys(items).map((key) => ({
+    key,
+    label: getOpenTicketsStatusLabel(key),
+    color: getOpenTicketsStatusColor(key),
+  }))
+}
+
+/** Barras empilhadas por status em cada equipe (eixo X = equipe). */
+export function mapOpenTicketsByTeamForBarChart(
+  items: OpenTicketsByTeamItemOut[] | undefined,
+): OpenTicketsTeamBarPoint[] {
+  if (!items?.length) return []
+
+  const statusKeys = collectOpenTicketsStatusKeys(items)
+
+  return [...items]
+    .sort((a, b) => a.team.localeCompare(b.team, 'pt-BR'))
+    .map((item) => {
+      const point: OpenTicketsTeamBarPoint = {
+        team: item.team,
+        label: item.team,
+      }
+      for (const key of statusKeys) {
+        const value = item[key as keyof OpenTicketsByTeamItemOut]
+        if (typeof value === 'number') {
+          point[key] = value
+        }
+      }
+      return point
+    })
 }
 
 export function pivotTeamPeriodSeries(

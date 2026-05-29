@@ -30,8 +30,7 @@ export type TicketServicosReplaceIn = {
     concluido?: boolean
     period_start?: string | null
     period_end?: string | null
-    plate?: string | null
-    address?: string | null
+    addresses?: string[]
     description?: string | null
     cameras?: string[]
   }>
@@ -61,6 +60,7 @@ export type TicketServicosReplaceIn = {
     period_start?: string | null
     period_end?: string | null
     orientation?: string | null
+    addresses?: string[]
     cameras?: string[]
   }>
   analise_de_imagem: Array<{
@@ -69,11 +69,20 @@ export type TicketServicosReplaceIn = {
     period_start?: string | null
     period_end?: string | null
     orientation?: string | null
+    addresses?: string[]
     cameras?: string[]
   }>
   outros: Array<{
     id?: string
     concluido?: boolean
     orientation?: string | null
+  }>
+  atlas_civitas: Array<{
+    id?: string
+    concluido?: boolean
+    name?: string | null
+    email?: string | null
+    cpf?: string | null
+    registration?: string | null
   }>
 }

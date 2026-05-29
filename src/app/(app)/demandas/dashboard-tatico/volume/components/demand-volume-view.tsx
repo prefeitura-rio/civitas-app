@@ -95,6 +95,18 @@ export function DemandVolumeView() {
     applyFilters({ ...appliedFilters, summary_period: summaryPeriod })
   }
 
+  const canApplyPeriod = useMemo(
+    () =>
+      (draftFilters.date_from ?? '') !== (appliedFilters.date_from ?? '') ||
+      (draftFilters.date_to ?? '') !== (appliedFilters.date_to ?? ''),
+    [
+      draftFilters.date_from,
+      draftFilters.date_to,
+      appliedFilters.date_from,
+      appliedFilters.date_to,
+    ],
+  )
+
   function handlePeriodDatesChange(
     patch: Partial<{ dateFrom: string; dateTo: string }>,
     changed: 'from' | 'to',
@@ -112,10 +124,18 @@ export function DemandVolumeView() {
       ))
     }
 
-    applyFilters({
-      ...appliedFilters,
+    setDraftFilters({
+      ...draftFilters,
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
+    })
+  }
+
+  function handleApplyPeriodFilter() {
+    setAppliedFilters({
+      ...appliedFilters,
+      date_from: draftFilters.date_from,
+      date_to: draftFilters.date_to,
     })
   }
 
@@ -160,6 +180,8 @@ export function DemandVolumeView() {
           handlePeriodDatesChange({ dateFrom }, 'from')
         }
         onDateToChange={(dateTo) => handlePeriodDatesChange({ dateTo }, 'to')}
+        onApplyPeriod={handleApplyPeriodFilter}
+        canApplyPeriod={canApplyPeriod}
         isLoading={isFetching}
         appliedFilters={appliedFilters}
         onApplyAdvancedFilters={handleApplyAdvancedFilters}

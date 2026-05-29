@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { type CSSProperties, useMemo } from 'react'
 import {
   Bar,
   BarChart,
@@ -12,33 +12,17 @@ import {
   YAxis,
 } from 'recharts'
 
-import type { OperationalViewGranularity } from '@/http/tickets/get-operational-view'
+import type { OpenTicketsByTeamItemOut } from '@/http/tickets/get-operational-view'
 
-import { DemandVolumeChartGranularity } from '../../volume/components/demand-volume-chart-granularity'
-import styles from '../../volume/components/demand-volume-top.module.css'
 import {
-  openTicketsBarDataKey,
-  type OpenTicketsPeriodBarPoint,
+  getOpenTicketsStatusSeries,
+  type OpenTicketsTeamBarPoint,
 } from './operational-view-chart-utils'
 
 interface OperationalViewOpenTicketsChartProps {
-  chartData: OpenTicketsPeriodBarPoint[]
-  teams: string[]
-  granularity: OperationalViewGranularity
-  onGranularityChange: (granularity: OperationalViewGranularity) => void
+  chartData: OpenTicketsTeamBarPoint[]
+  openTicketsByTeam?: OpenTicketsByTeamItemOut[]
   isLoading: boolean
-}
-
-const STATUS_SERIES = [
-  { key: 'pendente', label: 'Pendente' },
-  { key: 'bloqueado', label: 'Bloqueado' },
-  { key: 'aguardando_revisao', label: 'Aguardando revisão' },
-] as const
-
-const STATUS_COLORS: Record<(typeof STATUS_SERIES)[number]['key'], string> = {
-  pendente: '#06b2bb',
-  bloqueado: '#b93d52',
-  aguardando_revisao: '#5b4db2',
 }
 
 const CHART_SHELL: CSSProperties = {
@@ -56,18 +40,27 @@ const CHART_COLORS = {
 
 export function OperationalViewOpenTicketsChart({
   chartData,
-  teams,
-  granularity,
-  onGranularityChange,
+  openTicketsByTeam,
   isLoading,
 }: OperationalViewOpenTicketsChartProps) {
+  const statusSeries = useMemo(
+    () => getOpenTicketsStatusSeries(openTicketsByTeam),
+    [openTicketsByTeam],
+  )
+
   return (
     <div style={CHART_SHELL}>
-      <ChartHeaderBlock
-        granularity={granularity}
-        onGranularityChange={onGranularityChange}
-        isLoading={isLoading}
-      />
+      <h2
+        style={{
+          fontSize: '20px',
+          fontWeight: 600,
+          color: '#f9fafa',
+          margin: 0,
+          marginBottom: '24px',
+        }}
+      >
+        Chamados em aberto com cada equipe
+      </h2>
 
       {isLoading && chartData.length === 0 ? (
         <ChartMessage message="Carregando…" />
@@ -76,7 +69,6 @@ export function OperationalViewOpenTicketsChart({
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <BarChart
-            key={granularity}
             data={chartData}
             margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
           >
@@ -101,19 +93,12 @@ export function OperationalViewOpenTicketsChart({
             />
             <Tooltip
               formatter={(value, _name, item) => {
-                const dataKey = String(item.dataKey ?? '')
-                const team = teams.find((name) =>
-                  dataKey.startsWith(`${name}__`),
-                )
-                const status = STATUS_SERIES.find((s) =>
-                  dataKey.endsWith(`__${s.key}`),
+                const status = statusSeries.find(
+                  (s) => s.key === String(item.dataKey ?? ''),
                 )
                 const numeric =
                   typeof value === 'number' ? value : Number(value ?? 0)
-                return [
-                  numeric.toLocaleString('pt-BR'),
-                  team && status ? `${team} — ${status.label}` : status?.label,
-                ]
+                return [numeric.toLocaleString('pt-BR'), status?.label]
               }}
               labelFormatter={(label) => String(label)}
               contentStyle={{
@@ -139,62 +124,23 @@ export function OperationalViewOpenTicketsChart({
                 fontSize: '12px',
                 color: '#97a2ab',
               }}
-              payload={STATUS_SERIES.map((status) => ({
-                value: status.label,
-                type: 'square' as const,
-                color: STATUS_COLORS[status.key],
-                id: status.key,
-              }))}
               formatter={(value) => (
                 <span style={{ color: '#97a2ab' }}>{value}</span>
               )}
             />
-            {teams.flatMap((team) =>
-              STATUS_SERIES.map((status) => (
-                <Bar
-                  key={`${team}-${status.key}`}
-                  dataKey={openTicketsBarDataKey(team, status.key)}
-                  name={status.label}
-                  stackId={team}
-                  fill={STATUS_COLORS[status.key]}
-                  legendType="none"
-                  radius={[0, 0, 0, 0]}
-                />
-              )),
-            )}
+            {statusSeries.map((status) => (
+              <Bar
+                key={status.key}
+                dataKey={status.key}
+                name={status.label}
+                stackId="open_tickets"
+                fill={status.color}
+                radius={[0, 0, 0, 0]}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       )}
-    </div>
-  )
-}
-
-function ChartHeaderBlock({
-  granularity,
-  onGranularityChange,
-  isLoading,
-}: {
-  granularity: OperationalViewGranularity
-  onGranularityChange: (granularity: OperationalViewGranularity) => void
-  isLoading: boolean
-}) {
-  return (
-    <div className={styles.chartHeaderRow}>
-      <h2
-        style={{
-          fontSize: '20px',
-          fontWeight: 600,
-          color: '#f9fafa',
-          margin: 0,
-        }}
-      >
-        Chamados em aberto com cada equipe
-      </h2>
-      <DemandVolumeChartGranularity
-        value={granularity}
-        onChange={onGranularityChange}
-        disabled={isLoading}
-      />
     </div>
   )
 }

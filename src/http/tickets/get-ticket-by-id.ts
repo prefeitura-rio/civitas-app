@@ -66,14 +66,19 @@ export type ServiceCameraOut = {
   camera_code: string
 }
 
+export type ServiceAddressOut = {
+  id: string
+  created_at: string
+  address: string
+}
+
 export type ServiceBuscaPorImagemOut = {
   id: string
   created_at: string
   concluido?: boolean
   period_start?: string | null
   period_end?: string | null
-  plate?: string | null
-  address?: string | null
+  addresses?: ServiceAddressOut[]
   description?: string | null
   cameras?: ServiceCameraOut[]
   anexos?: TicketAttachmentOut[]
@@ -120,6 +125,7 @@ export type ServiceReservaDeImagemOut = {
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
+  addresses?: ServiceAddressOut[]
   cameras?: ServiceCameraOut[]
   anexos?: TicketAttachmentOut[]
 }
@@ -131,6 +137,7 @@ export type ServiceAnaliseDeImagemOut = {
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
+  addresses?: ServiceAddressOut[]
   cameras?: ServiceCameraOut[]
   anexos?: TicketAttachmentOut[]
 }
@@ -140,6 +147,17 @@ export type ServiceOutrosOut = {
   created_at: string
   concluido?: boolean
   orientation?: string | null
+  anexos?: TicketAttachmentOut[]
+}
+
+export type ServiceAtlasCivitasOut = {
+  id: string
+  created_at: string
+  concluido?: boolean
+  name?: string | null
+  email?: string | null
+  cpf?: string | null
+  registration?: string | null
   anexos?: TicketAttachmentOut[]
 }
 
@@ -196,6 +214,7 @@ export type TicketOut = {
   reserva_de_imagem: ServiceReservaDeImagemOut[]
   analise_de_imagem: ServiceAnaliseDeImagemOut[]
   outros: ServiceOutrosOut[]
+  atlas_civitas: ServiceAtlasCivitasOut[]
   chamados_relacionados?: TicketRelacionadoOut[]
 }
 

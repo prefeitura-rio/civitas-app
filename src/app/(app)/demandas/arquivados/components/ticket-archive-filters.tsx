@@ -56,6 +56,7 @@ const servicoOptions: SearchOption[] = [
   { value: 'image_reservation_services', label: 'Reserva de imagem' },
   { value: 'image_analysis_services', label: 'Análise de imagem' },
   { value: 'other_services', label: 'Outros' },
+  { value: 'atlas_civitas_services', label: 'Atlas Civitas' },
 ]
 
 const prioridadeSearchOptions: SearchOption[] = prioridadeOptions.map(
