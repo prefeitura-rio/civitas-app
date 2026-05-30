@@ -112,8 +112,8 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
     pendingByBlobRef.current.clear()
     const html =
-      reportDataRef.current?.conteudo_html != null
-        ? reportDataRef.current.conteudo_html
+      reportDataRef.current?.html_content != null
+        ? reportDataRef.current.html_content
         : ''
     if (editorRef.current) {
       editorRef.current.innerHTML = sanitizeTicketHtml(html)
@@ -128,16 +128,16 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     if (dirty) return
 
     const html =
-      reportQuery.data?.conteudo_html != null
-        ? reportQuery.data.conteudo_html
+      reportQuery.data?.html_content != null
+        ? reportQuery.data.html_content
         : ''
     editorRef.current.innerHTML = sanitizeTicketHtml(html)
     syncEmpty()
   }, [
     reportQuery.isLoading,
     reportQuery.isError,
-    reportQuery.data?.conteudo_html,
-    reportQuery.data?.atualizado_em,
+    reportQuery.data?.html_content,
+    reportQuery.data?.updated_at,
     dirty,
     syncEmpty,
   ])
@@ -182,7 +182,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     }
 
     const conteudoHtml = sanitizeTicketHtml(clone.innerHTML)
-    return { conteudo_html: conteudoHtml, files }
+    return { html_content: conteudoHtml, files }
   }, [])
 
   const saveMutation = useMutation({
@@ -191,7 +191,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       if (!body) throw new Error('Editor indisponível.')
       return putTicketRelatorioDemanda(
         ticketId,
-        { conteudo_html: body.conteudo_html },
+        { html_content: body.html_content },
         body.files,
       )
     },
@@ -201,7 +201,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       queryClient.setQueryData(REPORT_QUERY_KEY(ticketId), data)
       if (editorRef.current) {
         editorRef.current.innerHTML = sanitizeTicketHtml(
-          data.conteudo_html || '',
+          data.html_content || '',
         )
         syncEmpty()
       }
@@ -221,7 +221,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
   const saveReport = useCallback(async (): Promise<boolean> => {
     const body = buildSaveBody()
     if (!body) return false
-    if (isHtmlEffectivelyEmpty(body.conteudo_html) && body.files.length === 0) {
+    if (isHtmlEffectivelyEmpty(body.html_content) && body.files.length === 0) {
       toast.error('Escreva o relatório ou insira uma imagem antes de gravar.')
       return false
     }

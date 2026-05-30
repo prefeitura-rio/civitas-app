@@ -16,7 +16,8 @@ export type TicketAttachmentOut = {
 
 export type TicketAttachmentServiceScope = {
   service_type: string
-  service_id: string
+  service_id?: string
+  service_index?: number
 }
 
 export type TicketVideoUploadUrlRequest = {
@@ -40,10 +41,16 @@ export type TicketAttachmentCompleteIn = {
   size_bytes: number
 } & Partial<TicketAttachmentServiceScope>
 
-export type TicketAttachmentMultipartMetadata = {
+/** Metadado por ficheiro no PUT multipart `/services` (`attachment_metadata`). */
+export type TicketAttachmentServiceScopeMetadataIn = {
   service_type: string
-  service_id: string
+  service_id?: string
+  service_index?: number
 }
+
+/** @deprecated Use TicketAttachmentServiceScopeMetadataIn */
+export type TicketAttachmentMultipartMetadata =
+  TicketAttachmentServiceScopeMetadataIn
 
 export type TicketAttachmentPlaybackUrlOut = {
   signed_url: string
@@ -86,44 +93,6 @@ export async function requestTicketVideoUploadUrl(
   const { data } = await api.post<TicketVideoUploadUrlResponse>(
     `/tickets/${encodeURIComponent(ticketId)}/attachments/services/upload-url`,
     payload,
-  )
-  return data
-}
-
-export async function completeTicketVideoAttachment(
-  ticketId: string,
-  body: TicketAttachmentCompleteIn,
-) {
-  const { data } = await api.post<TicketAttachmentOut>(
-    `/tickets/${encodeURIComponent(ticketId)}/attachments/services/complete`,
-    body,
-  )
-  return data
-}
-
-export async function uploadTicketServiceAttachmentsMultipart(
-  ticketId: string,
-  files: File[],
-  metadata?: TicketAttachmentMultipartMetadata,
-) {
-  const form = new FormData()
-  for (const f of files) {
-    form.append('files', f)
-  }
-  if (metadata?.service_type && metadata?.service_id) {
-    form.append(
-      'metadata',
-      JSON.stringify({
-        service_type: metadata.service_type,
-        service_id: metadata.service_id,
-      }),
-    )
-  }
-
-  const { data } = await api.post<TicketAttachmentOut[]>(
-    `/tickets/${encodeURIComponent(ticketId)}/attachments/services`,
-    form,
-    { headers: { 'Content-Type': 'multipart/form-data' } },
   )
   return data
 }

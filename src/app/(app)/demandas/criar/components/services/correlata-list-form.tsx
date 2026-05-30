@@ -16,7 +16,7 @@ type Props = {
   control: Control<TicketCreateForm>
   setValue: UseFormSetValue<TicketCreateForm>
   index: number
-  name: 'placas_correlatas' | 'placas_conjuntas'
+  name: 'correlated_plates' | 'joint_plates'
   disabled: boolean
 }
 

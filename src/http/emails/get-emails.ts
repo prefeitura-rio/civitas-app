@@ -46,7 +46,7 @@ export function getEmailsNaoLidos({
   page: number
   pageSize: number
 }) {
-  return api.get<EmailPageOut>('/emails/nao-lidos', {
+  return api.get<EmailPageOut>('/emails/unread', {
     params: { page, pageSize },
   })
 }
@@ -65,7 +65,7 @@ export function getEmailsAguardandoResposta({
   page: number
   pageSize: number
 }) {
-  return api.get<EmailPageOut>('/emails/aguardando-resposta', {
+  return api.get<EmailPageOut>('/emails/awaiting-response', {
     params: { page, pageSize },
   })
 }
@@ -89,7 +89,7 @@ export function getEmailsRespondidos({
   page: number
   pageSize: number
 }) {
-  return api.get<EmailPageOut>('/emails/respondidos', {
+  return api.get<EmailPageOut>('/emails/responded', {
     params: { page, pageSize },
   })
 }

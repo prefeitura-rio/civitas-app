@@ -1,20 +1,20 @@
 import { api, isApiError } from '@/lib/api'
 
-/** Resposta GET/PUT `/tickets/{id}/relatorio-demanda`. */
+/** Resposta GET/PUT `/tickets/{id}/demand-report`. */
 export type TicketDemandReportOut = {
   id: string | null
-  chamado_id: string
-  conteudo_html: string
-  criado_em: string | null
-  atualizado_em: string | null
-  atualizado_por_id: string | null
-  atualizado_por_nome: string | null
+  ticket_id: string
+  html_content: string
+  created_at: string | null
+  updated_at: string | null
+  updated_by_id: string | null
+  updated_by_name: string | null
 }
 
 export async function getTicketRelatorioDemanda(ticketId: string) {
   try {
     const { data } = await api.get<TicketDemandReportOut>(
-      `/tickets/${encodeURIComponent(ticketId)}/relatorio-demanda`,
+      `/tickets/${encodeURIComponent(ticketId)}/demand-report`,
     )
     return data
   } catch (err: unknown) {
@@ -26,7 +26,7 @@ export async function getTicketRelatorioDemanda(ticketId: string) {
 }
 
 export type PutTicketRelatorioDemandaPayload = {
-  conteudo_html: string
+  html_content: string
 }
 
 /** PUT multipart: `payload` (JSON) + `files` (imagens novas), como em POST `/tickets`. */
@@ -42,7 +42,7 @@ export async function putTicketRelatorioDemanda(
   }
 
   const { data } = await api.put<TicketDemandReportOut>(
-    `/tickets/${encodeURIComponent(ticketId)}/relatorio-demanda`,
+    `/tickets/${encodeURIComponent(ticketId)}/demand-report`,
     form,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   )

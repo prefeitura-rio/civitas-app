@@ -5,27 +5,27 @@ export type TicketDashboardFilters = {
   overdue_after_days?: number
   search?: string
 
-  tipo_chamado_id?: string[]
-  numero_interno?: number[]
-  numero_procedimento?: string[]
-  numero_oficio?: string[]
-  natureza_id?: string[]
-  demandante_id?: string[]
-  requisitante?: string[]
-  responsavel_id?: string[]
-  ponto_focal?: string[]
+  ticket_type_id?: string[]
+  internal_number?: number[]
+  procedure_number?: string[]
+  official_letter_number?: string[]
+  nature_id?: string[]
+  operation_id?: string[]
+  requester?: string[]
+  assignee_id?: string[]
+  focal_point?: string[]
 
-  data_base_inicio?: string
-  data_base_fim?: string
+  base_date_start?: string
+  base_date_end?: string
 
-  data_entrada_inicio?: string
-  data_entrada_fim?: string
+  entry_date_start?: string
+  entry_date_end?: string
 
   status?: string[]
-  prioridade?: string[]
-  equipe?: string[]
+  priority?: string[]
+  team?: string[]
   /** Valores da API, ex.: plate_search_services */
-  servicos?: string[]
+  services?: string[]
 }
 
 export async function getTicketsDashboard(filters: TicketDashboardFilters) {
@@ -34,26 +34,26 @@ export async function getTicketsDashboard(filters: TicketDashboardFilters) {
     overdue_after_days: filters.overdue_after_days ?? 7,
     search: filters.search?.trim() || undefined,
 
-    tipo_chamado_id: filters.tipo_chamado_id,
-    numero_interno: filters.numero_interno,
-    numero_procedimento: filters.numero_procedimento,
-    numero_oficio: filters.numero_oficio,
-    natureza_id: filters.natureza_id,
-    demandante_id: filters.demandante_id,
-    requisitante: filters.requisitante,
-    responsavel_id: filters.responsavel_id,
-    ponto_focal: filters.ponto_focal,
+    ticket_type_id: filters.ticket_type_id,
+    internal_number: filters.internal_number,
+    procedure_number: filters.procedure_number,
+    official_letter_number: filters.official_letter_number,
+    nature_id: filters.nature_id,
+    operation_id: filters.operation_id,
+    requester: filters.requester,
+    assignee_id: filters.assignee_id,
+    focal_point: filters.focal_point,
 
-    data_base_inicio: filters.data_base_inicio,
-    data_base_fim: filters.data_base_fim,
+    base_date_start: filters.base_date_start,
+    base_date_end: filters.base_date_end,
 
-    data_entrada_inicio: filters.data_entrada_inicio,
-    data_entrada_fim: filters.data_entrada_fim,
+    entry_date_start: filters.entry_date_start,
+    entry_date_end: filters.entry_date_end,
 
     status: filters.status,
-    prioridade: filters.prioridade,
-    equipe: filters.equipe,
-    servicos: filters.servicos,
+    priority: filters.priority,
+    team: filters.team,
+    services: filters.services,
   })
 
   return response.data

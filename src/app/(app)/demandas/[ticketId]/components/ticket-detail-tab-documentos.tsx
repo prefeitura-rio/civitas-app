@@ -117,7 +117,7 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
     [deleteMutation, ticketId],
   )
 
-  const anexos = attachmentsQuery.data ?? []
+  const attachments = attachmentsQuery.data ?? []
 
   if (attachmentsQuery.isLoading) {
     return (
@@ -134,7 +134,7 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
       <div className={styles.fieldStack}>
         <div className={styles.docBlock}>
           <p className={styles.docEmpty}>
-            Não foi possível carregar os anexos. Tente novamente.
+            Não foi possível carregar os attachments. Tente novamente.
           </p>
         </div>
       </div>
@@ -153,11 +153,11 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
           </span>
         </div>
 
-        {anexos.length === 0 ? (
+        {attachments.length === 0 ? (
           <p className={styles.docEmpty}>Nenhum documento anexado.</p>
         ) : (
           <div className={styles.docGrid}>
-            {anexos.map((att) => (
+            {attachments.map((att) => (
               <div key={att.id} className={styles.docCard}>
                 <div className={styles.docCardLeft}>
                   <div className={styles.docPdfIcon} aria-hidden>

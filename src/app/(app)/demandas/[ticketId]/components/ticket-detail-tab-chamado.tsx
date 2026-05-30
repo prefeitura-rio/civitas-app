@@ -82,34 +82,32 @@ function rtTagClass(label: string) {
   if (n.includes('placas correlatas')) return styles.rtTagOrange
   if (n.includes('placas conjuntas') || n.includes('placa conjuntas'))
     return styles.rtTagPurple
-  if (n.includes('outros')) return styles.rtTagRed
+  if (n.includes('other')) return styles.rtTagRed
   if (n.includes('atlas')) return styles.rtTagDefault
   return styles.rtTagDefault
 }
 
 function mapOutToDraft(f: TicketFichaOut): TicketFichaUpdateIn {
   return {
-    tipo_chamado_id: f.tipo_chamado_id,
-    numero_procedimento: f.numero_procedimento?.trim()
-      ? f.numero_procedimento.trim()
+    ticket_type_id: f.ticket_type_id,
+    procedure_number: f.procedure_number?.trim()
+      ? f.procedure_number.trim()
       : null,
-    numero_oficio: (() => {
-      const t = f.numero_oficio?.trim()
+    official_letter_number: (() => {
+      const t = f.official_letter_number?.trim()
       if (!t) return null
       const n = normalizeNumeroOficio(t)
       return n || null
     })(),
-    natureza_id: f.natureza_id?.trim() ? f.natureza_id.trim() : null,
-    possui_apelido_imprensa: f.possui_apelido_imprensa,
-    apelido_imprensa: f.apelido_imprensa?.trim()
-      ? f.apelido_imprensa.trim()
+    nature_id: f.nature_id?.trim() ? f.nature_id.trim() : null,
+    has_press_alias: f.has_press_alias,
+    press_alias: f.press_alias?.trim() ? f.press_alias.trim() : null,
+    article_link: f.article_link?.trim() ? f.article_link.trim() : null,
+    sei_process_number: f.sei_process_number?.trim()
+      ? f.sei_process_number.trim()
       : null,
-    link_materia: f.link_materia?.trim() ? f.link_materia.trim() : null,
-    numero_processo_sei: f.numero_processo_sei?.trim()
-      ? f.numero_processo_sei.trim()
-      : null,
-    link_processo_sei: f.link_processo_sei?.trim()
-      ? f.link_processo_sei.trim()
+    sei_process_link: f.sei_process_link?.trim()
+      ? f.sei_process_link.trim()
       : null,
   }
 }
@@ -130,13 +128,15 @@ function normalizeHttpUrl(raw: string): string | null {
 function buildChamadoPayload(
   draft: TicketFichaUpdateIn,
 ): TicketFichaUpdateIn | null {
-  if (!draft.tipo_chamado_id?.trim()) {
+  if (!draft.ticket_type_id?.trim()) {
     toast.error('Selecione o tipo de demanda.')
     return null
   }
 
-  const oficio = normalizeNumeroOficio(draft.numero_oficio?.trim() ?? '')
-  const proc = draft.numero_procedimento?.trim() ?? ''
+  const oficio = normalizeNumeroOficio(
+    draft.official_letter_number?.trim() ?? '',
+  )
+  const proc = draft.procedure_number?.trim() ?? ''
   if (oficio && !/^[A-Z0-9/]+$/.test(oficio)) {
     toast.error(
       'Nº de ofício: use apenas letras, números e barra (/), ou deixe em branco.',
@@ -148,14 +148,14 @@ function buildChamadoPayload(
     return null
   }
 
-  const apelido = draft.apelido_imprensa?.trim() ?? ''
+  const apelido = draft.press_alias?.trim() ?? ''
   if (apelido.length > MAX_APELIDO) {
     toast.error(`Apelido: no máximo ${MAX_APELIDO} caracteres.`)
     return null
   }
 
   let linkOut: string | null = null
-  const linkRaw = draft.link_materia?.trim() ?? ''
+  const linkRaw = draft.article_link?.trim() ?? ''
   if (linkRaw) {
     const normalized = normalizeHttpUrl(linkRaw)
     if (!normalized) {
@@ -165,14 +165,14 @@ function buildChamadoPayload(
     linkOut = normalized
   }
 
-  const numeroSei = draft.numero_processo_sei?.trim() ?? ''
+  const numeroSei = draft.sei_process_number?.trim() ?? ''
   if (numeroSei.length > MAX_NUMERO_SEI) {
     toast.error(`Nº SEI: no máximo ${MAX_NUMERO_SEI} caracteres.`)
     return null
   }
 
   let linkSeiOut: string | null = null
-  const linkSeiRaw = draft.link_processo_sei?.trim() ?? ''
+  const linkSeiRaw = draft.sei_process_link?.trim() ?? ''
   if (linkSeiRaw) {
     if (linkSeiRaw.length > MAX_LINK_SEI) {
       toast.error(`Link SEI: no máximo ${MAX_LINK_SEI} caracteres.`)
@@ -187,15 +187,15 @@ function buildChamadoPayload(
   }
 
   return {
-    tipo_chamado_id: draft.tipo_chamado_id.trim(),
-    numero_oficio: oficio || null,
-    numero_procedimento: proc || null,
-    natureza_id: draft.natureza_id?.trim() ? draft.natureza_id.trim() : null,
-    possui_apelido_imprensa: draft.possui_apelido_imprensa,
-    apelido_imprensa: apelido || null,
-    link_materia: linkOut,
-    numero_processo_sei: numeroSei || null,
-    link_processo_sei: linkSeiOut,
+    ticket_type_id: draft.ticket_type_id.trim(),
+    official_letter_number: oficio || null,
+    procedure_number: proc || null,
+    nature_id: draft.nature_id?.trim() ? draft.nature_id.trim() : null,
+    has_press_alias: draft.has_press_alias,
+    press_alias: apelido || null,
+    article_link: linkOut,
+    sei_process_number: numeroSei || null,
+    sei_process_link: linkSeiOut,
   }
 }
 
@@ -242,21 +242,17 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
     const ticketTypeOptions = useMemo((): TicketType[] => {
       const list = [...(ticketTypesQuery.data?.data ?? [])]
       if (
-        ficha?.tipo_chamado_id &&
-        !list.some((t) => t.id === ficha.tipo_chamado_id)
+        ficha?.ticket_type_id &&
+        !list.some((t) => t.id === ficha.ticket_type_id)
       ) {
         list.unshift({
-          id: ficha.tipo_chamado_id,
-          name: ficha.tipo_chamado_nome || 'Tipo de demanda',
+          id: ficha.ticket_type_id,
+          name: ficha.ticket_type_name || 'Tipo de demanda',
           isActive: true,
         })
       }
       return list
-    }, [
-      ficha?.tipo_chamado_id,
-      ficha?.tipo_chamado_nome,
-      ticketTypesQuery.data,
-    ])
+    }, [ficha?.ticket_type_id, ficha?.ticket_type_name, ticketTypesQuery.data])
 
     const updateMutation = useMutation({
       mutationFn: (payload: TicketFichaUpdateIn) =>
@@ -343,22 +339,22 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
 
     const view = ficha
     const d = isEditing && draft ? draft : mapOutToDraft(view)
-    const relacionados = view.chamados_relacionados ?? []
+    const relacionados = view.related_tickets ?? []
 
-    const tipoNomeTrim = view.tipo_chamado_nome?.trim() ?? ''
+    const tipoNomeTrim = view.ticket_type_name?.trim() ?? ''
     const hasTipoNome = tipoNomeTrim.length > 0
     const tipoNomeReadonly = hasTipoNome ? tipoNomeTrim : displayText(null)
 
     const naturezas = ticketNaturesQuery.data?.data ?? []
-    const pressSimNao = d.possui_apelido_imprensa ? 'Sim' : 'Não'
+    const pressSimNao = d.has_press_alias ? 'Sim' : 'Não'
     const linkRaw =
-      (isEditing && draft ? draft.link_materia : view.link_materia)?.trim() ??
+      (isEditing && draft ? draft.article_link : view.article_link)?.trim() ??
       ''
     const showSeiFields = shouldShowTicketSeiFields(ticketStateId, ticketStatus)
     const linkSeiRaw =
       (isEditing && draft
-        ? draft.link_processo_sei
-        : view.link_processo_sei
+        ? draft.sei_process_link
+        : view.sei_process_link
       )?.trim() ?? ''
 
     return (
@@ -373,11 +369,11 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                 {isEditing ? (
                   <Select
                     value={
-                      d.tipo_chamado_id.trim() ? d.tipo_chamado_id : undefined
+                      d.ticket_type_id.trim() ? d.ticket_type_id : undefined
                     }
                     onValueChange={(v) =>
                       setDraft((prev) =>
-                        prev ? { ...prev, tipo_chamado_id: v } : prev,
+                        prev ? { ...prev, ticket_type_id: v } : prev,
                       )
                     }
                     disabled={ticketTypesQuery.isLoading}
@@ -422,7 +418,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                 <div
                   className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                 >
-                  {formatNumeroInterno(view.numero_interno ?? null)}
+                  {formatNumeroInterno(view.internal_number ?? null)}
                 </div>
               </div>
             </div>
@@ -435,18 +431,22 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                 {isEditing ? (
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                    value={d.numero_oficio ?? ''}
+                    value={d.official_letter_number ?? ''}
                     autoComplete="off"
-                    maxLength={CREATE_STR_LIMITS.numero_oficio}
+                    maxLength={CREATE_STR_LIMITS.official_letter_number}
                     onBlur={() =>
                       setDraft((prev) => {
                         if (!prev) return prev
-                        const raw = (prev.numero_oficio ?? '').trim()
-                        if (!raw) return { ...prev, numero_oficio: null }
+                        const raw = (prev.official_letter_number ?? '').trim()
+                        if (!raw)
+                          return { ...prev, official_letter_number: null }
                         const normalized = normalizeNumeroOficio(raw)
-                        return normalized === prev.numero_oficio
+                        return normalized === prev.official_letter_number
                           ? prev
-                          : { ...prev, numero_oficio: normalized || null }
+                          : {
+                              ...prev,
+                              official_letter_number: normalized || null,
+                            }
                       })
                     }
                     onChange={(e) =>
@@ -454,7 +454,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                         prev
                           ? {
                               ...prev,
-                              numero_oficio:
+                              official_letter_number:
                                 maskNumeroOficio(e.target.value) || null,
                             }
                           : prev,
@@ -465,7 +465,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.numero_oficio)}
+                    {displayText(view.official_letter_number)}
                   </div>
                 )}
               </div>
@@ -478,14 +478,14 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                 {isEditing ? (
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                    value={d.numero_procedimento ?? ''}
+                    value={d.procedure_number ?? ''}
                     maxLength={MAX_OFICIO_PROC}
                     onChange={(e) =>
                       setDraft((prev) =>
                         prev
                           ? {
                               ...prev,
-                              numero_procedimento: e.target.value || null,
+                              procedure_number: e.target.value || null,
                             }
                           : prev,
                       )
@@ -495,7 +495,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.numero_procedimento)}
+                    {displayText(view.procedure_number)}
                   </div>
                 )}
               </div>
@@ -505,13 +505,13 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
               <span className={styles.fieldLabelUpper}>Natureza</span>
               {isEditing ? (
                 <Select
-                  value={d.natureza_id?.trim() ? d.natureza_id : undefined}
+                  value={d.nature_id?.trim() ? d.nature_id : undefined}
                   onValueChange={(v) =>
                     setDraft((prev) =>
                       prev
                         ? {
                             ...prev,
-                            natureza_id: v.trim() ? v : null,
+                            nature_id: v.trim() ? v : null,
                           }
                         : prev,
                     )
@@ -546,9 +546,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
               ) : (
                 <div className={styles.readonlySelect}>
                   <span className={styles.solicitanteReadOnlyText}>
-                    {view.natureza_nome?.trim()
-                      ? view.natureza_nome
-                      : 'Selecione'}
+                    {view.nature_name?.trim() ? view.nature_name : 'Selecione'}
                   </span>
                   <ChevronDown
                     size={20}
@@ -576,13 +574,13 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                 </span>
                 {isEditing ? (
                   <Select
-                    value={d.possui_apelido_imprensa ? 'sim' : 'nao'}
+                    value={d.has_press_alias ? 'sim' : 'nao'}
                     onValueChange={(v) =>
                       setDraft((prev) =>
                         prev
                           ? {
                               ...prev,
-                              possui_apelido_imprensa: v === 'sim',
+                              has_press_alias: v === 'sim',
                             }
                           : prev,
                       )
@@ -631,14 +629,14 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                   {isEditing ? (
                     <input
                       className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                      value={d.apelido_imprensa ?? ''}
+                      value={d.press_alias ?? ''}
                       maxLength={MAX_APELIDO}
                       onChange={(e) =>
                         setDraft((prev) =>
                           prev
                             ? {
                                 ...prev,
-                                apelido_imprensa: e.target.value || null,
+                                press_alias: e.target.value || null,
                               }
                             : prev,
                         )
@@ -648,7 +646,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                     <div
                       className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                     >
-                      {displayText(view.apelido_imprensa)}
+                      {displayText(view.press_alias)}
                     </div>
                   )}
                 </div>
@@ -660,11 +658,11 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                     <input
                       className={`${styles.editableField} ${styles.solicitanteEditField}`}
                       type="url"
-                      value={d.link_materia ?? ''}
+                      value={d.article_link ?? ''}
                       onChange={(e) =>
                         setDraft((prev) =>
                           prev
-                            ? { ...prev, link_materia: e.target.value || null }
+                            ? { ...prev, article_link: e.target.value || null }
                             : prev,
                         )
                       }
@@ -712,14 +710,14 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                   {isEditing ? (
                     <input
                       className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                      value={d.numero_processo_sei ?? ''}
+                      value={d.sei_process_number ?? ''}
                       maxLength={MAX_NUMERO_SEI}
                       onChange={(e) =>
                         setDraft((prev) =>
                           prev
                             ? {
                                 ...prev,
-                                numero_processo_sei: e.target.value || null,
+                                sei_process_number: e.target.value || null,
                               }
                             : prev,
                         )
@@ -729,7 +727,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                     <div
                       className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                     >
-                      {displayText(view.numero_processo_sei)}
+                      {displayText(view.sei_process_number)}
                     </div>
                   )}
                 </div>
@@ -741,14 +739,14 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                     <input
                       className={`${styles.editableField} ${styles.solicitanteEditField}`}
                       type="url"
-                      value={d.link_processo_sei ?? ''}
+                      value={d.sei_process_link ?? ''}
                       maxLength={MAX_LINK_SEI}
                       onChange={(e) =>
                         setDraft((prev) =>
                           prev
                             ? {
                                 ...prev,
-                                link_processo_sei: e.target.value || null,
+                                sei_process_link: e.target.value || null,
                               }
                             : prev,
                         )
@@ -810,9 +808,9 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                     </tr>
                   ) : (
                     relacionados.map((row) => {
-                      const preview = row.servicos.slice(0, SERVICE_PREVIEW)
+                      const preview = row.services.slice(0, SERVICE_PREVIEW)
                       const extra = Math.max(
-                        row.servicos.length - preview.length,
+                        row.services.length - preview.length,
                         0,
                       )
                       return (
@@ -822,11 +820,11 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                               href={`/demandas/${encodeURIComponent(row.id)}`}
                               className={styles.relatedChamadoLink}
                             >
-                              {formatNumeroInterno(row.numero_interno)}
+                              {formatNumeroInterno(row.internal_number)}
                             </Link>
                           </td>
-                          <td>{displayText(row.equipe)}</td>
-                          <td>{displayText(row.responsavel)}</td>
+                          <td>{displayText(row.team)}</td>
+                          <td>{displayText(row.assignee)}</td>
                           <td>
                             <div className={styles.relatedServices}>
                               {preview.map((svc) => (

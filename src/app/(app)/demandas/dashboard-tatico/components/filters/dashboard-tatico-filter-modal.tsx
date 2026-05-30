@@ -106,11 +106,11 @@ export function DashboardTaticoFilterModal({
             <DashboardTaticoSearchMultiSelect
               scope={scope}
               label="DEMANDANTE"
-              value={draftFilters.demandante_id}
+              value={draftFilters.operation_id}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  demandante_id: value,
+                  operation_id: value,
                 }))
               }
               searchFn={searchOperations}
@@ -119,11 +119,11 @@ export function DashboardTaticoFilterModal({
             <DashboardTaticoSearchMultiSelect
               scope={scope}
               label="REQUISITANTE"
-              value={draftFilters.requisitante}
+              value={draftFilters.requester}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  requisitante: value,
+                  requester: value,
                 }))
               }
               searchFn={searchRequesters}
@@ -133,11 +133,11 @@ export function DashboardTaticoFilterModal({
               scope={scope}
               label="URGÊNCIA"
               placeholder="Selecione"
-              value={draftFilters.prioridade}
+              value={draftFilters.priority}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  prioridade: value,
+                  priority: value,
                 }))
               }
               staticOptions={priorityOptions}
@@ -161,11 +161,11 @@ export function DashboardTaticoFilterModal({
               scope={scope}
               label="TIPO DE CHAMADO"
               placeholder="Selecione"
-              value={draftFilters.tipo_chamado_id}
+              value={draftFilters.ticket_type_id}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  tipo_chamado_id: value,
+                  ticket_type_id: value,
                 }))
               }
               staticOptions={ticketTypeOptions ?? []}

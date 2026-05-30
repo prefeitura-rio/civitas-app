@@ -17,12 +17,12 @@ export interface SlaDashboardFilterIn {
   date_to?: string
   /** Herdado do volume; ignorado no SLA. */
   summary_period?: 'current_week' | 'current_month' | 'current_year'
-  demandante_id?: string[]
-  requisitante?: string[]
-  prioridade?: TicketPriority[]
+  operation_id?: string[]
+  requester?: string[]
+  priority?: TicketPriority[]
   status?: SlaTicketStatus[]
-  tipo_chamado_id?: string[]
-  relevante_imprensa?: boolean | null
+  ticket_type_id?: string[]
+  media_relevant?: boolean | null
 }
 
 export interface SlaDashboardSummaryOut {
@@ -91,13 +91,13 @@ export function sanitizeSlaDashboardFilters(
   const payload: SlaDashboardFilterIn = { ...filters }
 
   delete payload.summary_period
-  if (!payload.demandante_id?.length) delete payload.demandante_id
-  if (!payload.requisitante?.length) delete payload.requisitante
-  if (!payload.prioridade?.length) delete payload.prioridade
+  if (!payload.operation_id?.length) delete payload.operation_id
+  if (!payload.requester?.length) delete payload.requester
+  if (!payload.priority?.length) delete payload.priority
   if (!payload.status?.length) delete payload.status
-  if (!payload.tipo_chamado_id?.length) delete payload.tipo_chamado_id
-  if (payload.relevante_imprensa === undefined) {
-    delete payload.relevante_imprensa
+  if (!payload.ticket_type_id?.length) delete payload.ticket_type_id
+  if (payload.media_relevant === undefined) {
+    delete payload.media_relevant
   }
 
   return payload

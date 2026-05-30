@@ -40,33 +40,35 @@ export function buildTicketCreatePayload(
 ): TicketCreateForm {
   return {
     ...data,
-    associar_chamado_id: emptyToNull(data.associar_chamado_id),
-    numero_procedimento: emptyToNull(
-      padDigitsLeft(data.numero_procedimento, L.numero_procedimento),
+    linked_ticket_id: emptyToNull(data.linked_ticket_id),
+    procedure_number: emptyToNull(
+      padDigitsLeft(data.procedure_number, L.procedure_number),
     ),
-    numero_oficio: emptyToNull(normalizeNumeroOficio(data.numero_oficio ?? '')),
-    data_base: emptyToNull(data.data_base),
-    natureza_id: data.natureza_id.trim(),
-    apelido_imprensa: emptyToNull(data.apelido_imprensa),
-    link_materia: emptyToNull(data.link_materia),
-    bairro_correspondencia: emptyToNull(data.bairro_correspondencia),
-    rua_correspondencia: emptyToNull(data.rua_correspondencia),
-    numero_correspondencia: emptyToNull(data.numero_correspondencia),
-    comentario_inicial: emptyToNull(data.comentario_inicial),
+    official_letter_number: emptyToNull(
+      normalizeNumeroOficio(data.official_letter_number ?? ''),
+    ),
+    base_date: emptyToNull(data.base_date),
+    nature_id: data.nature_id.trim(),
+    press_alias: emptyToNull(data.press_alias),
+    article_link: emptyToNull(data.article_link),
+    correspondence_neighborhood: emptyToNull(data.correspondence_neighborhood),
+    correspondence_street: emptyToNull(data.correspondence_street),
+    correspondence_number: emptyToNull(data.correspondence_number),
+    initial_comment: emptyToNull(data.initial_comment),
 
-    requisitante: {
-      requisitante_nome: data.requisitante.requisitante_nome.trim(),
-      requisitante_telefone: data.requisitante.requisitante_telefone,
-      requisitante_email: emptyToNull(data.requisitante.requisitante_email),
+    requester: {
+      name: data.requester.name.trim(),
+      phone: data.requester.phone,
+      email: emptyToNull(data.requester.email),
     },
 
-    pontos_focais: data.pontos_focais.map((fp) => ({
-      nome: fp.nome.trim(),
-      telefone: fp.telefone ?? '',
+    focal_points: data.focal_points.map((fp) => ({
+      name: fp.name.trim(),
+      phone: fp.phone ?? '',
       email: emptyToNull(fp.email),
     })),
 
-    busca_por_placa: data.busca_por_placa.map((item) => ({
+    plate_search: data.plate_search.map((item) => ({
       plates: (item.plates ?? [])
         .map((p) => plateToPayload(p))
         .filter((p): p is string => p != null),
@@ -74,7 +76,7 @@ export function buildTicketCreatePayload(
       period_end: toIsoDateTime(item.period_end),
     })),
 
-    busca_por_radar: data.busca_por_radar.map((item) => ({
+    radar_search: data.radar_search.map((item) => ({
       plates: (item.plates ?? [])
         .map((p) => plateToPayload(p))
         .filter((p): p is string => p != null),
@@ -84,12 +86,14 @@ export function buildTicketCreatePayload(
       orientation: emptyToNull(item.orientation),
     })),
 
-    cerco_eletronico: data.cerco_eletronico.map((item) => ({
-      plate: plateToPayload(item.plate),
+    electronic_fence: data.electronic_fence.map((item) => ({
+      plates: (item.plates ?? [])
+        .map((p) => plateToPayload(p))
+        .filter((p): p is string => p != null),
       vehicle_observations: emptyToNull(item.vehicle_observations),
     })),
 
-    busca_por_imagem: data.busca_por_imagem.map((item) => ({
+    image_search: data.image_search.map((item) => ({
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       addresses: (item.addresses ?? []).map((a) => a.trim()).filter(Boolean),
@@ -97,7 +101,7 @@ export function buildTicketCreatePayload(
       cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
-    placas_correlatas: data.placas_correlatas.map((group) => ({
+    correlated_plates: data.correlated_plates.map((group) => ({
       period_start: toIsoDateTime(group.period_start),
       period_end: toIsoDateTime(group.period_end),
       interest_interval_minutes: numberOrNull(group.interest_interval_minutes),
@@ -108,7 +112,7 @@ export function buildTicketCreatePayload(
       })),
     })),
 
-    placas_conjuntas: data.placas_conjuntas.map((group) => ({
+    joint_plates: data.joint_plates.map((group) => ({
       period_start: toIsoDateTime(group.period_start),
       period_end: toIsoDateTime(group.period_end),
       interest_interval_minutes: numberOrNull(group.interest_interval_minutes),
@@ -119,7 +123,7 @@ export function buildTicketCreatePayload(
       })),
     })),
 
-    reserva_de_imagem: data.reserva_de_imagem.map((item) => ({
+    image_reservation: data.image_reservation.map((item) => ({
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       orientation: emptyToNull(item.orientation),
@@ -127,7 +131,7 @@ export function buildTicketCreatePayload(
       cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
-    analise_de_imagem: data.analise_de_imagem.map((item) => ({
+    image_analysis: data.image_analysis.map((item) => ({
       period_start: toIsoDateTime(item.period_start),
       period_end: toIsoDateTime(item.period_end),
       orientation: emptyToNull(item.orientation),
@@ -135,7 +139,7 @@ export function buildTicketCreatePayload(
       cameras: (item.cameras ?? []).map((c) => c.trim()).filter(Boolean),
     })),
 
-    outros: data.outros.map((item) => ({
+    other: data.other.map((item) => ({
       orientation: emptyToNull(item.orientation),
     })),
 
@@ -170,75 +174,72 @@ function apiDateToDataBaseString(value?: string | null): string | null {
 
 export function mapTicketOutToCreateForm(
   ticket: TicketOut,
-  options: { associar_chamado_id: string; tipo_chamado_id: string },
+  options: { linked_ticket_id: string; ticket_type_id: string },
 ): TicketCreateForm {
   return {
-    associar_chamado_id: options.associar_chamado_id,
-    tipo_chamado_id: options.tipo_chamado_id,
+    linked_ticket_id: options.linked_ticket_id,
+    ticket_type_id: options.ticket_type_id,
     operation_id: ticket.operation_id ?? '',
-    numero_procedimento: ticket.numero_procedimento
-      ? padDigitsLeft(ticket.numero_procedimento, L.numero_procedimento)
+    procedure_number: ticket.procedure_number
+      ? padDigitsLeft(ticket.procedure_number, L.procedure_number)
       : null,
-    numero_oficio: (() => {
-      const raw = ticket.numero_oficio?.trim()
+    official_letter_number: (() => {
+      const raw = ticket.official_letter_number?.trim()
       if (!raw) return null
       const normalized = normalizeNumeroOficio(raw)
       return normalized || null
     })(),
-    data_base: apiDateToDataBaseString(ticket.data_base),
-    natureza_id: ticket.natureza_id ?? '',
-    possui_apelido_imprensa: ticket.possui_apelido_imprensa,
-    apelido_imprensa: ticket.apelido_imprensa ?? null,
-    link_materia: ticket.link_materia ?? null,
-    possui_endereco_correspondencia: false,
-    bairro_correspondencia: null,
-    rua_correspondencia: null,
-    numero_correspondencia: null,
-    requisitante: {
-      requisitante_nome: ticket.requisitante.requisitante_nome,
-      requisitante_telefone:
-        ticket.requisitante.requisitante_telefone?.trim() || PHONE_PLACEHOLDER,
-      requisitante_email: ticket.requisitante.requisitante_email ?? null,
+    base_date: apiDateToDataBaseString(ticket.base_date),
+    nature_id: ticket.nature_id ?? '',
+    has_press_alias: ticket.has_press_alias,
+    press_alias: ticket.press_alias ?? null,
+    article_link: ticket.article_link ?? null,
+    has_correspondence_address: false,
+    correspondence_neighborhood: null,
+    correspondence_street: null,
+    correspondence_number: null,
+    requester: {
+      name: ticket.requester.name,
+      phone: ticket.requester.phone?.trim() || PHONE_PLACEHOLDER,
+      email: ticket.requester.email ?? null,
     },
-    pontos_focais: (ticket.pontos_focais ?? []).map((fp) => ({
-      nome: fp.nome,
-      telefone: fp.telefone?.trim() || PHONE_PLACEHOLDER,
+    focal_points: (ticket.focal_points ?? []).map((fp) => ({
+      name: fp.name,
+      phone: fp.phone?.trim() || PHONE_PLACEHOLDER,
       email: fp.email ?? null,
     })),
-    equipe_id: ticket.equipe_id ?? '',
-    prioridade: ticket.prioridade ?? null,
-    comentario_inicial: (() => {
-      const raw = ticket.comentarios?.[0]?.body
+    team_id: ticket.team_id ?? '',
+    priority: ticket.priority ?? null,
+    initial_comment: (() => {
+      const raw = ticket.comments?.[0]?.body
       if (raw == null) return null
       const t = raw.trim()
       if (!t) return null
-      return t.length > L.comentario_inicial
-        ? t.slice(0, L.comentario_inicial)
-        : t
+      return t.length > L.initial_comment ? t.slice(0, L.initial_comment) : t
     })(),
-    busca_por_placa: (ticket.busca_por_placa ?? []).map((s) => ({
+    plate_search: (ticket.plate_search ?? []).map((s) => ({
       plates: (s.plates ?? []).map((p) => p.plate).filter((p) => p?.trim()),
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
     })),
-    busca_por_radar: (ticket.busca_por_radar ?? []).map((s) => ({
+    radar_search: (ticket.radar_search ?? []).map((s) => ({
       plates: (s.plates ?? []).map((p) => p.plate).filter((p) => p?.trim()),
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
     })),
-    cerco_eletronico: (ticket.cerco_eletronico ?? []).map((s) => ({
-      plate: s.plate ?? null,
+    electronic_fence: (ticket.electronic_fence ?? []).map((s) => ({
+      plates: (s.plates ?? []).map((p) => p.plate).filter((p) => p?.trim()),
       vehicle_observations: s.vehicle_observations ?? null,
     })),
-    busca_por_imagem: (ticket.busca_por_imagem ?? []).map((s) => ({
+    image_search: (ticket.image_search ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       addresses: (s.addresses ?? []).map((a) => a.address),
       description: s.description ?? null,
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
-    placas_correlatas: (ticket.placas_correlatas ?? []).map((g) => ({
+    correlated_plates: (ticket.correlated_plates ?? []).map((g) => ({
       period_start: isoToDatetimeLocal(g.period_start),
       period_end: isoToDatetimeLocal(g.period_end),
       interest_interval_minutes: g.interest_interval_minutes ?? null,
@@ -246,7 +247,7 @@ export function mapTicketOutToCreateForm(
       detection: g.detection ?? null,
       plates: (g.plates ?? []).map((p) => ({ plate: p.plate ?? null })),
     })),
-    placas_conjuntas: (ticket.placas_conjuntas ?? []).map((g) => ({
+    joint_plates: (ticket.joint_plates ?? []).map((g) => ({
       period_start: isoToDatetimeLocal(g.period_start),
       period_end: isoToDatetimeLocal(g.period_end),
       interest_interval_minutes: g.interest_interval_minutes ?? null,
@@ -254,21 +255,21 @@ export function mapTicketOutToCreateForm(
       detection: g.detection ?? null,
       plates: (g.plates ?? []).map((p) => ({ plate: p.plate ?? null })),
     })),
-    reserva_de_imagem: (ticket.reserva_de_imagem ?? []).map((s) => ({
+    image_reservation: (ticket.image_reservation ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
       addresses: (s.addresses ?? []).map((a) => a.address),
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
-    analise_de_imagem: (ticket.analise_de_imagem ?? []).map((s) => ({
+    image_analysis: (ticket.image_analysis ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
       addresses: (s.addresses ?? []).map((a) => a.address),
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
-    outros: (ticket.outros ?? []).map((s) => ({
+    other: (ticket.other ?? []).map((s) => ({
       orientation: s.orientation ?? null,
     })),
     atlas_civitas: (ticket.atlas_civitas ?? []).map((s) => ({

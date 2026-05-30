@@ -2,16 +2,19 @@ import { api } from '@/lib/api'
 
 export type SearchOption = {
   label: string
+
   value: string
 }
 
 type TicketTypeItem = {
   id: string
+
   name: string
 }
 
 type TicketNatureItem = {
   id: string
+
   name: string
 }
 
@@ -25,38 +28,41 @@ type TicketNaturePageResponse = {
 
 type OperationSearchResponse = {
   id: string
+
   title: string
 }
 
 type OfficialLetterSearchResponse = {
-  numero_oficio: string
+  official_letter_number: string
 }
 
 type InternalNumberSearchResponse = {
-  numero_interno: number
+  internal_number: number
 }
 
 type ProcedureNumberSearchResponse = {
-  numero_procedimento: string
+  procedure_number: string
 }
 
 type RequesterSearchResponse = {
-  requisitante: string
+  requester: string
 }
 
 type ResponsibleSearchResponse = {
   user_id: string
+
   user_name: string
 }
 
 type FocalPointSearchResponse = {
-  ponto_focal: string
+  focal_point: string
 }
 
 function normalizeTicketTypeItems(
   data: TicketTypePageResponse | TicketTypeItem[],
 ): TicketTypeItem[] {
   if (Array.isArray(data)) return data
+
   return data.items ?? []
 }
 
@@ -65,9 +71,11 @@ export async function searchTicketTypes(
 ): Promise<SearchOption[]> {
   const response = await api.get<TicketTypePageResponse | TicketTypeItem[]>(
     '/ticket-types',
+
     {
       params: {
         search,
+
         isActive: true,
       },
     },
@@ -75,6 +83,7 @@ export async function searchTicketTypes(
 
   return normalizeTicketTypeItems(response.data).map((item) => ({
     label: item.name,
+
     value: item.id,
   }))
 }
@@ -83,6 +92,7 @@ function normalizeTicketNatureItems(
   data: TicketNaturePageResponse | TicketNatureItem[],
 ): TicketNatureItem[] {
   if (Array.isArray(data)) return data
+
   return data.items ?? []
 }
 
@@ -91,9 +101,11 @@ export async function searchTicketNatures(
 ): Promise<SearchOption[]> {
   const response = await api.get<TicketNaturePageResponse | TicketNatureItem[]>(
     '/ticket-natures',
+
     {
       params: {
         search,
+
         isActive: true,
       },
     },
@@ -101,6 +113,7 @@ export async function searchTicketNatures(
 
   return normalizeTicketNatureItems(response.data).map((item) => ({
     label: item.name,
+
     value: item.id,
   }))
 }
@@ -110,6 +123,7 @@ export async function searchOperations(
 ): Promise<SearchOption[]> {
   const response = await api.get<OperationSearchResponse[]>(
     '/operations/search',
+
     {
       params: { search },
     },
@@ -117,6 +131,7 @@ export async function searchOperations(
 
   return response.data.map((item) => ({
     label: item.title,
+
     value: item.id,
   }))
 }
@@ -126,14 +141,16 @@ export async function searchOfficialLetters(
 ): Promise<SearchOption[]> {
   const response = await api.get<OfficialLetterSearchResponse[]>(
     '/tickets/official-letters/search',
+
     {
       params: { search },
     },
   )
 
   return response.data.map((item) => ({
-    label: item.numero_oficio,
-    value: item.numero_oficio,
+    label: item.official_letter_number,
+
+    value: item.official_letter_number,
   }))
 }
 
@@ -142,14 +159,16 @@ export async function searchInternalNumbers(
 ): Promise<SearchOption[]> {
   const response = await api.get<InternalNumberSearchResponse[]>(
     '/tickets/internal-numbers/search',
+
     {
       params: { search },
     },
   )
 
   return response.data.map((item) => ({
-    label: String(item.numero_interno),
-    value: String(item.numero_interno),
+    label: String(item.internal_number),
+
+    value: String(item.internal_number),
   }))
 }
 
@@ -158,14 +177,16 @@ export async function searchProcedureNumbers(
 ): Promise<SearchOption[]> {
   const response = await api.get<ProcedureNumberSearchResponse[]>(
     '/tickets/procedure-numbers/search',
+
     {
       params: { search },
     },
   )
 
   return response.data.map((item) => ({
-    label: item.numero_procedimento,
-    value: item.numero_procedimento,
+    label: item.procedure_number,
+
+    value: item.procedure_number,
   }))
 }
 
@@ -174,14 +195,16 @@ export async function searchRequesters(
 ): Promise<SearchOption[]> {
   const response = await api.get<RequesterSearchResponse[]>(
     '/tickets/requesters/search',
+
     {
       params: { search },
     },
   )
 
   return response.data.map((item) => ({
-    label: item.requisitante,
-    value: item.requisitante,
+    label: item.requester,
+
+    value: item.requester,
   }))
 }
 
@@ -190,6 +213,7 @@ export async function searchTicketResponsibles(
 ): Promise<SearchOption[]> {
   const response = await api.get<ResponsibleSearchResponse[]>(
     '/tickets/responsibles/search',
+
     {
       params: { search },
     },
@@ -197,6 +221,7 @@ export async function searchTicketResponsibles(
 
   return response.data.map((item) => ({
     label: item.user_name,
+
     value: item.user_id,
   }))
 }
@@ -206,13 +231,15 @@ export async function searchFocalPoints(
 ): Promise<SearchOption[]> {
   const response = await api.get<FocalPointSearchResponse[]>(
     '/tickets/focal-points/search',
+
     {
       params: { search },
     },
   )
 
   return response.data.map((item) => ({
-    label: item.ponto_focal,
-    value: item.ponto_focal,
+    label: item.focal_point,
+
+    value: item.focal_point,
   }))
 }

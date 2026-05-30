@@ -131,10 +131,10 @@ function formatReassignPriorityLabel(priority: TicketReassignPriority) {
 }
 
 function cabecalhoPrioridadeToReassign(
-  prioridade?: string | null,
+  priority?: string | null,
 ): TicketReassignPriority | null {
-  if (!prioridade?.trim()) return null
-  const v = prioridade.trim().toUpperCase()
+  if (!priority?.trim()) return null
+  const v = priority.trim().toUpperCase()
   if (v === 'URGENTE') return 'URGENTE'
   if (v === 'ALTA') return 'ALTA'
   if (v === 'ROTINA') return 'ROTINA'
@@ -221,7 +221,7 @@ export function TicketDetailView({ ticketId }: Props) {
     > => ({
       solicitante: solicitanteRef,
       chamado: chamadoRef,
-      servicos: servicosRef,
+      services: servicosRef,
       parecer_interno: parecerRef,
       relatorio_demanda: relatorioRef,
     }),
@@ -405,7 +405,7 @@ export function TicketDetailView({ ticketId }: Props) {
   const finalizeMutation = useMutation({
     mutationFn: (comment: string) =>
       applyTicketWorkflowAction(ticketId, 'FINALIZAR_CHAMADO', {
-        comentario: comment,
+        comment,
       }),
     onSuccess: () => {
       toast.success('Demanda finalizada e enviada para revisão.')
@@ -423,12 +423,12 @@ export function TicketDetailView({ ticketId }: Props) {
   const reassignMutation = useMutation({
     mutationFn: () =>
       applyTicketWorkflowAction(ticketId, 'REATRIBUIR_CHAMADO', {
-        comentario: reassignComment.trim(),
-        reatribuicao: {
-          equipe_id: selectedTeamId,
-          responsavel_ids: selectedResponsibleIds,
-          prioridade: selectedPriority,
-          comentario: reassignComment.trim(),
+        comment: reassignComment.trim(),
+        reassignment: {
+          team_id: selectedTeamId,
+          assignee_ids: selectedResponsibleIds,
+          priority: selectedPriority,
+          comment: reassignComment.trim(),
         },
       }),
     onSuccess: () => {
@@ -447,17 +447,17 @@ export function TicketDetailView({ ticketId }: Props) {
   const workflowActionMutation = useMutation({
     mutationFn: ({
       actionId,
-      comentario,
+      comment,
     }: {
       actionId: string
-      comentario?: string | null
+      comment?: string | null
     }) =>
       applyTicketWorkflowAction(ticketId, actionId, {
-        comentario: comentario ?? null,
+        comment: comment ?? null,
       }),
     onSuccess: (
       _response: ApplyTicketWorkflowActionOut,
-      variables: { actionId: string; comentario?: string | null },
+      variables: { actionId: string; comment?: string | null },
     ) => {
       if (variables.actionId === 'ENVIAR_EMAIL') {
         toast.success('E-mail enviado com sucesso.')
@@ -588,8 +588,8 @@ export function TicketDetailView({ ticketId }: Props) {
       setResponsiblePopoverOpen(false)
     }
 
-    setSelectedPriority(cabecalhoPrioridadeToReassign(cab?.prioridade))
-  }, [reassignOpen, cab?.prioridade])
+    setSelectedPriority(cabecalhoPrioridadeToReassign(cab?.priority))
+  }, [reassignOpen, cab?.priority])
 
   useEffect(() => {
     if (!reassignOpen || selectedTeamId || teamsByRoleQuery.isLoading) return
@@ -673,7 +673,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 <ChevronLeft size={18} />
               </button>
               <p className={styles.title} role="heading" aria-level={1}>
-                {`Demanda #${cab.internal_number} - ${displayText(cab.tipo_chamado_nome)}`}
+                {`Demanda #${cab.internal_number} - ${displayText(cab.ticket_type_name)}`}
               </p>
             </div>
             <span className={styles.statusBadge}>
@@ -686,19 +686,19 @@ export function TicketDetailView({ ticketId }: Props) {
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Prioridade:</span>
                 <span className={styles.metaValue}>
-                  {normalizePriority(cab.prioridade)}
+                  {normalizePriority(cab.priority)}
                 </span>
               </div>
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Equipe:</span>
                 <span className={styles.metaValue}>
-                  {displayText(cab.equipe)}
+                  {displayText(cab.team)}
                 </span>
               </div>
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Responsável:</span>
                 <span className={styles.metaValue}>
-                  {displayText(cab.responsavel).toLocaleUpperCase('pt-BR')}
+                  {displayText(cab.assignee).toLocaleUpperCase('pt-BR')}
                 </span>
               </div>
             </div>
@@ -706,7 +706,7 @@ export function TicketDetailView({ ticketId }: Props) {
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Data Base:</span>
                 <span className={styles.metaValue}>
-                  {formatDateBR(cab.data_base)}
+                  {formatDateBR(cab.base_date)}
                 </span>
               </div>
               <div className={styles.metaCell}>
@@ -720,7 +720,7 @@ export function TicketDetailView({ ticketId }: Props) {
                   Tempo da demanda em aberto:
                 </span>
                 <span className={styles.metaValue}>
-                  {displayText(cab.tempo_aberto)}
+                  {displayText(cab.open_duration)}
                 </span>
               </div>
             </div>
@@ -881,9 +881,13 @@ export function TicketDetailView({ ticketId }: Props) {
             <div className={styles.panel} role="tabpanel">
               <TicketDetailTabDocumentos ticketId={ticketId} />
             </div>
-          ) : activeTab === 'servicos' ? (
+          ) : activeTab === 'services' ? (
             <div className={styles.panel} role="tabpanel">
-              <TicketDetailTabServicos ref={servicosRef} ticketId={ticketId} />
+              <TicketDetailTabServicos
+                ref={servicosRef}
+                ticketId={ticketId}
+                internalNumber={cab?.internal_number}
+              />
             </div>
           ) : activeTab === 'parecer_interno' ? (
             <div className={styles.panel} role="tabpanel">
@@ -1159,7 +1163,7 @@ export function TicketDetailView({ ticketId }: Props) {
                     if (workflowCommentAction) {
                       workflowActionMutation.mutate({
                         actionId: workflowCommentAction,
-                        comentario: workflowComment.trim(),
+                        comment: workflowComment.trim(),
                       })
                     }
                   }}
@@ -1196,7 +1200,9 @@ export function TicketDetailView({ ticketId }: Props) {
             </DialogHeader>
             <div className={styles.oficioDialogBody}>
               {oficioAttachmentsQuery.isLoading ? (
-                <p className={styles.oficioDialogMessage}>Carregando anexos…</p>
+                <p className={styles.oficioDialogMessage}>
+                  Carregando attachments…
+                </p>
               ) : oficioAttachmentsQuery.isError ? (
                 <p
                   className={`${styles.oficioDialogMessage} ${styles.oficioDialogError}`}
@@ -1205,7 +1211,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 </p>
               ) : oficioAnexos.length === 0 ? (
                 <p className={styles.oficioDialogMessage}>
-                  Não há anexos nesta demanda.
+                  Não há attachments nesta demanda.
                 </p>
               ) : oficioBlobQuery.isLoading ||
                 (oficioBlobQuery.data &&
@@ -1584,9 +1590,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 </div>
 
                 <div className={styles.reassignPriorityWrap}>
-                  <span className={styles.reassignLabel}>
-                    Definir prioridade
-                  </span>
+                  <span className={styles.reassignLabel}>Definir priority</span>
                   <div className={styles.reassignPriorityRow}>
                     {(['URGENTE', 'ALTA', 'ROTINA'] as const).map(
                       (priority) => {

@@ -1,5 +1,6 @@
 'use client'
 
+import { Pagination } from '@/components/ui/pagination'
 import type {
   DemandVolumeGranularity,
   MatrixRowOut,
@@ -7,12 +8,20 @@ import type {
 
 import { formatPeriodLabel } from './demand-volume-period-label'
 
+interface DemandVolumeMatrixTablePagination {
+  page: number
+  total: number
+  pageSize: number
+  onPageChange: (page: number) => void
+}
+
 interface DemandVolumeMatrixTableProps {
   title: string
   columnHeader: string
   rows: MatrixRowOut[]
   periodLabels: string[]
   isLoading: boolean
+  pagination?: DemandVolumeMatrixTablePagination
 }
 
 /** Tabelas usam agrupamento fixo (mensal) definido pelo backend. */
@@ -100,6 +109,7 @@ export function DemandVolumeMatrixTable({
   rows,
   periodLabels,
   isLoading,
+  pagination,
 }: DemandVolumeMatrixTableProps) {
   const formattedHeaders = periodLabels.map((pl) =>
     formatPeriodLabel(pl, MATRIX_GRANULARITY),
@@ -224,6 +234,17 @@ export function DemandVolumeMatrixTable({
               </tbody>
             </table>
           </div>
+
+          {pagination && pagination.total > pagination.pageSize ? (
+            <div style={{ marginTop: '16px' }}>
+              <Pagination
+                page={pagination.page}
+                total={pagination.total}
+                size={pagination.pageSize}
+                onPageChange={pagination.onPageChange}
+              />
+            </div>
+          ) : null}
 
           <div
             style={{

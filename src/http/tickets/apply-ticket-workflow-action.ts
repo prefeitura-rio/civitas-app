@@ -6,15 +6,15 @@ export type ApplyTicketWorkflowActionOut = {
 }
 
 export type ApplyTicketWorkflowReassignIn = {
-  equipe_id: string
-  responsavel_ids: string[]
-  prioridade?: 'URGENTE' | 'ALTA' | 'ROTINA' | null
-  comentario?: string | null
+  team_id: string
+  assignee_ids: string[]
+  priority?: 'URGENTE' | 'ALTA' | 'ROTINA' | null
+  comment?: string | null
 }
 
 export type ApplyTicketWorkflowActionIn = {
-  comentario?: string | null
-  reatribuicao?: ApplyTicketWorkflowReassignIn | null
+  comment?: string | null
+  reassignment?: ApplyTicketWorkflowReassignIn | null
 }
 
 export async function applyTicketWorkflowAction(

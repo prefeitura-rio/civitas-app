@@ -44,22 +44,22 @@ export function OperationalViewSummaryCards({
       <div className={styles.summaryCardsRow}>
         <SummaryCard
           label="Pendentes"
-          value={summary?.total_pendentes}
+          value={summary?.total_pending}
           isLoading={isLoading}
         />
         <SummaryCard
           label="Bloqueados"
-          value={summary?.total_bloqueados}
+          value={summary?.total_blocked}
           isLoading={isLoading}
         />
         <SummaryCard
           label="Aguardando Revisão"
-          value={summary?.total_aguardando_revisao}
+          value={summary?.total_awaiting_review}
           isLoading={isLoading}
         />
         <SummaryCard
           label="Finalizados"
-          value={summary?.total_finalizados}
+          value={summary?.total_completed}
           isLoading={isLoading}
         />
       </div>

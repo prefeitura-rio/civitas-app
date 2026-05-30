@@ -1,20 +1,33 @@
 import { api } from '@/lib/api'
 
-export type TicketCabecalhoOut = {
+export type TicketHeaderOut = {
   internal_number: string
+
   status: string
-  tipo_chamado_nome?: string | null
-  prioridade?: string | null
-  data_base?: string | null
-  equipe?: string | null
+
+  ticket_type_name?: string | null
+
+  priority?: string | null
+
+  base_date?: string | null
+
+  team?: string | null
+
   created_at: string
-  responsavel?: string | null
-  tempo_aberto: string
+
+  assignee?: string | null
+
+  open_duration: string
 }
 
+/** @deprecated Use TicketHeaderOut */
+
+export type TicketCabecalhoOut = TicketHeaderOut
+
 export async function getTicketCabecalho(ticketId: string) {
-  const { data } = await api.get<TicketCabecalhoOut>(
-    `/tickets/${ticketId}/cabecalho`,
-  )
+  const { data } = await api.get<TicketHeaderOut>(`/tickets/${ticketId}/header`)
+
   return data
 }
+
+export { getTicketCabecalho as getTicketHeader }

@@ -80,7 +80,7 @@ export function SlaMetricsPriorityChart({
             margin: 0,
           }}
         >
-          Tempo Médio de Resposta de Demandas (Por prioridade)
+          Tempo Médio de Resposta de Demandas (Por priority)
         </h2>
         <DemandVolumeChartGranularity
           value={granularity}

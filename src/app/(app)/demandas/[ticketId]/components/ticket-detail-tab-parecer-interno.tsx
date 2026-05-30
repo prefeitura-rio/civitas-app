@@ -49,10 +49,10 @@ function badgeClassForPapel(papel: string): string {
   return styles.parecerBadgeDefault
 }
 
-function CommentBody({ corpo }: { corpo: string }) {
-  const html = useMemo(() => sanitizeTicketHtml(corpo), [corpo])
+function CommentBody({ body }: { body: string }) {
+  const html = useMemo(() => sanitizeTicketHtml(body), [body])
   const plain = useMemo(() => {
-    if (typeof window === 'undefined') return corpo
+    if (typeof window === 'undefined') return body
     const doc = new DOMParser().parseFromString(html, 'text/html')
     return (doc.body.textContent || '').trim()
   }, [html])
@@ -115,8 +115,8 @@ export const TicketDetailTabParecerInterno = forwardRef<
   )
 
   const mutation = useMutation({
-    mutationFn: (corpo: string) =>
-      postTicketComment(ticketId, { corpo: corpo.trim() }),
+    mutationFn: (body: string) =>
+      postTicketComment(ticketId, { body: body.trim() }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['ticket-comentarios', ticketId],
@@ -193,20 +193,20 @@ export const TicketDetailTabParecerInterno = forwardRef<
             <article key={c.id} className={styles.parecerItem}>
               <div className={styles.parecerHeader}>
                 <span className={styles.parecerAuthor}>
-                  {(c.autor_nome || '').trim() || '—'}
+                  {(c.author_name || '').trim() || '—'}
                 </span>
-                {c.autor_papeis.length > 0 ? (
+                {c.author_roles.length > 0 ? (
                   <span
-                    className={`${styles.parecerBadge} ${badgeClassForPapel(c.autor_papeis[0])}`}
+                    className={`${styles.parecerBadge} ${badgeClassForPapel(c.author_roles[0])}`}
                   >
-                    {c.autor_papeis[0]}
+                    {c.author_roles[0]}
                   </span>
                 ) : null}
-                <time className={styles.parecerDate} dateTime={c.criado_em}>
-                  {formatCommentDate(c.criado_em)}
+                <time className={styles.parecerDate} dateTime={c.created_at}>
+                  {formatCommentDate(c.created_at)}
                 </time>
               </div>
-              <CommentBody corpo={c.corpo} />
+              <CommentBody body={c.body} />
             </article>
           ))}
         </div>

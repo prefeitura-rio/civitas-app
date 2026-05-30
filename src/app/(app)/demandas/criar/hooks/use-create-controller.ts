@@ -84,38 +84,38 @@ export function useTicketCreateController() {
 
   const defaultValues = useMemo<TicketCreateForm>(
     () => ({
-      associar_chamado_id: null,
-      tipo_chamado_id: '',
+      linked_ticket_id: null,
+      ticket_type_id: '',
       operation_id: '',
-      numero_procedimento: null,
-      numero_oficio: null,
-      data_base: null,
-      natureza_id: '',
-      possui_apelido_imprensa: false,
-      apelido_imprensa: null,
-      link_materia: null,
-      possui_endereco_correspondencia: false,
-      bairro_correspondencia: null,
-      rua_correspondencia: null,
-      numero_correspondencia: null,
-      requisitante: {
-        requisitante_nome: '',
-        requisitante_telefone: '',
-        requisitante_email: null,
+      procedure_number: null,
+      official_letter_number: null,
+      base_date: null,
+      nature_id: '',
+      has_press_alias: false,
+      press_alias: null,
+      article_link: null,
+      has_correspondence_address: false,
+      correspondence_neighborhood: null,
+      correspondence_street: null,
+      correspondence_number: null,
+      requester: {
+        name: '',
+        phone: '',
+        email: null,
       },
-      pontos_focais: [],
-      equipe_id: '',
-      prioridade: null,
-      comentario_inicial: null,
-      busca_por_placa: [],
-      busca_por_radar: [],
-      cerco_eletronico: [],
-      busca_por_imagem: [],
-      placas_correlatas: [],
-      placas_conjuntas: [],
-      reserva_de_imagem: [],
-      analise_de_imagem: [],
-      outros: [],
+      focal_points: [],
+      team_id: '',
+      priority: null,
+      initial_comment: null,
+      plate_search: [],
+      radar_search: [],
+      electronic_fence: [],
+      image_search: [],
+      correlated_plates: [],
+      joint_plates: [],
+      image_reservation: [],
+      image_analysis: [],
+      other: [],
       atlas_civitas: [],
     }),
     [],
@@ -138,20 +138,20 @@ export function useTicketCreateController() {
     formState: { isSubmitting, errors },
   } = form
 
-  const possuiApelido = watch('possui_apelido_imprensa')
-  const possuiEnderecoCorrespondencia = watch('possui_endereco_correspondencia')
-  const tipoChamadoId = watch('tipo_chamado_id')
+  const possuiApelido = watch('has_press_alias')
+  const possuiEnderecoCorrespondencia = watch('has_correspondence_address')
+  const tipoChamadoId = watch('ticket_type_id')
 
-  const focalPoints = useFieldArray({ control, name: 'pontos_focais' })
-  const buscaPorPlaca = useFieldArray({ control, name: 'busca_por_placa' })
-  const buscaPorRadar = useFieldArray({ control, name: 'busca_por_radar' })
-  const cercoEletronico = useFieldArray({ control, name: 'cerco_eletronico' })
-  const buscaPorImagem = useFieldArray({ control, name: 'busca_por_imagem' })
-  const placasCorrelatas = useFieldArray({ control, name: 'placas_correlatas' })
-  const placasConjuntas = useFieldArray({ control, name: 'placas_conjuntas' })
-  const reservaDeImagem = useFieldArray({ control, name: 'reserva_de_imagem' })
-  const analiseDeImagem = useFieldArray({ control, name: 'analise_de_imagem' })
-  const outros = useFieldArray({ control, name: 'outros' })
+  const focalPoints = useFieldArray({ control, name: 'focal_points' })
+  const buscaPorPlaca = useFieldArray({ control, name: 'plate_search' })
+  const buscaPorRadar = useFieldArray({ control, name: 'radar_search' })
+  const cercoEletronico = useFieldArray({ control, name: 'electronic_fence' })
+  const buscaPorImagem = useFieldArray({ control, name: 'image_search' })
+  const placasCorrelatas = useFieldArray({ control, name: 'correlated_plates' })
+  const placasConjuntas = useFieldArray({ control, name: 'joint_plates' })
+  const reservaDeImagem = useFieldArray({ control, name: 'image_reservation' })
+  const analiseDeImagem = useFieldArray({ control, name: 'image_analysis' })
+  const otherServices = useFieldArray({ control, name: 'other' })
   const atlasCivitas = useFieldArray({ control, name: 'atlas_civitas' })
 
   const operationsQuery = useQuery({
@@ -196,14 +196,14 @@ export function useTicketCreateController() {
       )
       if (!conventional) {
         toast.error('Tipo "Convencional" não encontrado no catálogo.')
-        setValue('associar_chamado_id', null)
+        setValue('linked_ticket_id', null)
         setSelectedTicketLabel('')
         setTicketSearch('')
         return
       }
       const values = mapTicketOutToCreateForm(ticket, {
-        associar_chamado_id: ticketId,
-        tipo_chamado_id: conventional.id,
+        linked_ticket_id: ticketId,
+        ticket_type_id: conventional.id,
       })
       reset(values)
       setFiles([])
@@ -211,7 +211,7 @@ export function useTicketCreateController() {
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error))
-      setValue('associar_chamado_id', null)
+      setValue('linked_ticket_id', null)
       setSelectedTicketLabel('')
       setTicketSearch('')
     },
@@ -234,15 +234,15 @@ export function useTicketCreateController() {
         const current = getValues()
         reset({
           ...current,
-          busca_por_placa: [],
-          busca_por_radar: [],
-          cerco_eletronico: [],
-          busca_por_imagem: [],
-          placas_correlatas: [],
-          placas_conjuntas: [],
-          reserva_de_imagem: [],
-          analise_de_imagem: [],
-          outros: [],
+          plate_search: [],
+          radar_search: [],
+          electronic_fence: [],
+          image_search: [],
+          correlated_plates: [],
+          joint_plates: [],
+          image_reservation: [],
+          image_analysis: [],
+          other: [],
           atlas_civitas: [],
         })
         setFiles([])
@@ -269,15 +269,15 @@ export function useTicketCreateController() {
         const current = getValues()
         reset({
           ...current,
-          busca_por_placa: [],
-          busca_por_radar: [],
-          cerco_eletronico: [],
-          busca_por_imagem: [],
-          placas_correlatas: [],
-          placas_conjuntas: [],
-          reserva_de_imagem: [],
-          analise_de_imagem: [],
-          outros: [],
+          plate_search: [],
+          radar_search: [],
+          electronic_fence: [],
+          image_search: [],
+          correlated_plates: [],
+          joint_plates: [],
+          image_reservation: [],
+          image_analysis: [],
+          other: [],
           atlas_civitas: [],
         })
         setFiles([])
@@ -310,10 +310,10 @@ export function useTicketCreateController() {
     )
     if (!coordTeam) return
 
-    const currentEquipeId = getValues('equipe_id')
+    const currentEquipeId = getValues('team_id')
     if (currentEquipeId === coordTeam.id) return
 
-    setValue('equipe_id', coordTeam.id, {
+    setValue('team_id', coordTeam.id, {
       shouldValidate: true,
       shouldDirty: true,
     })
@@ -337,7 +337,7 @@ export function useTicketCreateController() {
   ) {
     setSelectedTicketLabel(titulo)
     setTicketSearch(titulo)
-    setValue('associar_chamado_id', ticketId)
+    setValue('linked_ticket_id', ticketId)
     await applyAssociatedTicketMutation.mutateAsync({ ticketId })
   }
 
@@ -397,7 +397,7 @@ export function useTicketCreateController() {
   }
 
   async function onSubmit(data: TicketCreateForm) {
-    const associarId = associarChamadoIdOrNull(data.associar_chamado_id)
+    const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
       await convertToConventionalMutation.mutateAsync({
         ticketId: associarId,
@@ -416,7 +416,7 @@ export function useTicketCreateController() {
     filesForTicket?: File[],
     options?: { saveAndNew?: boolean },
   ) {
-    const associarId = associarChamadoIdOrNull(data.associar_chamado_id)
+    const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
       await convertToConventionalMutation.mutateAsync({
         ticketId: associarId,
@@ -504,7 +504,7 @@ export function useTicketCreateController() {
     placasConjuntas,
     reservaDeImagem,
     analiseDeImagem,
-    outros,
+    other: otherServices,
     atlasCivitas,
 
     defaultValues,

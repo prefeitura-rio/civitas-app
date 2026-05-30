@@ -141,8 +141,8 @@ export function ServicosExpandedForm({
   }
 
   switch (kind) {
-    case 'busca_por_placa': {
-      const item = draft.busca_por_placa[index]
+    case 'plate_search': {
+      const item = draft.plate_search[index]
       if (!item) return null
       return servicosReadonlyShell(
         readOnly,
@@ -155,8 +155,8 @@ export function ServicosExpandedForm({
               readOnly={readOnly}
               onPatch={(p) =>
                 patch((n) => {
-                  n.busca_por_placa[index] = {
-                    ...n.busca_por_placa[index],
+                  n.plate_search[index] = {
+                    ...n.plate_search[index],
                     ...p,
                   }
                 })
@@ -179,13 +179,13 @@ export function ServicosExpandedForm({
                       value={p.plate ?? ''}
                       onChange={(e) =>
                         patch((n) => {
-                          const plates = [...n.busca_por_placa[index].plates]
+                          const plates = [...n.plate_search[index].plates]
                           plates[pi] = {
                             ...plates[pi],
                             plate: maskPlateBR(e.target.value),
                           }
-                          n.busca_por_placa[index] = {
-                            ...n.busca_por_placa[index],
+                          n.plate_search[index] = {
+                            ...n.plate_search[index],
                             plates,
                           }
                         })
@@ -201,11 +201,11 @@ export function ServicosExpandedForm({
                         title="Remover placa"
                         onClick={() =>
                           patch((n) => {
-                            const plates = n.busca_por_placa[
-                              index
-                            ].plates.filter((_, i) => i !== pi)
-                            n.busca_por_placa[index] = {
-                              ...n.busca_por_placa[index],
+                            const plates = n.plate_search[index].plates.filter(
+                              (_, i) => i !== pi,
+                            )
+                            n.plate_search[index] = {
+                              ...n.plate_search[index],
                               plates:
                                 plates.length > 0
                                   ? plates
@@ -232,15 +232,15 @@ export function ServicosExpandedForm({
                         onClick={() =>
                           patch((n) => {
                             const plates = [
-                              ...n.busca_por_placa[index].plates,
+                              ...n.plate_search[index].plates,
                               {
                                 id: newNestedEntityId(),
                                 created_at: nowIso(),
                                 plate: '',
                               },
                             ]
-                            n.busca_por_placa[index] = {
-                              ...n.busca_por_placa[index],
+                            n.plate_search[index] = {
+                              ...n.plate_search[index],
                               plates,
                             }
                           })
@@ -265,8 +265,8 @@ export function ServicosExpandedForm({
       )
     }
 
-    case 'busca_por_radar': {
-      const item = draft.busca_por_radar[index]
+    case 'radar_search': {
+      const item = draft.radar_search[index]
       if (!item) return null
       return servicosReadonlyShell(
         readOnly,
@@ -279,8 +279,8 @@ export function ServicosExpandedForm({
               readOnly={readOnly}
               onPatch={(p) =>
                 patch((n) => {
-                  n.busca_por_radar[index] = {
-                    ...n.busca_por_radar[index],
+                  n.radar_search[index] = {
+                    ...n.radar_search[index],
                     ...p,
                   }
                 })
@@ -299,8 +299,8 @@ export function ServicosExpandedForm({
               value={item.orientation ?? ''}
               onChange={(e) =>
                 patch((n) => {
-                  n.busca_por_radar[index] = {
-                    ...n.busca_por_radar[index],
+                  n.radar_search[index] = {
+                    ...n.radar_search[index],
                     orientation: e.target.value || null,
                   }
                 })
@@ -320,8 +320,8 @@ export function ServicosExpandedForm({
               value={item.radar_address ?? ''}
               onChange={(e) =>
                 patch((n) => {
-                  n.busca_por_radar[index] = {
-                    ...n.busca_por_radar[index],
+                  n.radar_search[index] = {
+                    ...n.radar_search[index],
                     radar_address: e.target.value || null,
                   }
                 })
@@ -345,13 +345,13 @@ export function ServicosExpandedForm({
                       value={p.plate ?? ''}
                       onChange={(e) =>
                         patch((n) => {
-                          const plates = [...n.busca_por_radar[index].plates]
+                          const plates = [...n.radar_search[index].plates]
                           plates[pi] = {
                             ...plates[pi],
                             plate: maskPlateBR(e.target.value),
                           }
-                          n.busca_por_radar[index] = {
-                            ...n.busca_por_radar[index],
+                          n.radar_search[index] = {
+                            ...n.radar_search[index],
                             plates,
                           }
                         })
@@ -365,11 +365,11 @@ export function ServicosExpandedForm({
                         className={styles.servicosIconBtn}
                         onClick={() =>
                           patch((n) => {
-                            const plates = n.busca_por_radar[
-                              index
-                            ].plates.filter((_, i) => i !== pi)
-                            n.busca_por_radar[index] = {
-                              ...n.busca_por_radar[index],
+                            const plates = n.radar_search[index].plates.filter(
+                              (_, i) => i !== pi,
+                            )
+                            n.radar_search[index] = {
+                              ...n.radar_search[index],
                               plates:
                                 plates.length > 0
                                   ? plates
@@ -395,10 +395,10 @@ export function ServicosExpandedForm({
                         className={styles.servicosAddLineBtn}
                         onClick={() =>
                           patch((n) => {
-                            n.busca_por_radar[index] = {
-                              ...n.busca_por_radar[index],
+                            n.radar_search[index] = {
+                              ...n.radar_search[index],
                               plates: [
-                                ...n.busca_por_radar[index].plates,
+                                ...n.radar_search[index].plates,
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -428,29 +428,118 @@ export function ServicosExpandedForm({
       )
     }
 
-    case 'cerco_eletronico': {
-      const item = draft.cerco_eletronico[index]
+    case 'electronic_fence': {
+      const item = draft.electronic_fence[index]
       if (!item) return null
       return servicosReadonlyShell(
         readOnly,
         <div className={styles.servicosFields}>
           <div className={styles.servicosFieldBlock}>
-            <span className={styles.servicosFieldLabel}>Placa do veículo</span>
-            <Input
-              className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
-              value={item.plate ?? ''}
-              onChange={(e) =>
-                patch((n) => {
-                  n.cerco_eletronico[index] = {
-                    ...n.cerco_eletronico[index],
-                    plate: maskPlateBR(e.target.value) || null,
+            <span className={styles.servicosFieldLabel}>Placas do veículo</span>
+            <div className={styles.servicosStack}>
+              {(item.plates ?? []).map((p, pi) => (
+                <Fragment key={p.id}>
+                  <div className={styles.servicosPlateRow}>
+                    <Input
+                      className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
+                      value={p.plate ?? ''}
+                      onChange={(e) =>
+                        patch((n) => {
+                          const plates = [
+                            ...(n.electronic_fence[index].plates ?? []),
+                          ]
+                          plates[pi] = {
+                            ...plates[pi],
+                            plate: maskPlateBR(e.target.value),
+                          }
+                          n.electronic_fence[index] = {
+                            ...n.electronic_fence[index],
+                            plates,
+                          }
+                        })
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      onClick={() =>
+                        patch((n) => {
+                          const plates = (
+                            n.electronic_fence[index].plates ?? []
+                          ).filter((_, i) => i !== pi)
+                          n.electronic_fence[index] = {
+                            ...n.electronic_fence[index],
+                            plates,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {pi === (item.plates ?? []).length - 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={styles.servicosAddLineBtn}
+                        onClick={() =>
+                          patch((n) => {
+                            n.electronic_fence[index] = {
+                              ...n.electronic_fence[index],
+                              plates: [
+                                ...(n.electronic_fence[index].plates ?? []),
+                                {
+                                  id: newNestedEntityId(),
+                                  created_at: nowIso(),
+                                  plate: '',
+                                },
+                              ],
+                            }
+                          })
+                        }
+                        aria-label="Adicionar placa"
+                        title="Adicionar placa"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                  {fieldErrors?.[`plates.${pi}.plate`] ? (
+                    <p className="text-xs text-destructive">
+                      {fieldErrors[`plates.${pi}.plate`]}
+                    </p>
+                  ) : null}
+                </Fragment>
+              ))}
+              {(item.plates ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.electronic_fence[index] = {
+                        ...n.electronic_fence[index],
+                        plates: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            plate: '',
+                          },
+                        ],
+                      }
+                    })
                   }
-                })
-              }
-            />
-            {fieldErrors?.plate ? (
-              <p className="text-xs text-destructive">{fieldErrors.plate}</p>
-            ) : null}
+                  aria-label="Adicionar placa"
+                  title="Adicionar placa"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
           </div>
           <div className={styles.servicosDivider} />
           <div className={styles.servicosFieldBlock}>
@@ -462,8 +551,8 @@ export function ServicosExpandedForm({
               value={item.vehicle_observations ?? ''}
               onChange={(e) =>
                 patch((n) => {
-                  n.cerco_eletronico[index] = {
-                    ...n.cerco_eletronico[index],
+                  n.electronic_fence[index] = {
+                    ...n.electronic_fence[index],
                     vehicle_observations: e.target.value || null,
                   }
                 })
@@ -480,8 +569,8 @@ export function ServicosExpandedForm({
       )
     }
 
-    case 'busca_por_imagem': {
-      const item = draft.busca_por_imagem[index]
+    case 'image_search': {
+      const item = draft.image_search[index]
       if (!item) return null
       return servicosReadonlyShell(
         readOnly,
@@ -494,8 +583,8 @@ export function ServicosExpandedForm({
               readOnly={readOnly}
               onPatch={(p) =>
                 patch((n) => {
-                  n.busca_por_imagem[index] = {
-                    ...n.busca_por_imagem[index],
+                  n.image_search[index] = {
+                    ...n.image_search[index],
                     ...p,
                   }
                 })
@@ -520,14 +609,14 @@ export function ServicosExpandedForm({
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
-                            ...(n.busca_por_imagem[index].addresses ?? []),
+                            ...(n.image_search[index].addresses ?? []),
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
                             address: e.target.value,
                           }
-                          n.busca_por_imagem[index] = {
-                            ...n.busca_por_imagem[index],
+                          n.image_search[index] = {
+                            ...n.image_search[index],
                             addresses,
                           }
                         })
@@ -542,10 +631,10 @@ export function ServicosExpandedForm({
                       onClick={() =>
                         patch((n) => {
                           const addresses = (
-                            n.busca_por_imagem[index].addresses ?? []
+                            n.image_search[index].addresses ?? []
                           ).filter((_, i) => i !== ai)
-                          n.busca_por_imagem[index] = {
-                            ...n.busca_por_imagem[index],
+                          n.image_search[index] = {
+                            ...n.image_search[index],
                             addresses,
                           }
                         })
@@ -561,10 +650,10 @@ export function ServicosExpandedForm({
                         className={styles.servicosAddLineBtn}
                         onClick={() =>
                           patch((n) => {
-                            n.busca_por_imagem[index] = {
-                              ...n.busca_por_imagem[index],
+                            n.image_search[index] = {
+                              ...n.image_search[index],
                               addresses: [
-                                ...(n.busca_por_imagem[index].addresses ?? []),
+                                ...(n.image_search[index].addresses ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -591,8 +680,8 @@ export function ServicosExpandedForm({
                   className={styles.servicosAddLineBtn}
                   onClick={() =>
                     patch((n) => {
-                      n.busca_por_imagem[index] = {
-                        ...n.busca_por_imagem[index],
+                      n.image_search[index] = {
+                        ...n.image_search[index],
                         addresses: [
                           {
                             id: newNestedEntityId(),
@@ -618,8 +707,8 @@ export function ServicosExpandedForm({
               value={item.description ?? ''}
               onChange={(e) =>
                 patch((n) => {
-                  n.busca_por_imagem[index] = {
-                    ...n.busca_por_imagem[index],
+                  n.image_search[index] = {
+                    ...n.image_search[index],
                     description: e.target.value || null,
                   }
                 })
@@ -645,14 +734,14 @@ export function ServicosExpandedForm({
                       onChange={(e) =>
                         patch((n) => {
                           const cameras = [
-                            ...(n.busca_por_imagem[index].cameras ?? []),
+                            ...(n.image_search[index].cameras ?? []),
                           ]
                           cameras[ci] = {
                             ...cameras[ci],
                             camera_code: e.target.value,
                           }
-                          n.busca_por_imagem[index] = {
-                            ...n.busca_por_imagem[index],
+                          n.image_search[index] = {
+                            ...n.image_search[index],
                             cameras,
                           }
                         })
@@ -667,10 +756,10 @@ export function ServicosExpandedForm({
                       onClick={() =>
                         patch((n) => {
                           const cameras = (
-                            n.busca_por_imagem[index].cameras ?? []
+                            n.image_search[index].cameras ?? []
                           ).filter((_, i) => i !== ci)
-                          n.busca_por_imagem[index] = {
-                            ...n.busca_por_imagem[index],
+                          n.image_search[index] = {
+                            ...n.image_search[index],
                             cameras,
                           }
                         })
@@ -686,10 +775,10 @@ export function ServicosExpandedForm({
                         className={styles.servicosAddLineBtn}
                         onClick={() =>
                           patch((n) => {
-                            n.busca_por_imagem[index] = {
-                              ...n.busca_por_imagem[index],
+                            n.image_search[index] = {
+                              ...n.image_search[index],
                               cameras: [
-                                ...(n.busca_por_imagem[index].cameras ?? []),
+                                ...(n.image_search[index].cameras ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -716,8 +805,8 @@ export function ServicosExpandedForm({
                   className={styles.servicosAddLineBtn}
                   onClick={() =>
                     patch((n) => {
-                      n.busca_por_imagem[index] = {
-                        ...n.busca_por_imagem[index],
+                      n.image_search[index] = {
+                        ...n.image_search[index],
                         cameras: [
                           {
                             id: newNestedEntityId(),
@@ -740,7 +829,7 @@ export function ServicosExpandedForm({
       )
     }
 
-    case 'placas_correlatas':
+    case 'correlated_plates':
       return (
         <CorrelataForm
           draft={draft}
@@ -751,7 +840,7 @@ export function ServicosExpandedForm({
           fieldErrors={fieldErrors}
         />
       )
-    case 'placas_conjuntas':
+    case 'joint_plates':
       return (
         <CorrelataForm
           draft={draft}
@@ -763,8 +852,8 @@ export function ServicosExpandedForm({
         />
       )
 
-    case 'reserva_de_imagem': {
-      const item = draft.reserva_de_imagem[index]
+    case 'image_reservation': {
+      const item = draft.image_reservation[index]
       if (!item) return null
       return servicosReadonlyShell(
         readOnly,
@@ -777,8 +866,8 @@ export function ServicosExpandedForm({
               readOnly={readOnly}
               onPatch={(p) =>
                 patch((n) => {
-                  n.reserva_de_imagem[index] = {
-                    ...n.reserva_de_imagem[index],
+                  n.image_reservation[index] = {
+                    ...n.image_reservation[index],
                     ...p,
                   }
                 })
@@ -797,8 +886,8 @@ export function ServicosExpandedForm({
               value={item.orientation ?? ''}
               onChange={(e) =>
                 patch((n) => {
-                  n.reserva_de_imagem[index] = {
-                    ...n.reserva_de_imagem[index],
+                  n.image_reservation[index] = {
+                    ...n.image_reservation[index],
                     orientation: e.target.value || null,
                   }
                 })
@@ -824,14 +913,14 @@ export function ServicosExpandedForm({
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
-                            ...(n.reserva_de_imagem[index].addresses ?? []),
+                            ...(n.image_reservation[index].addresses ?? []),
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
                             address: e.target.value,
                           }
-                          n.reserva_de_imagem[index] = {
-                            ...n.reserva_de_imagem[index],
+                          n.image_reservation[index] = {
+                            ...n.image_reservation[index],
                             addresses,
                           }
                         })
@@ -846,10 +935,10 @@ export function ServicosExpandedForm({
                       onClick={() =>
                         patch((n) => {
                           const addresses = (
-                            n.reserva_de_imagem[index].addresses ?? []
+                            n.image_reservation[index].addresses ?? []
                           ).filter((_, i) => i !== ai)
-                          n.reserva_de_imagem[index] = {
-                            ...n.reserva_de_imagem[index],
+                          n.image_reservation[index] = {
+                            ...n.image_reservation[index],
                             addresses,
                           }
                         })
@@ -865,10 +954,10 @@ export function ServicosExpandedForm({
                         className={styles.servicosAddLineBtn}
                         onClick={() =>
                           patch((n) => {
-                            n.reserva_de_imagem[index] = {
-                              ...n.reserva_de_imagem[index],
+                            n.image_reservation[index] = {
+                              ...n.image_reservation[index],
                               addresses: [
-                                ...(n.reserva_de_imagem[index].addresses ?? []),
+                                ...(n.image_reservation[index].addresses ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -895,8 +984,8 @@ export function ServicosExpandedForm({
                   className={styles.servicosAddLineBtn}
                   onClick={() =>
                     patch((n) => {
-                      n.reserva_de_imagem[index] = {
-                        ...n.reserva_de_imagem[index],
+                      n.image_reservation[index] = {
+                        ...n.image_reservation[index],
                         addresses: [
                           {
                             id: newNestedEntityId(),
@@ -928,14 +1017,14 @@ export function ServicosExpandedForm({
                       onChange={(e) =>
                         patch((n) => {
                           const cameras = [
-                            ...(n.reserva_de_imagem[index].cameras ?? []),
+                            ...(n.image_reservation[index].cameras ?? []),
                           ]
                           cameras[ci] = {
                             ...cameras[ci],
                             camera_code: e.target.value,
                           }
-                          n.reserva_de_imagem[index] = {
-                            ...n.reserva_de_imagem[index],
+                          n.image_reservation[index] = {
+                            ...n.image_reservation[index],
                             cameras,
                           }
                         })
@@ -950,10 +1039,10 @@ export function ServicosExpandedForm({
                       onClick={() =>
                         patch((n) => {
                           const cameras = (
-                            n.reserva_de_imagem[index].cameras ?? []
+                            n.image_reservation[index].cameras ?? []
                           ).filter((_, i) => i !== ci)
-                          n.reserva_de_imagem[index] = {
-                            ...n.reserva_de_imagem[index],
+                          n.image_reservation[index] = {
+                            ...n.image_reservation[index],
                             cameras,
                           }
                         })
@@ -969,10 +1058,10 @@ export function ServicosExpandedForm({
                         className={styles.servicosAddLineBtn}
                         onClick={() =>
                           patch((n) => {
-                            n.reserva_de_imagem[index] = {
-                              ...n.reserva_de_imagem[index],
+                            n.image_reservation[index] = {
+                              ...n.image_reservation[index],
                               cameras: [
-                                ...(n.reserva_de_imagem[index].cameras ?? []),
+                                ...(n.image_reservation[index].cameras ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -999,8 +1088,8 @@ export function ServicosExpandedForm({
                   className={styles.servicosAddLineBtn}
                   onClick={() =>
                     patch((n) => {
-                      n.reserva_de_imagem[index] = {
-                        ...n.reserva_de_imagem[index],
+                      n.image_reservation[index] = {
+                        ...n.image_reservation[index],
                         cameras: [
                           {
                             id: newNestedEntityId(),
@@ -1023,8 +1112,8 @@ export function ServicosExpandedForm({
       )
     }
 
-    case 'analise_de_imagem': {
-      const item = draft.analise_de_imagem[index]
+    case 'image_analysis': {
+      const item = draft.image_analysis[index]
       if (!item) return null
       return servicosReadonlyShell(
         readOnly,
@@ -1037,8 +1126,8 @@ export function ServicosExpandedForm({
               readOnly={readOnly}
               onPatch={(p) =>
                 patch((n) => {
-                  n.analise_de_imagem[index] = {
-                    ...n.analise_de_imagem[index],
+                  n.image_analysis[index] = {
+                    ...n.image_analysis[index],
                     ...p,
                   }
                 })
@@ -1057,8 +1146,8 @@ export function ServicosExpandedForm({
               value={item.orientation ?? ''}
               onChange={(e) =>
                 patch((n) => {
-                  n.analise_de_imagem[index] = {
-                    ...n.analise_de_imagem[index],
+                  n.image_analysis[index] = {
+                    ...n.image_analysis[index],
                     orientation: e.target.value || null,
                   }
                 })
@@ -1084,14 +1173,14 @@ export function ServicosExpandedForm({
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
-                            ...(n.analise_de_imagem[index].addresses ?? []),
+                            ...(n.image_analysis[index].addresses ?? []),
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
                             address: e.target.value,
                           }
-                          n.analise_de_imagem[index] = {
-                            ...n.analise_de_imagem[index],
+                          n.image_analysis[index] = {
+                            ...n.image_analysis[index],
                             addresses,
                           }
                         })
@@ -1106,10 +1195,10 @@ export function ServicosExpandedForm({
                       onClick={() =>
                         patch((n) => {
                           const addresses = (
-                            n.analise_de_imagem[index].addresses ?? []
+                            n.image_analysis[index].addresses ?? []
                           ).filter((_, i) => i !== ai)
-                          n.analise_de_imagem[index] = {
-                            ...n.analise_de_imagem[index],
+                          n.image_analysis[index] = {
+                            ...n.image_analysis[index],
                             addresses,
                           }
                         })
@@ -1125,10 +1214,10 @@ export function ServicosExpandedForm({
                         className={styles.servicosAddLineBtn}
                         onClick={() =>
                           patch((n) => {
-                            n.analise_de_imagem[index] = {
-                              ...n.analise_de_imagem[index],
+                            n.image_analysis[index] = {
+                              ...n.image_analysis[index],
                               addresses: [
-                                ...(n.analise_de_imagem[index].addresses ?? []),
+                                ...(n.image_analysis[index].addresses ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -1155,8 +1244,8 @@ export function ServicosExpandedForm({
                   className={styles.servicosAddLineBtn}
                   onClick={() =>
                     patch((n) => {
-                      n.analise_de_imagem[index] = {
-                        ...n.analise_de_imagem[index],
+                      n.image_analysis[index] = {
+                        ...n.image_analysis[index],
                         addresses: [
                           {
                             id: newNestedEntityId(),
@@ -1188,14 +1277,14 @@ export function ServicosExpandedForm({
                       onChange={(e) =>
                         patch((n) => {
                           const cameras = [
-                            ...(n.analise_de_imagem[index].cameras ?? []),
+                            ...(n.image_analysis[index].cameras ?? []),
                           ]
                           cameras[ci] = {
                             ...cameras[ci],
                             camera_code: e.target.value,
                           }
-                          n.analise_de_imagem[index] = {
-                            ...n.analise_de_imagem[index],
+                          n.image_analysis[index] = {
+                            ...n.image_analysis[index],
                             cameras,
                           }
                         })
@@ -1210,10 +1299,10 @@ export function ServicosExpandedForm({
                       onClick={() =>
                         patch((n) => {
                           const cameras = (
-                            n.analise_de_imagem[index].cameras ?? []
+                            n.image_analysis[index].cameras ?? []
                           ).filter((_, i) => i !== ci)
-                          n.analise_de_imagem[index] = {
-                            ...n.analise_de_imagem[index],
+                          n.image_analysis[index] = {
+                            ...n.image_analysis[index],
                             cameras,
                           }
                         })
@@ -1229,10 +1318,10 @@ export function ServicosExpandedForm({
                         className={styles.servicosAddLineBtn}
                         onClick={() =>
                           patch((n) => {
-                            n.analise_de_imagem[index] = {
-                              ...n.analise_de_imagem[index],
+                            n.image_analysis[index] = {
+                              ...n.image_analysis[index],
                               cameras: [
-                                ...(n.analise_de_imagem[index].cameras ?? []),
+                                ...(n.image_analysis[index].cameras ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -1259,8 +1348,8 @@ export function ServicosExpandedForm({
                   className={styles.servicosAddLineBtn}
                   onClick={() =>
                     patch((n) => {
-                      n.analise_de_imagem[index] = {
-                        ...n.analise_de_imagem[index],
+                      n.image_analysis[index] = {
+                        ...n.image_analysis[index],
                         cameras: [
                           {
                             id: newNestedEntityId(),
@@ -1283,8 +1372,8 @@ export function ServicosExpandedForm({
       )
     }
 
-    case 'outros': {
-      const item = draft.outros[index]
+    case 'other': {
+      const item = draft.other[index]
       if (!item) return null
       return servicosReadonlyShell(
         readOnly,
@@ -1296,8 +1385,8 @@ export function ServicosExpandedForm({
               value={item.orientation ?? ''}
               onChange={(e) =>
                 patch((n) => {
-                  n.outros[index] = {
-                    ...n.outros[index],
+                  n.other[index] = {
+                    ...n.other[index],
                     orientation: e.target.value || null,
                   }
                 })
@@ -1422,20 +1511,20 @@ function CorrelataForm({
 }) {
   const item =
     mode === 'correlatas'
-      ? draft.placas_correlatas[index]
-      : draft.placas_conjuntas[index]
+      ? draft.correlated_plates[index]
+      : draft.joint_plates[index]
   if (!item) return null
 
   const setDetection = (d: TicketDetection) =>
     patch((n) => {
       if (mode === 'correlatas') {
-        n.placas_correlatas[index] = {
-          ...n.placas_correlatas[index],
+        n.correlated_plates[index] = {
+          ...n.correlated_plates[index],
           detection: d,
         }
       } else {
-        n.placas_conjuntas[index] = {
-          ...n.placas_conjuntas[index],
+        n.joint_plates[index] = {
+          ...n.joint_plates[index],
           detection: d,
         }
       }
@@ -1453,13 +1542,13 @@ function CorrelataForm({
           onPatch={(p) =>
             patch((n) => {
               if (mode === 'correlatas') {
-                n.placas_correlatas[index] = {
-                  ...n.placas_correlatas[index],
+                n.correlated_plates[index] = {
+                  ...n.correlated_plates[index],
                   ...p,
                 }
               } else {
-                n.placas_conjuntas[index] = {
-                  ...n.placas_conjuntas[index],
+                n.joint_plates[index] = {
+                  ...n.joint_plates[index],
                   ...p,
                 }
               }
@@ -1492,13 +1581,13 @@ function CorrelataForm({
                 const val =
                   parsed == null || Number.isNaN(parsed) ? null : parsed
                 if (mode === 'correlatas') {
-                  n.placas_correlatas[index] = {
-                    ...n.placas_correlatas[index],
+                  n.correlated_plates[index] = {
+                    ...n.correlated_plates[index],
                     interest_interval_minutes: val,
                   }
                 } else {
-                  n.placas_conjuntas[index] = {
-                    ...n.placas_conjuntas[index],
+                  n.joint_plates[index] = {
+                    ...n.joint_plates[index],
                     interest_interval_minutes: val,
                   }
                 }
@@ -1530,13 +1619,13 @@ function CorrelataForm({
                 const val =
                   parsed == null || Number.isNaN(parsed) ? null : parsed
                 if (mode === 'correlatas') {
-                  n.placas_correlatas[index] = {
-                    ...n.placas_correlatas[index],
+                  n.correlated_plates[index] = {
+                    ...n.correlated_plates[index],
                     detection_count: val,
                   }
                 } else {
-                  n.placas_conjuntas[index] = {
-                    ...n.placas_conjuntas[index],
+                  n.joint_plates[index] = {
+                    ...n.joint_plates[index],
                     detection_count: val,
                   }
                 }
@@ -1582,23 +1671,23 @@ function CorrelataForm({
                   onChange={(e) =>
                     patch((n) => {
                       if (mode === 'correlatas') {
-                        const plates = [...n.placas_correlatas[index].plates]
+                        const plates = [...n.correlated_plates[index].plates]
                         plates[pi] = {
                           ...plates[pi],
                           plate: maskPlateBR(e.target.value),
                         }
-                        n.placas_correlatas[index] = {
-                          ...n.placas_correlatas[index],
+                        n.correlated_plates[index] = {
+                          ...n.correlated_plates[index],
                           plates,
                         }
                       } else {
-                        const plates = [...n.placas_conjuntas[index].plates]
+                        const plates = [...n.joint_plates[index].plates]
                         plates[pi] = {
                           ...plates[pi],
                           plate: maskPlateBR(e.target.value),
                         }
-                        n.placas_conjuntas[index] = {
-                          ...n.placas_conjuntas[index],
+                        n.joint_plates[index] = {
+                          ...n.joint_plates[index],
                           plates,
                         }
                       }
@@ -1614,11 +1703,11 @@ function CorrelataForm({
                     onClick={() =>
                       patch((n) => {
                         if (mode === 'correlatas') {
-                          const plates = n.placas_correlatas[
+                          const plates = n.correlated_plates[
                             index
                           ].plates.filter((_, i) => i !== pi)
-                          n.placas_correlatas[index] = {
-                            ...n.placas_correlatas[index],
+                          n.correlated_plates[index] = {
+                            ...n.correlated_plates[index],
                             plates:
                               plates.length > 0
                                 ? plates
@@ -1631,11 +1720,11 @@ function CorrelataForm({
                                   ],
                           }
                         } else {
-                          const plates = n.placas_conjuntas[
-                            index
-                          ].plates.filter((_, i) => i !== pi)
-                          n.placas_conjuntas[index] = {
-                            ...n.placas_conjuntas[index],
+                          const plates = n.joint_plates[index].plates.filter(
+                            (_, i) => i !== pi,
+                          )
+                          n.joint_plates[index] = {
+                            ...n.joint_plates[index],
                             plates:
                               plates.length > 0
                                 ? plates
@@ -1663,10 +1752,10 @@ function CorrelataForm({
                     onClick={() =>
                       patch((n) => {
                         if (mode === 'correlatas') {
-                          n.placas_correlatas[index] = {
-                            ...n.placas_correlatas[index],
+                          n.correlated_plates[index] = {
+                            ...n.correlated_plates[index],
                             plates: [
-                              ...n.placas_correlatas[index].plates,
+                              ...n.correlated_plates[index].plates,
                               {
                                 id: newNestedEntityId(),
                                 created_at: nowIso(),
@@ -1675,10 +1764,10 @@ function CorrelataForm({
                             ],
                           }
                         } else {
-                          n.placas_conjuntas[index] = {
-                            ...n.placas_conjuntas[index],
+                          n.joint_plates[index] = {
+                            ...n.joint_plates[index],
                             plates: [
-                              ...n.placas_conjuntas[index].plates,
+                              ...n.joint_plates[index].plates,
                               {
                                 id: newNestedEntityId(),
                                 created_at: nowIso(),

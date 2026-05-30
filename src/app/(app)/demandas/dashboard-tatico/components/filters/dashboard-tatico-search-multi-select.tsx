@@ -119,7 +119,6 @@ export function DashboardTaticoSearchMultiSelect({
                 }}
                 placeholder={value.length > 0 ? '' : placeholder}
                 className={styles.multiSelectInput}
-                aria-expanded={isOpen}
                 aria-haspopup="listbox"
                 autoComplete="off"
               />

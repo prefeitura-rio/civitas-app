@@ -21,19 +21,19 @@ export interface OperationalViewFilterIn {
   date_from?: string
   date_to?: string
   summary_period?: OperationalViewSummaryPeriod
-  demandante_id?: string[]
-  requisitante?: string[]
-  prioridade?: OperationalViewPriority[]
+  operation_id?: string[]
+  requester?: string[]
+  priority?: OperationalViewPriority[]
   status?: OperationalViewStatus[]
-  tipo_chamado_id?: string[]
-  relevante_imprensa?: boolean | null
+  ticket_type_id?: string[]
+  media_relevant?: boolean | null
 }
 
 export interface OperationalViewSummaryOut {
-  total_pendentes: number
-  total_bloqueados: number
-  total_aguardando_revisao: number
-  total_finalizados: number
+  total_pending: number
+  total_blocked: number
+  total_awaiting_review: number
+  total_completed: number
 }
 
 export interface OpenTicketsByTeamItemOut {
@@ -93,13 +93,13 @@ export function sanitizeOperationalViewFilters(
 ): OperationalViewFilterIn {
   const payload: OperationalViewFilterIn = { ...filters }
 
-  if (!payload.demandante_id?.length) delete payload.demandante_id
-  if (!payload.requisitante?.length) delete payload.requisitante
-  if (!payload.prioridade?.length) delete payload.prioridade
+  if (!payload.operation_id?.length) delete payload.operation_id
+  if (!payload.requester?.length) delete payload.requester
+  if (!payload.priority?.length) delete payload.priority
   if (!payload.status?.length) delete payload.status
-  if (!payload.tipo_chamado_id?.length) delete payload.tipo_chamado_id
-  if (payload.relevante_imprensa === undefined) {
-    delete payload.relevante_imprensa
+  if (!payload.ticket_type_id?.length) delete payload.ticket_type_id
+  if (payload.media_relevant === undefined) {
+    delete payload.media_relevant
   }
 
   return payload

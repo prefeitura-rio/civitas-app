@@ -2,7 +2,7 @@ export const TICKET_DETAIL_BASE_TAB_IDS = [
   'solicitante',
   'chamado',
   'documentos',
-  'servicos',
+  'services',
   'parecer_interno',
   'relatorio_demanda',
   'historico',
@@ -19,7 +19,7 @@ export const TICKET_DETAIL_BASE_TABS: {
   { id: 'solicitante', label: 'Solicitante' },
   { id: 'chamado', label: 'Demanda' },
   { id: 'documentos', label: 'Documentos Recebidos' },
-  { id: 'servicos', label: 'Serviços e Documentos Elaborados' },
+  { id: 'services', label: 'Serviços e Documentos Elaborados' },
   { id: 'parecer_interno', label: 'Parecer Interno' },
   { id: 'relatorio_demanda', label: 'Relatório de Demanda' },
   { id: 'historico', label: 'Histórico' },
@@ -33,7 +33,7 @@ export const TICKET_RESPOSTA_TAB = {
 export const TICKET_DETAIL_UNSAVED_GUARD_TAB_IDS = [
   'solicitante',
   'chamado',
-  'servicos',
+  'services',
   'parecer_interno',
   'relatorio_demanda',
 ] as const

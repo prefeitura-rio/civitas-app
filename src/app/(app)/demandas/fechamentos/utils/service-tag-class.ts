@@ -25,7 +25,7 @@ export function getShiftClosingServiceTagClass(label: string) {
     return listStyles.serviceTagOrange
   if (normalized.includes('placas conjuntas'))
     return listStyles.serviceTagPurple
-  if (normalized.includes('outros')) return listStyles.serviceTagRed
+  if (normalized.includes('other')) return listStyles.serviceTagRed
   if (normalized.includes('atlas')) return listStyles.serviceTagDefault
 
   return listStyles.serviceTagDefault

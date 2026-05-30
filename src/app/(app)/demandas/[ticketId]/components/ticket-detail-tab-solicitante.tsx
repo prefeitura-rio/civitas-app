@@ -47,28 +47,28 @@ function displayText(value?: string | null) {
 function mapOutToDraft(s: TicketSolicitanteOut): TicketSolicitanteUpsertIn {
   return {
     operation_id: s.operation_id,
-    requisitante: {
-      requisitante_nome: s.requisitante.requisitante_nome,
-      requisitante_telefone: s.requisitante.requisitante_telefone ?? null,
-      requisitante_email: s.requisitante.requisitante_email,
+    requester: {
+      name: s.requester.name,
+      phone: s.requester.phone ?? null,
+      email: s.requester.email,
     },
-    pontos_focais: s.pontos_focais.map((fp) => ({
-      nome: fp.nome,
-      telefone: fp.telefone?.trim() ? fp.telefone : null,
+    focal_points: s.focal_points.map((fp) => ({
+      name: fp.name,
+      phone: fp.phone?.trim() ? fp.phone : null,
       email: fp.email?.trim() ? fp.email : null,
     })),
   }
 }
 
-function emptyFocalRow(): TicketSolicitanteUpsertIn['pontos_focais'][number] {
-  return { nome: '', telefone: null, email: null }
+function emptyFocalRow(): TicketSolicitanteUpsertIn['focal_points'][number] {
+  return { name: '', phone: null, email: null }
 }
 
 function buildSolicitantePayload(
   draft: TicketSolicitanteUpsertIn,
 ): TicketSolicitanteUpsertIn | null {
-  const nomeReq = draft.requisitante.requisitante_nome.trim()
-  const emailReq = draft.requisitante.requisitante_email.trim()
+  const nomeReq = draft.requester.name.trim()
+  const emailReq = draft.requester.email.trim()
   if (nomeReq.length < 2) {
     toast.error('Informe o nome do requisitante (mínimo 2 caracteres).')
     return null
@@ -82,13 +82,13 @@ function buildSolicitantePayload(
     return null
   }
 
-  const pontos = draft.pontos_focais
+  const pontos = draft.focal_points
     .map((fp) => ({
-      nome: fp.nome.trim(),
-      telefone: fp.telefone?.trim() ? fp.telefone.trim() : null,
+      name: fp.name.trim(),
+      phone: fp.phone?.trim() ? fp.phone.trim() : null,
       email: fp.email?.trim() ? fp.email.trim() : null,
     }))
-    .filter((fp) => fp.nome.length >= 2)
+    .filter((fp) => fp.name.length >= 2)
 
   for (const fp of pontos) {
     if (fp.email != null && fp.email !== '') {
@@ -108,14 +108,14 @@ function buildSolicitantePayload(
 
   return {
     operation_id: draft.operation_id.trim(),
-    requisitante: {
-      requisitante_nome: nomeReq,
-      requisitante_telefone: draft.requisitante.requisitante_telefone?.trim()
-        ? draft.requisitante.requisitante_telefone.trim()
+    requester: {
+      name: nomeReq,
+      phone: draft.requester.phone?.trim()
+        ? draft.requester.phone.trim()
         : null,
-      requisitante_email: emailReq,
+      email: emailReq,
     },
-    pontos_focais: pontos,
+    focal_points: pontos,
   }
 }
 
@@ -157,10 +157,10 @@ export const TicketDetailTabSolicitante = forwardRef<
     const list = [...items]
     if (solicitante?.operation_id) {
       const exists = list.some((o) => o.id === solicitante.operation_id)
-      if (!exists && solicitante.demandante) {
+      if (!exists && solicitante.requester_operation) {
         list.unshift({
           id: solicitante.operation_id,
-          title: solicitante.demandante,
+          title: solicitante.requester_operation,
           description: '',
         })
       }
@@ -237,12 +237,12 @@ export const TicketDetailTabSolicitante = forwardRef<
   }, [saveDraft])
 
   const setRequisitante = useCallback(
-    (patch: Partial<TicketSolicitanteUpsertIn['requisitante']>) => {
+    (patch: Partial<TicketSolicitanteUpsertIn['requester']>) => {
       setDraft((prev) => {
         if (!prev) return prev
         return {
           ...prev,
-          requisitante: { ...prev.requisitante, ...patch },
+          requester: { ...prev.requester, ...patch },
         }
       })
     },
@@ -252,13 +252,13 @@ export const TicketDetailTabSolicitante = forwardRef<
   const setFocal = useCallback(
     (
       index: number,
-      patch: Partial<TicketSolicitanteUpsertIn['pontos_focais'][number]>,
+      patch: Partial<TicketSolicitanteUpsertIn['focal_points'][number]>,
     ) => {
       setDraft((prev) => {
         if (!prev) return prev
-        const next = [...prev.pontos_focais]
+        const next = [...prev.focal_points]
         next[index] = { ...next[index], ...patch }
-        return { ...prev, pontos_focais: next }
+        return { ...prev, focal_points: next }
       })
     },
     [],
@@ -269,7 +269,7 @@ export const TicketDetailTabSolicitante = forwardRef<
       if (!prev) return prev
       return {
         ...prev,
-        pontos_focais: [...prev.pontos_focais, emptyFocalRow()],
+        focal_points: [...prev.focal_points, emptyFocalRow()],
       }
     })
   }, [])
@@ -279,7 +279,7 @@ export const TicketDetailTabSolicitante = forwardRef<
       if (!prev) return prev
       return {
         ...prev,
-        pontos_focais: prev.pontos_focais.filter((_, i) => i !== index),
+        focal_points: prev.focal_points.filter((_, i) => i !== index),
       }
     })
   }, [])
@@ -347,7 +347,7 @@ export const TicketDetailTabSolicitante = forwardRef<
           ) : (
             <div className={styles.readonlySelect}>
               <span className={styles.solicitanteReadOnlyText}>
-                {displayText(view.demandante)}
+                {displayText(view.requester_operation)}
               </span>
               <ChevronDown
                 size={20}
@@ -376,17 +376,15 @@ export const TicketDetailTabSolicitante = forwardRef<
                 {isEditing ? (
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                    value={d.requisitante.requisitante_nome}
-                    onChange={(e) =>
-                      setRequisitante({ requisitante_nome: e.target.value })
-                    }
+                    value={d.requester.name}
+                    onChange={(e) => setRequisitante({ name: e.target.value })}
                     autoComplete="name"
                   />
                 ) : (
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.requisitante.requisitante_nome)}
+                    {displayText(view.requester.name)}
                   </div>
                 )}
               </div>
@@ -399,10 +397,10 @@ export const TicketDetailTabSolicitante = forwardRef<
                 {isEditing ? (
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                    value={d.requisitante.requisitante_telefone ?? ''}
+                    value={d.requester.phone ?? ''}
                     onChange={(e) =>
                       setRequisitante({
-                        requisitante_telefone: e.target.value || null,
+                        phone: e.target.value || null,
                       })
                     }
                     autoComplete="tel"
@@ -411,7 +409,7 @@ export const TicketDetailTabSolicitante = forwardRef<
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.requisitante.requisitante_telefone)}
+                    {displayText(view.requester.phone)}
                   </div>
                 )}
               </div>
@@ -423,17 +421,15 @@ export const TicketDetailTabSolicitante = forwardRef<
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     type="email"
-                    value={d.requisitante.requisitante_email}
-                    onChange={(e) =>
-                      setRequisitante({ requisitante_email: e.target.value })
-                    }
+                    value={d.requester.email}
+                    onChange={(e) => setRequisitante({ email: e.target.value })}
                     autoComplete="email"
                   />
                 ) : (
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.requisitante.requisitante_email)}
+                    {displayText(view.requester.email)}
                   </div>
                 )}
               </div>
@@ -451,7 +447,7 @@ export const TicketDetailTabSolicitante = forwardRef<
             </span>
           </div>
           <div className={styles.focalRows}>
-            {!isEditing && view.pontos_focais.length === 0 ? (
+            {!isEditing && view.focal_points.length === 0 ? (
               <div className={styles.fieldRow}>
                 {(['Nome', 'Contato', 'Email'] as const).map((label) => (
                   <div key={label} className={styles.fieldCol}>
@@ -469,8 +465,8 @@ export const TicketDetailTabSolicitante = forwardRef<
             ) : null}
 
             {!isEditing
-              ? view.pontos_focais.map((fp, index) => (
-                  <div key={`${fp.nome}-${index}`} className={styles.fieldRow}>
+              ? view.focal_points.map((fp, index) => (
+                  <div key={`${fp.name}-${index}`} className={styles.fieldRow}>
                     <div className={styles.fieldCol}>
                       <div className={styles.subLabel}>
                         <span className={styles.subLabelText}>Nome</span>
@@ -478,7 +474,7 @@ export const TicketDetailTabSolicitante = forwardRef<
                       <div
                         className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                       >
-                        {displayText(fp.nome)}
+                        {displayText(fp.name)}
                       </div>
                     </div>
                     <div className={styles.fieldCol}>
@@ -488,7 +484,7 @@ export const TicketDetailTabSolicitante = forwardRef<
                       <div
                         className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                       >
-                        {displayText(fp.telefone)}
+                        {displayText(fp.phone)}
                       </div>
                     </div>
                     <div className={styles.fieldCol}>
@@ -503,7 +499,7 @@ export const TicketDetailTabSolicitante = forwardRef<
                     </div>
                   </div>
                 ))
-              : d.pontos_focais.map((fp, index) => (
+              : d.focal_points.map((fp, index) => (
                   <div key={`fp-${index}`} className={styles.fieldStack}>
                     <div className={styles.fieldRow}>
                       <div className={styles.fieldCol}>
@@ -512,9 +508,9 @@ export const TicketDetailTabSolicitante = forwardRef<
                         </div>
                         <input
                           className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                          value={fp.nome}
+                          value={fp.name}
                           onChange={(e) =>
-                            setFocal(index, { nome: e.target.value })
+                            setFocal(index, { name: e.target.value })
                           }
                           autoComplete="name"
                         />
@@ -526,10 +522,10 @@ export const TicketDetailTabSolicitante = forwardRef<
                         <input
                           className={`${styles.editableField} ${styles.solicitanteEditField}`}
                           inputMode="tel"
-                          value={fp.telefone ?? ''}
+                          value={fp.phone ?? ''}
                           onChange={(e) =>
                             setFocal(index, {
-                              telefone: maskPhoneBR(e.target.value) || null,
+                              phone: maskPhoneBR(e.target.value) || null,
                             })
                           }
                           autoComplete="tel"

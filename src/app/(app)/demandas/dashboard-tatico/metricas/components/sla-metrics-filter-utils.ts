@@ -33,12 +33,12 @@ export function countSlaMetricsAdvancedFiltersFromApi(
   filters: SlaDashboardFilterIn,
 ): number {
   let count = 0
-  count += filters.demandante_id?.length ?? 0
-  count += filters.requisitante?.length ?? 0
-  count += filters.prioridade?.length ?? 0
+  count += filters.operation_id?.length ?? 0
+  count += filters.requester?.length ?? 0
+  count += filters.priority?.length ?? 0
   count += filters.status?.length ?? 0
-  count += filters.tipo_chamado_id?.length ?? 0
-  if (filters.relevante_imprensa === true) {
+  count += filters.ticket_type_id?.length ?? 0
+  if (filters.media_relevant === true) {
     count += 1
   }
   return count
@@ -59,27 +59,27 @@ export function advancedFiltersFromApi(
   filters: SlaDashboardFilterIn,
 ): SlaMetricsAdvancedFilterForm {
   return {
-    demandante_id: (filters.demandante_id ?? []).map((value) => ({
+    operation_id: (filters.operation_id ?? []).map((value) => ({
       value,
       label: value,
     })),
-    requisitante: (filters.requisitante ?? []).map((value) => ({
+    requester: (filters.requester ?? []).map((value) => ({
       value,
       label: value,
     })),
-    prioridade: toSearchOptions(
-      filters.prioridade,
+    priority: toSearchOptions(
+      filters.priority,
       priorityLabelByValue,
     ) as SearchOption[],
     status: toSearchOptions(
       filters.status,
       statusLabelByValue,
     ) as SearchOption[],
-    tipo_chamado_id: (filters.tipo_chamado_id ?? []).map((value) => ({
+    ticket_type_id: (filters.ticket_type_id ?? []).map((value) => ({
       value,
       label: value,
     })),
-    relevanteImprensa: filters.relevante_imprensa === true,
+    relevanteImprensa: filters.media_relevant === true,
   }
 }
 
@@ -87,30 +87,30 @@ export function advancedFiltersToApiPatch(
   form: SlaMetricsAdvancedFilterForm,
 ): Pick<
   SlaDashboardFilterIn,
-  | 'demandante_id'
-  | 'requisitante'
-  | 'prioridade'
+  | 'operation_id'
+  | 'requester'
+  | 'priority'
   | 'status'
-  | 'tipo_chamado_id'
-  | 'relevante_imprensa'
+  | 'ticket_type_id'
+  | 'media_relevant'
 > {
   return {
-    demandante_id: form.demandante_id.length
-      ? form.demandante_id.map((item) => item.value)
+    operation_id: form.operation_id.length
+      ? form.operation_id.map((item) => item.value)
       : undefined,
-    requisitante: form.requisitante.length
-      ? form.requisitante.map((item) => item.value)
+    requester: form.requester.length
+      ? form.requester.map((item) => item.value)
       : undefined,
-    prioridade: form.prioridade.length
-      ? (form.prioridade.map((item) => item.value) as TicketPriority[])
+    priority: form.priority.length
+      ? (form.priority.map((item) => item.value) as TicketPriority[])
       : undefined,
     status: form.status.length
       ? (form.status.map((item) => item.value) as SlaTicketStatus[])
       : undefined,
-    tipo_chamado_id: form.tipo_chamado_id.length
-      ? form.tipo_chamado_id.map((item) => item.value)
+    ticket_type_id: form.ticket_type_id.length
+      ? form.ticket_type_id.map((item) => item.value)
       : undefined,
-    relevante_imprensa: form.relevanteImprensa ? true : null,
+    media_relevant: form.relevanteImprensa ? true : null,
   }
 }
 
@@ -118,12 +118,12 @@ export function stripAdvancedFiltersFromApi(
   filters: SlaDashboardFilterIn,
 ): SlaDashboardFilterIn {
   const rest = { ...filters }
-  delete rest.demandante_id
-  delete rest.requisitante
-  delete rest.prioridade
+  delete rest.operation_id
+  delete rest.requester
+  delete rest.priority
   delete rest.status
-  delete rest.tipo_chamado_id
-  delete rest.relevante_imprensa
+  delete rest.ticket_type_id
+  delete rest.media_relevant
   return rest
 }
 
@@ -131,28 +131,26 @@ export function formatSlaMetricsAdvancedFiltersSummary(
   filters: SlaDashboardFilterIn,
 ): string[] {
   const lines: string[] = []
-  if (filters.demandante_id?.length) {
-    lines.push(`Demandante: ${filters.demandante_id.length} selecionado(s)`)
+  if (filters.operation_id?.length) {
+    lines.push(`Demandante: ${filters.operation_id.length} selecionado(s)`)
   }
-  if (filters.requisitante?.length) {
-    lines.push(`Requisitante: ${filters.requisitante.join(', ')}`)
+  if (filters.requester?.length) {
+    lines.push(`Requisitante: ${filters.requester.join(', ')}`)
   }
-  if (filters.prioridade?.length) {
-    const labels = filters.prioridade.map(
-      (p) => priorityLabelByValue.get(p) ?? p,
-    )
+  if (filters.priority?.length) {
+    const labels = filters.priority.map((p) => priorityLabelByValue.get(p) ?? p)
     lines.push(`Urgência: ${labels.join(', ')}`)
   }
   if (filters.status?.length) {
     const labels = filters.status.map((s) => statusLabelByValue.get(s) ?? s)
     lines.push(`Status: ${labels.join(', ')}`)
   }
-  if (filters.tipo_chamado_id?.length) {
+  if (filters.ticket_type_id?.length) {
     lines.push(
-      `Tipo de chamado: ${filters.tipo_chamado_id.length} selecionado(s)`,
+      `Tipo de chamado: ${filters.ticket_type_id.length} selecionado(s)`,
     )
   }
-  if (filters.relevante_imprensa === true) {
+  if (filters.media_relevant === true) {
     lines.push('Relevante para imprensa: Sim')
   }
   return lines

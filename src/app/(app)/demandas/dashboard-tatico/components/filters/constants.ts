@@ -10,11 +10,11 @@ export const DASHBOARD_TATICO_PRIORITY_OPTIONS: SearchOption[] = [
 
 export function emptyDashboardTaticoAdvancedFilters(): DashboardTaticoAdvancedFilterForm {
   return {
-    demandante_id: [],
-    requisitante: [],
-    prioridade: [],
+    operation_id: [],
+    requester: [],
+    priority: [],
     status: [],
-    tipo_chamado_id: [],
+    ticket_type_id: [],
     relevanteImprensa: false,
   }
 }

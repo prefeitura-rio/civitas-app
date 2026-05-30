@@ -4,60 +4,66 @@ import type { TicketAttachmentOut } from './ticket-attachments'
 
 export type TicketPriorityOut = 'URGENTE' | 'ALTA' | 'ROTINA'
 
-export type TicketCreateRequesterOut = {
-  requisitante_nome: string
-  requisitante_telefone?: string | null
-  requisitante_email: string
+export type TicketRequesterOut = {
+  name: string
+  phone?: string | null
+  email: string
 }
 
-export type TicketCreateFocalPointOut = {
-  nome: string
-  telefone?: string | null
+export type TicketFocalPointOut = {
+  name: string
+  phone?: string | null
   email?: string | null
 }
 
-export type ServiceBuscaPorPlacaPlateOut = {
+export type ServicePlateSearchPlateOut = {
   id: string
   created_at: string
   plate: string
 }
 
-export type ServiceBuscaPorPlacaOut = {
+export type ServicePlateSearchOut = {
   id: string
   created_at: string
   /** Quando true, exige todos os campos do serviço preenchidos (validação no cliente). */
-  concluido?: boolean
+  completed?: boolean
   period_start?: string | null
   period_end?: string | null
-  plates: ServiceBuscaPorPlacaPlateOut[]
-  anexos?: TicketAttachmentOut[]
+  plates: ServicePlateSearchPlateOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
-export type ServiceBuscaPorRadarPlateOut = {
+export type ServiceRadarSearchPlateOut = {
   id: string
   created_at: string
   plate: string
 }
 
-export type ServiceBuscaPorRadarOut = {
+export type ServiceRadarSearchOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   period_start?: string | null
   period_end?: string | null
-  plates: ServiceBuscaPorRadarPlateOut[]
+  plates: ServiceRadarSearchPlateOut[]
   radar_address?: string | null
   orientation?: string | null
-  anexos?: TicketAttachmentOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
-export type ServiceCercoEletronicoOut = {
+export type ServiceElectronicFencePlateOut = {
   id: string
   created_at: string
-  concluido?: boolean
-  plate?: string | null
+  plate: string
+}
+
+export type ServiceElectronicFenceOut = {
+  id: string
+  created_at: string
+  completed?: boolean
+  plates: ServiceElectronicFencePlateOut[]
   vehicle_observations?: string | null
-  anexos?: TicketAttachmentOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
 export type ServiceCameraOut = {
@@ -72,19 +78,19 @@ export type ServiceAddressOut = {
   address: string
 }
 
-export type ServiceBuscaPorImagemOut = {
+export type ServiceImageSearchOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   period_start?: string | null
   period_end?: string | null
   addresses?: ServiceAddressOut[]
   description?: string | null
   cameras?: ServiceCameraOut[]
-  anexos?: TicketAttachmentOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
-export type ServicePlacasCorrelatasItemOut = {
+export type ServiceCorrelatedPlatesItemOut = {
   id: string
   created_at: string
   plate?: string | null
@@ -92,73 +98,73 @@ export type ServicePlacasCorrelatasItemOut = {
 
 export type TicketDetection = 'ANTES' | 'DEPOIS' | 'AMBOS'
 
-export type ServicePlacasCorrelatasOut = {
+export type ServiceCorrelatedPlatesOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   period_start?: string | null
   period_end?: string | null
   interest_interval_minutes?: number | null
   detection_count?: number | null
   detection?: TicketDetection | null
-  plates: ServicePlacasCorrelatasItemOut[]
-  anexos?: TicketAttachmentOut[]
+  plates: ServiceCorrelatedPlatesItemOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
-export type ServicePlacasConjuntasOut = {
+export type ServiceJointPlatesOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   period_start?: string | null
   period_end?: string | null
   interest_interval_minutes?: number | null
   detection_count?: number | null
   detection?: TicketDetection | null
-  plates: ServicePlacasCorrelatasItemOut[]
-  anexos?: TicketAttachmentOut[]
+  plates: ServiceCorrelatedPlatesItemOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
-export type ServiceReservaDeImagemOut = {
+export type ServiceImageReservationOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
   addresses?: ServiceAddressOut[]
   cameras?: ServiceCameraOut[]
-  anexos?: TicketAttachmentOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
-export type ServiceAnaliseDeImagemOut = {
+export type ServiceImageAnalysisOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   period_start?: string | null
   period_end?: string | null
   orientation?: string | null
   addresses?: ServiceAddressOut[]
   cameras?: ServiceCameraOut[]
-  anexos?: TicketAttachmentOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
-export type ServiceOutrosOut = {
+export type ServiceOtherOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   orientation?: string | null
-  anexos?: TicketAttachmentOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
 export type ServiceAtlasCivitasOut = {
   id: string
   created_at: string
-  concluido?: boolean
+  completed?: boolean
   name?: string | null
   email?: string | null
   cpf?: string | null
   registration?: string | null
-  anexos?: TicketAttachmentOut[]
+  attachments?: TicketAttachmentOut[]
 }
 
 export type TicketCommentOut = {
@@ -168,54 +174,54 @@ export type TicketCommentOut = {
   body: string
 }
 
-export type TicketRelacionadoOut = {
+export type TicketRelatedOut = {
   id: string
-  numero_interno: number
-  equipe?: string | null
-  responsavel?: string | null
+  internal_number: number
+  team?: string | null
+  assignee?: string | null
   status: string
-  servicos: string[]
+  services: string[]
 }
 
 export type TicketOut = {
   id: string
-  criado_em: string
+  created_at: string
   /** Presente nas versões recentes da API (cabeçalho do detalhe). */
-  numero_interno?: number
+  internal_number?: number
   status?: string
-  demandante?: string
-  equipe?: string | null
-  responsavel?: string | null
-  dias_em_aberto?: number
-  associar_chamado_id?: string | null
-  tipo_chamado_id: string
-  tipo_chamado_nome?: string
-  natureza_nome?: string | null
+  requester_operation?: string
+  team?: string | null
+  assignee?: string | null
+  open_days?: number
+  linked_ticket_id?: string | null
+  ticket_type_id: string
+  ticket_type_name?: string
+  nature_name?: string | null
   operation_id?: string | null
-  numero_procedimento?: string | null
-  numero_oficio?: string | null
-  data_base?: string | null
-  natureza_id?: string | null
-  possui_apelido_imprensa: boolean
-  apelido_imprensa?: string | null
-  link_materia?: string | null
-  requisitante: TicketCreateRequesterOut
-  pontos_focais: TicketCreateFocalPointOut[]
-  equipe_id?: string | null
-  prioridade?: TicketPriorityOut | null
-  comentarios?: TicketCommentOut[]
-  anexos?: TicketAttachmentOut[]
-  busca_por_placa: ServiceBuscaPorPlacaOut[]
-  busca_por_radar: ServiceBuscaPorRadarOut[]
-  cerco_eletronico: ServiceCercoEletronicoOut[]
-  busca_por_imagem: ServiceBuscaPorImagemOut[]
-  placas_correlatas: ServicePlacasCorrelatasOut[]
-  placas_conjuntas: ServicePlacasConjuntasOut[]
-  reserva_de_imagem: ServiceReservaDeImagemOut[]
-  analise_de_imagem: ServiceAnaliseDeImagemOut[]
-  outros: ServiceOutrosOut[]
+  procedure_number?: string | null
+  official_letter_number?: string | null
+  base_date?: string | null
+  nature_id?: string | null
+  has_press_alias: boolean
+  press_alias?: string | null
+  article_link?: string | null
+  requester: TicketRequesterOut
+  focal_points: TicketFocalPointOut[]
+  team_id?: string | null
+  priority?: TicketPriorityOut | null
+  comments?: TicketCommentOut[]
+  attachments?: TicketAttachmentOut[]
+  plate_search: ServicePlateSearchOut[]
+  radar_search: ServiceRadarSearchOut[]
+  electronic_fence: ServiceElectronicFenceOut[]
+  image_search: ServiceImageSearchOut[]
+  correlated_plates: ServiceCorrelatedPlatesOut[]
+  joint_plates: ServiceJointPlatesOut[]
+  image_reservation: ServiceImageReservationOut[]
+  image_analysis: ServiceImageAnalysisOut[]
+  other: ServiceOtherOut[]
   atlas_civitas: ServiceAtlasCivitasOut[]
-  chamados_relacionados?: TicketRelacionadoOut[]
+  related_tickets?: TicketRelatedOut[]
 }
 
 export async function getTicketById(ticketId: string) {

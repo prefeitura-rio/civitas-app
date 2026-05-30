@@ -90,6 +90,12 @@ export function DemandVolumeSummaryCards({
           isLoading={isLoading}
         />
         <SummaryCard
+          label="Encerradas"
+          sublabel="no período selecionado"
+          value={summary?.closed}
+          isLoading={isLoading}
+        />
+        <SummaryCard
           label="Em aberto"
           sublabel="em todas as equipes"
           value={summary?.open}

@@ -18,16 +18,16 @@ import {
 import styles from './ticket-archive-filters.module.css'
 
 export type TicketArchiveFilterState = {
-  demandante_id: SearchOption[]
-  requisitante: SearchOption[]
-  responsavel_id: SearchOption[]
-  data_base_inicio: string
-  data_base_fim: string
-  data_entrada_inicio: string
-  data_entrada_fim: string
-  prioridade: SearchOption[]
-  equipe: SearchOption[]
-  servicos: SearchOption[]
+  operation_id: SearchOption[]
+  requester: SearchOption[]
+  assignee_id: SearchOption[]
+  base_date_start: string
+  base_date_end: string
+  entry_date_start: string
+  entry_date_end: string
+  priority: SearchOption[]
+  team: SearchOption[]
+  services: SearchOption[]
 }
 
 type SearchMultiSelectProps = {
@@ -44,7 +44,7 @@ type SearchMultiSelectProps = {
 const SEARCH_TOOLTIP_TEXT =
   'Buscar por nº interno, requisitante, demandante, ofício, procedimento, ponto focal, equipe, responsável, comentários, relatório da demanda, placa, orientações ou observações'
 
-const prioridadeOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
+const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
 
 const servicoOptions: SearchOption[] = [
   { value: 'plate_search_services', label: 'Busca por placa' },
@@ -59,16 +59,14 @@ const servicoOptions: SearchOption[] = [
   { value: 'atlas_civitas_services', label: 'Atlas Civitas' },
 ]
 
-const prioridadeSearchOptions: SearchOption[] = prioridadeOptions.map(
-  (value) => ({
-    value,
-    label: value
-      .toLowerCase()
-      .split(' ')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' '),
-  }),
-)
+const prioritySearchOptions: SearchOption[] = priorityOptions.map((value) => ({
+  value,
+  label: value
+    .toLowerCase()
+    .split(' ')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' '),
+}))
 
 function useDebouncedValue<T>(value: T, delay = 400) {
   const [debouncedValue, setDebouncedValue] = useState(value)
@@ -86,16 +84,16 @@ function useDebouncedValue<T>(value: T, delay = 400) {
 
 export function emptyArchiveFilters(): TicketArchiveFilterState {
   return {
-    demandante_id: [],
-    requisitante: [],
-    responsavel_id: [],
-    data_base_inicio: '',
-    data_base_fim: '',
-    data_entrada_inicio: '',
-    data_entrada_fim: '',
-    prioridade: [],
-    equipe: [],
-    servicos: [],
+    operation_id: [],
+    requester: [],
+    assignee_id: [],
+    base_date_start: '',
+    base_date_end: '',
+    entry_date_start: '',
+    entry_date_end: '',
+    priority: [],
+    team: [],
+    services: [],
   }
 }
 
@@ -312,42 +310,42 @@ export function TicketArchiveFiltersModal({
           <div className={filterModalStyles.filterGrid}>
             <SearchMultiSelect
               label="DEMANDANTE"
-              value={draftFilters.demandante_id}
+              value={draftFilters.operation_id}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  demandante_id: value,
+                  operation_id: value,
                 }))
               }
               searchFn={searchOperations}
             />
             <SearchMultiSelect
               label="REQUISITANTE"
-              value={draftFilters.requisitante}
+              value={draftFilters.requester}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  requisitante: value,
+                  requester: value,
                 }))
               }
               searchFn={searchRequesters}
             />
             <SearchMultiSelect
               label="RESPONSÁVEL"
-              value={draftFilters.responsavel_id}
+              value={draftFilters.assignee_id}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  responsavel_id: value,
+                  assignee_id: value,
                 }))
               }
               searchFn={searchTicketResponsibles}
             />
             <SearchMultiSelect
               label="SERVIÇOS"
-              value={draftFilters.servicos}
+              value={draftFilters.services}
               onChange={(value) =>
-                setDraftFilters((current) => ({ ...current, servicos: value }))
+                setDraftFilters((current) => ({ ...current, services: value }))
               }
               staticOptions={servicoOptions}
             />
@@ -356,20 +354,20 @@ export function TicketArchiveFiltersModal({
           <div className={filterModalStyles.filterTogglesGrid}>
             <SearchMultiSelect
               label="PRIORIDADE"
-              value={draftFilters.prioridade}
+              value={draftFilters.priority}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  prioridade: value,
+                  priority: value,
                 }))
               }
-              staticOptions={prioridadeSearchOptions}
+              staticOptions={prioritySearchOptions}
             />
             <SearchMultiSelect
               label="EQUIPE"
-              value={draftFilters.equipe}
+              value={draftFilters.team}
               onChange={(value) =>
-                setDraftFilters((current) => ({ ...current, equipe: value }))
+                setDraftFilters((current) => ({ ...current, team: value }))
               }
               staticOptions={teamSearchOptions ?? []}
               optionsLoading={isTeamsLoading}
@@ -378,18 +376,18 @@ export function TicketArchiveFiltersModal({
               <span className={filterModalStyles.filterLabel}>DATA BASE</span>
               <FilterDateRangeField
                 popoverContentClassName="z-[140] w-auto p-0"
-                startValue={draftFilters.data_base_inicio}
-                endValue={draftFilters.data_base_fim}
+                startValue={draftFilters.base_date_start}
+                endValue={draftFilters.base_date_end}
                 onChangeStart={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_base_inicio: value,
+                    base_date_start: value,
                   }))
                 }
                 onChangeEnd={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_base_fim: value,
+                    base_date_end: value,
                   }))
                 }
               />
@@ -400,18 +398,18 @@ export function TicketArchiveFiltersModal({
               </span>
               <FilterDateRangeField
                 popoverContentClassName="z-[140] w-auto p-0"
-                startValue={draftFilters.data_entrada_inicio}
-                endValue={draftFilters.data_entrada_fim}
+                startValue={draftFilters.entry_date_start}
+                endValue={draftFilters.entry_date_end}
                 onChangeStart={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_entrada_inicio: value,
+                    entry_date_start: value,
                   }))
                 }
                 onChangeEnd={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_entrada_fim: value,
+                    entry_date_end: value,
                   }))
                 }
               />

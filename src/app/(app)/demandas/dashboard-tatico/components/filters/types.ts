@@ -1,11 +1,11 @@
 import type { SearchOption } from '@/http/tickets/tickets-dashboard-filters'
 
 export type DashboardTaticoAdvancedFilterForm = {
-  demandante_id: SearchOption[]
-  requisitante: SearchOption[]
-  prioridade: SearchOption[]
+  operation_id: SearchOption[]
+  requester: SearchOption[]
+  priority: SearchOption[]
   status: SearchOption[]
-  tipo_chamado_id: SearchOption[]
+  ticket_type_id: SearchOption[]
   relevanteImprensa: boolean
 }
 

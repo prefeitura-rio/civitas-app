@@ -20,6 +20,12 @@ import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -35,6 +41,7 @@ import {
 } from '@/components/ui/select'
 import { useResolvedTicketModulePermissions } from '@/hooks/useQueries/useResolvedTicketModulePermissions'
 import { getTeamsByRole } from '@/http/teams/get-teams-by-role'
+import { getTicketShiftClosingReport } from '@/http/tickets/get-ticket-shift-closing-report'
 import {
   parseTicketModulePermissionsCookie,
   TICKET_MODULE_PERMISSIONS_COOKIE,
@@ -46,6 +53,7 @@ import {
 } from '@/http/tickets/ticket-shift-closing'
 import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 import { dateConfig } from '@/lib/date-config'
+import { cn } from '@/lib/utils'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import {
@@ -178,6 +186,8 @@ export function ShiftClosingView({
   )
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [comment, setComment] = useState('')
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportPreviewUrl, setReportPreviewUrl] = useState<string | null>(null)
   const debouncedPeriod = useDebounce(period, 400)
 
   const teamsQuery = useQuery({
@@ -210,6 +220,32 @@ export function ShiftClosingView({
     staleTime: 0,
     refetchOnMount: 'always',
   })
+
+  const reportQuery = useQuery({
+    queryKey: ['ticket-shift-closing-report', shiftClosingId],
+    queryFn: () => getTicketShiftClosingReport(shiftClosingId!),
+    enabled: isViewMode && reportOpen && Boolean(shiftClosingId),
+    retry: false,
+  })
+
+  useEffect(() => {
+    let created: string | null = null
+
+    if (reportOpen && reportQuery.data) {
+      const { blob, contentType } = reportQuery.data
+      const typed =
+        blob.type && blob.type.length > 0
+          ? blob
+          : new Blob([blob], { type: contentType })
+      created = URL.createObjectURL(typed)
+    }
+
+    setReportPreviewUrl(created)
+
+    return () => {
+      if (created) URL.revokeObjectURL(created)
+    }
+  }, [reportOpen, reportQuery.data])
 
   const previewQuery = useQuery({
     queryKey: ['ticket-shift-closing-preview', apiPayload],
@@ -289,6 +325,19 @@ export function ShiftClosingView({
           </Link>
           <h1 className={styles.pageTitle}>Fechamento de Turno</h1>
         </div>
+        {isViewMode ? (
+          <div className={styles.headerActions}>
+            <Button
+              type="button"
+              variant="outline"
+              className={styles.reportButton}
+              disabled={recordQuery.isLoading || recordQuery.isError}
+              onClick={() => setReportOpen(true)}
+            >
+              Relatório completo
+            </Button>
+          </div>
+        ) : null}
       </header>
 
       <section className={styles.periodSection}>
@@ -508,6 +557,50 @@ export function ShiftClosingView({
             </Button>
           </div>
         </section>
+      ) : null}
+
+      {isViewMode ? (
+        <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+          <DialogContent
+            className={cn(
+              styles.reportDialogContent,
+              'translate-x-[-50%] translate-y-[-50%] sm:max-w-[min(96vw,1100px)]',
+            )}
+            aria-describedby={undefined}
+          >
+            <DialogHeader className={styles.reportDialogHeader}>
+              <DialogTitle className={styles.reportDialogTitle}>
+                Relatório completo
+              </DialogTitle>
+            </DialogHeader>
+            <div className={styles.reportDialogBody}>
+              {reportQuery.isLoading ||
+              (reportQuery.data &&
+                !reportPreviewUrl &&
+                !reportQuery.isError) ? (
+                <p className={styles.reportDialogMessage}>
+                  Carregando relatório…
+                </p>
+              ) : reportQuery.isError ? (
+                <p
+                  className={`${styles.reportDialogMessage} ${styles.reportDialogError}`}
+                >
+                  {getApiErrorMessage(reportQuery.error)}
+                </p>
+              ) : reportPreviewUrl ? (
+                <iframe
+                  title="Visualização do relatório completo"
+                  src={reportPreviewUrl}
+                  className={styles.reportFrame}
+                />
+              ) : (
+                <p className={styles.reportDialogMessage}>
+                  Não foi possível exibir o arquivo neste navegador.
+                </p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       ) : null}
     </div>
   )

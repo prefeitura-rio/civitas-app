@@ -3,16 +3,16 @@ import { api } from '@/lib/api'
 export type TicketReassignPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
 export type TicketReassignIn = {
-  equipe_id: string
-  responsavel_ids: string[]
-  prioridade?: TicketReassignPriority | null
-  comentario?: string | null
+  team_id: string
+  assignee_ids: string[]
+  priority?: TicketReassignPriority | null
+  comment?: string | null
 }
 
 export type TicketReassignOut = {
   ticket_id: string
-  equipe_id: string
-  responsavel_ids: string[]
+  team_id: string
+  assignee_ids: string[]
 }
 
 /** POST `/tickets/{ticket_id}/reatribuir` */

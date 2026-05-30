@@ -33,7 +33,10 @@ export function formatTicketStatusLabel(status: string): string {
 export function toTicketStatusFilterOptions(): SearchOption[] {
   return TICKET_STATUS_VALUES.map((value) => ({
     value,
-    label: TICKET_STATUS_LABELS[value],
+    label:
+      value === 'FINALIZADO'
+        ? 'Finalizado sem Encaminhamento'
+        : TICKET_STATUS_LABELS[value],
   }))
 }
 

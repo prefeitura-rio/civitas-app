@@ -21,24 +21,24 @@ const OPEN_TICKETS_STATUS_ORDER = [
   'pendente',
   'bloqueado',
   'aguardando_revisao',
-  'aguardando_revisao_adjunto',
-  'aguardando_revisao_administrativo',
+  'awaiting_adjunct_review',
+  'awaiting_administrative_review',
 ] as const
 
 const OPEN_TICKETS_STATUS_LABELS: Record<string, string> = {
   pendente: 'Pendente',
   bloqueado: 'Bloqueado',
   aguardando_revisao: 'Aguardando revisão',
-  aguardando_revisao_adjunto: 'Aguardando revisão adjunto',
-  aguardando_revisao_administrativo: 'Aguardando revisão administrativo',
+  awaiting_adjunct_review: 'Aguardando revisão adjunto',
+  awaiting_administrative_review: 'Aguardando revisão administrativo',
 }
 
 export const OPEN_TICKETS_STATUS_COLORS: Record<string, string> = {
   pendente: '#06b2bb',
   bloqueado: '#b93d52',
   aguardando_revisao: '#5b4db2',
-  aguardando_revisao_adjunto: '#4a6eb5',
-  aguardando_revisao_administrativo: '#7c5cbf',
+  awaiting_adjunct_review: '#4a6eb5',
+  awaiting_administrative_review: '#7c5cbf',
 }
 
 const DEFAULT_OPEN_TICKETS_STATUS_COLOR = '#6b7c8a'
