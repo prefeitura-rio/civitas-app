@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 export function middleware(request: NextRequest) {
+  const session = request.cookies.get('session')?.value
   const token = request.cookies.get('token')?.value
   const enablePrivacyPage =
     process.env.NEXT_PUBLIC_ENABLE_PRIVACY_PAGE?.toLowerCase() === 'true'
@@ -16,6 +17,7 @@ export function middleware(request: NextRequest) {
   // Allow requests to /auth/* paths and static files
   if (
     request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname.startsWith('/api/auth') ||
     request.nextUrl.pathname.startsWith('/_next')
   ) {
     return NextResponse.next()
@@ -23,12 +25,10 @@ export function middleware(request: NextRequest) {
 
   // Allow fake token for E2E tests
   if (token === 'fake-test-token-for-e2e') {
-    console.log('🧪 Middleware - Allowing E2E test token')
     return NextResponse.next()
   }
 
-  // Redirect to /auth/sign-in if no token is found and the path is not /auth/*
-  if (!token) {
+  if (!session) {
     return NextResponse.redirect(new URL('/auth/sign-in', request.url))
   }
 
@@ -36,6 +36,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Apply the middleware to all routes except for those under /auth
-  matcher: ['/((?!auth|_next|favicon.ico).*)'],
+  matcher: ['/((?!auth|api/auth|_next|favicon.ico).*)'],
 }
