@@ -31,6 +31,7 @@ const SERIES = [
   { key: 'urgent', label: 'Urgente', color: '#b93d52' },
   { key: 'high', label: 'Alta', color: '#5b4db2' },
   { key: 'routine', label: 'Rotina', color: '#06b2bb' },
+  { key: 'no_priority', label: 'Sem Prioridade', color: '#97a2ab' },
 ] as const
 
 const CHART_COLORS = {

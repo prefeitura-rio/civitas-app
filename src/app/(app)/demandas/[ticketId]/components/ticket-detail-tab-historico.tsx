@@ -108,9 +108,9 @@ export function TicketDetailTabHistorico({ ticketId }: Props) {
       >
         {items.map((item, index) => {
           const isLast = index === items.length - 1
-          const autorNome = (item.autor_nome || '').trim()
-          const papel = (item.autor_papeis[0] || '').trim()
-          const acaoRaw = (item.acao || '').trim()
+          const autorNome = (item.author_name || '').trim()
+          const papel = (item.author_roles[0] || '').trim()
+          const acaoRaw = (item.action || '').trim()
           const hasAuthor = Boolean(autorNome) || Boolean(papel)
           return (
             <li key={item.id} className={styles.historicoRow}>
@@ -121,9 +121,9 @@ export function TicketDetailTabHistorico({ ticketId }: Props) {
               <div className={styles.historicoDetails}>
                 <time
                   className={styles.historicoTime}
-                  dateTime={item.criado_em}
+                  dateTime={item.created_at}
                 >
-                  {formatHistoricoTimestamp(item.criado_em)}
+                  {formatHistoricoTimestamp(item.created_at)}
                 </time>
                 <div className={styles.historicoEntry}>
                   {hasAuthor ? (

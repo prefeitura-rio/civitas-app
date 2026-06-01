@@ -17,50 +17,50 @@ import {
 import styles from './tickets-general-list-filters.module.css'
 
 export type FilterFormState = {
-  tipo_chamado_id: SearchOption[]
-  numero_interno: SearchOption[]
-  numero_procedimento: SearchOption[]
-  numero_oficio: SearchOption[]
-  natureza_id: SearchOption[]
-  demandante_id: SearchOption[]
-  requisitante: SearchOption[]
-  responsavel_id: SearchOption[]
-  ponto_focal: SearchOption[]
+  ticket_type_id: SearchOption[]
+  internal_number: SearchOption[]
+  procedure_number: SearchOption[]
+  official_letter_number: SearchOption[]
+  nature_id: SearchOption[]
+  operation_id: SearchOption[]
+  requester: SearchOption[]
+  assignee_id: SearchOption[]
+  focal_point: SearchOption[]
 
-  data_base_inicio: string
-  data_base_fim: string
-  data_entrada_inicio: string
-  data_entrada_fim: string
+  base_date_start: string
+  base_date_end: string
+  entry_date_start: string
+  entry_date_end: string
 
   status: string[]
-  prioridade: SearchOption[]
-  equipe: SearchOption[]
-  servicos: SearchOption[]
+  priority: SearchOption[]
+  team: SearchOption[]
+  services: SearchOption[]
 }
 
 const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
 
 export function emptyFilters(): FilterFormState {
   return {
-    tipo_chamado_id: [],
-    numero_interno: [],
-    numero_procedimento: [],
-    numero_oficio: [],
-    natureza_id: [],
-    demandante_id: [],
-    requisitante: [],
-    responsavel_id: [],
-    ponto_focal: [],
+    ticket_type_id: [],
+    internal_number: [],
+    procedure_number: [],
+    official_letter_number: [],
+    nature_id: [],
+    operation_id: [],
+    requester: [],
+    assignee_id: [],
+    focal_point: [],
 
-    data_base_inicio: '',
-    data_base_fim: '',
-    data_entrada_inicio: '',
-    data_entrada_fim: '',
+    base_date_start: '',
+    base_date_end: '',
+    entry_date_start: '',
+    entry_date_end: '',
 
     status: [],
-    prioridade: [],
-    equipe: [],
-    servicos: [],
+    priority: [],
+    team: [],
+    services: [],
   }
 }
 
@@ -91,7 +91,7 @@ const prioritySearchOptions: SearchOption[] = priorityOptions.map((p) => ({
   label: formatLabel(p),
 }))
 
-/** Labels em português; `value` é o enviado no body (`servicos`). */
+/** Labels em português; `value` é o enviado no body (`services`). */
 export const dashboardServicosFilterOptions: SearchOption[] = [
   { value: 'plate_search_services', label: 'Busca por placa' },
   { value: 'radar_search_services', label: 'Busca por radar' },
@@ -102,6 +102,7 @@ export const dashboardServicosFilterOptions: SearchOption[] = [
   { value: 'image_reservation_services', label: 'Reserva de imagem' },
   { value: 'image_analysis_services', label: 'Análise de imagem' },
   { value: 'other_services', label: 'Outros' },
+  { value: 'atlas_civitas_services', label: 'Atlas Civitas' },
 ]
 
 function SearchMultiSelect({
@@ -314,11 +315,11 @@ export function TicketsDashboardFilterModal({
           <div className={styles.filterGrid}>
             <SearchMultiSelect
               label="DEMANDANTE"
-              value={draftFilters.demandante_id}
+              value={draftFilters.operation_id}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  demandante_id: value,
+                  operation_id: value,
                 }))
               }
               searchFn={searchOperations}
@@ -326,11 +327,11 @@ export function TicketsDashboardFilterModal({
 
             <SearchMultiSelect
               label="REQUISITANTE"
-              value={draftFilters.requisitante}
+              value={draftFilters.requester}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  requisitante: value,
+                  requester: value,
                 }))
               }
               searchFn={searchRequesters}
@@ -338,11 +339,11 @@ export function TicketsDashboardFilterModal({
 
             <SearchMultiSelect
               label="RESPONSÁVEL"
-              value={draftFilters.responsavel_id}
+              value={draftFilters.assignee_id}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  responsavel_id: value,
+                  assignee_id: value,
                 }))
               }
               searchFn={searchTicketResponsibles}
@@ -351,11 +352,11 @@ export function TicketsDashboardFilterModal({
             <SearchMultiSelect
               label="SERVIÇOS"
               placeholder="Selecione"
-              value={draftFilters.servicos}
+              value={draftFilters.services}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  servicos: value,
+                  services: value,
                 }))
               }
               staticOptions={dashboardServicosFilterOptions}
@@ -366,11 +367,11 @@ export function TicketsDashboardFilterModal({
             <SearchMultiSelect
               label="PRIORIDADE"
               placeholder="Selecione"
-              value={draftFilters.prioridade}
+              value={draftFilters.priority}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  prioridade: value,
+                  priority: value,
                 }))
               }
               staticOptions={prioritySearchOptions}
@@ -379,11 +380,11 @@ export function TicketsDashboardFilterModal({
             <SearchMultiSelect
               label="EQUIPE"
               placeholder="Selecione"
-              value={draftFilters.equipe}
+              value={draftFilters.team}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  equipe: value,
+                  team: value,
                 }))
               }
               staticOptions={teamSearchOptions ?? []}
@@ -393,18 +394,18 @@ export function TicketsDashboardFilterModal({
             <div className={styles.filterBlock}>
               <span className={styles.filterLabel}>DATA BASE</span>
               <FilterDateRangeField
-                startValue={draftFilters.data_base_inicio}
-                endValue={draftFilters.data_base_fim}
+                startValue={draftFilters.base_date_start}
+                endValue={draftFilters.base_date_end}
                 onChangeStart={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_base_inicio: value,
+                    base_date_start: value,
                   }))
                 }
                 onChangeEnd={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_base_fim: value,
+                    base_date_end: value,
                   }))
                 }
               />
@@ -413,18 +414,18 @@ export function TicketsDashboardFilterModal({
             <div className={styles.filterBlock}>
               <span className={styles.filterLabel}>DATA DE ENTRADA</span>
               <FilterDateRangeField
-                startValue={draftFilters.data_entrada_inicio}
-                endValue={draftFilters.data_entrada_fim}
+                startValue={draftFilters.entry_date_start}
+                endValue={draftFilters.entry_date_end}
                 onChangeStart={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_entrada_inicio: value,
+                    entry_date_start: value,
                   }))
                 }
                 onChangeEnd={(value) =>
                   setDraftFilters((current) => ({
                     ...current,
-                    data_entrada_fim: value,
+                    entry_date_end: value,
                   }))
                 }
               />

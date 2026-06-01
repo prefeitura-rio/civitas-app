@@ -7,6 +7,8 @@ export interface Module {
   title: string
   path: string
   ticketScreenCode?: string
+  /** Exibe o item se o usuário tiver permissão de visualização em qualquer uma das telas. */
+  ticketScreenCodes?: readonly string[]
 }
 
 export interface ModuleWithChildren {
@@ -15,6 +17,7 @@ export interface ModuleWithChildren {
   path?: string
   children: Module[]
   ticketScreenCode?: string
+  ticketScreenCodes?: readonly string[]
 }
 
 export type SidebarModule = Module | ModuleWithChildren
@@ -43,6 +46,7 @@ const demandasItem: Category = {
       icon: 'List',
       title: 'Lista Geral',
       path: '/demandas',
+      ticketScreenCode: 'general_list',
     },
     {
       icon: 'Archive',
@@ -115,8 +119,12 @@ const demandasItem: Category = {
     {
       icon: 'BarChart2',
       title: 'Dashboard Tático',
-      path: '/demandas/dashboard-tatico/volume',
-      ticketScreenCode: 'tactical_dashboard',
+      path: '/demandas/dashboard-tatico',
+      ticketScreenCodes: [
+        'dashboard_demand_volume',
+        'dashboard_sla',
+        'dashboard_operational_view',
+      ],
     },
   ],
 }

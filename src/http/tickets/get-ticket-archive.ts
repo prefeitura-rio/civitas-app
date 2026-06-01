@@ -10,33 +10,34 @@ export type TicketArchiveServiceFilter =
   | 'image_reservation_services'
   | 'image_analysis_services'
   | 'other_services'
+  | 'atlas_civitas_services'
 
 export type TicketArchiveFilters = {
   search?: string
   page?: number
   page_size?: number
-  demandante_id?: string[]
-  requisitante?: string[]
-  responsavel_id?: string[]
-  data_base_inicio?: string
-  data_base_fim?: string
-  data_entrada_inicio?: string
-  data_entrada_fim?: string
-  prioridade?: string[]
-  equipe?: string[]
-  servicos?: TicketArchiveServiceFilter[]
+  operation_id?: string[]
+  requester?: string[]
+  assignee_id?: string[]
+  base_date_start?: string
+  base_date_end?: string
+  entry_date_start?: string
+  entry_date_end?: string
+  priority?: string[]
+  team?: string[]
+  services?: TicketArchiveServiceFilter[]
 }
 
 export type TicketArchiveListItem = {
   id: string
-  chamado: string
-  data_conclusao?: string | null
-  demandante: string
-  equipe: string
-  responsavel: string
-  servicos: string[]
+  ticket: string
+  completed_at?: string | null
+  requester_operation: string
+  team: string
+  assignee: string
+  services: string[]
   status: string
-  sei_preenchido?: boolean
+  sei_filled?: boolean
 }
 
 export type TicketArchivePageOut = {
@@ -52,16 +53,16 @@ export async function getTicketArchive(filters: TicketArchiveFilters) {
     search: filters.search?.trim() || undefined,
     page: filters.page ?? 1,
     page_size: filters.page_size ?? 20,
-    demandante_id: filters.demandante_id,
-    requisitante: filters.requisitante,
-    responsavel_id: filters.responsavel_id,
-    data_base_inicio: filters.data_base_inicio || undefined,
-    data_base_fim: filters.data_base_fim || undefined,
-    data_entrada_inicio: filters.data_entrada_inicio || undefined,
-    data_entrada_fim: filters.data_entrada_fim || undefined,
-    prioridade: filters.prioridade,
-    equipe: filters.equipe,
-    servicos: filters.servicos,
+    operation_id: filters.operation_id,
+    requester: filters.requester,
+    assignee_id: filters.assignee_id,
+    base_date_start: filters.base_date_start || undefined,
+    base_date_end: filters.base_date_end || undefined,
+    entry_date_start: filters.entry_date_start || undefined,
+    entry_date_end: filters.entry_date_end || undefined,
+    priority: filters.priority,
+    team: filters.team,
+    services: filters.services,
   })
 
   return response.data

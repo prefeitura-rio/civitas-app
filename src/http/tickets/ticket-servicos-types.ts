@@ -1,43 +1,44 @@
 import type { TicketDetection } from '@/http/tickets/get-ticket-by-id'
 
-/** Corpo do PUT /tickets/{id}/servicos — alinhado a TicketServicosReplaceIn (API). */
-export type TicketServicosReplaceIn = {
-  busca_por_placa: Array<{
+import type { TicketAttachmentCompleteIn } from './ticket-attachments'
+
+/** Corpo JSON do PUT multipart `/tickets/{id}/services` (`payload`). */
+export type TicketServicesUpsertIn = {
+  plate_search: Array<{
     /** Omitir ou enviar só em itens já persistidos: com id = edição, sem id = criação. */
     id?: string
-    concluido?: boolean
+    completed?: boolean
     period_start?: string | null
     period_end?: string | null
     plates: string[]
   }>
-  busca_por_radar: Array<{
+  radar_search: Array<{
     id?: string
-    concluido?: boolean
+    completed?: boolean
     period_start?: string | null
     period_end?: string | null
     plates: string[]
     radar_address?: string | null
     orientation?: string | null
   }>
-  cerco_eletronico: Array<{
+  electronic_fence: Array<{
     id?: string
-    concluido?: boolean
-    plate?: string | null
+    completed?: boolean
+    plates: string[]
     vehicle_observations?: string | null
   }>
-  busca_por_imagem: Array<{
+  image_search: Array<{
     id?: string
-    concluido?: boolean
+    completed?: boolean
     period_start?: string | null
     period_end?: string | null
-    plate?: string | null
-    address?: string | null
+    addresses?: string[]
     description?: string | null
     cameras?: string[]
   }>
-  placas_correlatas: Array<{
+  correlated_plates: Array<{
     id?: string
-    concluido?: boolean
+    completed?: boolean
     period_start?: string | null
     period_end?: string | null
     interest_interval_minutes?: number | null
@@ -45,9 +46,9 @@ export type TicketServicosReplaceIn = {
     detection?: TicketDetection | null
     plates: Array<{ plate?: string | null }>
   }>
-  placas_conjuntas: Array<{
+  joint_plates: Array<{
     id?: string
-    concluido?: boolean
+    completed?: boolean
     period_start?: string | null
     period_end?: string | null
     interest_interval_minutes?: number | null
@@ -55,25 +56,42 @@ export type TicketServicosReplaceIn = {
     detection?: TicketDetection | null
     plates: Array<{ plate?: string | null }>
   }>
-  reserva_de_imagem: Array<{
+  image_reservation: Array<{
     id?: string
-    concluido?: boolean
+    completed?: boolean
     period_start?: string | null
     period_end?: string | null
     orientation?: string | null
+    addresses?: string[]
     cameras?: string[]
   }>
-  analise_de_imagem: Array<{
+  image_analysis: Array<{
     id?: string
-    concluido?: boolean
+    completed?: boolean
     period_start?: string | null
     period_end?: string | null
     orientation?: string | null
+    addresses?: string[]
     cameras?: string[]
   }>
-  outros: Array<{
+  other: Array<{
     id?: string
-    concluido?: boolean
+    completed?: boolean
     orientation?: string | null
   }>
+  atlas_civitas: Array<{
+    id?: string
+    completed?: boolean
+    name?: string | null
+    email?: string | null
+    cpf?: string | null
+    registration?: string | null
+  }>
+  attachment_completes?: TicketAttachmentCompleteIn[]
 }
+
+/** @deprecated Use TicketServicesUpsertIn */
+export type TicketServicesReplaceIn = TicketServicesUpsertIn
+
+/** @deprecated Use TicketServicesUpsertIn */
+export type TicketServicosReplaceIn = TicketServicesUpsertIn

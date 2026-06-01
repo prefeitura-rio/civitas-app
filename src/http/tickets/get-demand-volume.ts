@@ -1,3 +1,4 @@
+import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
 export type DemandVolumeGranularity = 'monthly' | 'weekly' | 'yearly'
@@ -9,27 +10,26 @@ export type DemandVolumeSummaryPeriod =
 
 export type TicketPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
-export type TicketStatus =
-  | 'PENDENTE'
-  | 'RESTRITO'
-  | 'BLOQUEADO'
-  | 'AGUARDANDO_REVISAO'
-  | 'CONCLUIDO'
+export type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 
 export interface DemandVolumeFilterIn {
   date_from?: string
   date_to?: string
-  /** Afeta apenas summary (Total, Em aberto, Bloqueadas). Padrão: current_year */
+  /** Afeta apenas summary (Total, Encerradas, Em aberto, Bloqueadas). Padrão: current_year */
   summary_period?: DemandVolumeSummaryPeriod
-  requisitante?: string[]
-  prioridade?: TicketPriority[]
+  operation_id?: string[]
+  requester?: string[]
+  priority?: TicketPriority[]
   status?: TicketStatus[]
-  tipo_chamado_id?: string[]
-  relevante_imprensa?: boolean | null
+  ticket_type_id?: string[]
+  media_relevant?: boolean | null
+  /** Página da matriz closed_calls_by_requester (1-based). Padrão: 1 */
+  closed_calls_by_requester_page?: number
 }
 
 export interface DemandVolumeSummaryOut {
   total: number
+  closed: number
   open: number
   blocked: number
 }
@@ -52,12 +52,21 @@ export interface PeriodUrgencyItemOut {
   urgent: number
   high: number
   routine: number
+  no_priority: number
 }
 
 export interface MatrixRowOut {
   label: string
   periods: PeriodValueItemOut[]
   total: number
+}
+
+export interface PaginatedMatrixRowsOut {
+  items: MatrixRowOut[]
+  total: number
+  page: number
+  page_size: number
+  pages: number
 }
 
 export interface DemandVolumeGranularitySeries<T> {
@@ -81,7 +90,7 @@ export interface DemandVolumeOut {
   closed_calls_by_nature: MatrixRowOut[]
   closed_calls_by_service: MatrixRowOut[]
   media_relevant_calls: DemandVolumeGranularitySeries<PeriodValueItemOut>
-  closed_calls_by_requester: MatrixRowOut[]
+  closed_calls_by_requester: PaginatedMatrixRowsOut
 }
 
 export function sanitizeDemandVolumeFilters(
@@ -89,12 +98,19 @@ export function sanitizeDemandVolumeFilters(
 ): DemandVolumeFilterIn {
   const payload: DemandVolumeFilterIn = { ...filters }
 
-  if (!payload.requisitante?.length) delete payload.requisitante
-  if (!payload.prioridade?.length) delete payload.prioridade
+  if (!payload.operation_id?.length) delete payload.operation_id
+  if (!payload.requester?.length) delete payload.requester
+  if (!payload.priority?.length) delete payload.priority
   if (!payload.status?.length) delete payload.status
-  if (!payload.tipo_chamado_id?.length) delete payload.tipo_chamado_id
-  if (payload.relevante_imprensa === undefined) {
-    delete payload.relevante_imprensa
+  if (!payload.ticket_type_id?.length) delete payload.ticket_type_id
+  if (payload.media_relevant === undefined) {
+    delete payload.media_relevant
+  }
+  if (
+    !payload.closed_calls_by_requester_page ||
+    payload.closed_calls_by_requester_page <= 1
+  ) {
+    delete payload.closed_calls_by_requester_page
   }
 
   return payload

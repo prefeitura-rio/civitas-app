@@ -87,13 +87,34 @@ export function DemandVolumeView() {
   )
 
   function applyFilters(next: DemandVolumeFilterIn) {
-    setDraftFilters(next)
-    setAppliedFilters(next)
+    const rest = { ...next }
+    delete rest.closed_calls_by_requester_page
+    setDraftFilters(rest)
+    setAppliedFilters(rest)
+  }
+
+  function handleRequesterPageChange(page: number) {
+    setAppliedFilters((prev) => ({
+      ...prev,
+      closed_calls_by_requester_page: page,
+    }))
   }
 
   function handleSummaryPeriodChange(summaryPeriod: DemandVolumeSummaryPeriod) {
     applyFilters({ ...appliedFilters, summary_period: summaryPeriod })
   }
+
+  const canApplyPeriod = useMemo(
+    () =>
+      (draftFilters.date_from ?? '') !== (appliedFilters.date_from ?? '') ||
+      (draftFilters.date_to ?? '') !== (appliedFilters.date_to ?? ''),
+    [
+      draftFilters.date_from,
+      draftFilters.date_to,
+      appliedFilters.date_from,
+      appliedFilters.date_to,
+    ],
+  )
 
   function handlePeriodDatesChange(
     patch: Partial<{ dateFrom: string; dateTo: string }>,
@@ -112,10 +133,20 @@ export function DemandVolumeView() {
       ))
     }
 
-    applyFilters({
-      ...appliedFilters,
+    setDraftFilters({
+      ...draftFilters,
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
+    })
+  }
+
+  function handleApplyPeriodFilter() {
+    const rest = { ...appliedFilters }
+    delete rest.closed_calls_by_requester_page
+    setAppliedFilters({
+      ...rest,
+      date_from: draftFilters.date_from,
+      date_to: draftFilters.date_to,
     })
   }
 
@@ -160,6 +191,8 @@ export function DemandVolumeView() {
           handlePeriodDatesChange({ dateFrom }, 'from')
         }
         onDateToChange={(dateTo) => handlePeriodDatesChange({ dateTo }, 'to')}
+        onApplyPeriod={handleApplyPeriodFilter}
+        canApplyPeriod={canApplyPeriod}
         isLoading={isFetching}
         appliedFilters={appliedFilters}
         onApplyAdvancedFilters={handleApplyAdvancedFilters}
@@ -219,10 +252,20 @@ export function DemandVolumeView() {
 
       <DemandVolumeMatrixTable
         title="Volume de Chamados Encerrados por Demandante"
-        rows={data?.closed_calls_by_requester ?? []}
+        rows={data?.closed_calls_by_requester.items ?? []}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
         columnHeader="DEMANDANTE"
+        pagination={
+          data?.closed_calls_by_requester
+            ? {
+                page: data.closed_calls_by_requester.page,
+                total: data.closed_calls_by_requester.total,
+                pageSize: data.closed_calls_by_requester.page_size,
+                onPageChange: handleRequesterPageChange,
+              }
+            : undefined
+        }
       />
     </div>
   )

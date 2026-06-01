@@ -131,6 +131,35 @@
   gap: 16px;
   flex: 1;
   min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.periodApplyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 52px;
+  flex-shrink: 0;
+  padding: 0 20px;
+  border: 1px solid rgba(16, 132, 96, 0.55);
+  border-radius: 8px;
+  background-color: #0b7a5b;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.periodApplyButton:hover:not(:disabled) {
+  background-color: #0d8b68;
+}
+
+.periodApplyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .dateFieldWrap {

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { validateCPF } from '@/utils/validate-cpf'
+
 import { TICKET_CREATE_STRING_LIMITS as L } from './ticket-create.constant'
 
 export const ticketPriorityEnum = z.enum(['URGENTE', 'ALTA', 'ROTINA'])
@@ -9,52 +11,52 @@ export const ticketDetectionEnum = z.enum(['ANTES', 'DEPOIS', 'AMBOS'])
 const maxMsg = (n: number) => `Máximo de ${n} caracteres`
 
 const requesterSchema = z.object({
-  requisitante_nome: z
+  name: z
     .string()
     .min(2, 'Campo obrigatório')
-    .max(L.requisitante_nome, maxMsg(L.requisitante_nome)),
-  requisitante_telefone: z
+    .max(L.requester_name, maxMsg(L.requester_name)),
+  phone: z
     .string()
     .min(2, 'Campo obrigatório')
-    .max(L.requisitante_telefone, maxMsg(L.requisitante_telefone)),
-  requisitante_email: z.union([
+    .max(L.requester_phone, maxMsg(L.requester_phone)),
+  email: z.union([
     z.literal(null),
     z.literal(''),
     z
       .string()
-      .max(L.requisitante_email, maxMsg(L.requisitante_email))
+      .max(L.requester_email, maxMsg(L.requester_email))
       .email('Email inválido'),
   ]),
 })
 
 const focalPointSchema = z.object({
-  nome: z
+  name: z
     .string()
     .min(2, 'Campo obrigatório')
-    .max(L.ponto_focal_nome, maxMsg(L.ponto_focal_nome)),
-  telefone: z
+    .max(L.focal_point_name, maxMsg(L.focal_point_name)),
+  phone: z
     .string()
     .min(1, 'Campo obrigatório')
-    .max(L.ponto_focal_telefone, maxMsg(L.ponto_focal_telefone)),
+    .max(L.focal_point_phone, maxMsg(L.focal_point_phone)),
   email: z
     .union([
       z.literal(null),
       z.literal(''),
       z
         .string()
-        .max(L.ponto_focal_email, maxMsg(L.ponto_focal_email))
+        .max(L.focal_point_email, maxMsg(L.focal_point_email))
         .email('Email inválido'),
     ])
     .optional(),
 })
 
-export const serviceBuscaPorPlacaSchema = z.object({
+export const servicePlateSearchSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   plates: z.array(z.string()).default([]),
 })
 
-export const serviceBuscaPorRadarSchema = z.object({
+export const serviceRadarSearchSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   plates: z.array(z.string()).default([]),
@@ -65,16 +67,17 @@ export const serviceBuscaPorRadarSchema = z.object({
     .nullable(),
 })
 
-export const serviceCercoSchema = z.object({
-  plate: z.string().optional().nullable(),
+export const serviceElectronicFenceSchema = z.object({
+  plates: z.array(z.string()).default([]),
   vehicle_observations: z.string().optional().nullable(),
 })
 
-export const serviceBuscaPorImagemSchema = z.object({
+export const serviceImageSearchSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
-  plate: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
+  addresses: z
+    .array(z.string().max(50_000, 'Máximo de 50000 caracteres'))
+    .default([]),
   description: z.string().optional().nullable(),
   cameras: z.array(z.string()).default([]),
 })
@@ -83,7 +86,7 @@ const correlataPlateItemSchema = z.object({
   plate: z.string().max(20, maxMsg(20)).optional().nullable(),
 })
 
-export const servicePlacasCorrelatasSchema = z.object({
+export const serviceCorrelatedPlatesSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
@@ -92,7 +95,7 @@ export const servicePlacasCorrelatasSchema = z.object({
   plates: z.array(correlataPlateItemSchema).default([]),
 })
 
-export const servicePlacasConjuntasSchema = z.object({
+export const serviceJointPlatesSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
@@ -101,106 +104,160 @@ export const servicePlacasConjuntasSchema = z.object({
   plates: z.array(correlataPlateItemSchema).default([]),
 })
 
-export const serviceReservaDeImagemSchema = z.object({
+export const serviceImageReservationSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   orientation: z.string().optional().nullable(),
+  addresses: z
+    .array(z.string().max(50_000, 'Máximo de 50000 caracteres'))
+    .default([]),
   cameras: z.array(z.string()).default([]),
 })
 
-export const serviceAnaliseDeImagemSchema = z.object({
+export const serviceImageAnalysisSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   orientation: z.string().optional().nullable(),
+  addresses: z
+    .array(z.string().max(50_000, 'Máximo de 50000 caracteres'))
+    .default([]),
   cameras: z.array(z.string()).default([]),
 })
 
-export const serviceOutrosSchema = z.object({
+export const serviceOtherSchema = z.object({
   orientation: z.string().optional().nullable(),
+})
+
+export const serviceAtlasCivitasSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Campo obrigatório')
+    .max(L.atlas_civitas_name, maxMsg(L.atlas_civitas_name)),
+  email: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(L.atlas_civitas_email, maxMsg(L.atlas_civitas_email))
+    .email('Email inválido'),
+  cpf: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .refine((v) => validateCPF(v), 'CPF inválido'),
+  registration: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .max(L.atlas_civitas_registration, maxMsg(L.atlas_civitas_registration)),
 })
 
 export const ticketCreateSchema = z.object({
-  associar_chamado_id: z.string().optional().nullable(),
-  tipo_chamado_id: z.string().min(1, 'Campo obrigatório'),
+  linked_ticket_id: z.string().optional().nullable(),
+  ticket_type_id: z.string().min(1, 'Campo obrigatório'),
 
   operation_id: z.string().min(1, 'Campo obrigatório'),
 
-  numero_procedimento: z
+  procedure_number: z
     .string()
-    .max(L.numero_procedimento, maxMsg(L.numero_procedimento))
+    .max(L.procedure_number, maxMsg(L.procedure_number))
     .optional()
     .nullable()
     .refine(
       (v) => v == null || v === '' || /^\d+$/.test(v),
       'Apenas números são permitidos',
     ),
-  numero_oficio: z
+  official_letter_number: z
     .string()
-    .max(L.numero_oficio, maxMsg(L.numero_oficio))
+    .max(L.official_letter_number, maxMsg(L.official_letter_number))
     .optional()
     .nullable()
     .refine(
-      (v) => v == null || v === '' || /^\d{5}\/\d{4}$/.test(v),
-      'Use o formato 00000/0000 (ex.: 00123/2026)',
+      (v) => v == null || v === '' || /^[A-Z0-9/]+$/.test(v),
+      'Use apenas letras, números e barra (/)',
     ),
-  data_base: z.string().optional().nullable(),
-  natureza_id: z.string().min(1, 'Campo obrigatório'),
+  base_date: z.string().optional().nullable(),
+  nature_id: z.string().min(1, 'Campo obrigatório'),
 
-  possui_apelido_imprensa: z.boolean().default(false),
-  apelido_imprensa: z
+  has_press_alias: z.boolean().default(false),
+  press_alias: z
     .string()
-    .max(L.apelido_imprensa, maxMsg(L.apelido_imprensa))
+    .max(L.press_alias, maxMsg(L.press_alias))
     .optional()
     .nullable(),
-  link_materia: z
+  article_link: z
     .union([
       z.null(),
       z.literal(''),
       z
         .string()
-        .max(L.link_materia, maxMsg(L.link_materia))
+        .max(L.article_link, maxMsg(L.article_link))
         .url('URL inválida'),
     ])
     .optional(),
 
-  possui_endereco_correspondencia: z.boolean().default(false),
-  bairro_correspondencia: z
+  has_correspondence_address: z.boolean().default(false),
+  correspondence_neighborhood: z
     .string()
-    .max(L.bairro_correspondencia, maxMsg(L.bairro_correspondencia))
+    .max(L.correspondence_neighborhood, maxMsg(L.correspondence_neighborhood))
     .optional()
     .nullable(),
-  rua_correspondencia: z
+  correspondence_street: z
     .string()
-    .max(L.rua_correspondencia, maxMsg(L.rua_correspondencia))
+    .max(L.correspondence_street, maxMsg(L.correspondence_street))
     .optional()
     .nullable(),
-  numero_correspondencia: z
+  correspondence_number: z
     .string()
-    .max(L.numero_correspondencia, maxMsg(L.numero_correspondencia))
-    .optional()
-    .nullable(),
-
-  requisitante: requesterSchema,
-  pontos_focais: z.array(focalPointSchema).default([]),
-
-  equipe_id: z.string().min(1, 'Campo obrigatório'),
-  prioridade: ticketPriorityEnum.optional().nullable(),
-
-  comentario_inicial: z
-    .string()
-    .max(L.comentario_inicial, maxMsg(L.comentario_inicial))
+    .max(L.correspondence_number, maxMsg(L.correspondence_number))
     .optional()
     .nullable(),
 
-  busca_por_placa: z.array(serviceBuscaPorPlacaSchema).default([]),
-  busca_por_radar: z.array(serviceBuscaPorRadarSchema).default([]),
-  cerco_eletronico: z.array(serviceCercoSchema).default([]),
-  busca_por_imagem: z.array(serviceBuscaPorImagemSchema).default([]),
-  placas_correlatas: z.array(servicePlacasCorrelatasSchema).default([]),
-  placas_conjuntas: z.array(servicePlacasConjuntasSchema).default([]),
-  reserva_de_imagem: z.array(serviceReservaDeImagemSchema).default([]),
-  analise_de_imagem: z.array(serviceAnaliseDeImagemSchema).default([]),
-  outros: z.array(serviceOutrosSchema).default([]),
+  requester: requesterSchema,
+  focal_points: z.array(focalPointSchema).default([]),
+
+  team_id: z.string().min(1, 'Campo obrigatório'),
+  priority: ticketPriorityEnum.optional().nullable(),
+
+  initial_comment: z
+    .string()
+    .max(L.initial_comment, maxMsg(L.initial_comment))
+    .optional()
+    .nullable(),
+
+  plate_search: z.array(servicePlateSearchSchema).default([]),
+  radar_search: z.array(serviceRadarSearchSchema).default([]),
+  electronic_fence: z.array(serviceElectronicFenceSchema).default([]),
+  image_search: z.array(serviceImageSearchSchema).default([]),
+  correlated_plates: z.array(serviceCorrelatedPlatesSchema).default([]),
+  joint_plates: z.array(serviceJointPlatesSchema).default([]),
+  image_reservation: z.array(serviceImageReservationSchema).default([]),
+  image_analysis: z.array(serviceImageAnalysisSchema).default([]),
+  other: z.array(serviceOtherSchema).default([]),
+  atlas_civitas: z.array(serviceAtlasCivitasSchema).default([]),
 })
 
 export type TicketCreateForm = z.infer<typeof ticketCreateSchema>
+
+/** @deprecated Use servicePlateSearchSchema */
+export const serviceBuscaPorPlacaSchema = servicePlateSearchSchema
+
+/** @deprecated Use serviceRadarSearchSchema */
+export const serviceBuscaPorRadarSchema = serviceRadarSearchSchema
+
+/** @deprecated Use serviceElectronicFenceSchema */
+export const serviceCercoSchema = serviceElectronicFenceSchema
+
+/** @deprecated Use serviceImageSearchSchema */
+export const serviceBuscaPorImagemSchema = serviceImageSearchSchema
+
+/** @deprecated Use serviceCorrelatedPlatesSchema */
+export const servicePlacasCorrelatasSchema = serviceCorrelatedPlatesSchema
+
+/** @deprecated Use serviceJointPlatesSchema */
+export const servicePlacasConjuntasSchema = serviceJointPlatesSchema
+
+/** @deprecated Use serviceImageReservationSchema */
+export const serviceReservaDeImagemSchema = serviceImageReservationSchema
+
+/** @deprecated Use serviceImageAnalysisSchema */
+export const serviceAnaliseDeImagemSchema = serviceImageAnalysisSchema
+
+/** @deprecated Use serviceOtherSchema */
+export const serviceOutrosSchema = serviceOtherSchema

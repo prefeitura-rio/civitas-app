@@ -2,20 +2,20 @@ import { api } from '@/lib/api'
 
 export interface TicketListItem {
   id: string
-  criado_em: string // datetime ISO
-  tipo_chamado_id: string
+  created_at: string // datetime ISO
+  ticket_type_id: string
   operation_id: string | null
-  prioridade: 'URGENTE' | 'ALTA' | 'ROTINA'
-  natureza:
+  priority: 'URGENTE' | 'ALTA' | 'ROTINA'
+  nature_name:
     | 'CIVIL'
     | 'CRIMINAL'
     | 'TRABALHISTA'
     | 'ADMINISTRATIVO'
     | 'OUTROS'
     | null
-  numero_procedimento: string | null
-  numero_oficio: string | null
-  requisitante_nome: string
+  procedure_number: string | null
+  official_letter_number: string | null
+  requester_name: string
   comments_count: number
   last_comment_at: string | null
 }

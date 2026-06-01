@@ -23,6 +23,7 @@ export type TicketShiftClosingPreviewIn = {
   start_date: string
   start_time: string
   end_time: string
+  team_id?: string
 }
 
 export type TicketShiftClosingPreviewOut = {

@@ -15,6 +15,95 @@
   background: #152534;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.reportButton {
+  min-width: 180px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #4a5d6d;
+  background: #101d28;
+  color: #f9fafa;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.reportButton:hover:not(:disabled) {
+  background: #1d3449;
+}
+
+.reportButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reportDialogContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  max-width: min(96vw, 1100px);
+  width: 100%;
+  max-height: min(90vh, 900px);
+  height: min(90vh, 900px);
+  overflow: hidden;
+  background: #101d28;
+  border-color: #4a5d6d;
+  color: #f9fafa;
+}
+
+.reportDialogHeader {
+  flex-shrink: 0;
+  padding: 16px 48px 12px 20px;
+  border-bottom: 1px solid #4a5d6d;
+  text-align: left;
+}
+
+.reportDialogTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #f9fafa;
+}
+
+.reportDialogBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  background: #0a0f14;
+}
+
+.reportFrame {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: #fff;
+}
+
+.reportDialogMessage {
+  margin: 0;
+  padding: 24px 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #97a2ab;
+  text-align: center;
+}
+
+.reportDialogError {
+  color: #fca5a5;
+}
+
 .headerLeft {
   display: flex;
   align-items: center;
@@ -57,6 +146,49 @@
   align-items: flex-end;
   gap: 16px;
   width: 100%;
+}
+
+.teamRow {
+  display: flex;
+  align-self: stretch;
+  width: 100%;
+}
+
+.teamField {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 4px;
+  max-width: calc((100% - 16px) / 2);
+  min-width: 0;
+}
+
+.teamSelectTrigger {
+  display: flex;
+  height: 44px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  background: #152534;
+  color: #97a2ab;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 0 16px;
+}
+
+.teamSelectTrigger[data-placeholder] {
+  color: #97a2ab;
+}
+
+.teamSelectContent {
+  background: #152534;
+  border: 1px solid #4a5d6d;
+}
+
+.teamSelectItem {
+  color: #f9fafa;
 }
 
 .periodLabel {
@@ -311,6 +443,55 @@
   cursor: not-allowed;
 }
 
+.commentReadOnlyCard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  border: 1px solid #4a5d6d;
+  border-left: 3px solid #402c4c;
+  border-radius: 8px;
+  background: #101d28;
+}
+
+.commentReadOnlyHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.commentReadOnlyIcon {
+  flex-shrink: 0;
+  color: #749abd;
+}
+
+.commentReadOnlyLabel {
+  color: #97a2ab;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.commentReadOnlyBody {
+  margin: 0;
+  color: #f9fafa;
+  font-size: 14px;
+  line-height: 22px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.commentReadOnlyEmpty {
+  margin: 0;
+  color: #97a2ab;
+  font-size: 14px;
+  line-height: 20px;
+  font-style: italic;
+}
+
 @media (max-width: 900px) {
   .periodRow {
     flex-direction: column;
@@ -318,6 +499,10 @@
 
   .periodGroup {
     width: 100%;
+  }
+
+  .teamField {
+    max-width: 100%;
   }
 
   .timeInput {

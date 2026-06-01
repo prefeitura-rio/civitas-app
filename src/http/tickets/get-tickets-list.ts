@@ -6,8 +6,8 @@ export type GetTicketsParams = {
 
 export type GetTicketsResponse = Array<{
   id: string
-  criado_em: string
-  titulo: string
+  created_at: string
+  title: string
 }>
 
 export async function getTicketsSelect({ search }: GetTicketsParams) {

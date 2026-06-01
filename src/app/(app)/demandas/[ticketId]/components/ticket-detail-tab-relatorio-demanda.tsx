@@ -3,8 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   type ChangeEvent,
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
 } from 'react'
@@ -22,6 +24,7 @@ import {
   RichToolbar,
   sanitizeTicketHtml,
 } from './ticket-detail-rich-text'
+import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp'
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -59,18 +62,29 @@ function insertNodeAtCaret(editor: HTMLElement, node: Node) {
   }
 }
 
-export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
+export const TicketDetailTabRelatorioDemanda = forwardRef<
+  TicketDetailTabHandle,
+  Props
+>(function TicketDetailTabRelatorioDemanda({ ticketId }, ref) {
   const queryClient = useQueryClient()
   const editorRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const pendingByBlobRef = useRef<Map<string, File>>(new Map())
   const [empty, setEmpty] = useState(true)
   const [dirty, setDirty] = useState(false)
+  const dirtyRef = useRef(dirty)
+  const reportDataRef = useRef<
+    Awaited<ReturnType<typeof getTicketRelatorioDemanda>> | undefined
+  >(undefined)
+
+  dirtyRef.current = dirty
 
   const reportQuery = useQuery({
     queryKey: REPORT_QUERY_KEY(ticketId),
     queryFn: () => getTicketRelatorioDemanda(ticketId),
   })
+
+  reportDataRef.current = reportQuery.data
 
   const syncEmpty = useCallback(() => {
     const el = editorRef.current
@@ -94,22 +108,36 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
     }
   }, [])
 
+  const resetEditorFromServer = useCallback(() => {
+    pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
+    pendingByBlobRef.current.clear()
+    const html =
+      reportDataRef.current?.html_content != null
+        ? reportDataRef.current.html_content
+        : ''
+    if (editorRef.current) {
+      editorRef.current.innerHTML = sanitizeTicketHtml(html)
+      syncEmpty()
+    }
+    setDirty(false)
+  }, [syncEmpty])
+
   useEffect(() => {
     if (reportQuery.isLoading || !editorRef.current) return
     if (reportQuery.isError) return
     if (dirty) return
 
     const html =
-      reportQuery.data?.conteudo_html != null
-        ? reportQuery.data.conteudo_html
+      reportQuery.data?.html_content != null
+        ? reportQuery.data.html_content
         : ''
     editorRef.current.innerHTML = sanitizeTicketHtml(html)
     syncEmpty()
   }, [
     reportQuery.isLoading,
     reportQuery.isError,
-    reportQuery.data?.conteudo_html,
-    reportQuery.data?.atualizado_em,
+    reportQuery.data?.html_content,
+    reportQuery.data?.updated_at,
     dirty,
     syncEmpty,
   ])
@@ -154,7 +182,7 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
     }
 
     const conteudoHtml = sanitizeTicketHtml(clone.innerHTML)
-    return { conteudo_html: conteudoHtml, files }
+    return { html_content: conteudoHtml, files }
   }, [])
 
   const saveMutation = useMutation({
@@ -163,7 +191,7 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
       if (!body) throw new Error('Editor indisponível.')
       return putTicketRelatorioDemanda(
         ticketId,
-        { conteudo_html: body.conteudo_html },
+        { html_content: body.html_content },
         body.files,
       )
     },
@@ -173,7 +201,7 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
       queryClient.setQueryData(REPORT_QUERY_KEY(ticketId), data)
       if (editorRef.current) {
         editorRef.current.innerHTML = sanitizeTicketHtml(
-          data.conteudo_html || '',
+          data.html_content || '',
         )
         syncEmpty()
       }
@@ -189,6 +217,31 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
       )
     },
   })
+
+  const saveReport = useCallback(async (): Promise<boolean> => {
+    const body = buildSaveBody()
+    if (!body) return false
+    if (isHtmlEffectivelyEmpty(body.html_content) && body.files.length === 0) {
+      toast.error('Escreva o relatório ou insira uma imagem antes de gravar.')
+      return false
+    }
+    try {
+      await saveMutation.mutateAsync()
+      return true
+    } catch {
+      return false
+    }
+  }, [buildSaveBody, saveMutation])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      isDirty: () => dirtyRef.current,
+      save: saveReport,
+      discard: resetEditorFromServer,
+    }),
+    [resetEditorFromServer, saveReport],
+  )
 
   const openImagePicker = useCallback(() => {
     fileInputRef.current?.click()
@@ -228,13 +281,7 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
   )
 
   const handleSave = () => {
-    const body = buildSaveBody()
-    if (!body) return
-    if (isHtmlEffectivelyEmpty(body.conteudo_html) && body.files.length === 0) {
-      toast.error('Escreva o relatório ou insira uma imagem antes de gravar.')
-      return
-    }
-    saveMutation.mutate()
+    saveReport().catch(() => {})
   }
 
   if (reportQuery.isLoading) {
@@ -309,4 +356,4 @@ export function TicketDetailTabRelatorioDemanda({ ticketId }: Props) {
       />
     </div>
   )
-}
+})

@@ -9,7 +9,7 @@ export type TicketServicoIndiceItem = {
 
 export async function getTicketServicosIndice(ticketId: string) {
   const { data } = await api.get<TicketServicoIndiceItem[]>(
-    `/tickets/${encodeURIComponent(ticketId)}/servicos/indice`,
+    `/tickets/${encodeURIComponent(ticketId)}/services/index`,
   )
   return data ?? []
 }

@@ -2,7 +2,7 @@ export const TICKET_DETAIL_BASE_TAB_IDS = [
   'solicitante',
   'chamado',
   'documentos',
-  'servicos',
+  'services',
   'parecer_interno',
   'relatorio_demanda',
   'historico',
@@ -19,7 +19,7 @@ export const TICKET_DETAIL_BASE_TABS: {
   { id: 'solicitante', label: 'Solicitante' },
   { id: 'chamado', label: 'Demanda' },
   { id: 'documentos', label: 'Documentos Recebidos' },
-  { id: 'servicos', label: 'Serviços e Documentos Elaborados' },
+  { id: 'services', label: 'Serviços e Documentos Elaborados' },
   { id: 'parecer_interno', label: 'Parecer Interno' },
   { id: 'relatorio_demanda', label: 'Relatório de Demanda' },
   { id: 'historico', label: 'Histórico' },
@@ -28,6 +28,27 @@ export const TICKET_DETAIL_BASE_TABS: {
 export const TICKET_RESPOSTA_TAB = {
   id: 'resposta' as const,
   label: 'Resposta',
+}
+
+export const TICKET_DETAIL_UNSAVED_GUARD_TAB_IDS = [
+  'solicitante',
+  'chamado',
+  'services',
+  'parecer_interno',
+  'relatorio_demanda',
+] as const
+
+export type TicketDetailUnsavedGuardTabId =
+  (typeof TICKET_DETAIL_UNSAVED_GUARD_TAB_IDS)[number]
+
+const UNSAVED_GUARD_TAB_SET = new Set<string>(
+  TICKET_DETAIL_UNSAVED_GUARD_TAB_IDS,
+)
+
+export function isTicketDetailUnsavedGuardTab(
+  tabId: string,
+): tabId is TicketDetailUnsavedGuardTabId {
+  return UNSAVED_GUARD_TAB_SET.has(tabId)
 }
 
 const RESPOSTA_TAB_VISIBLE_IDS = new Set([

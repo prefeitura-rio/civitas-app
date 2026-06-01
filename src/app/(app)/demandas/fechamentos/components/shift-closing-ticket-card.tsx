@@ -29,7 +29,7 @@ function formatPriority(priority: string | null | undefined) {
   if (value === 'URGENTE') return 'Urgente'
   if (value === 'ALTA') return 'Alta'
   if (value === 'ROTINA') return 'Rotina'
-  if (value === 'SEM PRIORIDADE') return 'Sem prioridade'
+  if (value === 'SEM PRIORIDADE') return 'Sem priority'
   return priority?.trim() || '—'
 }
 

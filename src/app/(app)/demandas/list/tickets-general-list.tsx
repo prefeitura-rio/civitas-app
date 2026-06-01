@@ -42,17 +42,17 @@ const SEARCH_TOOLTIP_TEXT =
 
 type DashboardItem = {
   id: string
-  numero_interno: number
-  chamado: string
-  data_criacao?: string | null
+  internal_number: number
+  ticket: string
+  created_at?: string | null
   status: string
-  demandante: string
-  equipe?: string | null
-  responsavel: string
-  prioridade: string
-  dias_atraso: number
-  servicos: DashboardServiceTag[]
-  tipo_chamado_nome?: string | null
+  requester_operation: string
+  team?: string | null
+  assignee: string
+  priority: string
+  overdue_days: number
+  services: DashboardServiceTag[]
+  ticket_type_name?: string | null
 }
 
 type DashboardSection = {
@@ -61,14 +61,13 @@ type DashboardSection = {
 }
 
 type TicketDashboardResponse = {
-  pendentes: DashboardSection | null
-  restritos: DashboardSection | null
-  aguardando_revisao_adjunto: DashboardSection | null
-  aguardando_revisao_administrativo: DashboardSection | null
-  bloqueados: DashboardSection | null
-  concluidos_total: number
-  urgentes: DashboardSection | null
-  em_atraso: DashboardSection | null
+  pending: DashboardSection | null
+  restricted: DashboardSection | null
+  awaiting_adjunct_review: DashboardSection | null
+  awaiting_administrative_review: DashboardSection | null
+  blocked: DashboardSection | null
+  urgent: DashboardSection | null
+  overdue: DashboardSection | null
   total: number
   period_days: number
   overdue_after_days: number
@@ -80,11 +79,11 @@ type PeriodOption = {
 }
 
 type SectionKey =
-  | 'pendentes'
-  | 'restritos'
-  | 'aguardando_revisao_adjunto'
-  | 'aguardando_revisao_administrativo'
-  | 'bloqueados'
+  | 'pending'
+  | 'restricted'
+  | 'awaiting_adjunct_review'
+  | 'awaiting_administrative_review'
+  | 'blocked'
 
 type SectionConfig = {
   key: SectionKey
@@ -100,14 +99,14 @@ const periodOptions: PeriodOption[] = [
 ]
 
 const sections: SectionConfig[] = [
-  { key: 'pendentes', label: 'PENDENTE' },
-  { key: 'restritos', label: 'RESTRITO' },
-  { key: 'aguardando_revisao_adjunto', label: 'AGUARDANDO REVISÃO ADJUNTO' },
+  { key: 'pending', label: 'PENDENTE' },
+  { key: 'restricted', label: 'RESTRITO' },
+  { key: 'awaiting_adjunct_review', label: 'AGUARDANDO REVISÃO ADJUNTO' },
   {
-    key: 'aguardando_revisao_administrativo',
+    key: 'awaiting_administrative_review',
     label: 'AGUARDANDO REVISÃO ADMINISTRATIVO',
   },
-  { key: 'bloqueados', label: 'BLOQUEADO' },
+  { key: 'blocked', label: 'BLOQUEADO' },
 ]
 
 function escapeCsvCell(value: string): string {
@@ -128,16 +127,16 @@ function triggerCsvDownload(csv: string, filename: string) {
 }
 
 function formatDashboardDataCriacao(item: DashboardItem): string {
-  const raw = item.data_criacao?.trim()
+  const raw = item.created_at?.trim()
   return raw && raw.length > 0 ? raw : '—'
 }
 
 function formatDashboardServicos(item: DashboardItem): string {
-  return item.servicos.map((s) => s.label).join('; ')
+  return item.services.map((s) => s.label).join('; ')
 }
 
 function formatDashboardPriorityCell(item: DashboardItem): string {
-  return normalizePriority(item.prioridade) ?? item.prioridade?.trim() ?? ''
+  return normalizePriority(item.priority) ?? item.priority?.trim() ?? ''
 }
 
 function collectDashboardExportRows(
@@ -167,11 +166,11 @@ function buildDashboardCsv(rows: DashboardItem[]): string {
   const body = rows
     .map((item) =>
       [
-        item.chamado,
+        item.ticket,
         formatDashboardDataCriacao(item),
-        item.demandante,
-        item.equipe?.trim() || '-',
-        item.responsavel,
+        item.requester_operation,
+        item.team?.trim() || '-',
+        item.assignee,
         formatDashboardServicos(item),
         formatDashboardPriorityCell(item),
       ]
@@ -193,10 +192,10 @@ function normalizePriority(priority: string) {
 }
 
 function getPriorityBadgeValue(item: DashboardItem) {
-  return item.dias_atraso > 0 ? item.dias_atraso : null
+  return item.overdue_days > 0 ? item.overdue_days : null
 }
 
-/** Cores do count ao lado da prioridade: 1–15 verde, 16–24 amarelo, ≥25 vermelho */
+/** Cores do count ao lado da priority: 1–15 verde, 16–24 amarelo, ≥25 vermelho */
 function getPriorityCountBadgeClass(count: number) {
   if (count <= 15) return styles.prioritySuccessBadge
   if (count <= 24) return styles.priorityWarningBadge
@@ -204,7 +203,7 @@ function getPriorityCountBadgeClass(count: number) {
 }
 
 function isLevantamentoPrevioTipo(item: DashboardItem) {
-  return item.tipo_chamado_nome?.trim() === LEVANTAMENTO_PREVIO_TIPO_NOME
+  return item.ticket_type_name?.trim() === LEVANTAMENTO_PREVIO_TIPO_NOME
 }
 
 function getServiceClassName(label: string) {
@@ -229,7 +228,8 @@ function getServiceClassName(label: string) {
     return styles.serviceTagBlue
   if (normalized.includes('placas correlatas')) return styles.serviceTagOrange
   if (normalized.includes('placas conjuntas')) return styles.serviceTagPurple
-  if (normalized.includes('outros')) return styles.serviceTagRed
+  if (normalized.includes('other')) return styles.serviceTagRed
+  if (normalized.includes('atlas')) return styles.serviceTagDefault
 
   return styles.serviceTagDefault
 }
@@ -279,9 +279,9 @@ function DashboardSectionTable({
 
             <tbody>
               {items.map((item) => {
-                const previewLabels = item.servicos.slice(0, 2)
+                const previewLabels = item.services.slice(0, 2)
                 const extraCount = Math.max(
-                  item.servicos.length - previewLabels.length,
+                  item.services.length - previewLabels.length,
                   0,
                 )
                 const badgeValue = getPriorityBadgeValue(item)
@@ -293,14 +293,12 @@ function DashboardSectionTable({
                         href={`/demandas/${encodeURIComponent(item.id)}`}
                         className={styles.chamadoLink}
                       >
-                        {item.chamado}
+                        {item.ticket}
                       </Link>
                     </td>
-                    <td>
-                      {item.data_criacao?.trim() ? item.data_criacao : '—'}
-                    </td>
-                    <td>{item.demandante}</td>
-                    <td>{item.equipe || '-'}</td>
+                    <td>{item.created_at?.trim() ? item.created_at : '—'}</td>
+                    <td>{item.requester_operation}</td>
+                    <td>{item.team || '-'}</td>
                     <td>
                       <div className={styles.responsavelCell}>
                         {showWarningIcon ? (
@@ -324,7 +322,7 @@ function DashboardSectionTable({
                             </span>
                           </Tooltip>
                         ) : null}
-                        <span>{item.responsavel}</span>
+                        <span>{item.assignee}</span>
                       </div>
                     </td>
                     <td>
@@ -350,7 +348,7 @@ function DashboardSectionTable({
 
                             <div className={styles.extraTooltip}>
                               <div className={styles.extraTooltipContent}>
-                                {item.servicos
+                                {item.services
                                   .slice(2)
                                   .map((service, index) => (
                                     <span
@@ -380,7 +378,7 @@ function DashboardSectionTable({
                           </span>
                         ) : null}
                         <span className={styles.priorityLabel}>
-                          {normalizePriority(item.prioridade)}
+                          {normalizePriority(item.priority)}
                         </span>
                       </div>
                     </td>
@@ -407,11 +405,11 @@ export function TicketsGeneralList() {
 
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>(
     {
-      pendentes: true,
-      restritos: true,
-      aguardando_revisao_adjunto: true,
-      aguardando_revisao_administrativo: true,
-      bloqueados: true,
+      pending: true,
+      restricted: true,
+      awaiting_adjunct_review: true,
+      awaiting_administrative_review: true,
+      blocked: true,
     },
   )
 
@@ -421,38 +419,40 @@ export function TicketsGeneralList() {
       overdue_after_days: 7,
       search: debouncedSearch.trim() || undefined,
 
-      tipo_chamado_id: appliedFilters.tipo_chamado_id.map((item) => item.value),
-      numero_interno: appliedFilters.numero_interno.map((item) =>
+      ticket_type_id: appliedFilters.ticket_type_id.map((item) => item.value),
+      internal_number: appliedFilters.internal_number.map((item) =>
         Number(item.value),
       ),
-      numero_procedimento: appliedFilters.numero_procedimento.map(
+      procedure_number: appliedFilters.procedure_number.map(
         (item) => item.value,
       ),
-      numero_oficio: appliedFilters.numero_oficio.map((item) => item.value),
-      natureza_id: appliedFilters.natureza_id.map((item) => item.value),
-      demandante_id: appliedFilters.demandante_id.map((item) => item.value),
-      requisitante: appliedFilters.requisitante.length
-        ? appliedFilters.requisitante.map((item) => item.value)
+      official_letter_number: appliedFilters.official_letter_number.map(
+        (item) => item.value,
+      ),
+      nature_id: appliedFilters.nature_id.map((item) => item.value),
+      operation_id: appliedFilters.operation_id.map((item) => item.value),
+      requester: appliedFilters.requester.length
+        ? appliedFilters.requester.map((item) => item.value)
         : undefined,
-      responsavel_id: appliedFilters.responsavel_id.length
-        ? appliedFilters.responsavel_id.map((item) => item.value)
+      assignee_id: appliedFilters.assignee_id.length
+        ? appliedFilters.assignee_id.map((item) => item.value)
         : undefined,
-      ponto_focal: appliedFilters.ponto_focal.map((item) => item.value),
+      focal_point: appliedFilters.focal_point.map((item) => item.value),
 
-      data_base_inicio: appliedFilters.data_base_inicio || undefined,
-      data_base_fim: appliedFilters.data_base_fim || undefined,
-      data_entrada_inicio: appliedFilters.data_entrada_inicio || undefined,
-      data_entrada_fim: appliedFilters.data_entrada_fim || undefined,
+      base_date_start: appliedFilters.base_date_start || undefined,
+      base_date_end: appliedFilters.base_date_end || undefined,
+      entry_date_start: appliedFilters.entry_date_start || undefined,
+      entry_date_end: appliedFilters.entry_date_end || undefined,
 
       status: appliedFilters.status.length ? appliedFilters.status : undefined,
-      prioridade: appliedFilters.prioridade.length
-        ? appliedFilters.prioridade.map((item) => item.value)
+      priority: appliedFilters.priority.length
+        ? appliedFilters.priority.map((item) => item.value)
         : undefined,
-      equipe: appliedFilters.equipe.length
-        ? appliedFilters.equipe.map((item) => item.value)
+      team: appliedFilters.team.length
+        ? appliedFilters.team.map((item) => item.value)
         : undefined,
-      servicos: appliedFilters.servicos.length
-        ? appliedFilters.servicos.map((item) => item.value)
+      services: appliedFilters.services.length
+        ? appliedFilters.services.map((item) => item.value)
         : undefined,
     }
   }, [appliedFilters, periodDays, debouncedSearch])
@@ -465,40 +465,38 @@ export function TicketsGeneralList() {
   })
 
   const cards = useMemo(() => {
-    const list: { value: number; label: string }[] = [
-      { value: data?.concluidos_total ?? 0, label: 'Concluídos' },
-    ]
-    if (data?.urgentes != null) {
-      list.push({ value: data.urgentes.total, label: 'Urgentes' })
+    const list: { value: number; label: string }[] = []
+    if (data?.urgent != null) {
+      list.push({ value: data.urgent.total, label: 'Urgentes' })
     }
-    if (data?.em_atraso != null) {
-      list.push({ value: data.em_atraso.total, label: 'Em atraso' })
+    if (data?.overdue != null) {
+      list.push({ value: data.overdue.total, label: 'Em atraso' })
     }
-    if (data?.bloqueados != null) {
-      list.push({ value: data.bloqueados.total, label: 'Bloqueados' })
+    if (data?.blocked != null) {
+      list.push({ value: data.blocked.total, label: 'Bloqueados' })
     }
     return list
   }, [data])
 
   const activeFiltersCount = useMemo(() => {
     return [
-      appliedFilters.tipo_chamado_id.length,
-      appliedFilters.numero_interno.length,
-      appliedFilters.numero_procedimento.length,
-      appliedFilters.numero_oficio.length,
-      appliedFilters.natureza_id.length,
-      appliedFilters.demandante_id.length,
-      appliedFilters.requisitante.length,
-      appliedFilters.responsavel_id.length,
-      appliedFilters.ponto_focal.length,
+      appliedFilters.ticket_type_id.length,
+      appliedFilters.internal_number.length,
+      appliedFilters.procedure_number.length,
+      appliedFilters.official_letter_number.length,
+      appliedFilters.nature_id.length,
+      appliedFilters.operation_id.length,
+      appliedFilters.requester.length,
+      appliedFilters.assignee_id.length,
+      appliedFilters.focal_point.length,
       appliedFilters.status.length,
-      appliedFilters.prioridade.length,
-      appliedFilters.equipe.length,
-      appliedFilters.servicos.length,
-      appliedFilters.data_base_inicio ? 1 : 0,
-      appliedFilters.data_base_fim ? 1 : 0,
-      appliedFilters.data_entrada_inicio ? 1 : 0,
-      appliedFilters.data_entrada_fim ? 1 : 0,
+      appliedFilters.priority.length,
+      appliedFilters.team.length,
+      appliedFilters.services.length,
+      appliedFilters.base_date_start ? 1 : 0,
+      appliedFilters.base_date_end ? 1 : 0,
+      appliedFilters.entry_date_start ? 1 : 0,
+      appliedFilters.entry_date_end ? 1 : 0,
     ].reduce((acc, value) => acc + value, 0)
   }, [appliedFilters])
 
@@ -636,7 +634,7 @@ export function TicketsGeneralList() {
                     items={block.items}
                     isOpen={openSections[section.key]}
                     onToggle={() => toggleSection(section.key)}
-                    showWarningIcon={section.key === 'bloqueados'}
+                    showWarningIcon={section.key === 'blocked'}
                   />
                 )
               })}

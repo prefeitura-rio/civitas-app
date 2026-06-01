@@ -17,26 +17,28 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { maskPlateBR } from '@/utils/string-formatters'
+import { formatCPF, maskPlateBR } from '@/utils/string-formatters'
 
 import {
   type CorrelataDraft,
   type CorrelataDraftItem,
   emptyAnaliseImagemDraft,
+  emptyAtlasCivitasDraft,
   emptyBuscaPorImagemDraft,
-  emptyCercoDraft,
   emptyCorrelataDraft,
   emptyCorrelataItem,
   emptyOutrosDraft,
   emptyReservaImagemDraft,
   normalizeBuscaPorPlacaForForm,
   normalizeBuscaPorRadarForForm,
+  normalizeCercoForForm,
   type OpenServiceKey,
   SERVICE_CONFIG,
 } from '../../ticket-create/ticket-create.constant'
 import styles from '../../ticket-create/ticket-create-form.module.css'
 import {
   serviceAnaliseDeImagemSchema,
+  serviceAtlasCivitasSchema,
   serviceBuscaPorImagemSchema,
   serviceBuscaPorPlacaSchema,
   serviceBuscaPorRadarSchema,
@@ -55,50 +57,55 @@ type Props = {
   editIndex: number | null
   closeServiceModal: () => void
 
-  initialBuscaPorPlaca?: TicketCreateForm['busca_por_placa'][number]
-  initialBuscaPorRadar?: TicketCreateForm['busca_por_radar'][number]
-  initialCerco?: TicketCreateForm['cerco_eletronico'][number]
-  initialBuscaPorImagem?: TicketCreateForm['busca_por_imagem'][number]
-  initialPlacasCorrelatas?: TicketCreateForm['placas_correlatas'][number]
-  initialPlacasConjuntas?: TicketCreateForm['placas_conjuntas'][number]
-  initialReservaImagem?: TicketCreateForm['reserva_de_imagem'][number]
-  initialAnaliseImagem?: TicketCreateForm['analise_de_imagem'][number]
-  initialOutros?: TicketCreateForm['outros'][number]
+  initialBuscaPorPlaca?: TicketCreateForm['plate_search'][number]
+  initialBuscaPorRadar?: TicketCreateForm['radar_search'][number]
+  initialCerco?: TicketCreateForm['electronic_fence'][number]
+  initialBuscaPorImagem?: TicketCreateForm['image_search'][number]
+  initialPlacasCorrelatas?: TicketCreateForm['correlated_plates'][number]
+  initialPlacasConjuntas?: TicketCreateForm['joint_plates'][number]
+  initialReservaImagem?: TicketCreateForm['image_reservation'][number]
+  initialAnaliseImagem?: TicketCreateForm['image_analysis'][number]
+  initialOutros?: TicketCreateForm['other'][number]
+  initialAtlasCivitas?: TicketCreateForm['atlas_civitas'][number]
 
   onSaveBuscaPorPlaca: (
-    value: TicketCreateForm['busca_por_placa'][number],
+    value: TicketCreateForm['plate_search'][number],
     editIndex: number | null,
   ) => void
   onSaveBuscaPorRadar: (
-    value: TicketCreateForm['busca_por_radar'][number],
+    value: TicketCreateForm['radar_search'][number],
     editIndex: number | null,
   ) => void
   onSaveCerco: (
-    value: TicketCreateForm['cerco_eletronico'][number],
+    value: TicketCreateForm['electronic_fence'][number],
     editIndex: number | null,
   ) => void
   onSaveBuscaPorImagem: (
-    value: TicketCreateForm['busca_por_imagem'][number],
+    value: TicketCreateForm['image_search'][number],
     editIndex: number | null,
   ) => void
   onSavePlacasCorrelatas: (
-    value: TicketCreateForm['placas_correlatas'][number],
+    value: TicketCreateForm['correlated_plates'][number],
     editIndex: number | null,
   ) => void
   onSavePlacasConjuntas: (
-    value: TicketCreateForm['placas_conjuntas'][number],
+    value: TicketCreateForm['joint_plates'][number],
     editIndex: number | null,
   ) => void
   onSaveReservaImagem: (
-    value: TicketCreateForm['reserva_de_imagem'][number],
+    value: TicketCreateForm['image_reservation'][number],
     editIndex: number | null,
   ) => void
   onSaveAnaliseImagem: (
-    value: TicketCreateForm['analise_de_imagem'][number],
+    value: TicketCreateForm['image_analysis'][number],
     editIndex: number | null,
   ) => void
   onSaveOutros: (
-    value: TicketCreateForm['outros'][number],
+    value: TicketCreateForm['other'][number],
+    editIndex: number | null,
+  ) => void
+  onSaveAtlasCivitas: (
+    value: TicketCreateForm['atlas_civitas'][number],
     editIndex: number | null,
   ) => void
 
@@ -121,7 +128,7 @@ export function ServiceModal(props: Props) {
 
   const formNodes = (
     <>
-      {serviceModalOpen === 'busca_por_placa' && (
+      {serviceModalOpen === 'plate_search' && (
         <BuscaPorPlacaForm
           initialValue={props.initialBuscaPorPlaca}
           editIndex={editIndex}
@@ -131,7 +138,7 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'busca_por_radar' && (
+      {serviceModalOpen === 'radar_search' && (
         <BuscaPorRadarForm
           initialValue={props.initialBuscaPorRadar}
           editIndex={editIndex}
@@ -141,7 +148,7 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'cerco_eletronico' && (
+      {serviceModalOpen === 'electronic_fence' && (
         <CercoForm
           initialValue={props.initialCerco}
           editIndex={editIndex}
@@ -151,7 +158,7 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'busca_por_imagem' && (
+      {serviceModalOpen === 'image_search' && (
         <BuscaPorImagemForm
           initialValue={props.initialBuscaPorImagem}
           editIndex={editIndex}
@@ -161,7 +168,7 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'placas_correlatas' && (
+      {serviceModalOpen === 'correlated_plates' && (
         <PlacasCorrelatasForm
           initialValue={props.initialPlacasCorrelatas}
           editIndex={editIndex}
@@ -171,7 +178,7 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'placas_conjuntas' && (
+      {serviceModalOpen === 'joint_plates' && (
         <PlacasConjuntasForm
           initialValue={props.initialPlacasConjuntas}
           editIndex={editIndex}
@@ -181,7 +188,7 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'reserva_de_imagem' && (
+      {serviceModalOpen === 'image_reservation' && (
         <ReservaImagemForm
           initialValue={props.initialReservaImagem}
           editIndex={editIndex}
@@ -191,7 +198,7 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'analise_de_imagem' && (
+      {serviceModalOpen === 'image_analysis' && (
         <AnaliseImagemForm
           initialValue={props.initialAnaliseImagem}
           editIndex={editIndex}
@@ -201,12 +208,22 @@ export function ServiceModal(props: Props) {
         />
       )}
 
-      {serviceModalOpen === 'outros' && (
+      {serviceModalOpen === 'other' && (
         <OutrosForm
           initialValue={props.initialOutros}
           editIndex={editIndex}
           onCancel={closeServiceModal}
           onSave={props.onSaveOutros}
+          readOnly={readOnly}
+        />
+      )}
+
+      {serviceModalOpen === 'atlas_civitas' && (
+        <AtlasCivitasForm
+          initialValue={props.initialAtlasCivitas}
+          editIndex={editIndex}
+          onCancel={closeServiceModal}
+          onSave={props.onSaveAtlasCivitas}
           readOnly={readOnly}
         />
       )}
@@ -302,40 +319,29 @@ function normalizePlatesMaskedForRadar(
   }
 }
 
-function normalizeCercoPlateForForm(
-  initial?: TicketCreateForm['cerco_eletronico'][number],
+function normalizePlatesMaskedForCerco(
+  initial: ReturnType<typeof normalizeCercoForForm>,
 ) {
-  const base = initial ?? {
-    ...emptyCercoDraft(),
-    vehicle_observations: null,
-  }
   return {
-    ...base,
-    plate:
-      base.plate != null && String(base.plate).trim() !== ''
-        ? maskPlateBR(String(base.plate))
-        : '',
+    ...initial,
+    plates: initial.plates.map((p) => maskPlateBR(p)),
   }
 }
 
-function normalizeBuscaPorImagemPlateForForm(
-  initial?: TicketCreateForm['busca_por_imagem'][number],
+function normalizeBuscaPorImagemForForm(
+  initial?: TicketCreateForm['image_search'][number],
 ) {
   const base = initial ?? {
     ...emptyBuscaPorImagemDraft(),
     period_start: null,
     period_end: null,
-    plate: null,
-    address: null,
+    addresses: [],
     description: null,
     cameras: [],
   }
   return {
     ...base,
-    plate:
-      base.plate != null && String(base.plate).trim() !== ''
-        ? maskPlateBR(String(base.plate))
-        : '',
+    addresses: base.addresses ?? [],
     cameras: base.cameras ?? [],
   }
 }
@@ -346,8 +352,8 @@ function BuscaPorPlacaForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['busca_por_placa'][number]>) {
-  const form = useForm<TicketCreateForm['busca_por_placa'][number]>({
+}: SimpleFormProps<TicketCreateForm['plate_search'][number]>) {
+  const form = useForm<TicketCreateForm['plate_search'][number]>({
     resolver: zodResolver(serviceBuscaPorPlacaSchema),
     defaultValues: normalizePlatesMaskedForBusca(
       normalizeBuscaPorPlacaForForm(initialValue),
@@ -472,8 +478,8 @@ function BuscaPorRadarForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['busca_por_radar'][number]>) {
-  const form = useForm<TicketCreateForm['busca_por_radar'][number]>({
+}: SimpleFormProps<TicketCreateForm['radar_search'][number]>) {
+  const form = useForm<TicketCreateForm['radar_search'][number]>({
     resolver: zodResolver(serviceBuscaPorRadarSchema),
     defaultValues: normalizePlatesMaskedForRadar(
       normalizeBuscaPorRadarForForm(initialValue),
@@ -616,19 +622,37 @@ function CercoForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['cerco_eletronico'][number]>) {
-  const form = useForm<TicketCreateForm['cerco_eletronico'][number]>({
+}: SimpleFormProps<TicketCreateForm['electronic_fence'][number]>) {
+  const form = useForm<TicketCreateForm['electronic_fence'][number]>({
     resolver: zodResolver(serviceCercoSchema),
-    defaultValues: normalizeCercoPlateForForm(initialValue),
+    defaultValues: normalizePlatesMaskedForCerco(
+      normalizeCercoForForm(initialValue),
+    ),
   })
 
   useEffect(() => {
-    form.reset(normalizeCercoPlateForForm(initialValue))
+    form.reset(
+      normalizePlatesMaskedForCerco(normalizeCercoForForm(initialValue)),
+    )
   }, [initialValue, form])
 
   const {
     formState: { errors },
   } = form
+
+  const plates = form.watch('plates') ?? []
+
+  const addPlate = () => {
+    form.setValue('plates', [...plates, ''], { shouldValidate: true })
+  }
+
+  const removePlate = (index: number) => {
+    form.setValue(
+      'plates',
+      plates.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
 
   return (
     <form
@@ -645,29 +669,52 @@ function CercoForm({
       >
         <div className={styles.serviceModalBody}>
           <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Placa do veículo</Label>
-              <Controller
-                control={form.control}
-                name="plate"
-                render={({ field }) => (
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(maskPlateBR(e.target.value))
-                    }
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Placas do veículo</Label>
+              {plates.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`plates.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        value={field.value ?? ''}
+                        onChange={(e) =>
+                          field.onChange(maskPlateBR(e.target.value))
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.plate?.message && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removePlate(index)}
+                    title="Remover placa"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {errors.plates?.message && (
                 <p className="text-xs text-destructive">
-                  {errors.plate.message}
+                  {errors.plates.message}
                 </p>
               )}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addPlate}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar placa
+                </button>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -699,14 +746,14 @@ function BuscaPorImagemForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['busca_por_imagem'][number]>) {
-  const form = useForm<TicketCreateForm['busca_por_imagem'][number]>({
+}: SimpleFormProps<TicketCreateForm['image_search'][number]>) {
+  const form = useForm<TicketCreateForm['image_search'][number]>({
     resolver: zodResolver(serviceBuscaPorImagemSchema),
-    defaultValues: normalizeBuscaPorImagemPlateForForm(initialValue),
+    defaultValues: normalizeBuscaPorImagemForForm(initialValue),
   })
 
   useEffect(() => {
-    form.reset(normalizeBuscaPorImagemPlateForForm(initialValue))
+    form.reset(normalizeBuscaPorImagemForForm(initialValue))
   }, [initialValue, form])
 
   const {
@@ -723,6 +770,20 @@ function BuscaPorImagemForm({
     form.setValue(
       'cameras',
       cameras.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
+  const addresses = form.watch('addresses') ?? []
+
+  const addAddress = () => {
+    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+  }
+
+  const removeAddress = (index: number) => {
+    form.setValue(
+      'addresses',
+      addresses.filter((_, i) => i !== index),
       { shouldValidate: true },
     )
   }
@@ -759,42 +820,46 @@ function BuscaPorImagemForm({
               </p>
             )}
 
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Placa do veículo</Label>
-              <Controller
-                control={form.control}
-                name="plate"
-                render={({ field }) => (
-                  <Input
-                    className={`h-11 ${styles.inputBg}`}
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(maskPlateBR(e.target.value))
-                    }
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Endereços</Label>
+              {addresses.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`addresses.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Endereço"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.plate?.message && (
-                <p className="text-xs text-destructive">
-                  {errors.plate.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className={styles.fieldLabel}>Endereço</Label>
-              <Input
-                className={`h-11 ${styles.inputBg}`}
-                {...form.register('address')}
-              />
-              {errors.address?.message && (
-                <p className="text-xs text-destructive">
-                  {errors.address.message}
-                </p>
-              )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeAddress(index)}
+                    title="Remover endereço"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addAddress}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar endereço
+                </button>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -867,8 +932,8 @@ function strFromForm(v: string | null | undefined) {
 
 function toCorrelataDraft(
   value?:
-    | TicketCreateForm['placas_correlatas'][number]
-    | TicketCreateForm['placas_conjuntas'][number],
+    | TicketCreateForm['correlated_plates'][number]
+    | TicketCreateForm['joint_plates'][number],
 ): CorrelataDraft {
   const legacyItems = (
     value as {
@@ -912,7 +977,7 @@ function toCorrelataDraft(
 
 function fromCorrelataDraft(
   draft: CorrelataDraft,
-): TicketCreateForm['placas_correlatas'][number] {
+): TicketCreateForm['correlated_plates'][number] {
   return {
     period_start: draft.period_start?.trim() ? draft.period_start : null,
     period_end: draft.period_end?.trim() ? draft.period_end : null,
@@ -931,8 +996,8 @@ function PlacasCorrelatasForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['placas_correlatas'][number]>) {
-  const form = useForm<TicketCreateForm['placas_correlatas'][number]>({
+}: SimpleFormProps<TicketCreateForm['correlated_plates'][number]>) {
+  const form = useForm<TicketCreateForm['correlated_plates'][number]>({
     resolver: zodResolver(servicePlacasCorrelatasSchema),
     defaultValues:
       initialValue != null
@@ -1001,8 +1066,8 @@ function PlacasConjuntasForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['placas_conjuntas'][number]>) {
-  const form = useForm<TicketCreateForm['placas_conjuntas'][number]>({
+}: SimpleFormProps<TicketCreateForm['joint_plates'][number]>) {
+  const form = useForm<TicketCreateForm['joint_plates'][number]>({
     resolver: zodResolver(servicePlacasConjuntasSchema),
     defaultValues:
       initialValue != null
@@ -1071,8 +1136,8 @@ function ReservaImagemForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['reserva_de_imagem'][number]>) {
-  const form = useForm<TicketCreateForm['reserva_de_imagem'][number]>({
+}: SimpleFormProps<TicketCreateForm['image_reservation'][number]>) {
+  const form = useForm<TicketCreateForm['image_reservation'][number]>({
     resolver: zodResolver(serviceReservaDeImagemSchema),
     defaultValues: initialValue ?? {
       ...emptyReservaImagemDraft(),
@@ -1107,6 +1172,20 @@ function ReservaImagemForm({
     form.setValue(
       'cameras',
       cameras.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
+  const addresses = form.watch('addresses') ?? []
+
+  const addAddress = () => {
+    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+  }
+
+  const removeAddress = (index: number) => {
+    form.setValue(
+      'addresses',
+      addresses.filter((_, i) => i !== index),
       { shouldValidate: true },
     )
   }
@@ -1154,6 +1233,48 @@ function ReservaImagemForm({
                   {errors.orientation.message}
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Endereços</Label>
+              {addresses.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`addresses.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Endereço"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeAddress(index)}
+                    title="Remover endereço"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addAddress}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar endereço
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -1212,8 +1333,8 @@ function AnaliseImagemForm({
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['analise_de_imagem'][number]>) {
-  const form = useForm<TicketCreateForm['analise_de_imagem'][number]>({
+}: SimpleFormProps<TicketCreateForm['image_analysis'][number]>) {
+  const form = useForm<TicketCreateForm['image_analysis'][number]>({
     resolver: zodResolver(serviceAnaliseDeImagemSchema),
     defaultValues: initialValue ?? {
       ...emptyAnaliseImagemDraft(),
@@ -1248,6 +1369,20 @@ function AnaliseImagemForm({
     form.setValue(
       'cameras',
       cameras.filter((_, i) => i !== index),
+      { shouldValidate: true },
+    )
+  }
+
+  const addresses = form.watch('addresses') ?? []
+
+  const addAddress = () => {
+    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+  }
+
+  const removeAddress = (index: number) => {
+    form.setValue(
+      'addresses',
+      addresses.filter((_, i) => i !== index),
       { shouldValidate: true },
     )
   }
@@ -1295,6 +1430,48 @@ function AnaliseImagemForm({
                   {errors.orientation.message}
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className={styles.fieldLabel}>Endereços</Label>
+              {addresses.map((_, index) => (
+                <div key={index} className="flex gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`addresses.${index}`}
+                    render={({ field }) => (
+                      <Input
+                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Endereço"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removeAddress(index)}
+                    title="Remover endereço"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-col items-end">
+                <button
+                  type="button"
+                  onClick={addAddress}
+                  className={styles.addPointFocalButton}
+                >
+                  <Plus className="h-5 w-5 shrink-0" aria-hidden />
+                  Adicionar endereço
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -1347,14 +1524,118 @@ function AnaliseImagemForm({
   )
 }
 
+function AtlasCivitasForm({
+  initialValue,
+  editIndex,
+  onCancel,
+  onSave,
+  readOnly = false,
+}: SimpleFormProps<TicketCreateForm['atlas_civitas'][number]>) {
+  const form = useForm<TicketCreateForm['atlas_civitas'][number]>({
+    resolver: zodResolver(serviceAtlasCivitasSchema),
+    defaultValues: initialValue ?? emptyAtlasCivitasDraft(),
+  })
+
+  useEffect(() => {
+    form.reset(initialValue ?? emptyAtlasCivitasDraft())
+  }, [initialValue, form])
+
+  const {
+    formState: { errors },
+  } = form
+
+  return (
+    <form
+      className={styles.serviceModalFormScroll}
+      onSubmit={
+        readOnly
+          ? (e) => e.preventDefault()
+          : form.handleSubmit((value) => onSave(value, editIndex))
+      }
+    >
+      <fieldset
+        disabled={readOnly}
+        className={`${styles.serviceModalFieldsetScroll} min-w-0 border-0 p-0 [&:disabled]:opacity-100`}
+      >
+        <div className={styles.serviceModalBody}>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Nome</Label>
+              <Input
+                className={`h-11 ${styles.inputBg}`}
+                {...form.register('name')}
+              />
+              {errors.name?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>E-mail</Label>
+              <Input
+                className={`h-11 ${styles.inputBg}`}
+                type="email"
+                {...form.register('email')}
+              />
+              {errors.email?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>CPF</Label>
+              <Controller
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <Input
+                    className={`h-11 ${styles.inputBg}`}
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                )}
+              />
+              {errors.cpf?.message && (
+                <p className="text-xs text-destructive">{errors.cpf.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className={styles.fieldLabel}>Matrícula</Label>
+              <Input
+                className={`h-11 ${styles.inputBg}`}
+                {...form.register('registration')}
+              />
+              {errors.registration?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.registration.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <FooterButtons onCancel={onCancel} readOnly={readOnly} />
+    </form>
+  )
+}
+
 function OutrosForm({
   initialValue,
   editIndex,
   onCancel,
   onSave,
   readOnly = false,
-}: SimpleFormProps<TicketCreateForm['outros'][number]>) {
-  const form = useForm<TicketCreateForm['outros'][number]>({
+}: SimpleFormProps<TicketCreateForm['other'][number]>) {
+  const form = useForm<TicketCreateForm['other'][number]>({
     resolver: zodResolver(serviceOutrosSchema),
     defaultValues: initialValue ?? {
       ...emptyOutrosDraft(),

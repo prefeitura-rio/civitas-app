@@ -2,7 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -24,6 +32,7 @@ import { getApiErrorMessage } from '@/utils/error-handlers'
 import { maskPhoneBR } from '@/utils/string-formatters'
 
 import styles from '../ticket-detail.module.css'
+import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
 type Props = {
   ticketId: string
@@ -38,27 +47,91 @@ function displayText(value?: string | null) {
 function mapOutToDraft(s: TicketSolicitanteOut): TicketSolicitanteUpsertIn {
   return {
     operation_id: s.operation_id,
-    requisitante: {
-      requisitante_nome: s.requisitante.requisitante_nome,
-      requisitante_telefone: s.requisitante.requisitante_telefone ?? null,
-      requisitante_email: s.requisitante.requisitante_email,
+    requester: {
+      name: s.requester.name,
+      phone: s.requester.phone ?? null,
+      email: s.requester.email,
     },
-    pontos_focais: s.pontos_focais.map((fp) => ({
-      nome: fp.nome,
-      telefone: fp.telefone?.trim() ? fp.telefone : null,
+    focal_points: s.focal_points.map((fp) => ({
+      name: fp.name,
+      phone: fp.phone?.trim() ? fp.phone : null,
       email: fp.email?.trim() ? fp.email : null,
     })),
   }
 }
 
-function emptyFocalRow(): TicketSolicitanteUpsertIn['pontos_focais'][number] {
-  return { nome: '', telefone: null, email: null }
+function emptyFocalRow(): TicketSolicitanteUpsertIn['focal_points'][number] {
+  return { name: '', phone: null, email: null }
 }
 
-export function TicketDetailTabSolicitante({ ticketId }: Props) {
+function buildSolicitantePayload(
+  draft: TicketSolicitanteUpsertIn,
+): TicketSolicitanteUpsertIn | null {
+  const nomeReq = draft.requester.name.trim()
+  const emailReq = draft.requester.email.trim()
+  if (nomeReq.length < 2) {
+    toast.error('Informe o nome do requisitante (mínimo 2 caracteres).')
+    return null
+  }
+  if (!emailReq) {
+    toast.error('Informe o e-mail do requisitante.')
+    return null
+  }
+  if (!draft.operation_id?.trim()) {
+    toast.error('Selecione o demandante.')
+    return null
+  }
+
+  const pontos = draft.focal_points
+    .map((fp) => ({
+      name: fp.name.trim(),
+      phone: fp.phone?.trim() ? fp.phone.trim() : null,
+      email: fp.email?.trim() ? fp.email.trim() : null,
+    }))
+    .filter((fp) => fp.name.length >= 2)
+
+  for (const fp of pontos) {
+    if (fp.email != null && fp.email !== '') {
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fp.email)
+      if (!ok) {
+        toast.error('E-mail inválido em um dos pontos focais.')
+        return null
+      }
+    }
+  }
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailReq)
+  if (!emailOk) {
+    toast.error('E-mail do requisitante inválido.')
+    return null
+  }
+
+  return {
+    operation_id: draft.operation_id.trim(),
+    requester: {
+      name: nomeReq,
+      phone: draft.requester.phone?.trim()
+        ? draft.requester.phone.trim()
+        : null,
+      email: emailReq,
+    },
+    focal_points: pontos,
+  }
+}
+
+export const TicketDetailTabSolicitante = forwardRef<
+  TicketDetailTabHandle,
+  Props
+>(function TicketDetailTabSolicitante({ ticketId }, ref) {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState<TicketSolicitanteUpsertIn | null>(null)
+  const isEditingRef = useRef(isEditing)
+  const draftRef = useRef(draft)
+  const solicitanteRef = useRef<TicketSolicitanteOut | undefined>(undefined)
+
+  isEditingRef.current = isEditing
+  draftRef.current = draft
 
   const solicitanteQuery = useQuery({
     queryKey: ['ticket', ticketId, 'solicitante'],
@@ -72,6 +145,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
   })
 
   const solicitante = solicitanteQuery.data
+  solicitanteRef.current = solicitante
 
   useEffect(() => {
     if (!solicitante || isEditing) return
@@ -83,10 +157,10 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
     const list = [...items]
     if (solicitante?.operation_id) {
       const exists = list.some((o) => o.id === solicitante.operation_id)
-      if (!exists && solicitante.demandante) {
+      if (!exists && solicitante.requester_operation) {
         list.unshift({
           id: solicitante.operation_id,
-          title: solicitante.demandante,
+          title: solicitante.requester_operation,
           description: '',
         })
       }
@@ -125,13 +199,50 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
     setIsEditing(false)
   }, [solicitante])
 
+  const saveDraft = useCallback(async (): Promise<boolean> => {
+    const currentDraft = draftRef.current
+    if (!currentDraft) return false
+    const payload = buildSolicitantePayload(currentDraft)
+    if (!payload) return false
+    try {
+      await updateMutation.mutateAsync(payload)
+      return true
+    } catch {
+      return false
+    }
+  }, [updateMutation])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      isDirty: () => {
+        if (
+          !isEditingRef.current ||
+          !draftRef.current ||
+          !solicitanteRef.current
+        ) {
+          return false
+        }
+        const baseline = mapOutToDraft(solicitanteRef.current)
+        return JSON.stringify(draftRef.current) !== JSON.stringify(baseline)
+      },
+      save: saveDraft,
+      discard: cancelEdit,
+    }),
+    [cancelEdit, saveDraft],
+  )
+
+  const handleSave = useCallback(() => {
+    saveDraft().catch(() => {})
+  }, [saveDraft])
+
   const setRequisitante = useCallback(
-    (patch: Partial<TicketSolicitanteUpsertIn['requisitante']>) => {
+    (patch: Partial<TicketSolicitanteUpsertIn['requester']>) => {
       setDraft((prev) => {
         if (!prev) return prev
         return {
           ...prev,
-          requisitante: { ...prev.requisitante, ...patch },
+          requester: { ...prev.requester, ...patch },
         }
       })
     },
@@ -141,13 +252,13 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
   const setFocal = useCallback(
     (
       index: number,
-      patch: Partial<TicketSolicitanteUpsertIn['pontos_focais'][number]>,
+      patch: Partial<TicketSolicitanteUpsertIn['focal_points'][number]>,
     ) => {
       setDraft((prev) => {
         if (!prev) return prev
-        const next = [...prev.pontos_focais]
+        const next = [...prev.focal_points]
         next[index] = { ...next[index], ...patch }
-        return { ...prev, pontos_focais: next }
+        return { ...prev, focal_points: next }
       })
     },
     [],
@@ -158,7 +269,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
       if (!prev) return prev
       return {
         ...prev,
-        pontos_focais: [...prev.pontos_focais, emptyFocalRow()],
+        focal_points: [...prev.focal_points, emptyFocalRow()],
       }
     })
   }, [])
@@ -168,66 +279,10 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
       if (!prev) return prev
       return {
         ...prev,
-        pontos_focais: prev.pontos_focais.filter((_, i) => i !== index),
+        focal_points: prev.focal_points.filter((_, i) => i !== index),
       }
     })
   }, [])
-
-  const handleSave = useCallback(() => {
-    if (!draft) return
-    const nomeReq = draft.requisitante.requisitante_nome.trim()
-    const emailReq = draft.requisitante.requisitante_email.trim()
-    if (nomeReq.length < 2) {
-      toast.error('Informe o nome do requisitante (mínimo 2 caracteres).')
-      return
-    }
-    if (!emailReq) {
-      toast.error('Informe o e-mail do requisitante.')
-      return
-    }
-    if (!draft.operation_id?.trim()) {
-      toast.error('Selecione o demandante.')
-      return
-    }
-
-    const pontos = draft.pontos_focais
-      .map((fp) => ({
-        nome: fp.nome.trim(),
-        telefone: fp.telefone?.trim() ? fp.telefone.trim() : null,
-        email: fp.email?.trim() ? fp.email.trim() : null,
-      }))
-      .filter((fp) => fp.nome.length >= 2)
-
-    for (const fp of pontos) {
-      if (fp.email != null && fp.email !== '') {
-        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fp.email)
-        if (!ok) {
-          toast.error('E-mail inválido em um dos pontos focais.')
-          return
-        }
-      }
-    }
-
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailReq)
-    if (!emailOk) {
-      toast.error('E-mail do requisitante inválido.')
-      return
-    }
-
-    const payload: TicketSolicitanteUpsertIn = {
-      operation_id: draft.operation_id.trim(),
-      requisitante: {
-        requisitante_nome: nomeReq,
-        requisitante_telefone: draft.requisitante.requisitante_telefone?.trim()
-          ? draft.requisitante.requisitante_telefone.trim()
-          : null,
-        requisitante_email: emailReq,
-      },
-      pontos_focais: pontos,
-    }
-
-    updateMutation.mutate(payload)
-  }, [draft, updateMutation])
 
   if (solicitanteQuery.isLoading) {
     return (
@@ -292,7 +347,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
           ) : (
             <div className={styles.readonlySelect}>
               <span className={styles.solicitanteReadOnlyText}>
-                {displayText(view.demandante)}
+                {displayText(view.requester_operation)}
               </span>
               <ChevronDown
                 size={20}
@@ -321,17 +376,15 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                 {isEditing ? (
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                    value={d.requisitante.requisitante_nome}
-                    onChange={(e) =>
-                      setRequisitante({ requisitante_nome: e.target.value })
-                    }
+                    value={d.requester.name}
+                    onChange={(e) => setRequisitante({ name: e.target.value })}
                     autoComplete="name"
                   />
                 ) : (
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.requisitante.requisitante_nome)}
+                    {displayText(view.requester.name)}
                   </div>
                 )}
               </div>
@@ -344,10 +397,10 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                 {isEditing ? (
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                    value={d.requisitante.requisitante_telefone ?? ''}
+                    value={d.requester.phone ?? ''}
                     onChange={(e) =>
                       setRequisitante({
-                        requisitante_telefone: e.target.value || null,
+                        phone: e.target.value || null,
                       })
                     }
                     autoComplete="tel"
@@ -356,7 +409,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.requisitante.requisitante_telefone)}
+                    {displayText(view.requester.phone)}
                   </div>
                 )}
               </div>
@@ -368,17 +421,15 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     type="email"
-                    value={d.requisitante.requisitante_email}
-                    onChange={(e) =>
-                      setRequisitante({ requisitante_email: e.target.value })
-                    }
+                    value={d.requester.email}
+                    onChange={(e) => setRequisitante({ email: e.target.value })}
                     autoComplete="email"
                   />
                 ) : (
                   <div
                     className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                   >
-                    {displayText(view.requisitante.requisitante_email)}
+                    {displayText(view.requester.email)}
                   </div>
                 )}
               </div>
@@ -396,7 +447,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
             </span>
           </div>
           <div className={styles.focalRows}>
-            {!isEditing && view.pontos_focais.length === 0 ? (
+            {!isEditing && view.focal_points.length === 0 ? (
               <div className={styles.fieldRow}>
                 {(['Nome', 'Contato', 'Email'] as const).map((label) => (
                   <div key={label} className={styles.fieldCol}>
@@ -414,8 +465,8 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
             ) : null}
 
             {!isEditing
-              ? view.pontos_focais.map((fp, index) => (
-                  <div key={`${fp.nome}-${index}`} className={styles.fieldRow}>
+              ? view.focal_points.map((fp, index) => (
+                  <div key={`${fp.name}-${index}`} className={styles.fieldRow}>
                     <div className={styles.fieldCol}>
                       <div className={styles.subLabel}>
                         <span className={styles.subLabelText}>Nome</span>
@@ -423,7 +474,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                       <div
                         className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                       >
-                        {displayText(fp.nome)}
+                        {displayText(fp.name)}
                       </div>
                     </div>
                     <div className={styles.fieldCol}>
@@ -433,7 +484,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                       <div
                         className={`${styles.readonlyInput} ${styles.solicitanteReadOnlyText}`}
                       >
-                        {displayText(fp.telefone)}
+                        {displayText(fp.phone)}
                       </div>
                     </div>
                     <div className={styles.fieldCol}>
@@ -448,7 +499,7 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                     </div>
                   </div>
                 ))
-              : d.pontos_focais.map((fp, index) => (
+              : d.focal_points.map((fp, index) => (
                   <div key={`fp-${index}`} className={styles.fieldStack}>
                     <div className={styles.fieldRow}>
                       <div className={styles.fieldCol}>
@@ -457,9 +508,9 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                         </div>
                         <input
                           className={`${styles.editableField} ${styles.solicitanteEditField}`}
-                          value={fp.nome}
+                          value={fp.name}
                           onChange={(e) =>
-                            setFocal(index, { nome: e.target.value })
+                            setFocal(index, { name: e.target.value })
                           }
                           autoComplete="name"
                         />
@@ -471,10 +522,10 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
                         <input
                           className={`${styles.editableField} ${styles.solicitanteEditField}`}
                           inputMode="tel"
-                          value={fp.telefone ?? ''}
+                          value={fp.phone ?? ''}
                           onChange={(e) =>
                             setFocal(index, {
-                              telefone: maskPhoneBR(e.target.value) || null,
+                              phone: maskPhoneBR(e.target.value) || null,
                             })
                           }
                           autoComplete="tel"
@@ -557,4 +608,4 @@ export function TicketDetailTabSolicitante({ ticketId }: Props) {
       </div>
     </div>
   )
-}
+})

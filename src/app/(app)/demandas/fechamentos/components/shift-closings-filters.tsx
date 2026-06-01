@@ -22,7 +22,6 @@ import {
 import { getTeamsList } from '@/http/teams/get-teams'
 import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-roles'
 import { dateConfig } from '@/lib/date-config'
-import { cn } from '@/lib/utils'
 
 import styles from './shift-closings-list.module.css'
 
@@ -43,6 +42,10 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+function getDefaultShiftDate(): string {
+  return toDateString(new Date())
+}
+
 export type ShiftClosingsFilterState = {
   closed_by_id: string
   team_id: string
@@ -53,7 +56,7 @@ export function emptyShiftClosingsFilters(): ShiftClosingsFilterState {
   return {
     closed_by_id: '',
     team_id: '',
-    shift_date: '',
+    shift_date: getDefaultShiftDate(),
   }
 }
 
@@ -93,13 +96,15 @@ export function ShiftClosingsFilters({
   })
 
   const shiftDate = useMemo(
-    () => parseDateString(filters.shift_date),
+    () => parseDateString(filters.shift_date) ?? new Date(),
     [filters.shift_date],
   )
 
-  const shiftDateLabel = shiftDate
-    ? format(shiftDate, dateConfig.formats.date, { locale: dateConfig.locale })
-    : null
+  const shiftDateLabel = format(shiftDate, dateConfig.formats.date, {
+    locale: dateConfig.locale,
+  })
+
+  const isDefaultShiftDate = filters.shift_date === getDefaultShiftDate()
 
   return (
     <div className={styles.filtersRow}>
@@ -116,14 +121,14 @@ export function ShiftClosingsFilters({
           disabled={isAdjunctsLoading}
         >
           <SelectTrigger className={styles.filterSelectTrigger}>
-            <SelectValue placeholder="Padrão" />
+            <SelectValue placeholder="Todos" />
           </SelectTrigger>
           <SelectContent className={styles.filterSelectContent}>
             <SelectItem
               value={DEFAULT_OPTION}
               className={styles.filterSelectItem}
             >
-              Padrão
+              Todos
             </SelectItem>
             {adjunctOptions.map((option) => (
               <SelectItem
@@ -151,14 +156,14 @@ export function ShiftClosingsFilters({
           disabled={isTeamsLoading}
         >
           <SelectTrigger className={styles.filterSelectTrigger}>
-            <SelectValue placeholder="Padrão" />
+            <SelectValue placeholder="Todos" />
           </SelectTrigger>
           <SelectContent className={styles.filterSelectContent}>
             <SelectItem
               value={DEFAULT_OPTION}
               className={styles.filterSelectItem}
             >
-              Padrão
+              Todos
             </SelectItem>
             {teamOptions.map((option) => (
               <SelectItem
@@ -180,14 +185,11 @@ export function ShiftClosingsFilters({
             <Button
               type="button"
               variant="outline"
-              className={cn(
-                styles.filterDateTrigger,
-                !shiftDateLabel && styles.filterDatePlaceholder,
-              )}
+              className={styles.filterDateTrigger}
               aria-label="Data do turno"
             >
               <span className="min-w-0 flex-1 truncate text-left">
-                {shiftDateLabel ?? 'Padrão'}
+                {shiftDateLabel}
               </span>
               <CalendarIcon className="h-5 w-5 shrink-0 opacity-70" />
             </Button>
@@ -203,23 +205,23 @@ export function ShiftClosingsFilters({
               onSelect={(d) => {
                 onChange({
                   ...filters,
-                  shift_date: d ? toDateString(d) : '',
+                  shift_date: d ? toDateString(d) : getDefaultShiftDate(),
                 })
                 setDateOpen(false)
               }}
               locale={dateConfig.locale}
-              defaultMonth={shiftDate ?? new Date()}
+              defaultMonth={shiftDate}
               initialFocus
               className="rounded-lg border"
             />
-            {filters.shift_date ? (
+            {!isDefaultShiftDate ? (
               <div className="border-t border-[#4a5d6d] p-2">
                 <Button
                   type="button"
                   variant="ghost"
                   className="h-8 w-full text-[#97a2ab]"
                   onClick={() => {
-                    onChange({ ...filters, shift_date: '' })
+                    onChange({ ...filters, shift_date: getDefaultShiftDate() })
                     setDateOpen(false)
                   }}
                 >

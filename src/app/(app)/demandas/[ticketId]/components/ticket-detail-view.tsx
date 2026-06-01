@@ -4,7 +4,14 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import { Checkbox } from '@/components/ui/checkbox'
@@ -55,6 +62,11 @@ import { cn } from '@/lib/utils'
 import { getApiErrorMessage, isNotFoundError } from '@/utils/error-handlers'
 
 import {
+  releaseTicketUnsavedBackTrap,
+  useTicketUnsavedGuard,
+} from '../hooks/use-ticket-unsaved-guard'
+import {
+  isTicketDetailUnsavedGuardTab,
   shouldShowTicketRespostaTab,
   TICKET_DETAIL_BASE_TABS,
   TICKET_RESPOSTA_TAB,
@@ -63,12 +75,17 @@ import {
 import styles from '../ticket-detail.module.css'
 import { TicketDetailTabChamado } from './ticket-detail-tab-chamado'
 import { TicketDetailTabDocumentos } from './ticket-detail-tab-documentos'
+import type {
+  TicketDetailPendingNavigation,
+  TicketDetailTabHandle,
+} from './ticket-detail-tab-handle'
 import { TicketDetailTabHistorico } from './ticket-detail-tab-historico'
 import { TicketDetailTabParecerInterno } from './ticket-detail-tab-parecer-interno'
 import { TicketDetailTabRelatorioDemanda } from './ticket-detail-tab-relatorio-demanda'
 import { TicketDetailTabResposta } from './ticket-detail-tab-resposta'
 import { TicketDetailTabServicos } from './ticket-detail-tab-servicos'
 import { TicketDetailTabSolicitante } from './ticket-detail-tab-solicitante'
+import { TicketDetailUnsavedDialog } from './ticket-detail-unsaved-dialog'
 
 function normalizePriority(priority?: string | null) {
   if (!priority) return '—'
@@ -114,10 +131,10 @@ function formatReassignPriorityLabel(priority: TicketReassignPriority) {
 }
 
 function cabecalhoPrioridadeToReassign(
-  prioridade?: string | null,
+  priority?: string | null,
 ): TicketReassignPriority | null {
-  if (!prioridade?.trim()) return null
-  const v = prioridade.trim().toUpperCase()
+  if (!priority?.trim()) return null
+  const v = priority.trim().toUpperCase()
   if (v === 'URGENTE') return 'URGENTE'
   if (v === 'ALTA') return 'ALTA'
   if (v === 'ROTINA') return 'ROTINA'
@@ -187,6 +204,29 @@ export function TicketDetailView({ ticketId }: Props) {
   const [reassignComment, setReassignComment] = useState('')
   const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false)
   const reassignDialogEnteredRef = useRef(false)
+  const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false)
+  const [guardActionPending, setGuardActionPending] = useState(false)
+  const [pendingNavigation, setPendingNavigation] =
+    useState<TicketDetailPendingNavigation | null>(null)
+
+  const solicitanteRef = useRef<TicketDetailTabHandle>(null)
+  const chamadoRef = useRef<TicketDetailTabHandle>(null)
+  const servicosRef = useRef<TicketDetailTabHandle>(null)
+  const parecerRef = useRef<TicketDetailTabHandle>(null)
+  const relatorioRef = useRef<TicketDetailTabHandle>(null)
+
+  const tabHandleRefs = useMemo(
+    (): Partial<
+      Record<TicketDetailTabId, RefObject<TicketDetailTabHandle | null>>
+    > => ({
+      solicitante: solicitanteRef,
+      chamado: chamadoRef,
+      services: servicosRef,
+      parecer_interno: parecerRef,
+      relatorio_demanda: relatorioRef,
+    }),
+    [],
+  )
 
   const query = useQuery({
     queryKey: ['ticket', ticketId, 'cabecalho'],
@@ -216,6 +256,115 @@ export function TicketDetailView({ ticketId }: Props) {
       ...TICKET_DETAIL_BASE_TABS.slice(idx),
     ]
   }, [showRespostaTab])
+
+  const getActiveTabHandle = useCallback((): TicketDetailTabHandle | null => {
+    if (!isTicketDetailUnsavedGuardTab(activeTab)) return null
+    return tabHandleRefs[activeTab]?.current ?? null
+  }, [activeTab, tabHandleRefs])
+
+  const isActiveTabDirty = useCallback(() => {
+    const handle = getActiveTabHandle()
+    return handle?.isDirty() ?? false
+  }, [getActiveTabHandle])
+
+  const proceedNavigation = useCallback(
+    (target: TicketDetailPendingNavigation) => {
+      if (target.type === 'tab') {
+        setActiveTab(target.tabId)
+        return
+      }
+      if (target.type === 'route') {
+        router.push(target.href)
+        return
+      }
+      releaseTicketUnsavedBackTrap()
+      router.back()
+    },
+    [router],
+  )
+
+  const openUnsavedDialog = useCallback(
+    (target: TicketDetailPendingNavigation) => {
+      setPendingNavigation(target)
+      setUnsavedDialogOpen(true)
+    },
+    [],
+  )
+
+  const requestTabChange = useCallback(
+    (nextTab: TicketDetailTabId) => {
+      if (nextTab === activeTab) return
+      const handle = getActiveTabHandle()
+      if (handle?.isDirty()) {
+        openUnsavedDialog({ type: 'tab', tabId: nextTab })
+        return
+      }
+      setActiveTab(nextTab)
+    },
+    [activeTab, getActiveTabHandle, openUnsavedDialog],
+  )
+
+  const requestRouteNavigation = useCallback(
+    (href: string) => {
+      const handle = getActiveTabHandle()
+      if (handle?.isDirty()) {
+        openUnsavedDialog({ type: 'route', href })
+        return
+      }
+      router.push(href)
+    },
+    [getActiveTabHandle, openUnsavedDialog, router],
+  )
+
+  const closeUnsavedDialog = useCallback(() => {
+    setUnsavedDialogOpen(false)
+    setPendingNavigation(null)
+  }, [])
+
+  const handleUnsavedDiscard = useCallback(() => {
+    const target = pendingNavigation
+    if (!target) {
+      closeUnsavedDialog()
+      return
+    }
+    getActiveTabHandle()?.discard()
+    closeUnsavedDialog()
+    proceedNavigation(target)
+  }, [
+    closeUnsavedDialog,
+    getActiveTabHandle,
+    pendingNavigation,
+    proceedNavigation,
+  ])
+
+  const handleUnsavedSave = useCallback(async () => {
+    const target = pendingNavigation
+    const handle = getActiveTabHandle()
+    if (!target || !handle) return
+
+    setGuardActionPending(true)
+    try {
+      const saved = await handle.save()
+      if (!saved) return
+      closeUnsavedDialog()
+      proceedNavigation(target)
+    } finally {
+      setGuardActionPending(false)
+    }
+  }, [
+    closeUnsavedDialog,
+    getActiveTabHandle,
+    pendingNavigation,
+    proceedNavigation,
+  ])
+
+  useTicketUnsavedGuard({
+    enabled: Boolean(cab),
+    isDirty: isActiveTabDirty,
+    isDirtyNow: isActiveTabDirty(),
+    onNavigateAttempt: openUnsavedDialog,
+    dialogOpen: unsavedDialogOpen,
+  })
 
   const allowedActionIds = allowedActionsQuery.data?.allowed_action_ids ?? []
   const canFinalizeTicket = allowedActionIds.includes('FINALIZAR_CHAMADO')
@@ -256,7 +405,7 @@ export function TicketDetailView({ ticketId }: Props) {
   const finalizeMutation = useMutation({
     mutationFn: (comment: string) =>
       applyTicketWorkflowAction(ticketId, 'FINALIZAR_CHAMADO', {
-        comentario: comment,
+        comment,
       }),
     onSuccess: () => {
       toast.success('Demanda finalizada e enviada para revisão.')
@@ -274,12 +423,12 @@ export function TicketDetailView({ ticketId }: Props) {
   const reassignMutation = useMutation({
     mutationFn: () =>
       applyTicketWorkflowAction(ticketId, 'REATRIBUIR_CHAMADO', {
-        comentario: reassignComment.trim(),
-        reatribuicao: {
-          equipe_id: selectedTeamId,
-          responsavel_ids: selectedResponsibleIds,
-          prioridade: selectedPriority,
-          comentario: reassignComment.trim(),
+        comment: reassignComment.trim(),
+        reassignment: {
+          team_id: selectedTeamId,
+          assignee_ids: selectedResponsibleIds,
+          priority: selectedPriority,
+          comment: reassignComment.trim(),
         },
       }),
     onSuccess: () => {
@@ -298,17 +447,17 @@ export function TicketDetailView({ ticketId }: Props) {
   const workflowActionMutation = useMutation({
     mutationFn: ({
       actionId,
-      comentario,
+      comment,
     }: {
       actionId: string
-      comentario?: string | null
+      comment?: string | null
     }) =>
       applyTicketWorkflowAction(ticketId, actionId, {
-        comentario: comentario ?? null,
+        comment: comment ?? null,
       }),
     onSuccess: (
       _response: ApplyTicketWorkflowActionOut,
-      variables: { actionId: string; comentario?: string | null },
+      variables: { actionId: string; comment?: string | null },
     ) => {
       if (variables.actionId === 'ENVIAR_EMAIL') {
         toast.success('E-mail enviado com sucesso.')
@@ -439,8 +588,8 @@ export function TicketDetailView({ ticketId }: Props) {
       setResponsiblePopoverOpen(false)
     }
 
-    setSelectedPriority(cabecalhoPrioridadeToReassign(cab?.prioridade))
-  }, [reassignOpen, cab?.prioridade])
+    setSelectedPriority(cabecalhoPrioridadeToReassign(cab?.priority))
+  }, [reassignOpen, cab?.priority])
 
   useEffect(() => {
     if (!reassignOpen || selectedTeamId || teamsByRoleQuery.isLoading) return
@@ -461,8 +610,8 @@ export function TicketDetailView({ ticketId }: Props) {
 
   useEffect(() => {
     if (showRespostaTab || activeTab !== 'resposta') return
-    setActiveTab('solicitante')
-  }, [showRespostaTab, activeTab])
+    requestTabChange('solicitante')
+  }, [showRespostaTab, activeTab, requestTabChange])
 
   const selectedResponsibleLabels = (teamMembersByRoleQuery.data ?? [])
     .filter((member: TeamMemberUserOut) =>
@@ -515,15 +664,16 @@ export function TicketDetailView({ ticketId }: Props) {
         <div className={styles.topBlock}>
           <div className={styles.headerBar}>
             <div className={styles.titleRow}>
-              <Link
-                href="/demandas"
+              <button
+                type="button"
                 className={styles.backLink}
                 aria-label="Voltar para lista de demandas"
+                onClick={() => requestRouteNavigation('/demandas')}
               >
                 <ChevronLeft size={18} />
-              </Link>
+              </button>
               <p className={styles.title} role="heading" aria-level={1}>
-                {`Demanda #${cab.internal_number} - ${displayText(cab.tipo_chamado_nome)}`}
+                {`Demanda #${cab.internal_number} - ${displayText(cab.ticket_type_name)}`}
               </p>
             </div>
             <span className={styles.statusBadge}>
@@ -536,19 +686,19 @@ export function TicketDetailView({ ticketId }: Props) {
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Prioridade:</span>
                 <span className={styles.metaValue}>
-                  {normalizePriority(cab.prioridade)}
+                  {normalizePriority(cab.priority)}
                 </span>
               </div>
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Equipe:</span>
                 <span className={styles.metaValue}>
-                  {displayText(cab.equipe)}
+                  {displayText(cab.team)}
                 </span>
               </div>
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Responsável:</span>
                 <span className={styles.metaValue}>
-                  {displayText(cab.responsavel).toLocaleUpperCase('pt-BR')}
+                  {displayText(cab.assignee).toLocaleUpperCase('pt-BR')}
                 </span>
               </div>
             </div>
@@ -556,7 +706,7 @@ export function TicketDetailView({ ticketId }: Props) {
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Data Base:</span>
                 <span className={styles.metaValue}>
-                  {formatDateBR(cab.data_base)}
+                  {formatDateBR(cab.base_date)}
                 </span>
               </div>
               <div className={styles.metaCell}>
@@ -570,7 +720,7 @@ export function TicketDetailView({ ticketId }: Props) {
                   Tempo da demanda em aberto:
                 </span>
                 <span className={styles.metaValue}>
-                  {displayText(cab.tempo_aberto)}
+                  {displayText(cab.open_duration)}
                 </span>
               </div>
             </div>
@@ -707,7 +857,7 @@ export function TicketDetailView({ ticketId }: Props) {
                   role="tab"
                   aria-selected={isActive}
                   className={`${styles.tabButton} ${isActive ? styles.tabButtonActive : ''}`}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => requestTabChange(tab.id)}
                 >
                   {tab.label}
                 </button>
@@ -716,9 +866,13 @@ export function TicketDetailView({ ticketId }: Props) {
           </div>
 
           {activeTab === 'solicitante' ? (
-            <TicketDetailTabSolicitante ticketId={ticketId} />
+            <TicketDetailTabSolicitante
+              ref={solicitanteRef}
+              ticketId={ticketId}
+            />
           ) : activeTab === 'chamado' ? (
             <TicketDetailTabChamado
+              ref={chamadoRef}
               ticketId={ticketId}
               ticketStateId={allowedActionsQuery.data?.state_id}
               ticketStatus={cab?.status}
@@ -727,17 +881,25 @@ export function TicketDetailView({ ticketId }: Props) {
             <div className={styles.panel} role="tabpanel">
               <TicketDetailTabDocumentos ticketId={ticketId} />
             </div>
-          ) : activeTab === 'servicos' ? (
+          ) : activeTab === 'services' ? (
             <div className={styles.panel} role="tabpanel">
-              <TicketDetailTabServicos ticketId={ticketId} />
+              <TicketDetailTabServicos
+                ref={servicosRef}
+                ticketId={ticketId}
+                internalNumber={cab?.internal_number}
+              />
             </div>
           ) : activeTab === 'parecer_interno' ? (
             <div className={styles.panel} role="tabpanel">
-              <TicketDetailTabParecerInterno ticketId={ticketId} />
+              <TicketDetailTabParecerInterno
+                ref={parecerRef}
+                ticketId={ticketId}
+              />
             </div>
           ) : activeTab === 'relatorio_demanda' ? (
             <div className={styles.panel} role="tabpanel">
               <TicketDetailTabRelatorioDemanda
+                ref={relatorioRef}
                 key={ticketId}
                 ticketId={ticketId}
               />
@@ -1001,7 +1163,7 @@ export function TicketDetailView({ ticketId }: Props) {
                     if (workflowCommentAction) {
                       workflowActionMutation.mutate({
                         actionId: workflowCommentAction,
-                        comentario: workflowComment.trim(),
+                        comment: workflowComment.trim(),
                       })
                     }
                   }}
@@ -1038,7 +1200,9 @@ export function TicketDetailView({ ticketId }: Props) {
             </DialogHeader>
             <div className={styles.oficioDialogBody}>
               {oficioAttachmentsQuery.isLoading ? (
-                <p className={styles.oficioDialogMessage}>Carregando anexos…</p>
+                <p className={styles.oficioDialogMessage}>
+                  Carregando attachments…
+                </p>
               ) : oficioAttachmentsQuery.isError ? (
                 <p
                   className={`${styles.oficioDialogMessage} ${styles.oficioDialogError}`}
@@ -1047,7 +1211,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 </p>
               ) : oficioAnexos.length === 0 ? (
                 <p className={styles.oficioDialogMessage}>
-                  Não há anexos nesta demanda.
+                  Não há attachments nesta demanda.
                 </p>
               ) : oficioBlobQuery.isLoading ||
                 (oficioBlobQuery.data &&
@@ -1150,7 +1314,7 @@ export function TicketDetailView({ ticketId }: Props) {
                         )
                       }
                     >
-                      Marcar todos
+                      Inteiro teor
                     </button>
                     <button
                       type="button"
@@ -1426,9 +1590,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 </div>
 
                 <div className={styles.reassignPriorityWrap}>
-                  <span className={styles.reassignLabel}>
-                    Definir prioridade
-                  </span>
+                  <span className={styles.reassignLabel}>Definir priority</span>
                   <div className={styles.reassignPriorityRow}>
                     {(['URGENTE', 'ALTA', 'ROTINA'] as const).map(
                       (priority) => {
@@ -1480,6 +1642,19 @@ export function TicketDetailView({ ticketId }: Props) {
             </div>
           </DialogContent>
         </Dialog>
+
+        <TicketDetailUnsavedDialog
+          open={unsavedDialogOpen}
+          onOpenChange={(open) => {
+            if (!open && !guardActionPending) closeUnsavedDialog()
+          }}
+          pending={guardActionPending}
+          onCancel={closeUnsavedDialog}
+          onDiscard={handleUnsavedDiscard}
+          onSave={() => {
+            handleUnsavedSave().catch(() => {})
+          }}
+        />
       </div>
     </div>
   )

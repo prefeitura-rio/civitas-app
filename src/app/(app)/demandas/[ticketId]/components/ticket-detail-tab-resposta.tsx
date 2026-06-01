@@ -115,7 +115,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
   const [selectedServiceValue, setSelectedServiceValue] =
     useState(EMPTY_SERVICE_VALUE)
   const [selectedAnexoId, setSelectedAnexoId] = useState(EMPTY_ANEXO_VALUE)
-  const [anexosResposta, setAnexosResposta] = useState<
+  const [attachmentsResposta, setAnexosResposta] = useState<
     RespostaAnexoSelecionado[]
   >([])
   const [isSelectingAllAnexos, setIsSelectingAllAnexos] = useState(false)
@@ -129,8 +129,8 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
   const saveMutation = useMutation({
     mutationFn: () =>
       putTicketResposta(ticketId, {
-        conteudo_html: replyBody,
-        anexos_servico_ids: anexosResposta.map((a) => a.id),
+        html_content: replyBody,
+        service_attachment_ids: attachmentsResposta.map((a) => a.id),
       }),
     onSuccess: (data) => {
       queryClient.setQueryData(RESPOSTA_QUERY_KEY(ticketId), data)
@@ -182,11 +182,11 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
     return item ?? null
   }, [selectedServiceValue, servicosIndiceQuery.data])
 
-  const anexosServicoQuery = useQuery({
+  const attachmentsServicoQuery = useQuery({
     queryKey: [
       'ticket',
       ticketId,
-      'servico-anexos',
+      'servico-attachments',
       selectedServico?.service_type,
       selectedServico?.service_id,
     ],
@@ -211,18 +211,18 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
   }, [servicosIndiceQuery.isError])
 
   useEffect(() => {
-    if (anexosServicoQuery.isError) {
-      toast.error('Não foi possível carregar os anexos deste serviço.')
+    if (attachmentsServicoQuery.isError) {
+      toast.error('Não foi possível carregar os attachments deste serviço.')
     }
-  }, [anexosServicoQuery.isError])
+  }, [attachmentsServicoQuery.isError])
 
   const handleIncluirAnexo = useCallback(() => {
     if (!selectedServico) return
     if (selectedAnexoId === EMPTY_ANEXO_VALUE) return
-    const lista = anexosServicoQuery.data ?? []
+    const lista = attachmentsServicoQuery.data ?? []
     const att = lista.find((a) => a.id === selectedAnexoId)
     if (!att) return
-    if (anexosResposta.some((a) => a.id === att.id)) {
+    if (attachmentsResposta.some((a) => a.id === att.id)) {
       toast.info('Este anexo já está na lista.')
       return
     }
@@ -233,8 +233,8 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
     setSelectedAnexoId(EMPTY_ANEXO_VALUE)
     setDirty(true)
   }, [
-    anexosResposta,
-    anexosServicoQuery.data,
+    attachmentsResposta,
+    attachmentsServicoQuery.data,
     selectedAnexoId,
     selectedServico,
   ])
@@ -287,7 +287,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
     setIsSelectingAllAnexos(true)
     try {
       const todos = await getTicketAllServicoAnexos(ticketId)
-      const existingIds = new Set(anexosResposta.map((a) => a.id))
+      const existingIds = new Set(attachmentsResposta.map((a) => a.id))
       const novos = toRespostaAnexosSelecionados(
         todos,
         servicosIndiceQuery.data,
@@ -297,7 +297,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
         if (todos.length === 0) {
           toast.info('Nenhum anexo encontrado nos serviços deste chamado.')
         } else {
-          toast.info('Todos os anexos já estão na lista.')
+          toast.info('Todos os attachments já estão na lista.')
         }
         return
       }
@@ -307,29 +307,29 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
       toast.success(
         novos.length === 1
           ? '1 anexo incluído na lista.'
-          : `${novos.length} anexos incluídos na lista.`,
+          : `${novos.length} attachments incluídos na lista.`,
       )
     } catch {
-      toast.error('Não foi possível carregar os anexos dos serviços.')
+      toast.error('Não foi possível carregar os attachments dos serviços.')
     } finally {
       setIsSelectingAllAnexos(false)
     }
-  }, [ticketId, servicosIndiceQuery.data, anexosResposta])
+  }, [ticketId, servicosIndiceQuery.data, attachmentsResposta])
 
   useEffect(() => {
     if (respostaQuery.isLoading || respostaQuery.isError || dirty) return
-    const initialBody = respostaQuery.data?.conteudo_html ?? ''
+    const initialBody = respostaQuery.data?.html_content ?? ''
     setReplyBody(initialBody)
   }, [
     respostaQuery.isLoading,
     respostaQuery.isError,
-    respostaQuery.data?.conteudo_html,
+    respostaQuery.data?.html_content,
     dirty,
   ])
 
   useEffect(() => {
     if (respostaQuery.isLoading || respostaQuery.isError || dirty) return
-    const items = respostaQuery.data?.anexos_servico ?? []
+    const items = respostaQuery.data?.service_attachments ?? []
     setAnexosResposta(
       toRespostaAnexosSelecionados(items, servicosIndiceQuery.data),
     )
@@ -453,8 +453,8 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
                 onClick={handleSelecionarTodosAnexos}
               >
                 {isSelectingAllAnexos
-                  ? 'Carregando anexos…'
-                  : 'Selecionar todos os anexos'}
+                  ? 'Carregando attachments…'
+                  : 'Selecionar todos os attachments'}
               </Button>
             </div>
 
@@ -514,8 +514,8 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
                     onValueChange={setSelectedAnexoId}
                     disabled={
                       !selectedServico ||
-                      anexosServicoQuery.isLoading ||
-                      anexosServicoQuery.isError
+                      attachmentsServicoQuery.isLoading ||
+                      attachmentsServicoQuery.isError
                     }
                   >
                     <SelectTrigger
@@ -534,7 +534,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
                       >
                         Selecione um anexo
                       </SelectItem>
-                      {(anexosServicoQuery.data ?? []).map((a) => (
+                      {(attachmentsServicoQuery.data ?? []).map((a) => (
                         <SelectItem
                           key={a.id}
                           value={a.id}
@@ -557,7 +557,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
                   disabled={
                     !selectedServico ||
                     selectedAnexoId === EMPTY_ANEXO_VALUE ||
-                    anexosServicoQuery.isLoading
+                    attachmentsServicoQuery.isLoading
                   }
                   onClick={handleIncluirAnexo}
                 >
@@ -567,21 +567,21 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
             )}
 
             {selectedServico &&
-              !anexosServicoQuery.isLoading &&
-              !anexosServicoQuery.isError &&
-              (anexosServicoQuery.data?.length ?? 0) === 0 && (
+              !attachmentsServicoQuery.isLoading &&
+              !attachmentsServicoQuery.isError &&
+              (attachmentsServicoQuery.data?.length ?? 0) === 0 && (
                 <p className={detailStyles.respostaAnexosHint}>
-                  Este serviço ainda não tem anexos.
+                  Este serviço ainda não tem attachments.
                 </p>
               )}
 
-            {anexosResposta.length > 0 && (
+            {attachmentsResposta.length > 0 && (
               <div className="space-y-1.5">
                 <Label className={tcStyles.fieldLabel}>
-                  Anexos incluídos ({anexosResposta.length})
+                  Anexos incluídos ({attachmentsResposta.length})
                 </Label>
                 <ul className={detailStyles.respostaAnexosLista}>
-                  {anexosResposta.map((a) => (
+                  {attachmentsResposta.map((a) => (
                     <li
                       key={a.id}
                       className={detailStyles.respostaAnexosListaItem}

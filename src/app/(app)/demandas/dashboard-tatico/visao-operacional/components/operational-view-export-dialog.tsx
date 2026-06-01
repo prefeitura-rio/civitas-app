@@ -115,7 +115,7 @@ export function OperationalViewExportDialog({
             <div className="min-w-0 space-y-2">
               <p className="font-medium text-[#f9fafa]">Conteúdo incluído</p>
               <ul className="list-inside list-disc space-y-1 text-[#97a2ab]">
-                <li>Nº interno, data, status e prioridade</li>
+                <li>Nº interno, data, status e priority</li>
                 <li>Demandante, operação e tipo de chamado</li>
                 <li>Natureza, equipe e chamado pai (quando houver)</li>
               </ul>

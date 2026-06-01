@@ -1,13 +1,14 @@
 export type OpenServiceKey =
-  | 'busca_por_placa'
-  | 'busca_por_radar'
-  | 'cerco_eletronico'
-  | 'busca_por_imagem'
-  | 'placas_correlatas'
-  | 'placas_conjuntas'
-  | 'reserva_de_imagem'
-  | 'analise_de_imagem'
-  | 'outros'
+  | 'plate_search'
+  | 'radar_search'
+  | 'electronic_fence'
+  | 'image_search'
+  | 'correlated_plates'
+  | 'joint_plates'
+  | 'image_reservation'
+  | 'image_analysis'
+  | 'other'
+  | 'atlas_civitas'
   | null
 
 export type SectionKey =
@@ -34,15 +35,14 @@ export type BuscaPorRadarDraft = {
 }
 
 export type CercoEletronicoDraft = {
-  plate: string
+  plates: string[]
   vehicle_observations: string
 }
 
 export type BuscaPorImagemDraft = {
   period_start: string
   period_end: string
-  plate: string
-  address: string
+  addresses: string[]
   description: string
   cameras: string[]
 }
@@ -64,6 +64,7 @@ export type ReservaImagemDraft = {
   period_start: string
   period_end: string
   orientation: string
+  addresses: string[]
   cameras: string[]
 }
 
@@ -71,6 +72,7 @@ export type AnaliseImagemDraft = {
   period_start: string
   period_end: string
   orientation: string
+  addresses: string[]
   cameras: string[]
 }
 
@@ -78,33 +80,44 @@ export type OutrosDraft = {
   orientation: string
 }
 
+export type AtlasCivitasDraft = {
+  name: string
+  email: string
+  cpf: string
+  registration: string
+}
+
 export const TICKET_CREATE_STRING_LIMITS = {
-  numero_procedimento: 12,
-  numero_oficio: 10,
-  apelido_imprensa: 120,
-  link_materia: 2048,
-  bairro_correspondencia: 120,
-  rua_correspondencia: 255,
-  numero_correspondencia: 20,
-  requisitante_nome: 120,
-  requisitante_telefone: 30,
-  requisitante_email: 255,
-  ponto_focal_nome: 120,
-  ponto_focal_telefone: 120,
-  ponto_focal_email: 255,
-  comentario_inicial: 2000,
+  procedure_number: 12,
+  official_letter_number: 10,
+  press_alias: 120,
+  article_link: 2048,
+  correspondence_neighborhood: 120,
+  correspondence_street: 255,
+  correspondence_number: 20,
+  requester_name: 120,
+  requester_phone: 30,
+  requester_email: 255,
+  focal_point_name: 120,
+  focal_point_phone: 120,
+  focal_point_email: 255,
+  initial_comment: 2000,
+  atlas_civitas_name: 120,
+  atlas_civitas_email: 255,
+  atlas_civitas_registration: 50,
 } as const
 
 export const SERVICE_CONFIG = {
-  busca_por_placa: { label: 'Busca por placa' },
-  busca_por_radar: { label: 'Busca por radar' },
-  cerco_eletronico: { label: 'Cerco eletrônico' },
-  busca_por_imagem: { label: 'Busca por imagem' },
-  placas_correlatas: { label: 'Placas correlatas' },
-  placas_conjuntas: { label: 'Placas conjuntas' },
-  reserva_de_imagem: { label: 'Reserva de imagem' },
-  analise_de_imagem: { label: 'Análise de imagem' },
-  outros: { label: 'Outros' },
+  plate_search: { label: 'Busca por placa' },
+  radar_search: { label: 'Busca por radar' },
+  electronic_fence: { label: 'Cerco eletrônico' },
+  image_search: { label: 'Busca por imagem' },
+  correlated_plates: { label: 'Placas correlatas' },
+  joint_plates: { label: 'Placas conjuntas' },
+  image_reservation: { label: 'Reserva de imagem' },
+  image_analysis: { label: 'Análise de imagem' },
+  other: { label: 'Outros' },
+  atlas_civitas: { label: 'Atlas Civitas' },
 } satisfies Record<Exclude<OpenServiceKey, null>, { label: string }>
 
 export function emptyBuscaPorPlacaDraft(): BuscaPorPlacaDraft {
@@ -193,15 +206,48 @@ export function normalizeBuscaPorRadarForForm(
 }
 
 export function emptyCercoDraft(): CercoEletronicoDraft {
-  return { plate: '', vehicle_observations: '' }
+  return { plates: [], vehicle_observations: '' }
+}
+
+export function normalizeCercoForForm(
+  initialValue?: {
+    plates?: string[]
+    vehicle_observations?: string | null
+  } | null,
+): {
+  plates: string[]
+  vehicle_observations: string | null
+} {
+  if (!initialValue) {
+    return {
+      plates: [],
+      vehicle_observations: null,
+    }
+  }
+
+  const plates =
+    initialValue.plates != null && initialValue.plates.length > 0
+      ? [...initialValue.plates]
+      : []
+
+  const vehicleObservationsRaw = initialValue.vehicle_observations
+  const vehicleObservations =
+    vehicleObservationsRaw != null &&
+    String(vehicleObservationsRaw).trim() !== ''
+      ? String(vehicleObservationsRaw)
+      : null
+
+  return {
+    plates,
+    vehicle_observations: vehicleObservations,
+  }
 }
 
 export function emptyBuscaPorImagemDraft(): BuscaPorImagemDraft {
   return {
     period_start: '',
     period_end: '',
-    plate: '',
-    address: '',
+    addresses: [],
     description: '',
     cameras: [],
   }
@@ -223,13 +269,29 @@ export function emptyCorrelataDraft(): CorrelataDraft {
 }
 
 export function emptyReservaImagemDraft(): ReservaImagemDraft {
-  return { period_start: '', period_end: '', orientation: '', cameras: [] }
+  return {
+    period_start: '',
+    period_end: '',
+    orientation: '',
+    addresses: [],
+    cameras: [],
+  }
 }
 
 export function emptyAnaliseImagemDraft(): AnaliseImagemDraft {
-  return { period_start: '', period_end: '', orientation: '', cameras: [] }
+  return {
+    period_start: '',
+    period_end: '',
+    orientation: '',
+    addresses: [],
+    cameras: [],
+  }
 }
 
 export function emptyOutrosDraft(): OutrosDraft {
   return { orientation: '' }
+}
+
+export function emptyAtlasCivitasDraft(): AtlasCivitasDraft {
+  return { name: '', email: '', cpf: '', registration: '' }
 }

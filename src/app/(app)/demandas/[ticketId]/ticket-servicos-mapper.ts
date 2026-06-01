@@ -7,33 +7,34 @@ import {
 import type { TicketServicosReplaceIn } from '@/http/tickets/ticket-servicos-types'
 
 const SERVICO_ROW_KEYS = [
-  'busca_por_placa',
-  'busca_por_radar',
-  'cerco_eletronico',
-  'busca_por_imagem',
-  'placas_correlatas',
-  'placas_conjuntas',
-  'reserva_de_imagem',
-  'analise_de_imagem',
-  'outros',
+  'plate_search',
+  'radar_search',
+  'electronic_fence',
+  'image_search',
+  'correlated_plates',
+  'joint_plates',
+  'image_reservation',
+  'image_analysis',
+  'other',
+  'atlas_civitas',
 ] as const satisfies readonly Exclude<OpenServiceKey, null>[]
 
-/** Mantém rascunho do utilizador e atualiza só `anexos_gerais` e `anexos` por serviço após refetch. */
+/** Mantém rascunho do utilizador e atualiza só `general_attachments` e `attachments` por serviço após refetch. */
 export function mergeServicosAnexosFromServer(
   draft: TicketServicosOut,
   server: TicketServicosOut,
 ): TicketServicosOut {
   const next = cloneTicketServicos(draft)
-  next.anexos_gerais = [...server.anexos_gerais]
+  next.general_attachments = [...server.general_attachments]
 
   for (const kind of SERVICO_ROW_KEYS) {
     const draftRows = next[kind] as {
       id: string
-      anexos?: TicketAttachmentOut[]
+      attachments?: TicketAttachmentOut[]
     }[]
     const serverRows = server[kind] as {
       id: string
-      anexos?: TicketAttachmentOut[]
+      attachments?: TicketAttachmentOut[]
     }[]
     for (let i = 0; i < draftRows.length; i++) {
       const row = draftRows[i]
@@ -42,7 +43,10 @@ export function mergeServicosAnexosFromServer(
       if (match) {
         draftRows[i] = {
           ...row,
-          anexos: match.anexos !== undefined ? [...match.anexos] : row.anexos,
+          attachments:
+            match.attachments !== undefined
+              ? [...match.attachments]
+              : row.attachments,
         }
       }
     }
@@ -91,10 +95,10 @@ function ensureAtLeastOnePlateRow<
 function normalizeServicosForDraft(s: TicketServicosOut): TicketServicosOut {
   return {
     ...s,
-    busca_por_placa: ensureAtLeastOnePlateRow(s.busca_por_placa),
-    busca_por_radar: ensureAtLeastOnePlateRow(s.busca_por_radar),
-    placas_correlatas: ensureAtLeastOnePlateRow(s.placas_correlatas),
-    placas_conjuntas: ensureAtLeastOnePlateRow(s.placas_conjuntas),
+    plate_search: ensureAtLeastOnePlateRow(s.plate_search),
+    radar_search: ensureAtLeastOnePlateRow(s.radar_search),
+    correlated_plates: ensureAtLeastOnePlateRow(s.correlated_plates),
+    joint_plates: ensureAtLeastOnePlateRow(s.joint_plates),
   }
 }
 
@@ -122,18 +126,18 @@ export function ticketServicosToReplacePayload(
     isLocalDraftServiceId(id) ? {} : { id: id as string }
 
   return {
-    busca_por_placa: n.busca_por_placa.map((x) => ({
+    plate_search: n.plate_search.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       plates: (x.plates ?? [])
         .map((p) => (p.plate ?? '').trim())
         .filter(Boolean),
     })),
-    busca_por_radar: n.busca_por_radar.map((x) => ({
+    radar_search: n.radar_search.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       plates: (x.plates ?? [])
@@ -142,27 +146,30 @@ export function ticketServicosToReplacePayload(
       radar_address: strOrNull(x.radar_address),
       orientation: strOrNull(x.orientation),
     })),
-    cerco_eletronico: n.cerco_eletronico.map((x) => ({
+    electronic_fence: n.electronic_fence.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
-      plate: strOrNull(x.plate),
+      completed: Boolean(x.completed),
+      plates: (x.plates ?? [])
+        .map((p) => (p.plate ?? '').trim())
+        .filter(Boolean),
       vehicle_observations: strOrNull(x.vehicle_observations),
     })),
-    busca_por_imagem: n.busca_por_imagem.map((x) => ({
+    image_search: n.image_search.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
-      plate: strOrNull(x.plate),
-      address: strOrNull(x.address),
+      addresses: (x.addresses ?? [])
+        .map((a) => a.address.trim())
+        .filter(Boolean),
       description: strOrNull(x.description),
       cameras: (x.cameras ?? [])
         .map((c) => c.camera_code.trim())
         .filter(Boolean),
     })),
-    placas_correlatas: n.placas_correlatas.map((x) => ({
+    correlated_plates: n.correlated_plates.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       interest_interval_minutes: x.interest_interval_minutes ?? null,
@@ -172,9 +179,9 @@ export function ticketServicosToReplacePayload(
         plate: strOrNull(p.plate),
       })),
     })),
-    placas_conjuntas: n.placas_conjuntas.map((x) => ({
+    joint_plates: n.joint_plates.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       interest_interval_minutes: x.interest_interval_minutes ?? null,
@@ -184,30 +191,48 @@ export function ticketServicosToReplacePayload(
         plate: strOrNull(p.plate),
       })),
     })),
-    reserva_de_imagem: n.reserva_de_imagem.map((x) => ({
+    image_reservation: n.image_reservation.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
+      addresses: (x.addresses ?? [])
+        .map((a) => a.address.trim())
+        .filter(Boolean),
       cameras: (x.cameras ?? [])
         .map((c) => c.camera_code.trim())
         .filter(Boolean),
     })),
-    analise_de_imagem: n.analise_de_imagem.map((x) => ({
+    image_analysis: n.image_analysis.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
+      addresses: (x.addresses ?? [])
+        .map((a) => a.address.trim())
+        .filter(Boolean),
       cameras: (x.cameras ?? [])
         .map((c) => c.camera_code.trim())
         .filter(Boolean),
     })),
-    outros: n.outros.map((x) => ({
+    other: n.other.map((x) => ({
       ...persistedId(x.id),
-      concluido: Boolean(x.concluido),
+      completed: Boolean(x.completed),
       orientation: strOrNull(x.orientation),
+    })),
+    atlas_civitas: n.atlas_civitas.map((x) => ({
+      ...persistedId(x.id),
+      completed: Boolean(x.completed),
+      name: strOrNull(x.name),
+      email: strOrNull(x.email),
+      cpf: (() => {
+        if (x.cpf == null) return null
+        const d = String(x.cpf).replace(/\D/g, '')
+        return d.length ? d : null
+      })(),
+      registration: strOrNull(x.registration),
     })),
   }
 }
@@ -223,53 +248,58 @@ export function setServiceConcluido(
   draft: TicketServicosOut,
   kind: OpenServiceKey,
   index: number,
-  concluido: boolean,
+  completed: boolean,
 ): TicketServicosOut {
   const next = cloneTicketServicos(draft)
   switch (kind) {
-    case 'busca_por_placa': {
-      const row = next.busca_por_placa[index]
-      if (row) next.busca_por_placa[index] = { ...row, concluido }
+    case 'plate_search': {
+      const row = next.plate_search[index]
+      if (row) next.plate_search[index] = { ...row, completed }
       break
     }
-    case 'busca_por_radar': {
-      const row = next.busca_por_radar[index]
-      if (row) next.busca_por_radar[index] = { ...row, concluido }
+    case 'radar_search': {
+      const row = next.radar_search[index]
+      if (row) next.radar_search[index] = { ...row, completed }
       break
     }
-    case 'cerco_eletronico': {
-      const row = next.cerco_eletronico[index]
-      if (row) next.cerco_eletronico[index] = { ...row, concluido }
+    case 'electronic_fence': {
+      const row = next.electronic_fence[index]
+      if (row) next.electronic_fence[index] = { ...row, completed }
       break
     }
-    case 'busca_por_imagem': {
-      const row = next.busca_por_imagem[index]
-      if (row) next.busca_por_imagem[index] = { ...row, concluido }
+    case 'image_search': {
+      const row = next.image_search[index]
+      if (row) next.image_search[index] = { ...row, completed }
       break
     }
-    case 'placas_correlatas': {
-      const row = next.placas_correlatas[index]
-      if (row) next.placas_correlatas[index] = { ...row, concluido }
+    case 'correlated_plates': {
+      const row = next.correlated_plates[index]
+      if (row) next.correlated_plates[index] = { ...row, completed }
       break
     }
-    case 'placas_conjuntas': {
-      const row = next.placas_conjuntas[index]
-      if (row) next.placas_conjuntas[index] = { ...row, concluido }
+    case 'joint_plates': {
+      const row = next.joint_plates[index]
+      if (row) next.joint_plates[index] = { ...row, completed }
       break
     }
-    case 'reserva_de_imagem': {
-      const row = next.reserva_de_imagem[index]
-      if (row) next.reserva_de_imagem[index] = { ...row, concluido }
+    case 'image_reservation': {
+      const row = next.image_reservation[index]
+      if (row) next.image_reservation[index] = { ...row, completed }
       break
     }
-    case 'analise_de_imagem': {
-      const row = next.analise_de_imagem[index]
-      if (row) next.analise_de_imagem[index] = { ...row, concluido }
+    case 'image_analysis': {
+      const row = next.image_analysis[index]
+      if (row) next.image_analysis[index] = { ...row, completed }
       break
     }
-    case 'outros': {
-      const row = next.outros[index]
-      if (row) next.outros[index] = { ...row, concluido }
+    case 'other': {
+      const row = next.other[index]
+      if (row) next.other[index] = { ...row, completed }
+      break
+    }
+    case 'atlas_civitas': {
+      const row = next.atlas_civitas[index]
+      if (row) next.atlas_civitas[index] = { ...row, completed }
       break
     }
     default:
@@ -287,26 +317,26 @@ export function appendEmptyService(
   const created = nowIso()
 
   switch (kind) {
-    case 'busca_por_placa':
-      next.busca_por_placa = [
-        ...next.busca_por_placa,
+    case 'plate_search':
+      next.plate_search = [
+        ...next.plate_search,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           period_start: null,
           period_end: null,
           plates: [{ id: newNestedEntityId(), created_at: created, plate: '' }],
         },
       ]
       break
-    case 'busca_por_radar':
-      next.busca_por_radar = [
-        ...next.busca_por_radar,
+    case 'radar_search':
+      next.radar_search = [
+        ...next.radar_search,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           period_start: null,
           period_end: null,
           plates: [{ id: newNestedEntityId(), created_at: created, plate: '' }],
@@ -315,41 +345,40 @@ export function appendEmptyService(
         },
       ]
       break
-    case 'cerco_eletronico':
-      next.cerco_eletronico = [
-        ...next.cerco_eletronico,
+    case 'electronic_fence':
+      next.electronic_fence = [
+        ...next.electronic_fence,
         {
           id,
           created_at: created,
-          concluido: false,
-          plate: null,
+          completed: false,
+          plates: [],
           vehicle_observations: null,
         },
       ]
       break
-    case 'busca_por_imagem':
-      next.busca_por_imagem = [
-        ...next.busca_por_imagem,
+    case 'image_search':
+      next.image_search = [
+        ...next.image_search,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           period_start: null,
           period_end: null,
-          plate: null,
-          address: null,
+          addresses: [],
           description: null,
           cameras: [],
         },
       ]
       break
-    case 'placas_correlatas':
-      next.placas_correlatas = [
-        ...next.placas_correlatas,
+    case 'correlated_plates':
+      next.correlated_plates = [
+        ...next.correlated_plates,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           period_start: null,
           period_end: null,
           interest_interval_minutes: 1,
@@ -359,13 +388,13 @@ export function appendEmptyService(
         },
       ]
       break
-    case 'placas_conjuntas':
-      next.placas_conjuntas = [
-        ...next.placas_conjuntas,
+    case 'joint_plates':
+      next.joint_plates = [
+        ...next.joint_plates,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           period_start: null,
           period_end: null,
           interest_interval_minutes: 1,
@@ -375,42 +404,58 @@ export function appendEmptyService(
         },
       ]
       break
-    case 'reserva_de_imagem':
-      next.reserva_de_imagem = [
-        ...next.reserva_de_imagem,
+    case 'image_reservation':
+      next.image_reservation = [
+        ...next.image_reservation,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           period_start: null,
           period_end: null,
           orientation: null,
+          addresses: [],
           cameras: [],
         },
       ]
       break
-    case 'analise_de_imagem':
-      next.analise_de_imagem = [
-        ...next.analise_de_imagem,
+    case 'image_analysis':
+      next.image_analysis = [
+        ...next.image_analysis,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           period_start: null,
           period_end: null,
           orientation: null,
+          addresses: [],
           cameras: [],
         },
       ]
       break
-    case 'outros':
-      next.outros = [
-        ...next.outros,
+    case 'other':
+      next.other = [
+        ...next.other,
         {
           id,
           created_at: created,
-          concluido: false,
+          completed: false,
           orientation: null,
+        },
+      ]
+      break
+    case 'atlas_civitas':
+      next.atlas_civitas = [
+        ...next.atlas_civitas,
+        {
+          id,
+          created_at: created,
+          completed: false,
+          name: null,
+          email: null,
+          cpf: null,
+          registration: null,
         },
       ]
       break
@@ -428,44 +473,41 @@ export function removeServiceAt(
 ): TicketServicosOut {
   const next = cloneTicketServicos(draft)
   switch (kind) {
-    case 'busca_por_placa':
-      next.busca_por_placa = next.busca_por_placa.filter((_, i) => i !== index)
+    case 'plate_search':
+      next.plate_search = next.plate_search.filter((_, i) => i !== index)
       break
-    case 'busca_por_radar':
-      next.busca_por_radar = next.busca_por_radar.filter((_, i) => i !== index)
+    case 'radar_search':
+      next.radar_search = next.radar_search.filter((_, i) => i !== index)
       break
-    case 'cerco_eletronico':
-      next.cerco_eletronico = next.cerco_eletronico.filter(
+    case 'electronic_fence':
+      next.electronic_fence = next.electronic_fence.filter(
         (_, i) => i !== index,
       )
       break
-    case 'busca_por_imagem':
-      next.busca_por_imagem = next.busca_por_imagem.filter(
+    case 'image_search':
+      next.image_search = next.image_search.filter((_, i) => i !== index)
+      break
+    case 'correlated_plates':
+      next.correlated_plates = next.correlated_plates.filter(
         (_, i) => i !== index,
       )
       break
-    case 'placas_correlatas':
-      next.placas_correlatas = next.placas_correlatas.filter(
+    case 'joint_plates':
+      next.joint_plates = next.joint_plates.filter((_, i) => i !== index)
+      break
+    case 'image_reservation':
+      next.image_reservation = next.image_reservation.filter(
         (_, i) => i !== index,
       )
       break
-    case 'placas_conjuntas':
-      next.placas_conjuntas = next.placas_conjuntas.filter(
-        (_, i) => i !== index,
-      )
+    case 'image_analysis':
+      next.image_analysis = next.image_analysis.filter((_, i) => i !== index)
       break
-    case 'reserva_de_imagem':
-      next.reserva_de_imagem = next.reserva_de_imagem.filter(
-        (_, i) => i !== index,
-      )
+    case 'other':
+      next.other = next.other.filter((_, i) => i !== index)
       break
-    case 'analise_de_imagem':
-      next.analise_de_imagem = next.analise_de_imagem.filter(
-        (_, i) => i !== index,
-      )
-      break
-    case 'outros':
-      next.outros = next.outros.filter((_, i) => i !== index)
+    case 'atlas_civitas':
+      next.atlas_civitas = next.atlas_civitas.filter((_, i) => i !== index)
       break
     default:
       break

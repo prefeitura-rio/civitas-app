@@ -32,6 +32,7 @@ const SERIES = [
   { key: 'urgent_days', label: 'Urgente', color: '#b93d52' },
   { key: 'high_days', label: 'Alta', color: '#5b4db2' },
   { key: 'routine_days', label: 'Rotina', color: '#06b2bb' },
+  { key: 'no_priority_days', label: 'Sem Prioridade', color: '#97a2ab' },
 ] as const
 
 const CHART_COLORS = {
@@ -79,7 +80,7 @@ export function SlaMetricsPriorityChart({
             margin: 0,
           }}
         >
-          Tempo Médio de Resolução de Demandas (Por prioridade)
+          Tempo Médio de Resposta de Demandas (Por priority)
         </h2>
         <DemandVolumeChartGranularity
           value={granularity}

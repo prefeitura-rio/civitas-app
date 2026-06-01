@@ -14,6 +14,7 @@ import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-v
 import {
   advancedFiltersToApiPatch,
   type SlaMetricsAdvancedFilterForm,
+  sortSlaPerformancePriorityRows,
   stripAdvancedFiltersFromApi,
 } from './sla-metrics-filter-utils'
 import { SlaMetricsFilters } from './sla-metrics-filters'
@@ -83,8 +84,14 @@ export function SlaMetricsView() {
     [data?.delivery_time_for_media_relevant, mediaGranularity],
   )
 
+  const slaPerformanceByPriorityRows = useMemo(
+    () =>
+      sortSlaPerformancePriorityRows(data?.sla_performance_by_priority ?? []),
+    [data?.sla_performance_by_priority],
+  )
+
   const slaTablePeriodLabels = useMemo(() => {
-    const fromPriority = data?.sla_performance_by_priority[0]?.periods.map(
+    const fromPriority = slaPerformanceByPriorityRows[0]?.periods.map(
       (p) => p.period_label,
     )
     if (fromPriority?.length) return fromPriority
@@ -92,12 +99,24 @@ export function SlaMetricsView() {
       data?.sla_performance_by_service[0]?.periods.map((p) => p.period_label) ??
       []
     )
-  }, [data?.sla_performance_by_priority, data?.sla_performance_by_service])
+  }, [slaPerformanceByPriorityRows, data?.sla_performance_by_service])
 
   function applyFilters(next: SlaDashboardFilterIn) {
     setDraftFilters(next)
     setAppliedFilters(next)
   }
+
+  const canApplyPeriod = useMemo(
+    () =>
+      (draftFilters.date_from ?? '') !== (appliedFilters.date_from ?? '') ||
+      (draftFilters.date_to ?? '') !== (appliedFilters.date_to ?? ''),
+    [
+      draftFilters.date_from,
+      draftFilters.date_to,
+      appliedFilters.date_from,
+      appliedFilters.date_to,
+    ],
+  )
 
   function handlePeriodDatesChange(
     patch: Partial<{ dateFrom: string; dateTo: string }>,
@@ -116,10 +135,18 @@ export function SlaMetricsView() {
       ))
     }
 
-    applyFilters({
-      ...appliedFilters,
+    setDraftFilters({
+      ...draftFilters,
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
+    })
+  }
+
+  function handleApplyPeriodFilter() {
+    setAppliedFilters({
+      ...appliedFilters,
+      date_from: draftFilters.date_from,
+      date_to: draftFilters.date_to,
     })
   }
 
@@ -148,6 +175,8 @@ export function SlaMetricsView() {
           handlePeriodDatesChange({ dateFrom }, 'from')
         }
         onDateToChange={(dateTo) => handlePeriodDatesChange({ dateTo }, 'to')}
+        onApplyPeriod={handleApplyPeriodFilter}
+        canApplyPeriod={canApplyPeriod}
         isLoading={isFetching}
         appliedFilters={appliedFilters}
         onApplyAdvancedFilters={handleApplyAdvancedFilters}
@@ -185,7 +214,7 @@ export function SlaMetricsView() {
       <SlaMetricsSlaTable
         title="Desempenho de SLA por Prioridade"
         columnHeader="PRIORIDADE"
-        rows={data?.sla_performance_by_priority ?? []}
+        rows={slaPerformanceByPriorityRows}
         periodLabels={slaTablePeriodLabels}
         isLoading={isFetching}
       />

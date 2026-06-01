@@ -5,27 +5,18 @@ import type {
 } from '@/http/tickets/get-demand-volume'
 import type { SearchOption } from '@/http/tickets/tickets-dashboard-filters'
 
-export type DemandVolumeAdvancedFilterForm = {
-  requisitante: SearchOption[]
-  prioridade: SearchOption[]
-  status: SearchOption[]
-  tipo_chamado_id: SearchOption[]
-  relevanteImprensa: boolean
-}
+import {
+  DASHBOARD_TATICO_PRIORITY_OPTIONS,
+  type DashboardTaticoAdvancedFilterForm,
+  DEMAND_VOLUME_STATUS_OPTIONS,
+  emptyDashboardTaticoAdvancedFilters,
+} from '../../components/filters'
 
-export const DEMAND_VOLUME_PRIORITY_OPTIONS: SearchOption[] = [
-  { value: 'URGENTE', label: 'Urgente' },
-  { value: 'ALTA', label: 'Alta' },
-  { value: 'ROTINA', label: 'Rotina' },
-]
+export type DemandVolumeAdvancedFilterForm = DashboardTaticoAdvancedFilterForm
 
-export const DEMAND_VOLUME_STATUS_OPTIONS: SearchOption[] = [
-  { value: 'PENDENTE', label: 'Pendente' },
-  { value: 'RESTRITO', label: 'Restrito' },
-  { value: 'BLOQUEADO', label: 'Bloqueado' },
-  { value: 'AGUARDANDO_REVISAO', label: 'Aguardando revisão' },
-  { value: 'CONCLUIDO', label: 'Concluído' },
-]
+export const DEMAND_VOLUME_PRIORITY_OPTIONS = DASHBOARD_TATICO_PRIORITY_OPTIONS
+
+export { DEMAND_VOLUME_STATUS_OPTIONS }
 
 const priorityLabelByValue = new Map(
   DEMAND_VOLUME_PRIORITY_OPTIONS.map((o) => [o.value, o.label]),
@@ -34,24 +25,18 @@ const statusLabelByValue = new Map(
   DEMAND_VOLUME_STATUS_OPTIONS.map((o) => [o.value, o.label]),
 )
 
-export function emptyDemandVolumeAdvancedFilters(): DemandVolumeAdvancedFilterForm {
-  return {
-    requisitante: [],
-    prioridade: [],
-    status: [],
-    tipo_chamado_id: [],
-    relevanteImprensa: false,
-  }
-}
+export const emptyDemandVolumeAdvancedFilters =
+  emptyDashboardTaticoAdvancedFilters
 
 export function countDemandVolumeAdvancedFilters(
   form: DemandVolumeAdvancedFilterForm,
 ): number {
   let count = 0
-  count += form.requisitante.length
-  count += form.prioridade.length
+  count += form.operation_id.length
+  count += form.requester.length
+  count += form.priority.length
   count += form.status.length
-  count += form.tipo_chamado_id.length
+  count += form.ticket_type_id.length
   if (form.relevanteImprensa) count += 1
   return count
 }
@@ -60,11 +45,12 @@ export function countDemandVolumeAdvancedFiltersFromApi(
   filters: DemandVolumeFilterIn,
 ): number {
   let count = 0
-  count += filters.requisitante?.length ?? 0
-  count += filters.prioridade?.length ?? 0
+  count += filters.operation_id?.length ?? 0
+  count += filters.requester?.length ?? 0
+  count += filters.priority?.length ?? 0
   count += filters.status?.length ?? 0
-  count += filters.tipo_chamado_id?.length ?? 0
-  if (filters.relevante_imprensa === true) {
+  count += filters.ticket_type_id?.length ?? 0
+  if (filters.media_relevant === true) {
     count += 1
   }
   return count
@@ -85,23 +71,27 @@ export function advancedFiltersFromApi(
   filters: DemandVolumeFilterIn,
 ): DemandVolumeAdvancedFilterForm {
   return {
-    requisitante: (filters.requisitante ?? []).map((value) => ({
+    operation_id: (filters.operation_id ?? []).map((value) => ({
       value,
       label: value,
     })),
-    prioridade: toSearchOptions(
-      filters.prioridade,
+    requester: (filters.requester ?? []).map((value) => ({
+      value,
+      label: value,
+    })),
+    priority: toSearchOptions(
+      filters.priority,
       priorityLabelByValue,
     ) as SearchOption[],
     status: toSearchOptions(
       filters.status,
       statusLabelByValue,
     ) as SearchOption[],
-    tipo_chamado_id: (filters.tipo_chamado_id ?? []).map((value) => ({
+    ticket_type_id: (filters.ticket_type_id ?? []).map((value) => ({
       value,
       label: value,
     })),
-    relevanteImprensa: filters.relevante_imprensa === true,
+    relevanteImprensa: filters.media_relevant === true,
   }
 }
 
@@ -109,26 +99,30 @@ export function advancedFiltersToApiPatch(
   form: DemandVolumeAdvancedFilterForm,
 ): Pick<
   DemandVolumeFilterIn,
-  | 'requisitante'
-  | 'prioridade'
+  | 'operation_id'
+  | 'requester'
+  | 'priority'
   | 'status'
-  | 'tipo_chamado_id'
-  | 'relevante_imprensa'
+  | 'ticket_type_id'
+  | 'media_relevant'
 > {
   return {
-    requisitante: form.requisitante.length
-      ? form.requisitante.map((item) => item.value)
+    operation_id: form.operation_id.length
+      ? form.operation_id.map((item) => item.value)
       : undefined,
-    prioridade: form.prioridade.length
-      ? (form.prioridade.map((item) => item.value) as TicketPriority[])
+    requester: form.requester.length
+      ? form.requester.map((item) => item.value)
+      : undefined,
+    priority: form.priority.length
+      ? (form.priority.map((item) => item.value) as TicketPriority[])
       : undefined,
     status: form.status.length
       ? (form.status.map((item) => item.value) as TicketStatus[])
       : undefined,
-    tipo_chamado_id: form.tipo_chamado_id.length
-      ? form.tipo_chamado_id.map((item) => item.value)
+    ticket_type_id: form.ticket_type_id.length
+      ? form.ticket_type_id.map((item) => item.value)
       : undefined,
-    relevante_imprensa: form.relevanteImprensa ? true : null,
+    media_relevant: form.relevanteImprensa ? true : null,
   }
 }
 
@@ -136,11 +130,12 @@ export function stripAdvancedFiltersFromApi(
   filters: DemandVolumeFilterIn,
 ): DemandVolumeFilterIn {
   const rest = { ...filters }
-  delete rest.requisitante
-  delete rest.prioridade
+  delete rest.operation_id
+  delete rest.requester
+  delete rest.priority
   delete rest.status
-  delete rest.tipo_chamado_id
-  delete rest.relevante_imprensa
+  delete rest.ticket_type_id
+  delete rest.media_relevant
   return rest
 }
 
@@ -148,25 +143,26 @@ export function formatDemandVolumeAdvancedFiltersSummary(
   filters: DemandVolumeFilterIn,
 ): string[] {
   const lines: string[] = []
-  if (filters.requisitante?.length) {
-    lines.push(`Requisitante: ${filters.requisitante.join(', ')}`)
+  if (filters.operation_id?.length) {
+    lines.push(`Demandante: ${filters.operation_id.length} selecionado(s)`)
   }
-  if (filters.prioridade?.length) {
-    const labels = filters.prioridade.map(
-      (p) => priorityLabelByValue.get(p) ?? p,
-    )
+  if (filters.requester?.length) {
+    lines.push(`Requisitante: ${filters.requester.join(', ')}`)
+  }
+  if (filters.priority?.length) {
+    const labels = filters.priority.map((p) => priorityLabelByValue.get(p) ?? p)
     lines.push(`Urgência: ${labels.join(', ')}`)
   }
   if (filters.status?.length) {
     const labels = filters.status.map((s) => statusLabelByValue.get(s) ?? s)
     lines.push(`Status: ${labels.join(', ')}`)
   }
-  if (filters.tipo_chamado_id?.length) {
+  if (filters.ticket_type_id?.length) {
     lines.push(
-      `Tipo de chamado: ${filters.tipo_chamado_id.length} selecionado(s)`,
+      `Tipo de chamado: ${filters.ticket_type_id.length} selecionado(s)`,
     )
   }
-  if (filters.relevante_imprensa === true) {
+  if (filters.media_relevant === true) {
     lines.push('Relevante para imprensa: Sim')
   }
   return lines

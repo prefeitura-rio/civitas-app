@@ -2,7 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -18,6 +26,7 @@ import {
   RichToolbar,
   sanitizeTicketHtml,
 } from './ticket-detail-rich-text'
+import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
 type Props = {
   ticketId: string
@@ -40,10 +49,10 @@ function badgeClassForPapel(papel: string): string {
   return styles.parecerBadgeDefault
 }
 
-function CommentBody({ corpo }: { corpo: string }) {
-  const html = useMemo(() => sanitizeTicketHtml(corpo), [corpo])
+function CommentBody({ body }: { body: string }) {
+  const html = useMemo(() => sanitizeTicketHtml(body), [body])
   const plain = useMemo(() => {
-    if (typeof window === 'undefined') return corpo
+    if (typeof window === 'undefined') return body
     const doc = new DOMParser().parseFromString(html, 'text/html')
     return (doc.body.textContent || '').trim()
   }, [html])
@@ -64,10 +73,16 @@ function CommentBody({ corpo }: { corpo: string }) {
   )
 }
 
-export function TicketDetailTabParecerInterno({ ticketId }: Props) {
+export const TicketDetailTabParecerInterno = forwardRef<
+  TicketDetailTabHandle,
+  Props
+>(function TicketDetailTabParecerInterno({ ticketId }, ref) {
   const queryClient = useQueryClient()
   const editorRef = useRef<HTMLDivElement>(null)
   const [empty, setEmpty] = useState(true)
+  const emptyRef = useRef(empty)
+
+  emptyRef.current = empty
 
   const commentsQuery = useQuery({
     queryKey: ['ticket-comentarios', ticketId],
@@ -100,8 +115,8 @@ export function TicketDetailTabParecerInterno({ ticketId }: Props) {
   )
 
   const mutation = useMutation({
-    mutationFn: (corpo: string) =>
-      postTicketComment(ticketId, { corpo: corpo.trim() }),
+    mutationFn: (body: string) =>
+      postTicketComment(ticketId, { body: body.trim() }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['ticket-comentarios', ticketId],
@@ -123,15 +138,41 @@ export function TicketDetailTabParecerInterno({ ticketId }: Props) {
     },
   })
 
-  const handleSubmit = () => {
+  const discardComposer = useCallback(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = ''
+      setEmpty(true)
+    }
+  }, [])
+
+  const saveComposer = useCallback(async (): Promise<boolean> => {
     const el = editorRef.current
-    if (!el) return
+    if (!el) return false
     const html = el.innerHTML
     if (isHtmlEffectivelyEmpty(html)) {
       toast.error('Escreva um comentário antes de enviar.')
-      return
+      return false
     }
-    mutation.mutate(html.trim())
+    try {
+      await mutation.mutateAsync(html.trim())
+      return true
+    } catch {
+      return false
+    }
+  }, [mutation])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      isDirty: () => !emptyRef.current,
+      save: saveComposer,
+      discard: discardComposer,
+    }),
+    [discardComposer, saveComposer],
+  )
+
+  const handleSubmit = () => {
+    saveComposer().catch(() => {})
   }
 
   const items: TicketCommentListItem[] = commentsQuery.data ?? []
@@ -152,20 +193,20 @@ export function TicketDetailTabParecerInterno({ ticketId }: Props) {
             <article key={c.id} className={styles.parecerItem}>
               <div className={styles.parecerHeader}>
                 <span className={styles.parecerAuthor}>
-                  {(c.autor_nome || '').trim() || '—'}
+                  {(c.author_name || '').trim() || '—'}
                 </span>
-                {c.autor_papeis.length > 0 ? (
+                {c.author_roles.length > 0 ? (
                   <span
-                    className={`${styles.parecerBadge} ${badgeClassForPapel(c.autor_papeis[0])}`}
+                    className={`${styles.parecerBadge} ${badgeClassForPapel(c.author_roles[0])}`}
                   >
-                    {c.autor_papeis[0]}
+                    {c.author_roles[0]}
                   </span>
                 ) : null}
-                <time className={styles.parecerDate} dateTime={c.criado_em}>
-                  {formatCommentDate(c.criado_em)}
+                <time className={styles.parecerDate} dateTime={c.created_at}>
+                  {formatCommentDate(c.created_at)}
                 </time>
               </div>
-              <CommentBody corpo={c.corpo} />
+              <CommentBody body={c.body} />
             </article>
           ))}
         </div>
@@ -204,4 +245,4 @@ export function TicketDetailTabParecerInterno({ ticketId }: Props) {
       </div>
     </div>
   )
-}
+})

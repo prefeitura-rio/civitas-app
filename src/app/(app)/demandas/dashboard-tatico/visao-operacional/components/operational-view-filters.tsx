@@ -14,12 +14,15 @@ import type { OperationalViewFilterIn } from '@/http/tickets/get-operational-vie
 import { dateConfig } from '@/lib/date-config'
 
 import {
+  DashboardTaticoFilterModal,
+  OPERATIONAL_VIEW_STATUS_OPTIONS,
+} from '../../components/filters'
+import {
   parseDemandVolumeDate,
   toDemandVolumeDateString,
 } from '../../volume/components/demand-volume-date-range'
 import styles from '../../volume/components/demand-volume-top.module.css'
 import { OperationalViewExportDialog } from './operational-view-export-dialog'
-import { OperationalViewFilterModal } from './operational-view-filter-modal'
 import {
   advancedFiltersFromApi,
   countOperationalViewAdvancedFiltersFromApi,
@@ -31,6 +34,8 @@ interface OperationalViewFiltersProps {
   dateTo: string
   onDateFromChange: (dateFrom: string) => void
   onDateToChange: (dateTo: string) => void
+  onApplyPeriod: () => void
+  canApplyPeriod: boolean
   isLoading: boolean
   appliedFilters: OperationalViewFilterIn
   onApplyAdvancedFilters: (filters: OperationalViewAdvancedFilterForm) => void
@@ -123,6 +128,8 @@ export function OperationalViewFilters({
   dateTo,
   onDateFromChange,
   onDateToChange,
+  onApplyPeriod,
+  canApplyPeriod,
   isLoading,
   appliedFilters,
   onApplyAdvancedFilters,
@@ -160,6 +167,14 @@ export function OperationalViewFilters({
             disabled={isLoading}
             minDate={startDate}
           />
+          <button
+            type="button"
+            className={styles.periodApplyButton}
+            disabled={isLoading || !canApplyPeriod}
+            onClick={onApplyPeriod}
+          >
+            Aplicar
+          </button>
         </div>
       </div>
 
@@ -170,7 +185,9 @@ export function OperationalViewFilters({
         onOpenFilter={() => setIsFilterModalOpen(true)}
       />
 
-      <OperationalViewFilterModal
+      <DashboardTaticoFilterModal
+        scope="operational-view"
+        statusOptions={OPERATIONAL_VIEW_STATUS_OPTIONS}
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         filters={advancedFiltersForm}

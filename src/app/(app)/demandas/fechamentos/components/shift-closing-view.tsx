@@ -1,23 +1,31 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getCookie } from 'cookies-next'
 import { format } from 'date-fns'
 import {
   Bold,
   CalendarIcon,
   ChevronLeft,
   Italic,
+  MessageSquareText,
   Underline,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -25,11 +33,27 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useResolvedTicketModulePermissions } from '@/hooks/useQueries/useResolvedTicketModulePermissions'
+import { getTeamsByRole } from '@/http/teams/get-teams-by-role'
+import { getTicketShiftClosingReport } from '@/http/tickets/get-ticket-shift-closing-report'
+import {
+  parseTicketModulePermissionsCookie,
+  TICKET_MODULE_PERMISSIONS_COOKIE,
+} from '@/http/tickets/ticket-module-permissions-me'
+import {
   getTicketShiftClosing,
   persistTicketShiftClosing,
   previewTicketShiftClosing,
 } from '@/http/tickets/ticket-shift-closing'
+import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 import { dateConfig } from '@/lib/date-config'
+import { cn } from '@/lib/utils'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
 import {
@@ -42,6 +66,21 @@ import {
 } from '../utils/shift-closing-period'
 import { ShiftClosingTicketCard } from './shift-closing-ticket-card'
 import styles from './shift-closing-view.module.css'
+
+const SHIFT_CLOSING_TEAM_ROLES = [
+  'Assessor',
+  'Coordenador',
+  'Administrativo',
+] as const satisfies readonly UserRoleEnum[]
+
+function requiresShiftClosingTeamSelection(
+  role: UserRoleEnum | null | undefined,
+): boolean {
+  if (!role) return false
+  return SHIFT_CLOSING_TEAM_ROLES.includes(
+    role as (typeof SHIFT_CLOSING_TEAM_ROLES)[number],
+  )
+}
 
 function parseDateString(s: string): Date | undefined {
   if (!s?.trim()) return undefined
@@ -135,16 +174,44 @@ export function ShiftClosingView({
   const isViewMode = Boolean(shiftClosingId)
   const router = useRouter()
   const queryClient = useQueryClient()
+  const fromCookie = parseTicketModulePermissionsCookie(
+    getCookie(TICKET_MODULE_PERMISSIONS_COOKIE) as string | undefined,
+  )
+  const { permissions, resolved: permissionsResolved } =
+    useResolvedTicketModulePermissions(fromCookie)
+  const userRole = permissions?.role ?? null
+  const mustSelectTeam = requiresShiftClosingTeamSelection(userRole)
   const [period, setPeriod] = useState<ShiftClosingPeriodForm>(
     getDefaultShiftClosingPeriod,
   )
+  const [selectedTeamId, setSelectedTeamId] = useState('')
   const [comment, setComment] = useState('')
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportPreviewUrl, setReportPreviewUrl] = useState<string | null>(null)
   const debouncedPeriod = useDebounce(period, 400)
 
-  const apiPayload = useMemo(
-    () => periodToApiPayload(debouncedPeriod),
-    [debouncedPeriod],
-  )
+  const teamsQuery = useQuery({
+    queryKey: ['teams', 'by-role'],
+    queryFn: getTeamsByRole,
+    enabled: !isViewMode && mustSelectTeam && permissionsResolved,
+    staleTime: 1000 * 60 * 5,
+  })
+
+  useEffect(() => {
+    if (!mustSelectTeam || selectedTeamId || teamsQuery.isLoading) return
+    const teams = teamsQuery.data ?? []
+    if (teams.length === 1) {
+      setSelectedTeamId(teams[0].id)
+    }
+  }, [mustSelectTeam, selectedTeamId, teamsQuery.data, teamsQuery.isLoading])
+
+  const apiPayload = useMemo(() => {
+    const payload = periodToApiPayload(debouncedPeriod)
+    if (mustSelectTeam && selectedTeamId) {
+      return { ...payload, team_id: selectedTeamId }
+    }
+    return payload
+  }, [debouncedPeriod, mustSelectTeam, selectedTeamId])
 
   const recordQuery = useQuery({
     queryKey: ['ticket-shift-closing', shiftClosingId],
@@ -154,6 +221,32 @@ export function ShiftClosingView({
     refetchOnMount: 'always',
   })
 
+  const reportQuery = useQuery({
+    queryKey: ['ticket-shift-closing-report', shiftClosingId],
+    queryFn: () => getTicketShiftClosingReport(shiftClosingId!),
+    enabled: isViewMode && reportOpen && Boolean(shiftClosingId),
+    retry: false,
+  })
+
+  useEffect(() => {
+    let created: string | null = null
+
+    if (reportOpen && reportQuery.data) {
+      const { blob, contentType } = reportQuery.data
+      const typed =
+        blob.type && blob.type.length > 0
+          ? blob
+          : new Blob([blob], { type: contentType })
+      created = URL.createObjectURL(typed)
+    }
+
+    setReportPreviewUrl(created)
+
+    return () => {
+      if (created) URL.revokeObjectURL(created)
+    }
+  }, [reportOpen, reportQuery.data])
+
   const previewQuery = useQuery({
     queryKey: ['ticket-shift-closing-preview', apiPayload],
     queryFn: () => previewTicketShiftClosing(apiPayload),
@@ -161,7 +254,8 @@ export function ShiftClosingView({
       !isViewMode &&
       Boolean(
         apiPayload.start_date && apiPayload.start_time && apiPayload.end_time,
-      ),
+      ) &&
+      (!mustSelectTeam || Boolean(selectedTeamId)),
     staleTime: 0,
     refetchOnMount: 'always',
   })
@@ -176,12 +270,22 @@ export function ShiftClosingView({
 
   const displayPeriod = isViewMode ? viewPeriod : period
 
+  const canSubmitClose = !mustSelectTeam || Boolean(selectedTeamId.trim())
+
   const closeMutation = useMutation({
-    mutationFn: () =>
-      persistTicketShiftClosing({
+    mutationFn: () => {
+      const payload = {
         ...periodToApiPayload(period),
         comment,
-      }),
+      }
+      if (mustSelectTeam && selectedTeamId) {
+        return persistTicketShiftClosing({
+          ...payload,
+          team_id: selectedTeamId,
+        })
+      }
+      return persistTicketShiftClosing(payload)
+    },
     onSuccess: async () => {
       toast.success('Turno fechado com sucesso.')
       await queryClient.invalidateQueries({
@@ -206,6 +310,7 @@ export function ShiftClosingView({
   const isLoading = isViewMode ? recordQuery.isLoading : previewQuery.isLoading
   const isError = isViewMode ? recordQuery.isError : previewQuery.isError
   const queryError = isViewMode ? recordQuery.error : previewQuery.error
+  const savedComment = recordQuery.data?.comment?.trim() ?? ''
 
   return (
     <div className={styles.root}>
@@ -220,6 +325,19 @@ export function ShiftClosingView({
           </Link>
           <h1 className={styles.pageTitle}>Fechamento de Turno</h1>
         </div>
+        {isViewMode ? (
+          <div className={styles.headerActions}>
+            <Button
+              type="button"
+              variant="outline"
+              className={styles.reportButton}
+              disabled={recordQuery.isLoading || recordQuery.isError}
+              onClick={() => setReportOpen(true)}
+            >
+              Relatório completo
+            </Button>
+          </div>
+        ) : null}
       </header>
 
       <section className={styles.periodSection}>
@@ -292,6 +410,43 @@ export function ShiftClosingView({
             )}
           </div>
         </div>
+
+        {!isViewMode && mustSelectTeam ? (
+          <div className={styles.teamRow}>
+            <div className={styles.teamField}>
+              <span className={styles.periodLabel}>Equipe</span>
+              <Select
+                value={selectedTeamId || undefined}
+                onValueChange={setSelectedTeamId}
+                disabled={teamsQuery.isLoading}
+              >
+                <SelectTrigger
+                  className={styles.teamSelectTrigger}
+                  aria-label="Equipe do fechamento"
+                >
+                  <SelectValue placeholder="Selecione uma equipe" />
+                </SelectTrigger>
+                <SelectContent className={styles.teamSelectContent}>
+                  {(teamsQuery.data ?? []).map((team) => (
+                    <SelectItem
+                      key={team.id}
+                      value={team.id}
+                      className={styles.teamSelectItem}
+                    >
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {teamsQuery.isError ? (
+                <p className={styles.errorState}>
+                  {getApiErrorMessage(teamsQuery.error)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
         <p className={styles.selectedCount}>
           {isLoading
             ? 'Carregando chamados…'
@@ -318,6 +473,40 @@ export function ShiftClosingView({
           </div>
         )}
       </section>
+
+      {isViewMode && !isLoading && !isError ? (
+        <section className={styles.commentSection}>
+          <div className={styles.commentHeading}>
+            <h2 className={styles.commentTitle}>
+              Comentário do Balanço do Serviço
+            </h2>
+            <p className={styles.commentSubtitle}>
+              Observações registradas no fechamento do turno.
+            </p>
+          </div>
+
+          <div className={styles.commentReadOnlyCard}>
+            <div className={styles.commentReadOnlyHeader}>
+              <MessageSquareText
+                size={18}
+                className={styles.commentReadOnlyIcon}
+                aria-hidden
+              />
+              <span className={styles.commentReadOnlyLabel}>
+                {savedComment ? 'Comentário' : 'Sem comentário'}
+              </span>
+            </div>
+
+            {savedComment ? (
+              <p className={styles.commentReadOnlyBody}>{savedComment}</p>
+            ) : (
+              <p className={styles.commentReadOnlyEmpty}>
+                Nenhum comentário foi registrado neste fechamento.
+              </p>
+            )}
+          </div>
+        </section>
+      ) : null}
 
       {!isViewMode ? (
         <section className={styles.commentSection}>
@@ -357,13 +546,61 @@ export function ShiftClosingView({
             <Button
               type="button"
               className={styles.submitButton}
-              disabled={closeMutation.isPending || previewQuery.isLoading}
+              disabled={
+                closeMutation.isPending ||
+                previewQuery.isLoading ||
+                !canSubmitClose
+              }
               onClick={() => closeMutation.mutate()}
             >
               {closeMutation.isPending ? 'Fechando…' : 'Fechar Relatório'}
             </Button>
           </div>
         </section>
+      ) : null}
+
+      {isViewMode ? (
+        <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+          <DialogContent
+            className={cn(
+              styles.reportDialogContent,
+              'translate-x-[-50%] translate-y-[-50%] sm:max-w-[min(96vw,1100px)]',
+            )}
+            aria-describedby={undefined}
+          >
+            <DialogHeader className={styles.reportDialogHeader}>
+              <DialogTitle className={styles.reportDialogTitle}>
+                Relatório completo
+              </DialogTitle>
+            </DialogHeader>
+            <div className={styles.reportDialogBody}>
+              {reportQuery.isLoading ||
+              (reportQuery.data &&
+                !reportPreviewUrl &&
+                !reportQuery.isError) ? (
+                <p className={styles.reportDialogMessage}>
+                  Carregando relatório…
+                </p>
+              ) : reportQuery.isError ? (
+                <p
+                  className={`${styles.reportDialogMessage} ${styles.reportDialogError}`}
+                >
+                  {getApiErrorMessage(reportQuery.error)}
+                </p>
+              ) : reportPreviewUrl ? (
+                <iframe
+                  title="Visualização do relatório completo"
+                  src={reportPreviewUrl}
+                  className={styles.reportFrame}
+                />
+              ) : (
+                <p className={styles.reportDialogMessage}>
+                  Não foi possível exibir o arquivo neste navegador.
+                </p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       ) : null}
     </div>
   )

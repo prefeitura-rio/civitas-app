@@ -30,15 +30,11 @@ import {
   fetchTicketServiceAttachmentBlob,
 } from '@/http/tickets/download-ticket-attachment'
 import {
-  completeTicketVideoAttachment,
   deleteTicketAttachment,
   deleteTicketServiceAttachment,
   getTicketServiceAttachmentPlaybackUrl,
-  putVideoToGcsSignedUrl,
-  requestTicketVideoUploadUrl,
-  type TicketAttachmentMultipartMetadata,
   type TicketAttachmentOut,
-  uploadTicketServiceAttachmentsMultipart,
+  type TicketAttachmentServiceScopeMetadataIn,
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
 
@@ -46,7 +42,6 @@ import styles from '../ticket-detail.module.css'
 import {
   gcsAttachmentLabel,
   isZipFile,
-  resolveGcsUploadContentType,
   usesGcsSignedUrlAttachment,
   usesGcsSignedUrlUpload,
 } from './ticket-gcs-upload'
@@ -70,8 +65,10 @@ const MULTIPART_ACCEPT = [
   'image/gif',
   'image/webp',
   'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ] as const
+
+const BLOCKED_DOCX = /\.docx$/i
+const BLOCKED_MOV = /\.mov$/i
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -88,7 +85,7 @@ function multipartFileAllowed(file: File): boolean {
   if (MULTIPART_ACCEPT.includes(t as (typeof MULTIPART_ACCEPT)[number]))
     return true
   const n = file.name.toLowerCase()
-  return /\.(pdf|jpe?g|png|gif|webp|doc|docx)$/i.test(n)
+  return /\.(pdf|jpe?g|png|gif|webp|doc)$/i.test(n)
 }
 
 function invalidateAttachmentQueries(
@@ -96,7 +93,7 @@ function invalidateAttachmentQueries(
   ticketId: string,
 ) {
   Promise.all([
-    qc.invalidateQueries({ queryKey: ['ticket', ticketId, 'servicos'] }),
+    qc.invalidateQueries({ queryKey: ['ticket', ticketId, 'services'] }),
     qc.invalidateQueries({ queryKey: ['ticket-attachments', ticketId] }),
     qc.invalidateQueries({ queryKey: ['ticket', ticketId] }),
   ]).catch(() => {})
@@ -128,7 +125,7 @@ type Props = {
   title: string
   attachments: TicketAttachmentOut[]
   readOnly: boolean
-  serviceScope: TicketAttachmentMultipartMetadata | null
+  serviceScope: TicketAttachmentServiceScopeMetadataIn | null
   uploadBlocked?: boolean
   uploadBlockedMessage?: string
   pendingFiles?: PendingServiceAttachment[]
@@ -162,12 +159,6 @@ export function TicketServicoAnexos({
   const [videoPlaybackOverrides, setVideoPlaybackOverrides] = useState<
     Record<string, { signedUrl?: string; expiresAt?: string }>
   >({})
-  const [videoUploadUi, setVideoUploadUi] = useState<{
-    fileName: string
-    phase: 'preparing' | 'uploading' | 'finalizing'
-    percent: number
-  } | null>(null)
-  const lastReportedVideoPercent = useRef(-1)
   const renameInputRef = useRef<HTMLInputElement>(null)
   const [renameDialog, setRenameDialog] = useState<{
     index: number
@@ -220,112 +211,6 @@ export function TicketServicoAnexos({
       )
     },
     onSettled: () => setDeletingId(null),
-  })
-
-  const multipartMutation = useMutation({
-    mutationFn: (files: File[]) =>
-      uploadTicketServiceAttachmentsMultipart(
-        ticketId,
-        files,
-        serviceScope ?? undefined,
-      ),
-    onSuccess: () => {
-      invalidateAttachmentQueries(queryClient, ticketId)
-      toast.success(
-        serviceScope ? 'Anexos enviados para o serviço.' : 'Anexos enviados.',
-      )
-      if (uploadRef.current) uploadRef.current.value = ''
-    },
-    onError: (err: unknown) => {
-      toast.error(
-        getApiDetailUnless500(err) ?? 'Não foi possível enviar os anexos.',
-      )
-    },
-  })
-
-  const videoMutation = useMutation({
-    onMutate: (file) => {
-      lastReportedVideoPercent.current = -1
-      setVideoUploadUi({
-        fileName: file.name,
-        phase: 'preparing',
-        percent: 0,
-      })
-    },
-    mutationFn: async (file: File) => {
-      const contentType = resolveGcsUploadContentType(file)
-      const scope =
-        serviceScope != null
-          ? {
-              service_type: serviceScope.service_type,
-              service_id: serviceScope.service_id,
-            }
-          : {}
-      const uploadMeta = await requestTicketVideoUploadUrl(ticketId, {
-        filename: file.name,
-        content_type: contentType,
-        file_size: file.size,
-        resumable: true,
-        ...scope,
-      })
-      setVideoUploadUi({
-        fileName: file.name,
-        phase: 'uploading',
-        percent: 0,
-      })
-      lastReportedVideoPercent.current = 0
-      await putVideoToGcsSignedUrl(uploadMeta.signed_url, file, contentType, {
-        onProgress: ({ loaded, total }) => {
-          const t = total > 0 ? total : file.size
-          if (t <= 0) return
-          const raw = Math.floor((loaded / t) * 100)
-          const pct = Math.min(99, raw)
-          if (pct === lastReportedVideoPercent.current) return
-          lastReportedVideoPercent.current = pct
-          setVideoUploadUi({
-            fileName: file.name,
-            phase: 'uploading',
-            percent: pct,
-          })
-        },
-      })
-      setVideoUploadUi({
-        fileName: file.name,
-        phase: 'finalizing',
-        percent: 100,
-      })
-      await completeTicketVideoAttachment(ticketId, {
-        storage_key: uploadMeta.storage_key,
-        filename: file.name,
-        content_type: contentType,
-        size_bytes: file.size,
-        ...scope,
-      })
-    },
-    onSuccess: (_data, file) => {
-      invalidateAttachmentQueries(queryClient, ticketId)
-      const kind = isZipFile(file) ? 'ZIP' : 'Vídeo'
-      toast.success(
-        serviceScope
-          ? `${kind} anexado ao serviço.`
-          : `${kind} anexado à demanda.`,
-      )
-      if (uploadRef.current) uploadRef.current.value = ''
-    },
-    onError: (err: unknown) => {
-      if (err instanceof Error && !isApiError(err)) {
-        toast.error(err.message)
-        return
-      }
-      toast.error(
-        getApiDetailUnless500(err) ??
-          'Não foi possível enviar o ficheiro (vídeo ou ZIP).',
-      )
-    },
-    onSettled: () => {
-      setVideoUploadUi(null)
-      lastReportedVideoPercent.current = -1
-    },
   })
 
   const handleDelete = useCallback(
@@ -451,12 +336,26 @@ export function TicketServicoAnexos({
       if (!list?.length) return
       const files = Array.from(list)
 
+      const hasDocx = files.some((f) => BLOCKED_DOCX.test(f.name))
+      const hasMov = files.some((f) => BLOCKED_MOV.test(f.name))
+      if (hasDocx || hasMov) {
+        if (hasDocx && hasMov) {
+          toast.error('Ficheiros DOCX e MOV não são permitidos.')
+        } else if (hasDocx) {
+          toast.error('Ficheiros DOCX não são permitidos. Use o formato .doc.')
+        } else {
+          toast.error('Ficheiros MOV não são permitidos.')
+        }
+        e.target.value = ''
+        return
+      }
+
       const gcsFiles = files.filter(usesGcsSignedUrlUpload)
       const otherFiles = files.filter((f) => !usesGcsSignedUrlUpload(f))
 
       if (gcsFiles.length > 0 && otherFiles.length > 0) {
         toast.error(
-          'Envie vídeos ou ZIP separados dos demais anexos para usar o endpoint correto.',
+          'Envie vídeos ou ZIP separados dos demais attachments para usar o endpoint correto.',
         )
         e.target.value = ''
         return
@@ -484,7 +383,7 @@ export function TicketServicoAnexos({
           e.target.value = ''
           return
         }
-        videoMutation.mutate(gcsFile)
+        toast.error('Guarde os serviços para anexar vídeos ou ZIP.')
         e.target.value = ''
         return
       }
@@ -492,7 +391,7 @@ export function TicketServicoAnexos({
       const bad = otherFiles.filter((f) => !multipartFileAllowed(f))
       if (bad.length || otherFiles.length === 0) {
         toast.error(
-          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word, até 10 MB cada.',
+          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word (.doc), até 10 MB cada.',
         )
         e.target.value = ''
         return
@@ -507,16 +406,13 @@ export function TicketServicoAnexos({
         return
       }
 
-      multipartMutation.mutate(otherFiles)
+      toast.error('Guarde os serviços para anexar ficheiros.')
       e.target.value = ''
     },
-    [multipartMutation, onQueuePendingFiles, uploadBlocked, videoMutation],
+    [onQueuePendingFiles, uploadBlocked],
   )
 
-  const busy =
-    multipartMutation.isPending ||
-    videoMutation.isPending ||
-    deleteMutation.isPending
+  const busy = deleteMutation.isPending
 
   const canUpload =
     !readOnly && !busy && (!uploadBlocked || !!onQueuePendingFiles)
@@ -541,7 +437,7 @@ export function TicketServicoAnexos({
                 type="file"
                 className={styles.servicoAnexosFileInput}
                 multiple
-                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx"
+                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc"
                 onChange={onPickUpload}
                 aria-hidden
                 tabIndex={-1}
@@ -572,47 +468,6 @@ export function TicketServicoAnexos({
             </div>
           ) : null}
         </div>
-
-        {videoUploadUi ? (
-          <div
-            className={styles.servicoAnexosUploadProgress}
-            role="status"
-            aria-live="polite"
-            aria-busy={videoMutation.isPending}
-          >
-            <div className={styles.servicoAnexosUploadProgressTop}>
-              <span className={styles.servicoAnexosUploadProgressLabel}>
-                {videoUploadUi.phase === 'preparing' && 'A preparar envio…'}
-                {videoUploadUi.phase === 'uploading' &&
-                  `A enviar — ${videoUploadUi.percent}%`}
-                {videoUploadUi.phase === 'finalizing' &&
-                  'A concluir no servidor…'}
-              </span>
-              <span
-                className={styles.servicoAnexosUploadProgressName}
-                title={videoUploadUi.fileName}
-              >
-                {videoUploadUi.fileName}
-              </span>
-            </div>
-            <div
-              className={`${styles.servicoAnexosUploadProgressTrack} ${
-                videoUploadUi.phase === 'preparing'
-                  ? styles.servicoAnexosUploadProgressIndeterminate
-                  : ''
-              }`}
-            >
-              <div
-                className={styles.servicoAnexosUploadProgressFill}
-                style={
-                  videoUploadUi.phase === 'preparing'
-                    ? undefined
-                    : { width: `${videoUploadUi.percent}%` }
-                }
-              />
-            </div>
-          </div>
-        ) : null}
 
         {uploadBlocked && !readOnly ? (
           <p className={styles.servicoAnexosHint}>

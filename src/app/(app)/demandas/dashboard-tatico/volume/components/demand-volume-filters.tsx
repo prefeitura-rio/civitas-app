@@ -14,11 +14,14 @@ import type { DemandVolumeFilterIn } from '@/http/tickets/get-demand-volume'
 import { dateConfig } from '@/lib/date-config'
 
 import {
+  DashboardTaticoFilterModal,
+  DEMAND_VOLUME_STATUS_OPTIONS,
+} from '../../components/filters'
+import {
   parseDemandVolumeDate,
   toDemandVolumeDateString,
 } from './demand-volume-date-range'
 import { DemandVolumeExportDialog } from './demand-volume-export-dialog'
-import { DemandVolumeFilterModal } from './demand-volume-filter-modal'
 import {
   advancedFiltersFromApi,
   countDemandVolumeAdvancedFiltersFromApi,
@@ -31,6 +34,8 @@ interface DemandVolumeFiltersProps {
   dateTo: string
   onDateFromChange: (dateFrom: string) => void
   onDateToChange: (dateTo: string) => void
+  onApplyPeriod: () => void
+  canApplyPeriod: boolean
   isLoading: boolean
   appliedFilters: DemandVolumeFilterIn
   onApplyAdvancedFilters: (filters: DemandVolumeAdvancedFilterForm) => void
@@ -123,6 +128,8 @@ export function DemandVolumeFilters({
   dateTo,
   onDateFromChange,
   onDateToChange,
+  onApplyPeriod,
+  canApplyPeriod,
   isLoading,
   appliedFilters,
   onApplyAdvancedFilters,
@@ -160,6 +167,14 @@ export function DemandVolumeFilters({
             disabled={isLoading}
             minDate={startDate}
           />
+          <button
+            type="button"
+            className={styles.periodApplyButton}
+            disabled={isLoading || !canApplyPeriod}
+            onClick={onApplyPeriod}
+          >
+            Aplicar
+          </button>
         </div>
       </div>
 
@@ -188,7 +203,9 @@ export function DemandVolumeFilters({
         />
       </div>
 
-      <DemandVolumeFilterModal
+      <DashboardTaticoFilterModal
+        scope="demand-volume"
+        statusOptions={DEMAND_VOLUME_STATUS_OPTIONS}
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         filters={advancedFiltersForm}

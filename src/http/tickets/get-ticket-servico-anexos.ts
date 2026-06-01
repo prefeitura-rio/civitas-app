@@ -8,7 +8,7 @@ export async function getTicketServicoAnexos(
   serviceId: string,
 ) {
   const { data } = await api.get<TicketAttachmentOut[]>(
-    `/tickets/${encodeURIComponent(ticketId)}/servicos/${encodeURIComponent(serviceType)}/${encodeURIComponent(serviceId)}/anexos`,
+    `/tickets/${encodeURIComponent(ticketId)}/services/${encodeURIComponent(serviceType)}/${encodeURIComponent(serviceId)}/attachments`,
   )
   return data ?? []
 }

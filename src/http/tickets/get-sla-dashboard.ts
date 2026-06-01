@@ -1,3 +1,4 @@
+import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
 import type {
@@ -9,25 +10,19 @@ export type SlaDashboardGranularity = 'monthly' | 'weekly' | 'yearly'
 
 export type TicketPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
-export type SlaTicketStatus =
-  | 'PENDENTE'
-  | 'AGUARDANDO_REVISAO_ADJUNTO'
-  | 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
-  | 'FINALIZADO'
-  | 'DEMANDA_RESPONDIDA'
-  | 'BLOQUEADO'
-  | 'RESTRITO'
+export type SlaTicketStatus = TicketStatus
 
 export interface SlaDashboardFilterIn {
   date_from?: string
   date_to?: string
   /** Herdado do volume; ignorado no SLA. */
   summary_period?: 'current_week' | 'current_month' | 'current_year'
-  requisitante?: string[]
-  prioridade?: TicketPriority[]
+  operation_id?: string[]
+  requester?: string[]
+  priority?: TicketPriority[]
   status?: SlaTicketStatus[]
-  tipo_chamado_id?: string[]
-  relevante_imprensa?: boolean | null
+  ticket_type_id?: string[]
+  media_relevant?: boolean | null
 }
 
 export interface SlaDashboardSummaryOut {
@@ -48,6 +43,7 @@ export interface AvgResolutionTimeByPriorityItemOut {
   urgent_days: number | null
   high_days: number | null
   routine_days: number | null
+  no_priority_days: number | null
 }
 
 export interface DeliveryTimeMediaItemOut {
@@ -95,12 +91,13 @@ export function sanitizeSlaDashboardFilters(
   const payload: SlaDashboardFilterIn = { ...filters }
 
   delete payload.summary_period
-  if (!payload.requisitante?.length) delete payload.requisitante
-  if (!payload.prioridade?.length) delete payload.prioridade
+  if (!payload.operation_id?.length) delete payload.operation_id
+  if (!payload.requester?.length) delete payload.requester
+  if (!payload.priority?.length) delete payload.priority
   if (!payload.status?.length) delete payload.status
-  if (!payload.tipo_chamado_id?.length) delete payload.tipo_chamado_id
-  if (payload.relevante_imprensa === undefined) {
-    delete payload.relevante_imprensa
+  if (!payload.ticket_type_id?.length) delete payload.ticket_type_id
+  if (payload.media_relevant === undefined) {
+    delete payload.media_relevant
   }
 
   return payload

@@ -1,3 +1,4 @@
+import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
 import type {
@@ -14,50 +15,34 @@ export type OperationalViewSummaryPeriod =
 
 export type OperationalViewPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
-export type OperationalViewStatus =
-  | 'PENDENTE'
-  | 'BLOQUEADO'
-  | 'AGUARDANDO_REVISAO_ADJUNTO'
-  | 'AGUARDANDO_REVISAO_ADMINISTRATIVO'
-  | 'FINALIZADO'
-  | 'DEMANDA_RESPONDIDA'
-  | 'RESTRITO'
+export type OperationalViewStatus = TicketStatus
 
 export interface OperationalViewFilterIn {
   date_from?: string
   date_to?: string
   summary_period?: OperationalViewSummaryPeriod
-  requisitante?: string[]
-  prioridade?: OperationalViewPriority[]
+  operation_id?: string[]
+  requester?: string[]
+  priority?: OperationalViewPriority[]
   status?: OperationalViewStatus[]
-  tipo_chamado_id?: string[]
-  relevante_imprensa?: boolean | null
+  ticket_type_id?: string[]
+  media_relevant?: boolean | null
 }
 
 export interface OperationalViewSummaryOut {
-  total_pendentes: number
-  total_bloqueados: number
-  total_aguardando_revisao: number
-  total_finalizados: number
+  total_pending: number
+  total_blocked: number
+  total_awaiting_review: number
+  total_completed: number
 }
 
 export interface OpenTicketsByTeamItemOut {
   team: string
   pendente: number
   bloqueado: number
-  aguardando_revisao: number
-}
-
-export interface OpenTicketsPeriodPointOut {
-  period_label: string
-  pendente: number
-  bloqueado: number
-  aguardando_revisao: number
-}
-
-export interface OpenTicketsTeamPeriodSeriesOut {
-  team: string
-  data: OpenTicketsPeriodPointOut[]
+  aguardando_revisao?: number
+  aguardando_revisao_adjunto?: number
+  aguardando_revisao_administrativo?: number
 }
 
 export interface TeamPeriodValueOut {
@@ -89,7 +74,7 @@ export interface SlaPerformanceByTeamRowOut {
 
 export interface OperationalViewOut {
   summary: OperationalViewSummaryOut
-  open_tickets_by_team: OperationalViewGranularitySeries<OpenTicketsTeamPeriodSeriesOut>
+  open_tickets_by_team: OpenTicketsByTeamItemOut[]
   closed_volume_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
   avg_resolution_time_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
   sla_performance_by_team: SlaPerformanceByTeamRowOut[]
@@ -108,12 +93,13 @@ export function sanitizeOperationalViewFilters(
 ): OperationalViewFilterIn {
   const payload: OperationalViewFilterIn = { ...filters }
 
-  if (!payload.requisitante?.length) delete payload.requisitante
-  if (!payload.prioridade?.length) delete payload.prioridade
+  if (!payload.operation_id?.length) delete payload.operation_id
+  if (!payload.requester?.length) delete payload.requester
+  if (!payload.priority?.length) delete payload.priority
   if (!payload.status?.length) delete payload.status
-  if (!payload.tipo_chamado_id?.length) delete payload.tipo_chamado_id
-  if (payload.relevante_imprensa === undefined) {
-    delete payload.relevante_imprensa
+  if (!payload.ticket_type_id?.length) delete payload.ticket_type_id
+  if (payload.media_relevant === undefined) {
+    delete payload.media_relevant
   }
 
   return payload

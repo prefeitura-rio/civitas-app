@@ -43,6 +43,7 @@ const slaConfigSchema = z.object({
   joint_license_plates_days: z.coerce.number().int().min(1),
   image_analysis_days: z.coerce.number().int().min(1),
   others_days: z.coerce.number().int().min(1),
+  atlas_civitas_days: z.coerce.number().int().min(1),
 })
 
 const SLA_FIELD_ROWS = [
@@ -50,6 +51,7 @@ const SLA_FIELD_ROWS = [
   [SLA_CONFIG_FIELDS[2], SLA_CONFIG_FIELDS[3]],
   [SLA_CONFIG_FIELDS[4], SLA_CONFIG_FIELDS[5]],
   [SLA_CONFIG_FIELDS[6], SLA_CONFIG_FIELDS[7]],
+  [SLA_CONFIG_FIELDS[8]],
 ] as const
 
 function resolveFormValues(

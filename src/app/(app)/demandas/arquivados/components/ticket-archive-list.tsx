@@ -35,7 +35,8 @@ function getServiceClassName(label: string) {
   if (normalized.includes('busca por radar')) return styles.serviceTagBlue
   if (normalized.includes('placas correlatas')) return styles.serviceTagOrange
   if (normalized.includes('placas conjuntas')) return styles.serviceTagPurple
-  if (normalized.includes('outros')) return styles.serviceTagRed
+  if (normalized.includes('other')) return styles.serviceTagRed
+  if (normalized.includes('atlas')) return styles.serviceTagDefault
 
   return styles.serviceTagDefault
 }
@@ -85,24 +86,26 @@ function normalizeArchiveItem(item: unknown): TicketArchiveListItem {
 
   const id = String(row.id ?? row.ticket_id ?? '')
   const chamado = String(
-    row.chamado ?? row.numero_interno ?? row.ticket_number ?? '-',
+    row.ticket ?? row.internal_number ?? row.ticket_number ?? '-',
   )
 
   return {
     id,
-    chamado,
-    data_conclusao: pickOptionalDate(
+    ticket: chamado,
+    completed_at: pickOptionalDate(
       row,
-      'data_conclusao',
+      'completed_at',
       'completed_at',
       'concluded_at',
     ),
-    demandante: String(row.demandante ?? row.demandante_nome ?? '-'),
-    equipe: String(row.equipe ?? row.team_name ?? '-'),
-    responsavel: String(row.responsavel ?? row.responsavel_nome ?? '-'),
-    servicos: parseServices(row.servicos ?? row.services),
+    requester_operation: String(
+      row.requester_operation ?? row.requester_operation_nome ?? '-',
+    ),
+    team: String(row.team ?? row.team_name ?? '-'),
+    assignee: String(row.assignee ?? row.assignee_nome ?? '-'),
+    services: parseServices(row.services ?? row.services),
     status: String(row.status ?? row.situacao ?? '-'),
-    sei_preenchido: parseSeiPreenchido(row.sei_preenchido),
+    sei_filled: parseSeiPreenchido(row.sei_filled),
   }
 }
 
@@ -159,12 +162,12 @@ function buildArchiveCsv(rows: TicketArchiveListItem[]): string {
   const body = rows
     .map((item) =>
       [
-        item.chamado,
-        formatArchiveDate(item.data_conclusao),
-        item.demandante,
-        item.equipe,
-        item.responsavel,
-        item.servicos.join('; '),
+        item.ticket,
+        formatArchiveDate(item.completed_at),
+        item.requester_operation,
+        item.team,
+        item.assignee,
+        item.services.join('; '),
         item.status,
       ]
         .map(escapeCsvCell)
@@ -199,22 +202,22 @@ export function TicketArchiveList() {
   const archiveQueryFilters = useMemo<TicketArchiveQueryFilters>(
     () => ({
       search: debouncedSearch.trim() || undefined,
-      demandante_id: appliedFilters.demandante_id.map((item) => item.value),
-      requisitante: appliedFilters.requisitante.length
-        ? appliedFilters.requisitante.map((item) => item.value)
+      operation_id: appliedFilters.operation_id.map((item) => item.value),
+      requester: appliedFilters.requester.length
+        ? appliedFilters.requester.map((item) => item.value)
         : undefined,
-      responsavel_id: appliedFilters.responsavel_id.length
-        ? appliedFilters.responsavel_id.map((item) => item.value)
+      assignee_id: appliedFilters.assignee_id.length
+        ? appliedFilters.assignee_id.map((item) => item.value)
         : undefined,
-      data_base_inicio: appliedFilters.data_base_inicio || undefined,
-      data_base_fim: appliedFilters.data_base_fim || undefined,
-      data_entrada_inicio: appliedFilters.data_entrada_inicio || undefined,
-      data_entrada_fim: appliedFilters.data_entrada_fim || undefined,
-      prioridade: appliedFilters.prioridade.map((item) => item.value),
-      equipe: appliedFilters.equipe.map((item) => item.value),
-      servicos: appliedFilters.servicos.map(
+      base_date_start: appliedFilters.base_date_start || undefined,
+      base_date_end: appliedFilters.base_date_end || undefined,
+      entry_date_start: appliedFilters.entry_date_start || undefined,
+      entry_date_end: appliedFilters.entry_date_end || undefined,
+      priority: appliedFilters.priority.map((item) => item.value),
+      team: appliedFilters.team.map((item) => item.value),
+      services: appliedFilters.services.map(
         (item) => item.value,
-      ) as TicketArchiveFilters['servicos'],
+      ) as TicketArchiveFilters['services'],
     }),
     [appliedFilters, debouncedSearch],
   )
@@ -243,16 +246,16 @@ export function TicketArchiveList() {
   const activeFiltersCount = useMemo(
     () =>
       [
-        appliedFilters.demandante_id.length,
-        appliedFilters.requisitante.length,
-        appliedFilters.responsavel_id.length,
-        appliedFilters.prioridade.length,
-        appliedFilters.equipe.length,
-        appliedFilters.servicos.length,
-        appliedFilters.data_base_inicio ? 1 : 0,
-        appliedFilters.data_base_fim ? 1 : 0,
-        appliedFilters.data_entrada_inicio ? 1 : 0,
-        appliedFilters.data_entrada_fim ? 1 : 0,
+        appliedFilters.operation_id.length,
+        appliedFilters.requester.length,
+        appliedFilters.assignee_id.length,
+        appliedFilters.priority.length,
+        appliedFilters.team.length,
+        appliedFilters.services.length,
+        appliedFilters.base_date_start ? 1 : 0,
+        appliedFilters.base_date_end ? 1 : 0,
+        appliedFilters.entry_date_start ? 1 : 0,
+        appliedFilters.entry_date_end ? 1 : 0,
       ].reduce((acc, value) => acc + value, 0),
     [appliedFilters],
   )
@@ -361,14 +364,14 @@ export function TicketArchiveList() {
                 </tr>
               ) : (
                 items.map((item) => {
-                  const previewServices = item.servicos.slice(0, 2)
+                  const previewServices = item.services.slice(0, 2)
                   const extraCount = Math.max(
-                    item.servicos.length - previewServices.length,
+                    item.services.length - previewServices.length,
                     0,
                   )
 
                   return (
-                    <tr key={`${item.id}-${item.chamado}`}>
+                    <tr key={`${item.id}-${item.ticket}`}>
                       <td>
                         <div className={styles.chamadoCell}>
                           <Link
@@ -379,9 +382,9 @@ export function TicketArchiveList() {
                             }
                             className={styles.chamadoLink}
                           >
-                            {item.chamado}
+                            {item.ticket}
                           </Link>
-                          {item.sei_preenchido ? (
+                          {item.sei_filled ? (
                             <Tooltip asChild text={SEI_PREENCHIDO_TOOLTIP}>
                               <span
                                 className={styles.seiTooltipTrigger}
@@ -397,10 +400,10 @@ export function TicketArchiveList() {
                           ) : null}
                         </div>
                       </td>
-                      <td>{formatArchiveDate(item.data_conclusao)}</td>
-                      <td>{item.demandante}</td>
-                      <td>{item.equipe}</td>
-                      <td>{item.responsavel}</td>
+                      <td>{formatArchiveDate(item.completed_at)}</td>
+                      <td>{item.requester_operation}</td>
+                      <td>{item.team}</td>
+                      <td>{item.assignee}</td>
                       <td>
                         <div className={styles.servicesCell}>
                           {previewServices.map((service, index) => (
@@ -424,7 +427,7 @@ export function TicketArchiveList() {
 
                               <div className={styles.extraTooltip}>
                                 <div className={styles.extraTooltipContent}>
-                                  {item.servicos
+                                  {item.services
                                     .slice(2)
                                     .map((service, index) => (
                                       <span

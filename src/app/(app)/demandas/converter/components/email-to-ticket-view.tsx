@@ -95,15 +95,16 @@ function formatEmailMetaDate(email: EmailOut): string {
 }
 
 const SERVICE_ORDER: Exclude<OpenServiceKey, null>[] = [
-  'busca_por_placa',
-  'busca_por_radar',
-  'cerco_eletronico',
-  'busca_por_imagem',
-  'placas_correlatas',
-  'placas_conjuntas',
-  'reserva_de_imagem',
-  'analise_de_imagem',
-  'outros',
+  'plate_search',
+  'radar_search',
+  'electronic_fence',
+  'image_search',
+  'correlated_plates',
+  'joint_plates',
+  'image_reservation',
+  'image_analysis',
+  'other',
+  'atlas_civitas',
 ]
 
 function nullIfEmpty(value?: string | null) {
@@ -323,7 +324,7 @@ export function EmailToTicketView() {
     if (!vm.isLoading) setActiveSubmit(null)
   }, [vm.isLoading])
 
-  const associarChamadoId = vm.watch('associar_chamado_id')
+  const associarChamadoId = vm.watch('linked_ticket_id')
   const isAssociarConvertMode = Boolean(nullIfEmpty(associarChamadoId))
   const fieldDisabled = isAssociarConvertMode || vm.isLoading
   const attachmentDisabled =
@@ -334,14 +335,11 @@ export function EmailToTicketView() {
   useEffect(() => {
     if (!email) return
     const nome = email.from_name?.trim() || email.from_address?.trim() || ''
-    vm.setValue('requisitante.requisitante_nome', nome)
-    vm.setValue(
-      'requisitante.requisitante_email',
-      email.from_address?.trim() || '',
-    )
+    vm.setValue('requester.name', nome)
+    vm.setValue('requester.email', email.from_address?.trim() || '')
     const subj = email.subject?.trim() || ''
     const body = (email.body_preview || email.snippet || '').trim()
-    vm.setValue('comentario_inicial', subj ? `${subj}\n\n${body}` : body)
+    vm.setValue('initial_comment', subj ? `${subj}\n\n${body}` : body)
   }, [email, vm.setValue])
 
   const attachments = email?.attachments ?? []
@@ -382,56 +380,57 @@ export function EmailToTicketView() {
   }, [email])
 
   const initialBuscaPorPlaca =
-    vm.serviceModalOpen === 'busca_por_placa' &&
-    vm.serviceModalEditIndex !== null
-      ? vm.getValues().busca_por_placa?.[vm.serviceModalEditIndex]
+    vm.serviceModalOpen === 'plate_search' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().plate_search?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialBuscaPorRadar =
-    vm.serviceModalOpen === 'busca_por_radar' &&
-    vm.serviceModalEditIndex !== null
-      ? vm.getValues().busca_por_radar?.[vm.serviceModalEditIndex]
+    vm.serviceModalOpen === 'radar_search' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().radar_search?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialCerco =
-    vm.serviceModalOpen === 'cerco_eletronico' &&
+    vm.serviceModalOpen === 'electronic_fence' &&
     vm.serviceModalEditIndex !== null
-      ? vm.getValues().cerco_eletronico?.[vm.serviceModalEditIndex]
+      ? vm.getValues().electronic_fence?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialBuscaPorImagem =
-    vm.serviceModalOpen === 'busca_por_imagem' &&
-    vm.serviceModalEditIndex !== null
-      ? vm.getValues().busca_por_imagem?.[vm.serviceModalEditIndex]
+    vm.serviceModalOpen === 'image_search' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().image_search?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialPlacasCorrelatas =
-    vm.serviceModalOpen === 'placas_correlatas' &&
+    vm.serviceModalOpen === 'correlated_plates' &&
     vm.serviceModalEditIndex !== null
-      ? vm.getValues().placas_correlatas?.[vm.serviceModalEditIndex]
+      ? vm.getValues().correlated_plates?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialPlacasConjuntas =
-    vm.serviceModalOpen === 'placas_conjuntas' &&
-    vm.serviceModalEditIndex !== null
-      ? vm.getValues().placas_conjuntas?.[vm.serviceModalEditIndex]
+    vm.serviceModalOpen === 'joint_plates' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().joint_plates?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialReservaImagem =
-    vm.serviceModalOpen === 'reserva_de_imagem' &&
+    vm.serviceModalOpen === 'image_reservation' &&
     vm.serviceModalEditIndex !== null
-      ? vm.getValues().reserva_de_imagem?.[vm.serviceModalEditIndex]
+      ? vm.getValues().image_reservation?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialAnaliseImagem =
-    vm.serviceModalOpen === 'analise_de_imagem' &&
+    vm.serviceModalOpen === 'image_analysis' &&
     vm.serviceModalEditIndex !== null
-      ? vm.getValues().analise_de_imagem?.[vm.serviceModalEditIndex]
+      ? vm.getValues().image_analysis?.[vm.serviceModalEditIndex]
       : undefined
 
   const initialOutros =
-    vm.serviceModalOpen === 'outros' && vm.serviceModalEditIndex !== null
-      ? vm.getValues().outros?.[vm.serviceModalEditIndex]
+    vm.serviceModalOpen === 'other' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().other?.[vm.serviceModalEditIndex]
+      : undefined
+
+  const initialAtlasCivitas =
+    vm.serviceModalOpen === 'atlas_civitas' && vm.serviceModalEditIndex !== null
+      ? vm.getValues().atlas_civitas?.[vm.serviceModalEditIndex]
       : undefined
 
   const isManualFileIncluded = useCallback(
@@ -474,8 +473,8 @@ export function EmailToTicketView() {
       )
       return [...manual, ...fromEmail]
     } catch {
-      toast.error('Não foi possível baixar um ou mais anexos do e-mail.')
-      throw new Error('Falha ao preparar anexos do e-mail')
+      toast.error('Não foi possível baixar um ou mais attachments do e-mail.')
+      throw new Error('Falha ao preparar attachments do e-mail')
     }
   }, [
     attachments,
@@ -654,7 +653,7 @@ export function EmailToTicketView() {
                 async (data) => {
                   try {
                     const isConvert = Boolean(
-                      nullIfEmpty(data.associar_chamado_id),
+                      nullIfEmpty(data.linked_ticket_id),
                     )
                     const filesToSend = await buildFilesForTicketSubmit()
                     const saveAndNew = intent === 'save-and-new' && !isConvert
@@ -694,7 +693,7 @@ export function EmailToTicketView() {
 
                       <Controller
                         control={vm.control}
-                        name="associar_chamado_id"
+                        name="linked_ticket_id"
                         render={({ field }) => (
                           <Popover
                             open={vm.ticketPopoverOpen}
@@ -746,18 +745,18 @@ export function EmailToTicketView() {
                                     {vm.tickets.map((ticket) => (
                                       <CommandItem
                                         key={ticket.id}
-                                        value={`${ticket.id} ${ticket.titulo}`}
+                                        value={`${ticket.id} ${ticket.title}`}
                                         onSelect={() => {
                                           vm.applyAssociatedTicketFromSearch(
                                             ticket.id,
-                                            ticket.titulo,
+                                            ticket.title,
                                           ).catch(() => {})
                                           vm.setTicketPopoverOpen(false)
                                         }}
                                       >
                                         <div className="flex w-full items-center justify-between gap-2">
                                           <span className="truncate">
-                                            {ticket.titulo}
+                                            {ticket.title}
                                           </span>
                                           {field.value === ticket.id && (
                                             <span className="text-xs text-muted-foreground">
@@ -800,7 +799,7 @@ export function EmailToTicketView() {
                       </Label>
                       <Controller
                         control={vm.control}
-                        name="tipo_chamado_id"
+                        name="ticket_type_id"
                         render={({ field }) => (
                           <Select
                             value={field.value}
@@ -824,9 +823,9 @@ export function EmailToTicketView() {
                           </Select>
                         )}
                       />
-                      {vm.errors.tipo_chamado_id?.message && (
+                      {vm.errors.ticket_type_id?.message && (
                         <p className="text-xs text-destructive">
-                          {vm.errors.tipo_chamado_id.message}
+                          {vm.errors.ticket_type_id.message}
                         </p>
                       )}
                     </div>
@@ -849,7 +848,7 @@ export function EmailToTicketView() {
                         </Label>
                         <Controller
                           control={vm.control}
-                          name="numero_procedimento"
+                          name="procedure_number"
                           render={({ field }) => (
                             <Input
                               className={`h-11 ${styles.inputBg}`}
@@ -863,7 +862,7 @@ export function EmailToTicketView() {
                                 if (raw === '') return
                                 const padded = padDigitsLeft(
                                   raw,
-                                  L.numero_procedimento,
+                                  L.procedure_number,
                                 )
                                 if (padded && padded !== field.value) {
                                   field.onChange(padded)
@@ -874,7 +873,7 @@ export function EmailToTicketView() {
                                 field.onChange(
                                   maskDigitsOnly(
                                     e.target.value,
-                                    L.numero_procedimento,
+                                    L.procedure_number,
                                   ),
                                 )
                               }
@@ -882,9 +881,9 @@ export function EmailToTicketView() {
                           )}
                         />
                         <FieldStringError
-                          value={vm.watch('numero_procedimento')}
-                          max={L.numero_procedimento}
-                          message={vm.errors.numero_procedimento?.message}
+                          value={vm.watch('procedure_number')}
+                          max={L.procedure_number}
+                          message={vm.errors.procedure_number?.message}
                         />
                       </div>
 
@@ -894,12 +893,11 @@ export function EmailToTicketView() {
                         </Label>
                         <Controller
                           control={vm.control}
-                          name="numero_oficio"
+                          name="official_letter_number"
                           render={({ field }) => (
                             <Input
                               className={`h-11 ${styles.inputBg}`}
                               disabled={vm.isLoading}
-                              inputMode="numeric"
                               autoComplete="off"
                               value={field.value ?? ''}
                               onBlur={() => {
@@ -921,17 +919,19 @@ export function EmailToTicketView() {
                           )}
                         />
                         <FieldStringError
-                          value={vm.watch('numero_oficio')}
-                          max={L.numero_oficio}
-                          message={vm.errors.numero_oficio?.message}
+                          value={vm.watch('official_letter_number')}
+                          max={L.official_letter_number}
+                          message={vm.errors.official_letter_number?.message}
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className={styles.fieldLabel}>Data base</Label>
+                        <Label className={styles.fieldLabel}>
+                          Data base do fato
+                        </Label>
                         <Controller
                           control={vm.control}
-                          name="data_base"
+                          name="base_date"
                           render={({ field }) => (
                             <DataBaseDatePicker
                               value={field.value ?? ''}
@@ -946,7 +946,7 @@ export function EmailToTicketView() {
                         <Label className={styles.fieldLabel}>Natureza</Label>
                         <Controller
                           control={vm.control}
-                          name="natureza_id"
+                          name="nature_id"
                           render={({ field }) => (
                             <Select
                               value={field.value ?? ''}
@@ -976,9 +976,9 @@ export function EmailToTicketView() {
                             </Select>
                           )}
                         />
-                        {vm.errors.natureza_id?.message && (
+                        {vm.errors.nature_id?.message && (
                           <p className="text-xs text-destructive">
-                            {vm.errors.natureza_id.message}
+                            {vm.errors.nature_id.message}
                           </p>
                         )}
                       </div>
@@ -989,7 +989,7 @@ export function EmailToTicketView() {
                         </Label>
                         <Controller
                           control={vm.control}
-                          name="possui_apelido_imprensa"
+                          name="has_press_alias"
                           render={({ field }) => (
                             <div className="flex items-center gap-2">
                               <Switch
@@ -1017,12 +1017,12 @@ export function EmailToTicketView() {
                             <Input
                               className={`h-11 ${styles.inputBg}`}
                               disabled={vm.isLoading}
-                              {...vm.register('apelido_imprensa')}
+                              {...vm.register('press_alias')}
                             />
                             <FieldStringError
-                              value={vm.watch('apelido_imprensa')}
-                              max={L.apelido_imprensa}
-                              message={vm.errors.apelido_imprensa?.message}
+                              value={vm.watch('press_alias')}
+                              max={L.press_alias}
+                              message={vm.errors.press_alias?.message}
                             />
                           </div>
 
@@ -1034,12 +1034,12 @@ export function EmailToTicketView() {
                               className={`h-11 ${styles.inputBg}`}
                               disabled={vm.isLoading}
                               placeholder="https://..."
-                              {...vm.register('link_materia')}
+                              {...vm.register('article_link')}
                             />
                             <FieldStringError
-                              value={vm.watch('link_materia')}
-                              max={L.link_materia}
-                              message={vm.errors.link_materia?.message}
+                              value={vm.watch('article_link')}
+                              max={L.article_link}
+                              message={vm.errors.article_link?.message}
                             />
                           </div>
                         </>
@@ -1051,7 +1051,7 @@ export function EmailToTicketView() {
                         </Label>
                         <Controller
                           control={vm.control}
-                          name="possui_endereco_correspondencia"
+                          name="has_correspondence_address"
                           render={({ field }) => (
                             <div className="flex items-center gap-2">
                               <Switch
@@ -1077,13 +1077,13 @@ export function EmailToTicketView() {
                             <Input
                               className={`h-11 ${styles.inputBg}`}
                               disabled={vm.isLoading}
-                              {...vm.register('bairro_correspondencia')}
+                              {...vm.register('correspondence_neighborhood')}
                             />
                             <FieldStringError
-                              value={vm.watch('bairro_correspondencia')}
-                              max={L.bairro_correspondencia}
+                              value={vm.watch('correspondence_neighborhood')}
+                              max={L.correspondence_neighborhood}
                               message={
-                                vm.errors.bairro_correspondencia?.message
+                                vm.errors.correspondence_neighborhood?.message
                               }
                             />
                           </div>
@@ -1093,12 +1093,12 @@ export function EmailToTicketView() {
                             <Input
                               className={`h-11 ${styles.inputBg}`}
                               disabled={vm.isLoading}
-                              {...vm.register('rua_correspondencia')}
+                              {...vm.register('correspondence_street')}
                             />
                             <FieldStringError
-                              value={vm.watch('rua_correspondencia')}
-                              max={L.rua_correspondencia}
-                              message={vm.errors.rua_correspondencia?.message}
+                              value={vm.watch('correspondence_street')}
+                              max={L.correspondence_street}
+                              message={vm.errors.correspondence_street?.message}
                             />
                           </div>
 
@@ -1107,14 +1107,12 @@ export function EmailToTicketView() {
                             <Input
                               className={`h-11 ${styles.inputBg}`}
                               disabled={vm.isLoading}
-                              {...vm.register('numero_correspondencia')}
+                              {...vm.register('correspondence_number')}
                             />
                             <FieldStringError
-                              value={vm.watch('numero_correspondencia')}
-                              max={L.numero_correspondencia}
-                              message={
-                                vm.errors.numero_correspondencia?.message
-                              }
+                              value={vm.watch('correspondence_number')}
+                              max={L.correspondence_number}
+                              message={vm.errors.correspondence_number?.message}
                             />
                           </div>
                         </div>
@@ -1141,14 +1139,12 @@ export function EmailToTicketView() {
                           <Input
                             className={`h-11 ${styles.inputBg}`}
                             disabled={vm.isLoading}
-                            {...vm.register('requisitante.requisitante_nome')}
+                            {...vm.register('requester.name')}
                           />
                           <FieldStringError
-                            value={vm.watch('requisitante.requisitante_nome')}
-                            max={L.requisitante_nome}
-                            message={
-                              vm.errors.requisitante?.requisitante_nome?.message
-                            }
+                            value={vm.watch('requester.name')}
+                            max={L.requester_name}
+                            message={vm.errors.requester?.name?.message}
                           />
                         </div>
 
@@ -1156,7 +1152,7 @@ export function EmailToTicketView() {
                           <Label className={styles.fieldLabel}>Telefone</Label>
                           <Controller
                             control={vm.control}
-                            name="requisitante.requisitante_telefone"
+                            name="requester.phone"
                             render={({ field }) => (
                               <div className={styles.inputWithIconRight}>
                                 <Input
@@ -1179,14 +1175,9 @@ export function EmailToTicketView() {
                             )}
                           />
                           <FieldStringError
-                            value={vm.watch(
-                              'requisitante.requisitante_telefone',
-                            )}
-                            max={L.requisitante_telefone}
-                            message={
-                              vm.errors.requisitante?.requisitante_telefone
-                                ?.message
-                            }
+                            value={vm.watch('requester.phone')}
+                            max={L.requester_phone}
+                            message={vm.errors.requester?.phone?.message}
                           />
                         </div>
 
@@ -1198,9 +1189,7 @@ export function EmailToTicketView() {
                               type="email"
                               disabled={vm.isLoading}
                               autoComplete="email"
-                              {...vm.register(
-                                'requisitante.requisitante_email',
-                              )}
+                              {...vm.register('requester.email')}
                             />
                             <Mail
                               className="h-4 w-4 shrink-0 opacity-50"
@@ -1208,12 +1197,9 @@ export function EmailToTicketView() {
                             />
                           </div>
                           <FieldStringError
-                            value={vm.watch('requisitante.requisitante_email')}
-                            max={L.requisitante_email}
-                            message={
-                              vm.errors.requisitante?.requisitante_email
-                                ?.message
-                            }
+                            value={vm.watch('requester.email')}
+                            max={L.requester_email}
+                            message={vm.errors.requester?.email?.message}
                           />
                         </div>
                       </div>
@@ -1264,8 +1250,8 @@ export function EmailToTicketView() {
                         }
                         onClick={() =>
                           vm.focalPoints.append({
-                            nome: '',
-                            telefone: '',
+                            name: '',
+                            phone: '',
                             email: null,
                           })
                         }
@@ -1285,13 +1271,13 @@ export function EmailToTicketView() {
                               <Input
                                 className={`h-11 ${styles.inputBg}`}
                                 disabled={vm.isLoading}
-                                {...vm.register(`pontos_focais.${idx}.nome`)}
+                                {...vm.register(`focal_points.${idx}.name`)}
                               />
                               <FieldStringError
-                                value={vm.watch(`pontos_focais.${idx}.nome`)}
-                                max={L.ponto_focal_nome}
+                                value={vm.watch(`focal_points.${idx}.name`)}
+                                max={L.requester_name}
                                 message={
-                                  vm.errors.pontos_focais?.[idx]?.nome?.message
+                                  vm.errors.focal_points?.[idx]?.name?.message
                                 }
                               />
                             </div>
@@ -1302,7 +1288,7 @@ export function EmailToTicketView() {
                               </Label>
                               <Controller
                                 control={vm.control}
-                                name={`pontos_focais.${idx}.telefone`}
+                                name={`focal_points.${idx}.phone`}
                                 render={({ field }) => (
                                   <div className={styles.inputWithIconRight}>
                                     <Input
@@ -1327,13 +1313,10 @@ export function EmailToTicketView() {
                                 )}
                               />
                               <FieldStringError
-                                value={vm.watch(
-                                  `pontos_focais.${idx}.telefone`,
-                                )}
-                                max={L.ponto_focal_telefone}
+                                value={vm.watch(`focal_points.${idx}.phone`)}
+                                max={L.requester_phone}
                                 message={
-                                  vm.errors.pontos_focais?.[idx]?.telefone
-                                    ?.message
+                                  vm.errors.focal_points?.[idx]?.phone?.message
                                 }
                               />
                             </div>
@@ -1349,7 +1332,7 @@ export function EmailToTicketView() {
                                       disabled={vm.isLoading}
                                       autoComplete="email"
                                       {...vm.register(
-                                        `pontos_focais.${idx}.email`,
+                                        `focal_points.${idx}.email`,
                                       )}
                                     />
                                     <Mail
@@ -1359,11 +1342,11 @@ export function EmailToTicketView() {
                                   </div>
                                   <FieldStringError
                                     value={vm.watch(
-                                      `pontos_focais.${idx}.email`,
+                                      `focal_points.${idx}.email`,
                                     )}
-                                    max={L.ponto_focal_email}
+                                    max={L.requester_email}
                                     message={
-                                      vm.errors.pontos_focais?.[idx]?.email
+                                      vm.errors.focal_points?.[idx]?.email
                                         ?.message
                                     }
                                   />
@@ -1416,7 +1399,7 @@ export function EmailToTicketView() {
                       fields={vm.buscaPorPlaca.fields}
                       onRemove={vm.buscaPorPlaca.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('busca_por_placa', idx)
+                        vm.openServiceModalForEdit('plate_search', idx)
                       }
                       renderRow={() => null}
                       disabled={fieldDisabled}
@@ -1428,7 +1411,7 @@ export function EmailToTicketView() {
                       fields={vm.buscaPorRadar.fields}
                       onRemove={vm.buscaPorRadar.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('busca_por_radar', idx)
+                        vm.openServiceModalForEdit('radar_search', idx)
                       }
                       renderRow={() => null}
                       disabled={fieldDisabled}
@@ -1440,7 +1423,7 @@ export function EmailToTicketView() {
                       fields={vm.cercoEletronico.fields}
                       onRemove={vm.cercoEletronico.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('cerco_eletronico', idx)
+                        vm.openServiceModalForEdit('electronic_fence', idx)
                       }
                       renderRow={() => null}
                       disabled={fieldDisabled}
@@ -1452,7 +1435,7 @@ export function EmailToTicketView() {
                       fields={vm.buscaPorImagem.fields}
                       onRemove={vm.buscaPorImagem.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('busca_por_imagem', idx)
+                        vm.openServiceModalForEdit('image_search', idx)
                       }
                       renderRow={() => null}
                       disabled={fieldDisabled}
@@ -1464,14 +1447,14 @@ export function EmailToTicketView() {
                       fields={vm.placasCorrelatas.fields}
                       onRemove={vm.placasCorrelatas.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('placas_correlatas', idx)
+                        vm.openServiceModalForEdit('correlated_plates', idx)
                       }
                       renderRow={(idx) => (
                         <CorrelataListForm
                           control={vm.control}
                           setValue={vm.setValue}
                           index={idx}
-                          name="placas_correlatas"
+                          name="correlated_plates"
                           disabled={fieldDisabled}
                         />
                       )}
@@ -1484,14 +1467,14 @@ export function EmailToTicketView() {
                       fields={vm.placasConjuntas.fields}
                       onRemove={vm.placasConjuntas.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('placas_conjuntas', idx)
+                        vm.openServiceModalForEdit('joint_plates', idx)
                       }
                       renderRow={(idx) => (
                         <CorrelataListForm
                           control={vm.control}
                           setValue={vm.setValue}
                           index={idx}
-                          name="placas_conjuntas"
+                          name="joint_plates"
                           disabled={fieldDisabled}
                         />
                       )}
@@ -1504,7 +1487,7 @@ export function EmailToTicketView() {
                       fields={vm.reservaDeImagem.fields}
                       onRemove={vm.reservaDeImagem.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('reserva_de_imagem', idx)
+                        vm.openServiceModalForEdit('image_reservation', idx)
                       }
                       renderRow={() => null}
                       disabled={fieldDisabled}
@@ -1516,7 +1499,7 @@ export function EmailToTicketView() {
                       fields={vm.analiseDeImagem.fields}
                       onRemove={vm.analiseDeImagem.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('analise_de_imagem', idx)
+                        vm.openServiceModalForEdit('image_analysis', idx)
                       }
                       renderRow={() => null}
                       disabled={fieldDisabled}
@@ -1525,10 +1508,20 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Outros"
-                      fields={vm.outros.fields}
-                      onRemove={vm.outros.remove}
+                      fields={vm.other.fields}
+                      onRemove={vm.other.remove}
+                      onEdit={(idx) => vm.openServiceModalForEdit('other', idx)}
+                      renderRow={() => null}
+                      disabled={fieldDisabled}
+                      openModalDisabled={vm.isLoading}
+                    />
+
+                    <CompactServiceList
+                      label="Atlas Civitas"
+                      fields={vm.atlasCivitas.fields}
+                      onRemove={vm.atlasCivitas.remove}
                       onEdit={(idx) =>
-                        vm.openServiceModalForEdit('outros', idx)
+                        vm.openServiceModalForEdit('atlas_civitas', idx)
                       }
                       renderRow={() => null}
                       disabled={fieldDisabled}
@@ -1551,7 +1544,7 @@ export function EmailToTicketView() {
                         <Label className={styles.fieldLabel}>Equipe</Label>
                         <Controller
                           control={vm.control}
-                          name="equipe_id"
+                          name="team_id"
                           render={({ field }) => (
                             <Select
                               value={field.value ?? ''}
@@ -1579,9 +1572,9 @@ export function EmailToTicketView() {
                             </Select>
                           )}
                         />
-                        {vm.errors.equipe_id?.message && (
+                        {vm.errors.team_id?.message && (
                           <p className="text-xs text-destructive">
-                            {vm.errors.equipe_id.message}
+                            {vm.errors.team_id.message}
                           </p>
                         )}
                       </div>
@@ -1594,14 +1587,14 @@ export function EmailToTicketView() {
                             variant="outline"
                             disabled={vm.isLoading}
                             className={`${styles.priorityButton} ${
-                              vm.watch('prioridade') === 'URGENTE'
+                              vm.watch('priority') === 'URGENTE'
                                 ? styles.priorityActive
                                 : ''
                             }`}
                             onClick={() => {
-                              const current = vm.getValues('prioridade')
+                              const current = vm.getValues('priority')
                               vm.setValue(
-                                'prioridade',
+                                'priority',
                                 current === 'URGENTE' ? null : 'URGENTE',
                               )
                             }}
@@ -1613,14 +1606,14 @@ export function EmailToTicketView() {
                             variant="outline"
                             disabled={vm.isLoading}
                             className={`${styles.priorityButton} ${
-                              vm.watch('prioridade') === 'ALTA'
+                              vm.watch('priority') === 'ALTA'
                                 ? styles.priorityActive
                                 : ''
                             }`}
                             onClick={() => {
-                              const current = vm.getValues('prioridade')
+                              const current = vm.getValues('priority')
                               vm.setValue(
-                                'prioridade',
+                                'priority',
                                 current === 'ALTA' ? null : 'ALTA',
                               )
                             }}
@@ -1632,14 +1625,14 @@ export function EmailToTicketView() {
                             variant="outline"
                             disabled={vm.isLoading}
                             className={`${styles.priorityButton} ${
-                              vm.watch('prioridade') === 'ROTINA'
+                              vm.watch('priority') === 'ROTINA'
                                 ? styles.priorityActive
                                 : ''
                             }`}
                             onClick={() => {
-                              const current = vm.getValues('prioridade')
+                              const current = vm.getValues('priority')
                               vm.setValue(
-                                'prioridade',
+                                'priority',
                                 current === 'ROTINA' ? null : 'ROTINA',
                               )
                             }}
@@ -1665,12 +1658,12 @@ export function EmailToTicketView() {
                       placeholder="Escreva um comentário"
                       disabled={fieldDisabled}
                       className={`${styles.fakeEditor} ${styles.inputBg}`}
-                      {...vm.register('comentario_inicial')}
+                      {...vm.register('initial_comment')}
                     />
                     <FieldStringError
-                      value={vm.watch('comentario_inicial')}
-                      max={L.comentario_inicial}
-                      message={vm.errors.comentario_inicial?.message}
+                      value={vm.watch('initial_comment')}
+                      max={L.initial_comment}
+                      message={vm.errors.initial_comment?.message}
                     />
                   </fieldset>
                 </ConverterPanelSection>
@@ -1888,6 +1881,7 @@ export function EmailToTicketView() {
         initialReservaImagem={initialReservaImagem}
         initialAnaliseImagem={initialAnaliseImagem}
         initialOutros={initialOutros}
+        initialAtlasCivitas={initialAtlasCivitas}
         onSaveBuscaPorPlaca={(value, editIndex) => {
           const normalized = {
             plates: (value.plates ?? [])
@@ -1921,7 +1915,7 @@ export function EmailToTicketView() {
         }}
         onSaveCerco={(value, editIndex) => {
           const normalized = {
-            plate: value.plate,
+            plates: value.plates ?? [],
             vehicle_observations: nullIfEmpty(value.vehicle_observations),
           }
           if (editIndex !== null) {
@@ -1933,10 +1927,9 @@ export function EmailToTicketView() {
         }}
         onSaveBuscaPorImagem={(value, editIndex) => {
           const normalized = {
-            plate: nullIfEmpty(value.plate),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
-            address: nullIfEmpty(value.address),
+            addresses: value.addresses ?? [],
             description: nullIfEmpty(value.description),
             cameras: value.cameras ?? [],
           }
@@ -1988,6 +1981,7 @@ export function EmailToTicketView() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            addresses: value.addresses ?? [],
             cameras: value.cameras ?? [],
           }
           if (editIndex !== null) {
@@ -2002,6 +1996,7 @@ export function EmailToTicketView() {
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),
+            addresses: value.addresses ?? [],
             cameras: value.cameras ?? [],
           }
           if (editIndex !== null) {
@@ -2016,9 +2011,23 @@ export function EmailToTicketView() {
             orientation: nullIfEmpty(value.orientation),
           }
           if (editIndex !== null) {
-            vm.outros.update(editIndex, normalized)
+            vm.other.update(editIndex, normalized)
           } else {
-            vm.outros.append(normalized)
+            vm.other.append(normalized)
+          }
+          vm.closeServiceModal()
+        }}
+        onSaveAtlasCivitas={(value, editIndex) => {
+          const normalized = {
+            name: value.name.trim(),
+            email: value.email.trim(),
+            cpf: value.cpf,
+            registration: value.registration.trim(),
+          }
+          if (editIndex !== null) {
+            vm.atlasCivitas.update(editIndex, normalized)
+          } else {
+            vm.atlasCivitas.append(normalized)
           }
           vm.closeServiceModal()
         }}

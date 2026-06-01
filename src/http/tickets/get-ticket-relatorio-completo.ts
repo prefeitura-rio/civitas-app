@@ -7,7 +7,7 @@ export type TicketRelatorioCompletoPayload = {
   contentType: string
 }
 
-/** Query params do GET `/tickets/{id}/relatorio-completo` — quais seções incluir no PDF. */
+/** Query params do GET `/tickets/{id}/full-report` — quais seções incluir no PDF. */
 export type TicketRelatorioCompletoTopics = {
   t1: boolean
   t2: boolean
@@ -38,13 +38,13 @@ function headerContentType(headers: RawAxiosResponseHeaders): string {
   return 'application/octet-stream'
 }
 
-/** GET `/tickets/{id}/relatorio-completo` — PDF com dados completos do chamado. */
+/** GET `/tickets/{id}/full-report` — PDF com dados completos do chamado. */
 export async function getTicketRelatorioCompleto(
   ticketId: string,
   topics: TicketRelatorioCompletoTopics,
 ): Promise<TicketRelatorioCompletoPayload> {
   const response = await api.get<Blob>(
-    `/tickets/${encodeURIComponent(ticketId)}/relatorio-completo`,
+    `/tickets/${encodeURIComponent(ticketId)}/full-report`,
     { responseType: 'blob', params: topics },
   )
   const fromHeader = headerContentType(

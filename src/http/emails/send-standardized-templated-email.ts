@@ -13,5 +13,5 @@ export interface EmailSendOut {
 export function sendStandardizedTemplatedEmail(
   payload: EmailStandardizedTemplateSendIn,
 ) {
-  return api.post<EmailSendOut>('emails/enviar/resposta-padronizada', payload)
+  return api.post<EmailSendOut>('/emails/send/standardized-response', payload)
 }

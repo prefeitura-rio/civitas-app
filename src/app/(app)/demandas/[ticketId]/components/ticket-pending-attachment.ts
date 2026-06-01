@@ -55,13 +55,40 @@ export function renamePendingAttachmentBase(
   return buildFilenameWithExtension(base, ext)
 }
 
+function internalNumberPrefix(
+  internalNumber: string | number | null | undefined,
+): string | null {
+  if (internalNumber == null) return null
+  const trimmed = String(internalNumber).trim()
+  if (!trimmed) return null
+  if (/^\d+$/.test(trimmed)) {
+    return String(parseInt(trimmed, 10))
+  }
+  return trimmed
+}
+
+/** Prefixo `{numeroInterno}-` no nome exibido/enviado dos anexos em fila antes de salvar. */
+export function prefixPendingServiceFilename(
+  internalNumber: string | number | null | undefined,
+  filename: string,
+): string {
+  const num = internalNumberPrefix(internalNumber)
+  if (!num) return filename
+
+  const prefix = `${num}-`
+  if (filename.startsWith(prefix)) return filename
+
+  return `${prefix}${filename}`
+}
+
 export function createPendingServiceAttachments(
   files: File[],
+  internalNumber?: string | number | null,
 ): PendingServiceAttachment[] {
   return files.map((file) => ({
     id: crypto.randomUUID(),
     file,
-    filename: file.name,
+    filename: prefixPendingServiceFilename(internalNumber, file.name),
   }))
 }
 

@@ -1,6 +1,7 @@
 import type { OpenServiceKey } from '@/app/(app)/demandas/criar/ticket-create/ticket-create.constant'
 import type { TicketServicosOut } from '@/http/tickets/ticket-servicos'
 import { unmaskPlateBR } from '@/utils/string-formatters'
+import { validateCPF } from '@/utils/validate-cpf'
 
 type TicketServiceRowKind = Exclude<OpenServiceKey, null>
 
@@ -66,9 +67,9 @@ export function completionErrorsForServiceRow(
   const out: Record<string, string> = {}
 
   switch (kind) {
-    case 'busca_por_placa': {
-      const item = draft.busca_por_placa[index]
-      if (!item?.concluido) return out
+    case 'plate_search': {
+      const item = draft.plate_search[index]
+      if (!item?.completed) return out
       if (!filledText(item.period_start)) {
         out.period_start = SERVICO_CAMPO_OBRIGATORIO
       }
@@ -81,9 +82,9 @@ export function completionErrorsForServiceRow(
       })
       return out
     }
-    case 'busca_por_radar': {
-      const item = draft.busca_por_radar[index]
-      if (!item?.concluido) return out
+    case 'radar_search': {
+      const item = draft.radar_search[index]
+      if (!item?.completed) return out
       if (!filledText(item.period_start)) {
         out.period_start = SERVICO_CAMPO_OBRIGATORIO
       }
@@ -102,42 +103,35 @@ export function completionErrorsForServiceRow(
       })
       return out
     }
-    case 'cerco_eletronico': {
-      const item = draft.cerco_eletronico[index]
-      if (!item?.concluido) return out
-      {
-        const msg = plateCompletionMessage(item.plate)
-        if (msg) out.plate = msg
-      }
+    case 'electronic_fence': {
+      const item = draft.electronic_fence[index]
+      if (!item?.completed) return out
+      ;(item.plates ?? []).forEach((p, i) => {
+        const msg = plateCompletionMessage(p.plate)
+        if (msg) out[`plates.${i}.plate`] = msg
+      })
       if (!filledText(item.vehicle_observations)) {
         out.vehicle_observations = SERVICO_CAMPO_OBRIGATORIO
       }
       return out
     }
-    case 'busca_por_imagem': {
-      const item = draft.busca_por_imagem[index]
-      if (!item?.concluido) return out
+    case 'image_search': {
+      const item = draft.image_search[index]
+      if (!item?.completed) return out
       if (!filledText(item.period_start)) {
         out.period_start = SERVICO_CAMPO_OBRIGATORIO
       }
       if (!filledText(item.period_end)) {
         out.period_end = SERVICO_CAMPO_OBRIGATORIO
-      }
-      {
-        const msg = plateCompletionMessage(item.plate)
-        if (msg) out.plate = msg
-      }
-      if (!filledText(item.address)) {
-        out.address = SERVICO_CAMPO_OBRIGATORIO
       }
       if (!filledText(item.description)) {
         out.description = SERVICO_CAMPO_OBRIGATORIO
       }
       return out
     }
-    case 'placas_correlatas': {
-      const item = draft.placas_correlatas[index]
-      if (!item?.concluido) return out
+    case 'correlated_plates': {
+      const item = draft.correlated_plates[index]
+      if (!item?.completed) return out
       if (!filledText(item.period_start)) {
         out.period_start = SERVICO_CAMPO_OBRIGATORIO
       }
@@ -161,9 +155,9 @@ export function completionErrorsForServiceRow(
       })
       return out
     }
-    case 'placas_conjuntas': {
-      const item = draft.placas_conjuntas[index]
-      if (!item?.concluido) return out
+    case 'joint_plates': {
+      const item = draft.joint_plates[index]
+      if (!item?.completed) return out
       if (!filledText(item.period_start)) {
         out.period_start = SERVICO_CAMPO_OBRIGATORIO
       }
@@ -187,9 +181,9 @@ export function completionErrorsForServiceRow(
       })
       return out
     }
-    case 'reserva_de_imagem': {
-      const item = draft.reserva_de_imagem[index]
-      if (!item?.concluido) return out
+    case 'image_reservation': {
+      const item = draft.image_reservation[index]
+      if (!item?.completed) return out
       if (!filledText(item.period_start)) {
         out.period_start = SERVICO_CAMPO_OBRIGATORIO
       }
@@ -201,9 +195,9 @@ export function completionErrorsForServiceRow(
       }
       return out
     }
-    case 'analise_de_imagem': {
-      const item = draft.analise_de_imagem[index]
-      if (!item?.concluido) return out
+    case 'image_analysis': {
+      const item = draft.image_analysis[index]
+      if (!item?.completed) return out
       if (!filledText(item.period_start)) {
         out.period_start = SERVICO_CAMPO_OBRIGATORIO
       }
@@ -215,11 +209,37 @@ export function completionErrorsForServiceRow(
       }
       return out
     }
-    case 'outros': {
-      const item = draft.outros[index]
-      if (!item?.concluido) return out
+    case 'other': {
+      const item = draft.other[index]
+      if (!item?.completed) return out
       if (!filledText(item.orientation)) {
         out.orientation = SERVICO_CAMPO_OBRIGATORIO
+      }
+      return out
+    }
+    case 'atlas_civitas': {
+      const item = draft.atlas_civitas[index]
+      if (!item?.completed) return out
+      if (!filledText(item.name)) {
+        out.name = SERVICO_CAMPO_OBRIGATORIO
+      }
+      if (!filledText(item.email)) {
+        out.email = SERVICO_CAMPO_OBRIGATORIO
+      } else if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(item.email).trim())
+      ) {
+        out.email = 'Email inválido'
+      }
+      {
+        const digits = String(item.cpf ?? '').replace(/\D/g, '')
+        if (digits.length === 0) {
+          out.cpf = SERVICO_CAMPO_OBRIGATORIO
+        } else if (!validateCPF(digits)) {
+          out.cpf = 'CPF inválido'
+        }
+      }
+      if (!filledText(item.registration)) {
+        out.registration = SERVICO_CAMPO_OBRIGATORIO
       }
       return out
     }
@@ -242,21 +262,22 @@ export function collectAllCompletedServiceErrors(draft: TicketServicosOut): {
   }[] = []
 
   const kinds = [
-    'busca_por_placa',
-    'busca_por_radar',
-    'cerco_eletronico',
-    'busca_por_imagem',
-    'placas_correlatas',
-    'placas_conjuntas',
-    'reserva_de_imagem',
-    'analise_de_imagem',
-    'outros',
+    'plate_search',
+    'radar_search',
+    'electronic_fence',
+    'image_search',
+    'correlated_plates',
+    'joint_plates',
+    'image_reservation',
+    'image_analysis',
+    'other',
+    'atlas_civitas',
   ] as const satisfies readonly TicketServiceRowKind[]
 
   for (const kind of kinds) {
     const list = (draft[kind] ?? []) as {
       id: string
-      concluido?: boolean
+      completed?: boolean
     }[]
     list.forEach((row, index) => {
       const errors = completionErrorsForServiceRow(draft, kind, index)

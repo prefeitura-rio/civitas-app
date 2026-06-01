@@ -3,25 +3,17 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import styles from '../../dashboard/dashboard-tabs.module.css'
+import { useTacticalDashboardTabPermissions } from '@/hooks/useTacticalDashboardTabPermissions'
 
-const TABS = [
-  {
-    href: '/demandas/dashboard-tatico/volume',
-    label: 'Volume de Demandas',
-  },
-  {
-    href: '/demandas/dashboard-tatico/metricas',
-    label: 'Métricas de Resposta',
-  },
-  {
-    href: '/demandas/dashboard-tatico/visao-operacional',
-    label: 'Visão Operacional',
-  },
-] as const
+import styles from '../../dashboard/dashboard-tabs.module.css'
 
 export function DashboardTaticoTabs() {
   const pathname = usePathname()
+  const { allowedTabs, resolved } = useTacticalDashboardTabPermissions()
+
+  if (!resolved || allowedTabs.length === 0) {
+    return null
+  }
 
   return (
     <nav
@@ -29,7 +21,7 @@ export function DashboardTaticoTabs() {
       style={{ marginTop: '24px' }}
       aria-label="Dashboard Tático"
     >
-      {TABS.map((tab) => {
+      {allowedTabs.map((tab) => {
         const isActive = pathname.startsWith(tab.href)
         return (
           <Link
