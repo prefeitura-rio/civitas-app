@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+import { isTrustedOrigin } from '@/auth/csrf'
+import {
+  clearSessionCookies,
+  getSessionCookieName,
+  serializeAccessToken,
+  serializeSession,
+  validateAndRefreshSession,
+} from '@/auth/session'
+import { config } from '@/config'
+
+const ALLOWED_METHODS = new Set([
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'OPTIONS',
+])
+
+async function handler(
+  request: NextRequest,
+  { params }: { params: { path: string[] } },
+) {
+  if (!ALLOWED_METHODS.has(request.method)) {
+    return NextResponse.json({ message: 'Method not allowed' }, { status: 405 })
+  }
+
+  if (
+    request.method !== 'GET' &&
+    request.method !== 'HEAD' &&
+    !isTrustedOrigin(request)
+  ) {
+    return NextResponse.json(
+      { message: 'CSRF validation failed' },
+      { status: 403 },
+    )
+  }
+
+  const sessionValue = request.cookies.get(getSessionCookieName())?.value
+  const result = await validateAndRefreshSession(sessionValue, true, true)
+
+  if (!result.session) {
+    const response = NextResponse.json(
+      { message: 'Unauthorized' },
+      { status: 401 },
+    )
+    for (const cookie of clearSessionCookies()) {
+      response.cookies.set(cookie.name, cookie.value, cookie.options)
+    }
+
+    return response
+  }
+
+  const upstreamPath = params.path.join('/')
+  const upstreamUrl = `${config.apiUrl}/${upstreamPath}${request.nextUrl.search}`
+
+  const headers = new Headers()
+  for (const [key, value] of request.headers.entries()) {
+    const lowerKey = key.toLowerCase()
+    if (['host', 'cookie', 'content-length', 'connection'].includes(lowerKey)) {
+      continue
+    }
+    headers.set(key, value)
+  }
+
+  headers.set('Authorization', `Bearer ${result.session.accessToken}`)
+
+  let body: BodyInit | undefined
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    body = await request.arrayBuffer()
+  }
+
+  const upstreamResponse = await fetch(upstreamUrl, {
+    method: request.method,
+    headers,
+    body,
+    cache: 'no-store',
+  })
+
+  const responseBody = await upstreamResponse.arrayBuffer()
+
+  const response = new NextResponse(responseBody, {
+    status: upstreamResponse.status,
+    statusText: upstreamResponse.statusText,
+  })
+
+  for (const [key, value] of upstreamResponse.headers.entries()) {
+    const lowerKey = key.toLowerCase()
+    if (
+      ['content-length', 'transfer-encoding', 'connection'].includes(lowerKey)
+    ) {
+      continue
+    }
+    response.headers.set(key, value)
+  }
+
+  const sessionCookie = serializeSession(result.session)
+  const accessTokenCookie = serializeAccessToken(result.session)
+
+  response.cookies.set(
+    sessionCookie.name,
+    sessionCookie.value,
+    sessionCookie.options,
+  )
+  response.cookies.set(
+    accessTokenCookie.name,
+    accessTokenCookie.value,
+    accessTokenCookie.options,
+  )
+
+  return response
+}
+
+export {
+  handler as GET,
+  handler as POST,
+  handler as PUT,
+  handler as PATCH,
+  handler as DELETE,
+  handler as OPTIONS,
+}

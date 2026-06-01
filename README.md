@@ -37,6 +37,22 @@ cp .env.example .env.local
 # Edite o arquivo com suas configurações
 ```
 
+Variáveis de autenticação/sessão (server-side, não usar `NEXT_PUBLIC_`):
+- `AUTH_SESSION_SECRET`
+- `AUTH_COOKIE_SECURE` (`true`/`false`)
+- `AUTH_COOKIE_SAMESITE` (`lax`/`strict`/`none`)
+- `AUTH_TOKEN_PATH`
+- `AUTH_ACCESS_TOKEN_REFRESH_LEEWAY_SECONDS`
+- `AUTH_SHORT_IDLE_TIMEOUT_SECONDS`
+- `AUTH_SHORT_ABSOLUTE_TIMEOUT_SECONDS`
+- `AUTH_LONG_IDLE_TIMEOUT_SECONDS`
+- `AUTH_LONG_ABSOLUTE_TIMEOUT_SECONDS`
+
+Sobre timeout de sessão:
+- `idle timeout`: encerra sessão após inatividade.
+- `absolute timeout`: encerra sessão após tempo total máximo, mesmo com atividade.
+- os dois devem ser usados juntos para reduzir risco de sessão esquecida e sessão infinita.
+
 ### 4. Inicie o servidor de desenvolvimento
 ```bash
 pnpm dev
@@ -136,4 +152,3 @@ pnpm type-check
 ---
 
 **Desenvolvido com ❤️ pela equipe da Prefeitura do Rio de Janeiro**
-
