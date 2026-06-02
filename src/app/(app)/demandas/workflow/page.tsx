@@ -1,24 +1,21 @@
 'use client'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { MultiSelectWithSearch } from '@/components/custom/multi-select-with-search'
 import { Spinner } from '@/components/custom/spinner'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -30,6 +27,7 @@ import {
 import { config } from '@/config'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
+import { resetWorkflowToDefaults } from '@/http/workflow/reset-workflow-to-defaults'
 import {
   getWorkflowRoleConfig,
   updateWorkflowRoleConfig,
@@ -41,6 +39,7 @@ import {
 } from '@/http/workflow/workflow-role-config'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
+import tdStyles from '../[ticketId]/ticket-detail.module.css'
 import tcFormStyles from '../criar/ticket-create/ticket-create-form.module.css'
 import styles from './workflow-roles.module.css'
 
@@ -76,6 +75,7 @@ function WorkflowRolesPageContent() {
   const [permissions, setPermissions] = useState<WorkflowPermission[]>([])
   const [transitions, setTransitions] = useState<WorkflowTransition[]>([])
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
 
   const ticketTypesQuery = useQuery({
     queryKey: ['ticket-types', 'select', 'workflow'],
@@ -99,7 +99,6 @@ function WorkflowRolesPageContent() {
     error,
     isError,
     isLoading,
-    isFetching,
     refetch: refetchConfig,
   } = useQuery({
     queryKey: ['workflow-role-config', ticketTypeId, role],
@@ -133,6 +132,20 @@ function WorkflowRolesPageContent() {
       updateWorkflowRoleConfig(payload),
     onSuccess: () => {
       toast.success('Configuração de workflow salva com sucesso.')
+      refetchConfig()
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error))
+    },
+  })
+
+  const resetMutation = useMutation({
+    mutationFn: resetWorkflowToDefaults,
+    onSuccess: () => {
+      toast.success(
+        'Configurações de workflow restauradas ao padrão de fábrica.',
+      )
+      setResetConfirmOpen(false)
       refetchConfig()
     },
     onError: (error) => {
@@ -224,9 +237,11 @@ function WorkflowRolesPageContent() {
     setConfirmOpen(false)
   }
 
-  function handleReload() {
-    refetchConfig()
+  async function handleResetToDefaults() {
+    await resetMutation.mutateAsync()
   }
+
+  const isBusy = saveMutation.isPending || resetMutation.isPending
 
   return (
     <div
@@ -264,7 +279,7 @@ function WorkflowRolesPageContent() {
                       onValueChange={(value) => setTicketTypeId(value || null)}
                       disabled={
                         ticketTypesQuery.isLoading ||
-                        saveMutation.isPending ||
+                        isBusy ||
                         ticketTypes.length === 0
                       }
                     >
@@ -302,9 +317,7 @@ function WorkflowRolesPageContent() {
                       onValueChange={(value) =>
                         setRole(value as WorkflowRoleEnum)
                       }
-                      disabled={
-                        !ticketTypeId || isLoading || saveMutation.isPending
-                      }
+                      disabled={!ticketTypeId || isLoading || isBusy}
                     >
                       <SelectTrigger
                         className={`h-11 w-full ${tcFormStyles.inputBg}`}
@@ -331,16 +344,13 @@ function WorkflowRolesPageContent() {
                     type="button"
                     variant="secondary"
                     className={`${tcFormStyles.cancelButton} !min-w-0 gap-2`}
-                    onClick={handleReload}
+                    onClick={() => setResetConfirmOpen(true)}
                     disabled={
-                      !ticketTypeId ||
-                      isFetching ||
-                      saveMutation.isPending ||
-                      ticketTypesQuery.isLoading
+                      !ticketTypeId || isBusy || ticketTypesQuery.isLoading
                     }
                   >
-                    <RefreshCw className="size-4" />
-                    Recarregar
+                    <RotateCcw className="size-4" />
+                    Restaurar padrão
                   </Button>
                   <Button
                     type="button"
@@ -349,7 +359,7 @@ function WorkflowRolesPageContent() {
                     disabled={
                       !ticketTypeId ||
                       isLoading ||
-                      saveMutation.isPending ||
+                      isBusy ||
                       ticketTypesQuery.isLoading
                     }
                   >
@@ -421,7 +431,7 @@ function WorkflowRolesPageContent() {
                       createTransition(),
                     ])
                   }
-                  disabled={saveMutation.isPending}
+                  disabled={isBusy}
                 >
                   <Plus className="size-4" />
                   Adicionar transição
@@ -468,7 +478,7 @@ function WorkflowRolesPageContent() {
                                 value === '__none__' ? '' : value,
                             })
                           }
-                          disabled={saveMutation.isPending}
+                          disabled={isBusy}
                         >
                           <SelectTrigger
                             className={`h-11 w-full ${tcFormStyles.inputBg} ${styles.transitionSelectTrigger}`}
@@ -510,7 +520,7 @@ function WorkflowRolesPageContent() {
                               action_code: value === '__none__' ? '' : value,
                             })
                           }
-                          disabled={saveMutation.isPending}
+                          disabled={isBusy}
                         >
                           <SelectTrigger
                             className={`h-11 w-full ${tcFormStyles.inputBg} ${styles.transitionSelectTrigger}`}
@@ -552,7 +562,7 @@ function WorkflowRolesPageContent() {
                               to_state_code: value === '__none__' ? '' : value,
                             })
                           }
-                          disabled={saveMutation.isPending}
+                          disabled={isBusy}
                         >
                           <SelectTrigger
                             className={`h-11 w-full ${tcFormStyles.inputBg} ${styles.transitionSelectTrigger}`}
@@ -603,7 +613,7 @@ function WorkflowRolesPageContent() {
                           size="icon"
                           className="h-11 w-11 shrink-0 text-[var(--tc-icon-subtle,#97a2ab)] hover:bg-[var(--tc-soft,#18344d)] hover:text-[var(--tc-text,#f9fafa)]"
                           onClick={() => removeTransition(index)}
-                          disabled={saveMutation.isPending}
+                          disabled={isBusy}
                           aria-label="Remover transição"
                         >
                           <Trash2 className="size-4" />
@@ -623,23 +633,107 @@ function WorkflowRolesPageContent() {
         </div>
       </div>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Salvar alterações?</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent
+          className={`${tdStyles.reassignDialogContent} ${tdStyles.unsavedDialogContent}`}
+          aria-describedby={undefined}
+          onPointerDownOutside={(event) => {
+            if (isBusy) event.preventDefault()
+          }}
+          onEscapeKeyDown={(event) => {
+            if (isBusy) event.preventDefault()
+          }}
+        >
+          <div
+            className={`${tdStyles.reassignDialogInner} ${tdStyles.unsavedDialogInner}`}
+          >
+            <DialogHeader className={tdStyles.reassignDialogHeader}>
+              <DialogTitle className={tdStyles.reassignDialogTitle}>
+                Salvar alterações?
+              </DialogTitle>
+            </DialogHeader>
+
+            <p className={tdStyles.reassignFieldMessage}>
               As regras específicas do tipo selecionado e do role {role} serão
               gravadas (a configuração global não é alterada).
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSave}>
-              Confirmar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </p>
+
+            <DialogFooter
+              className={`${tdStyles.footerActions} ${tdStyles.unsavedDialogFooter}`}
+            >
+              <button
+                type="button"
+                className={`${tdStyles.footerBtn} ${tdStyles.footerBtnDefault}`}
+                disabled={isBusy}
+                onClick={() => setConfirmOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={`${tdStyles.footerBtn} ${tdStyles.footerBtnPrimary}`}
+                disabled={isBusy}
+                onClick={handleSave}
+              >
+                {saveMutation.isPending ? 'Salvando…' : 'Confirmar'}
+              </button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <DialogContent
+          className={`${tdStyles.reassignDialogContent} ${tdStyles.unsavedDialogContent}`}
+          aria-describedby={undefined}
+          onPointerDownOutside={(event) => {
+            if (resetMutation.isPending) event.preventDefault()
+          }}
+          onEscapeKeyDown={(event) => {
+            if (resetMutation.isPending) event.preventDefault()
+          }}
+        >
+          <div
+            className={`${tdStyles.reassignDialogInner} ${tdStyles.unsavedDialogInner}`}
+          >
+            <DialogHeader className={tdStyles.reassignDialogHeader}>
+              <DialogTitle className={tdStyles.reassignDialogTitle}>
+                Restaurar configurações padrão?
+              </DialogTitle>
+            </DialogHeader>
+
+            <p className={tdStyles.reassignFieldMessage}>
+              Esta ação irá restabelecer todas as configurações de workflow para
+              o padrão de fábrica. Permissões por estado, transições e
+              personalizações realizadas serão descartadas de forma permanente.
+              Deseja continuar?
+            </p>
+
+            <DialogFooter
+              className={`${tdStyles.footerActions} ${tdStyles.unsavedDialogFooter}`}
+            >
+              <button
+                type="button"
+                className={`${tdStyles.footerBtn} ${tdStyles.footerBtnDefault}`}
+                disabled={resetMutation.isPending}
+                onClick={() => setResetConfirmOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={`${tdStyles.footerBtn} ${tdStyles.footerBtnPrimary}`}
+                disabled={resetMutation.isPending}
+                onClick={handleResetToDefaults}
+              >
+                {resetMutation.isPending
+                  ? 'Restaurando…'
+                  : 'Restaurar padrão de fábrica'}
+              </button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
