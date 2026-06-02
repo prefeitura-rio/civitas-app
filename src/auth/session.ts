@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-import { config } from '@/config'
+import { config, getServerConfig } from '@/config'
 
 import { getSessionPolicy } from './session-config'
 
@@ -41,7 +41,7 @@ function fromBase64Url(input: string) {
 }
 
 function getDerivedKeys() {
-  const secret = config.authSessionSecret
+  const secret = getServerConfig().authSessionSecret
 
   const signingKey = crypto
     .createHmac('sha256', secret)
@@ -134,20 +134,24 @@ function unsealSession(value: string): SessionPayload | null {
 }
 
 function getCookieOptions(maxAgeSeconds: number) {
+  const serverConfig = getServerConfig()
+
   return {
     httpOnly: true,
-    secure: config.authCookieSecure,
-    sameSite: config.authCookieSameSite,
+    secure: serverConfig.authCookieSecure,
+    sameSite: serverConfig.authCookieSameSite,
     path: '/',
     maxAge: maxAgeSeconds,
   } as const
 }
 
 function getAccessTokenCookieOptions(maxAgeSeconds: number) {
+  const serverConfig = getServerConfig()
+
   return {
     httpOnly: true,
-    secure: config.authCookieSecure,
-    sameSite: config.authCookieSameSite,
+    secure: serverConfig.authCookieSecure,
+    sameSite: serverConfig.authCookieSameSite,
     path: '/',
     maxAge: maxAgeSeconds,
   } as const
@@ -168,7 +172,7 @@ function isAccessTokenExpiringSoon(
   session: SessionPayload,
   nowMs = Date.now(),
 ) {
-  const leewayMs = config.authAccessTokenRefreshLeewaySeconds * 1000
+  const leewayMs = getServerConfig().authAccessTokenRefreshLeewaySeconds * 1000
   return nowMs + leewayMs >= session.accessTokenExpiresAt
 }
 
@@ -191,17 +195,21 @@ export function buildSessionFromTokenResponse(
 }
 
 export async function refreshAccessToken(session: SessionPayload) {
-  const response = await fetch(`${config.apiUrl}${config.authTokenPath}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+  const serverConfig = getServerConfig()
+  const response = await fetch(
+    `${config.apiUrl}${serverConfig.authTokenPath}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        username: session.username,
+        password: session.password,
+      }),
+      cache: 'no-store',
     },
-    body: new URLSearchParams({
-      username: session.username,
-      password: session.password,
-    }),
-    cache: 'no-store',
-  })
+  )
 
   if (!response.ok) {
     return null
@@ -299,14 +307,16 @@ export function serializeAccessToken(session: SessionPayload) {
 }
 
 export function clearSessionCookies() {
+  const serverConfig = getServerConfig()
+
   return [
     {
       name: SESSION_COOKIE_NAME,
       value: '',
       options: {
         httpOnly: true,
-        secure: config.authCookieSecure,
-        sameSite: config.authCookieSameSite,
+        secure: serverConfig.authCookieSecure,
+        sameSite: serverConfig.authCookieSameSite,
         path: '/',
         maxAge: 0,
       } as const,
@@ -316,8 +326,8 @@ export function clearSessionCookies() {
       value: '',
       options: {
         httpOnly: true,
-        secure: config.authCookieSecure,
-        sameSite: config.authCookieSameSite,
+        secure: serverConfig.authCookieSecure,
+        sameSite: serverConfig.authCookieSameSite,
         path: '/',
         maxAge: 0,
       } as const,

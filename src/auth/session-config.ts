@@ -1,4 +1,4 @@
-import { config } from '@/config'
+import { getServerConfig } from '@/config'
 
 export type SessionPolicy = {
   idleTimeoutSeconds: number
@@ -6,6 +6,8 @@ export type SessionPolicy = {
 }
 
 export function getSessionPolicy(rememberMe: boolean): SessionPolicy {
+  const config = getServerConfig()
+
   if (rememberMe) {
     return {
       idleTimeoutSeconds: config.authLongIdleTimeoutSeconds,
