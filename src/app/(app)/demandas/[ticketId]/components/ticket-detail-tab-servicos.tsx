@@ -364,7 +364,7 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
         })
         queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
 
-        toast.success('Serviços e attachments salvos com sucesso.')
+        toast.success('Serviços e Anexos salvos com sucesso.')
         return true
       } catch {
         toast.error('Ocorreu um erro ao salvar os serviços.')
@@ -590,7 +590,7 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
                               service_id: row.rowId,
                             }}
                             uploadBlocked={isEditing}
-                            uploadBlockedMessage="Os attachments serão enviados ao salvar as alterações dos serviços."
+                            uploadBlockedMessage="Os anexos serão enviados ao salvar as alterações dos serviços."
                             pendingFiles={pendingFilesByRowId[row.rowId] ?? []}
                             onQueuePendingFiles={(files) =>
                               queuePendingFiles(row.rowId, files)

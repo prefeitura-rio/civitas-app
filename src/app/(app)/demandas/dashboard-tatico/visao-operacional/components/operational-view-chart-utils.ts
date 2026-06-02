@@ -19,25 +19,46 @@ export interface OpenTicketsTeamBarPoint {
 
 const OPEN_TICKETS_STATUS_ORDER = [
   'pendente',
+  'pending',
   'bloqueado',
+  'blocked',
+  'restrito',
+  'restricted',
   'aguardando_revisao',
+  'awaiting_review',
+  'aguardando_revisao_adjunto',
   'awaiting_adjunct_review',
+  'aguardando_revisao_administrativo',
   'awaiting_administrative_review',
 ] as const
 
 const OPEN_TICKETS_STATUS_LABELS: Record<string, string> = {
   pendente: 'Pendente',
+  pending: 'Pendente',
   bloqueado: 'Bloqueado',
+  blocked: 'Bloqueado',
+  restrito: 'Restrito',
+  restricted: 'Restrito',
   aguardando_revisao: 'Aguardando revisão',
+  awaiting_review: 'Aguardando revisão',
+  aguardando_revisao_adjunto: 'Aguardando revisão adjunto',
   awaiting_adjunct_review: 'Aguardando revisão adjunto',
+  aguardando_revisao_administrativo: 'Aguardando revisão administrativo',
   awaiting_administrative_review: 'Aguardando revisão administrativo',
 }
 
 export const OPEN_TICKETS_STATUS_COLORS: Record<string, string> = {
   pendente: '#06b2bb',
+  pending: '#06b2bb',
   bloqueado: '#b93d52',
+  blocked: '#b93d52',
+  restrito: '#6b7c8a',
+  restricted: '#6b7c8a',
   aguardando_revisao: '#5b4db2',
+  awaiting_review: '#5b4db2',
+  aguardando_revisao_adjunto: '#4a6eb5',
   awaiting_adjunct_review: '#4a6eb5',
+  aguardando_revisao_administrativo: '#7c5cbf',
   awaiting_administrative_review: '#7c5cbf',
 }
 
@@ -68,14 +89,22 @@ function collectOpenTicketsStatusKeys(
 }
 
 export function getOpenTicketsStatusLabel(key: string): string {
-  return (
-    OPEN_TICKETS_STATUS_LABELS[key] ??
-    key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
-  )
+  const normalizedKey = key.toLowerCase()
+  const mapped =
+    OPEN_TICKETS_STATUS_LABELS[key] ?? OPEN_TICKETS_STATUS_LABELS[normalizedKey]
+  if (mapped) return mapped
+
+  const formatted = normalizedKey.replace(/_/g, ' ')
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
 
 export function getOpenTicketsStatusColor(key: string): string {
-  return OPEN_TICKETS_STATUS_COLORS[key] ?? DEFAULT_OPEN_TICKETS_STATUS_COLOR
+  const normalizedKey = key.toLowerCase()
+  return (
+    OPEN_TICKETS_STATUS_COLORS[key] ??
+    OPEN_TICKETS_STATUS_COLORS[normalizedKey] ??
+    DEFAULT_OPEN_TICKETS_STATUS_COLOR
+  )
 }
 
 export type OpenTicketsStatusSeries = {

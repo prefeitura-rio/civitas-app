@@ -59,7 +59,7 @@ export function OperationalViewOpenTicketsChart({
           marginBottom: '24px',
         }}
       >
-        Chamados em aberto com cada equipe
+        Chamados em aberto por equipe
       </h2>
 
       {isLoading && chartData.length === 0 ? (

@@ -453,8 +453,8 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
                 onClick={handleSelecionarTodosAnexos}
               >
                 {isSelectingAllAnexos
-                  ? 'Carregando attachments…'
-                  : 'Selecionar todos os attachments'}
+                  ? 'Carregando anexos…'
+                  : 'Selecionar todos os anexos'}
               </Button>
             </div>
 
@@ -571,7 +571,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
               !attachmentsServicoQuery.isError &&
               (attachmentsServicoQuery.data?.length ?? 0) === 0 && (
                 <p className={detailStyles.respostaAnexosHint}>
-                  Este serviço ainda não tem attachments.
+                  Este serviço ainda não tem anexos.
                 </p>
               )}
 
