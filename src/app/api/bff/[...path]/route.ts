@@ -19,6 +19,9 @@ const ALLOWED_METHODS = new Set([
   'OPTIONS',
 ])
 
+const MAX_UPSTREAM_REDIRECTS = 5
+const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
+
 async function handler(
   request: NextRequest,
   { params }: { params: { path: string[] } },
@@ -72,12 +75,32 @@ async function handler(
     body = await request.arrayBuffer()
   }
 
-  const upstreamResponse = await fetch(upstreamUrl, {
-    method: request.method,
-    headers,
-    body,
-    cache: 'no-store',
-  })
+  const fetchUpstream = (url: string) =>
+    fetch(url, {
+      method: request.method,
+      headers,
+      body,
+      cache: 'no-store',
+      redirect: 'manual',
+    })
+
+  let currentUpstreamUrl = upstreamUrl
+  let upstreamResponse = await fetchUpstream(currentUpstreamUrl)
+
+  for (
+    let redirectCount = 0;
+    redirectCount < MAX_UPSTREAM_REDIRECTS &&
+    PRESERVE_METHOD_REDIRECT_STATUSES.has(upstreamResponse.status);
+    redirectCount++
+  ) {
+    const location = upstreamResponse.headers.get('location')
+    if (!location) {
+      break
+    }
+
+    currentUpstreamUrl = new URL(location, currentUpstreamUrl).toString()
+    upstreamResponse = await fetchUpstream(currentUpstreamUrl)
+  }
 
   const responseBody = await upstreamResponse.arrayBuffer()
 
