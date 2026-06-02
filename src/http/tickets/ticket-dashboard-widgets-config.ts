@@ -94,7 +94,7 @@ export function mapWidgetsConfigOutToFormValues(
 
 export async function getTicketDashboardWidgetsConfig() {
   const { data } = await api.get<TicketDashboardWidgetsConfigOut>(
-    '/ticket-dashboard/widgets-config/',
+    '/ticket-dashboard/widgets-config',
   )
   return data
 }
@@ -103,7 +103,7 @@ export async function updateTicketDashboardWidgetsConfig(
   payload: TicketDashboardWidgetsConfigUpdateIn,
 ) {
   const { data } = await api.put<TicketDashboardWidgetsConfigOut>(
-    '/ticket-dashboard/widgets-config/',
+    '/ticket-dashboard/widgets-config',
     payload,
   )
   return data

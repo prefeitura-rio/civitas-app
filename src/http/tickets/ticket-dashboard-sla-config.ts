@@ -72,7 +72,7 @@ export function mapSlaConfigOutToFormValues(
 
 export async function getTicketDashboardSlaConfig() {
   const { data } = await api.get<TicketDashboardSlaConfigOut>(
-    '/ticket-dashboard/sla-config/',
+    '/ticket-dashboard/sla-config',
   )
   return data
 }
@@ -81,7 +81,7 @@ export async function updateTicketDashboardSlaConfig(
   payload: TicketDashboardSlaConfigUpdateIn,
 ) {
   const { data } = await api.put<TicketDashboardSlaConfigOut>(
-    '/ticket-dashboard/sla-config/',
+    '/ticket-dashboard/sla-config',
     payload,
   )
   return data
