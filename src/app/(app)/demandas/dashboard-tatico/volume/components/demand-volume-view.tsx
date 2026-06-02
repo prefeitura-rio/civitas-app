@@ -10,6 +10,7 @@ import {
   getDemandVolume,
   pickDemandVolumeGranularitySeries,
 } from '@/http/tickets/get-demand-volume'
+import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
 import { normalizeDemandVolumeDateRange } from './demand-volume-date-range'
 import {
@@ -157,16 +158,29 @@ export function DemandVolumeView() {
     })
   }
 
+  const closedCallsByNature = useMemo(
+    () => unwrapDashboardItems(data?.closed_calls_by_nature),
+    [data?.closed_calls_by_nature],
+  )
+
+  const closedCallsByService = useMemo(
+    () => unwrapDashboardItems(data?.closed_calls_by_service),
+    [data?.closed_calls_by_service],
+  )
+
+  const closedCallsByRequester = useMemo(
+    () => unwrapDashboardItems(data?.closed_calls_by_requester),
+    [data?.closed_calls_by_requester],
+  )
+
   /** Tabelas fixas (agrupamento mensal no backend); colunas vêm dos dados da matriz. */
   const matrixPeriodLabels = useMemo(() => {
-    const fromNature = data?.closed_calls_by_nature[0]?.periods.map(
+    const fromNature = closedCallsByNature[0]?.periods.map(
       (p) => p.period_label,
     )
     if (fromNature?.length) return fromNature
-    return (
-      data?.closed_calls_by_service[0]?.periods.map((p) => p.period_label) ?? []
-    )
-  }, [data?.closed_calls_by_nature, data?.closed_calls_by_service])
+    return closedCallsByService[0]?.periods.map((p) => p.period_label) ?? []
+  }, [closedCallsByNature, closedCallsByService])
 
   return (
     <div
@@ -229,7 +243,7 @@ export function DemandVolumeView() {
 
       <DemandVolumeMatrixTable
         title="Volume de Chamados Encerrados por Natureza"
-        rows={data?.closed_calls_by_nature ?? []}
+        rows={closedCallsByNature}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
         columnHeader="NATUREZA"
@@ -237,7 +251,7 @@ export function DemandVolumeView() {
 
       <DemandVolumeMatrixTable
         title="Volume de Chamados Encerrados por Serviço"
-        rows={data?.closed_calls_by_service ?? []}
+        rows={closedCallsByService}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
         columnHeader="SERVIÇO"
@@ -252,12 +266,14 @@ export function DemandVolumeView() {
 
       <DemandVolumeMatrixTable
         title="Volume de Chamados Encerrados por Demandante"
-        rows={data?.closed_calls_by_requester.items ?? []}
+        rows={closedCallsByRequester}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
         columnHeader="DEMANDANTE"
         pagination={
-          data?.closed_calls_by_requester
+          data?.closed_calls_by_requester &&
+          typeof data.closed_calls_by_requester === 'object' &&
+          'page' in data.closed_calls_by_requester
             ? {
                 page: data.closed_calls_by_requester.page,
                 total: data.closed_calls_by_requester.total,

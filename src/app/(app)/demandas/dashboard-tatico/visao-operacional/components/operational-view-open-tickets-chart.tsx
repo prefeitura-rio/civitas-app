@@ -21,7 +21,9 @@ import {
 
 interface OperationalViewOpenTicketsChartProps {
   chartData: OpenTicketsTeamBarPoint[]
-  openTicketsByTeam?: OpenTicketsByTeamItemOut[]
+  openTicketsByTeam?:
+    | OpenTicketsByTeamItemOut[]
+    | { items?: OpenTicketsByTeamItemOut[] | null }
   isLoading: boolean
 }
 

@@ -28,28 +28,30 @@ import { WidgetConfigSection } from './widget-config-section'
 
 const WIDGETS_CONFIG_QUERY_KEY = ['ticket-dashboard-widgets-config'] as const
 
-const widgetsConfigSchema = z.object({
-  total_call_volume: z.boolean(),
-  closed_calls_by_urgency: z.boolean(),
-  closed_calls_by_nature: z.boolean(),
-  closed_calls_by_service: z.boolean(),
-  media_relevant_calls_volume: z.boolean(),
-  average_resolution_time_general: z.boolean(),
-  average_resolution_time_by_profile: z.boolean(),
-  average_resolution_time_by_urgency: z.boolean(),
-  delivery_time_performance_by_urgency: z.boolean(),
-  delivery_time_performance_by_service: z.boolean(),
-  delivery_time_for_media_relevant: z.boolean(),
-  open_calls_by_team: z.boolean(),
-  closed_calls_by_team: z.boolean(),
-  delivery_time_by_team: z.boolean(),
-  sla_attainment_by_team: z.boolean(),
-  closed_calls_by_requester_sphere: z.boolean(),
-  closed_calls_by_requester: z.boolean(),
-  closed_calls_by_requester_agency: z.boolean(),
-  closed_calls_by_requester_type: z.boolean(),
-  closed_calls_by_requester_institution: z.boolean(),
-})
+const widgetsConfigSchema = z
+  .object({
+    total_call_volume: z.boolean(),
+    closed_calls_by_urgency: z.boolean(),
+    closed_calls_by_nature: z.boolean(),
+    closed_calls_by_service: z.boolean(),
+    media_relevant_calls_volume: z.boolean(),
+    average_resolution_time_general: z.boolean(),
+    // average_resolution_time_by_profile: z.boolean(), // sem métrica por perfil em SlaDashboardOut
+    average_resolution_time_by_urgency: z.boolean(),
+    delivery_time_performance_by_urgency: z.boolean(),
+    delivery_time_performance_by_service: z.boolean(),
+    delivery_time_for_media_relevant: z.boolean(),
+    open_calls_by_team: z.boolean(),
+    closed_calls_by_team: z.boolean(),
+    delivery_time_by_team: z.boolean(),
+    sla_attainment_by_team: z.boolean(),
+    // closed_calls_by_requester_sphere: z.boolean(), // sem query/gráfico por esfera do demandante
+    closed_calls_by_requester: z.boolean(),
+    // closed_calls_by_requester_agency: z.boolean(), // sem gráfico por órgão
+    // closed_calls_by_requester_type: z.boolean(), // sem gráfico por tipo de demandante
+    // closed_calls_by_requester_institution: z.boolean(), // sem gráfico por instituição
+  })
+  .passthrough()
 
 function resolveFormValues(
   config: TicketDashboardWidgetsConfigOut | undefined,

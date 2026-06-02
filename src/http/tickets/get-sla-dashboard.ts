@@ -5,6 +5,7 @@ import type {
   DemandVolumeTicketItemOut,
   DemandVolumeTicketsOut,
 } from './get-demand-volume'
+import { unwrapDashboardItems } from './unwrap-dashboard-items'
 
 export type SlaDashboardGranularity = 'monthly' | 'weekly' | 'yearly'
 
@@ -62,18 +63,24 @@ export interface SlaPerformanceRowOut {
   periods: SlaPerformancePeriodOut[]
 }
 
+export type SlaDashboardGranularityBucket<T> = T[] | { items?: T[] | null }
+
 export interface SlaDashboardGranularitySeries<T> {
-  monthly: T[]
-  weekly: T[]
-  yearly: T[]
+  monthly: SlaDashboardGranularityBucket<T>
+  weekly: SlaDashboardGranularityBucket<T>
+  yearly: SlaDashboardGranularityBucket<T>
 }
 
 export interface SlaDashboardOut {
   summary: SlaDashboardSummaryOut
   avg_resolution_time_general: SlaDashboardGranularitySeries<AvgResolutionTimeGeneralItemOut>
   avg_resolution_time_by_priority: SlaDashboardGranularitySeries<AvgResolutionTimeByPriorityItemOut>
-  sla_performance_by_priority: SlaPerformanceRowOut[]
-  sla_performance_by_service: SlaPerformanceRowOut[]
+  sla_performance_by_priority:
+    | SlaPerformanceRowOut[]
+    | { items?: SlaPerformanceRowOut[] | null }
+  sla_performance_by_service:
+    | SlaPerformanceRowOut[]
+    | { items?: SlaPerformanceRowOut[] | null }
   delivery_time_for_media_relevant: SlaDashboardGranularitySeries<DeliveryTimeMediaItemOut>
 }
 
@@ -82,7 +89,7 @@ export function pickSlaDashboardGranularitySeries<T>(
   granularity: SlaDashboardGranularity,
 ): T[] {
   if (!series) return []
-  return series[granularity] ?? []
+  return unwrapDashboardItems(series[granularity])
 }
 
 export function sanitizeSlaDashboardFilters(

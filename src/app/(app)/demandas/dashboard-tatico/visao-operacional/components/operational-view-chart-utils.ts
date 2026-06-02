@@ -3,6 +3,7 @@ import type {
   OperationalViewGranularity,
   TeamPeriodSeriesOut,
 } from '@/http/tickets/get-operational-view'
+import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
 import { formatPeriodLabel } from '../../volume/components/demand-volume-period-label'
 
@@ -114,10 +115,14 @@ export type OpenTicketsStatusSeries = {
 }
 
 export function getOpenTicketsStatusSeries(
-  items: OpenTicketsByTeamItemOut[] | undefined,
+  items:
+    | OpenTicketsByTeamItemOut[]
+    | { items?: OpenTicketsByTeamItemOut[] | null }
+    | undefined,
 ): OpenTicketsStatusSeries[] {
-  if (!items?.length) return []
-  return collectOpenTicketsStatusKeys(items).map((key) => ({
+  const list = unwrapDashboardItems(items)
+  if (!list.length) return []
+  return collectOpenTicketsStatusKeys(list).map((key) => ({
     key,
     label: getOpenTicketsStatusLabel(key),
     color: getOpenTicketsStatusColor(key),
@@ -126,13 +131,17 @@ export function getOpenTicketsStatusSeries(
 
 /** Barras empilhadas por status em cada equipe (eixo X = equipe). */
 export function mapOpenTicketsByTeamForBarChart(
-  items: OpenTicketsByTeamItemOut[] | undefined,
+  items:
+    | OpenTicketsByTeamItemOut[]
+    | { items?: OpenTicketsByTeamItemOut[] | null }
+    | undefined,
 ): OpenTicketsTeamBarPoint[] {
-  if (!items?.length) return []
+  const list = unwrapDashboardItems(items)
+  if (!list.length) return []
 
-  const statusKeys = collectOpenTicketsStatusKeys(items)
+  const statusKeys = collectOpenTicketsStatusKeys(list)
 
-  return [...items]
+  return [...list]
     .sort((a, b) => a.team.localeCompare(b.team, 'pt-BR'))
     .map((item) => {
       const point: OpenTicketsTeamBarPoint = {
@@ -153,23 +162,26 @@ export function pivotTeamPeriodSeries(
   series: TeamPeriodSeriesOut[],
   granularity: OperationalViewGranularity,
 ): { chartData: TeamLineChartPoint[]; teams: string[] } {
-  if (!series.length) {
+  const list = unwrapDashboardItems(series)
+  if (!list.length) {
     return { chartData: [], teams: [] }
   }
 
-  const teams = [...new Set(series.map((item) => item.team))].sort((a, b) =>
+  const teams = [...new Set(list.map((item) => item.team))].sort((a, b) =>
     a.localeCompare(b, 'pt-BR'),
   )
 
   const periodLabels = [
     ...new Set(
-      series.flatMap((item) => item.data.map((point) => point.period_label)),
+      list.flatMap((item) =>
+        unwrapDashboardItems(item.data).map((point) => point.period_label),
+      ),
     ),
   ].sort()
 
   const valueByTeamAndPeriod = new Map<string, number>()
-  for (const item of series) {
-    for (const point of item.data) {
+  for (const item of list) {
+    for (const point of unwrapDashboardItems(item.data)) {
       valueByTeamAndPeriod.set(
         `${item.team}::${point.period_label}`,
         point.value,

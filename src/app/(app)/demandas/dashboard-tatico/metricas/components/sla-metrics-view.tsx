@@ -9,6 +9,7 @@ import {
   type SlaDashboardFilterIn,
   type SlaDashboardGranularity,
 } from '@/http/tickets/get-sla-dashboard'
+import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
 import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-volume-date-range'
 import {
@@ -86,8 +87,15 @@ export function SlaMetricsView() {
 
   const slaPerformanceByPriorityRows = useMemo(
     () =>
-      sortSlaPerformancePriorityRows(data?.sla_performance_by_priority ?? []),
+      sortSlaPerformancePriorityRows(
+        unwrapDashboardItems(data?.sla_performance_by_priority),
+      ),
     [data?.sla_performance_by_priority],
+  )
+
+  const slaPerformanceByServiceRows = useMemo(
+    () => unwrapDashboardItems(data?.sla_performance_by_service),
+    [data?.sla_performance_by_service],
   )
 
   const slaTablePeriodLabels = useMemo(() => {
@@ -96,10 +104,9 @@ export function SlaMetricsView() {
     )
     if (fromPriority?.length) return fromPriority
     return (
-      data?.sla_performance_by_service[0]?.periods.map((p) => p.period_label) ??
-      []
+      slaPerformanceByServiceRows[0]?.periods.map((p) => p.period_label) ?? []
     )
-  }, [slaPerformanceByPriorityRows, data?.sla_performance_by_service])
+  }, [slaPerformanceByPriorityRows, slaPerformanceByServiceRows])
 
   function applyFilters(next: SlaDashboardFilterIn) {
     setDraftFilters(next)
@@ -222,7 +229,7 @@ export function SlaMetricsView() {
       <SlaMetricsSlaTable
         title="Desempenho de SLA por Serviço"
         columnHeader="SERVIÇO"
-        rows={data?.sla_performance_by_service ?? []}
+        rows={slaPerformanceByServiceRows}
         periodLabels={slaTablePeriodLabels}
         isLoading={isFetching}
         formatRowLabel={(label) => label}

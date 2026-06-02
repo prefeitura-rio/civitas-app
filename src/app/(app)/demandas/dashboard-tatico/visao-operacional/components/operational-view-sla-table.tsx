@@ -88,6 +88,10 @@ export function OperationalViewSlaTable({
     formatPeriodLabel(pl, 'monthly'),
   )
 
+  if (!isLoading && rows.length === 0) {
+    return null
+  }
+
   return (
     <div
       style={{
@@ -110,8 +114,6 @@ export function OperationalViewSlaTable({
 
       {isLoading && rows.length === 0 ? (
         <LoadingState />
-      ) : rows.length === 0 ? (
-        <EmptyState />
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>
@@ -217,23 +219,6 @@ function LoadingState() {
       }}
     >
       Carregando…
-    </div>
-  )
-}
-
-function EmptyState() {
-  return (
-    <div
-      style={{
-        height: '80px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#97a2ab',
-        fontSize: '14px',
-      }}
-    >
-      Nenhum dado disponível
     </div>
   )
 }

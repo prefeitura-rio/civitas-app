@@ -9,6 +9,7 @@ import {
   type OperationalViewGranularity,
   pickOperationalViewGranularitySeries,
 } from '@/http/tickets/get-operational-view'
+import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
 import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-volume-date-range'
 import {
@@ -93,11 +94,14 @@ export function OperationalViewView() {
     [resolutionTimeSeries, resolutionTimeGranularity],
   )
 
-  const slaTablePeriodLabels = useMemo(
-    () =>
-      data?.sla_performance_by_team[0]?.periods.map((p) => p.period_label) ??
-      [],
+  const slaPerformanceByTeamRows = useMemo(
+    () => unwrapDashboardItems(data?.sla_performance_by_team),
     [data?.sla_performance_by_team],
+  )
+
+  const slaTablePeriodLabels = useMemo(
+    () => slaPerformanceByTeamRows[0]?.periods.map((p) => p.period_label) ?? [],
+    [slaPerformanceByTeamRows],
   )
 
   function applyFilters(next: OperationalViewFilterIn) {
@@ -230,7 +234,7 @@ export function OperationalViewView() {
       />
 
       <OperationalViewSlaTable
-        rows={data?.sla_performance_by_team ?? []}
+        rows={slaPerformanceByTeamRows}
         periodLabels={slaTablePeriodLabels}
         isLoading={isFetching}
       />

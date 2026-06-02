@@ -5,6 +5,7 @@ import type {
   DemandVolumeTicketItemOut,
   DemandVolumeTicketsOut,
 } from './get-demand-volume'
+import { unwrapDashboardItems } from './unwrap-dashboard-items'
 
 export type OperationalViewGranularity = 'monthly' | 'weekly' | 'yearly'
 
@@ -50,15 +51,21 @@ export interface TeamPeriodValueOut {
   value: number
 }
 
+export type TeamPeriodDataOut =
+  | TeamPeriodValueOut[]
+  | { items?: TeamPeriodValueOut[] | null }
+
 export interface TeamPeriodSeriesOut {
   team: string
-  data: TeamPeriodValueOut[]
+  data: TeamPeriodDataOut
 }
 
+export type OperationalViewGranularityBucket<T> = T[] | { items?: T[] | null }
+
 export interface OperationalViewGranularitySeries<T> {
-  monthly: T[]
-  weekly: T[]
-  yearly: T[]
+  monthly: OperationalViewGranularityBucket<T>
+  weekly: OperationalViewGranularityBucket<T>
+  yearly: OperationalViewGranularityBucket<T>
 }
 
 export interface SlaPerformancePeriodOut {
@@ -74,10 +81,14 @@ export interface SlaPerformanceByTeamRowOut {
 
 export interface OperationalViewOut {
   summary: OperationalViewSummaryOut
-  open_tickets_by_team: OpenTicketsByTeamItemOut[]
+  open_tickets_by_team:
+    | OpenTicketsByTeamItemOut[]
+    | { items?: OpenTicketsByTeamItemOut[] | null }
   closed_volume_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
   avg_resolution_time_by_team: OperationalViewGranularitySeries<TeamPeriodSeriesOut>
-  sla_performance_by_team: SlaPerformanceByTeamRowOut[]
+  sla_performance_by_team:
+    | SlaPerformanceByTeamRowOut[]
+    | { items?: SlaPerformanceByTeamRowOut[] | null }
 }
 
 export function pickOperationalViewGranularitySeries<T>(
@@ -85,7 +96,7 @@ export function pickOperationalViewGranularitySeries<T>(
   granularity: OperationalViewGranularity,
 ): T[] {
   if (!series) return []
-  return series[granularity] ?? []
+  return unwrapDashboardItems(series[granularity])
 }
 
 export function sanitizeOperationalViewFilters(

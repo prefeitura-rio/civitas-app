@@ -115,6 +115,10 @@ export function DemandVolumeMatrixTable({
     formatPeriodLabel(pl, MATRIX_GRANULARITY),
   )
 
+  if (!isLoading && rows.length === 0) {
+    return null
+  }
+
   return (
     <div
       style={{
@@ -147,19 +151,6 @@ export function DemandVolumeMatrixTable({
           }}
         >
           Carregando…
-        </div>
-      ) : rows.length === 0 ? (
-        <div
-          style={{
-            height: '80px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#97a2ab',
-            fontSize: '14px',
-          }}
-        >
-          Nenhum dado disponível
         </div>
       ) : (
         <>

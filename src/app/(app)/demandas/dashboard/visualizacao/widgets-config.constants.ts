@@ -46,10 +46,10 @@ export const WIDGET_CONFIG_SECTIONS: WidgetConfigSection[] = [
         name: 'average_resolution_time_general',
         label: 'tempo médio de resolução - geral',
       },
-      {
-        name: 'average_resolution_time_by_profile',
-        label: 'tempo médio de resolução por perfil',
-      },
+      // {
+      //   name: 'average_resolution_time_by_profile',
+      //   label: 'tempo médio de resolução por perfil',
+      // },
       {
         name: 'average_resolution_time_by_urgency',
         label: 'tempo médio de resolução por urgência',
@@ -94,27 +94,27 @@ export const WIDGET_CONFIG_SECTIONS: WidgetConfigSection[] = [
     id: 'demandantes',
     title: 'demandantes',
     fields: [
-      {
-        name: 'closed_calls_by_requester_sphere',
-        label: 'volume de chamados encerrados por demandantes - esfera',
-      },
+      // {
+      //   name: 'closed_calls_by_requester_sphere',
+      //   label: 'volume de chamados encerrados por demandantes - esfera',
+      // },
       {
         name: 'closed_calls_by_requester',
         label: 'volume de chamados encerrados por demandantes',
       },
-      {
-        name: 'closed_calls_by_requester_agency',
-        label: 'volume de chamados encerrados por demandantes - órgão',
-      },
-      {
-        name: 'closed_calls_by_requester_type',
-        label:
-          'volume de chamados encerrados por demandantes - tipo de requisitante',
-      },
-      {
-        name: 'closed_calls_by_requester_institution',
-        label: 'volume de chamados encerrados por demandantes - instituição',
-      },
+      // {
+      //   name: 'closed_calls_by_requester_agency',
+      //   label: 'volume de chamados encerrados por demandantes - órgão',
+      // },
+      // {
+      //   name: 'closed_calls_by_requester_type',
+      //   label:
+      //     'volume de chamados encerrados por demandantes - tipo de requisitante',
+      // },
+      // {
+      //   name: 'closed_calls_by_requester_institution',
+      //   label: 'volume de chamados encerrados por demandantes - instituição',
+      // },
     ],
   },
 ]

@@ -1,6 +1,8 @@
 import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
+import { unwrapDashboardItems } from './unwrap-dashboard-items'
+
 export type DemandVolumeGranularity = 'monthly' | 'weekly' | 'yearly'
 
 export type DemandVolumeSummaryPeriod =
@@ -69,10 +71,12 @@ export interface PaginatedMatrixRowsOut {
   pages: number
 }
 
+export type DemandVolumeGranularityBucket<T> = T[] | { items?: T[] | null }
+
 export interface DemandVolumeGranularitySeries<T> {
-  monthly: T[]
-  weekly: T[]
-  yearly: T[]
+  monthly: DemandVolumeGranularityBucket<T>
+  weekly: DemandVolumeGranularityBucket<T>
+  yearly: DemandVolumeGranularityBucket<T>
 }
 
 export function pickDemandVolumeGranularitySeries<T>(
@@ -80,15 +84,15 @@ export function pickDemandVolumeGranularitySeries<T>(
   granularity: DemandVolumeGranularity,
 ): T[] {
   if (!series) return []
-  return series[granularity] ?? []
+  return unwrapDashboardItems(series[granularity])
 }
 
 export interface DemandVolumeOut {
   summary: DemandVolumeSummaryOut
   total_call_volume: DemandVolumeGranularitySeries<PeriodVolumeItemOut>
   closed_calls_by_urgency: DemandVolumeGranularitySeries<PeriodUrgencyItemOut>
-  closed_calls_by_nature: MatrixRowOut[]
-  closed_calls_by_service: MatrixRowOut[]
+  closed_calls_by_nature: MatrixRowOut[] | PaginatedMatrixRowsOut
+  closed_calls_by_service: MatrixRowOut[] | PaginatedMatrixRowsOut
   media_relevant_calls: DemandVolumeGranularitySeries<PeriodValueItemOut>
   closed_calls_by_requester: PaginatedMatrixRowsOut
 }
