@@ -51,7 +51,7 @@ export interface TeamsListSimpleResponse {
 }
 
 export function getTeamsList() {
-  return api.get<TeamsListSimpleResponse[]>('/teams/')
+  return api.get<TeamsListSimpleResponse[]>('/teams')
 }
 
 export function getTeams() {
