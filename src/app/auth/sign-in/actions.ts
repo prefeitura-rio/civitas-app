@@ -8,7 +8,7 @@ import {
   serializeAccessToken,
   serializeSession,
 } from '@/auth/session'
-import { config } from '@/config'
+import { config, getServerConfig } from '@/config'
 import {
   TICKET_MODULE_PERMISSIONS_COOKIE,
   TICKET_MODULE_PERMISSIONS_PATH,
@@ -35,17 +35,21 @@ export async function signInAction(data: FormData) {
   const { username, password, rememberMe } = result.data
 
   try {
-    const response = await fetch(`${config.apiUrl}${config.authTokenPath}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+    const serverConfig = getServerConfig()
+    const response = await fetch(
+      `${config.apiUrl}${serverConfig.authTokenPath}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username,
+          password,
+        }),
+        cache: 'no-store',
       },
-      body: new URLSearchParams({
-        username,
-        password,
-      }),
-      cache: 'no-store',
-    })
+    )
 
     if (!response.ok) {
       return {
