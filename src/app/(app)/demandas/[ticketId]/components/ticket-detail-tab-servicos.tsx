@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Progress } from '@/components/ui/progress'
 import type { TicketAttachmentOut } from '@/http/tickets/ticket-attachments'
 import {
   getTicketServicos,
@@ -53,8 +54,6 @@ import {
 } from './ticket-pending-attachment'
 import { TicketServicoAnexos } from './ticket-servico-anexos'
 import { ServicosExpandedForm } from './ticket-servicos-expanded-form'
-
-const SERVICOS_SAVE_VIDEO_TOAST_ID = 'servicos-save-video-upload'
 
 const SERVICE_KINDS = [
   'plate_search',
@@ -143,6 +142,13 @@ type Props = {
 
 type PendingServiceFilesByRowId = Record<string, PendingServiceAttachment[]>
 
+type FileUploadStatus = {
+  filename: string
+  uploaded: number
+  total: number
+  phase: 'preparing' | 'uploading' | 'finalizing' | 'error'
+}
+
 export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
   function TicketDetailTabServicos({ ticketId, internalNumber }, ref) {
     const queryClient = useQueryClient()
@@ -152,6 +158,9 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
       useState<PendingServiceFilesByRowId>({})
     /** Cobre PUT + refetch + uploads de attachments pendentes (não só `replaceMutation.isPending`). */
     const [saveFlowPending, setSaveFlowPending] = useState(false)
+    const [uploadStatuses, setUploadStatuses] = useState<FileUploadStatus[]>([])
+    const [isOffline, setIsOffline] = useState(false)
+    const saveAbortRef = useRef<AbortController | null>(null)
 
     const servicosQuery = useQuery({
       queryKey: ['ticket', ticketId, 'services'],
@@ -191,6 +200,23 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
       )
     }, [servicosQuery.data, isEditing])
 
+    useEffect(() => {
+      if (typeof window === 'undefined') return
+
+      const syncOnlineState = () => {
+        setIsOffline(!navigator.onLine)
+      }
+
+      syncOnlineState()
+      window.addEventListener('online', syncOnlineState)
+      window.addEventListener('offline', syncOnlineState)
+
+      return () => {
+        window.removeEventListener('online', syncOnlineState)
+        window.removeEventListener('offline', syncOnlineState)
+      }
+    }, [])
+
     const replaceMutation = useMutation({
       mutationFn: ({
         payload,
@@ -218,10 +244,13 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
     }, [snapshot])
 
     const cancelEdit = useCallback(() => {
+      saveAbortRef.current?.abort()
+      saveAbortRef.current = null
       if (snapshot) {
         setDraft(cloneTicketServicos(snapshot))
       }
       setPendingFilesByRowId({})
+      setUploadStatuses([])
       setIsEditing(false)
       setExpandedId(null)
     }, [snapshot])
@@ -295,6 +324,10 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
       }
 
       setSaveFlowPending(true)
+      setUploadStatuses([])
+      const abortController = new AbortController()
+      saveAbortRef.current = abortController
+
       try {
         const currentPending = pendingFilesRef.current
         let saveRequest: Awaited<
@@ -307,38 +340,37 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
             currentDraft,
             currentPending,
             {
-              onGcsProgress: ({ fileName, uploadKind, phase, percent }) => {
-                if (phase === 'preparing') {
-                  toast.loading(`A enviar ${uploadKind}: ${fileName} — 0%`, {
-                    id: SERVICOS_SAVE_VIDEO_TOAST_ID,
-                    duration: Infinity,
+              signal: abortController.signal,
+              onGcsProgress: ({
+                fileName,
+                phase,
+                uploadedBytes,
+                totalBytes,
+              }) => {
+                const uploaded = uploadedBytes ?? 0
+                const total = totalBytes ?? 0
+                setUploadStatuses((prev) => {
+                  const next = prev.filter((item) => item.filename !== fileName)
+                  next.push({
+                    filename: fileName,
+                    uploaded,
+                    total,
+                    phase,
                   })
-                  return
-                }
-                if (phase === 'uploading') {
-                  toast.loading(
-                    `A enviar ${uploadKind}: ${fileName} — ${percent}%`,
-                    {
-                      id: SERVICOS_SAVE_VIDEO_TOAST_ID,
-                      duration: Infinity,
-                    },
-                  )
-                  return
-                }
-                toast.loading(`A finalizar: ${fileName}…`, {
-                  id: SERVICOS_SAVE_VIDEO_TOAST_ID,
-                  duration: Infinity,
+                  return next
                 })
               },
             },
           )
         } catch {
+          if (abortController.signal.aborted) {
+            toast.error('Envio cancelado.')
+            return false
+          }
           toast.error(
             'Não foi possível enviar um ou mais vídeos/ZIP. Tente novamente.',
           )
           return false
-        } finally {
-          toast.dismiss(SERVICOS_SAVE_VIDEO_TOAST_ID)
         }
 
         let saved: TicketServicosOut
@@ -353,6 +385,7 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
         setDraft(c)
         setSnapshot(cloneTicketServicos(saved))
         setPendingFilesByRowId({})
+        setUploadStatuses([])
         setIsEditing(false)
         setExpandedId(null)
         queryClient.setQueryData(['ticket', ticketId, 'services'], saved)
@@ -370,6 +403,7 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
         toast.error('Ocorreu um erro ao salvar os serviços.')
         return false
       } finally {
+        saveAbortRef.current = null
         setSaveFlowPending(false)
       }
     }, [queryClient, replaceMutation, ticketId])
@@ -611,6 +645,41 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
             </div>
           )}
         </div>
+
+        {saveFlowPending && uploadStatuses.length > 0 ? (
+          <div className={styles.servicosUploadPanel} aria-live="polite">
+            {isOffline ? (
+              <p className={styles.servicosUploadOffline}>
+                Sem ligação. O envio será retomado quando a ligação voltar.
+              </p>
+            ) : null}
+            {uploadStatuses.map((status) => {
+              const percent =
+                status.total > 0
+                  ? Math.min(
+                      100,
+                      Math.round((status.uploaded / status.total) * 100),
+                    )
+                  : 0
+              return (
+                <div
+                  key={status.filename}
+                  className={styles.servicosUploadItem}
+                >
+                  <div className={styles.servicosUploadItemHeader}>
+                    <span className={styles.servicosUploadFileName}>
+                      {status.filename}
+                    </span>
+                    <span className={styles.servicosUploadPercent}>
+                      {percent}%
+                    </span>
+                  </div>
+                  <Progress value={percent} />
+                </div>
+              )
+            })}
+          </div>
+        ) : null}
 
         <div className={styles.footerActions}>
           {isEditing ? (

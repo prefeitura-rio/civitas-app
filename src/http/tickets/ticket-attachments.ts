@@ -29,6 +29,7 @@ export type TicketVideoUploadUrlRequest = {
 
 export type TicketVideoUploadUrlResponse = {
   signed_url: string
+  session_uri?: string
   storage_key: string
   resumable: boolean
   expires_in_minutes: number
@@ -114,89 +115,8 @@ export async function getTicketServiceAttachmentPlaybackUrl(
   return data
 }
 
-export type PutVideoToGcsProgress = {
-  loaded: number
-  total: number
-}
-
-export type PutVideoToGcsSignedUrlOptions = {
-  onProgress?: (p: PutVideoToGcsProgress) => void
-}
-
-function putVideoToGcsSignedUrlWithProgress(
-  signedUrl: string,
-  file: File,
-  contentType: string,
-  onProgress: (p: PutVideoToGcsProgress) => void,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('PUT', signedUrl)
-    xhr.setRequestHeader('Content-Type', contentType)
-
-    xhr.upload.onprogress = (ev) => {
-      const total =
-        ev.lengthComputable && ev.total > 0 ? ev.total : Math.max(file.size, 1)
-      onProgress({ loaded: ev.loaded, total })
-    }
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve()
-        return
-      }
-      const text = (xhr.responseText ?? '').slice(0, 200)
-      reject(
-        new Error(
-          text
-            ? `Envio do vídeo falhou (${xhr.status}): ${text}`
-            : `Envio do vídeo falhou (${xhr.status}).`,
-        ),
-      )
-    }
-
-    xhr.onerror = () => {
-      reject(new Error('Envio do vídeo falhou (rede ou CORS).'))
-    }
-
-    xhr.onabort = () => {
-      reject(new Error('Envio do vídeo cancelado.'))
-    }
-
-    xhr.send(file)
-  })
-}
-
-export async function putVideoToGcsSignedUrl(
-  signedUrl: string,
-  file: File,
-  contentType: string,
-  options?: PutVideoToGcsSignedUrlOptions,
-): Promise<void> {
-  if (options?.onProgress) {
-    await putVideoToGcsSignedUrlWithProgress(
-      signedUrl,
-      file,
-      contentType,
-      options.onProgress,
-    )
-    return
-  }
-
-  const res = await fetch(signedUrl, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-      'Content-Length': String(file.size),
-    },
-    body: file,
-  })
-  if (!res.ok) {
-    const text = await res.text().catch(() => '')
-    throw new Error(
-      text
-        ? `Envio do vídeo falhou (${res.status}): ${text.slice(0, 200)}`
-        : `Envio do vídeo falhou (${res.status}).`,
-    )
-  }
+export function resolveGcsSessionUri(
+  uploadMeta: TicketVideoUploadUrlResponse,
+): string {
+  return uploadMeta.session_uri ?? uploadMeta.signed_url
 }

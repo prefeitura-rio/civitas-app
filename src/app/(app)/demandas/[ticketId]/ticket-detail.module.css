@@ -3127,3 +3127,51 @@
   line-height: 1.3;
   min-width: 0;
 }
+
+.servicosUploadPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: var(--td-radius);
+  background-color: var(--td-card-bg);
+}
+
+.servicosUploadOffline {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--td-muted);
+}
+
+.servicosUploadItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.servicosUploadItemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.servicosUploadFileName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--td-text);
+}
+
+.servicosUploadPercent {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--td-muted);
+}
