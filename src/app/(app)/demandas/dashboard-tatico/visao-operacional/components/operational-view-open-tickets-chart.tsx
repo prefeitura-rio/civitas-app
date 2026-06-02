@@ -48,6 +48,10 @@ export function OperationalViewOpenTicketsChart({
     [openTicketsByTeam],
   )
 
+  if (!isLoading && chartData.length === 0) {
+    return null
+  }
+
   return (
     <div style={CHART_SHELL}>
       <h2
@@ -64,8 +68,6 @@ export function OperationalViewOpenTicketsChart({
 
       {isLoading && chartData.length === 0 ? (
         <ChartMessage message="Carregando…" />
-      ) : chartData.length === 0 ? (
-        <ChartMessage message="Nenhum dado disponível" />
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <BarChart

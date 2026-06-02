@@ -51,6 +51,10 @@ export function DemandVolumeUrgencyChart({
     label: formatPeriodLabel(item.period_label, granularity),
   }))
 
+  if (!isLoading && chartData.length === 0) {
+    return null
+  }
+
   return (
     <div
       style={{

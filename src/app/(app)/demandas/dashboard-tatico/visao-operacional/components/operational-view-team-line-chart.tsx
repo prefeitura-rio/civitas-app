@@ -52,6 +52,10 @@ export function OperationalViewTeamLineChart({
   valueFormatter = (value) =>
     value.toLocaleString('pt-BR', { maximumFractionDigits: 0 }),
 }: OperationalViewTeamLineChartProps) {
+  if (!isLoading && chartData.length === 0) {
+    return null
+  }
+
   return (
     <div style={CHART_SHELL}>
       <ChartHeader
@@ -63,8 +67,6 @@ export function OperationalViewTeamLineChart({
 
       {isLoading && chartData.length === 0 ? (
         <LoadingState />
-      ) : chartData.length === 0 ? (
-        <EmptyState />
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
@@ -184,23 +186,6 @@ function LoadingState() {
       }}
     >
       Carregando…
-    </div>
-  )
-}
-
-function EmptyState() {
-  return (
-    <div
-      style={{
-        height: '280px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#97a2ab',
-        fontSize: '14px',
-      }}
-    >
-      Nenhum dado disponível
     </div>
   )
 }

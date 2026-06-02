@@ -63,6 +63,10 @@ export function SlaMetricsMediaChart({
     label: formatPeriodLabel(item.period_label, granularity),
   }))
 
+  if (!isLoading && chartData.length === 0) {
+    return null
+  }
+
   return (
     <div style={CHART_SHELL}>
       <div className={styles.chartHeaderRow}>
