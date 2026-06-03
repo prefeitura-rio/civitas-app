@@ -24,8 +24,12 @@ interface DatePickerProps {
   className?: string
   fromDate?: Date
   toDate?: Date
+  /** Só aplica quando `type` é `datetime-local`. Padrão: true (comportamento anterior). */
+  timePickerDisableFuture?: boolean
   disabled?: boolean
   placeholder?: string
+  popoverContentClassName?: string
+  timePickerContentClassName?: string
 }
 
 export function DatePicker({
@@ -35,13 +39,17 @@ export function DatePicker({
   type = 'date',
   fromDate,
   toDate,
+  timePickerDisableFuture = true,
   disabled = false,
   placeholder = 'Escolha uma data', // Default placeholder
+  popoverContentClassName,
+  timePickerContentClassName,
 }: DatePickerProps) {
   return (
-    <Popover>
+    <Popover modal={false}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant={'outline'}
           className={cn(
             'w-full justify-start text-left font-normal',
@@ -58,7 +66,7 @@ export function DatePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className={cn('w-auto p-0', popoverContentClassName)}>
         <Calendar
           mode="single"
           selected={value}
@@ -94,11 +102,12 @@ export function DatePicker({
             <Separator orientation="horizontal" className="" />
             <div className="flex items-center justify-center gap-2">
               <TimePicker
-                disableFuture
+                disableFuture={timePickerDisableFuture}
                 value={value}
                 defaultValue={value}
                 onChange={onChange}
                 disabled={!value}
+                selectContentClassName={timePickerContentClassName}
               />
             </div>
           </>

@@ -1,0 +1,44 @@
+/* Radix SelectTrigger é um <button>; no estilo padrão do UA o texto costuma herdar alinhamento centralizado */
+.transitionSelectTrigger {
+  text-align: left;
+}
+
+.transitionSelectTrigger span {
+  text-align: left;
+}
+
+.sectionTitle {
+  color: var(--tc-text, #f9fafa);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--tc-card-border, #4a5d6d);
+  padding: 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  color: var(--tc-muted, #97a2ab);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.table td {
+  color: var(--tc-text, #f9fafa);
+  font-size: 13px;
+}
+
+.errorText {
+  color: #fca5a5;
+  font-size: 12px;
+}
