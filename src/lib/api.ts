@@ -10,15 +10,17 @@ import { queryClient } from './react-query'
 
 export const isApiError = axios.isAxiosError
 
+const isServer = typeof window === 'undefined'
+
 export const api = axios.create({
-  baseURL: appConfig.apiUrl,
+  baseURL: isServer ? appConfig.apiUrl : '/api/bff',
 })
 
-api.interceptors.request.use(async (config) => {
+api.interceptors.request.use(async (requestConfig) => {
   // Try to get token from cookies
   let cookieStore: CookiesFn | undefined
 
-  if (typeof window === 'undefined') {
+  if (isServer) {
     const { cookies: serverCookies } = await import('next/headers')
 
     cookieStore = serverCookies
@@ -26,37 +28,41 @@ api.interceptors.request.use(async (config) => {
   const token = getCookie('token', { cookies: cookieStore })
 
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-    // config.headers['Content-Type'] = 'application/json'
+    requestConfig.headers.Authorization = `Bearer ${token}`
   }
 
   const shouldAttachImpersonation =
     typeof window !== 'undefined' &&
     window.location.pathname.startsWith('/demandas') &&
-    config.url !== '/auth/login' &&
-    config.url !== '/auth/refresh'
+    requestConfig.url !== '/auth/login' &&
+    requestConfig.url !== '/auth/refresh'
 
   if (shouldAttachImpersonation && appConfig.enableImpersonation) {
     const impersonateUserId = getChamadosImpersonateUserId()
     if (impersonateUserId?.trim()) {
-      config.params = {
-        ...(config.params ?? {}),
+      requestConfig.params = {
+        ...(requestConfig.params ?? {}),
         impersonate_user_id: impersonateUserId,
       }
     }
   }
-  return config
+
+  return requestConfig
 })
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const status = error?.response?.status
 
     if (typeof window !== 'undefined' && status === 401) {
       deleteCookie('token')
       deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
       queryClient.clear()
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
       if (window.location.pathname !== '/auth/sign-in') {
         window.location.href = '/auth/sign-in'
       }
@@ -67,6 +73,7 @@ api.interceptors.response.use(
         window.location.href = '/forbidden'
       }
     }
+
     return Promise.reject(error)
   },
 )
