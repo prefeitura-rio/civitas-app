@@ -7,6 +7,7 @@ interface CreateTeamMemberRequest {
   user_id: string
   team_id: string
   island_id?: string | null
+  islands_ids?: string[]
   role: UserRoleEnum
   is_active?: boolean
 }

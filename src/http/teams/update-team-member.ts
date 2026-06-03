@@ -6,6 +6,7 @@ import type { TeamMember } from './get-teams'
 interface UpdateTeamMemberRequest {
   memberId: string
   island_id?: string | null
+  islands_ids?: string[]
   role?: UserRoleEnum
   is_active?: boolean
 }

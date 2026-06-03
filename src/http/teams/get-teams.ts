@@ -2,6 +2,11 @@ import { api } from '@/lib/api'
 
 import type { UserRoleEnum } from '../user-roles/get-users-with-roles'
 
+export interface TeamMemberIsland {
+  id: string
+  name: string
+}
+
 export interface TeamMember {
   id: string
   created_at: string
@@ -11,6 +16,8 @@ export interface TeamMember {
   user_name: string | null
   island_id: string | null
   island_name: string | null
+  islands_ids?: string[]
+  islands?: TeamMemberIsland[]
   is_active: boolean
   role: UserRoleEnum
 }

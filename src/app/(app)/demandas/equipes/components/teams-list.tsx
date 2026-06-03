@@ -11,7 +11,7 @@ import {
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import type { Team, TeamMember } from '@/http/teams/get-teams'
+import type { Team, TeamIsland, TeamMember } from '@/http/teams/get-teams'
 import { getTeams } from '@/http/teams/get-teams'
 import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 
@@ -32,6 +32,27 @@ function formatRole(role: UserRoleEnum) {
 
 function resolveIsland(member: TeamMember) {
   return member.island_name || '-'
+}
+
+function resolveVisibleIslands(
+  member: TeamMember,
+  teamIslands: TeamIsland[] = [],
+) {
+  if (member.islands?.length) {
+    return member.islands.map((island) => island.name).join(', ')
+  }
+
+  if (member.islands_ids?.length) {
+    const names = member.islands_ids
+      .map((id) => teamIslands.find((island) => island.id === id)?.name)
+      .filter((name): name is string => Boolean(name))
+
+    if (names.length) {
+      return names.join(', ')
+    }
+  }
+
+  return '-'
 }
 
 interface TeamsListProps {
@@ -123,6 +144,9 @@ export function TeamsList({ controller }: TeamsListProps) {
                     <div className="equipes-table-cell equipes-table-cell-ilha">
                       Ilha
                     </div>
+                    <div className="equipes-table-cell equipes-table-cell-ilhas-visiveis">
+                      Ilhas visíveis
+                    </div>
                     <div className="equipes-table-cell equipes-table-cell-funcao">
                       Função
                     </div>
@@ -132,64 +156,85 @@ export function TeamsList({ controller }: TeamsListProps) {
                     <div className="ml-auto w-[80px] shrink-0" />
                   </div>
 
-                  {team.members.map((member) => (
-                    <div
-                      key={member.id}
-                      className="equipes-table-row group items-center justify-between"
-                    >
-                      <div className="flex min-w-0 flex-1 items-center">
-                        <div className="equipes-table-cell equipes-table-cell-ilha">
-                          {resolveIsland(member)}
+                  {team.members.map((member) => {
+                    const visibleIslands = resolveVisibleIslands(
+                      member,
+                      team.islands ?? [],
+                    )
+
+                    return (
+                      <div
+                        key={member.id}
+                        className="equipes-table-row equipes-table-row-member group items-center justify-between"
+                      >
+                        <div className="flex min-w-0 flex-1 items-center">
+                          <div className="equipes-table-cell equipes-table-cell-ilha">
+                            {resolveIsland(member)}
+                          </div>
+                          <div
+                            className="equipes-table-cell equipes-table-cell-ilhas-visiveis"
+                            title={
+                              visibleIslands !== '-'
+                                ? visibleIslands
+                                : undefined
+                            }
+                          >
+                            {visibleIslands}
+                          </div>
+                          <div className="equipes-table-cell equipes-table-cell-funcao">
+                            {formatRole(member.role)}
+                          </div>
+                          <div className="equipes-table-cell equipes-table-cell-nome">
+                            {member.user_name || '-'}
+                          </div>
                         </div>
-                        <div className="equipes-table-cell equipes-table-cell-funcao">
-                          {formatRole(member.role)}
-                        </div>
-                        <div className="equipes-table-cell equipes-table-cell-nome">
-                          {member.user_name || '-'}
+
+                        <div className="flex shrink-0 items-center justify-end gap-2">
+                          <Button
+                            type="button"
+                            className="equipes-btn-editar flex items-center gap-1"
+                            onClick={() => {
+                              openEditMemberDialog({
+                                id: member.id,
+                                team_id: team.id,
+                                team_name: team.name,
+                                user_id: member.user_id,
+                                user_name: member.user_name,
+                                island_id: member.island_id,
+                                island_name: member.island_name,
+                                islands_ids:
+                                  member.islands_ids ??
+                                  member.islands?.map((island) => island.id) ??
+                                  [],
+                                role: member.role,
+                                is_active: member.is_active,
+                              })
+                            }}
+                          >
+                            <PencilLine className="size-3.5" />
+                            Editar
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-6 border-red-900/50 bg-transparent px-2 text-[10px] text-red-300 hover:bg-red-950/30 hover:text-red-200"
+                            onClick={() => {
+                              openDeleteTeamMemberDialog({
+                                id: member.id,
+                                user_name: member.user_name || 'Colaborador',
+                                team_id: team.id,
+                                team_name: team.name,
+                              })
+                            }}
+                          >
+                            <Trash2 className="size-3.5" />
+                            Remover
+                          </Button>
                         </div>
                       </div>
-
-                      <div className="flex shrink-0 items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          className="equipes-btn-editar flex items-center gap-1"
-                          onClick={() => {
-                            openEditMemberDialog({
-                              id: member.id,
-                              team_id: team.id,
-                              team_name: team.name,
-                              user_id: member.user_id,
-                              user_name: member.user_name,
-                              island_id: member.island_id,
-                              island_name: member.island_name,
-                              role: member.role,
-                              is_active: member.is_active,
-                            })
-                          }}
-                        >
-                          <PencilLine className="size-3.5" />
-                          Editar
-                        </Button>
-
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="h-6 border-red-900/50 bg-transparent px-2 text-[10px] text-red-300 hover:bg-red-950/30 hover:text-red-200"
-                          onClick={() => {
-                            openDeleteTeamMemberDialog({
-                              id: member.id,
-                              user_name: member.user_name || 'Colaborador',
-                              team_id: team.id,
-                              team_name: team.name,
-                            })
-                          }}
-                        >
-                          <Trash2 className="size-3.5" />
-                          Remover
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
                 <div className="equipes-table-footer">

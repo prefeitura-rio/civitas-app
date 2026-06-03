@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { InputError } from '@/components/custom/input-error'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -49,17 +50,34 @@ const memberFormSchema = z
     team_id: z.string().min(1, 'Equipe obrigatória'),
     role: z.string().min(1, 'Função obrigatória').pipe(z.enum(roleEnumValues)),
     island_id: z.string().nullable().optional(),
+    islands_ids: z.array(z.string()).optional(),
     is_active: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    const needsIsland =
-      data.role === 'Operador' || data.role === 'Líder de Ilha'
-
-    if (needsIsland && !data.island_id) {
+    if (data.role === 'Operador' && !data.island_id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['island_id'],
-        message: 'Ilha obrigatória para Operador ou Líder de Ilha',
+        message: 'Ilha obrigatória para Operador',
+      })
+    }
+
+    if (data.role === 'Líder de Ilha' && !data.island_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['island_id'],
+        message: 'Ilha obrigatória para Líder de Ilha',
+      })
+    }
+
+    if (
+      data.role === 'Líder de Ilha' &&
+      (!data.islands_ids || data.islands_ids.length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['islands_ids'],
+        message: 'Selecione ao menos uma ilha visível',
       })
     }
   })
@@ -110,6 +128,7 @@ export function TeamMemberFormDialog({
       team_id: '',
       role: '' as unknown as MemberForm['role'],
       island_id: null,
+      islands_ids: [],
       is_active: true,
     },
   })
@@ -140,8 +159,9 @@ export function TeamMemberFormDialog({
   const users = usersResponse?.data || []
   const islands = islandsResponse?.data?.items ?? []
 
-  const shouldShowIsland =
+  const shouldShowIslandSelect =
     selectedRole === 'Operador' || selectedRole === 'Líder de Ilha'
+  const shouldShowIslandsMultiSelect = selectedRole === 'Líder de Ilha'
 
   const { mutateAsync: createTeamMemberMutation, isPending: isPendingCreate } =
     useMutation({
@@ -183,10 +203,17 @@ export function TeamMemberFormDialog({
   }
 
   async function onSubmit(data: MemberForm) {
+    const isLiderDeIlha = data.role === 'Líder de Ilha'
+    const needsIslandId = data.role === 'Operador' || isLiderDeIlha
+    const islandsPayload = isLiderDeIlha
+      ? { islands_ids: data.islands_ids ?? [] }
+      : {}
+
     if (memberDialogInitialData?.id) {
       await updateTeamMemberMutation({
         memberId: memberDialogInitialData.id,
-        island_id: shouldShowIsland ? (data.island_id ?? null) : null,
+        island_id: needsIslandId ? (data.island_id ?? null) : null,
+        ...islandsPayload,
         role: data.role,
         is_active: data.is_active,
       })
@@ -194,7 +221,8 @@ export function TeamMemberFormDialog({
       await createTeamMemberMutation({
         user_id: data.user_id,
         team_id: data.team_id,
-        island_id: shouldShowIsland ? (data.island_id ?? null) : null,
+        island_id: needsIslandId ? (data.island_id ?? null) : null,
+        ...islandsPayload,
         role: data.role,
         is_active: data.is_active,
       })
@@ -221,16 +249,19 @@ export function TeamMemberFormDialog({
         (roleEnumValues as readonly string[]).includes(initialRole)
           ? (initialRole as MemberForm['role'])
           : ('' as unknown as MemberForm['role'])
-      const needsIsland =
-        roleInForm === 'Operador' || roleInForm === 'Líder de Ilha'
+      const isOperador = roleInForm === 'Operador'
+      const isLiderDeIlha = roleInForm === 'Líder de Ilha'
+      const needsIslandId = isOperador || isLiderDeIlha
+      const initialIslandsIds = memberDialogInitialData.islands_ids ?? []
 
       reset({
         user_id: memberDialogInitialData.user_id || '',
         team_id: memberDialogInitialData.team_id,
         role: roleInForm,
-        island_id: needsIsland
+        island_id: needsIslandId
           ? (memberDialogInitialData.island_id ?? null)
           : null,
+        islands_ids: isLiderDeIlha ? initialIslandsIds : [],
         is_active: memberDialogInitialData.is_active ?? true,
       })
       return
@@ -242,6 +273,7 @@ export function TeamMemberFormDialog({
         team_id: memberDialogInitialData.team_id,
         role: '' as unknown as MemberForm['role'],
         island_id: null,
+        islands_ids: [],
         is_active: true,
       })
     }
@@ -252,11 +284,18 @@ export function TeamMemberFormDialog({
 
     setValue('user_id', '', { shouldDirty: true, shouldValidate: false })
     setValue('island_id', null, { shouldDirty: true, shouldValidate: false })
+    setValue('islands_ids', [], { shouldDirty: true, shouldValidate: false })
   }, [selectedRole, memberDialogInitialData?.id, setValue])
 
   useEffect(() => {
+    if (!selectedRole) return
+
     if (selectedRole !== 'Operador' && selectedRole !== 'Líder de Ilha') {
       setValue('island_id', null, { shouldDirty: true, shouldValidate: true })
+    }
+
+    if (selectedRole !== 'Líder de Ilha') {
+      setValue('islands_ids', [], { shouldDirty: true, shouldValidate: true })
     }
   }, [selectedRole, setValue])
 
@@ -496,7 +535,7 @@ export function TeamMemberFormDialog({
                 </div>
               )}
 
-              {shouldShowIsland && (
+              {shouldShowIslandSelect && (
                 <div className="flex flex-col gap-1">
                   <div className="flex gap-2">
                     <Label htmlFor="island_id" className="equipes-modal-label">
@@ -543,21 +582,83 @@ export function TeamMemberFormDialog({
                           sideOffset={8}
                           className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
                         >
-                          {islands.map((island) => (
-                            <button
-                              key={island.id}
-                              type="button"
-                              className="equipes-select-option w-full"
-                              onClick={() => {
-                                field.onChange(island.id)
-                                setIslandSelectOpen(false)
-                              }}
-                            >
-                              {island.name}
-                            </button>
-                          ))}
+                          {islands.length === 0 ? (
+                            <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                              Nenhuma ilha disponível nesta equipe.
+                            </p>
+                          ) : (
+                            islands.map((island) => (
+                              <button
+                                key={island.id}
+                                type="button"
+                                className="equipes-select-option w-full"
+                                onClick={() => {
+                                  field.onChange(island.id)
+                                  setIslandSelectOpen(false)
+                                }}
+                              >
+                                {island.name}
+                              </button>
+                            ))
+                          )}
                         </PopoverContent>
                       </Popover>
+                    )}
+                  />
+                </div>
+              )}
+
+              {shouldShowIslandsMultiSelect && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label className="equipes-modal-label">
+                      Ilhas visíveis
+                    </Label>
+                    <InputError message={errors.islands_ids?.message} />
+                  </div>
+
+                  <Controller
+                    control={control}
+                    name="islands_ids"
+                    render={({ field }) => (
+                      <div className="equipes-islands-checkbox-list">
+                        {islands.length === 0 ? (
+                          <p className="text-sm text-[var(--equipes-text-subtle)]">
+                            Nenhuma ilha disponível nesta equipe.
+                          </p>
+                        ) : (
+                          islands.map((island) => {
+                            const isChecked = field.value?.includes(island.id)
+
+                            return (
+                              <label
+                                key={island.id}
+                                htmlFor={`island-${island.id}`}
+                                className="equipes-islands-checkbox-item"
+                              >
+                                <Checkbox
+                                  id={`island-${island.id}`}
+                                  checked={isChecked}
+                                  disabled={isLoading}
+                                  onCheckedChange={(checked) => {
+                                    const current = field.value ?? []
+
+                                    if (checked) {
+                                      field.onChange([...current, island.id])
+                                      return
+                                    }
+
+                                    field.onChange(
+                                      current.filter((id) => id !== island.id),
+                                    )
+                                  }}
+                                />
+                                <span>{island.name}</span>
+                              </label>
+                            )
+                          })
+                        )}
+                      </div>
                     )}
                   />
                 </div>
