@@ -1,7 +1,25 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook } from '@testing-library/react'
+import type { ReactNode } from 'react'
 
 import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
-import type { Radar } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
+
+const mockCollectionPoint: CollectionPoint = {
+  cetRioCode: 'RDR123',
+  codigoPontoColeta: '123',
+  location: 'avenida brasil',
+  district: 'centro',
+  latitude: -22.9068,
+  longitude: -43.1729,
+  company: 'CET-Rio',
+  activeInLast24Hours: true,
+  lastDetectionTime: '2024-01-15T10:30:00Z',
+  statusAtivo: 'ativo',
+  totalDetections: 100,
+  direction: 'norte',
+  lane: 'direita',
+}
 
 jest.mock('deck.gl', () => ({
   IconLayer: jest.fn().mockImplementation(() => ({
@@ -10,11 +28,18 @@ jest.mock('deck.gl', () => ({
   })),
 }))
 
-jest.mock('@/hooks/useQueries/useRadars', () => ({
-  useRadars: () => ({
+jest.mock('@/stores/use-map-store', () => ({
+  useMapStore: (
+    selector: (state: { setMultipleSelectedRadars: jest.Mock }) => unknown,
+  ) => selector({ setMultipleSelectedRadars: jest.fn() }),
+}))
+
+jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
+  useCollectionPoints: () => ({
     data: [
       {
         cetRioCode: 'RDR123',
+        codigoPontoColeta: '123',
         location: 'avenida brasil',
         district: 'centro',
         latitude: -22.9068,
@@ -22,20 +47,23 @@ jest.mock('@/hooks/useQueries/useRadars', () => ({
         company: 'CET-Rio',
         activeInLast24Hours: true,
         lastDetectionTime: '2024-01-15T10:30:00Z',
-        hasData: true,
+        statusAtivo: 'ativo',
+        totalDetections: 100,
         direction: 'norte',
         lane: 'direita',
       },
       {
         cetRioCode: 'RDR456',
+        codigoPontoColeta: '456',
         location: 'copacabana',
         district: 'zona sul',
         latitude: -22.9707,
         longitude: -43.1824,
         company: 'CET-Rio',
         activeInLast24Hours: false,
-        lastDetectionTime: undefined,
-        hasData: true,
+        lastDetectionTime: null,
+        statusAtivo: 'inativo',
+        totalDetections: 0,
         direction: 'sul',
         lane: 'esquerda',
       },
@@ -47,13 +75,32 @@ jest.mock('@/assets/radar-icon-atlas.png', () => ({
   src: '/mock-radar-icon-atlas.png',
 }))
 
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  })
+
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
+  }
+}
+
+const renderUseRadarLayer = () =>
+  renderHook(() => useRadarLayer(), { wrapper: createWrapper() })
+
 describe('useRadarLayer', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
   it('deve retornar estrutura correta do hook', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current).toHaveProperty('data')
     expect(result.current).toHaveProperty('layer')
@@ -67,19 +114,19 @@ describe('useRadarLayer', () => {
   })
 
   it('deve inicializar com selectedObject como null', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.selectedObject).toBeNull()
   })
 
   it('deve inicializar com isVisible como true', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.isVisible).toBe(true)
   })
 
   it('deve permitir alterar isVisible', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     act(() => {
       result.current.setIsVisible(false)
@@ -89,7 +136,7 @@ describe('useRadarLayer', () => {
   })
 
   it('deve permitir alterar hoveredObject', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
     const mockPickingInfo = { object: { cetRioCode: 'RDR123' } } as any
 
     act(() => {
@@ -101,87 +148,48 @@ describe('useRadarLayer', () => {
 
   it('deve selecionar radar quando handleSelectObject é chamado com radar diferente', () => {
     const { result } = renderHook(() => useRadarLayer())
-    const mockRadar: Radar = {
-      cetRioCode: 'RDR123',
-      location: 'avenida brasil',
-      district: 'centro',
-      latitude: -22.9068,
-      longitude: -43.1729,
-      company: 'CET-Rio',
-      activeInLast24Hours: true,
-      lastDetectionTime: '2024-01-15T10:30:00Z',
-      hasData: true,
-      direction: 'norte',
-      lane: 'direita',
-    }
 
     act(() => {
-      result.current.handleSelectObject(mockRadar)
+      result.current.handleSelectObject(mockCollectionPoint)
     })
 
-    expect(result.current.selectedObject).toEqual(mockRadar)
+    expect(result.current.selectedObject).toEqual(mockCollectionPoint)
   })
 
   it('deve desselecionar radar quando handleSelectObject é chamado com mesmo radar', () => {
     const { result } = renderHook(() => useRadarLayer())
-    const mockRadar: Radar = {
-      cetRioCode: 'RDR123',
-      location: 'avenida brasil',
-      district: 'centro',
-      latitude: -22.9068,
-      longitude: -43.1729,
-      company: 'CET-Rio',
-      activeInLast24Hours: true,
-      lastDetectionTime: '2024-01-15T10:30:00Z',
-      hasData: true,
-      direction: 'norte',
-      lane: 'direita',
-    }
 
     act(() => {
-      result.current.handleSelectObject(mockRadar)
+      result.current.handleSelectObject(mockCollectionPoint)
     })
-    expect(result.current.selectedObject).toEqual(mockRadar)
+    expect(result.current.selectedObject).toEqual(mockCollectionPoint)
 
     // Depois desseleciona
     act(() => {
-      result.current.handleSelectObject(mockRadar)
+      result.current.handleSelectObject(mockCollectionPoint)
     })
     expect(result.current.selectedObject).toBeNull()
   })
 
   it('deve chamar clearCamera quando fornecido', () => {
     const { result } = renderHook(() => useRadarLayer())
-    const mockRadar: Radar = {
-      cetRioCode: 'RDR123',
-      location: 'avenida brasil',
-      district: 'centro',
-      latitude: -22.9068,
-      longitude: -43.1729,
-      company: 'CET-Rio',
-      activeInLast24Hours: true,
-      lastDetectionTime: '2024-01-15T10:30:00Z',
-      hasData: true,
-      direction: 'norte',
-      lane: 'direita',
-    }
     const mockClearCamera = jest.fn()
 
     act(() => {
-      result.current.handleSelectObject(mockRadar, mockClearCamera)
+      result.current.handleSelectObject(mockCollectionPoint, mockClearCamera)
     })
 
     expect(mockClearCamera).toHaveBeenCalled()
   })
 
   it('deve criar layer com configurações corretas', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.layer).toBeDefined()
   })
 
   it('deve criar layer com dados corretos', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.data).toHaveLength(2)
     expect(result.current.data?.[0]?.cetRioCode).toBe('RDR123')
@@ -189,30 +197,30 @@ describe('useRadarLayer', () => {
   })
 
   it('deve criar layer com iconMapping correto', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.layer).toBeDefined()
   })
 
   it('deve criar layer com getIcon function', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.layer).toBeDefined()
   })
 
   it('deve criar layer com getPosition function', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.layer).toBeDefined()
   })
 
   it('deve criar layer com getColor function', () => {
-    const { result } = renderHook(() => useRadarLayer())
+    const { result } = renderUseRadarLayer()
 
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve retornar dados corretos do useRadars', () => {
+  it('deve retornar dados corretos do useCollectionPoints', () => {
     const { result } = renderHook(() => useRadarLayer())
 
     expect(result.current.data).toHaveLength(2)
@@ -221,7 +229,7 @@ describe('useRadarLayer', () => {
   })
 
   it('deve manter referência estável das funções entre renders', () => {
-    const { result, rerender } = renderHook(() => useRadarLayer())
+    const { result, rerender } = renderUseRadarLayer()
 
     const firstRender = {
       setHoveredObject: result.current.setHoveredObject,

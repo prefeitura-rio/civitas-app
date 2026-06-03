@@ -3,9 +3,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import logoCivitas from '@/assets/civitas_icon.png'
 import logoDisqueDenuncia from '@/assets/logo_disque_denuncia.png'
-import logoPrefeitura from '@/assets/prefeitura_icon.png'
+import logoPrefeituraCivitas from '@/assets/pref-civitas-horizontal-03-bco-cor-SB.png'
 import { isAuthenticated } from '@/auth/auth'
 
 export const metadata: Metadata = {
@@ -34,13 +33,8 @@ export default function AuthLayout({
       <div className="min-h-screen px-4 pt-4">
         <div className="flex h-10 w-full items-center justify-start gap-8">
           <Image
-            src={logoPrefeitura}
+            src={logoPrefeituraCivitas}
             alt="Logo Prefeitura Rio"
-            className="h-[100%] w-auto"
-          />
-          <Image
-            src={logoCivitas}
-            alt="Logo Civitas"
             className="h-[100%] w-auto"
           />
           <Image
@@ -53,11 +47,15 @@ export default function AuthLayout({
           {children}
         </div>
         <span className="mb-4 block w-full text-center text-xs text-muted-foreground">
+          <Link href="/privacidade" className="underline">
+            Aviso de Privacidade
+          </Link>
+          {' · '}
           Copyright ©{' '}
-          <Link href="https://www.iplan.rio/" className="underline">
-            IplanRio
+          <Link href="https://civitas.rio/" className="underline">
+            CIVITAS Rio
           </Link>{' '}
-          2025.
+          2026.
         </span>
       </div>
     </>

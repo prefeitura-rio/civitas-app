@@ -4,9 +4,10 @@ import { NextResponse } from 'next/server'
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value
 
-  // Allow requests to /auth/* paths and static files
+  // Allow requests to /auth/*, /privacidade and static files
   if (
     request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname.startsWith('/privacidade') ||
     request.nextUrl.pathname.startsWith('/_next')
   ) {
     return NextResponse.next()
@@ -28,5 +29,5 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Apply the middleware to all routes except for those under /auth
-  matcher: ['/((?!auth|_next|favicon.ico).*)'],
+  matcher: ['/((?!auth|privacidade|_next|favicon.ico).*)'],
 }
