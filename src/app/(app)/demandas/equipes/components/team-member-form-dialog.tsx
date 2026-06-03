@@ -84,6 +84,15 @@ const memberFormSchema = z
 
 type MemberForm = z.infer<typeof memberFormSchema>
 
+function withAssignedIslandVisible(
+  islandId: string | null | undefined,
+  islandsIds: string[] = [],
+) {
+  if (!islandId) return islandsIds
+  if (islandsIds.includes(islandId)) return islandsIds
+  return [...islandsIds, islandId]
+}
+
 function userDisplayName(
   user: Pick<UserRoleListItem, 'full_name' | 'username'>,
 ) {
@@ -119,6 +128,7 @@ export function TeamMemberFormDialog({
     watch,
     reset,
     setValue,
+    getValues,
     control,
     formState: { errors, isSubmitting },
   } = useForm<MemberForm>({
@@ -134,6 +144,7 @@ export function TeamMemberFormDialog({
   })
 
   const selectedRole = watch('role')
+  const watchedIslandId = watch('island_id')
   const watchedTeamId = watch('team_id')
   const teamIdForIslands =
     watchedTeamId || memberDialogInitialData?.team_id || ''
@@ -206,7 +217,12 @@ export function TeamMemberFormDialog({
     const isLiderDeIlha = data.role === 'Líder de Ilha'
     const needsIslandId = data.role === 'Operador' || isLiderDeIlha
     const islandsPayload = isLiderDeIlha
-      ? { islands_ids: data.islands_ids ?? [] }
+      ? {
+          islands_ids: withAssignedIslandVisible(
+            data.island_id,
+            data.islands_ids ?? [],
+          ),
+        }
       : {}
 
     if (memberDialogInitialData?.id) {
@@ -252,7 +268,12 @@ export function TeamMemberFormDialog({
       const isOperador = roleInForm === 'Operador'
       const isLiderDeIlha = roleInForm === 'Líder de Ilha'
       const needsIslandId = isOperador || isLiderDeIlha
-      const initialIslandsIds = memberDialogInitialData.islands_ids ?? []
+      const initialIslandsIds = isLiderDeIlha
+        ? withAssignedIslandVisible(
+            memberDialogInitialData.island_id,
+            memberDialogInitialData.islands_ids ?? [],
+          )
+        : []
 
       reset({
         user_id: memberDialogInitialData.user_id || '',
@@ -298,6 +319,18 @@ export function TeamMemberFormDialog({
       setValue('islands_ids', [], { shouldDirty: true, shouldValidate: true })
     }
   }, [selectedRole, setValue])
+
+  useEffect(() => {
+    if (selectedRole !== 'Líder de Ilha' || !watchedIslandId) return
+
+    const current = getValues('islands_ids') ?? []
+    if (current.includes(watchedIslandId)) return
+
+    setValue('islands_ids', [...current, watchedIslandId], {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+  }, [selectedRole, watchedIslandId, getValues, setValue])
 
   const isLoading = isSubmitting || isPendingCreate || isPendingUpdate
 
@@ -594,6 +627,20 @@ export function TeamMemberFormDialog({
                                 className="equipes-select-option w-full"
                                 onClick={() => {
                                   field.onChange(island.id)
+                                  if (selectedRole === 'Líder de Ilha') {
+                                    const current =
+                                      getValues('islands_ids') ?? []
+                                    if (!current.includes(island.id)) {
+                                      setValue(
+                                        'islands_ids',
+                                        [...current, island.id],
+                                        {
+                                          shouldDirty: true,
+                                          shouldValidate: true,
+                                        },
+                                      )
+                                    }
+                                  }
                                   setIslandSelectOpen(false)
                                 }}
                               >
@@ -629,6 +676,8 @@ export function TeamMemberFormDialog({
                         ) : (
                           islands.map((island) => {
                             const isChecked = field.value?.includes(island.id)
+                            const isAssignedIsland =
+                              island.id === watchedIslandId
 
                             return (
                               <label
@@ -639,8 +688,10 @@ export function TeamMemberFormDialog({
                                 <Checkbox
                                   id={`island-${island.id}`}
                                   checked={isChecked}
-                                  disabled={isLoading}
+                                  disabled={isLoading || isAssignedIsland}
                                   onCheckedChange={(checked) => {
+                                    if (isAssignedIsland) return
+
                                     const current = field.value ?? []
 
                                     if (checked) {
