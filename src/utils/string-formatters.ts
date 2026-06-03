@@ -50,6 +50,114 @@ export function formatPhone(value: string) {
   return ddd + celDigit + middleDigits + '-' + last4Digits
 }
 
+/**
+ * Mantém apenas dígitos, com limite opcional.
+ * Use `Infinity` para não cortar (ex.: exibir erro de máximo no formulário).
+ */
+export function maskDigitsOnly(value: string, maxLength: number = 60) {
+  const digits = value.replace(/\D/g, '')
+  return maxLength === Infinity ? digits : digits.slice(0, maxLength)
+}
+
+/** Completa com zeros à esquerda até `totalLength` (apenas dígitos do valor). */
+export function padDigitsLeft(
+  value: string | null | undefined,
+  totalLength: number,
+): string {
+  if (value == null || value === '') return ''
+  const digits = String(value).replace(/\D/g, '').slice(0, totalLength)
+  if (!digits) return ''
+  return digits.padStart(totalLength, '0')
+}
+
+/**
+ * Placa veicular BR (Mercosul LLLNLNN ou antigo LLLNNNN): até 7 caracteres
+ * alfanuméricos em maiúsculas, sem hífen (padrão atual).
+ */
+export function maskPlateBR(value: string): string {
+  return value
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 7)
+}
+
+/** Valor da placa apenas com letras e números (para envio à API). */
+export function unmaskPlateBR(value: string): string {
+  return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+}
+
+const NUMERO_OFICIO_NUM_LEN = 5
+const NUMERO_OFICIO_YEAR_LEN = 4
+const NUMERO_OFICIO_MAX_DIGITS = NUMERO_OFICIO_NUM_LEN + NUMERO_OFICIO_YEAR_LEN
+
+function splitNumeroOficioAlnum(value: string): { num: string; year: string } {
+  const alnum = value
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, NUMERO_OFICIO_MAX_DIGITS)
+  return {
+    num: alnum.slice(0, NUMERO_OFICIO_NUM_LEN),
+    year: alnum.slice(NUMERO_OFICIO_NUM_LEN),
+  }
+}
+
+/** Máscara visual: até 5 alfanuméricos + / + até 4 (ex.: 12A45/2026 ou 00123/2026). */
+export function maskNumeroOficio(value: string): string {
+  const { num, year } = splitNumeroOficioAlnum(value)
+  if (!year) return num
+  return `${num}/${year}`
+}
+
+/**
+ * Normaliza no blur: 5 + / + 4; trechos só numéricos recebem zeros à esquerda.
+ */
+export function normalizeNumeroOficio(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  const { num: numRaw, year: yearRaw } = splitNumeroOficioAlnum(trimmed)
+  if (!numRaw) return ''
+  const num = /[A-Z]/.test(numRaw)
+    ? numRaw
+    : padDigitsLeft(numRaw, NUMERO_OFICIO_NUM_LEN)
+  if (!yearRaw) return num
+  const year = /[A-Z]/.test(yearRaw)
+    ? yearRaw
+    : padDigitsLeft(yearRaw, NUMERO_OFICIO_YEAR_LEN)
+  return `${num}/${year}`
+}
+
+export function maskPhoneBR(value: string) {
+  const n = value.replace(/\D/g, '').slice(0, 11)
+  if (n.length === 0) return ''
+
+  if (n.length <= 2) {
+    return `(${n}`
+  }
+
+  const ddd = n.slice(0, 2)
+  const rest = n.slice(2)
+
+  if (rest.length === 0) {
+    return `(${ddd})`
+  }
+
+  if (rest[0] === '9') {
+    if (rest.length === 1) {
+      return `(${ddd}) ${rest}`
+    }
+    const body = rest.slice(1)
+    if (body.length <= 4) {
+      return `(${ddd}) ${rest[0]} ${body}`
+    }
+    return `(${ddd}) ${rest[0]} ${body.slice(0, 4)}-${body.slice(4)}`
+  }
+
+  if (rest.length <= 4) {
+    return `(${ddd}) ${rest}`
+  }
+  return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`
+}
+
 export function formatCNPJ(value: string) {
   // Remove any non-numeric characters
   const numericValue = value.replace(/\D/g, '')

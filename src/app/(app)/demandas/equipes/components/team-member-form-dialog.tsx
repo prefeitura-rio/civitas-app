@@ -1,0 +1,733 @@
+'use client'
+
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { ChevronDown } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
+import { InputError } from '@/components/custom/input-error'
+import { Spinner } from '@/components/custom/spinner'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { listIslandsByTeam } from '@/http/islands/list-islands'
+import { createTeamMember } from '@/http/teams/create-team-member'
+import { updateTeamMember } from '@/http/teams/update-team-member'
+import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-roles'
+import type {
+  UserRoleEnum,
+  UserRoleListItem,
+} from '@/http/user-roles/get-users-with-roles'
+import { queryClient } from '@/lib/react-query'
+import { getApiErrorMessage } from '@/utils/error-handlers'
+
+import type { TeamsController } from '../hooks/use-teams-controller'
+
+/** Funções disponíveis no fluxo de colaborador da equipe (select). */
+const roleEnumValues = [
+  'Adjunto',
+  'Operador',
+  'Líder de Ilha',
+] as const satisfies readonly UserRoleEnum[]
+
+const memberFormSchema = z
+  .object({
+    user_id: z.string().min(1, 'Usuário obrigatório'),
+    team_id: z.string().min(1, 'Equipe obrigatória'),
+    role: z.string().min(1, 'Função obrigatória').pipe(z.enum(roleEnumValues)),
+    island_id: z.string().nullable().optional(),
+    islands_ids: z.array(z.string()).optional(),
+    is_active: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === 'Operador' && !data.island_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['island_id'],
+        message: 'Ilha obrigatória para Operador',
+      })
+    }
+
+    if (data.role === 'Líder de Ilha' && !data.island_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['island_id'],
+        message: 'Ilha obrigatória para Líder de Ilha',
+      })
+    }
+
+    if (
+      data.role === 'Líder de Ilha' &&
+      (!data.islands_ids || data.islands_ids.length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['islands_ids'],
+        message: 'Selecione ao menos uma ilha visível',
+      })
+    }
+  })
+
+type MemberForm = z.infer<typeof memberFormSchema>
+
+function withAssignedIslandVisible(
+  islandId: string | null | undefined,
+  islandsIds: string[] = [],
+) {
+  if (!islandId) return islandsIds
+  if (islandsIds.includes(islandId)) return islandsIds
+  return [...islandsIds, islandId]
+}
+
+function userDisplayName(
+  user: Pick<UserRoleListItem, 'full_name' | 'username'>,
+) {
+  return user.full_name?.trim() || user.username
+}
+
+const roleLabelMap: Record<UserRoleEnum, string> = {
+  Coordenador: 'Coordenador',
+  Administrativo: 'Administrativo',
+  Adjunto: 'Adjunto',
+  Assessor: 'Assessor',
+  'Líder de Ilha': 'Líder de Ilha',
+  Operador: 'Operador',
+}
+
+interface TeamMemberFormDialogProps {
+  isOpen: boolean
+  onClose: () => void
+  onOpen: () => void
+  controller: TeamsController
+}
+
+export function TeamMemberFormDialog({
+  isOpen,
+  onClose,
+  onOpen,
+  controller,
+}: TeamMemberFormDialogProps) {
+  const { memberDialogInitialData, setMemberDialogInitialData } = controller
+
+  const {
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    getValues,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<MemberForm>({
+    resolver: zodResolver(memberFormSchema),
+    defaultValues: {
+      user_id: '',
+      team_id: '',
+      role: '' as unknown as MemberForm['role'],
+      island_id: null,
+      islands_ids: [],
+      is_active: true,
+    },
+  })
+
+  const selectedRole = watch('role')
+  const watchedIslandId = watch('island_id')
+  const watchedTeamId = watch('team_id')
+  const teamIdForIslands =
+    watchedTeamId || memberDialogInitialData?.team_id || ''
+  const didApplyInitialDataRef = useRef(false)
+
+  const { data: usersResponse, isFetching: isFetchingUsers } = useQuery({
+    queryKey: ['users-with-assigned-roles', selectedRole],
+    queryFn: () =>
+      getUsersOnlyWithRoles({ role: selectedRole as UserRoleEnum }),
+    enabled:
+      isOpen &&
+      !memberDialogInitialData?.id &&
+      Boolean(selectedRole) &&
+      (roleEnumValues as readonly string[]).includes(selectedRole),
+  })
+
+  const { data: islandsResponse } = useQuery({
+    queryKey: ['islands', 'by-team', teamIdForIslands],
+    queryFn: () => listIslandsByTeam(teamIdForIslands, { isActive: true }),
+    enabled: isOpen && Boolean(teamIdForIslands),
+  })
+
+  const users = usersResponse?.data || []
+  const islands = islandsResponse?.data?.items ?? []
+
+  const shouldShowIslandSelect =
+    selectedRole === 'Operador' || selectedRole === 'Líder de Ilha'
+  const shouldShowIslandsMultiSelect = selectedRole === 'Líder de Ilha'
+
+  const { mutateAsync: createTeamMemberMutation, isPending: isPendingCreate } =
+    useMutation({
+      mutationFn: createTeamMember,
+      onSuccess: ({ data }) => {
+        queryClient.invalidateQueries({ queryKey: ['teams'] })
+        toast.success(
+          `Colaborador ${data.user_name || 'selecionado'} adicionado com sucesso.`,
+        )
+      },
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
+      },
+    })
+
+  const { mutateAsync: updateTeamMemberMutation, isPending: isPendingUpdate } =
+    useMutation({
+      mutationFn: updateTeamMember,
+      onSuccess: ({ data }) => {
+        queryClient.invalidateQueries({ queryKey: ['teams'] })
+        toast.success(
+          `Colaborador ${data.user_name || 'selecionado'} atualizado com sucesso.`,
+        )
+      },
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
+      },
+    })
+
+  function handleOnOpenChange(open: boolean) {
+    if (open) {
+      onOpen()
+      return
+    }
+
+    onClose()
+    reset()
+    setMemberDialogInitialData(null)
+  }
+
+  async function onSubmit(data: MemberForm) {
+    const isLiderDeIlha = data.role === 'Líder de Ilha'
+    const needsIslandId = data.role === 'Operador' || isLiderDeIlha
+    const islandsPayload = isLiderDeIlha
+      ? {
+          islands_ids: withAssignedIslandVisible(
+            data.island_id,
+            data.islands_ids ?? [],
+          ),
+        }
+      : {}
+
+    if (memberDialogInitialData?.id) {
+      await updateTeamMemberMutation({
+        memberId: memberDialogInitialData.id,
+        island_id: needsIslandId ? (data.island_id ?? null) : null,
+        ...islandsPayload,
+        role: data.role,
+        is_active: data.is_active,
+      })
+    } else {
+      await createTeamMemberMutation({
+        user_id: data.user_id,
+        team_id: data.team_id,
+        island_id: needsIslandId ? (data.island_id ?? null) : null,
+        ...islandsPayload,
+        role: data.role,
+        is_active: data.is_active,
+      })
+    }
+
+    handleOnOpenChange(false)
+  }
+
+  useEffect(() => {
+    if (!isOpen) {
+      didApplyInitialDataRef.current = false
+      return
+    }
+
+    if (didApplyInitialDataRef.current) return
+    didApplyInitialDataRef.current = true
+
+    if (memberDialogInitialData?.id) {
+      const initialRole = memberDialogInitialData.role as
+        | UserRoleEnum
+        | undefined
+      const roleInForm =
+        initialRole &&
+        (roleEnumValues as readonly string[]).includes(initialRole)
+          ? (initialRole as MemberForm['role'])
+          : ('' as unknown as MemberForm['role'])
+      const isOperador = roleInForm === 'Operador'
+      const isLiderDeIlha = roleInForm === 'Líder de Ilha'
+      const needsIslandId = isOperador || isLiderDeIlha
+      const initialIslandsIds = isLiderDeIlha
+        ? withAssignedIslandVisible(
+            memberDialogInitialData.island_id,
+            memberDialogInitialData.islands_ids ?? [],
+          )
+        : []
+
+      reset({
+        user_id: memberDialogInitialData.user_id || '',
+        team_id: memberDialogInitialData.team_id,
+        role: roleInForm,
+        island_id: needsIslandId
+          ? (memberDialogInitialData.island_id ?? null)
+          : null,
+        islands_ids: isLiderDeIlha ? initialIslandsIds : [],
+        is_active: memberDialogInitialData.is_active ?? true,
+      })
+      return
+    }
+
+    if (memberDialogInitialData) {
+      reset({
+        user_id: '',
+        team_id: memberDialogInitialData.team_id,
+        role: '' as unknown as MemberForm['role'],
+        island_id: null,
+        islands_ids: [],
+        is_active: true,
+      })
+    }
+  }, [memberDialogInitialData, isOpen, reset])
+
+  useEffect(() => {
+    if (memberDialogInitialData?.id) return
+
+    setValue('user_id', '', { shouldDirty: true, shouldValidate: false })
+    setValue('island_id', null, { shouldDirty: true, shouldValidate: false })
+    setValue('islands_ids', [], { shouldDirty: true, shouldValidate: false })
+  }, [selectedRole, memberDialogInitialData?.id, setValue])
+
+  useEffect(() => {
+    if (!selectedRole) return
+
+    if (selectedRole !== 'Operador' && selectedRole !== 'Líder de Ilha') {
+      setValue('island_id', null, { shouldDirty: true, shouldValidate: true })
+    }
+
+    if (selectedRole !== 'Líder de Ilha') {
+      setValue('islands_ids', [], { shouldDirty: true, shouldValidate: true })
+    }
+  }, [selectedRole, setValue])
+
+  useEffect(() => {
+    if (selectedRole !== 'Líder de Ilha' || !watchedIslandId) return
+
+    const current = getValues('islands_ids') ?? []
+    if (current.includes(watchedIslandId)) return
+
+    setValue('islands_ids', [...current, watchedIslandId], {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+  }, [selectedRole, watchedIslandId, getValues, setValue])
+
+  const isLoading = isSubmitting || isPendingCreate || isPendingUpdate
+
+  const [userSelectOpen, setUserSelectOpen] = useState(false)
+  const [roleSelectOpen, setRoleSelectOpen] = useState(false)
+  const [islandSelectOpen, setIslandSelectOpen] = useState(false)
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+      <DialogContent className="equipes-modal flex max-h-[90vh] flex-col text-[var(--equipes-text-default)] sm:max-w-2xl [&_.text-muted-foreground]:text-[var(--equipes-text-subtle)]">
+        <DialogHeader className="shrink-0">
+          <DialogTitle className="equipes-modal-title">
+            {memberDialogInitialData?.id
+              ? 'Editar Colaborador'
+              : 'Adicionar Colaborador'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="flex flex-col gap-4">
+              <div className="equipes-modal-card">
+                <p className="equipes-modal-label">Equipe</p>
+                <p className="text-base font-medium text-[var(--equipes-text-default)]">
+                  {memberDialogInitialData?.team_name || '-'}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex gap-2">
+                  <Label htmlFor="role" className="equipes-modal-label">
+                    Função
+                  </Label>
+                  <InputError message={errors.role?.message} />
+                </div>
+
+                <Controller
+                  control={control}
+                  name="role"
+                  render={({ field }) => (
+                    <Popover
+                      open={roleSelectOpen}
+                      onOpenChange={setRoleSelectOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <button
+                          id="role"
+                          type="button"
+                          disabled={isLoading}
+                          className="equipes-select-trigger-wrap equipes-select-trigger"
+                        >
+                          <span
+                            className={
+                              !field.value
+                                ? 'equipes-select-trigger-placeholder'
+                                : ''
+                            }
+                          >
+                            {field.value
+                              ? roleLabelMap[field.value]
+                              : 'Selecione a função'}
+                          </span>
+                          <ChevronDown
+                            className="equipes-select-chevron"
+                            size={16}
+                          />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        sideOffset={8}
+                        className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                      >
+                        {roleEnumValues.map((role) => (
+                          <button
+                            key={role}
+                            type="button"
+                            className="equipes-select-option w-full"
+                            onClick={() => {
+                              const value = role as MemberForm['role']
+                              field.onChange(value)
+                              setRoleSelectOpen(false)
+                            }}
+                          >
+                            {roleLabelMap[role]}
+                          </button>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                />
+              </div>
+
+              {!memberDialogInitialData?.id && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="user_id" className="equipes-modal-label">
+                      Usuário
+                    </Label>
+                    <InputError message={errors.user_id?.message} />
+                  </div>
+
+                  <Controller
+                    control={control}
+                    name="user_id"
+                    render={({ field }) => {
+                      const selectedUser = users.find(
+                        (u) => u.id === field.value,
+                      )
+                      return (
+                        <Popover
+                          open={userSelectOpen}
+                          onOpenChange={setUserSelectOpen}
+                        >
+                          <PopoverTrigger asChild>
+                            <button
+                              id="user_id"
+                              type="button"
+                              disabled={isLoading || !selectedRole}
+                              className="equipes-select-trigger-wrap equipes-select-trigger"
+                            >
+                              {!selectedRole ? (
+                                <span className="equipes-select-trigger-placeholder">
+                                  Selecione a função primeiro
+                                </span>
+                              ) : isFetchingUsers ? (
+                                <span className="equipes-select-trigger-placeholder">
+                                  Carregando usuários...
+                                </span>
+                              ) : field.value ? (
+                                <span className="flex min-w-0 flex-1 items-center gap-2">
+                                  <span className="truncate">
+                                    {selectedUser
+                                      ? userDisplayName(selectedUser)
+                                      : 'Selecione um usuário'}
+                                  </span>
+                                  {selectedUser?.belongs_to_team ? (
+                                    <span className="equipes-select-trigger-user-badge">
+                                      Em equipe
+                                    </span>
+                                  ) : null}
+                                </span>
+                              ) : (
+                                <span className="equipes-select-trigger-placeholder">
+                                  Selecione um usuário
+                                </span>
+                              )}
+                              <ChevronDown
+                                className="equipes-select-chevron"
+                                size={16}
+                              />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            align="start"
+                            sideOffset={8}
+                            className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                          >
+                            {isFetchingUsers ? (
+                              <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                                Carregando...
+                              </p>
+                            ) : users.length === 0 ? (
+                              <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                                Nenhum usuário encontrado para esta função.
+                              </p>
+                            ) : (
+                              <>
+                                {users.some((u) => u.belongs_to_team) ? (
+                                  <p
+                                    className="equipes-select-dropdown-hint"
+                                    role="note"
+                                  >
+                                    A etiqueta &quot;Em equipe&quot; indica quem
+                                    já está em alguma equipe.
+                                  </p>
+                                ) : null}
+                                {users.map((user) => {
+                                  const inTeam = Boolean(user.belongs_to_team)
+                                  const label = userDisplayName(user)
+                                  return (
+                                    <button
+                                      key={user.id}
+                                      type="button"
+                                      className={`equipes-select-option w-full${inTeam ? 'equipes-select-option--in-team' : ''}`}
+                                      title={
+                                        inTeam
+                                          ? 'Este usuário já está em uma equipe.'
+                                          : undefined
+                                      }
+                                      onClick={() => {
+                                        field.onChange(user.id)
+                                        setUserSelectOpen(false)
+                                      }}
+                                    >
+                                      {inTeam ? (
+                                        <>
+                                          <span className="equipes-select-option-user-cell">
+                                            <span className="equipes-select-option-user-name">
+                                              {label}
+                                            </span>
+                                            <span className="equipes-select-option-user-note">
+                                              Já está em uma equipe
+                                            </span>
+                                          </span>
+                                          <span className="equipes-user-in-team-badge">
+                                            Em equipe
+                                          </span>
+                                        </>
+                                      ) : (
+                                        label
+                                      )}
+                                    </button>
+                                  )
+                                })}
+                              </>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      )
+                    }}
+                  />
+                </div>
+              )}
+
+              {memberDialogInitialData?.id && (
+                <div className="equipes-modal-card">
+                  <p className="equipes-modal-label">Usuário</p>
+                  <p className="text-base font-medium text-[var(--equipes-text-default)]">
+                    {memberDialogInitialData.user_name || '-'}
+                  </p>
+                </div>
+              )}
+
+              {shouldShowIslandSelect && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="island_id" className="equipes-modal-label">
+                      Ilha
+                    </Label>
+                    <InputError message={errors.island_id?.message} />
+                  </div>
+
+                  <Controller
+                    control={control}
+                    name="island_id"
+                    render={({ field }) => (
+                      <Popover
+                        open={islandSelectOpen}
+                        onOpenChange={setIslandSelectOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <button
+                            id="island_id"
+                            type="button"
+                            disabled={isLoading}
+                            className="equipes-select-trigger-wrap equipes-select-trigger"
+                          >
+                            <span
+                              className={
+                                !field.value
+                                  ? 'equipes-select-trigger-placeholder'
+                                  : ''
+                              }
+                            >
+                              {field.value
+                                ? (islands.find((i) => i.id === field.value)
+                                    ?.name ?? 'Selecione a ilha')
+                                : 'Selecione a ilha'}
+                            </span>
+                            <ChevronDown
+                              className="equipes-select-chevron"
+                              size={16}
+                            />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="start"
+                          sideOffset={8}
+                          className="equipes-select-dropdown w-[var(--radix-popover-trigger-width)] !rounded-[10px] !border !border-[rgba(77,109,137,0.55)] !bg-[#0d1c28] p-0 !shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                        >
+                          {islands.length === 0 ? (
+                            <p className="equipes-select-option text-left text-sm text-[var(--equipes-text-subtle)]">
+                              Nenhuma ilha disponível nesta equipe.
+                            </p>
+                          ) : (
+                            islands.map((island) => (
+                              <button
+                                key={island.id}
+                                type="button"
+                                className="equipes-select-option w-full"
+                                onClick={() => {
+                                  field.onChange(island.id)
+                                  if (selectedRole === 'Líder de Ilha') {
+                                    const current =
+                                      getValues('islands_ids') ?? []
+                                    if (!current.includes(island.id)) {
+                                      setValue(
+                                        'islands_ids',
+                                        [...current, island.id],
+                                        {
+                                          shouldDirty: true,
+                                          shouldValidate: true,
+                                        },
+                                      )
+                                    }
+                                  }
+                                  setIslandSelectOpen(false)
+                                }}
+                              >
+                                {island.name}
+                              </button>
+                            ))
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  />
+                </div>
+              )}
+
+              {shouldShowIslandsMultiSelect && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label className="equipes-modal-label">
+                      Ilhas visíveis
+                    </Label>
+                    <InputError message={errors.islands_ids?.message} />
+                  </div>
+
+                  <Controller
+                    control={control}
+                    name="islands_ids"
+                    render={({ field }) => (
+                      <div className="equipes-islands-checkbox-list">
+                        {islands.length === 0 ? (
+                          <p className="text-sm text-[var(--equipes-text-subtle)]">
+                            Nenhuma ilha disponível nesta equipe.
+                          </p>
+                        ) : (
+                          islands.map((island) => {
+                            const isChecked = field.value?.includes(island.id)
+                            const isAssignedIsland =
+                              island.id === watchedIslandId
+
+                            return (
+                              <label
+                                key={island.id}
+                                htmlFor={`island-${island.id}`}
+                                className="equipes-islands-checkbox-item"
+                              >
+                                <Checkbox
+                                  id={`island-${island.id}`}
+                                  checked={isChecked}
+                                  disabled={isLoading || isAssignedIsland}
+                                  onCheckedChange={(checked) => {
+                                    if (isAssignedIsland) return
+
+                                    const current = field.value ?? []
+
+                                    if (checked) {
+                                      field.onChange([...current, island.id])
+                                      return
+                                    }
+
+                                    field.onChange(
+                                      current.filter((id) => id !== island.id),
+                                    )
+                                  }}
+                                />
+                                <span>{island.name}</span>
+                              </label>
+                            )
+                          })
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 shrink-0 border-t border-[var(--equipes-border)] pt-4">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="equipes-modal-btn-salvar w-full sm:w-auto"
+            >
+              {isLoading ? <Spinner /> : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}

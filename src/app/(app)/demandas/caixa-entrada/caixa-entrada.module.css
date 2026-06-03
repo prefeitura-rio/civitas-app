@@ -1,0 +1,278 @@
+/**
+ * Caixa de Entrada — Figma Civitas node 783:15332
+ * https://www.figma.com/design/6Njx9o5Q7wl6SDQf52JZrW/Civitas?node-id=783-15332
+ */
+
+.page {
+  --cx-bg-page: #0c161f;
+  --cx-bg-label: #1d3449;
+  --cx-border: #4a5d6d;
+  --cx-text: #f9fafa;
+  --cx-text-subtle: #97a2ab;
+  --cx-radius-sm: 8px;
+  --cx-radius-xs: 4px;
+  background-color: var(--cx-bg-page);
+  /* flex pai (layout app): ocupa a área ao lado da sidebar e permite overflow interno */
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  /* sem altura máxima o flex pai cresce com o conteúdo e o scroll vai para o body */
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.title {
+  font-family: var(--font-family-heading, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 40px;
+  color: var(--cx-text);
+  margin: 0;
+}
+
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--cx-text-subtle);
+  margin: 0;
+}
+
+.infoBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  background-color: var(--cx-bg-label);
+  border-radius: var(--cx-radius-sm);
+}
+
+.infoBarText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--cx-text-subtle);
+  margin: 0;
+  text-align: center;
+}
+
+.listsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+.tableWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.row {
+  border-bottom: 0.6px solid var(--cx-border);
+  padding: 8px 12px;
+  width: 100%;
+}
+
+
+.rowInner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 20px;
+  gap: 16px;
+}
+
+.rowClickableMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  flex: 1;
+  gap: 16px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.rowClickableMain:focus-visible {
+  outline: 2px solid var(--cx-border);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.rowLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--cx-bg-label);
+  cursor: pointer;
+}
+
+.nameCol {
+  width: 160px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subjectCol {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellText {
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--cx-text-subtle);
+  margin: 0;
+}
+
+.cellTextUnread {
+  font-weight: 600;
+  color: var(--cx-text);
+}
+
+.cellTextAwaiting {
+  font-weight: 400;
+  color: var(--cx-text);
+}
+
+.rowRight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 96px;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.dateText {
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--cx-text-subtle);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.dateTextEmphasis {
+  font-weight: 600;
+  color: var(--cx-text);
+}
+
+.sectionPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.sectionPagination > div {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start !important;
+  gap: 24px;
+  width: 100%;
+  min-height: 48px;
+}
+
+.sectionPagination > div > div > div:last-child {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.sectionPagination button {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+  background-color: var(--cx-bg-label) !important;
+  border-color: var(--cx-border) !important;
+  color: var(--cx-text) !important;
+  border-radius: var(--cx-radius-sm);
+}
+
+.sectionPagination button:hover:not(:disabled) {
+  opacity: 0.9;
+  background-color: var(--cx-bg-label) !important;
+  border-color: var(--cx-border) !important;
+}
+
+.sectionPagination span {
+  color: var(--cx-text-subtle);
+  font-size: 14px;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  width: 100%;
+  color: var(--cx-text-subtle);
+  font-size: 14px;
+}
+
+.iconMuted {
+  color: var(--cx-text-subtle);
+  flex-shrink: 0;
+}
+
+.attachmentSlot {
+  display: inline-block;
+  width: 16px;
+  flex-shrink: 0;
+}

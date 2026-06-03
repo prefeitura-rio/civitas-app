@@ -1,0 +1,327 @@
+/**
+ * Painel lateral de e-mail — Figma node 783:16418
+ */
+
+.sheetContent {
+  background-color: #101d28;
+  border-color: #4a5d6d;
+  overflow-y: auto;
+  padding: 0;
+  width: 100%;
+  max-width: min(100vw - 1rem, 560px);
+}
+
+.sheetInner {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 16px;
+  min-height: 100%;
+}
+
+.headerBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.sheetTitle {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-family-heading, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 40px;
+  color: #f9fafa;
+  margin: 0;
+}
+
+.closeBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #f9fafa;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.closeBtn:hover {
+  opacity: 0.85;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.senderLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background-color: #152534;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #97a2ab;
+}
+
+.senderText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.senderName {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: #f9fafa;
+  margin: 0;
+}
+
+.senderEmail {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #97a2ab;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.metaTime {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #f9fafa;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.tagSpam {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 16px;
+  background-color: #152534;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #f9fafa;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tagSpam:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.tagSpam:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 8px 16px;
+  background-color: #1d3449;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #f9fafa;
+  cursor: pointer;
+}
+
+.btnSecondary:hover {
+  opacity: 0.92;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 8px 16px;
+  background-color: #065e47;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 16px;
+  color: #f9fafa;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btnPrimary:hover {
+  opacity: 0.92;
+}
+
+.bodyCard {
+  background-color: #e8ebed;
+  border-radius: 8px;
+  padding: 24px;
+  width: 100%;
+}
+
+.bodyText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #0c161f;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.attachmentsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.attachmentsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.attachmentCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 260px;
+  max-width: 100%;
+  padding: 12px;
+  background-color: #152534;
+  border-radius: 8px;
+}
+
+.attachmentLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pdfIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.attachmentInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  width: 119px;
+}
+
+.attachmentName {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #f9fafa;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentSize {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #97a2ab;
+  margin: 0;
+}
+
+.downloadBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #97a2ab;
+  cursor: pointer;
+}
+
+.downloadBtn:hover {
+  color: #f9fafa;
+}
+
+.loadingBox,
+.errorBox {
+  padding: 24px;
+  color: #97a2ab;
+  font-size: 14px;
+}
