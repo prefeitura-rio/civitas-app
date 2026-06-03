@@ -1,4 +1,4 @@
-const CHUNK_SIZE = 8 * 1024 * 1024
+const CHUNK_SIZE = 64 * 1024 * 1024
 const MAX_RETRIES = 4
 const BACKOFF_BASE_MS = 1_500
 
