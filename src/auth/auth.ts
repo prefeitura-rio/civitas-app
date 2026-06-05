@@ -1,5 +1,8 @@
 import { cookies } from 'next/headers'
 
+import { getSessionCookieName, isValidSession } from './session'
+
 export function isAuthenticated() {
-  return !!cookies().get('token')?.value
+  const sessionValue = cookies().get(getSessionCookieName())?.value
+  return isValidSession(sessionValue)
 }

@@ -2,12 +2,14 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 export function middleware(request: NextRequest) {
+  const session = request.cookies.get('session')?.value
   const token = request.cookies.get('token')?.value
 
   // Allow requests to /auth/*, /privacidade and static files
   if (
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/privacidade') ||
+    request.nextUrl.pathname.startsWith('/api/auth') ||
     request.nextUrl.pathname.startsWith('/_next')
   ) {
     return NextResponse.next()
@@ -15,12 +17,10 @@ export function middleware(request: NextRequest) {
 
   // Allow fake token for E2E tests
   if (token === 'fake-test-token-for-e2e') {
-    console.log('🧪 Middleware - Allowing E2E test token')
     return NextResponse.next()
   }
 
-  // Redirect to /auth/sign-in if no token is found and the path is not /auth/*
-  if (!token) {
+  if (!session) {
     return NextResponse.redirect(new URL('/auth/sign-in', request.url))
   }
 
