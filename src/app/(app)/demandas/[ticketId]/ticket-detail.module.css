@@ -3137,6 +3137,37 @@
   padding: 12px 16px;
   border-radius: var(--td-radius);
   background-color: var(--td-card-bg);
+  border: 1px solid var(--td-border);
+}
+
+.servicosUploadPanelHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.servicosUploadPanelTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--td-text);
+}
+
+.servicosUploadSummary {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--td-muted);
+}
+
+.servicosUploadList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .servicosUploadOffline {
@@ -3149,24 +3180,103 @@
 .servicosUploadItem {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .servicosUploadItemHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.servicosUploadItemIcon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.servicosUploadIconDone {
+  width: 14px;
+  height: 14px;
+  color: var(--td-priority-success);
+}
+
+.servicosUploadIconQueued {
+  width: 14px;
+  height: 14px;
+  color: var(--td-muted);
+}
+
+.servicosUploadIconActive {
+  width: 14px;
+  height: 14px;
+  color: var(--td-text);
+  animation: servicosUploadSpin 1s linear infinite;
+}
+
+.servicosUploadIconError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--td-priority-danger);
+  color: var(--td-text);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@keyframes servicosUploadSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.servicosUploadItemDone .servicosUploadFileName {
+  color: var(--td-muted);
+}
+
+.servicosUploadItemQueued .servicosUploadFileName {
+  color: var(--td-muted);
+}
+
+.servicosUploadItemError .servicosUploadFileName {
+  color: var(--td-priority-danger);
 }
 
 .servicosUploadFileName {
   min-width: 0;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
   line-height: 18px;
   color: var(--td-text);
+}
+
+.servicosUploadStatusLabel {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--td-muted);
+}
+
+.servicosUploadItemError .servicosUploadStatusLabel {
+  color: var(--td-priority-danger);
+}
+
+.servicosUploadItemDone .servicosUploadStatusLabel {
+  color: var(--td-priority-success);
 }
 
 .servicosUploadPercent {

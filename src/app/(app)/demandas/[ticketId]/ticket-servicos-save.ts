@@ -55,6 +55,7 @@ export type PendingServiceFilesByRowId = Record<
 >
 
 export type GcsUploadProgress = {
+  pendingAttachmentId: string
   fileName: string
   uploadKind: 'ZIP' | 'vídeo'
   phase: 'preparing' | 'uploading' | 'finalizing'
@@ -116,6 +117,7 @@ async function uploadPendingGcsAttachment(
   const uploadKind = isZipFile(file) ? 'ZIP' : 'vídeo'
 
   reportGcsProgress(options, {
+    pendingAttachmentId: item.id,
     fileName: file.name,
     uploadKind,
     phase: 'preparing',
@@ -163,6 +165,7 @@ async function uploadPendingGcsAttachment(
   }
 
   reportGcsProgress(options, {
+    pendingAttachmentId: item.id,
     fileName: file.name,
     uploadKind,
     phase: 'uploading',
@@ -184,6 +187,7 @@ async function uploadPendingGcsAttachment(
       const pct =
         total > 0 ? Math.min(100, Math.round((uploaded / total) * 100)) : 0
       reportGcsProgress(options, {
+        pendingAttachmentId: item.id,
         fileName: file.name,
         uploadKind,
         phase: 'uploading',
@@ -198,6 +202,7 @@ async function uploadPendingGcsAttachment(
   })
 
   reportGcsProgress(options, {
+    pendingAttachmentId: item.id,
     fileName: file.name,
     uploadKind,
     phase: 'finalizing',
