@@ -2,21 +2,25 @@ import axios from 'axios'
 import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
-import { config } from '@/config'
+import { config as appConfig } from '@/config'
+import { TICKET_MODULE_PERMISSIONS_COOKIE } from '@/http/tickets/ticket-module-permissions-me'
+import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
 
 import { queryClient } from './react-query'
 
 export const isApiError = axios.isAxiosError
 
+const isServer = typeof window === 'undefined'
+
 export const api = axios.create({
-  baseURL: config.apiUrl,
+  baseURL: isServer ? appConfig.apiUrl : '/api/bff',
 })
 
-api.interceptors.request.use(async (config) => {
+api.interceptors.request.use(async (requestConfig) => {
   // Try to get token from cookies
   let cookieStore: CookiesFn | undefined
 
-  if (typeof window === 'undefined') {
+  if (isServer) {
     const { cookies: serverCookies } = await import('next/headers')
 
     cookieStore = serverCookies
@@ -24,20 +28,52 @@ api.interceptors.request.use(async (config) => {
   const token = getCookie('token', { cookies: cookieStore })
 
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-    // config.headers['Content-Type'] = 'application/json'
+    requestConfig.headers.Authorization = `Bearer ${token}`
   }
-  return config
+
+  const shouldAttachImpersonation =
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/demandas') &&
+    requestConfig.url !== '/auth/login' &&
+    requestConfig.url !== '/auth/refresh'
+
+  if (shouldAttachImpersonation && appConfig.enableImpersonation) {
+    const impersonateUserId = getChamadosImpersonateUserId()
+    if (impersonateUserId?.trim()) {
+      requestConfig.params = {
+        ...(requestConfig.params ?? {}),
+        impersonate_user_id: impersonateUserId,
+      }
+    }
+  }
+
+  return requestConfig
 })
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
+  async (error) => {
+    const status = error?.response?.status
+
+    if (typeof window !== 'undefined' && status === 401) {
       deleteCookie('token')
+      deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
       queryClient.clear()
-      window.location.href = '/auth/sign-in'
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (window.location.pathname !== '/auth/sign-in') {
+        window.location.href = '/auth/sign-in'
+      }
     }
+
+    if (typeof window !== 'undefined' && status === 403) {
+      if (window.location.pathname !== '/forbidden') {
+        window.location.href = '/forbidden'
+      }
+    }
+
     return Promise.reject(error)
   },
 )
