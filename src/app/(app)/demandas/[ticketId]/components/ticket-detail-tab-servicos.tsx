@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, Clock, Loader2, Plus, Trash2 } from 'lucide-react'
 import {
   forwardRef,
   useCallback,
@@ -46,10 +46,13 @@ import {
   setServiceConcluido,
   ticketServicosToReplacePayload,
 } from '../ticket-servicos-mapper'
+import type { GcsUploadProgress } from '../ticket-servicos-save'
 import { buildTicketServicosSaveRequest } from '../ticket-servicos-save'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
+import { usesGcsSignedUrlUpload } from './ticket-gcs-upload'
 import {
   createPendingServiceAttachments,
+  pendingAttachmentAsUploadFile,
   type PendingServiceAttachment,
 } from './ticket-pending-attachment'
 import { TicketServicoAnexos } from './ticket-servico-anexos'
@@ -142,11 +145,88 @@ type Props = {
 
 type PendingServiceFilesByRowId = Record<string, PendingServiceAttachment[]>
 
-type FileUploadStatus = {
+type UploadQueueItemStatus =
+  | 'queued'
+  | 'preparing'
+  | 'uploading'
+  | 'finalizing'
+  | 'done'
+  | 'error'
+
+type UploadQueueItem = {
+  id: string
   filename: string
-  uploaded: number
   total: number
-  phase: 'preparing' | 'uploading' | 'finalizing' | 'error'
+  uploaded: number
+  status: UploadQueueItemStatus
+  usesGcs: boolean
+}
+
+function buildUploadQueue(
+  pending: PendingServiceFilesByRowId,
+): UploadQueueItem[] {
+  const items: UploadQueueItem[] = []
+  for (const pendingItems of Object.values(pending)) {
+    for (const item of pendingItems) {
+      const file = pendingAttachmentAsUploadFile(item)
+      items.push({
+        id: item.id,
+        filename: file.name,
+        total: file.size,
+        uploaded: 0,
+        status: 'queued',
+        usesGcs: usesGcsSignedUrlUpload(file),
+      })
+    }
+  }
+  return items
+}
+
+function gcsPhaseToQueueStatus(
+  phase: GcsUploadProgress['phase'],
+  uploaded: number,
+  total: number,
+): UploadQueueItemStatus {
+  if (phase === 'finalizing' && total > 0 && uploaded >= total) return 'done'
+  return phase
+}
+
+function updateQueueFromGcsProgress(
+  prev: UploadQueueItem[],
+  progress: GcsUploadProgress,
+): UploadQueueItem[] {
+  const uploaded = progress.uploadedBytes ?? 0
+  const total = progress.totalBytes ?? 0
+  const status = gcsPhaseToQueueStatus(progress.phase, uploaded, total)
+
+  return prev.map((item) => {
+    if (item.id !== progress.pendingAttachmentId) return item
+    return {
+      ...item,
+      uploaded,
+      total: total || item.total,
+      status,
+    }
+  })
+}
+
+function uploadQueueStatusLabel(item: UploadQueueItem): string {
+  switch (item.status) {
+    case 'queued':
+      return 'Aguardando'
+    case 'preparing':
+      return 'Preparando…'
+    case 'uploading':
+      return item.uploaded > 0 && item.total > 0
+        ? `Enviando… ${Math.min(100, Math.round((item.uploaded / item.total) * 100))}%`
+        : 'Enviando…'
+    case 'finalizing':
+      return 'Finalizando…'
+    case 'done':
+      return 'Concluído'
+    case 'error':
+      return 'Falhou'
+  }
 }
 
 export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
@@ -158,7 +238,7 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
       useState<PendingServiceFilesByRowId>({})
     /** Cobre PUT + refetch + uploads de attachments pendentes (não só `replaceMutation.isPending`). */
     const [saveFlowPending, setSaveFlowPending] = useState(false)
-    const [uploadStatuses, setUploadStatuses] = useState<FileUploadStatus[]>([])
+    const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([])
     const [isOffline, setIsOffline] = useState(false)
     const saveAbortRef = useRef<AbortController | null>(null)
 
@@ -250,7 +330,7 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
         setDraft(cloneTicketServicos(snapshot))
       }
       setPendingFilesByRowId({})
-      setUploadStatuses([])
+      setUploadQueue([])
       setIsEditing(false)
       setExpandedId(null)
     }, [snapshot])
@@ -324,12 +404,13 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
       }
 
       setSaveFlowPending(true)
-      setUploadStatuses([])
+      const currentPending = pendingFilesRef.current
+      const initialQueue = buildUploadQueue(currentPending)
+      setUploadQueue(initialQueue)
       const abortController = new AbortController()
       saveAbortRef.current = abortController
 
       try {
-        const currentPending = pendingFilesRef.current
         let saveRequest: Awaited<
           ReturnType<typeof buildTicketServicosSaveRequest>
         >
@@ -341,51 +422,79 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
             currentPending,
             {
               signal: abortController.signal,
-              onGcsProgress: ({
-                fileName,
-                phase,
-                uploadedBytes,
-                totalBytes,
-              }) => {
-                const uploaded = uploadedBytes ?? 0
-                const total = totalBytes ?? 0
-                setUploadStatuses((prev) => {
-                  const next = prev.filter((item) => item.filename !== fileName)
-                  next.push({
-                    filename: fileName,
-                    uploaded,
-                    total,
-                    phase,
-                  })
-                  return next
-                })
+              onGcsProgress: (progress) => {
+                setUploadQueue((prev) =>
+                  updateQueueFromGcsProgress(prev, progress),
+                )
               },
             },
           )
+
+          if (initialQueue.length > 0) {
+            setUploadQueue((prev) =>
+              prev.map((item) =>
+                item.usesGcs
+                  ? { ...item, status: 'done', uploaded: item.total }
+                  : item,
+              ),
+            )
+          }
         } catch {
           if (abortController.signal.aborted) {
             toast.error('Envio cancelado.')
             return false
           }
+          setUploadQueue((prev) =>
+            prev.map((item) =>
+              ['preparing', 'uploading', 'finalizing'].includes(item.status)
+                ? { ...item, status: 'error' }
+                : item,
+            ),
+          )
           toast.error(
             'Não foi possível enviar um ou mais vídeos/ZIP. Tente novamente.',
           )
           return false
         }
 
+        if (saveRequest.files.length > 0) {
+          setUploadQueue((prev) =>
+            prev.map((item) =>
+              !item.usesGcs && item.status === 'queued'
+                ? { ...item, status: 'uploading' }
+                : item,
+            ),
+          )
+        }
+
         let saved: TicketServicosOut
         try {
           saved = await replaceMutation.mutateAsync(saveRequest)
         } catch (err: unknown) {
+          setUploadQueue((prev) =>
+            prev.map((item) =>
+              item.status === 'uploading' ? { ...item, status: 'error' } : item,
+            ),
+          )
           toast.error(getApiErrorMessage(err))
           return false
+        }
+
+        if (initialQueue.length > 0) {
+          setUploadQueue((prev) =>
+            prev.map((item) => ({
+              ...item,
+              status: 'done',
+              uploaded: item.total,
+            })),
+          )
         }
 
         const c = cloneTicketServicos(saved)
         setDraft(c)
         setSnapshot(cloneTicketServicos(saved))
         setPendingFilesByRowId({})
-        setUploadStatuses([])
+        setUploadQueue([])
         setIsEditing(false)
         setExpandedId(null)
         queryClient.setQueryData(['ticket', ticketId, 'services'], saved)
@@ -440,6 +549,9 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
     }, [handleSave])
 
     const saveOrUploadBusy = saveFlowPending || replaceMutation.isPending
+    const uploadPanelVisible =
+      uploadQueue.length > 0 &&
+      (saveFlowPending || uploadQueue.some((item) => item.status === 'error'))
 
     const handleAddKind = (kind: (typeof SERVICE_KINDS)[number]) => {
       setDraft((prev) => {
@@ -646,38 +758,84 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
           )}
         </div>
 
-        {saveFlowPending && uploadStatuses.length > 0 ? (
+        {uploadPanelVisible ? (
           <div className={styles.servicosUploadPanel} aria-live="polite">
+            <div className={styles.servicosUploadPanelHeader}>
+              <span className={styles.servicosUploadPanelTitle}>
+                Enviando anexos
+              </span>
+              <span className={styles.servicosUploadSummary}>
+                {uploadQueue.filter((item) => item.status === 'done').length} de{' '}
+                {uploadQueue.length} concluídos
+              </span>
+            </div>
             {isOffline ? (
               <p className={styles.servicosUploadOffline}>
                 Sem ligação. O envio será retomado quando a ligação voltar.
               </p>
             ) : null}
-            {uploadStatuses.map((status) => {
-              const percent =
-                status.total > 0
-                  ? Math.min(
-                      100,
-                      Math.round((status.uploaded / status.total) * 100),
-                    )
-                  : 0
-              return (
-                <div
-                  key={status.filename}
-                  className={styles.servicosUploadItem}
-                >
-                  <div className={styles.servicosUploadItemHeader}>
-                    <span className={styles.servicosUploadFileName}>
-                      {status.filename}
-                    </span>
-                    <span className={styles.servicosUploadPercent}>
-                      {percent}%
-                    </span>
-                  </div>
-                  <Progress value={percent} />
-                </div>
-              )
-            })}
+            <ul className={styles.servicosUploadList}>
+              {uploadQueue.map((item) => {
+                const percent =
+                  item.total > 0
+                    ? Math.min(
+                        100,
+                        Math.round((item.uploaded / item.total) * 100),
+                      )
+                    : 0
+                const showProgress =
+                  item.status === 'uploading' && item.usesGcs && item.total > 0
+                return (
+                  <li
+                    key={item.id}
+                    className={`${styles.servicosUploadItem} ${
+                      item.status === 'done'
+                        ? styles.servicosUploadItemDone
+                        : item.status === 'queued'
+                          ? styles.servicosUploadItemQueued
+                          : item.status === 'error'
+                            ? styles.servicosUploadItemError
+                            : styles.servicosUploadItemActive
+                    }`}
+                  >
+                    <div className={styles.servicosUploadItemHeader}>
+                      <span className={styles.servicosUploadItemIcon}>
+                        {item.status === 'done' ? (
+                          <Check
+                            className={styles.servicosUploadIconDone}
+                            aria-hidden
+                          />
+                        ) : item.status === 'queued' ? (
+                          <Clock
+                            className={styles.servicosUploadIconQueued}
+                            aria-hidden
+                          />
+                        ) : item.status === 'error' ? (
+                          <span
+                            className={styles.servicosUploadIconError}
+                            aria-hidden
+                          >
+                            !
+                          </span>
+                        ) : (
+                          <Loader2
+                            className={styles.servicosUploadIconActive}
+                            aria-hidden
+                          />
+                        )}
+                      </span>
+                      <span className={styles.servicosUploadFileName}>
+                        {item.filename}
+                      </span>
+                      <span className={styles.servicosUploadStatusLabel}>
+                        {uploadQueueStatusLabel(item)}
+                      </span>
+                    </div>
+                    {showProgress ? <Progress value={percent} /> : null}
+                  </li>
+                )
+              })}
+            </ul>
           </div>
         ) : null}
 
