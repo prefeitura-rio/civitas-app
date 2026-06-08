@@ -160,11 +160,11 @@ export function ticketServicosToReplacePayload(
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
       addresses: (x.addresses ?? [])
-        .map((a) => a.address.trim())
+        .map((a) => (a.address ?? '').trim())
         .filter(Boolean),
       description: strOrNull(x.description),
       cameras: (x.cameras ?? [])
-        .map((c) => c.camera_code.trim())
+        .map((c) => (c.camera_code ?? '').trim())
         .filter(Boolean),
     })),
     correlated_plates: n.correlated_plates.map((x) => ({
@@ -198,10 +198,10 @@ export function ticketServicosToReplacePayload(
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
       addresses: (x.addresses ?? [])
-        .map((a) => a.address.trim())
+        .map((a) => (a.address ?? '').trim())
         .filter(Boolean),
       cameras: (x.cameras ?? [])
-        .map((c) => c.camera_code.trim())
+        .map((c) => (c.camera_code ?? '').trim())
         .filter(Boolean),
     })),
     image_analysis: n.image_analysis.map((x) => ({
@@ -211,10 +211,10 @@ export function ticketServicosToReplacePayload(
       period_end: strOrNull(x.period_end as string | null | undefined),
       orientation: strOrNull(x.orientation),
       addresses: (x.addresses ?? [])
-        .map((a) => a.address.trim())
+        .map((a) => (a.address ?? '').trim())
         .filter(Boolean),
       cameras: (x.cameras ?? [])
-        .map((c) => c.camera_code.trim())
+        .map((c) => (c.camera_code ?? '').trim())
         .filter(Boolean),
     })),
     other: n.other.map((x) => ({
