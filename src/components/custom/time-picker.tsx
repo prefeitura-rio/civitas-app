@@ -1,5 +1,7 @@
 import { Clock } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
 import {
   Select,
   SelectContent,
@@ -21,6 +23,7 @@ interface TimePickerProps {
   onChange: (date: Date) => void
   disableFuture?: boolean
   disabled?: boolean
+  selectContentClassName?: string
 }
 
 export function TimePicker({
@@ -29,6 +32,7 @@ export function TimePicker({
   onChange,
   disabled = false,
   disableFuture = false,
+  selectContentClassName,
 }: TimePickerProps) {
   const today = new Date()
   const todayAtMidnight = new Date()
@@ -71,7 +75,9 @@ export function TimePicker({
           <SelectTrigger className="h-9 w-16">
             <SelectValue placeholder="--" />
           </SelectTrigger>
-          <SelectContent className="h-72 w-16 min-w-0">
+          <SelectContent
+            className={cn('h-72 w-16 min-w-0', selectContentClassName)}
+          >
             {hours.map((item, index) => (
               <SelectItem
                 key={index}
@@ -103,7 +109,7 @@ export function TimePicker({
           <SelectTrigger className="h-9 w-16">
             <SelectValue placeholder="--" />
           </SelectTrigger>
-          <SelectContent className="w-16 min-w-0">
+          <SelectContent className={cn('w-16 min-w-0', selectContentClassName)}>
             {minutes.map((item, index) => (
               <SelectItem
                 key={index}

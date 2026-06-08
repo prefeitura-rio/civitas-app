@@ -1,5 +1,30 @@
 import { isApiError } from '@/lib/api'
 
+function messageFromDetail(detail: unknown): string | null {
+  if (typeof detail === 'string') {
+    const t = detail.trim()
+    return t.length > 0 ? t : null
+  }
+  if (
+    detail &&
+    typeof detail === 'object' &&
+    'mensagem' in detail &&
+    typeof (detail as { mensagem: unknown }).mensagem === 'string'
+  ) {
+    const t = (detail as { mensagem: string }).mensagem.trim()
+    return t.length > 0 ? t : null
+  }
+  return null
+}
+
+export function getApiErrorMessage(error: unknown): string {
+  if (!isApiError(error)) return genericErrorMessage
+  if (error.response?.status === 500) return genericErrorMessage
+  const fromDetail = messageFromDetail(error.response?.data?.detail)
+  if (fromDetail) return fromDetail
+  return genericErrorMessage
+}
+
 export function isGrantError(error: unknown) {
   return (
     isApiError(error) &&
