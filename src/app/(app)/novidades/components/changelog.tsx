@@ -23,6 +23,26 @@ export const changelog: Card[] = [
     subCards: [
       {
         tag: 'Alterado',
+        title: 'Flexibilização da busca de ocorrências do Disque Denúncia',
+        content: (
+          <>
+            <p>
+              A busca de ocorrências do <code>Disque Denúncia</code> foi
+              ajustada para ficar mais flexível e facilitar a localização dos
+              registros.
+            </p>
+            <ul>
+              <li>A pesquisa agora desconsidera acentuação.</li>
+              <li>
+                A pesquisa também desconsidera diferenças entre letras
+                maiúsculas e minúsculas.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
         title:
           'Relatório de Pontos de Detecção com viagens mais recentes primeiro',
         content: (
