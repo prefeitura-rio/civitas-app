@@ -1,11 +1,12 @@
 'use client'
 import { AlertTriangle, icons } from 'lucide-react'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useFormState } from '@/hooks/use-form-state'
@@ -13,10 +14,11 @@ import { useFormState } from '@/hooks/use-form-state'
 import { signInAction } from './actions'
 
 export default function SignInForm() {
+  const router = useRouter()
   const [{ errors, message, success }, handleSubmit, isPending] = useFormState(
     signInAction,
     () => {
-      redirect('/')
+      router.replace('/')
     },
   )
   const [passwordFieldType, setPasswordFieldType] = useState<
@@ -26,7 +28,11 @@ export default function SignInForm() {
   const LucideIcon = icons[passwordFieldType === 'password' ? 'EyeOff' : 'Eye']
 
   return (
-    <form className="w-full max-w-sm space-y-4" onSubmit={handleSubmit}>
+    <form
+      method="post"
+      className="w-full max-w-sm space-y-4"
+      onSubmit={handleSubmit}
+    >
       {success === false && message && (
         <Alert variant="destructive">
           <AlertTriangle className="size-4" />
@@ -77,6 +83,11 @@ export default function SignInForm() {
             {errors.password[0]}
           </span>
         )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox id="rememberMe" name="rememberMe" />
+        <Label htmlFor="rememberMe">Manter logado</Label>
       </div>
 
       <Button className="w-full" type="submit" disabled={isPending}>

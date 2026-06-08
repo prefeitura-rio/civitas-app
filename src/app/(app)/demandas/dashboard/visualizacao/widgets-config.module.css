@@ -1,0 +1,79 @@
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.sectionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 16px 32px;
+  border-radius: 16px;
+  background: #101d28;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  width: 100%;
+}
+
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #1d3449;
+  color: #f9fafa;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.collapseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #97a2ab;
+  cursor: pointer;
+}
+
+.widgetRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #4a5d6d;
+}
+
+.widgetRow:last-child {
+  border-bottom: none;
+}
+
+.widgetLabel {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-transform: uppercase;
+  color: #97a2ab;
+}
+
+.widgetSwitch {
+  flex-shrink: 0;
+}
