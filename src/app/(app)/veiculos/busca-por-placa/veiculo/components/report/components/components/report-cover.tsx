@@ -50,6 +50,10 @@ const bulletPoints: BulletPoint[] = [
           },
           {
             value:
+              'As viagens são exibidas da mais recente para a mais antiga, e por isso a numeração da viagem é apresentada em ordem decrescente.',
+          },
+          {
+            value:
               'As viagens podem ser particionadas para facilitar a visualização dos pontos de detecção.',
           },
           {
@@ -388,6 +392,10 @@ export function ReportCover({
             cloneAlert ? 'Sim' : 'Não',
           )}
           {renderTableRow(
+            'Bairro com mais viagens distintas:',
+            neighborhoodWithMostDistinctTripsText,
+          )}
+          {renderTableRow(
             'Local com maior número de passagens:',
             topLocationText,
           )}
@@ -395,10 +403,6 @@ export function ReportCover({
             'Bairros com mais detecções:',
             topNeighborhoodsText,
             hasTopNeighborhoods,
-          )}
-          {renderTableRow(
-            'Bairro com mais viagens distintas:',
-            neighborhoodWithMostDistinctTripsText,
           )}
           {renderTableRow('Turno com mais detecções:', topTimePeriodText)}
           {renderTableRow('Detecções por turnos:', timePeriodsText)}
@@ -415,7 +419,7 @@ export function ReportCover({
         }}
       >
         Este relatório foi gerado automaticamente com base nos dados do sistema
-        Cerco Digital.
+        Cerco Eletrônico.
       </Text>
     </>
   )
