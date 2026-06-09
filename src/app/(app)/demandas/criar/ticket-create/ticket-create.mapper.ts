@@ -1,9 +1,5 @@
 import type { TicketOut } from '@/http/tickets/get-ticket-by-id'
-import {
-  normalizeNumeroOficio,
-  padDigitsLeft,
-  unmaskPlateBR,
-} from '@/utils/string-formatters'
+import { padDigitsLeft, unmaskPlateBR } from '@/utils/string-formatters'
 
 import { TICKET_CREATE_STRING_LIMITS as L } from './ticket-create.constant'
 import type { TicketCreateForm } from './ticket-create-schema'
@@ -44,9 +40,7 @@ export function buildTicketCreatePayload(
     procedure_number: emptyToNull(
       padDigitsLeft(data.procedure_number, L.procedure_number),
     ),
-    official_letter_number: emptyToNull(
-      normalizeNumeroOficio(data.official_letter_number ?? ''),
-    ),
+    official_letter_number: emptyToNull(data.official_letter_number ?? ''),
     base_date: emptyToNull(data.base_date),
     nature_id: data.nature_id.trim(),
     press_alias: emptyToNull(data.press_alias),
@@ -183,12 +177,7 @@ export function mapTicketOutToCreateForm(
     procedure_number: ticket.procedure_number
       ? padDigitsLeft(ticket.procedure_number, L.procedure_number)
       : null,
-    official_letter_number: (() => {
-      const raw = ticket.official_letter_number?.trim()
-      if (!raw) return null
-      const normalized = normalizeNumeroOficio(raw)
-      return normalized || null
-    })(),
+    official_letter_number: ticket.official_letter_number?.trim() || null,
     base_date: apiDateToDataBaseString(ticket.base_date),
     nature_id: ticket.nature_id ?? '',
     has_press_alias: ticket.has_press_alias,

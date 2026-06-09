@@ -169,7 +169,7 @@ export const ticketCreateSchema = z.object({
     .optional()
     .nullable()
     .refine(
-      (v) => v == null || v === '' || /^[A-Z0-9/]+$/.test(v),
+      (v) => v == null || v === '' || /^[A-Za-z0-9/]+$/.test(v),
       'Use apenas letras, números e barra (/)',
     ),
   base_date: z.string().optional().nullable(),
