@@ -83,5 +83,8 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
     }
   })
 
-  return trips
+  return trips.reverse().map((trip, index) => ({
+    ...trip,
+    index,
+  }))
 }
