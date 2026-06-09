@@ -36,10 +36,6 @@ import {
 } from '@/http/tickets/ticket-ficha'
 import { isApiError } from '@/lib/api'
 import { getApiErrorMessage } from '@/utils/error-handlers'
-import {
-  maskNumeroOficio,
-  normalizeNumeroOficio,
-} from '@/utils/string-formatters'
 
 import { shouldShowTicketSeiFields } from '../ticket-detail.constants'
 import styles from '../ticket-detail.module.css'
@@ -93,12 +89,9 @@ function mapOutToDraft(f: TicketFichaOut): TicketFichaUpdateIn {
     procedure_number: f.procedure_number?.trim()
       ? f.procedure_number.trim()
       : null,
-    official_letter_number: (() => {
-      const t = f.official_letter_number?.trim()
-      if (!t) return null
-      const n = normalizeNumeroOficio(t)
-      return n || null
-    })(),
+    official_letter_number: f.official_letter_number?.trim()
+      ? f.official_letter_number.trim()
+      : null,
     nature_id: f.nature_id?.trim() ? f.nature_id.trim() : null,
     has_press_alias: f.has_press_alias,
     press_alias: f.press_alias?.trim() ? f.press_alias.trim() : null,
@@ -133,11 +126,9 @@ function buildChamadoPayload(
     return null
   }
 
-  const oficio = normalizeNumeroOficio(
-    draft.official_letter_number?.trim() ?? '',
-  )
+  const oficio = draft.official_letter_number?.trim() ?? ''
   const proc = draft.procedure_number?.trim() ?? ''
-  if (oficio && !/^[A-Z0-9/]+$/.test(oficio)) {
+  if (oficio && !/^[A-Za-z0-9/]+$/.test(oficio)) {
     toast.error(
       'Nº de ofício: use apenas letras, números e barra (/), ou deixe em branco.',
     )
@@ -440,13 +431,9 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                         const raw = (prev.official_letter_number ?? '').trim()
                         if (!raw)
                           return { ...prev, official_letter_number: null }
-                        const normalized = normalizeNumeroOficio(raw)
-                        return normalized === prev.official_letter_number
+                        return raw === prev.official_letter_number
                           ? prev
-                          : {
-                              ...prev,
-                              official_letter_number: normalized || null,
-                            }
+                          : { ...prev, official_letter_number: raw }
                       })
                     }
                     onChange={(e) =>
@@ -454,8 +441,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                         prev
                           ? {
                               ...prev,
-                              official_letter_number:
-                                maskNumeroOficio(e.target.value) || null,
+                              official_letter_number: e.target.value || null,
                             }
                           : prev,
                       )

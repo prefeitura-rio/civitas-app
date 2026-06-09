@@ -89,7 +89,7 @@ export type AtlasCivitasDraft = {
 
 export const TICKET_CREATE_STRING_LIMITS = {
   procedure_number: 12,
-  official_letter_number: 10,
+  official_letter_number: 50,
   press_alias: 120,
   article_link: 2048,
   correspondence_neighborhood: 120,

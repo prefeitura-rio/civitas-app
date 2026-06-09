@@ -86,46 +86,6 @@ export function unmaskPlateBR(value: string): string {
   return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
 }
 
-const NUMERO_OFICIO_NUM_LEN = 5
-const NUMERO_OFICIO_YEAR_LEN = 4
-const NUMERO_OFICIO_MAX_DIGITS = NUMERO_OFICIO_NUM_LEN + NUMERO_OFICIO_YEAR_LEN
-
-function splitNumeroOficioAlnum(value: string): { num: string; year: string } {
-  const alnum = value
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase()
-    .slice(0, NUMERO_OFICIO_MAX_DIGITS)
-  return {
-    num: alnum.slice(0, NUMERO_OFICIO_NUM_LEN),
-    year: alnum.slice(NUMERO_OFICIO_NUM_LEN),
-  }
-}
-
-/** Máscara visual: até 5 alfanuméricos + / + até 4 (ex.: 12A45/2026 ou 00123/2026). */
-export function maskNumeroOficio(value: string): string {
-  const { num, year } = splitNumeroOficioAlnum(value)
-  if (!year) return num
-  return `${num}/${year}`
-}
-
-/**
- * Normaliza no blur: 5 + / + 4; trechos só numéricos recebem zeros à esquerda.
- */
-export function normalizeNumeroOficio(value: string): string {
-  const trimmed = value.trim()
-  if (!trimmed) return ''
-  const { num: numRaw, year: yearRaw } = splitNumeroOficioAlnum(trimmed)
-  if (!numRaw) return ''
-  const num = /[A-Z]/.test(numRaw)
-    ? numRaw
-    : padDigitsLeft(numRaw, NUMERO_OFICIO_NUM_LEN)
-  if (!yearRaw) return num
-  const year = /[A-Z]/.test(yearRaw)
-    ? yearRaw
-    : padDigitsLeft(yearRaw, NUMERO_OFICIO_YEAR_LEN)
-  return `${num}/${year}`
-}
-
 export function maskPhoneBR(value: string) {
   const n = value.replace(/\D/g, '').slice(0, 11)
   if (n.length === 0) return ''
