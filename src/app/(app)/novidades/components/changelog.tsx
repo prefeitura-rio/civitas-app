@@ -19,6 +19,59 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '08 de Junho de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Flexibilização da busca de ocorrências do Disque Denúncia',
+        content: (
+          <>
+            <p>
+              A busca de ocorrências do <code>Disque Denúncia</code> foi
+              ajustada para ficar mais flexível e facilitar a localização dos
+              registros.
+            </p>
+            <ul>
+              <li>A pesquisa agora desconsidera acentuação.</li>
+              <li>
+                A pesquisa também desconsidera diferenças entre letras
+                maiúsculas e minúsculas.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title:
+          'Relatório de Pontos de Detecção com viagens mais recentes primeiro',
+        content: (
+          <>
+            <p>
+              O relatório de busca por placa foi ajustado para exibir primeiro
+              as viagens mais recentes, facilitando a leitura dos registros mais
+              atuais.
+            </p>
+            <ul>
+              <li>
+                A numeração das viagens no PDF agora acompanha essa ordenação,
+                sendo apresentada em ordem decrescente.
+              </li>
+              <li>
+                O texto explicativo da capa foi atualizado para esclarecer a
+                nova lógica de ordenação e numeração.
+              </li>
+              <li>
+                A nomenclatura <code>Cerco Digital</code> foi substituída por{' '}
+                <code>Cerco Eletrônico</code> nos relatórios afetados.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '21 de Maio de 2026',
     subCards: [
       {
