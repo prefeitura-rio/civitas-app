@@ -54,9 +54,7 @@ import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardan
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
-  maskNumeroOficio,
   maskPhoneBR,
-  normalizeNumeroOficio,
   padDigitsLeft,
 } from '@/utils/string-formatters'
 
@@ -900,20 +898,10 @@ export function EmailToTicketView() {
                               disabled={vm.isLoading}
                               autoComplete="off"
                               value={field.value ?? ''}
-                              onBlur={() => {
-                                field.onBlur()
-                                const raw = (field.value ?? '').trim()
-                                if (raw === '') return
-                                const normalized = normalizeNumeroOficio(raw)
-                                if (normalized !== field.value) {
-                                  field.onChange(normalized || null)
-                                }
-                              }}
+                              onBlur={field.onBlur}
                               ref={field.ref}
                               onChange={(e) =>
-                                field.onChange(
-                                  maskNumeroOficio(e.target.value) || null,
-                                )
+                                field.onChange(e.target.value || null)
                               }
                             />
                           )}

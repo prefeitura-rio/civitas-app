@@ -40,9 +40,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
-  maskNumeroOficio,
   maskPhoneBR,
-  normalizeNumeroOficio,
   padDigitsLeft,
 } from '@/utils/string-formatters'
 
@@ -367,19 +365,9 @@ export function TicketCreateForm() {
                     disabled={fieldDisabled}
                     autoComplete="off"
                     value={field.value ?? ''}
-                    onBlur={() => {
-                      field.onBlur()
-                      const raw = (field.value ?? '').trim()
-                      if (raw === '') return
-                      const normalized = normalizeNumeroOficio(raw)
-                      if (normalized !== field.value) {
-                        field.onChange(normalized || null)
-                      }
-                    }}
+                    onBlur={field.onBlur}
                     ref={field.ref}
-                    onChange={(e) =>
-                      field.onChange(maskNumeroOficio(e.target.value) || null)
-                    }
+                    onChange={(e) => field.onChange(e.target.value || null)}
                   />
                 )}
               />
