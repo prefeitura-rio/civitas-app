@@ -232,6 +232,7 @@ export function DemandVolumeView() {
         granularity={totalCallVolumeGranularity}
         onGranularityChange={setTotalCallVolumeGranularity}
         isLoading={isFetching}
+        isAvailable={data?.total_call_volume != null}
       />
 
       <DemandVolumeUrgencyChart
@@ -239,6 +240,7 @@ export function DemandVolumeView() {
         granularity={urgencyGranularity}
         onGranularityChange={setUrgencyGranularity}
         isLoading={isFetching}
+        isAvailable={data?.closed_calls_by_urgency != null}
       />
 
       <DemandVolumeMatrixTable
@@ -246,6 +248,7 @@ export function DemandVolumeView() {
         rows={closedCallsByNature}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
+        isAvailable={data?.closed_calls_by_nature != null}
         columnHeader="NATUREZA"
       />
 
@@ -254,6 +257,7 @@ export function DemandVolumeView() {
         rows={closedCallsByService}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
+        isAvailable={data?.closed_calls_by_service != null}
         columnHeader="SERVIÇO"
       />
 
@@ -262,6 +266,7 @@ export function DemandVolumeView() {
         granularity={mediaGranularity}
         onGranularityChange={setMediaGranularity}
         isLoading={isFetching}
+        isAvailable={data?.media_relevant_calls != null}
       />
 
       <DemandVolumeMatrixTable
@@ -269,6 +274,7 @@ export function DemandVolumeView() {
         rows={closedCallsByRequester}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
+        isAvailable={data?.closed_calls_by_requester != null}
         columnHeader="DEMANDANTE"
         pagination={
           data?.closed_calls_by_requester &&

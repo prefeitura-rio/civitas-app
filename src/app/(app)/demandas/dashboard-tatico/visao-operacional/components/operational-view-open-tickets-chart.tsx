@@ -14,6 +14,7 @@ import {
 
 import type { OpenTicketsByTeamItemOut } from '@/http/tickets/get-operational-view'
 
+import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
 import {
   getOpenTicketsStatusSeries,
   type OpenTicketsTeamBarPoint,
@@ -50,7 +51,7 @@ export function OperationalViewOpenTicketsChart({
     [openTicketsByTeam],
   )
 
-  if (!isLoading && chartData.length === 0) {
+  if (!isLoading && openTicketsByTeam == null) {
     return null
   }
 
@@ -68,8 +69,8 @@ export function OperationalViewOpenTicketsChart({
         Chamados em aberto por equipe
       </h2>
 
-      {isLoading && chartData.length === 0 ? (
-        <ChartMessage message="Carregando…" />
+      {chartData.length === 0 ? (
+        <DashboardTaticoDataState isLoading={isLoading} isEmpty />
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <BarChart
@@ -145,23 +146,6 @@ export function OperationalViewOpenTicketsChart({
           </BarChart>
         </ResponsiveContainer>
       )}
-    </div>
-  )
-}
-
-function ChartMessage({ message }: { message: string }) {
-  return (
-    <div
-      style={{
-        height: '280px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#97a2ab',
-        fontSize: '14px',
-      }}
-    >
-      {message}
     </div>
   )
 }
