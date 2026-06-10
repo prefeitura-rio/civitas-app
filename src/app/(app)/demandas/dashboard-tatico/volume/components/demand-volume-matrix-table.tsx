@@ -6,6 +6,7 @@ import type {
   MatrixRowOut,
 } from '@/http/tickets/get-demand-volume'
 
+import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
 import { formatPeriodLabel } from './demand-volume-period-label'
 
 interface DemandVolumeMatrixTablePagination {
@@ -21,6 +22,7 @@ interface DemandVolumeMatrixTableProps {
   rows: MatrixRowOut[]
   periodLabels: string[]
   isLoading: boolean
+  isAvailable: boolean
   pagination?: DemandVolumeMatrixTablePagination
 }
 
@@ -109,13 +111,14 @@ export function DemandVolumeMatrixTable({
   rows,
   periodLabels,
   isLoading,
+  isAvailable,
   pagination,
 }: DemandVolumeMatrixTableProps) {
   const formattedHeaders = periodLabels.map((pl) =>
     formatPeriodLabel(pl, MATRIX_GRANULARITY),
   )
 
-  if (!isLoading && rows.length === 0) {
+  if (!isLoading && !isAvailable) {
     return null
   }
 
@@ -139,19 +142,8 @@ export function DemandVolumeMatrixTable({
         {title}
       </h2>
 
-      {isLoading && rows.length === 0 ? (
-        <div
-          style={{
-            height: '120px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#97a2ab',
-            fontSize: '14px',
-          }}
-        >
-          Carregando…
-        </div>
+      {rows.length === 0 ? (
+        <DashboardTaticoDataState isLoading={isLoading} isEmpty height={120} />
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>

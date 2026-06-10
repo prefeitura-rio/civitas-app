@@ -209,6 +209,7 @@ export function SlaMetricsView() {
         granularity={generalGranularity}
         onGranularityChange={setGeneralGranularity}
         isLoading={isFetching}
+        isAvailable={data?.avg_resolution_time_general != null}
       />
 
       <SlaMetricsPriorityChart
@@ -216,6 +217,7 @@ export function SlaMetricsView() {
         granularity={priorityGranularity}
         onGranularityChange={setPriorityGranularity}
         isLoading={isFetching}
+        isAvailable={data?.avg_resolution_time_by_priority != null}
       />
 
       <SlaMetricsSlaTable
@@ -224,6 +226,7 @@ export function SlaMetricsView() {
         rows={slaPerformanceByPriorityRows}
         periodLabels={slaTablePeriodLabels}
         isLoading={isFetching}
+        isAvailable={data?.sla_performance_by_priority != null}
       />
 
       <SlaMetricsSlaTable
@@ -232,6 +235,7 @@ export function SlaMetricsView() {
         rows={slaPerformanceByServiceRows}
         periodLabels={slaTablePeriodLabels}
         isLoading={isFetching}
+        isAvailable={data?.sla_performance_by_service != null}
         formatRowLabel={(label) => label}
       />
 
@@ -240,6 +244,7 @@ export function SlaMetricsView() {
         granularity={mediaGranularity}
         onGranularityChange={setMediaGranularity}
         isLoading={isFetching}
+        isAvailable={data?.delivery_time_for_media_relevant != null}
       />
     </div>
   )

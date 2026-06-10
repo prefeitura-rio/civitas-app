@@ -16,6 +16,7 @@ import type {
   PeriodUrgencyItemOut,
 } from '@/http/tickets/get-demand-volume'
 
+import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
 import { DemandVolumeChartGranularity } from './demand-volume-chart-granularity'
 import { formatPeriodLabel } from './demand-volume-period-label'
 import styles from './demand-volume-top.module.css'
@@ -25,6 +26,7 @@ interface DemandVolumeUrgencyChartProps {
   granularity: DemandVolumeGranularity
   onGranularityChange: (granularity: DemandVolumeGranularity) => void
   isLoading: boolean
+  isAvailable: boolean
 }
 
 const SERIES = [
@@ -45,13 +47,14 @@ export function DemandVolumeUrgencyChart({
   granularity,
   onGranularityChange,
   isLoading,
+  isAvailable,
 }: DemandVolumeUrgencyChartProps) {
   const chartData = data.map((item) => ({
     ...item,
     label: formatPeriodLabel(item.period_label, granularity),
   }))
 
-  if (!isLoading && chartData.length === 0) {
+  if (!isLoading && !isAvailable) {
     return null
   }
 
@@ -82,19 +85,8 @@ export function DemandVolumeUrgencyChart({
         />
       </div>
 
-      {isLoading && chartData.length === 0 ? (
-        <div
-          style={{
-            height: '280px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#97a2ab',
-            fontSize: '14px',
-          }}
-        >
-          Carregando…
-        </div>
+      {chartData.length === 0 ? (
+        <DashboardTaticoDataState isLoading={isLoading} isEmpty />
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
