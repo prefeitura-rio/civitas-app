@@ -234,6 +234,11 @@
   color: #5b4db2;
 }
 
+.perfisBadgeAuxiliarDeAdjunto {
+  background: rgba(123, 108, 201, 0.1);
+  color: #7b6cc9;
+}
+
 .perfisBadgeAssessor {
   background: rgba(220, 140, 24, 0.1);
   color: #dc8c18;
