@@ -11,7 +11,7 @@ import {
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import type { Team, TeamIsland, TeamMember } from '@/http/teams/get-teams'
+import type { Team, TeamMember } from '@/http/teams/get-teams'
 import { getTeams } from '@/http/teams/get-teams'
 import type { UserRoleEnum } from '@/http/user-roles/get-users-with-roles'
 
@@ -21,6 +21,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
   Administrativo: 'Administrativo',
   Adjunto: 'Adjunto',
+  'Auxiliar de Adjunto': 'Auxiliar de Adjunto',
   Assessor: 'Assessor',
   'Líder de Ilha': 'Líder de Ilha',
   Operador: 'Operador',
@@ -32,27 +33,6 @@ function formatRole(role: UserRoleEnum) {
 
 function resolveIsland(member: TeamMember) {
   return member.island_name || '-'
-}
-
-function resolveVisibleIslands(
-  member: TeamMember,
-  teamIslands: TeamIsland[] = [],
-) {
-  if (member.islands?.length) {
-    return member.islands.map((island) => island.name).join(', ')
-  }
-
-  if (member.islands_ids?.length) {
-    const names = member.islands_ids
-      .map((id) => teamIslands.find((island) => island.id === id)?.name)
-      .filter((name): name is string => Boolean(name))
-
-    if (names.length) {
-      return names.join(', ')
-    }
-  }
-
-  return '-'
 }
 
 interface TeamsListProps {
@@ -144,9 +124,6 @@ export function TeamsList({ controller }: TeamsListProps) {
                     <div className="equipes-table-cell equipes-table-cell-ilha">
                       Ilha
                     </div>
-                    <div className="equipes-table-cell equipes-table-cell-ilhas-visiveis">
-                      Ilhas visíveis
-                    </div>
                     <div className="equipes-table-cell equipes-table-cell-funcao">
                       Função
                     </div>
@@ -157,11 +134,6 @@ export function TeamsList({ controller }: TeamsListProps) {
                   </div>
 
                   {team.members.map((member) => {
-                    const visibleIslands = resolveVisibleIslands(
-                      member,
-                      team.islands ?? [],
-                    )
-
                     return (
                       <div
                         key={member.id}
@@ -170,16 +142,6 @@ export function TeamsList({ controller }: TeamsListProps) {
                         <div className="flex min-w-0 flex-1 items-center">
                           <div className="equipes-table-cell equipes-table-cell-ilha">
                             {resolveIsland(member)}
-                          </div>
-                          <div
-                            className="equipes-table-cell equipes-table-cell-ilhas-visiveis"
-                            title={
-                              visibleIslands !== '-'
-                                ? visibleIslands
-                                : undefined
-                            }
-                          >
-                            {visibleIslands}
                           </div>
                           <div className="equipes-table-cell equipes-table-cell-funcao">
                             {formatRole(member.role)}
@@ -202,10 +164,6 @@ export function TeamsList({ controller }: TeamsListProps) {
                                 user_name: member.user_name,
                                 island_id: member.island_id,
                                 island_name: member.island_name,
-                                islands_ids:
-                                  member.islands_ids ??
-                                  member.islands?.map((island) => island.id) ??
-                                  [],
                                 role: member.role,
                                 is_active: member.is_active,
                               })

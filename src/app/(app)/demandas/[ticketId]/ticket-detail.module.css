@@ -760,6 +760,48 @@
   color: #f9fafa !important;
 }
 
+.operationSearchPopover {
+  background: #101d28;
+  border: 1px solid #4a5d6d;
+  border-radius: 8px;
+  color: #f9fafa;
+}
+
+.operationSearchCommand {
+  background: transparent;
+  color: #f9fafa;
+}
+
+.operationSearchCommand [cmdk-input-wrapper] {
+  border-bottom-color: #4a5d6d;
+}
+
+.operationSearchCommand input {
+  color: #f9fafa;
+}
+
+.operationSearchCommand input::placeholder {
+  color: #97a2ab;
+}
+
+.operationSearchCommand [cmdk-input-wrapper] svg {
+  color: #97a2ab;
+}
+
+.operationSearchCommand [data-selected='true'] {
+  background: #18344d;
+  color: #f9fafa;
+}
+
+.operationSearchCommand .text-muted-foreground,
+.operationSearchPopover .text-muted-foreground {
+  color: #97a2ab;
+}
+
+.operationSearchPopover .border-t {
+  border-color: #4a5d6d;
+}
+
 .focalRowActions {
   display: flex;
   flex-wrap: wrap;

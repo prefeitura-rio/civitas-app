@@ -11,7 +11,6 @@ import { z } from 'zod'
 import { InputError } from '@/components/custom/input-error'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -40,6 +39,7 @@ import type { TeamsController } from '../hooks/use-teams-controller'
 /** Funções disponíveis no fluxo de colaborador da equipe (select). */
 const roleEnumValues = [
   'Adjunto',
+  'Auxiliar de Adjunto',
   'Operador',
   'Líder de Ilha',
 ] as const satisfies readonly UserRoleEnum[]
@@ -50,7 +50,6 @@ const memberFormSchema = z
     team_id: z.string().min(1, 'Equipe obrigatória'),
     role: z.string().min(1, 'Função obrigatória').pipe(z.enum(roleEnumValues)),
     island_id: z.string().nullable().optional(),
-    islands_ids: z.array(z.string()).optional(),
     is_active: z.boolean(),
   })
   .superRefine((data, ctx) => {
@@ -69,29 +68,9 @@ const memberFormSchema = z
         message: 'Ilha obrigatória para Líder de Ilha',
       })
     }
-
-    if (
-      data.role === 'Líder de Ilha' &&
-      (!data.islands_ids || data.islands_ids.length === 0)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['islands_ids'],
-        message: 'Selecione ao menos uma ilha visível',
-      })
-    }
   })
 
 type MemberForm = z.infer<typeof memberFormSchema>
-
-function withAssignedIslandVisible(
-  islandId: string | null | undefined,
-  islandsIds: string[] = [],
-) {
-  if (!islandId) return islandsIds
-  if (islandsIds.includes(islandId)) return islandsIds
-  return [...islandsIds, islandId]
-}
 
 function userDisplayName(
   user: Pick<UserRoleListItem, 'full_name' | 'username'>,
@@ -103,6 +82,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
   Administrativo: 'Administrativo',
   Adjunto: 'Adjunto',
+  'Auxiliar de Adjunto': 'Auxiliar de Adjunto',
   Assessor: 'Assessor',
   'Líder de Ilha': 'Líder de Ilha',
   Operador: 'Operador',
@@ -128,7 +108,6 @@ export function TeamMemberFormDialog({
     watch,
     reset,
     setValue,
-    getValues,
     control,
     formState: { errors, isSubmitting },
   } = useForm<MemberForm>({
@@ -138,13 +117,11 @@ export function TeamMemberFormDialog({
       team_id: '',
       role: '' as unknown as MemberForm['role'],
       island_id: null,
-      islands_ids: [],
       is_active: true,
     },
   })
 
   const selectedRole = watch('role')
-  const watchedIslandId = watch('island_id')
   const watchedTeamId = watch('team_id')
   const teamIdForIslands =
     watchedTeamId || memberDialogInitialData?.team_id || ''
@@ -172,7 +149,6 @@ export function TeamMemberFormDialog({
 
   const shouldShowIslandSelect =
     selectedRole === 'Operador' || selectedRole === 'Líder de Ilha'
-  const shouldShowIslandsMultiSelect = selectedRole === 'Líder de Ilha'
 
   const { mutateAsync: createTeamMemberMutation, isPending: isPendingCreate } =
     useMutation({
@@ -214,22 +190,13 @@ export function TeamMemberFormDialog({
   }
 
   async function onSubmit(data: MemberForm) {
-    const isLiderDeIlha = data.role === 'Líder de Ilha'
-    const needsIslandId = data.role === 'Operador' || isLiderDeIlha
-    const islandsPayload = isLiderDeIlha
-      ? {
-          islands_ids: withAssignedIslandVisible(
-            data.island_id,
-            data.islands_ids ?? [],
-          ),
-        }
-      : {}
+    const needsIslandId =
+      data.role === 'Operador' || data.role === 'Líder de Ilha'
 
     if (memberDialogInitialData?.id) {
       await updateTeamMemberMutation({
         memberId: memberDialogInitialData.id,
         island_id: needsIslandId ? (data.island_id ?? null) : null,
-        ...islandsPayload,
         role: data.role,
         is_active: data.is_active,
       })
@@ -238,7 +205,6 @@ export function TeamMemberFormDialog({
         user_id: data.user_id,
         team_id: data.team_id,
         island_id: needsIslandId ? (data.island_id ?? null) : null,
-        ...islandsPayload,
         role: data.role,
         is_active: data.is_active,
       })
@@ -265,15 +231,8 @@ export function TeamMemberFormDialog({
         (roleEnumValues as readonly string[]).includes(initialRole)
           ? (initialRole as MemberForm['role'])
           : ('' as unknown as MemberForm['role'])
-      const isOperador = roleInForm === 'Operador'
-      const isLiderDeIlha = roleInForm === 'Líder de Ilha'
-      const needsIslandId = isOperador || isLiderDeIlha
-      const initialIslandsIds = isLiderDeIlha
-        ? withAssignedIslandVisible(
-            memberDialogInitialData.island_id,
-            memberDialogInitialData.islands_ids ?? [],
-          )
-        : []
+      const needsIslandId =
+        roleInForm === 'Operador' || roleInForm === 'Líder de Ilha'
 
       reset({
         user_id: memberDialogInitialData.user_id || '',
@@ -282,7 +241,6 @@ export function TeamMemberFormDialog({
         island_id: needsIslandId
           ? (memberDialogInitialData.island_id ?? null)
           : null,
-        islands_ids: isLiderDeIlha ? initialIslandsIds : [],
         is_active: memberDialogInitialData.is_active ?? true,
       })
       return
@@ -294,7 +252,6 @@ export function TeamMemberFormDialog({
         team_id: memberDialogInitialData.team_id,
         role: '' as unknown as MemberForm['role'],
         island_id: null,
-        islands_ids: [],
         is_active: true,
       })
     }
@@ -305,7 +262,6 @@ export function TeamMemberFormDialog({
 
     setValue('user_id', '', { shouldDirty: true, shouldValidate: false })
     setValue('island_id', null, { shouldDirty: true, shouldValidate: false })
-    setValue('islands_ids', [], { shouldDirty: true, shouldValidate: false })
   }, [selectedRole, memberDialogInitialData?.id, setValue])
 
   useEffect(() => {
@@ -314,23 +270,7 @@ export function TeamMemberFormDialog({
     if (selectedRole !== 'Operador' && selectedRole !== 'Líder de Ilha') {
       setValue('island_id', null, { shouldDirty: true, shouldValidate: true })
     }
-
-    if (selectedRole !== 'Líder de Ilha') {
-      setValue('islands_ids', [], { shouldDirty: true, shouldValidate: true })
-    }
   }, [selectedRole, setValue])
-
-  useEffect(() => {
-    if (selectedRole !== 'Líder de Ilha' || !watchedIslandId) return
-
-    const current = getValues('islands_ids') ?? []
-    if (current.includes(watchedIslandId)) return
-
-    setValue('islands_ids', [...current, watchedIslandId], {
-      shouldDirty: true,
-      shouldValidate: true,
-    })
-  }, [selectedRole, watchedIslandId, getValues, setValue])
 
   const isLoading = isSubmitting || isPendingCreate || isPendingUpdate
 
@@ -627,20 +567,6 @@ export function TeamMemberFormDialog({
                                 className="equipes-select-option w-full"
                                 onClick={() => {
                                   field.onChange(island.id)
-                                  if (selectedRole === 'Líder de Ilha') {
-                                    const current =
-                                      getValues('islands_ids') ?? []
-                                    if (!current.includes(island.id)) {
-                                      setValue(
-                                        'islands_ids',
-                                        [...current, island.id],
-                                        {
-                                          shouldDirty: true,
-                                          shouldValidate: true,
-                                        },
-                                      )
-                                    }
-                                  }
                                   setIslandSelectOpen(false)
                                 }}
                               >
@@ -650,66 +576,6 @@ export function TeamMemberFormDialog({
                           )}
                         </PopoverContent>
                       </Popover>
-                    )}
-                  />
-                </div>
-              )}
-
-              {shouldShowIslandsMultiSelect && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex gap-2">
-                    <Label className="equipes-modal-label">
-                      Ilhas visíveis
-                    </Label>
-                    <InputError message={errors.islands_ids?.message} />
-                  </div>
-
-                  <Controller
-                    control={control}
-                    name="islands_ids"
-                    render={({ field }) => (
-                      <div className="equipes-islands-checkbox-list">
-                        {islands.length === 0 ? (
-                          <p className="text-sm text-[var(--equipes-text-subtle)]">
-                            Nenhuma ilha disponível nesta equipe.
-                          </p>
-                        ) : (
-                          islands.map((island) => {
-                            const isChecked = field.value?.includes(island.id)
-                            const isAssignedIsland =
-                              island.id === watchedIslandId
-
-                            return (
-                              <label
-                                key={island.id}
-                                htmlFor={`island-${island.id}`}
-                                className="equipes-islands-checkbox-item"
-                              >
-                                <Checkbox
-                                  id={`island-${island.id}`}
-                                  checked={isChecked}
-                                  disabled={isLoading || isAssignedIsland}
-                                  onCheckedChange={(checked) => {
-                                    if (isAssignedIsland) return
-
-                                    const current = field.value ?? []
-
-                                    if (checked) {
-                                      field.onChange([...current, island.id])
-                                      return
-                                    }
-
-                                    field.onChange(
-                                      current.filter((id) => id !== island.id),
-                                    )
-                                  }}
-                                />
-                                <span>{island.name}</span>
-                              </label>
-                            )
-                          })
-                        )}
-                      </div>
                     )}
                   />
                 </div>
