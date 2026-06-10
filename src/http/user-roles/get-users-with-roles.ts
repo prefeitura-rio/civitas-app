@@ -4,6 +4,7 @@ export type UserRoleEnum =
   | 'Coordenador'
   | 'Administrativo'
   | 'Adjunto'
+  | 'Auxiliar de Adjunto'
   | 'Assessor'
   | 'Líder de Ilha'
   | 'Operador'

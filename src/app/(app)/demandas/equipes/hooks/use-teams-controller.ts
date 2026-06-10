@@ -25,7 +25,6 @@ export interface TeamMemberDialogInitialData {
   user_name?: string | null
   island_id?: string | null
   island_name?: string | null
-  islands_ids?: string[]
   role?: string
   is_active?: boolean
 }

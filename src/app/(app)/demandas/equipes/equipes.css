@@ -127,16 +127,6 @@
   min-width: 120px;
 }
 
-.equipes-table-cell-ilhas-visiveis {
-  width: 180px;
-  min-width: 160px;
-  flex: 1;
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .equipes-table-cell-funcao {
   width: 140px;
   min-width: 140px;
@@ -409,34 +399,6 @@ textarea.equipes-modal-input-wrap {
 
 .equipes-modal-btn-salvar:hover {
   background-color: var(--equipes-btn-primary-hover);
-}
-
-.equipes-islands-checkbox-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 8px;
-  border: 1px solid rgba(77, 109, 137, 0.55);
-  border-radius: 8px;
-  background: #0d1c28;
-}
-
-.equipes-islands-checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 40px;
-  padding: 0 6px;
-  border-radius: 6px;
-  color: #e4eef9;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.equipes-islands-checkbox-item:hover {
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .equipes-alert-content {
