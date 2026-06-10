@@ -49,6 +49,7 @@ const ROLE_OPTIONS: WorkflowRoleEnum[] = [
   'Coordenador',
   'Administrativo',
   'Adjunto',
+  'Auxiliar de Adjunto',
   'Líder de Ilha',
   'Operador',
   'Assessor',

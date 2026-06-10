@@ -1,7 +1,12 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type { AxiosResponse } from 'axios'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
@@ -10,7 +15,7 @@ import { toast } from 'sonner'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
-import { getOperations } from '@/http/operations/get-operations'
+import { searchOperationsPaginated } from '@/http/operations/search-operations'
 import { getTeamsList } from '@/http/teams/get-teams'
 import {
   getTicketTypes,
@@ -35,6 +40,7 @@ import {
   ticketCreateSchema,
 } from '../ticket-create/ticket-create-schema'
 
+const OPERATION_SEARCH_PAGE_SIZE = 20
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 const ALLOWED_ATTACHMENT_EXT = new Set(['.pdf', '.doc', '.docx'])
 
@@ -81,6 +87,11 @@ export function useTicketCreateController() {
   const debouncedTicketSearch = useDebounce(ticketSearch, 350)
   const [ticketPopoverOpen, setTicketPopoverOpen] = useState(false)
   const [selectedTicketLabel, setSelectedTicketLabel] = useState('')
+
+  const [operationSearch, setOperationSearch] = useState('')
+  const debouncedOperationSearch = useDebounce(operationSearch, 350)
+  const [operationPopoverOpen, setOperationPopoverOpen] = useState(false)
+  const [selectedOperationLabel, setSelectedOperationLabel] = useState('')
 
   const defaultValues = useMemo<TicketCreateForm>(
     () => ({
@@ -154,9 +165,19 @@ export function useTicketCreateController() {
   const otherServices = useFieldArray({ control, name: 'other' })
   const atlasCivitas = useFieldArray({ control, name: 'atlas_civitas' })
 
-  const operationsQuery = useQuery({
-    queryKey: ['operations', 'select'],
-    queryFn: () => getOperations({ page: 1, size: 100 }),
+  const operationsSearchQuery = useInfiniteQuery({
+    queryKey: ['operations', 'search', debouncedOperationSearch],
+    queryFn: ({ pageParam }) =>
+      searchOperationsPaginated({
+        search: debouncedOperationSearch.trim(),
+        page: pageParam,
+        size: OPERATION_SEARCH_PAGE_SIZE,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.pages ? lastPage.page + 1 : undefined,
+    enabled: operationPopoverOpen,
+    staleTime: 1000 * 60 * 5,
   })
 
   const ticketTypesQuery = useQuery({
@@ -206,6 +227,9 @@ export function useTicketCreateController() {
         ticket_type_id: conventional.id,
       })
       reset(values)
+      setSelectedOperationLabel(ticket.requester_operation ?? '')
+      setOperationSearch('')
+      setOperationPopoverOpen(false)
       setFiles([])
       closeServiceModal()
     },
@@ -289,7 +313,16 @@ export function useTicketCreateController() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })
 
-  const operations = operationsQuery.data?.data?.items ?? []
+  const operationOptions = useMemo(
+    () =>
+      (operationsSearchQuery.data?.pages ?? []).flatMap((page) =>
+        page.items.map((item) => ({
+          label: item.title,
+          value: item.id,
+        })),
+      ),
+    [operationsSearchQuery.data],
+  )
   const ticketTypes = ticketTypesQuery.data?.data ?? []
   const ticketNatures = ticketNaturesQuery.data?.data ?? []
   const tickets = ticketsQuery.data?.data ?? []
@@ -319,7 +352,11 @@ export function useTicketCreateController() {
     })
   }, [tipoChamadoId, ticketTypes, teams, getValues, setValue])
 
-  const isOperationsLoading = operationsQuery.isLoading
+  const isOperationsSearching =
+    operationsSearchQuery.isFetching &&
+    !operationsSearchQuery.isFetchingNextPage
+  const isOperationsLoadingMore = operationsSearchQuery.isFetchingNextPage
+  const hasMoreOperations = operationsSearchQuery.hasNextPage ?? false
   const isTicketTypesLoading = ticketTypesQuery.isLoading
   const isTicketNaturesLoading = ticketNaturesQuery.isLoading
   const isTicketsLoading = ticketsQuery.isLoading
@@ -458,6 +495,9 @@ export function useTicketCreateController() {
     setSelectedTicketLabel('')
     setTicketSearch('')
     setTicketPopoverOpen(false)
+    setSelectedOperationLabel('')
+    setOperationSearch('')
+    setOperationPopoverOpen(false)
     closeServiceModal()
   }
 
@@ -475,14 +515,17 @@ export function useTicketCreateController() {
     possuiApelido,
     possuiEnderecoCorrespondencia,
     isLoading,
-    isOperationsLoading,
+    isOperationsSearching,
+    isOperationsLoadingMore,
+    hasMoreOperations,
+    fetchMoreOperations: operationsSearchQuery.fetchNextPage,
     isTicketTypesLoading,
     isTicketNaturesLoading,
     isTicketsLoading,
     isApplyingAssociatedTicket: applyAssociatedTicketMutation.isPending,
     isConvertingToConventional: convertToConventionalMutation.isPending,
     isTeamsLoading,
-    operations,
+    operationOptions,
     ticketTypes,
     ticketNatures,
     tickets,
@@ -494,6 +537,9 @@ export function useTicketCreateController() {
     ticketSearch,
     ticketPopoverOpen,
     selectedTicketLabel,
+    operationSearch,
+    operationPopoverOpen,
+    selectedOperationLabel,
 
     focalPoints,
     buscaPorPlaca,
@@ -512,6 +558,9 @@ export function useTicketCreateController() {
     setTicketSearch,
     setTicketPopoverOpen,
     setSelectedTicketLabel,
+    setOperationSearch,
+    setOperationPopoverOpen,
+    setSelectedOperationLabel,
 
     applyAssociatedTicketFromSearch,
 

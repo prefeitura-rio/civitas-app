@@ -1,6 +1,11 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
 import {
   forwardRef,
@@ -13,14 +18,22 @@ import {
 } from 'react'
 import { toast } from 'sonner'
 
+import { useDebounce } from '@/components/custom/multiselect-with-search'
+import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { getOperations } from '@/http/operations/get-operations'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { searchOperationsPaginated } from '@/http/operations/search-operations'
 import {
   getTicketSolicitante,
   type TicketSolicitanteOut,
@@ -37,6 +50,8 @@ import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 type Props = {
   ticketId: string
 }
+
+const OPERATION_SEARCH_PAGE_SIZE = 20
 
 function displayText(value?: string | null) {
   if (value == null) return '—'
@@ -126,6 +141,10 @@ export const TicketDetailTabSolicitante = forwardRef<
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState<TicketSolicitanteUpsertIn | null>(null)
+  const [operationSearch, setOperationSearch] = useState('')
+  const debouncedOperationSearch = useDebounce(operationSearch, 350)
+  const [operationPopoverOpen, setOperationPopoverOpen] = useState(false)
+  const [selectedOperationLabel, setSelectedOperationLabel] = useState('')
   const isEditingRef = useRef(isEditing)
   const draftRef = useRef(draft)
   const solicitanteRef = useRef<TicketSolicitanteOut | undefined>(undefined)
@@ -138,10 +157,24 @@ export const TicketDetailTabSolicitante = forwardRef<
     queryFn: () => getTicketSolicitante(ticketId),
   })
 
-  const operationsQuery = useQuery({
-    queryKey: ['operations', 'select', 'solicitante-tab'],
-    queryFn: () => getOperations({ page: 1, size: 100 }),
-    enabled: isEditing,
+  const operationsSearchQuery = useInfiniteQuery({
+    queryKey: [
+      'operations',
+      'search',
+      'solicitante-tab',
+      debouncedOperationSearch,
+    ],
+    queryFn: ({ pageParam }) =>
+      searchOperationsPaginated({
+        search: debouncedOperationSearch.trim(),
+        page: pageParam,
+        size: OPERATION_SEARCH_PAGE_SIZE,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.pages ? lastPage.page + 1 : undefined,
+    enabled: isEditing && operationPopoverOpen,
+    staleTime: 1000 * 60 * 5,
   })
 
   const solicitante = solicitanteQuery.data
@@ -153,20 +186,37 @@ export const TicketDetailTabSolicitante = forwardRef<
   }, [solicitante, isEditing])
 
   const operationOptions = useMemo(() => {
-    const items = operationsQuery.data?.data?.items ?? []
+    const items = (operationsSearchQuery.data?.pages ?? []).flatMap((page) =>
+      page.items.map((item) => ({
+        label: item.title,
+        value: item.id,
+      })),
+    )
     const list = [...items]
-    if (solicitante?.operation_id) {
-      const exists = list.some((o) => o.id === solicitante.operation_id)
-      if (!exists && solicitante.requester_operation) {
-        list.unshift({
-          id: solicitante.operation_id,
-          title: solicitante.requester_operation,
-          description: '',
-        })
-      }
+    const currentId = draft?.operation_id ?? solicitante?.operation_id
+    const currentLabel =
+      selectedOperationLabel || solicitante?.requester_operation || ''
+    if (
+      currentId &&
+      currentLabel &&
+      !list.some((item) => item.value === currentId)
+    ) {
+      list.unshift({ value: currentId, label: currentLabel })
     }
     return list
-  }, [operationsQuery.data, solicitante])
+  }, [
+    operationsSearchQuery.data,
+    draft?.operation_id,
+    solicitante?.operation_id,
+    solicitante?.requester_operation,
+    selectedOperationLabel,
+  ])
+
+  const isOperationsSearching =
+    operationsSearchQuery.isFetching &&
+    !operationsSearchQuery.isFetchingNextPage
+  const isOperationsLoadingMore = operationsSearchQuery.isFetchingNextPage
+  const hasMoreOperations = operationsSearchQuery.hasNextPage ?? false
 
   const updateMutation = useMutation({
     mutationFn: (payload: TicketSolicitanteUpsertIn) =>
@@ -191,11 +241,17 @@ export const TicketDetailTabSolicitante = forwardRef<
   const beginEdit = useCallback(() => {
     if (!solicitante) return
     setDraft(mapOutToDraft(solicitante))
+    setSelectedOperationLabel(solicitante.requester_operation ?? '')
+    setOperationSearch('')
+    setOperationPopoverOpen(false)
     setIsEditing(true)
   }, [solicitante])
 
   const cancelEdit = useCallback(() => {
     if (solicitante) setDraft(mapOutToDraft(solicitante))
+    setOperationSearch('')
+    setOperationPopoverOpen(false)
+    setSelectedOperationLabel('')
     setIsEditing(false)
   }, [solicitante])
 
@@ -312,38 +368,122 @@ export const TicketDetailTabSolicitante = forwardRef<
         <div className={styles.fieldBlock}>
           <span className={styles.fieldLabelUpper}>Demandante</span>
           {isEditing ? (
-            <Select
-              value={d.operation_id.trim() ? d.operation_id : undefined}
-              onValueChange={(v) =>
-                setDraft((prev) => (prev ? { ...prev, operation_id: v } : prev))
-              }
-              disabled={operationsQuery.isLoading}
+            <Popover
+              open={operationPopoverOpen}
+              onOpenChange={setOperationPopoverOpen}
             >
-              <SelectTrigger
-                className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={updateMutation.isPending}
+                  className={`h-11 w-full justify-between font-normal ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
+                >
+                  <span className="truncate">
+                    {selectedOperationLabel || 'Selecione ou busque'}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className={`w-[var(--radix-popover-trigger-width)] p-0 ${styles.operationSearchPopover}`}
               >
-                <SelectValue
-                  placeholder={
-                    operationsQuery.isLoading ? 'Carregando…' : 'Selecione'
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className={styles.detailSelectContent}>
-                {operationsQuery.isLoading ? null : (
-                  <>
-                    {operationOptions.map((op) => (
-                      <SelectItem
-                        key={op.id}
-                        value={op.id}
-                        className={styles.detailSelectItem}
-                      >
-                        {op.title}
-                      </SelectItem>
-                    ))}
-                  </>
-                )}
-              </SelectContent>
-            </Select>
+                <Command
+                  shouldFilter={false}
+                  className={styles.operationSearchCommand}
+                >
+                  <CommandInput
+                    placeholder="Buscar demandante..."
+                    value={operationSearch}
+                    onValueChange={setOperationSearch}
+                  />
+
+                  <CommandList>
+                    {isOperationsSearching && (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        Buscando demandantes...
+                      </div>
+                    )}
+
+                    {!isOperationsSearching &&
+                      operationOptions.length === 0 && (
+                        <CommandEmpty>
+                          Nenhum demandante encontrado.
+                        </CommandEmpty>
+                      )}
+
+                    <CommandGroup>
+                      {operationOptions.map((operation) => (
+                        <CommandItem
+                          key={operation.value}
+                          value={`${operation.value} ${operation.label}`}
+                          onSelect={() => {
+                            setDraft((prev) =>
+                              prev
+                                ? { ...prev, operation_id: operation.value }
+                                : prev,
+                            )
+                            setSelectedOperationLabel(operation.label)
+                            setOperationSearch('')
+                            setOperationPopoverOpen(false)
+                          }}
+                        >
+                          <div className="flex w-full items-center justify-between gap-2">
+                            <span className="truncate">{operation.label}</span>
+                            {d.operation_id === operation.value && (
+                              <span className="text-xs text-muted-foreground">
+                                Selecionado
+                              </span>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+
+                    {hasMoreOperations && (
+                      <div className="border-t p-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="w-full justify-center"
+                          disabled={isOperationsLoadingMore}
+                          onClick={() => {
+                            operationsSearchQuery
+                              .fetchNextPage()
+                              .catch(() => {})
+                          }}
+                        >
+                          {isOperationsLoadingMore
+                            ? 'Carregando...'
+                            : 'Carregar mais'}
+                        </Button>
+                      </div>
+                    )}
+
+                    {d.operation_id.trim() && (
+                      <div className="border-t p-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            setDraft((prev) =>
+                              prev ? { ...prev, operation_id: '' } : prev,
+                            )
+                            setSelectedOperationLabel('')
+                            setOperationSearch('')
+                            setOperationPopoverOpen(false)
+                          }}
+                        >
+                          Limpar seleção
+                        </Button>
+                      </div>
+                    )}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           ) : (
             <div className={styles.readonlySelect}>
               <span className={styles.solicitanteReadOnlyText}>

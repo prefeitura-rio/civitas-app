@@ -643,26 +643,116 @@ export function TicketCreateForm() {
                 control={vm.control}
                 name="operation_id"
                 render={({ field }) => (
-                  <Select
-                    value={field.value ?? ''}
-                    onValueChange={(v) => field.onChange(v || null)}
-                    disabled={fieldDisabled || vm.isOperationsLoading}
+                  <Popover
+                    open={vm.operationPopoverOpen}
+                    onOpenChange={vm.setOperationPopoverOpen}
                   >
-                    <SelectTrigger className={`h-11 ${styles.inputBg}`}>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className={styles.selectContentForm}>
-                      {vm.operations.map((op) => (
-                        <SelectItem
-                          key={op.id}
-                          value={op.id}
-                          className={styles.selectItemForm}
-                        >
-                          {op.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={fieldDisabled}
+                        className={`h-11 w-full justify-between ${styles.inputBg} font-normal`}
+                      >
+                        <span className="truncate">
+                          {vm.selectedOperationLabel || 'Selecione ou busque'}
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent
+                      className={`w-[var(--radix-popover-trigger-width)] p-0 ${styles.associarChamadoPopover}`}
+                    >
+                      <Command
+                        shouldFilter={false}
+                        className={styles.associarChamadoCommand}
+                      >
+                        <CommandInput
+                          placeholder="Buscar demandante..."
+                          value={vm.operationSearch}
+                          onValueChange={vm.setOperationSearch}
+                        />
+
+                        <CommandList>
+                          {vm.isOperationsSearching && (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                              Buscando demandantes...
+                            </div>
+                          )}
+
+                          {!vm.isOperationsSearching &&
+                            vm.operationOptions.length === 0 && (
+                              <CommandEmpty>
+                                Nenhum demandante encontrado.
+                              </CommandEmpty>
+                            )}
+
+                          <CommandGroup>
+                            {vm.operationOptions.map((operation) => (
+                              <CommandItem
+                                key={operation.value}
+                                value={`${operation.value} ${operation.label}`}
+                                onSelect={() => {
+                                  field.onChange(operation.value)
+                                  vm.setSelectedOperationLabel(operation.label)
+                                  vm.setOperationSearch('')
+                                  vm.setOperationPopoverOpen(false)
+                                }}
+                              >
+                                <div className="flex w-full items-center justify-between gap-2">
+                                  <span className="truncate">
+                                    {operation.label}
+                                  </span>
+                                  {field.value === operation.value && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Selecionado
+                                    </span>
+                                  )}
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+
+                          {vm.hasMoreOperations && (
+                            <div className="border-t p-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full justify-center"
+                                disabled={vm.isOperationsLoadingMore}
+                                onClick={() => {
+                                  vm.fetchMoreOperations().catch(() => {})
+                                }}
+                              >
+                                {vm.isOperationsLoadingMore
+                                  ? 'Carregando...'
+                                  : 'Carregar mais'}
+                              </Button>
+                            </div>
+                          )}
+
+                          {field.value && (
+                            <div className="border-t p-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full justify-start"
+                                onClick={() => {
+                                  field.onChange('')
+                                  vm.setSelectedOperationLabel('')
+                                  vm.setOperationSearch('')
+                                  vm.setOperationPopoverOpen(false)
+                                }}
+                              >
+                                Limpar seleção
+                              </Button>
+                            </div>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 )}
               />
               {vm.errors.operation_id?.message && (

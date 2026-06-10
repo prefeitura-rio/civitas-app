@@ -66,6 +66,7 @@ type TicketDashboardResponse = {
   awaiting_adjunct_review: DashboardSection | null
   awaiting_administrative_review: DashboardSection | null
   blocked: DashboardSection | null
+  open: number
   urgent: DashboardSection | null
   overdue: DashboardSection | null
   total: number
@@ -466,6 +467,9 @@ export function TicketsGeneralList() {
 
   const cards = useMemo(() => {
     const list: { value: number; label: string }[] = []
+    if (data?.open != null) {
+      list.push({ value: data.open, label: 'Em aberto' })
+    }
     if (data?.urgent != null) {
       list.push({ value: data.urgent.total, label: 'Urgentes' })
     }

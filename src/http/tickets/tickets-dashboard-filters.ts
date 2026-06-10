@@ -1,3 +1,4 @@
+import { searchOperationsPaginated } from '@/http/operations/search-operations'
 import { api } from '@/lib/api'
 
 export type SearchOption = {
@@ -24,12 +25,6 @@ type TicketTypePageResponse = {
 
 type TicketNaturePageResponse = {
   items: TicketNatureItem[]
-}
-
-type OperationSearchResponse = {
-  id: string
-
-  title: string
 }
 
 type OfficialLetterSearchResponse = {
@@ -121,15 +116,13 @@ export async function searchTicketNatures(
 export async function searchOperations(
   search: string,
 ): Promise<SearchOption[]> {
-  const response = await api.get<OperationSearchResponse[]>(
-    '/operations/search',
+  const data = await searchOperationsPaginated({
+    search,
+    page: 1,
+    size: 20,
+  })
 
-    {
-      params: { search },
-    },
-  )
-
-  return response.data.map((item) => ({
+  return data.items.map((item) => ({
     label: item.title,
 
     value: item.id,
