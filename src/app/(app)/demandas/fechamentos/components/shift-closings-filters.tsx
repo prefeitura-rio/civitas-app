@@ -42,10 +42,6 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
-function getDefaultShiftDate(): string {
-  return toDateString(new Date())
-}
-
 export type ShiftClosingsFilterState = {
   closed_by_id: string
   team_id: string
@@ -56,7 +52,7 @@ export function emptyShiftClosingsFilters(): ShiftClosingsFilterState {
   return {
     closed_by_id: '',
     team_id: '',
-    shift_date: getDefaultShiftDate(),
+    shift_date: '',
   }
 }
 
@@ -96,15 +92,17 @@ export function ShiftClosingsFilters({
   })
 
   const shiftDate = useMemo(
-    () => parseDateString(filters.shift_date) ?? new Date(),
+    () => parseDateString(filters.shift_date),
     [filters.shift_date],
   )
 
-  const shiftDateLabel = format(shiftDate, dateConfig.formats.date, {
-    locale: dateConfig.locale,
-  })
+  const shiftDateLabel = shiftDate
+    ? format(shiftDate, dateConfig.formats.date, {
+        locale: dateConfig.locale,
+      })
+    : 'Todas'
 
-  const isDefaultShiftDate = filters.shift_date === getDefaultShiftDate()
+  const hasShiftDateFilter = Boolean(filters.shift_date)
 
   return (
     <div className={styles.filtersRow}>
@@ -205,23 +203,23 @@ export function ShiftClosingsFilters({
               onSelect={(d) => {
                 onChange({
                   ...filters,
-                  shift_date: d ? toDateString(d) : getDefaultShiftDate(),
+                  shift_date: d ? toDateString(d) : '',
                 })
                 setDateOpen(false)
               }}
               locale={dateConfig.locale}
-              defaultMonth={shiftDate}
+              defaultMonth={shiftDate ?? new Date()}
               initialFocus
               className="rounded-lg border"
             />
-            {!isDefaultShiftDate ? (
+            {hasShiftDateFilter ? (
               <div className="border-t border-[#4a5d6d] p-2">
                 <Button
                   type="button"
                   variant="ghost"
                   className="h-8 w-full text-[#97a2ab]"
                   onClick={() => {
-                    onChange({ ...filters, shift_date: getDefaultShiftDate() })
+                    onChange({ ...filters, shift_date: '' })
                     setDateOpen(false)
                   }}
                 >

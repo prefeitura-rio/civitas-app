@@ -216,6 +216,7 @@ export function OperationalViewView() {
         granularity={closedVolumeGranularity}
         onGranularityChange={setClosedVolumeGranularity}
         isLoading={isFetching}
+        isAvailable={data?.closed_volume_by_team != null}
       />
 
       <OperationalViewTeamLineChart
@@ -225,6 +226,7 @@ export function OperationalViewView() {
         granularity={resolutionTimeGranularity}
         onGranularityChange={setResolutionTimeGranularity}
         isLoading={isFetching}
+        isAvailable={data?.avg_resolution_time_by_team != null}
         valueFormatter={(value) =>
           `${value.toLocaleString('pt-BR', {
             minimumFractionDigits: 1,
@@ -237,6 +239,7 @@ export function OperationalViewView() {
         rows={slaPerformanceByTeamRows}
         periodLabels={slaTablePeriodLabels}
         isLoading={isFetching}
+        isAvailable={data?.sla_performance_by_team != null}
       />
     </div>
   )
