@@ -28,6 +28,7 @@ import { Progress } from '@/components/ui/progress'
 import type { TicketAttachmentOut } from '@/http/tickets/ticket-attachments'
 import {
   getTicketServicos,
+  replaceTicketServicos,
   type TicketServicosOut,
 } from '@/http/tickets/ticket-servicos'
 import { getApiErrorMessage } from '@/utils/error-handlers'
@@ -46,10 +47,7 @@ import {
   ticketServicosToReplacePayload,
 } from '../ticket-servicos-mapper'
 import type { GcsUploadProgress } from '../ticket-servicos-save'
-import {
-  buildTicketServicosSaveRequest,
-  executeTicketServicosSave,
-} from '../ticket-servicos-save'
+import { buildTicketServicosSaveRequest } from '../ticket-servicos-save'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 import { usesGcsSignedUrlUpload } from './ticket-gcs-upload'
 import {
@@ -184,10 +182,6 @@ function buildUploadQueue(
   return items
 }
 
-function multipartQueueIds(queue: UploadQueueItem[]): string[] {
-  return queue.filter((item) => !item.usesGcs).map((item) => item.id)
-}
-
 function gcsPhaseToQueueStatus(
   phase: GcsUploadProgress['phase'],
   uploaded: number,
@@ -304,16 +298,12 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
     }, [])
 
     const replaceMutation = useMutation({
-      mutationFn: (
-        args: Awaited<ReturnType<typeof buildTicketServicosSaveRequest>> & {
-          onMultipartFileDone?: (fileIndex: number) => void
-        },
-      ) => {
-        const { onMultipartFileDone, ...saveRequest } = args
-        return executeTicketServicosSave(ticketId, saveRequest, {
-          onMultipartFileDone,
-        })
-      },
+      mutationFn: ({
+        payload,
+        files,
+        attachmentMetadata,
+      }: Awaited<ReturnType<typeof buildTicketServicosSaveRequest>>) =>
+        replaceTicketServicos(ticketId, payload, files, attachmentMetadata),
     })
 
     const rows = useMemo(() => {
@@ -468,38 +458,18 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
         }
 
         if (saveRequest.files.length > 0) {
-          const firstMultipartId = multipartQueueIds(initialQueue)[0]
           setUploadQueue((prev) =>
             prev.map((item) =>
-              item.id === firstMultipartId
+              !item.usesGcs && item.status === 'queued'
                 ? { ...item, status: 'uploading' }
                 : item,
             ),
           )
         }
 
-        const multipartIds = multipartQueueIds(initialQueue)
         let saved: TicketServicosOut
         try {
-          saved = await replaceMutation.mutateAsync({
-            ...saveRequest,
-            onMultipartFileDone: (fileIndex) => {
-              setUploadQueue((prev) =>
-                prev.map((item) => {
-                  if (item.id === multipartIds[fileIndex]) {
-                    return { ...item, status: 'done', uploaded: item.total }
-                  }
-                  if (
-                    fileIndex + 1 < multipartIds.length &&
-                    item.id === multipartIds[fileIndex + 1]
-                  ) {
-                    return { ...item, status: 'uploading' }
-                  }
-                  return item
-                }),
-              )
-            },
-          })
+          saved = await replaceMutation.mutateAsync(saveRequest)
         } catch (err: unknown) {
           setUploadQueue((prev) =>
             prev.map((item) =>

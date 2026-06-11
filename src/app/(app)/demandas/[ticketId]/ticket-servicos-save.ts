@@ -8,10 +8,7 @@ import {
   resolveGcsSessionUri,
 } from '@/http/tickets/ticket-attachments'
 import { gcsResumableChunkedUpload } from '@/http/tickets/ticket-gcs-resumable'
-import {
-  replaceTicketServicos,
-  type TicketServicosOut,
-} from '@/http/tickets/ticket-servicos'
+import type { TicketServicosOut } from '@/http/tickets/ticket-servicos'
 import type { TicketServicesUpsertIn } from '@/http/tickets/ticket-servicos-types'
 import {
   createUploadSession,
@@ -287,37 +284,4 @@ export async function buildTicketServicosSaveRequest(
   }
 
   return { payload, files, attachmentMetadata }
-}
-
-export type ExecuteTicketServicosSaveOptions = {
-  onMultipartFileDone?: (fileIndex: number) => void
-}
-
-export async function executeTicketServicosSave(
-  ticketId: string,
-  saveRequest: TicketServicosSaveRequest,
-  options?: ExecuteTicketServicosSaveOptions,
-): Promise<TicketServicosOut> {
-  const { payload, files, attachmentMetadata } = saveRequest
-
-  if (files.length <= 1) {
-    return replaceTicketServicos(ticketId, payload, files, attachmentMetadata)
-  }
-
-  let lastResult!: TicketServicosOut
-
-  for (let i = 0; i < files.length; i++) {
-    const requestPayload: TicketServicesUpsertIn =
-      i === 0 ? payload : { ...payload, attachment_completes: undefined }
-
-    lastResult = await replaceTicketServicos(
-      ticketId,
-      requestPayload,
-      [files[i]!],
-      [attachmentMetadata[i]!],
-    )
-    options?.onMultipartFileDone?.(i)
-  }
-
-  return lastResult
 }
