@@ -8,7 +8,10 @@ import {
   resolveGcsSessionUri,
 } from '@/http/tickets/ticket-attachments'
 import { gcsResumableChunkedUpload } from '@/http/tickets/ticket-gcs-resumable'
-import type { TicketServicosOut } from '@/http/tickets/ticket-servicos'
+import {
+  replaceTicketServicos,
+  type TicketServicosOut,
+} from '@/http/tickets/ticket-servicos'
 import type { TicketServicesUpsertIn } from '@/http/tickets/ticket-servicos-types'
 import {
   createUploadSession,
@@ -27,7 +30,10 @@ import {
   pendingAttachmentAsUploadFile,
   type PendingServiceAttachment,
 } from './components/ticket-pending-attachment'
-import { ticketServicosToReplacePayload } from './ticket-servicos-mapper'
+import {
+  isLocalDraftServiceId,
+  ticketServicosToReplacePayload,
+} from './ticket-servicos-mapper'
 
 const SERVICE_KINDS = [
   'plate_search',
@@ -91,7 +97,14 @@ function buildRowRefById(draft: TicketServicosOut): Map<string, ServiceRowRef> {
 function serviceScopeMetadata(
   kind: TicketServiceRowKind,
   index: number,
+  rowId: string,
 ): TicketAttachmentServiceScopeMetadataIn {
+  if (!isLocalDraftServiceId(rowId)) {
+    return {
+      service_type: kind,
+      service_id: rowId,
+    }
+  }
   return {
     service_type: kind,
     service_index: index + 1,
@@ -242,7 +255,7 @@ export async function buildTicketServicosSaveRequest(
     const rowRef = rowRefById.get(rowId)
     if (!rowRef) continue
 
-    const scope = serviceScopeMetadata(rowRef.kind, rowRef.index)
+    const scope = serviceScopeMetadata(rowRef.kind, rowRef.index, rowId)
 
     for (const item of pendingItems) {
       const file = pendingAttachmentAsUploadFile(item)
@@ -274,4 +287,44 @@ export async function buildTicketServicosSaveRequest(
   }
 
   return { payload, files, attachmentMetadata }
+}
+
+export type ExecuteTicketServicosSaveOptions = {
+  /** Chamado após cada ficheiro multipart enviado (índice base 0). */
+  onMultipartFileDone?: (fileIndex: number) => void
+}
+
+/**
+ * Executa o PUT de serviços. Vários anexos multipart (PDF, imagens) são enviados
+ * um a um para evitar 413 quando o proxy limita o tamanho do corpo da requisição.
+ */
+export async function executeTicketServicosSave(
+  ticketId: string,
+  saveRequest: TicketServicosSaveRequest,
+  options?: ExecuteTicketServicosSaveOptions,
+): Promise<TicketServicosOut> {
+  const { payload, files, attachmentMetadata } = saveRequest
+
+  if (files.length <= 1) {
+    return replaceTicketServicos(ticketId, payload, files, attachmentMetadata)
+  }
+
+  let lastResult!: TicketServicosOut
+
+  for (let i = 0; i < files.length; i++) {
+    // Reutiliza o payload original: a resposta intermédia do PUT pode não
+    // refletir a lista de serviços de forma compatível com service_index.
+    const requestPayload: TicketServicesUpsertIn =
+      i === 0 ? payload : { ...payload, attachment_completes: undefined }
+
+    lastResult = await replaceTicketServicos(
+      ticketId,
+      requestPayload,
+      [files[i]!],
+      [attachmentMetadata[i]!],
+    )
+    options?.onMultipartFileDone?.(i)
+  }
+
+  return lastResult
 }
