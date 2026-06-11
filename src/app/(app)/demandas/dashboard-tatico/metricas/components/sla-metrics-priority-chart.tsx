@@ -17,6 +17,7 @@ import type {
   SlaDashboardGranularity,
 } from '@/http/tickets/get-sla-dashboard'
 
+import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
 import { DemandVolumeChartGranularity } from '../../volume/components/demand-volume-chart-granularity'
 import { formatPeriodLabel } from '../../volume/components/demand-volume-period-label'
 import styles from '../../volume/components/demand-volume-top.module.css'
@@ -26,6 +27,7 @@ interface SlaMetricsPriorityChartProps {
   granularity: SlaDashboardGranularity
   onGranularityChange: (granularity: SlaDashboardGranularity) => void
   isLoading: boolean
+  isAvailable: boolean
 }
 
 const SERIES = [
@@ -63,13 +65,14 @@ export function SlaMetricsPriorityChart({
   granularity,
   onGranularityChange,
   isLoading,
+  isAvailable,
 }: SlaMetricsPriorityChartProps) {
   const chartData = data.map((item) => ({
     ...item,
     label: formatPeriodLabel(item.period_label, granularity),
   }))
 
-  if (!isLoading && chartData.length === 0) {
+  if (!isLoading && !isAvailable) {
     return null
   }
 
@@ -93,19 +96,8 @@ export function SlaMetricsPriorityChart({
         />
       </div>
 
-      {isLoading && chartData.length === 0 ? (
-        <div
-          style={{
-            height: '280px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#97a2ab',
-            fontSize: '14px',
-          }}
-        >
-          Carregando…
-        </div>
+      {chartData.length === 0 ? (
+        <DashboardTaticoDataState isLoading={isLoading} isEmpty />
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <LineChart

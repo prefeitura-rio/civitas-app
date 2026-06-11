@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react'
 
 import type { SlaPerformanceRowOut } from '@/http/tickets/get-sla-dashboard'
 
+import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
 import { formatPeriodLabel } from '../../volume/components/demand-volume-period-label'
 import { formatSlaPerformanceRowLabel } from './sla-metrics-filter-utils'
 
@@ -13,6 +14,7 @@ interface SlaMetricsSlaTableProps {
   rows: SlaPerformanceRowOut[]
   periodLabels: string[]
   isLoading: boolean
+  isAvailable: boolean
   formatRowLabel?: (label: string) => string
 }
 
@@ -89,13 +91,14 @@ export function SlaMetricsSlaTable({
   rows,
   periodLabels,
   isLoading,
+  isAvailable,
   formatRowLabel = formatSlaPerformanceRowLabel,
 }: SlaMetricsSlaTableProps) {
   const formattedHeaders = periodLabels.map((pl) =>
     formatPeriodLabel(pl, 'monthly'),
   )
 
-  if (!isLoading && rows.length === 0) {
+  if (!isLoading && !isAvailable) {
     return null
   }
 
@@ -119,19 +122,8 @@ export function SlaMetricsSlaTable({
         {title}
       </h2>
 
-      {isLoading && rows.length === 0 ? (
-        <div
-          style={{
-            height: '120px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#97a2ab',
-            fontSize: '14px',
-          }}
-        >
-          Carregando…
-        </div>
+      {rows.length === 0 ? (
+        <DashboardTaticoDataState isLoading={isLoading} isEmpty height={120} />
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>

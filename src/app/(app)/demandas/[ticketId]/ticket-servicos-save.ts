@@ -27,7 +27,10 @@ import {
   pendingAttachmentAsUploadFile,
   type PendingServiceAttachment,
 } from './components/ticket-pending-attachment'
-import { ticketServicosToReplacePayload } from './ticket-servicos-mapper'
+import {
+  isLocalDraftServiceId,
+  ticketServicosToReplacePayload,
+} from './ticket-servicos-mapper'
 
 const SERVICE_KINDS = [
   'plate_search',
@@ -91,7 +94,14 @@ function buildRowRefById(draft: TicketServicosOut): Map<string, ServiceRowRef> {
 function serviceScopeMetadata(
   kind: TicketServiceRowKind,
   index: number,
+  rowId: string,
 ): TicketAttachmentServiceScopeMetadataIn {
+  if (!isLocalDraftServiceId(rowId)) {
+    return {
+      service_type: kind,
+      service_id: rowId,
+    }
+  }
   return {
     service_type: kind,
     service_index: index + 1,
@@ -242,7 +252,7 @@ export async function buildTicketServicosSaveRequest(
     const rowRef = rowRefById.get(rowId)
     if (!rowRef) continue
 
-    const scope = serviceScopeMetadata(rowRef.kind, rowRef.index)
+    const scope = serviceScopeMetadata(rowRef.kind, rowRef.index, rowId)
 
     for (const item of pendingItems) {
       const file = pendingAttachmentAsUploadFile(item)

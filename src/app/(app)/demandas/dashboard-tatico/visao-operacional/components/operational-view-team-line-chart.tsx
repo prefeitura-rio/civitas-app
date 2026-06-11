@@ -14,6 +14,7 @@ import {
 
 import type { OperationalViewGranularity } from '@/http/tickets/get-operational-view'
 
+import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
 import { DemandVolumeChartGranularity } from '../../volume/components/demand-volume-chart-granularity'
 import styles from '../../volume/components/demand-volume-top.module.css'
 import type { TeamLineChartPoint } from './operational-view-chart-utils'
@@ -26,6 +27,7 @@ interface OperationalViewTeamLineChartProps {
   granularity: OperationalViewGranularity
   onGranularityChange: (granularity: OperationalViewGranularity) => void
   isLoading: boolean
+  isAvailable: boolean
   valueFormatter?: (value: number) => string
 }
 
@@ -49,10 +51,11 @@ export function OperationalViewTeamLineChart({
   granularity,
   onGranularityChange,
   isLoading,
+  isAvailable,
   valueFormatter = (value) =>
     value.toLocaleString('pt-BR', { maximumFractionDigits: 0 }),
 }: OperationalViewTeamLineChartProps) {
-  if (!isLoading && chartData.length === 0) {
+  if (!isLoading && !isAvailable) {
     return null
   }
 
@@ -65,8 +68,8 @@ export function OperationalViewTeamLineChart({
         isLoading={isLoading}
       />
 
-      {isLoading && chartData.length === 0 ? (
-        <LoadingState />
+      {chartData.length === 0 ? (
+        <DashboardTaticoDataState isLoading={isLoading} isEmpty />
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
@@ -169,23 +172,6 @@ function ChartHeader({
         onChange={onGranularityChange}
         disabled={isLoading}
       />
-    </div>
-  )
-}
-
-function LoadingState() {
-  return (
-    <div
-      style={{
-        height: '280px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#97a2ab',
-        fontSize: '14px',
-      }}
-    >
-      Carregando…
     </div>
   )
 }
