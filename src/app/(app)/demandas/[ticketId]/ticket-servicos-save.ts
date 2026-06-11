@@ -290,14 +290,9 @@ export async function buildTicketServicosSaveRequest(
 }
 
 export type ExecuteTicketServicosSaveOptions = {
-  /** Chamado após cada ficheiro multipart enviado (índice base 0). */
   onMultipartFileDone?: (fileIndex: number) => void
 }
 
-/**
- * Executa o PUT de serviços. Vários anexos multipart (PDF, imagens) são enviados
- * um a um para evitar 413 quando o proxy limita o tamanho do corpo da requisição.
- */
 export async function executeTicketServicosSave(
   ticketId: string,
   saveRequest: TicketServicosSaveRequest,
@@ -312,8 +307,6 @@ export async function executeTicketServicosSave(
   let lastResult!: TicketServicosOut
 
   for (let i = 0; i < files.length; i++) {
-    // Reutiliza o payload original: a resposta intermédia do PUT pode não
-    // refletir a lista de serviços de forma compatível com service_index.
     const requestPayload: TicketServicesUpsertIn =
       i === 0 ? payload : { ...payload, attachment_completes: undefined }
 
