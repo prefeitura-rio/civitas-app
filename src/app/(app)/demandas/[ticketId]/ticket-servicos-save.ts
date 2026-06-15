@@ -19,9 +19,9 @@ import {
 } from '@/lib/gcs-upload-idb'
 
 import {
+  isVideoFile,
   isZipFile,
   resolveGcsUploadContentType,
-  usesGcsSignedUrlUpload,
 } from './components/ticket-gcs-upload'
 import {
   pendingAttachmentAsUploadFile,
@@ -60,7 +60,7 @@ export type PendingServiceFilesByRowId = Record<
 export type GcsUploadProgress = {
   pendingAttachmentId: string
   fileName: string
-  uploadKind: 'ZIP' | 'vídeo'
+  uploadKind: 'ZIP' | 'vídeo' | 'anexo'
   phase: 'preparing' | 'uploading' | 'finalizing'
   percent: number
   uploadedBytes?: number
@@ -74,8 +74,6 @@ export type BuildTicketServicosSaveOptions = {
 
 export type TicketServicosSaveRequest = {
   payload: TicketServicesUpsertIn
-  files: File[]
-  attachmentMetadata: TicketAttachmentServiceScopeMetadataIn[]
 }
 
 function buildRowRefById(draft: TicketServicosOut): Map<string, ServiceRowRef> {
@@ -124,7 +122,11 @@ async function uploadPendingGcsAttachment(
   options?: BuildTicketServicosSaveOptions,
 ): Promise<TicketAttachmentCompleteIn> {
   const contentType = resolveGcsUploadContentType(file)
-  const uploadKind = isZipFile(file) ? 'ZIP' : 'vídeo'
+  const uploadKind = isZipFile(file)
+    ? 'ZIP'
+    : isVideoFile(file)
+      ? 'vídeo'
+      : 'anexo'
 
   reportGcsProgress(options, {
     pendingAttachmentId: item.id,
@@ -234,7 +236,7 @@ async function uploadPendingGcsAttachment(
   }
 }
 
-/** Monta payload multipart e faz pré-upload GCS de vídeos/ZIP pendentes. */
+/** Faz pré-upload GCS de todos os anexos pendentes e monta o payload JSON. */
 export async function buildTicketServicosSaveRequest(
   ticketId: string,
   draft: TicketServicosOut,
@@ -243,8 +245,6 @@ export async function buildTicketServicosSaveRequest(
 ): Promise<TicketServicosSaveRequest> {
   const rowRefById = buildRowRefById(draft)
   const attachmentCompletes: TicketAttachmentCompleteIn[] = []
-  const files: File[] = []
-  const attachmentMetadata: TicketAttachmentServiceScopeMetadataIn[] = []
 
   for (const [rowId, pendingItems] of Object.entries(pendingByRowId)) {
     if (!pendingItems.length) continue
@@ -256,22 +256,15 @@ export async function buildTicketServicosSaveRequest(
 
     for (const item of pendingItems) {
       const file = pendingAttachmentAsUploadFile(item)
-
-      if (usesGcsSignedUrlUpload(file)) {
-        const complete = await uploadPendingGcsAttachment(
-          ticketId,
-          rowId,
-          item,
-          file,
-          scope,
-          options,
-        )
-        attachmentCompletes.push(complete)
-        continue
-      }
-
-      files.push(file)
-      attachmentMetadata.push(scope)
+      const complete = await uploadPendingGcsAttachment(
+        ticketId,
+        rowId,
+        item,
+        file,
+        scope,
+        options,
+      )
+      attachmentCompletes.push(complete)
     }
   }
 
@@ -283,5 +276,5 @@ export async function buildTicketServicosSaveRequest(
       : {}),
   }
 
-  return { payload, files, attachmentMetadata }
+  return { payload }
 }
