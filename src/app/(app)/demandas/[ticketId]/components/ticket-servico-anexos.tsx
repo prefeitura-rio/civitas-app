@@ -55,7 +55,7 @@ import {
 
 export type { PendingServiceAttachment } from './ticket-pending-attachment'
 
-const MAX_REGULAR_BYTES = 20 * 1024 * 1024
+const MAX_REGULAR_BYTES = 30 * 1024 * 1024
 const MAX_GCS_UPLOAD_GB = 20
 const MAX_GCS_UPLOAD_BYTES = MAX_GCS_UPLOAD_GB * 1024 * 1024 * 1024
 
@@ -379,7 +379,7 @@ export function TicketServicoAnexos({
         (f) => !isVideoFile(f) && !isZipFile(f) && f.size > MAX_REGULAR_BYTES,
       )
       if (tooBigRegular) {
-        toast.error(`"${tooBigRegular.name}" excede o limite de 20 MB.`)
+        toast.error(`"${tooBigRegular.name}" excede o limite de 30 MB.`)
         e.target.value = ''
         return
       }
