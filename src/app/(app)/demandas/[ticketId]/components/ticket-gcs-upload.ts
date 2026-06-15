@@ -17,15 +17,15 @@ export function isVideoFile(file: File): boolean {
   return file.type.toLowerCase().startsWith('video/')
 }
 
-export function usesGcsSignedUrlUpload(file: File): boolean {
-  return isVideoFile(file) || isZipFile(file)
+export function usesGcsSignedUrlUpload(): boolean {
+  return true
 }
 
 export function resolveGcsUploadContentType(file: File): string {
   if (isZipFile(file)) {
     return file.type || DEFAULT_ZIP_CONTENT_TYPE
   }
-  return file.type || 'video/mp4'
+  return file.type || 'application/octet-stream'
 }
 
 export function isZipAttachment(att: TicketAttachmentOut): boolean {

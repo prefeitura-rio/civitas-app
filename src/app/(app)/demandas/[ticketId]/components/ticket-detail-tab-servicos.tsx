@@ -116,6 +116,23 @@ function computeCompletedServicoFieldErrors(
   return out
 }
 
+function attachmentFilenamesForRow(
+  draft: TicketServicosOut,
+  rowId: string,
+): string[] {
+  for (const kind of SERVICE_KINDS) {
+    const list = (draft[kind] ?? []) as {
+      id: string
+      attachments?: { filename: string }[]
+    }[]
+    const row = list.find((item) => item.id === rowId)
+    if (row) {
+      return (row.attachments ?? []).map((att) => att.filename)
+    }
+  }
+  return []
+}
+
 function buildRows(s: TicketServicosOut): RowMeta[] {
   const out: RowMeta[] = []
   const titleFor = (base: string, index: number, total: number) =>
@@ -175,7 +192,7 @@ function buildUploadQueue(
         total: file.size,
         uploaded: 0,
         status: 'queued',
-        usesGcs: usesGcsSignedUrlUpload(file),
+        usesGcs: usesGcsSignedUrlUpload(),
       })
     }
   }
@@ -300,10 +317,8 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
     const replaceMutation = useMutation({
       mutationFn: ({
         payload,
-        files,
-        attachmentMetadata,
       }: Awaited<ReturnType<typeof buildTicketServicosSaveRequest>>) =>
-        replaceTicketServicos(ticketId, payload, files, attachmentMetadata),
+        replaceTicketServicos(ticketId, payload),
     })
 
     const rows = useMemo(() => {
@@ -338,13 +353,26 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
     const queuePendingFiles = useCallback(
       (rowId: string, files: File[]) => {
         if (!files.length) return
-        setPendingFilesByRowId((prev) => ({
-          ...prev,
-          [rowId]: [
-            ...(prev[rowId] ?? []),
-            ...createPendingServiceAttachments(files, internalNumber),
-          ],
-        }))
+        setPendingFilesByRowId((prev) => {
+          const existingPending = prev[rowId] ?? []
+          const existingFilenames = [
+            ...existingPending.map((item) => item.filename),
+            ...(draftRef.current
+              ? attachmentFilenamesForRow(draftRef.current, rowId)
+              : []),
+          ]
+          return {
+            ...prev,
+            [rowId]: [
+              ...existingPending,
+              ...createPendingServiceAttachments(
+                files,
+                internalNumber,
+                existingFilenames,
+              ),
+            ],
+          }
+        })
       },
       [internalNumber],
     )
@@ -452,19 +480,9 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
             ),
           )
           toast.error(
-            'Não foi possível enviar um ou mais vídeos/ZIP. Tente novamente.',
+            'Não foi possível enviar um ou mais anexos. Tente novamente.',
           )
           return false
-        }
-
-        if (saveRequest.files.length > 0) {
-          setUploadQueue((prev) =>
-            prev.map((item) =>
-              !item.usesGcs && item.status === 'queued'
-                ? { ...item, status: 'uploading' }
-                : item,
-            ),
-          )
         }
 
         let saved: TicketServicosOut
