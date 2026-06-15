@@ -1,10 +1,7 @@
 import { api } from '@/lib/api'
 
 import type { TicketOut } from './get-ticket-by-id'
-import type {
-  TicketAttachmentOut,
-  TicketAttachmentServiceScopeMetadataIn,
-} from './ticket-attachments'
+import type { TicketAttachmentOut } from './ticket-attachments'
 import type { TicketServicesUpsertIn } from './ticket-servicos-types'
 
 /** Mesmo formato dos campos de serviços em TicketOut + anexos sem serviço (GET `/services` enriquecido). */
@@ -53,26 +50,13 @@ export async function getTicketServicos(ticketId: string) {
   return normalizeTicketServicosOut(data)
 }
 
-/** PUT multipart: `payload` (JSON) + `files` + `attachment_metadata`, como em POST `/tickets`. */
 export async function replaceTicketServicos(
   ticketId: string,
   payload: TicketServicesUpsertIn,
-  files: File[] = [],
-  attachmentMetadata: TicketAttachmentServiceScopeMetadataIn[] = [],
 ) {
-  const form = new FormData()
-  form.append('payload', JSON.stringify(payload))
-  for (const f of files) {
-    form.append('files', f)
-  }
-  if (attachmentMetadata.length > 0) {
-    form.append('attachment_metadata', JSON.stringify(attachmentMetadata))
-  }
-
   const { data } = await api.put<TicketServicesOut>(
     `/tickets/${ticketId}/services`,
-    form,
-    { headers: { 'Content-Type': 'multipart/form-data' } },
+    payload,
   )
   return normalizeTicketServicosOut(data)
 }

@@ -27,7 +27,6 @@ import { Input } from '@/components/ui/input'
 import {
   downloadTicketAttachmentFile,
   fetchTicketAttachmentBlob,
-  fetchTicketServiceAttachmentBlob,
 } from '@/http/tickets/download-ticket-attachment'
 import {
   deleteTicketAttachment,
@@ -37,13 +36,14 @@ import {
   type TicketAttachmentServiceScopeMetadataIn,
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
+import { downloadFile } from '@/utils/download-file'
 
 import styles from '../ticket-detail.module.css'
 import {
   gcsAttachmentLabel,
+  isVideoFile,
   isZipFile,
   usesGcsSignedUrlAttachment,
-  usesGcsSignedUrlUpload,
 } from './ticket-gcs-upload'
 import {
   getFilenameExtension,
@@ -55,17 +55,9 @@ import {
 
 export type { PendingServiceAttachment } from './ticket-pending-attachment'
 
-const MAX_MULTIPART_BYTES = 20 * 1024 * 1024
+const MAX_REGULAR_BYTES = 20 * 1024 * 1024
 const MAX_GCS_UPLOAD_GB = 20
 const MAX_GCS_UPLOAD_BYTES = MAX_GCS_UPLOAD_GB * 1024 * 1024 * 1024
-const MULTIPART_ACCEPT = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'application/msword',
-] as const
 
 const BLOCKED_DOCX = /\.docx$/i
 const BLOCKED_MOV = /\.mov$/i
@@ -76,16 +68,6 @@ function formatBytes(bytes: number): string {
   if (kb < 1024) return `${kb.toFixed(1)} KB`
   const mb = kb / 1024
   return `${mb.toFixed(1)} MB`
-}
-
-function multipartFileAllowed(file: File): boolean {
-  if (usesGcsSignedUrlUpload(file)) return false
-  if (file.size > MAX_MULTIPART_BYTES) return false
-  const t = file.type.toLowerCase()
-  if (MULTIPART_ACCEPT.includes(t as (typeof MULTIPART_ACCEPT)[number]))
-    return true
-  const n = file.name.toLowerCase()
-  return /\.(pdf|jpe?g|png|gif|webp|doc)$/i.test(n)
 }
 
 function invalidateAttachmentQueries(
@@ -152,6 +134,7 @@ export function TicketServicoAnexos({
 
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewingId, setViewingId] = useState<string | null>(null)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [videoCopyingId, setVideoCopyingId] = useState<string | null>(null)
   const [videoRefreshingId, setVideoRefreshingId] = useState<string | null>(
     null,
@@ -227,10 +210,26 @@ export function TicketServicoAnexos({
 
   const handleDownload = useCallback(
     async (att: TicketAttachmentOut) => {
+      if (serviceScope) {
+        setDownloadingId(att.id)
+        try {
+          const { signed_url: signedUrl } =
+            await getTicketServiceAttachmentPlaybackUrl(ticketId, att.id)
+          const response = await fetch(signedUrl)
+          if (!response.ok) throw new Error('download_failed')
+          const blob = await response.blob()
+          downloadFile(blob, att.filename)
+        } catch (err) {
+          toast.error(
+            getApiDetailUnless500(err) ?? 'Não foi possível baixar o anexo.',
+          )
+        } finally {
+          setDownloadingId(null)
+        }
+        return
+      }
       try {
-        await downloadTicketAttachmentFile(att, ticketId, {
-          serviceAttachment: Boolean(serviceScope),
-        })
+        await downloadTicketAttachmentFile(att, ticketId)
       } catch {
         toast.error('Não foi possível baixar o anexo.')
       }
@@ -240,11 +239,28 @@ export function TicketServicoAnexos({
 
   const handleView = useCallback(
     async (att: TicketAttachmentOut) => {
+      if (serviceScope) {
+        setViewingId(att.id)
+        try {
+          const { signed_url: signedUrl } =
+            await getTicketServiceAttachmentPlaybackUrl(ticketId, att.id)
+          window.open(signedUrl, '_blank', 'noopener,noreferrer')
+        } catch (err) {
+          toast.error(
+            getApiDetailUnless500(err) ??
+              'Não foi possível visualizar o anexo.',
+          )
+        } finally {
+          setViewingId(null)
+        }
+        return
+      }
       try {
         setViewingId(att.id)
-        const { blob, contentType } = serviceScope
-          ? await fetchTicketServiceAttachmentBlob(ticketId, att.id)
-          : await fetchTicketAttachmentBlob(ticketId, att.id)
+        const { blob, contentType } = await fetchTicketAttachmentBlob(
+          ticketId,
+          att.id,
+        )
         const previewBlob = new Blob([blob], { type: contentType })
         const previewUrl = URL.createObjectURL(previewBlob)
         window.open(previewUrl, '_blank', 'noopener,noreferrer')
@@ -350,49 +366,20 @@ export function TicketServicoAnexos({
         return
       }
 
-      const gcsFiles = files.filter(usesGcsSignedUrlUpload)
-      const otherFiles = files.filter((f) => !usesGcsSignedUrlUpload(f))
-
-      if (gcsFiles.length > 0 && otherFiles.length > 0) {
+      const tooBig = files.find((f) => f.size > MAX_GCS_UPLOAD_BYTES)
+      if (tooBig) {
         toast.error(
-          'Envie vídeos ou ZIP separados dos demais attachments para usar o endpoint correto.',
+          `"${tooBig.name}" excede o limite de ${MAX_GCS_UPLOAD_GB} GB.`,
         )
         e.target.value = ''
         return
       }
 
-      if (gcsFiles.length > 0) {
-        const gcsFile = gcsFiles[0]
-        if (gcsFiles.length > 1) {
-          toast.error('Envie apenas um vídeo ou ZIP por vez.')
-          e.target.value = ''
-          return
-        }
-        if (gcsFile.size > MAX_GCS_UPLOAD_BYTES) {
-          const label = isZipFile(gcsFile) ? 'O ZIP' : 'O vídeo'
-          toast.error(`${label} excede o limite de ${MAX_GCS_UPLOAD_GB} GB.`)
-          e.target.value = ''
-          return
-        }
-        if (uploadBlocked && onQueuePendingFiles) {
-          onQueuePendingFiles(gcsFiles)
-          const pendingLabel = isZipFile(gcsFile) ? 'ZIP' : 'Vídeo'
-          toast.success(
-            `${pendingLabel} adicionado. Será enviado após guardar serviços.`,
-          )
-          e.target.value = ''
-          return
-        }
-        toast.error('Guarde os serviços para anexar vídeos ou ZIP.')
-        e.target.value = ''
-        return
-      }
-
-      const bad = otherFiles.filter((f) => !multipartFileAllowed(f))
-      if (bad.length || otherFiles.length === 0) {
-        toast.error(
-          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word (.doc), até 20 MB cada.',
-        )
+      const tooBigRegular = files.find(
+        (f) => !isVideoFile(f) && !isZipFile(f) && f.size > MAX_REGULAR_BYTES,
+      )
+      if (tooBigRegular) {
+        toast.error(`"${tooBigRegular.name}" excede o limite de 20 MB.`)
         e.target.value = ''
         return
       }
@@ -400,7 +387,9 @@ export function TicketServicoAnexos({
       if (uploadBlocked && onQueuePendingFiles) {
         onQueuePendingFiles(files)
         toast.success(
-          'Anexos adicionados. Serão enviados após guardar serviços.',
+          files.length === 1
+            ? 'Anexo adicionado. Será enviado após guardar serviços.'
+            : `${files.length} anexos adicionados. Serão enviados após guardar serviços.`,
         )
         e.target.value = ''
         return
@@ -571,10 +560,15 @@ export function TicketServicoAnexos({
                           disabled={
                             deletingId === att.id ||
                             viewingId === att.id ||
+                            downloadingId === att.id ||
                             busy
                           }
                         >
-                          <Eye size={16} />
+                          {viewingId === att.id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Eye size={16} />
+                          )}
                         </button>
                         <button
                           type="button"
@@ -587,10 +581,15 @@ export function TicketServicoAnexos({
                           disabled={
                             deletingId === att.id ||
                             viewingId === att.id ||
+                            downloadingId === att.id ||
                             busy
                           }
                         >
-                          <Download size={16} />
+                          {downloadingId === att.id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Download size={16} />
+                          )}
                         </button>
                         {!readOnly ? (
                           <button
