@@ -81,15 +81,53 @@ export function prefixPendingServiceFilename(
   return `${prefix}${filename}`
 }
 
+function filenameKey(name: string): string {
+  return name.toLowerCase()
+}
+
+/** Garante nome único entre `taken` (comparação case-insensitive). Atualiza `taken`. */
+export function ensureUniqueFilename(
+  candidate: string,
+  taken: Set<string>,
+): string {
+  if (!taken.has(filenameKey(candidate))) return candidate
+
+  const ext = getFilenameExtension(candidate)
+  const base = getFilenameBase(candidate)
+
+  for (let counter = 2; counter < 10_000; counter++) {
+    const next = buildFilenameWithExtension(`${base} (${counter})`, ext)
+    if (!taken.has(filenameKey(next))) return next
+  }
+
+  return buildFilenameWithExtension(
+    `${base} (${crypto.randomUUID().slice(0, 8)})`,
+    ext,
+  )
+}
+
 export function createPendingServiceAttachments(
   files: File[],
   internalNumber?: string | number | null,
+  existingFilenames: Iterable<string> = [],
 ): PendingServiceAttachment[] {
-  return files.map((file) => ({
-    id: crypto.randomUUID(),
-    file,
-    filename: prefixPendingServiceFilename(internalNumber, file.name),
-  }))
+  const taken = new Set(
+    Array.from(existingFilenames, (name) => filenameKey(name)),
+  )
+  const result: PendingServiceAttachment[] = []
+
+  for (const file of files) {
+    const prefixed = prefixPendingServiceFilename(internalNumber, file.name)
+    const unique = ensureUniqueFilename(prefixed, taken)
+    taken.add(filenameKey(unique))
+    result.push({
+      id: crypto.randomUUID(),
+      file,
+      filename: unique,
+    })
+  }
+
+  return result
 }
 
 /** File com o nome escolhido no rascunho, para envio multipart / vídeo. */
