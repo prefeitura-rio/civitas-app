@@ -55,7 +55,7 @@ import {
 
 export type { PendingServiceAttachment } from './ticket-pending-attachment'
 
-const MAX_MULTIPART_BYTES = 10 * 1024 * 1024
+const MAX_MULTIPART_BYTES = 20 * 1024 * 1024
 const MAX_GCS_UPLOAD_GB = 20
 const MAX_GCS_UPLOAD_BYTES = MAX_GCS_UPLOAD_GB * 1024 * 1024 * 1024
 const MULTIPART_ACCEPT = [
@@ -391,7 +391,7 @@ export function TicketServicoAnexos({
       const bad = otherFiles.filter((f) => !multipartFileAllowed(f))
       if (bad.length || otherFiles.length === 0) {
         toast.error(
-          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word (.doc), até 10 MB cada.',
+          'Só PDF, imagens (JPEG, PNG, GIF, WebP) ou Word (.doc), até 20 MB cada.',
         )
         e.target.value = ''
         return
