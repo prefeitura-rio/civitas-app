@@ -116,6 +116,23 @@ function computeCompletedServicoFieldErrors(
   return out
 }
 
+function attachmentFilenamesForRow(
+  draft: TicketServicosOut,
+  rowId: string,
+): string[] {
+  for (const kind of SERVICE_KINDS) {
+    const list = (draft[kind] ?? []) as {
+      id: string
+      attachments?: { filename: string }[]
+    }[]
+    const row = list.find((item) => item.id === rowId)
+    if (row) {
+      return (row.attachments ?? []).map((att) => att.filename)
+    }
+  }
+  return []
+}
+
 function buildRows(s: TicketServicosOut): RowMeta[] {
   const out: RowMeta[] = []
   const titleFor = (base: string, index: number, total: number) =>
@@ -336,13 +353,26 @@ export const TicketDetailTabServicos = forwardRef<TicketDetailTabHandle, Props>(
     const queuePendingFiles = useCallback(
       (rowId: string, files: File[]) => {
         if (!files.length) return
-        setPendingFilesByRowId((prev) => ({
-          ...prev,
-          [rowId]: [
-            ...(prev[rowId] ?? []),
-            ...createPendingServiceAttachments(files, internalNumber),
-          ],
-        }))
+        setPendingFilesByRowId((prev) => {
+          const existingPending = prev[rowId] ?? []
+          const existingFilenames = [
+            ...existingPending.map((item) => item.filename),
+            ...(draftRef.current
+              ? attachmentFilenamesForRow(draftRef.current, rowId)
+              : []),
+          ]
+          return {
+            ...prev,
+            [rowId]: [
+              ...existingPending,
+              ...createPendingServiceAttachments(
+                files,
+                internalNumber,
+                existingFilenames,
+              ),
+            ],
+          }
+        })
       },
       [internalNumber],
     )
