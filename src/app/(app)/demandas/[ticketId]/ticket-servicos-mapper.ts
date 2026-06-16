@@ -96,7 +96,6 @@ function normalizeServicosForDraft(s: TicketServicosOut): TicketServicosOut {
   return {
     ...s,
     plate_search: ensureAtLeastOnePlateRow(s.plate_search),
-    radar_search: ensureAtLeastOnePlateRow(s.radar_search),
     correlated_plates: ensureAtLeastOnePlateRow(s.correlated_plates),
     joint_plates: ensureAtLeastOnePlateRow(s.joint_plates),
   }
@@ -339,7 +338,7 @@ export function appendEmptyService(
           completed: false,
           period_start: null,
           period_end: null,
-          plates: [{ id: newNestedEntityId(), created_at: created, plate: '' }],
+          plates: [],
           radar_address: null,
           orientation: null,
         },

@@ -337,7 +337,7 @@ export function ServicosExpandedForm({
           <div className={styles.servicosFieldBlock}>
             <span className={styles.servicosFieldLabel}>Placas do veículo</span>
             <div className={styles.servicosStack}>
-              {item.plates.map((p, pi) => (
+              {(item.plates ?? []).map((p, pi) => (
                 <Fragment key={p.id}>
                   <div className={styles.servicosPlateRow}>
                     <Input
@@ -345,7 +345,9 @@ export function ServicosExpandedForm({
                       value={p.plate ?? ''}
                       onChange={(e) =>
                         patch((n) => {
-                          const plates = [...n.radar_search[index].plates]
+                          const plates = [
+                            ...(n.radar_search[index].plates ?? []),
+                          ]
                           plates[pi] = {
                             ...plates[pi],
                             plate: maskPlateBR(e.target.value),
@@ -357,37 +359,26 @@ export function ServicosExpandedForm({
                         })
                       }
                     />
-                    {item.plates.length > 1 ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className={styles.servicosIconBtn}
-                        onClick={() =>
-                          patch((n) => {
-                            const plates = n.radar_search[index].plates.filter(
-                              (_, i) => i !== pi,
-                            )
-                            n.radar_search[index] = {
-                              ...n.radar_search[index],
-                              plates:
-                                plates.length > 0
-                                  ? plates
-                                  : [
-                                      {
-                                        id: newNestedEntityId(),
-                                        created_at: nowIso(),
-                                        plate: '',
-                                      },
-                                    ],
-                            }
-                          })
-                        }
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    ) : null}
-                    {pi === item.plates.length - 1 ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={styles.servicosIconBtn}
+                      onClick={() =>
+                        patch((n) => {
+                          const plates = (
+                            n.radar_search[index].plates ?? []
+                          ).filter((_, i) => i !== pi)
+                          n.radar_search[index] = {
+                            ...n.radar_search[index],
+                            plates,
+                          }
+                        })
+                      }
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    {pi === (item.plates ?? []).length - 1 ? (
                       <Button
                         type="button"
                         variant="ghost"
@@ -398,7 +389,7 @@ export function ServicosExpandedForm({
                             n.radar_search[index] = {
                               ...n.radar_search[index],
                               plates: [
-                                ...n.radar_search[index].plates,
+                                ...(n.radar_search[index].plates ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
@@ -422,6 +413,32 @@ export function ServicosExpandedForm({
                   ) : null}
                 </Fragment>
               ))}
+              {(item.plates ?? []).length === 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={styles.servicosAddLineBtn}
+                  onClick={() =>
+                    patch((n) => {
+                      n.radar_search[index] = {
+                        ...n.radar_search[index],
+                        plates: [
+                          {
+                            id: newNestedEntityId(),
+                            created_at: nowIso(),
+                            plate: '',
+                          },
+                        ],
+                      }
+                    })
+                  }
+                  aria-label="Adicionar placa"
+                  title="Adicionar placa"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>,
