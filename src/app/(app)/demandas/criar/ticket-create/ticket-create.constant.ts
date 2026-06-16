@@ -159,7 +159,7 @@ export function emptyBuscaPorRadarDraft(): BuscaPorRadarDraft {
   return {
     period_start: '',
     period_end: '',
-    plates: [''],
+    plates: [],
     orientation: '',
   }
 }
@@ -181,7 +181,7 @@ export function normalizeBuscaPorRadarForForm(
     return {
       period_start: null,
       period_end: null,
-      plates: [''],
+      plates: [],
       orientation: null,
     }
   }
@@ -189,7 +189,7 @@ export function normalizeBuscaPorRadarForForm(
   const plates =
     initialValue.plates != null && initialValue.plates.length > 0
       ? [...initialValue.plates]
-      : ['']
+      : []
 
   const orientationRaw = initialValue.orientation
   const orientation =

@@ -498,14 +498,13 @@ function BuscaPorRadarForm({
     formState: { errors },
   } = form
 
-  const plates = form.watch('plates') ?? ['']
+  const plates = form.watch('plates') ?? []
 
   const addPlate = () => {
     form.setValue('plates', [...plates, ''], { shouldValidate: true })
   }
 
   const removePlate = (index: number) => {
-    if (plates.length <= 1) return
     form.setValue(
       'plates',
       plates.filter((_, i) => i !== index),
@@ -578,17 +577,15 @@ function BuscaPorRadarForm({
                       />
                     )}
                   />
-                  {plates.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-11 w-11 shrink-0 p-0"
-                      onClick={() => removePlate(index)}
-                      title="Remover placa"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 w-11 shrink-0 p-0"
+                    onClick={() => removePlate(index)}
+                    title="Remover placa"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
               {errors.plates?.message && (
