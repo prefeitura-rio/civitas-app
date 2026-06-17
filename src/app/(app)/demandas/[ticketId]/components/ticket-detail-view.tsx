@@ -150,10 +150,12 @@ const RELATORIO_COMPLETO_TOPIC_ITEMS: {
   { key: 't1', title: 'Solicitação Original' },
   { key: 't2', title: 'Registro do Chamado no Sistema' },
   { key: 't3', title: 'Relatório Técnico de Atendimento' },
-  { key: 't4', title: 'Parecer Interno' },
-  { key: 't5', title: 'Relatório da Demanda' },
-  { key: 't6', title: 'Histórico de Movimentações' },
-  { key: 't7', title: 'Conclusão Administrativa' },
+  { key: 't4', title: 'Documentos Recepcionados' },
+  { key: 't5', title: 'Documentos do Serviço' },
+  { key: 't6', title: 'Parecer Interno' },
+  { key: 't7', title: 'Relatório da Demanda' },
+  { key: 't8', title: 'Histórico de Movimentações' },
+  { key: 't9', title: 'Conclusão Administrativa' },
 ]
 
 type Props = {
@@ -1328,6 +1330,8 @@ export function TicketDetailView({ ticketId }: Props) {
                           t5: false,
                           t6: false,
                           t7: false,
+                          t8: false,
+                          t9: false,
                         })
                       }
                     >
