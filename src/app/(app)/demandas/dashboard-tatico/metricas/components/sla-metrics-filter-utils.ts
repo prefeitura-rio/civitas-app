@@ -6,9 +6,9 @@ import type {
 } from '@/http/tickets/get-sla-dashboard'
 import type {
   SearchOption,
-  TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS,
-  type TicketDashboardServiceFilter,
+  TicketDashboardServiceFilter,
 } from '@/http/tickets/tickets-dashboard-filters'
+import { TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS } from '@/http/tickets/tickets-dashboard-filters'
 
 import {
   DASHBOARD_TATICO_PRIORITY_OPTIONS,
