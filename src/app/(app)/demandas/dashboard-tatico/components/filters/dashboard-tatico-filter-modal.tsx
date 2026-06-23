@@ -5,11 +5,13 @@ import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { getTicketNatures } from '@/http/get-ticket-natures/get-ticket-natures'
 import { getTicketTypes } from '@/http/ticket-types/get-ticket.types'
 import type { SearchOption } from '@/http/tickets/tickets-dashboard-filters'
 import {
   searchOperations,
   searchRequesters,
+  TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS,
 } from '@/http/tickets/tickets-dashboard-filters'
 
 import {
@@ -57,6 +59,20 @@ export function DashboardTaticoFilterModal({
       queryKey: ['ticket-types', 'dashboard-tatico-filter', scope],
       queryFn: async () => {
         const response = await getTicketTypes({ isActive: true })
+        return (response.data ?? []).map((item) => ({
+          value: item.id,
+          label: item.name,
+        }))
+      },
+      enabled: isOpen,
+      staleTime: 1000 * 60 * 5,
+    })
+
+  const { data: ticketNatureOptions, isFetching: isTicketNaturesLoading } =
+    useQuery({
+      queryKey: ['ticket-natures', 'dashboard-tatico-filter', scope],
+      queryFn: async () => {
+        const response = await getTicketNatures({ isActive: true })
         return (response.data ?? []).map((item) => ({
           value: item.id,
           label: item.name,
@@ -170,6 +186,35 @@ export function DashboardTaticoFilterModal({
               }
               staticOptions={ticketTypeOptions ?? []}
               optionsLoading={isTicketTypesLoading}
+            />
+
+            <DashboardTaticoSearchMultiSelect
+              scope={scope}
+              label="NATUREZA"
+              placeholder="Selecione"
+              value={draftFilters.nature_id}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  nature_id: value,
+                }))
+              }
+              staticOptions={ticketNatureOptions ?? []}
+              optionsLoading={isTicketNaturesLoading}
+            />
+
+            <DashboardTaticoSearchMultiSelect
+              scope={scope}
+              label="SERVIÇO"
+              placeholder="Selecione"
+              value={draftFilters.services}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  services: value,
+                }))
+              }
+              staticOptions={TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS}
             />
           </div>
 

@@ -231,6 +231,7 @@ export function TicketCreateForm() {
                                   vm.applyAssociatedTicketFromSearch(
                                     ticket.id,
                                     ticket.title,
+                                    ticket.ticket_type_name,
                                   ).catch(() => {})
                                   vm.setTicketPopoverOpen(false)
                                 }}

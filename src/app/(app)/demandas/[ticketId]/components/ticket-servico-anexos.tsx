@@ -426,7 +426,7 @@ export function TicketServicoAnexos({
                 type="file"
                 className={styles.servicoAnexosFileInput}
                 multiple
-                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc"
+                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 onChange={onPickUpload}
                 aria-hidden
                 tabIndex={-1}

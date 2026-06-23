@@ -2,6 +2,7 @@
 
 import {
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -30,8 +31,18 @@ interface DemandVolumeTotalChartProps {
 }
 
 const SERIES = [
-  { key: 'created', label: 'Chamados Criados', color: '#b93d52' },
-  { key: 'closed', label: 'Chamados Encerrados', color: '#06b2bb' },
+  {
+    key: 'created',
+    label: 'Chamados Criados',
+    color: '#b93d52',
+    labelPosition: 'top' as const,
+  },
+  {
+    key: 'closed',
+    label: 'Chamados Encerrados',
+    color: '#06b2bb',
+    labelPosition: 'bottom' as const,
+  },
 ] as const
 
 const CHART_COLORS = {
@@ -80,6 +91,7 @@ export function DemandVolumeTotalChart({
           value={granularity}
           onChange={onGranularityChange}
           disabled={isLoading}
+          includeDaily
         />
       </div>
 
@@ -89,7 +101,7 @@ export function DemandVolumeTotalChart({
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -142,9 +154,18 @@ export function DemandVolumeTotalChart({
                 name={s.label}
                 stroke={s.color}
                 strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4, strokeWidth: 0 }}
-              />
+                dot={{ r: 3, fill: s.color, strokeWidth: 0 }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+              >
+                <LabelList
+                  dataKey={s.key}
+                  position={s.labelPosition}
+                  formatter={(v: unknown) =>
+                    v != null && v !== '' ? String(v) : ''
+                  }
+                  style={{ fontSize: 10, fill: s.color, fontWeight: 600 }}
+                />
+              </Line>
             ))}
           </LineChart>
         </ResponsiveContainer>

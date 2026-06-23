@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react'
 import {
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -74,7 +75,7 @@ export function OperationalViewTeamLineChart({
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -124,19 +125,33 @@ export function OperationalViewTeamLineChart({
                 <span style={{ color: '#97a2ab' }}>{value}</span>
               )}
             />
-            {teams.map((team) => (
-              <Line
-                key={team}
-                type="monotone"
-                dataKey={team}
-                name={team}
-                stroke={getTeamColor(team, teams)}
-                strokeWidth={2}
-                dot={false}
-                connectNulls
-                activeDot={{ r: 4, strokeWidth: 0 }}
-              />
-            ))}
+            {teams.map((team, idx) => {
+              const color = getTeamColor(team, teams)
+              const labelPosition =
+                idx % 2 === 0 ? ('top' as const) : ('bottom' as const)
+              return (
+                <Line
+                  key={team}
+                  type="monotone"
+                  dataKey={team}
+                  name={team}
+                  stroke={color}
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: color, strokeWidth: 0 }}
+                  connectNulls
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                >
+                  <LabelList
+                    dataKey={team}
+                    position={labelPosition}
+                    formatter={(v: unknown) =>
+                      v != null && v !== '' ? valueFormatter(Number(v)) : ''
+                    }
+                    style={{ fontSize: 10, fill: color, fontWeight: 600 }}
+                  />
+                </Line>
+              )
+            })}
           </LineChart>
         </ResponsiveContainer>
       )}

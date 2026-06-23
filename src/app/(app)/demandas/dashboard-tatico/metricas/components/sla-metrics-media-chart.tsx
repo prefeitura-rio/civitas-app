@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react'
 import {
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -96,7 +97,7 @@ export function SlaMetricsMediaChart({
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -144,10 +145,24 @@ export function SlaMetricsMediaChart({
               name="Tempo médio (dias)"
               stroke={CHART_COLORS.line}
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3, fill: CHART_COLORS.line, strokeWidth: 0 }}
               connectNulls
-              activeDot={{ r: 4, strokeWidth: 0 }}
-            />
+              activeDot={{ r: 5, strokeWidth: 0 }}
+            >
+              <LabelList
+                dataKey="avg_days"
+                position="top"
+                formatter={(v: unknown) => {
+                  const n = Number(v)
+                  return !isNaN(n) && v != null && v !== '' ? n.toFixed(1) : ''
+                }}
+                style={{
+                  fontSize: 10,
+                  fill: CHART_COLORS.line,
+                  fontWeight: 600,
+                }}
+              />
+            </Line>
           </LineChart>
         </ResponsiveContainer>
       )}

@@ -1,9 +1,10 @@
 import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import { api } from '@/lib/api'
 
+import type { TicketDashboardServiceFilter } from './tickets-dashboard-filters'
 import { unwrapDashboardItems } from './unwrap-dashboard-items'
 
-export type DemandVolumeGranularity = 'monthly' | 'weekly' | 'yearly'
+export type DemandVolumeGranularity = 'daily' | 'monthly' | 'weekly' | 'yearly'
 
 export type DemandVolumeSummaryPeriod =
   | 'current_year'
@@ -11,6 +12,8 @@ export type DemandVolumeSummaryPeriod =
   | 'current_week'
 
 export type TicketPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
+
+export type MatrixSortOrder = 'asc' | 'desc'
 
 export type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 
@@ -24,9 +27,17 @@ export interface DemandVolumeFilterIn {
   priority?: TicketPriority[]
   status?: TicketStatus[]
   ticket_type_id?: string[]
+  nature_id?: string[]
+  services?: TicketDashboardServiceFilter[]
   media_relevant?: boolean | null
   /** Página da matriz closed_calls_by_requester (1-based). Padrão: 1 */
   closed_calls_by_requester_page?: number
+  /** Ordenação por total — closed_calls_by_nature. Padrão: desc */
+  nature_sort?: MatrixSortOrder
+  /** Ordenação por total — closed_calls_by_service. Padrão: desc */
+  service_sort?: MatrixSortOrder
+  /** Ordenação por total — closed_calls_by_requester. Padrão: desc */
+  requester_sort?: MatrixSortOrder
 }
 
 export interface DemandVolumeSummaryOut {
@@ -74,6 +85,7 @@ export interface PaginatedMatrixRowsOut {
 export type DemandVolumeGranularityBucket<T> = T[] | { items?: T[] | null }
 
 export interface DemandVolumeGranularitySeries<T> {
+  daily?: DemandVolumeGranularityBucket<T>
   monthly: DemandVolumeGranularityBucket<T>
   weekly: DemandVolumeGranularityBucket<T>
   yearly: DemandVolumeGranularityBucket<T>
@@ -84,7 +96,9 @@ export function pickDemandVolumeGranularitySeries<T>(
   granularity: DemandVolumeGranularity,
 ): T[] {
   if (!series) return []
-  return unwrapDashboardItems(series[granularity])
+  const bucket = series[granularity]
+  if (!bucket) return []
+  return unwrapDashboardItems(bucket)
 }
 
 export interface DemandVolumeOut {
@@ -107,6 +121,8 @@ export function sanitizeDemandVolumeFilters(
   if (!payload.priority?.length) delete payload.priority
   if (!payload.status?.length) delete payload.status
   if (!payload.ticket_type_id?.length) delete payload.ticket_type_id
+  if (!payload.nature_id?.length) delete payload.nature_id
+  if (!payload.services?.length) delete payload.services
   if (payload.media_relevant === undefined) {
     delete payload.media_relevant
   }

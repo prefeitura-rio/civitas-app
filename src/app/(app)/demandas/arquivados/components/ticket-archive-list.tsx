@@ -35,7 +35,7 @@ function getServiceClassName(label: string) {
   if (normalized.includes('busca por radar')) return styles.serviceTagBlue
   if (normalized.includes('placas correlatas')) return styles.serviceTagOrange
   if (normalized.includes('placas conjuntas')) return styles.serviceTagPurple
-  if (normalized.includes('other')) return styles.serviceTagRed
+  if (normalized.includes('outros')) return styles.serviceTagRed
   if (normalized.includes('atlas')) return styles.serviceTagDefault
 
   return styles.serviceTagDefault

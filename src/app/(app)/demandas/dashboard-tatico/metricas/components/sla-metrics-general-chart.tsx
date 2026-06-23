@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react'
 import {
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -35,11 +36,13 @@ const SERIES = [
     key: 'from_registration_days',
     label: 'A partir do cadastro',
     color: '#b93d52',
+    labelPosition: 'top' as const,
   },
   {
     key: 'from_email_days',
     label: 'A partir do e-mail',
     color: '#06b2bb',
+    labelPosition: 'bottom' as const,
   },
 ] as const
 
@@ -108,7 +111,7 @@ export function SlaMetricsGeneralChart({
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -167,10 +170,22 @@ export function SlaMetricsGeneralChart({
                 name={s.label}
                 stroke={s.color}
                 strokeWidth={2}
-                dot={false}
+                dot={{ r: 3, fill: s.color, strokeWidth: 0 }}
                 connectNulls
-                activeDot={{ r: 4, strokeWidth: 0 }}
-              />
+                activeDot={{ r: 5, strokeWidth: 0 }}
+              >
+                <LabelList
+                  dataKey={s.key}
+                  position={s.labelPosition}
+                  formatter={(v: unknown) => {
+                    const n = Number(v)
+                    return !isNaN(n) && v != null && v !== ''
+                      ? n.toFixed(1)
+                      : ''
+                  }}
+                  style={{ fontSize: 10, fill: s.color, fontWeight: 600 }}
+                />
+              </Line>
             ))}
           </LineChart>
         </ResponsiveContainer>

@@ -8,6 +8,7 @@ export type GetTicketsResponse = Array<{
   id: string
   created_at: string
   title: string
+  ticket_type_name: string
 }>
 
 export async function getTicketsSelect({ search }: GetTicketsParams) {

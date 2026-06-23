@@ -2,6 +2,7 @@
 
 import {
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -30,10 +31,30 @@ interface DemandVolumeUrgencyChartProps {
 }
 
 const SERIES = [
-  { key: 'urgent', label: 'Urgente', color: '#b93d52' },
-  { key: 'high', label: 'Alta', color: '#5b4db2' },
-  { key: 'routine', label: 'Rotina', color: '#06b2bb' },
-  { key: 'no_priority', label: 'Sem Prioridade', color: '#97a2ab' },
+  {
+    key: 'urgent',
+    label: 'Urgente',
+    color: '#b93d52',
+    labelPosition: 'top' as const,
+  },
+  {
+    key: 'high',
+    label: 'Alta',
+    color: '#5b4db2',
+    labelPosition: 'bottom' as const,
+  },
+  {
+    key: 'routine',
+    label: 'Rotina',
+    color: '#06b2bb',
+    labelPosition: 'top' as const,
+  },
+  {
+    key: 'no_priority',
+    label: 'Sem Prioridade',
+    color: '#97a2ab',
+    labelPosition: 'bottom' as const,
+  },
 ] as const
 
 const CHART_COLORS = {
@@ -91,7 +112,7 @@ export function DemandVolumeUrgencyChart({
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -140,9 +161,18 @@ export function DemandVolumeUrgencyChart({
                 name={s.label}
                 stroke={s.color}
                 strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4, strokeWidth: 0 }}
-              />
+                dot={{ r: 3, fill: s.color, strokeWidth: 0 }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+              >
+                <LabelList
+                  dataKey={s.key}
+                  position={s.labelPosition}
+                  formatter={(v: unknown) =>
+                    v != null && v !== '' ? String(v) : ''
+                  }
+                  style={{ fontSize: 10, fill: s.color, fontWeight: 600 }}
+                />
+              </Line>
             ))}
           </LineChart>
         </ResponsiveContainer>

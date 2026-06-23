@@ -1,16 +1,8 @@
 import { api } from '@/lib/api'
 
-export type TicketArchiveServiceFilter =
-  | 'plate_search_services'
-  | 'radar_search_services'
-  | 'electronic_fence_services'
-  | 'image_search_services'
-  | 'correlated_plate_services'
-  | 'joint_plate_services'
-  | 'image_reservation_services'
-  | 'image_analysis_services'
-  | 'other_services'
-  | 'atlas_civitas_services'
+import type { TicketDashboardServiceFilter } from './tickets-dashboard-filters'
+
+export type TicketArchiveServiceFilter = TicketDashboardServiceFilter
 
 export type TicketArchiveFilters = {
   search?: string
