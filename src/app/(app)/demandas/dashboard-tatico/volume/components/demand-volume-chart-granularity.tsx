@@ -11,8 +11,10 @@ import type { DemandVolumeGranularity } from '@/http/tickets/get-demand-volume'
 
 import styles from './demand-volume-top.module.css'
 
+type ChartGranularityBase = 'monthly' | 'weekly' | 'yearly'
+
 const BASE_GRANULARITY_OPTIONS: {
-  value: DemandVolumeGranularity
+  value: ChartGranularityBase
   label: string
 }[] = [
   { value: 'monthly', label: 'Mensal' },
@@ -20,19 +22,23 @@ const BASE_GRANULARITY_OPTIONS: {
   { value: 'yearly', label: 'Anual' },
 ]
 
-interface DemandVolumeChartGranularityProps {
-  value: DemandVolumeGranularity
-  onChange: (value: DemandVolumeGranularity) => void
+interface DemandVolumeChartGranularityProps<
+  T extends ChartGranularityBase | 'daily' = DemandVolumeGranularity,
+> {
+  value: T
+  onChange: (value: T) => void
   disabled?: boolean
   includeDaily?: boolean
 }
 
-export function DemandVolumeChartGranularity({
+export function DemandVolumeChartGranularity<
+  T extends ChartGranularityBase | 'daily' = DemandVolumeGranularity,
+>({
   value,
   onChange,
   disabled,
   includeDaily,
-}: DemandVolumeChartGranularityProps) {
+}: DemandVolumeChartGranularityProps<T>) {
   const granularityOptions = includeDaily
     ? [
         { value: 'daily' as const, label: 'Diário' },
@@ -44,7 +50,7 @@ export function DemandVolumeChartGranularity({
       <Select
         value={value}
         disabled={disabled}
-        onValueChange={(v) => onChange(v as DemandVolumeGranularity)}
+        onValueChange={(v) => onChange(v as T)}
       >
         <SelectTrigger
           className={`h-11 w-full ${styles.pageSelectTrigger}`}
