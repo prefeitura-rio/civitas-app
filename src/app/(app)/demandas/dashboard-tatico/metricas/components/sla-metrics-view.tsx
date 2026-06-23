@@ -11,6 +11,10 @@ import {
 } from '@/http/tickets/get-sla-dashboard'
 import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
+import {
+  SLA_BY_PRIORITY_TOOLTIP,
+  SLA_BY_SERVICE_TOOLTIP,
+} from '../../components/sla-table-tooltips'
 import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-volume-date-range'
 import {
   advancedFiltersToApiPatch,
@@ -222,6 +226,7 @@ export function SlaMetricsView() {
 
       <SlaMetricsSlaTable
         title="Desempenho de SLA por Prioridade"
+        tooltip={SLA_BY_PRIORITY_TOOLTIP}
         columnHeader="PRIORIDADE"
         rows={slaPerformanceByPriorityRows}
         periodLabels={slaTablePeriodLabels}
@@ -231,6 +236,7 @@ export function SlaMetricsView() {
 
       <SlaMetricsSlaTable
         title="Desempenho de SLA por Serviço"
+        tooltip={SLA_BY_SERVICE_TOOLTIP}
         columnHeader="SERVIÇO"
         rows={slaPerformanceByServiceRows}
         periodLabels={slaTablePeriodLabels}

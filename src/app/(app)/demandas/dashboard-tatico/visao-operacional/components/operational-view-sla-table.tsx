@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react'
 import type { SlaPerformanceByTeamRowOut } from '@/http/tickets/get-operational-view'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
 import { formatPeriodLabel } from '../../volume/components/demand-volume-period-label'
 
 interface OperationalViewSlaTableProps {
@@ -12,6 +13,7 @@ interface OperationalViewSlaTableProps {
   periodLabels: string[]
   isLoading: boolean
   isAvailable: boolean
+  tooltip?: string
 }
 
 type CellVariant = 'above' | 'below' | 'neutral'
@@ -86,6 +88,7 @@ export function OperationalViewSlaTable({
   periodLabels,
   isLoading,
   isAvailable,
+  tooltip,
 }: OperationalViewSlaTableProps) {
   const formattedHeaders = periodLabels.map((pl) =>
     formatPeriodLabel(pl, 'monthly'),
@@ -104,16 +107,9 @@ export function OperationalViewSlaTable({
         padding: '24px',
       }}
     >
-      <h2
-        style={{
-          fontSize: '20px',
-          fontWeight: 600,
-          color: '#f9fafa',
-          margin: '0 0 20px 0',
-        }}
-      >
+      <DashboardTaticoSectionTitle tooltip={tooltip}>
         Desempenho de SLA por Equipe
-      </h2>
+      </DashboardTaticoSectionTitle>
 
       {rows.length === 0 ? (
         <DashboardTaticoDataState isLoading={isLoading} isEmpty height={120} />

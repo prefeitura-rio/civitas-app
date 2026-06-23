@@ -5,11 +5,13 @@ import type { CSSProperties } from 'react'
 import type { SlaPerformanceRowOut } from '@/http/tickets/get-sla-dashboard'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
 import { formatPeriodLabel } from '../../volume/components/demand-volume-period-label'
 import { formatSlaPerformanceRowLabel } from './sla-metrics-filter-utils'
 
 interface SlaMetricsSlaTableProps {
   title: string
+  tooltip?: string
   columnHeader: string
   rows: SlaPerformanceRowOut[]
   periodLabels: string[]
@@ -87,6 +89,7 @@ function formatSlaPercent(value: number): string {
 
 export function SlaMetricsSlaTable({
   title,
+  tooltip,
   columnHeader,
   rows,
   periodLabels,
@@ -111,16 +114,9 @@ export function SlaMetricsSlaTable({
         padding: '24px',
       }}
     >
-      <h2
-        style={{
-          fontSize: '20px',
-          fontWeight: 600,
-          color: '#f9fafa',
-          margin: '0 0 20px 0',
-        }}
-      >
+      <DashboardTaticoSectionTitle tooltip={tooltip}>
         {title}
-      </h2>
+      </DashboardTaticoSectionTitle>
 
       {rows.length === 0 ? (
         <DashboardTaticoDataState isLoading={isLoading} isEmpty height={120} />
