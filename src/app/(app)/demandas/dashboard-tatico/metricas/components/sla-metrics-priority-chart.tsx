@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react'
 import {
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -31,10 +32,30 @@ interface SlaMetricsPriorityChartProps {
 }
 
 const SERIES = [
-  { key: 'urgent_days', label: 'Urgente', color: '#b93d52' },
-  { key: 'high_days', label: 'Alta', color: '#5b4db2' },
-  { key: 'routine_days', label: 'Rotina', color: '#06b2bb' },
-  { key: 'no_priority_days', label: 'Sem Prioridade', color: '#97a2ab' },
+  {
+    key: 'urgent_days',
+    label: 'Urgente',
+    color: '#b93d52',
+    labelPosition: 'top' as const,
+  },
+  {
+    key: 'high_days',
+    label: 'Alta',
+    color: '#5b4db2',
+    labelPosition: 'bottom' as const,
+  },
+  {
+    key: 'routine_days',
+    label: 'Rotina',
+    color: '#06b2bb',
+    labelPosition: 'top' as const,
+  },
+  {
+    key: 'no_priority_days',
+    label: 'Sem Prioridade',
+    color: '#97a2ab',
+    labelPosition: 'bottom' as const,
+  },
 ] as const
 
 const CHART_COLORS = {
@@ -102,7 +123,7 @@ export function SlaMetricsPriorityChart({
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -152,10 +173,22 @@ export function SlaMetricsPriorityChart({
                 name={s.label}
                 stroke={s.color}
                 strokeWidth={2}
-                dot={false}
+                dot={{ r: 3, fill: s.color, strokeWidth: 0 }}
                 connectNulls
-                activeDot={{ r: 4, strokeWidth: 0 }}
-              />
+                activeDot={{ r: 5, strokeWidth: 0 }}
+              >
+                <LabelList
+                  dataKey={s.key}
+                  position={s.labelPosition}
+                  formatter={(v: unknown) => {
+                    const n = Number(v)
+                    return !isNaN(n) && v != null && v !== ''
+                      ? n.toFixed(1)
+                      : ''
+                  }}
+                  style={{ fontSize: 10, fill: s.color, fontWeight: 600 }}
+                />
+              </Line>
             ))}
           </LineChart>
         </ResponsiveContainer>

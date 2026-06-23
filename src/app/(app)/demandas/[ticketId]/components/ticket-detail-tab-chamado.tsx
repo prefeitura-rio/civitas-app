@@ -41,7 +41,6 @@ import { shouldShowTicketSeiFields } from '../ticket-detail.constants'
 import styles from '../ticket-detail.module.css'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
-const MAX_OFICIO_PROC = 60
 const MAX_APELIDO = 120
 const MAX_NUMERO_SEI = 60
 const MAX_LINK_SEI = 2048
@@ -134,8 +133,10 @@ function buildChamadoPayload(
     )
     return null
   }
-  if (proc.length > MAX_OFICIO_PROC) {
-    toast.error(`Nº de procedimento: no máximo ${MAX_OFICIO_PROC} caracteres.`)
+  if (proc.length > CREATE_STR_LIMITS.procedure_number) {
+    toast.error(
+      `Nº de procedimento: no máximo ${CREATE_STR_LIMITS.procedure_number} caracteres.`,
+    )
     return null
   }
 
@@ -465,7 +466,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                   <input
                     className={`${styles.editableField} ${styles.solicitanteEditField}`}
                     value={d.procedure_number ?? ''}
-                    maxLength={MAX_OFICIO_PROC}
+                    maxLength={CREATE_STR_LIMITS.procedure_number}
                     onChange={(e) =>
                       setDraft((prev) =>
                         prev

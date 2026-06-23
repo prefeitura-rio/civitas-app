@@ -5,6 +5,7 @@ import type {
   DemandVolumeTicketItemOut,
   DemandVolumeTicketsOut,
 } from './get-demand-volume'
+import type { TicketDashboardServiceFilter } from './tickets-dashboard-filters'
 import { unwrapDashboardItems } from './unwrap-dashboard-items'
 
 export type SlaDashboardGranularity = 'monthly' | 'weekly' | 'yearly'
@@ -23,6 +24,8 @@ export interface SlaDashboardFilterIn {
   priority?: TicketPriority[]
   status?: SlaTicketStatus[]
   ticket_type_id?: string[]
+  nature_id?: string[]
+  services?: TicketDashboardServiceFilter[]
   media_relevant?: boolean | null
 }
 
@@ -103,6 +106,8 @@ export function sanitizeSlaDashboardFilters(
   if (!payload.priority?.length) delete payload.priority
   if (!payload.status?.length) delete payload.status
   if (!payload.ticket_type_id?.length) delete payload.ticket_type_id
+  if (!payload.nature_id?.length) delete payload.nature_id
+  if (!payload.services?.length) delete payload.services
   if (payload.media_relevant === undefined) {
     delete payload.media_relevant
   }

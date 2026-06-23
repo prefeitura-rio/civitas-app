@@ -11,7 +11,7 @@ import type { DemandVolumeGranularity } from '@/http/tickets/get-demand-volume'
 
 import styles from './demand-volume-top.module.css'
 
-const GRANULARITY_OPTIONS: {
+const BASE_GRANULARITY_OPTIONS: {
   value: DemandVolumeGranularity
   label: string
 }[] = [
@@ -24,13 +24,21 @@ interface DemandVolumeChartGranularityProps {
   value: DemandVolumeGranularity
   onChange: (value: DemandVolumeGranularity) => void
   disabled?: boolean
+  includeDaily?: boolean
 }
 
 export function DemandVolumeChartGranularity({
   value,
   onChange,
   disabled,
+  includeDaily,
 }: DemandVolumeChartGranularityProps) {
+  const granularityOptions = includeDaily
+    ? [
+        { value: 'daily' as const, label: 'Diário' },
+        ...BASE_GRANULARITY_OPTIONS,
+      ]
+    : BASE_GRANULARITY_OPTIONS
   return (
     <div className={styles.pageSelectWrapCompact}>
       <Select
@@ -45,7 +53,7 @@ export function DemandVolumeChartGranularity({
           <SelectValue />
         </SelectTrigger>
         <SelectContent className={styles.selectContentForm}>
-          {GRANULARITY_OPTIONS.map((opt) => (
+          {granularityOptions.map((opt) => (
             <SelectItem
               key={opt.value}
               value={opt.value}

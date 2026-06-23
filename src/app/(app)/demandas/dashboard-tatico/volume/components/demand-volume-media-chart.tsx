@@ -2,6 +2,7 @@
 
 import {
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -85,7 +86,7 @@ export function DemandVolumeMediaChart({
         <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -132,9 +133,22 @@ export function DemandVolumeMediaChart({
               name="Relevância na Mídia"
               stroke={CHART_COLORS.line}
               strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0 }}
-            />
+              dot={{ r: 3, fill: CHART_COLORS.line, strokeWidth: 0 }}
+              activeDot={{ r: 5, strokeWidth: 0 }}
+            >
+              <LabelList
+                dataKey="count"
+                position="top"
+                formatter={(v: unknown) =>
+                  v != null && v !== '' ? String(v) : ''
+                }
+                style={{
+                  fontSize: 10,
+                  fill: CHART_COLORS.line,
+                  fontWeight: 600,
+                }}
+              />
+            </Line>
           </LineChart>
         </ResponsiveContainer>
       )}

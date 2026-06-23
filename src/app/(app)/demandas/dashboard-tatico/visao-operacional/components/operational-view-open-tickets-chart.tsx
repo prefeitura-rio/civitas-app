@@ -5,6 +5,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
   Legend,
   ResponsiveContainer,
   Tooltip,
@@ -133,7 +134,7 @@ export function OperationalViewOpenTicketsChart({
                 <span style={{ color: '#97a2ab' }}>{value}</span>
               )}
             />
-            {statusSeries.map((status) => (
+            {statusSeries.map((status, idx) => (
               <Bar
                 key={status.key}
                 dataKey={status.key}
@@ -141,7 +142,58 @@ export function OperationalViewOpenTicketsChart({
                 stackId="open_tickets"
                 fill={status.color}
                 radius={[0, 0, 0, 0]}
-              />
+              >
+                <LabelList
+                  dataKey={status.key}
+                  position="inside"
+                  formatter={(v: unknown) => {
+                    const n = Number(v)
+                    return n > 0 ? String(n) : ''
+                  }}
+                  style={{ fontSize: 10, fill: '#f9fafa', fontWeight: 600 }}
+                />
+                {idx === statusSeries.length - 1 && (
+                  <LabelList
+                    dataKey={status.key}
+                    position="top"
+                    content={(props) => {
+                      const { x, y, width, index } = props as {
+                        x?: number
+                        y?: number
+                        width?: number
+                        index?: number
+                      }
+                      if (
+                        x == null ||
+                        y == null ||
+                        width == null ||
+                        index == null
+                      )
+                        return null
+                      const rowValues = statusSeries.map((s) => {
+                        const val = ((
+                          props as { payload?: Record<string, unknown> }
+                        ).payload ?? {})[s.key]
+                        return typeof val === 'number' ? val : 0
+                      })
+                      const total = rowValues.reduce((a, b) => a + b, 0)
+                      if (total === 0) return null
+                      return (
+                        <text
+                          x={Number(x) + Number(width) / 2}
+                          y={Number(y) - 6}
+                          textAnchor="middle"
+                          fill="#97a2ab"
+                          fontSize={10}
+                          fontWeight={600}
+                        >
+                          {total}
+                        </text>
+                      )
+                    }}
+                  />
+                )}
+              </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>

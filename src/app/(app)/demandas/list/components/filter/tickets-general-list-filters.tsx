@@ -12,6 +12,7 @@ import {
   type SearchOption,
   searchRequesters,
   searchTicketResponsibles,
+  TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS,
 } from '@/http/tickets/tickets-dashboard-filters'
 
 import styles from './tickets-general-list-filters.module.css'
@@ -90,20 +91,6 @@ const prioritySearchOptions: SearchOption[] = priorityOptions.map((p) => ({
   value: p,
   label: formatLabel(p),
 }))
-
-/** Labels em português; `value` é o enviado no body (`services`). */
-export const dashboardServicosFilterOptions: SearchOption[] = [
-  { value: 'plate_search_services', label: 'Busca por placa' },
-  { value: 'radar_search_services', label: 'Busca por radar' },
-  { value: 'electronic_fence_services', label: 'Cerco eletrônico' },
-  { value: 'image_search_services', label: 'Busca por imagem' },
-  { value: 'correlated_plate_services', label: 'Placas correlatas' },
-  { value: 'joint_plate_services', label: 'Placas conjuntas' },
-  { value: 'image_reservation_services', label: 'Reserva de imagem' },
-  { value: 'image_analysis_services', label: 'Análise de imagem' },
-  { value: 'other_services', label: 'Outros' },
-  { value: 'atlas_civitas_services', label: 'Atlas Civitas' },
-]
 
 function SearchMultiSelect({
   label,
@@ -359,7 +346,7 @@ export function TicketsDashboardFilterModal({
                   services: value,
                 }))
               }
-              staticOptions={dashboardServicosFilterOptions}
+              staticOptions={TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS}
             />
           </div>
 
