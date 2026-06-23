@@ -1000,6 +1000,11 @@
   color: #b93d52;
 }
 
+.rtTagIndigo {
+  background: rgba(88, 86, 214, 0.1);
+  color: #5856d6;
+}
+
 .rtTagDefault {
   background: rgba(89, 101, 116, 0.1);
   color: #97a2ab;

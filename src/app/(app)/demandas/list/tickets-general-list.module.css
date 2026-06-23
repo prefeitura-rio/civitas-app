@@ -436,6 +436,12 @@
   color: #b93d52;
 }
 
+.serviceTagIndigo {
+  background: rgba(88, 86, 214, 0.1);
+  border: 1px solid transparent;
+  color: #5856d6;
+}
+
 .serviceTagDefault {
   background: rgba(89, 101, 116, 0.1);
   border: 1px solid transparent;

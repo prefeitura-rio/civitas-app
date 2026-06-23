@@ -37,6 +37,10 @@ import {
 import { isApiError } from '@/lib/api'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
+import {
+  getServiceTagClass,
+  type ServiceTagStyles,
+} from '../../utils/service-tag-class'
 import { shouldShowTicketSeiFields } from '../ticket-detail.constants'
 import styles from '../ticket-detail.module.css'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
@@ -46,6 +50,19 @@ const MAX_NUMERO_SEI = 60
 const MAX_LINK_SEI = 2048
 
 const SERVICE_PREVIEW = 3
+
+const rtTagStyles: ServiceTagStyles = {
+  serviceTagPink: styles.rtTagPink,
+  serviceTagGreen: styles.rtTagGreen,
+  serviceTagYellow: styles.rtTagYellow,
+  serviceTagCyan: styles.rtTagCyan,
+  serviceTagBlue: styles.rtTagBlue,
+  serviceTagOrange: styles.rtTagOrange,
+  serviceTagPurple: styles.rtTagPurple,
+  serviceTagRed: styles.rtTagRed,
+  serviceTagIndigo: styles.rtTagIndigo,
+  serviceTagDefault: styles.rtTagDefault,
+}
 
 type Props = {
   ticketId: string
@@ -62,24 +79,6 @@ function displayText(value?: string | null) {
 function formatNumeroInterno(n?: number | null) {
   if (n == null) return '—'
   return String(n).padStart(7, '0')
-}
-
-function rtTagClass(label: string) {
-  const n = label.trim().toLowerCase()
-  if (n.includes('cerco')) return styles.rtTagPink
-  if (n.includes('busca por placa') || n.includes('busca de placa'))
-    return styles.rtTagGreen
-  if (n.includes('reserva de imagem')) return styles.rtTagYellow
-  if (n.includes('busca por imagem') || n.includes('busca de imagem'))
-    return styles.rtTagCyan
-  if (n.includes('busca por radar') || n.includes('busca de radar'))
-    return styles.rtTagBlue
-  if (n.includes('placas correlatas')) return styles.rtTagOrange
-  if (n.includes('placas conjuntas') || n.includes('placa conjuntas'))
-    return styles.rtTagPurple
-  if (n.includes('other')) return styles.rtTagRed
-  if (n.includes('atlas')) return styles.rtTagDefault
-  return styles.rtTagDefault
 }
 
 function mapOutToDraft(f: TicketFichaOut): TicketFichaUpdateIn {
@@ -817,7 +816,7 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
                               {preview.map((svc) => (
                                 <span
                                   key={`${row.id}-${svc}`}
-                                  className={`${styles.rtTag} ${rtTagClass(svc)}`}
+                                  className={`${styles.rtTag} ${getServiceTagClass(svc, rtTagStyles)}`}
                                 >
                                   <Tag size={12} strokeWidth={2} aria-hidden />
                                   {svc}
