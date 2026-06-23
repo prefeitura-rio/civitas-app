@@ -2510,6 +2510,24 @@
   min-width: 0;
 }
 
+.relatorioEditorToolbarRow {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--td-border);
+}
+
+.relatorioEditorToolbarRow > :first-child {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none;
+}
+
+.relatorioPasteTooltipTrigger {
+  margin-right: 8px;
+  flex-shrink: 0;
+  cursor: help;
+}
+
 .relatorioEditor {
   min-height: 240px;
   max-height: min(75vh, 920px);
