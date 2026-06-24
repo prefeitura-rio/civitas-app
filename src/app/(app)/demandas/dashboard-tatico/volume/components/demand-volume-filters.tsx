@@ -17,6 +17,7 @@ import {
   DashboardTaticoFilterModal,
   DEMAND_VOLUME_STATUS_OPTIONS,
 } from '../../components/filters'
+import { usePersistedAdvancedFilters } from '../../components/filters/use-persisted-advanced-filters'
 import {
   parseDemandVolumeDate,
   toDemandVolumeDateString,
@@ -141,10 +142,8 @@ export function DemandVolumeFilters({
     () => countDemandVolumeAdvancedFiltersFromApi(appliedFilters),
     [appliedFilters],
   )
-  const advancedFiltersForm = useMemo(
-    () => advancedFiltersFromApi(appliedFilters),
-    [appliedFilters],
-  )
+  const { form: advancedFiltersForm, applyAdvancedFilters } =
+    usePersistedAdvancedFilters(() => advancedFiltersFromApi(appliedFilters))
 
   return (
     <div className={styles.periodBar}>
@@ -209,7 +208,7 @@ export function DemandVolumeFilters({
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         filters={advancedFiltersForm}
-        onApply={onApplyAdvancedFilters}
+        onApply={(form) => applyAdvancedFilters(form, onApplyAdvancedFilters)}
       />
     </div>
   )

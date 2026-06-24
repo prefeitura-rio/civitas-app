@@ -4,6 +4,7 @@ import { Pagination } from '@/components/ui/pagination'
 import type {
   DemandVolumeGranularity,
   MatrixRowOut,
+  MatrixSortOrder,
 } from '@/http/tickets/get-demand-volume'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
@@ -24,6 +25,8 @@ interface DemandVolumeMatrixTableProps {
   isLoading: boolean
   isAvailable: boolean
   pagination?: DemandVolumeMatrixTablePagination
+  sortOrder?: MatrixSortOrder
+  onSortOrderChange?: (order: MatrixSortOrder) => void
 }
 
 /** Tabelas usam agrupamento fixo (mensal) definido pelo backend. */
@@ -113,10 +116,17 @@ export function DemandVolumeMatrixTable({
   isLoading,
   isAvailable,
   pagination,
+  sortOrder = 'desc',
+  onSortOrderChange,
 }: DemandVolumeMatrixTableProps) {
   const formattedHeaders = periodLabels.map((pl) =>
     formatPeriodLabel(pl, MATRIX_GRANULARITY),
   )
+
+  function handleSortToggle() {
+    if (!onSortOrderChange) return
+    onSortOrderChange(sortOrder === 'desc' ? 'asc' : 'desc')
+  }
 
   if (!isLoading && !isAvailable) {
     return null
@@ -180,7 +190,37 @@ export function DemandVolumeMatrixTable({
                       borderLeft: '1px solid #1d3449',
                     }}
                   >
-                    Total
+                    {onSortOrderChange ? (
+                      <button
+                        type="button"
+                        onClick={handleSortToggle}
+                        aria-label={`Ordenar por total, ${
+                          sortOrder === 'desc'
+                            ? 'maior para menor'
+                            : 'menor para maior'
+                        }`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          font: 'inherit',
+                          color: 'inherit',
+                          textTransform: 'inherit',
+                          letterSpacing: 'inherit',
+                        }}
+                      >
+                        Total
+                        <span aria-hidden="true" style={{ fontSize: '10px' }}>
+                          {sortOrder === 'desc' ? '▼' : '▲'}
+                        </span>
+                      </button>
+                    ) : (
+                      'Total'
+                    )}
                   </th>
                 </tr>
               </thead>

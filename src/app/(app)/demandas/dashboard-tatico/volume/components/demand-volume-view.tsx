@@ -8,6 +8,7 @@ import {
   type DemandVolumeGranularity,
   type DemandVolumeSummaryPeriod,
   getDemandVolume,
+  type MatrixSortOrder,
   pickDemandVolumeGranularitySeries,
 } from '@/http/tickets/get-demand-volume'
 import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
@@ -98,6 +99,22 @@ export function DemandVolumeView() {
     setAppliedFilters((prev) => ({
       ...prev,
       closed_calls_by_requester_page: page,
+    }))
+  }
+
+  function handleNatureSortChange(order: MatrixSortOrder) {
+    setAppliedFilters((prev) => ({ ...prev, nature_sort: order }))
+  }
+
+  function handleServiceSortChange(order: MatrixSortOrder) {
+    setAppliedFilters((prev) => ({ ...prev, service_sort: order }))
+  }
+
+  function handleRequesterSortChange(order: MatrixSortOrder) {
+    setAppliedFilters((prev) => ({
+      ...prev,
+      requester_sort: order,
+      closed_calls_by_requester_page: undefined,
     }))
   }
 
@@ -250,6 +267,8 @@ export function DemandVolumeView() {
         isLoading={isFetching}
         isAvailable={data?.closed_calls_by_nature != null}
         columnHeader="NATUREZA"
+        sortOrder={appliedFilters.nature_sort ?? 'desc'}
+        onSortOrderChange={handleNatureSortChange}
       />
 
       <DemandVolumeMatrixTable
@@ -259,6 +278,8 @@ export function DemandVolumeView() {
         isLoading={isFetching}
         isAvailable={data?.closed_calls_by_service != null}
         columnHeader="SERVIÇO"
+        sortOrder={appliedFilters.service_sort ?? 'desc'}
+        onSortOrderChange={handleServiceSortChange}
       />
 
       <DemandVolumeMediaChart
@@ -276,6 +297,8 @@ export function DemandVolumeView() {
         isLoading={isFetching}
         isAvailable={data?.closed_calls_by_requester != null}
         columnHeader="DEMANDANTE"
+        sortOrder={appliedFilters.requester_sort ?? 'desc'}
+        onSortOrderChange={handleRequesterSortChange}
         pagination={
           data?.closed_calls_by_requester &&
           typeof data.closed_calls_by_requester === 'object' &&

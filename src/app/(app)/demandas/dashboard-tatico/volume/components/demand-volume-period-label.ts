@@ -19,6 +19,13 @@ export function formatPeriodLabel(
   label: string,
   granularity: DemandVolumeGranularity,
 ): string {
+  if (granularity === 'daily') {
+    // "2026-03-19" → "19/03"
+    const [, month, day] = label.split('-')
+    if (day && month) return `${day}/${month}`
+    return label
+  }
+
   if (granularity === 'monthly') {
     // "2026-03" → "Mar/26"
     const [year, month] = label.split('-')

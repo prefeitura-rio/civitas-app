@@ -24,6 +24,7 @@ import {
 } from '@/http/tickets/get-tickets-dashboard'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
+import { getServiceTagClass } from '../utils/service-tag-class'
 import {
   emptyFilters,
   type FilterFormState,
@@ -207,34 +208,6 @@ function isLevantamentoPrevioTipo(item: DashboardItem) {
   return item.ticket_type_name?.trim() === LEVANTAMENTO_PREVIO_TIPO_NOME
 }
 
-function getServiceClassName(label: string) {
-  const normalized = label.trim().toLowerCase()
-
-  if (normalized.includes('cerco')) return styles.serviceTagPink
-  if (
-    normalized.includes('busca por placa') ||
-    normalized.includes('busca de placa')
-  )
-    return styles.serviceTagGreen
-  if (normalized.includes('reserva de imagem')) return styles.serviceTagYellow
-  if (
-    normalized.includes('busca por imagem') ||
-    normalized.includes('busca de imagem')
-  )
-    return styles.serviceTagCyan
-  if (
-    normalized.includes('busca por radar') ||
-    normalized.includes('busca de radar')
-  )
-    return styles.serviceTagBlue
-  if (normalized.includes('placas correlatas')) return styles.serviceTagOrange
-  if (normalized.includes('placas conjuntas')) return styles.serviceTagPurple
-  if (normalized.includes('other')) return styles.serviceTagRed
-  if (normalized.includes('atlas')) return styles.serviceTagDefault
-
-  return styles.serviceTagDefault
-}
-
 function DashboardSectionTable({
   title,
   total,
@@ -331,7 +304,7 @@ function DashboardSectionTable({
                         {previewLabels.map((service, index) => (
                           <span
                             key={`${item.id}-${service.label}-${index}`}
-                            className={`${styles.serviceTag} ${getServiceClassName(service.label)}`}
+                            className={`${styles.serviceTag} ${getServiceTagClass(service.label)}`}
                           >
                             <Tag
                               className={styles.serviceTagIcon}
@@ -354,7 +327,7 @@ function DashboardSectionTable({
                                   .map((service, index) => (
                                     <span
                                       key={`${item.id}-extra-${service.label}-${index}`}
-                                      className={`${styles.serviceTag} ${getServiceClassName(service.label)}`}
+                                      className={`${styles.serviceTag} ${getServiceTagClass(service.label)}`}
                                     >
                                       <Tag
                                         className={styles.serviceTagIcon}

@@ -15,6 +15,8 @@ export function emptyDashboardTaticoAdvancedFilters(): DashboardTaticoAdvancedFi
     priority: [],
     status: [],
     ticket_type_id: [],
+    nature_id: [],
+    services: [],
     relevanteImprensa: false,
   }
 }
