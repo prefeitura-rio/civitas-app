@@ -3,7 +3,11 @@ import type {
   OperationalViewPriority,
   OperationalViewStatus,
 } from '@/http/tickets/get-operational-view'
-import type { SearchOption } from '@/http/tickets/tickets-dashboard-filters'
+import type {
+  SearchOption,
+  TicketDashboardServiceFilter,
+} from '@/http/tickets/tickets-dashboard-filters'
+import { TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS } from '@/http/tickets/tickets-dashboard-filters'
 
 import {
   DASHBOARD_TATICO_PRIORITY_OPTIONS,
@@ -27,6 +31,9 @@ const priorityLabelByValue = new Map(
 const statusLabelByValue = new Map(
   OPERATIONAL_VIEW_STATUS_OPTIONS.map((o) => [o.value, o.label]),
 )
+const serviceLabelByValue = new Map(
+  TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS.map((o) => [o.value, o.label]),
+)
 
 export const emptyOperationalViewAdvancedFilters =
   emptyDashboardTaticoAdvancedFilters
@@ -44,6 +51,8 @@ export function countOperationalViewAdvancedFiltersFromApi(
   count += filters.status?.length ?? 0
 
   count += filters.ticket_type_id?.length ?? 0
+  count += filters.nature_id?.length ?? 0
+  count += filters.services?.length ?? 0
 
   if (filters.media_relevant === true) {
     count += 1
@@ -98,6 +107,12 @@ export function advancedFiltersFromApi(
       label: value,
     })),
 
+    nature_id: (filters.nature_id ?? []).map((value) => ({
+      value,
+      label: value,
+    })),
+    services: toSearchOptions(filters.services, serviceLabelByValue),
+
     relevanteImprensa: filters.media_relevant === true,
   }
 }
@@ -111,6 +126,8 @@ export function advancedFiltersToApiPatch(
   | 'priority'
   | 'status'
   | 'ticket_type_id'
+  | 'nature_id'
+  | 'services'
   | 'media_relevant'
 > {
   return {
@@ -133,6 +150,15 @@ export function advancedFiltersToApiPatch(
       ? form.ticket_type_id.map((item) => item.value)
       : undefined,
 
+    nature_id: form.nature_id.length
+      ? form.nature_id.map((item) => item.value)
+      : undefined,
+    services: form.services.length
+      ? (form.services.map(
+          (item) => item.value,
+        ) as TicketDashboardServiceFilter[])
+      : undefined,
+
     media_relevant: form.relevanteImprensa ? true : null,
   }
 }
@@ -150,6 +176,8 @@ export function stripAdvancedFiltersFromApi(
   delete rest.status
 
   delete rest.ticket_type_id
+  delete rest.nature_id
+  delete rest.services
 
   delete rest.media_relevant
 
@@ -184,6 +212,14 @@ export function formatOperationalViewAdvancedFiltersSummary(
     lines.push(
       `Tipo de chamado: ${filters.ticket_type_id.length} selecionado(s)`,
     )
+  }
+
+  if (filters.nature_id?.length) {
+    lines.push(`Natureza: ${filters.nature_id.length} selecionado(s)`)
+  }
+  if (filters.services?.length) {
+    const labels = filters.services.map((s) => serviceLabelByValue.get(s) ?? s)
+    lines.push(`Serviço: ${labels.join(', ')}`)
   }
 
   if (filters.media_relevant === true) {

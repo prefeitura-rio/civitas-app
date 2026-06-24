@@ -11,6 +11,7 @@ import {
 } from '@/http/tickets/get-operational-view'
 import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
+import { SLA_BY_TEAM_TOOLTIP } from '../../components/sla-table-tooltips'
 import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-volume-date-range'
 import {
   mapOpenTicketsByTeamForBarChart,
@@ -240,6 +241,7 @@ export function OperationalViewView() {
         periodLabels={slaTablePeriodLabels}
         isLoading={isFetching}
         isAvailable={data?.sla_performance_by_team != null}
+        tooltip={SLA_BY_TEAM_TOOLTIP}
       />
     </div>
   )

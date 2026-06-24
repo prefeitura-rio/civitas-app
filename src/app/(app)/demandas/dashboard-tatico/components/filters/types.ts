@@ -6,6 +6,8 @@ export type DashboardTaticoAdvancedFilterForm = {
   priority: SearchOption[]
   status: SearchOption[]
   ticket_type_id: SearchOption[]
+  nature_id: SearchOption[]
+  services: SearchOption[]
   relevanteImprensa: boolean
 }
 

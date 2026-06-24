@@ -11,8 +11,10 @@ import type { DemandVolumeGranularity } from '@/http/tickets/get-demand-volume'
 
 import styles from './demand-volume-top.module.css'
 
-const GRANULARITY_OPTIONS: {
-  value: DemandVolumeGranularity
+type ChartGranularityBase = 'monthly' | 'weekly' | 'yearly'
+
+const BASE_GRANULARITY_OPTIONS: {
+  value: ChartGranularityBase
   label: string
 }[] = [
   { value: 'monthly', label: 'Mensal' },
@@ -20,23 +22,35 @@ const GRANULARITY_OPTIONS: {
   { value: 'yearly', label: 'Anual' },
 ]
 
-interface DemandVolumeChartGranularityProps {
-  value: DemandVolumeGranularity
-  onChange: (value: DemandVolumeGranularity) => void
+interface DemandVolumeChartGranularityProps<
+  T extends ChartGranularityBase | 'daily' = DemandVolumeGranularity,
+> {
+  value: T
+  onChange: (value: T) => void
   disabled?: boolean
+  includeDaily?: boolean
 }
 
-export function DemandVolumeChartGranularity({
+export function DemandVolumeChartGranularity<
+  T extends ChartGranularityBase | 'daily' = DemandVolumeGranularity,
+>({
   value,
   onChange,
   disabled,
-}: DemandVolumeChartGranularityProps) {
+  includeDaily,
+}: DemandVolumeChartGranularityProps<T>) {
+  const granularityOptions = includeDaily
+    ? [
+        { value: 'daily' as const, label: 'Diário' },
+        ...BASE_GRANULARITY_OPTIONS,
+      ]
+    : BASE_GRANULARITY_OPTIONS
   return (
     <div className={styles.pageSelectWrapCompact}>
       <Select
         value={value}
         disabled={disabled}
-        onValueChange={(v) => onChange(v as DemandVolumeGranularity)}
+        onValueChange={(v) => onChange(v as T)}
       >
         <SelectTrigger
           className={`h-11 w-full ${styles.pageSelectTrigger}`}
@@ -45,7 +59,7 @@ export function DemandVolumeChartGranularity({
           <SelectValue />
         </SelectTrigger>
         <SelectContent className={styles.selectContentForm}>
-          {GRANULARITY_OPTIONS.map((opt) => (
+          {granularityOptions.map((opt) => (
             <SelectItem
               key={opt.value}
               value={opt.value}

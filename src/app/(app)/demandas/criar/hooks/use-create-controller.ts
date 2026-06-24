@@ -21,6 +21,7 @@ import {
   getTicketTypes,
   type TicketType,
 } from '@/http/ticket-types/get-ticket.types'
+import { addConventionalPendingAttachments } from '@/http/tickets/add-conventional-pending-attachments'
 import { convertTicketToConventional } from '@/http/tickets/convert-ticket-to-conventional'
 import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketById } from '@/http/tickets/get-ticket-by-id'
@@ -63,6 +64,10 @@ function associarChamadoIdOrNull(value?: string | null): string | null {
   return trimmed.length ? trimmed : null
 }
 
+function isConvencionalTicketType(ticketTypeName: string | null | undefined) {
+  return (ticketTypeName ?? '').trim().toLowerCase() === 'convencional'
+}
+
 export function useTicketCreateController() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -87,6 +92,10 @@ export function useTicketCreateController() {
   const debouncedTicketSearch = useDebounce(ticketSearch, 350)
   const [ticketPopoverOpen, setTicketPopoverOpen] = useState(false)
   const [selectedTicketLabel, setSelectedTicketLabel] = useState('')
+  const [
+    selectedAssociatedTicketTypeName,
+    setSelectedAssociatedTicketTypeName,
+  ] = useState<string | null>(null)
 
   const [operationSearch, setOperationSearch] = useState('')
   const debouncedOperationSearch = useDebounce(operationSearch, 350)
@@ -219,6 +228,7 @@ export function useTicketCreateController() {
         toast.error('Tipo "Convencional" não encontrado no catálogo.')
         setValue('linked_ticket_id', null)
         setSelectedTicketLabel('')
+        setSelectedAssociatedTicketTypeName(null)
         setTicketSearch('')
         return
       }
@@ -237,6 +247,7 @@ export function useTicketCreateController() {
       toast.error(getApiErrorMessage(error))
       setValue('linked_ticket_id', null)
       setSelectedTicketLabel('')
+      setSelectedAssociatedTicketTypeName(null)
       setTicketSearch('')
     },
   })
@@ -254,6 +265,43 @@ export function useTicketCreateController() {
     }) => convertTicketToConventional(ticketId, filesToSend, { emailId }),
     onSuccess: (_data, variables) => {
       toast.success('Demanda convertida para convencional com sucesso.')
+      if (variables.saveAndNew) {
+        const current = getValues()
+        reset({
+          ...current,
+          plate_search: [],
+          radar_search: [],
+          electronic_fence: [],
+          image_search: [],
+          correlated_plates: [],
+          joint_plates: [],
+          image_reservation: [],
+          image_analysis: [],
+          other: [],
+          atlas_civitas: [],
+        })
+        setFiles([])
+        closeServiceModal()
+      } else {
+        router.push('/demandas')
+      }
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  })
+
+  const addConventionalPendingAttachmentsMutation = useMutation({
+    mutationFn: async ({
+      ticketId,
+      files: filesToSend,
+      emailId,
+    }: {
+      ticketId: string
+      files: File[]
+      saveAndNew?: boolean
+      emailId?: string | null
+    }) => addConventionalPendingAttachments(ticketId, filesToSend, { emailId }),
+    onSuccess: (_data, variables) => {
+      toast.success('Anexos adicionados à demanda convencional com sucesso.')
       if (variables.saveAndNew) {
         const current = getValues()
         reset({
@@ -365,15 +413,18 @@ export function useTicketCreateController() {
     isSubmitting ||
     createMutation.isPending ||
     convertToConventionalMutation.isPending ||
+    addConventionalPendingAttachmentsMutation.isPending ||
     isTeamsLoading ||
     applyAssociatedTicketMutation.isPending
 
   async function applyAssociatedTicketFromSearch(
     ticketId: string,
     titulo: string,
+    ticketTypeName: string,
   ) {
     setSelectedTicketLabel(titulo)
     setTicketSearch(titulo)
+    setSelectedAssociatedTicketTypeName(ticketTypeName)
     setValue('linked_ticket_id', ticketId)
     await applyAssociatedTicketMutation.mutateAsync({ ticketId })
   }
@@ -436,11 +487,19 @@ export function useTicketCreateController() {
   async function onSubmit(data: TicketCreateForm) {
     const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
-      await convertToConventionalMutation.mutateAsync({
-        ticketId: associarId,
-        files,
-        saveAndNew: false,
-      })
+      if (isConvencionalTicketType(selectedAssociatedTicketTypeName)) {
+        await addConventionalPendingAttachmentsMutation.mutateAsync({
+          ticketId: associarId,
+          files,
+          saveAndNew: false,
+        })
+      } else {
+        await convertToConventionalMutation.mutateAsync({
+          ticketId: associarId,
+          files,
+          saveAndNew: false,
+        })
+      }
       return
     }
     const payload = buildTicketCreatePayload(data)
@@ -455,12 +514,21 @@ export function useTicketCreateController() {
   ) {
     const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
-      await convertToConventionalMutation.mutateAsync({
-        ticketId: associarId,
-        files: filesForTicket ?? files,
-        saveAndNew: options?.saveAndNew ?? false,
-        emailId,
-      })
+      if (isConvencionalTicketType(selectedAssociatedTicketTypeName)) {
+        await addConventionalPendingAttachmentsMutation.mutateAsync({
+          ticketId: associarId,
+          files: filesForTicket ?? files,
+          saveAndNew: options?.saveAndNew ?? false,
+          emailId,
+        })
+      } else {
+        await convertToConventionalMutation.mutateAsync({
+          ticketId: associarId,
+          files: filesForTicket ?? files,
+          saveAndNew: options?.saveAndNew ?? false,
+          emailId,
+        })
+      }
       return
     }
     const basePayload = buildTicketCreatePayload(data)
@@ -493,6 +561,7 @@ export function useTicketCreateController() {
     reset(defaultValues)
     setFiles([])
     setSelectedTicketLabel('')
+    setSelectedAssociatedTicketTypeName(null)
     setTicketSearch('')
     setTicketPopoverOpen(false)
     setSelectedOperationLabel('')
@@ -524,6 +593,9 @@ export function useTicketCreateController() {
     isTicketsLoading,
     isApplyingAssociatedTicket: applyAssociatedTicketMutation.isPending,
     isConvertingToConventional: convertToConventionalMutation.isPending,
+    isAddingConventionalAttachments:
+      addConventionalPendingAttachmentsMutation.isPending,
+    selectedAssociatedTicketTypeName,
     isTeamsLoading,
     operationOptions,
     ticketTypes,

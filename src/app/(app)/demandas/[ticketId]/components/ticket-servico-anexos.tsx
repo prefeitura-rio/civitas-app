@@ -55,7 +55,8 @@ import {
 
 export type { PendingServiceAttachment } from './ticket-pending-attachment'
 
-const MAX_REGULAR_BYTES = 30 * 1024 * 1024
+const MAX_REGULAR_MB = 500
+const MAX_REGULAR_BYTES = MAX_REGULAR_MB * 1024 * 1024
 const MAX_GCS_UPLOAD_GB = 20
 const MAX_GCS_UPLOAD_BYTES = MAX_GCS_UPLOAD_GB * 1024 * 1024 * 1024
 
@@ -379,7 +380,9 @@ export function TicketServicoAnexos({
         (f) => !isVideoFile(f) && !isZipFile(f) && f.size > MAX_REGULAR_BYTES,
       )
       if (tooBigRegular) {
-        toast.error(`"${tooBigRegular.name}" excede o limite de 30 MB.`)
+        toast.error(
+          `"${tooBigRegular.name}" excede o limite de ${MAX_REGULAR_MB} MB.`,
+        )
         e.target.value = ''
         return
       }
@@ -426,7 +429,7 @@ export function TicketServicoAnexos({
                 type="file"
                 className={styles.servicoAnexosFileInput}
                 multiple
-                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc"
+                accept="video/*,.zip,application/zip,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 onChange={onPickUpload}
                 aria-hidden
                 tabIndex={-1}

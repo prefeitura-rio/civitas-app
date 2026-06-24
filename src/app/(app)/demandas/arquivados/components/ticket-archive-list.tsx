@@ -17,6 +17,7 @@ import {
 } from '@/http/tickets/get-ticket-archive'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 
+import { getServiceTagClass } from '../../utils/service-tag-class'
 import {
   ArchiveSearchField,
   emptyArchiveFilters,
@@ -24,22 +25,6 @@ import {
   type TicketArchiveFilterState,
 } from './ticket-archive-filters'
 import styles from './ticket-archive-list.module.css'
-
-function getServiceClassName(label: string) {
-  const normalized = label.trim().toLowerCase()
-
-  if (normalized.includes('cerco')) return styles.serviceTagPink
-  if (normalized.includes('busca por placa')) return styles.serviceTagGreen
-  if (normalized.includes('reserva de imagem')) return styles.serviceTagYellow
-  if (normalized.includes('busca por imagem')) return styles.serviceTagCyan
-  if (normalized.includes('busca por radar')) return styles.serviceTagBlue
-  if (normalized.includes('placas correlatas')) return styles.serviceTagOrange
-  if (normalized.includes('placas conjuntas')) return styles.serviceTagPurple
-  if (normalized.includes('other')) return styles.serviceTagRed
-  if (normalized.includes('atlas')) return styles.serviceTagDefault
-
-  return styles.serviceTagDefault
-}
 
 function parseServices(rawServices: unknown): string[] {
   if (!Array.isArray(rawServices)) return []
@@ -409,7 +394,7 @@ export function TicketArchiveList() {
                           {previewServices.map((service, index) => (
                             <span
                               key={`${item.id}-${service}-${index}`}
-                              className={`${styles.serviceTag} ${getServiceClassName(service)}`}
+                              className={`${styles.serviceTag} ${getServiceTagClass(service)}`}
                             >
                               <Tag
                                 className={styles.serviceTagIcon}
@@ -432,7 +417,7 @@ export function TicketArchiveList() {
                                     .map((service, index) => (
                                       <span
                                         key={`${item.id}-extra-${service}-${index}`}
-                                        className={`${styles.serviceTag} ${getServiceClassName(service)}`}
+                                        className={`${styles.serviceTag} ${getServiceTagClass(service)}`}
                                       >
                                         <Tag
                                           className={styles.serviceTagIcon}

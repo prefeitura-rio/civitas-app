@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Info } from 'lucide-react'
 import {
   type ChangeEvent,
   forwardRef,
@@ -12,6 +13,7 @@ import {
 } from 'react'
 import { toast } from 'sonner'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import {
   getTicketRelatorioDemanda,
   putTicketRelatorioDemanda,
@@ -31,6 +33,9 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 const REPORT_QUERY_KEY = (ticketId: string) =>
   ['ticket', ticketId, 'relatorio-demanda'] as const
+
+const RELATORIO_PASTE_TOOLTIP =
+  'Cole o texto sem formatação. Para evitar importar tags HTML ou estilos indesejados, copie o conteúdo primeiro para o Bloco de Notas e depois cole na plataforma. Revise o texto antes de salvar.'
 
 type Props = {
   ticketId: string
@@ -300,12 +305,22 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     <div className={styles.relatorioRoot}>
       <div className={styles.relatorioCardWrap}>
         <div className={styles.parecerEditorShell}>
-          <RichToolbar
-            editorRef={editorRef}
-            onCommand={runCommand}
-            attachmentDisabled={saveMutation.isPending}
-            onInsertImage={openImagePicker}
-          />
+          <div className={styles.relatorioEditorToolbarRow}>
+            <RichToolbar
+              editorRef={editorRef}
+              onCommand={runCommand}
+              attachmentDisabled={saveMutation.isPending}
+              onInsertImage={openImagePicker}
+            />
+            <Tooltip asChild text={RELATORIO_PASTE_TOOLTIP} side="bottom">
+              <span
+                className={`${styles.parecerToolbarBtn} ${styles.relatorioPasteTooltipTrigger}`}
+                aria-label={RELATORIO_PASTE_TOOLTIP}
+              >
+                <Info size={16} strokeWidth={2.25} aria-hidden />
+              </span>
+            </Tooltip>
+          </div>
           <div className={styles.parecerEditorArea}>
             {empty ? (
               <span className={styles.parecerPlaceholder} aria-hidden>

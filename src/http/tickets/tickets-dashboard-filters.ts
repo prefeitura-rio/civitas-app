@@ -7,6 +7,32 @@ export type SearchOption = {
   value: string
 }
 
+export type TicketDashboardServiceFilter =
+  | 'plate_search_services'
+  | 'radar_search_services'
+  | 'electronic_fence_services'
+  | 'image_search_services'
+  | 'correlated_plate_services'
+  | 'joint_plate_services'
+  | 'image_reservation_services'
+  | 'image_analysis_services'
+  | 'other_services'
+  | 'atlas_civitas_services'
+
+/** Labels em português; `value` é o enviado no body (`services`). */
+export const TICKET_DASHBOARD_SERVICE_FILTER_OPTIONS: SearchOption[] = [
+  { value: 'plate_search_services', label: 'Busca por placa' },
+  { value: 'radar_search_services', label: 'Busca por radar' },
+  { value: 'electronic_fence_services', label: 'Cerco eletrônico' },
+  { value: 'image_search_services', label: 'Busca por imagem' },
+  { value: 'correlated_plate_services', label: 'Placas correlatas' },
+  { value: 'joint_plate_services', label: 'Placas conjuntas' },
+  { value: 'image_reservation_services', label: 'Reserva de imagem' },
+  { value: 'image_analysis_services', label: 'Análise de imagem' },
+  { value: 'other_services', label: 'Outros' },
+  { value: 'atlas_civitas_services', label: 'Atlas Civitas' },
+]
+
 type TicketTypeItem = {
   id: string
 
