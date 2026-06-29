@@ -72,6 +72,8 @@ export interface MatrixRowOut {
   label: string
   periods: PeriodValueItemOut[]
   total: number
+  /** Percentual do total geral (matriz closed_calls_by_requester). */
+  total_percent?: number | null
 }
 
 export interface PaginatedMatrixRowsOut {
