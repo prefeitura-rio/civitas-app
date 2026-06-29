@@ -18,6 +18,7 @@ export type TicketRelatorioCompletoTopics = {
   t7: boolean
   t8: boolean
   t9: boolean
+  t10: boolean
 }
 
 export function defaultTicketRelatorioCompletoTopics(): TicketRelatorioCompletoTopics {
@@ -31,6 +32,7 @@ export function defaultTicketRelatorioCompletoTopics(): TicketRelatorioCompletoT
     t7: true,
     t8: true,
     t9: true,
+    t10: true,
   }
 }
 

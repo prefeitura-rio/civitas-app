@@ -12,12 +12,12 @@ function toDateString(date: Date): string {
   return `${y}-${m}-${day}`
 }
 
-/** Período padrão da busca: 6 meses antes da data de referência → hoje. */
+/** Período padrão da busca: 1 mês antes da data de referência → hoje. */
 export function getDefaultTacticalDashboardSearchPeriod(
   referenceDate: Date = new Date(),
 ): TacticalDashboardSearchPeriod {
   return {
-    date_from: toDateString(subMonths(referenceDate, 6)),
+    date_from: toDateString(subMonths(referenceDate, 1)),
     date_to: toDateString(referenceDate),
   }
 }

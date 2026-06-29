@@ -19,6 +19,8 @@ import type {
 } from '@/http/tickets/get-sla-dashboard'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
+import { SLA_PRIORITY_RESOLUTION_TOOLTIP } from '../../components/dashboard-tatico-tooltips'
 import { DemandVolumeChartGranularity } from '../../volume/components/demand-volume-chart-granularity'
 import { formatPeriodLabel } from '../../volume/components/demand-volume-period-label'
 import styles from '../../volume/components/demand-volume-top.module.css'
@@ -100,16 +102,12 @@ export function SlaMetricsPriorityChart({
   return (
     <div style={CHART_SHELL}>
       <div className={styles.chartHeaderRow}>
-        <h2
-          style={{
-            fontSize: '20px',
-            fontWeight: 600,
-            color: '#f9fafa',
-            margin: 0,
-          }}
+        <DashboardTaticoSectionTitle
+          tooltip={SLA_PRIORITY_RESOLUTION_TOOLTIP}
+          marginBottom={0}
         >
           Tempo Médio de Resposta de Demandas (Por Prioridade)
-        </h2>
+        </DashboardTaticoSectionTitle>
         <DemandVolumeChartGranularity
           value={granularity}
           onChange={onGranularityChange}

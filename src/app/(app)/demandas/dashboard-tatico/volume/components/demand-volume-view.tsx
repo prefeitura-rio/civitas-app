@@ -13,6 +13,11 @@ import {
 } from '@/http/tickets/get-demand-volume'
 import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
+import {
+  VOLUME_NATURE_TOOLTIP,
+  VOLUME_REQUESTER_TOOLTIP,
+  VOLUME_SERVICE_TOOLTIP,
+} from '../../components/dashboard-tatico-tooltips'
 import { normalizeDemandVolumeDateRange } from './demand-volume-date-range'
 import {
   advancedFiltersToApiPatch,
@@ -38,11 +43,11 @@ export function DemandVolumeView() {
     createDefaultDemandVolumeFilters,
   )
   const [totalCallVolumeGranularity, setTotalCallVolumeGranularity] =
-    useState<DemandVolumeGranularity>('monthly')
+    useState<DemandVolumeGranularity>('weekly')
   const [urgencyGranularity, setUrgencyGranularity] =
-    useState<DemandVolumeGranularity>('monthly')
+    useState<DemandVolumeGranularity>('weekly')
   const [mediaGranularity, setMediaGranularity] =
-    useState<DemandVolumeGranularity>('monthly')
+    useState<DemandVolumeGranularity>('weekly')
 
   useEffect(() => {
     const fillDates = (prev: DemandVolumeFilterIn): DemandVolumeFilterIn => {
@@ -262,6 +267,7 @@ export function DemandVolumeView() {
 
       <DemandVolumeMatrixTable
         title="Volume de Chamados Encerrados por Natureza"
+        tooltip={VOLUME_NATURE_TOOLTIP}
         rows={closedCallsByNature}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
@@ -273,6 +279,7 @@ export function DemandVolumeView() {
 
       <DemandVolumeMatrixTable
         title="Volume de Chamados Encerrados por Serviço"
+        tooltip={VOLUME_SERVICE_TOOLTIP}
         rows={closedCallsByService}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
@@ -292,6 +299,7 @@ export function DemandVolumeView() {
 
       <DemandVolumeMatrixTable
         title="Volume de Chamados Encerrados por Demandante"
+        tooltip={VOLUME_REQUESTER_TOOLTIP}
         rows={closedCallsByRequester}
         periodLabels={matrixPeriodLabels}
         isLoading={isFetching}
@@ -299,6 +307,7 @@ export function DemandVolumeView() {
         columnHeader="DEMANDANTE"
         sortOrder={appliedFilters.requester_sort ?? 'desc'}
         onSortOrderChange={handleRequesterSortChange}
+        showTotalPercent
         pagination={
           data?.closed_calls_by_requester &&
           typeof data.closed_calls_by_requester === 'object' &&

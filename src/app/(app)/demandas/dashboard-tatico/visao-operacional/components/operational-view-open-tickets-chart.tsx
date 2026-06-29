@@ -16,6 +16,8 @@ import {
 import type { OpenTicketsByTeamItemOut } from '@/http/tickets/get-operational-view'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
+import { OPERATIONAL_OPEN_BY_TEAM_TOOLTIP } from '../../components/dashboard-tatico-tooltips'
 import {
   getOpenTicketsStatusSeries,
   type OpenTicketsTeamBarPoint,
@@ -58,17 +60,12 @@ export function OperationalViewOpenTicketsChart({
 
   return (
     <div style={CHART_SHELL}>
-      <h2
-        style={{
-          fontSize: '20px',
-          fontWeight: 600,
-          color: '#f9fafa',
-          margin: 0,
-          marginBottom: '24px',
-        }}
+      <DashboardTaticoSectionTitle
+        tooltip={OPERATIONAL_OPEN_BY_TEAM_TOOLTIP}
+        marginBottom={24}
       >
         Chamados em aberto por equipe
-      </h2>
+      </DashboardTaticoSectionTitle>
 
       {chartData.length === 0 ? (
         <DashboardTaticoDataState isLoading={isLoading} isEmpty />

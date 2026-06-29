@@ -14,6 +14,7 @@ import {
 } from 'react'
 import { toast } from 'sonner'
 
+import { TicketNatureSelectWithCreate } from '@/app/(app)/demandas/components/ticket-nature-select-with-create'
 import { TICKET_CREATE_STRING_LIMITS as CREATE_STR_LIMITS } from '@/app/(app)/demandas/criar/ticket-create/ticket-create.constant'
 import { formatTicketStatusLabel } from '@/app/(app)/demandas/dashboard-tatico/utils/ticket-status'
 import {
@@ -490,45 +491,24 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
             <div className={styles.chamadoNatureFull}>
               <span className={styles.fieldLabelUpper}>Natureza</span>
               {isEditing ? (
-                <Select
-                  value={d.nature_id?.trim() ? d.nature_id : undefined}
-                  onValueChange={(v) =>
+                <TicketNatureSelectWithCreate
+                  value={d.nature_id}
+                  onValueChange={(value) =>
                     setDraft((prev) =>
                       prev
                         ? {
                             ...prev,
-                            nature_id: v.trim() ? v : null,
+                            nature_id: value,
                           }
                         : prev,
                     )
                   }
-                  disabled={ticketNaturesQuery.isLoading}
-                >
-                  <SelectTrigger
-                    className={`h-11 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
-                  >
-                    <SelectValue
-                      placeholder={
-                        ticketNaturesQuery.isLoading
-                          ? 'Carregando…'
-                          : 'Selecione'
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent className={styles.detailSelectContent}>
-                    {ticketNaturesQuery.isLoading
-                      ? null
-                      : naturezas.map((n) => (
-                          <SelectItem
-                            key={n.id}
-                            value={n.id}
-                            className={styles.detailSelectItem}
-                          >
-                            {n.name}
-                          </SelectItem>
-                        ))}
-                  </SelectContent>
-                </Select>
+                  options={naturezas}
+                  loading={ticketNaturesQuery.isLoading}
+                  triggerClassName={`h-11 flex-1 ${styles.detailSelectTrigger} ${styles.solicitanteEditSelectTrigger}`}
+                  contentClassName={styles.detailSelectContent}
+                  itemClassName={styles.detailSelectItem}
+                />
               ) : (
                 <div className={styles.readonlySelect}>
                   <span className={styles.solicitanteReadOnlyText}>

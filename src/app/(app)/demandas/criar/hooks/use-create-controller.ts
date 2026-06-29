@@ -33,6 +33,7 @@ import type {
   SectionKey,
 } from '../ticket-create/ticket-create.constant'
 import {
+  buildTicketAssociatePayload,
   buildTicketCreatePayload,
   mapTicketOutToCreateForm,
 } from '../ticket-create/ticket-create.mapper'
@@ -255,14 +256,14 @@ export function useTicketCreateController() {
   const convertToConventionalMutation = useMutation({
     mutationFn: async ({
       ticketId,
+      payload,
       files: filesToSend = [],
-      emailId,
     }: {
       ticketId: string
+      payload: unknown
       files?: File[]
       saveAndNew?: boolean
-      emailId?: string | null
-    }) => convertTicketToConventional(ticketId, filesToSend, { emailId }),
+    }) => convertTicketToConventional(ticketId, payload, filesToSend),
     onSuccess: (_data, variables) => {
       toast.success('Demanda convertida para convencional com sucesso.')
       if (variables.saveAndNew) {
@@ -292,14 +293,14 @@ export function useTicketCreateController() {
   const addConventionalPendingAttachmentsMutation = useMutation({
     mutationFn: async ({
       ticketId,
+      payload,
       files: filesToSend,
-      emailId,
     }: {
       ticketId: string
+      payload: unknown
       files: File[]
       saveAndNew?: boolean
-      emailId?: string | null
-    }) => addConventionalPendingAttachments(ticketId, filesToSend, { emailId }),
+    }) => addConventionalPendingAttachments(ticketId, payload, filesToSend),
     onSuccess: (_data, variables) => {
       toast.success('Anexos adicionados à demanda convencional com sucesso.')
       if (variables.saveAndNew) {
@@ -487,15 +488,18 @@ export function useTicketCreateController() {
   async function onSubmit(data: TicketCreateForm) {
     const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
+      const payload = buildTicketAssociatePayload(data)
       if (isConvencionalTicketType(selectedAssociatedTicketTypeName)) {
         await addConventionalPendingAttachmentsMutation.mutateAsync({
           ticketId: associarId,
+          payload,
           files,
           saveAndNew: false,
         })
       } else {
         await convertToConventionalMutation.mutateAsync({
           ticketId: associarId,
+          payload,
           files,
           saveAndNew: false,
         })
@@ -514,19 +518,20 @@ export function useTicketCreateController() {
   ) {
     const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
+      const payload = buildTicketAssociatePayload(data, { emailId })
       if (isConvencionalTicketType(selectedAssociatedTicketTypeName)) {
         await addConventionalPendingAttachmentsMutation.mutateAsync({
           ticketId: associarId,
+          payload,
           files: filesForTicket ?? files,
           saveAndNew: options?.saveAndNew ?? false,
-          emailId,
         })
       } else {
         await convertToConventionalMutation.mutateAsync({
           ticketId: associarId,
+          payload,
           files: filesForTicket ?? files,
           saveAndNew: options?.saveAndNew ?? false,
-          emailId,
         })
       }
       return

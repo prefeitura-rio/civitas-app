@@ -57,7 +57,7 @@ export type { PendingServiceAttachment } from './ticket-pending-attachment'
 
 const MAX_REGULAR_MB = 500
 const MAX_REGULAR_BYTES = MAX_REGULAR_MB * 1024 * 1024
-const MAX_GCS_UPLOAD_GB = 20
+const MAX_GCS_UPLOAD_GB = 50
 const MAX_GCS_UPLOAD_BYTES = MAX_GCS_UPLOAD_GB * 1024 * 1024 * 1024
 
 const BLOCKED_DOCX = /\.docx$/i
@@ -367,10 +367,13 @@ export function TicketServicoAnexos({
         return
       }
 
-      const tooBig = files.find((f) => f.size > MAX_GCS_UPLOAD_BYTES)
-      if (tooBig) {
+      const tooBigGcs = files.find(
+        (f) =>
+          (isVideoFile(f) || isZipFile(f)) && f.size > MAX_GCS_UPLOAD_BYTES,
+      )
+      if (tooBigGcs) {
         toast.error(
-          `"${tooBig.name}" excede o limite de ${MAX_GCS_UPLOAD_GB} GB.`,
+          `"${tooBigGcs.name}" excede o limite de ${MAX_GCS_UPLOAD_GB} GB.`,
         )
         e.target.value = ''
         return

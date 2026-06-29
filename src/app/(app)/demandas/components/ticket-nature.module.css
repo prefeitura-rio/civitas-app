@@ -1,0 +1,198 @@
+.natureModal {
+  --tc-section-bg: #101d28;
+  --tc-card-border: #4a5d6d;
+  --tc-input-bg: #152534;
+  --tc-input-border: #4a5d6d;
+  --tc-input-border-hover: #507290;
+  --tc-soft: #18344d;
+  --tc-text: #f9fafa;
+  --tc-muted: #97a2ab;
+  --tc-text-subtle: #97a2ab;
+  --tc-icon-subtle: #97a2ab;
+  --tc-green: #067a57;
+  --tc-green-hover: #0a8a64;
+  --tc-badge-text: #f9fafa;
+  --tc-border-radius: 8px;
+
+  background: var(--tc-section-bg) !important;
+  border: 1px solid var(--tc-card-border) !important;
+  border-radius: var(--tc-border-radius) !important;
+  color: var(--tc-text) !important;
+  max-width: min(92vw, 480px) !important;
+  width: 100% !important;
+  padding: 24px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  gap: 0 !important;
+}
+
+.natureModal > button:last-of-type {
+  top: 17px !important;
+  right: 24px !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: var(--tc-border-radius) !important;
+  background: var(--tc-input-bg) !important;
+  border: 1px solid var(--tc-card-border) !important;
+  color: var(--tc-icon-subtle) !important;
+  opacity: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.natureModal > button:last-of-type svg {
+  margin: 0 !important;
+}
+
+.natureModal > button:last-of-type:hover {
+  background: var(--tc-soft) !important;
+  color: var(--tc-text) !important;
+  border-color: var(--tc-input-border-hover) !important;
+}
+
+.natureModalHeader {
+  margin-bottom: 24px;
+  text-align: left !important;
+}
+
+.natureModalTitle {
+  color: var(--tc-text) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0;
+  line-height: 16px;
+  text-transform: uppercase;
+  padding-right: 36px;
+}
+
+.natureModalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.natureModalField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.natureModalFieldHeader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.natureModalLabel {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--tc-text);
+}
+
+.natureModalInput {
+  min-height: 44px;
+  border-radius: var(--tc-border-radius) !important;
+  border: 1px solid var(--tc-input-border) !important;
+  background-color: var(--tc-input-bg) !important;
+  color: var(--tc-text) !important;
+  font-size: 14px;
+}
+
+.natureModalInput::placeholder {
+  color: var(--tc-text-subtle);
+}
+
+.natureModalInput:hover:not(:disabled) {
+  border-color: var(--tc-input-border-hover) !important;
+}
+
+.natureModalInput:focus-visible {
+  outline: 2px solid rgba(80, 114, 144, 0.45);
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.natureModalFooter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--tc-card-border);
+}
+
+.natureModalCancelButton {
+  min-width: 120px;
+  min-height: 44px;
+  border-radius: var(--tc-border-radius) !important;
+  background: var(--tc-input-bg) !important;
+  border: 1px solid var(--tc-card-border) !important;
+  color: var(--tc-text) !important;
+}
+
+.natureModalCancelButton:hover:not(:disabled) {
+  background: var(--tc-soft) !important;
+  border-color: var(--tc-input-border-hover) !important;
+}
+
+.natureModalSaveButton {
+  min-width: 120px;
+  min-height: 44px;
+  border-radius: var(--tc-border-radius) !important;
+  background: var(--tc-green) !important;
+  border: none !important;
+  color: var(--tc-badge-text) !important;
+}
+
+.natureModalSaveButton:hover:not(:disabled) {
+  background: var(--tc-green-hover) !important;
+}
+
+.addNatureButton {
+  --tc-input-bg: #152534;
+  --tc-input-border: #4a5d6d;
+  --tc-input-border-hover: #507290;
+  --tc-soft: #18344d;
+  --tc-text: #f9fafa;
+  --tc-border-radius: 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--tc-border-radius);
+  border: 1px solid var(--tc-input-border);
+  background: var(--tc-input-bg);
+  color: var(--tc-text);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.addNatureButton:hover:not(:disabled) {
+  background: var(--tc-soft);
+  border-color: var(--tc-input-border-hover);
+}
+
+.addNatureButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.addNatureButton:focus-visible {
+  outline: 2px solid rgba(80, 114, 144, 0.45);
+  outline-offset: 0;
+}
