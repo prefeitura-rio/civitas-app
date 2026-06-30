@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import type { TicketShiftClosingItem } from '@/http/tickets/ticket-shift-closing'
 import { dateConfig } from '@/lib/date-config'
+import { cn } from '@/lib/utils'
 
 import {
   getShiftClosingServiceTagClass,
@@ -36,11 +37,12 @@ function formatPriority(priority: string | null | undefined) {
 type DetailProps = {
   label: string
   value: string
+  className?: string
 }
 
-function Detail({ label, value }: DetailProps) {
+function Detail({ label, value, className }: DetailProps) {
   return (
-    <div className={styles.detail}>
+    <div className={cn(styles.detail, className)}>
       <span className={styles.detailLabel}>{label}</span>
       <span className={styles.detailValue}>{value}</span>
     </div>
@@ -66,40 +68,32 @@ export function ShiftClosingTicketCard({ item }: ShiftClosingTicketCardProps) {
       </Link>
 
       <div className={styles.details}>
-        <div className={styles.detailRow}>
-          <Detail label="Status:" value={item.status || '—'} />
-          <div className={styles.detail}>
-            <span className={styles.detailLabel}>Prioridade:</span>
-            <span className={styles.detailValue}>
-              {formatPriority(item.priority)}
-            </span>
-          </div>
-          <Detail label="Tipo:" value={item.ticket_type || '—'} />
-        </div>
+        <Detail label="Status:" value={item.status || '—'} />
+        <Detail label="Prioridade:" value={formatPriority(item.priority)} />
+        <Detail label="Tipo:" value={item.ticket_type || '—'} />
 
-        <div className={styles.detailRow}>
-          <Detail label="Equipe:" value={item.team || '—'} />
-          <Detail label="Responsável:" value={item.assignee || '—'} />
-          <Detail
-            label="Nº de procedimento:"
-            value={item.procedure_number?.trim() || '—'}
-          />
-        </div>
+        <Detail label="Equipe:" value={item.team || '—'} />
+        <Detail
+          label="Demandante:"
+          value={item.requester_operation?.trim() || '—'}
+        />
+        <Detail label="Responsável:" value={item.assignee || '—'} />
 
-        <div className={styles.detailRow}>
-          <Detail
-            label="Data da Entrada:"
-            value={formatDateTime(item.entry_at)}
-          />
-          <Detail
-            label="Data do Email:"
-            value={formatDateTime(item.email_at)}
-          />
-          <Detail
-            label="Data de conclusão:"
-            value={formatDateTime(item.completed_at)}
-          />
-        </div>
+        <Detail
+          label="Data da Entrada:"
+          value={formatDateTime(item.entry_at)}
+        />
+        <Detail label="Data do Email:" value={formatDateTime(item.email_at)} />
+        <Detail
+          label="Data de conclusão:"
+          value={formatDateTime(item.completed_at)}
+        />
+
+        <Detail
+          className={styles.detailFull}
+          label="Nº de procedimento:"
+          value={item.procedure_number?.trim() || '—'}
+        />
 
         <div className={styles.servicesRow}>
           <span className={styles.detailLabel}>Serviços:</span>

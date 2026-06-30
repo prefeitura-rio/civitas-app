@@ -11,6 +11,7 @@ export type TicketShiftClosingItem = {
   priority?: string | null
   ticket_type: string
   team: string
+  requester_operation?: string | null
   assignee: string
   procedure_number: string | null
   entry_at: string | null

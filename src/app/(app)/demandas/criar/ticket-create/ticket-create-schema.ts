@@ -90,7 +90,7 @@ export const serviceCorrelatedPlatesSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
-  detection_count: z.number().int().min(0).optional().nullable(),
+  detection_count: z.number().int().min(1).optional().nullable(),
   detection: ticketDetectionEnum.optional().nullable(),
   plates: z.array(correlataPlateItemSchema).default([]),
 })
@@ -99,7 +99,7 @@ export const serviceJointPlatesSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   interest_interval_minutes: z.number().int().min(0).optional().nullable(),
-  detection_count: z.number().int().min(0).optional().nullable(),
+  detection_count: z.number().int().min(1).optional().nullable(),
   detection: ticketDetectionEnum.optional().nullable(),
   plates: z.array(correlataPlateItemSchema).default([]),
 })
