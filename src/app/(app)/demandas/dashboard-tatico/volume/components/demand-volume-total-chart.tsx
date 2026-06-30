@@ -18,6 +18,8 @@ import type {
 } from '@/http/tickets/get-demand-volume'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
+import { VOLUME_TOTAL_TOOLTIP } from '../../components/dashboard-tatico-tooltips'
 import { DemandVolumeChartGranularity } from './demand-volume-chart-granularity'
 import { formatPeriodLabel } from './demand-volume-period-label'
 import styles from './demand-volume-top.module.css'
@@ -77,16 +79,12 @@ export function DemandVolumeTotalChart({
       }}
     >
       <div className={styles.chartHeaderRow}>
-        <h2
-          style={{
-            fontSize: '20px',
-            fontWeight: 600,
-            color: '#f9fafa',
-            margin: 0,
-          }}
+        <DashboardTaticoSectionTitle
+          tooltip={VOLUME_TOTAL_TOOLTIP}
+          marginBottom={0}
         >
           Volume Total de Chamados
-        </h2>
+        </DashboardTaticoSectionTitle>
         <DemandVolumeChartGranularity
           value={granularity}
           onChange={onGranularityChange}

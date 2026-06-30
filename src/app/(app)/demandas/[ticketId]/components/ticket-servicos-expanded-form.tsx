@@ -1,7 +1,13 @@
 'use client'
 
 import { Plus, Trash } from 'lucide-react'
-import { Fragment, type ReactNode, type SetStateAction } from 'react'
+import {
+  Fragment,
+  type ReactNode,
+  type SetStateAction,
+  useEffect,
+  useState,
+} from 'react'
 
 import type { OpenServiceKey } from '@/app/(app)/demandas/criar/ticket-create/ticket-create.constant'
 import { Button } from '@/components/ui/button'
@@ -1511,6 +1517,60 @@ export function ServicosExpandedForm({
   }
 }
 
+function DetectionCountInput({
+  value,
+  className,
+  onChange,
+}: {
+  value: number | null | undefined
+  className?: string
+  onChange: (value: number | null) => void
+}) {
+  const [text, setText] = useState(value == null ? '' : String(value))
+
+  useEffect(() => {
+    setText(value == null ? '' : String(value))
+  }, [value])
+
+  const commit = (raw: string) => {
+    if (raw.trim() === '') {
+      onChange(null)
+      setText('')
+      return
+    }
+
+    const parsed = Number.parseInt(raw, 10)
+    if (Number.isNaN(parsed) || parsed < 1) {
+      onChange(null)
+      setText('')
+      return
+    }
+
+    onChange(parsed)
+    setText(String(parsed))
+  }
+
+  return (
+    <Input
+      type="number"
+      min={1}
+      className={className}
+      value={text}
+      onChange={(e) => {
+        const next = e.target.value
+        setText(next)
+        if (next.trim() === '') {
+          onChange(null)
+          return
+        }
+        const parsed = Number.parseInt(next, 10)
+        if (!Number.isNaN(parsed)) onChange(parsed)
+      }}
+      onBlur={() => commit(text)}
+    />
+  )
+}
+
 function CorrelataForm({
   draft,
   index,
@@ -1621,20 +1681,11 @@ function CorrelataForm({
           <span className={styles.servicosFieldLabel}>
             Quantidade de Detecção
           </span>
-          <Input
-            type="number"
-            min={5}
-            max={50}
+          <DetectionCountInput
             className={styles.servicosInput}
-            value={item.detection_count ?? ''}
-            onChange={(e) =>
+            value={item.detection_count}
+            onChange={(val) =>
               patch((n) => {
-                const parsed =
-                  e.target.value === ''
-                    ? null
-                    : Number.parseInt(e.target.value, 10)
-                const val =
-                  parsed == null || Number.isNaN(parsed) ? null : parsed
                 if (mode === 'correlatas') {
                   n.correlated_plates[index] = {
                     ...n.correlated_plates[index],

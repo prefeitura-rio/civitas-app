@@ -11,7 +11,11 @@ import {
 } from '@/http/tickets/get-operational-view'
 import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 
-import { SLA_BY_TEAM_TOOLTIP } from '../../components/sla-table-tooltips'
+import {
+  OPERATIONAL_CLOSED_BY_TEAM_TOOLTIP,
+  OPERATIONAL_RESOLUTION_BY_TEAM_TOOLTIP,
+  SLA_BY_TEAM_TOOLTIP,
+} from '../../components/dashboard-tatico-tooltips'
 import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-volume-date-range'
 import {
   mapOpenTicketsByTeamForBarChart,
@@ -40,9 +44,9 @@ export function OperationalViewView() {
     createDefaultOperationalViewFilters,
   )
   const [closedVolumeGranularity, setClosedVolumeGranularity] =
-    useState<OperationalViewGranularity>('monthly')
+    useState<OperationalViewGranularity>('weekly')
   const [resolutionTimeGranularity, setResolutionTimeGranularity] =
-    useState<OperationalViewGranularity>('monthly')
+    useState<OperationalViewGranularity>('weekly')
 
   useEffect(() => {
     const fillDates = (
@@ -212,6 +216,7 @@ export function OperationalViewView() {
 
       <OperationalViewTeamLineChart
         title="Volume de Chamados Fechados por Equipe"
+        tooltip={OPERATIONAL_CLOSED_BY_TEAM_TOOLTIP}
         chartData={closedVolumeChart.chartData}
         teams={closedVolumeChart.teams}
         granularity={closedVolumeGranularity}
@@ -222,6 +227,7 @@ export function OperationalViewView() {
 
       <OperationalViewTeamLineChart
         title="Tempo Médio de Resolução por Equipe"
+        tooltip={OPERATIONAL_RESOLUTION_BY_TEAM_TOOLTIP}
         chartData={resolutionTimeChart.chartData}
         teams={resolutionTimeChart.teams}
         granularity={resolutionTimeGranularity}

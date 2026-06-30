@@ -2,21 +2,22 @@ import { api } from '@/lib/api'
 
 export async function addConventionalPendingAttachments(
   ticketId: string,
+  payload: unknown,
   files: File[],
-  options?: { emailId?: string | null },
 ) {
   const form = new FormData()
+  form.append('payload', JSON.stringify(payload))
+
   for (const f of files) {
     form.append('files', f)
   }
 
-  const emailId = options?.emailId?.trim()
-  const path = emailId
-    ? `/tickets/${ticketId}/conventional-pending/attachments?email_id=${encodeURIComponent(emailId)}`
-    : `/tickets/${ticketId}/conventional-pending/attachments`
-
-  const response = await api.post(path, form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  const response = await api.post(
+    `/tickets/${ticketId}/conventional-pending/attachments`,
+    form,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  )
   return response
 }

@@ -18,6 +18,8 @@ import type {
 } from '@/http/tickets/get-demand-volume'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
+import { VOLUME_URGENCY_TOOLTIP } from '../../components/dashboard-tatico-tooltips'
 import { DemandVolumeChartGranularity } from './demand-volume-chart-granularity'
 import { formatPeriodLabel } from './demand-volume-period-label'
 import styles from './demand-volume-top.module.css'
@@ -89,16 +91,12 @@ export function DemandVolumeUrgencyChart({
       }}
     >
       <div className={styles.chartHeaderRow}>
-        <h2
-          style={{
-            fontSize: '20px',
-            fontWeight: 600,
-            color: '#f9fafa',
-            margin: 0,
-          }}
+        <DashboardTaticoSectionTitle
+          tooltip={VOLUME_URGENCY_TOOLTIP}
+          marginBottom={0}
         >
           Volume de Chamados Encerrados por Urgência
-        </h2>
+        </DashboardTaticoSectionTitle>
         <DemandVolumeChartGranularity
           value={granularity}
           onChange={onGranularityChange}

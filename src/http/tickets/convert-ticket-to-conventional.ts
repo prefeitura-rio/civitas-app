@@ -2,21 +2,22 @@ import { api } from '@/lib/api'
 
 export async function convertTicketToConventional(
   ticketId: string,
+  payload: unknown,
   files: File[] = [],
-  options?: { emailId?: string | null },
 ) {
   const form = new FormData()
+  form.append('payload', JSON.stringify(payload))
+
   for (const f of files) {
     form.append('files', f)
   }
 
-  const emailId = options?.emailId?.trim()
-  const path = emailId
-    ? `/tickets/${ticketId}/convert-to-conventional?email_id=${encodeURIComponent(emailId)}`
-    : `/tickets/${ticketId}/convert-to-conventional`
-
-  const response = await api.post(path, form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  const response = await api.post(
+    `/tickets/${ticketId}/convert-to-conventional`,
+    form,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  )
   return response
 }

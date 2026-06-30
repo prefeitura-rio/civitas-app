@@ -153,8 +153,7 @@ export function CorrelataListForm({
               <RangeStatField
                 label="Quantidade de Detecção"
                 value={Number(field.value ?? 10)}
-                min={5}
-                max={50}
+                min={1}
                 unit=""
                 disabled={disabled}
                 onChange={field.onChange}
