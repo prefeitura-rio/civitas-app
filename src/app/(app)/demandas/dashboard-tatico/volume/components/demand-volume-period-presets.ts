@@ -16,7 +16,7 @@ export const SUMMARY_PERIOD_OPTIONS: {
   { value: 'current_week', label: 'Semana atual' },
 ]
 
-/** Período padrão dos gráficos/tabelas: últimos 6 meses → hoje. */
+/** Período padrão dos gráficos/tabelas: último mês → hoje. */
 export function getDefaultChartDateRange(): Pick<
   DemandVolumeFilterIn,
   'date_from' | 'date_to'

@@ -16,6 +16,7 @@ import {
 import type { OperationalViewGranularity } from '@/http/tickets/get-operational-view'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
 import { DemandVolumeChartGranularity } from '../../volume/components/demand-volume-chart-granularity'
 import styles from '../../volume/components/demand-volume-top.module.css'
 import type { TeamLineChartPoint } from './operational-view-chart-utils'
@@ -23,6 +24,7 @@ import { getTeamColor } from './operational-view-team-colors'
 
 interface OperationalViewTeamLineChartProps {
   title: string
+  tooltip?: string
   chartData: TeamLineChartPoint[]
   teams: string[]
   granularity: OperationalViewGranularity
@@ -47,6 +49,7 @@ const CHART_COLORS = {
 
 export function OperationalViewTeamLineChart({
   title,
+  tooltip,
   chartData,
   teams,
   granularity,
@@ -64,6 +67,7 @@ export function OperationalViewTeamLineChart({
     <div style={CHART_SHELL}>
       <ChartHeader
         title={title}
+        tooltip={tooltip}
         granularity={granularity}
         onGranularityChange={onGranularityChange}
         isLoading={isLoading}
@@ -161,27 +165,22 @@ export function OperationalViewTeamLineChart({
 
 function ChartHeader({
   title,
+  tooltip,
   granularity,
   onGranularityChange,
   isLoading,
 }: {
   title: string
+  tooltip?: string
   granularity: OperationalViewGranularity
   onGranularityChange: (granularity: OperationalViewGranularity) => void
   isLoading: boolean
 }) {
   return (
     <div className={styles.chartHeaderRow}>
-      <h2
-        style={{
-          fontSize: '20px',
-          fontWeight: 600,
-          color: '#f9fafa',
-          margin: 0,
-        }}
-      >
+      <DashboardTaticoSectionTitle tooltip={tooltip} marginBottom={0}>
         {title}
-      </h2>
+      </DashboardTaticoSectionTitle>
       <DemandVolumeChartGranularity
         value={granularity}
         onChange={onGranularityChange}

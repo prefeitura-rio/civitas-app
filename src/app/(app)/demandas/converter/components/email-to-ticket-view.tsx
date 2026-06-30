@@ -58,6 +58,7 @@ import {
   padDigitsLeft,
 } from '@/utils/string-formatters'
 
+import { TicketNatureSelectWithCreate } from '../../components/ticket-nature-select-with-create'
 import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
 import { ServiceModal } from '../../criar/components/services/service-modal'
 import { DataBaseDatePicker } from '../../criar/components/shared/data-base-date-picker'
@@ -324,7 +325,7 @@ export function EmailToTicketView() {
 
   const associarChamadoId = vm.watch('linked_ticket_id')
   const isAssociarConvertMode = Boolean(nullIfEmpty(associarChamadoId))
-  const fieldDisabled = isAssociarConvertMode || vm.isLoading
+  const fieldDisabled = vm.isLoading
   const attachmentDisabled =
     vm.isConvertingToConventional ||
     vm.isApplyingAssociatedTicket ||
@@ -803,7 +804,11 @@ export function EmailToTicketView() {
                           <Select
                             value={field.value}
                             onValueChange={field.onChange}
-                            disabled={fieldDisabled || vm.isTicketTypesLoading}
+                            disabled={
+                              fieldDisabled ||
+                              vm.isTicketTypesLoading ||
+                              isAssociarConvertMode
+                            }
                           >
                             <SelectTrigger className={`h-11 ${styles.inputBg}`}>
                               <SelectValue placeholder="Selecione" />
@@ -937,32 +942,24 @@ export function EmailToTicketView() {
                           control={vm.control}
                           name="nature_id"
                           render={({ field }) => (
-                            <Select
-                              value={field.value ?? ''}
-                              onValueChange={(v) => field.onChange(v || null)}
-                              disabled={
-                                vm.isLoading || vm.isTicketNaturesLoading
+                            <TicketNatureSelectWithCreate
+                              value={field.value}
+                              onValueChange={(value) => {
+                                field.onChange(value ?? '')
+                                if (value?.trim()) {
+                                  vm.form.clearErrors('nature_id')
+                                }
+                              }}
+                              options={vm.ticketNatures}
+                              disabled={vm.isLoading}
+                              loading={vm.isTicketNaturesLoading}
+                              triggerClassName={`h-11 flex-1 ${styles.inputBg}`}
+                              contentClassName={styles.selectContentForm}
+                              itemClassName={styles.selectItemForm}
+                              onNatureCreated={() =>
+                                vm.form.clearErrors('nature_id')
                               }
-                            >
-                              <SelectTrigger
-                                className={`h-11 ${styles.inputBg}`}
-                              >
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                              <SelectContent
-                                className={styles.selectContentForm}
-                              >
-                                {vm.ticketNatures.map((nature) => (
-                                  <SelectItem
-                                    key={nature.id}
-                                    value={nature.id}
-                                    className={styles.selectItemForm}
-                                  >
-                                    {nature.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            />
                           )}
                         />
                         {vm.errors.nature_id?.message && (
@@ -1949,7 +1946,7 @@ export function EmailToTicketView() {
 
       <ServiceModal
         variant="drawer"
-        readOnly={isAssociarConvertMode}
+        readOnly={false}
         serviceModalOpen={vm.serviceModalOpen}
         editIndex={vm.serviceModalEditIndex}
         closeServiceModal={vm.closeServiceModal}

@@ -31,6 +31,26 @@ function toIsoDateTime(value?: string | null) {
   return date.toISOString()
 }
 
+export type TicketAssociatePayload = Omit<
+  ReturnType<typeof buildTicketCreatePayload>,
+  'ticket_type_id'
+> & {
+  email_id?: string
+}
+
+export function buildTicketAssociatePayload(
+  data: TicketCreateForm,
+  options?: { emailId?: string | null },
+): TicketAssociatePayload {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- omit ticket_type_id do payload de associação
+  const { ticket_type_id: _omit, ...payload } = buildTicketCreatePayload(data)
+  const emailId = options?.emailId?.trim()
+  if (emailId) {
+    return { ...payload, email_id: emailId }
+  }
+  return payload
+}
+
 export function buildTicketCreatePayload(
   data: TicketCreateForm,
 ): TicketCreateForm {

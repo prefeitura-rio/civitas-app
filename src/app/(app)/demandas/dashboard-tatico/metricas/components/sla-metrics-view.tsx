@@ -14,7 +14,7 @@ import { unwrapDashboardItems } from '@/http/tickets/unwrap-dashboard-items'
 import {
   SLA_BY_PRIORITY_TOOLTIP,
   SLA_BY_SERVICE_TOOLTIP,
-} from '../../components/sla-table-tooltips'
+} from '../../components/dashboard-tatico-tooltips'
 import { normalizeDemandVolumeDateRange } from '../../volume/components/demand-volume-date-range'
 import {
   advancedFiltersToApiPatch,
@@ -41,11 +41,11 @@ export function SlaMetricsView() {
     createDefaultSlaMetricsFilters,
   )
   const [generalGranularity, setGeneralGranularity] =
-    useState<SlaDashboardGranularity>('monthly')
+    useState<SlaDashboardGranularity>('weekly')
   const [priorityGranularity, setPriorityGranularity] =
-    useState<SlaDashboardGranularity>('monthly')
+    useState<SlaDashboardGranularity>('weekly')
   const [mediaGranularity, setMediaGranularity] =
-    useState<SlaDashboardGranularity>('monthly')
+    useState<SlaDashboardGranularity>('weekly')
 
   useEffect(() => {
     const fillDates = (prev: SlaDashboardFilterIn): SlaDashboardFilterIn => {

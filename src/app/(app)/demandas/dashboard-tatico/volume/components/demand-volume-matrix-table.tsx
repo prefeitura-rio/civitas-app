@@ -8,6 +8,7 @@ import type {
 } from '@/http/tickets/get-demand-volume'
 
 import { DashboardTaticoDataState } from '../../components/dashboard-tatico-data-state'
+import { DashboardTaticoSectionTitle } from '../../components/dashboard-tatico-section-title'
 import { formatPeriodLabel } from './demand-volume-period-label'
 
 interface DemandVolumeMatrixTablePagination {
@@ -19,6 +20,7 @@ interface DemandVolumeMatrixTablePagination {
 
 interface DemandVolumeMatrixTableProps {
   title: string
+  tooltip?: string
   columnHeader: string
   rows: MatrixRowOut[]
   periodLabels: string[]
@@ -27,6 +29,7 @@ interface DemandVolumeMatrixTableProps {
   pagination?: DemandVolumeMatrixTablePagination
   sortOrder?: MatrixSortOrder
   onSortOrderChange?: (order: MatrixSortOrder) => void
+  showTotalPercent?: boolean
 }
 
 /** Tabelas usam agrupamento fixo (mensal) definido pelo backend. */
@@ -108,8 +111,14 @@ const TOTAL_CELL: React.CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
+function formatTotalPercent(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return '—'
+  return `${Math.round(value)}%`
+}
+
 export function DemandVolumeMatrixTable({
   title,
+  tooltip,
   columnHeader,
   rows,
   periodLabels,
@@ -118,6 +127,7 @@ export function DemandVolumeMatrixTable({
   pagination,
   sortOrder = 'desc',
   onSortOrderChange,
+  showTotalPercent = false,
 }: DemandVolumeMatrixTableProps) {
   const formattedHeaders = periodLabels.map((pl) =>
     formatPeriodLabel(pl, MATRIX_GRANULARITY),
@@ -141,16 +151,9 @@ export function DemandVolumeMatrixTable({
         padding: '24px',
       }}
     >
-      <h2
-        style={{
-          fontSize: '20px',
-          fontWeight: 600,
-          color: '#f9fafa',
-          margin: '0 0 20px 0',
-        }}
-      >
+      <DashboardTaticoSectionTitle tooltip={tooltip}>
         {title}
-      </h2>
+      </DashboardTaticoSectionTitle>
 
       {rows.length === 0 ? (
         <DashboardTaticoDataState isLoading={isLoading} isEmpty height={120} />
@@ -222,6 +225,16 @@ export function DemandVolumeMatrixTable({
                       'Total'
                     )}
                   </th>
+                  {showTotalPercent ? (
+                    <th
+                      style={{
+                        ...HEADER_CELL,
+                        borderLeft: '1px solid #1d3449',
+                      }}
+                    >
+                      %
+                    </th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
@@ -252,6 +265,11 @@ export function DemandVolumeMatrixTable({
                     <td style={TOTAL_CELL}>
                       {row.total.toLocaleString('pt-BR')}
                     </td>
+                    {showTotalPercent ? (
+                      <td style={TOTAL_CELL}>
+                        {formatTotalPercent(row.total_percent)}
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

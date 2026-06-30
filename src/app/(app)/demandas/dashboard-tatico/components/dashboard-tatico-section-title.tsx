@@ -8,6 +8,8 @@ import { Tooltip } from '@/components/custom/tooltip'
 interface DashboardTaticoSectionTitleProps {
   children: ReactNode
   tooltip?: string
+  /** Padrão 20px; use 0 dentro de `.chartHeaderRow`. */
+  marginBottom?: number
 }
 
 const TITLE_STYLE: CSSProperties = {
@@ -20,6 +22,7 @@ const TITLE_STYLE: CSSProperties = {
 export function DashboardTaticoSectionTitle({
   children,
   tooltip,
+  marginBottom = 20,
 }: DashboardTaticoSectionTitleProps) {
   return (
     <div
@@ -27,7 +30,7 @@ export function DashboardTaticoSectionTitle({
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        marginBottom: '20px',
+        marginBottom,
       }}
     >
       <h2 style={TITLE_STYLE}>{children}</h2>
