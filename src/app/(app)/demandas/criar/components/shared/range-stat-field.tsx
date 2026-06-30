@@ -1,5 +1,9 @@
-import * as Slider from '@radix-ui/react-slider'
+'use client'
 
+import * as Slider from '@radix-ui/react-slider'
+import { useEffect, useState } from 'react'
+
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 import styles from '../../ticket-create/ticket-create-form.module.css'
@@ -9,10 +13,73 @@ type Props = {
   value: number
   onChange: (value: number) => void
   min: number
-  max: number
+  max?: number
   step?: number
   unit: string
   disabled?: boolean
+  inputClassName?: string
+}
+
+function UnboundedNumberField({
+  label,
+  value,
+  onChange,
+  min,
+  step,
+  unit,
+  disabled,
+  inputClassName,
+}: Omit<Props, 'max'>) {
+  const [text, setText] = useState(String(value))
+
+  useEffect(() => {
+    setText(String(value))
+  }, [value])
+
+  const commit = (raw: string) => {
+    if (raw.trim() === '') {
+      onChange(min)
+      setText(String(min))
+      return
+    }
+
+    const parsed = Number.parseInt(raw, 10)
+    if (Number.isNaN(parsed) || parsed < min) {
+      onChange(min)
+      setText(String(min))
+      return
+    }
+
+    onChange(parsed)
+    setText(String(parsed))
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label className={styles.fieldLabel}>{label}</Label>
+      </div>
+      <Input
+        type="number"
+        min={min}
+        step={step}
+        value={text}
+        disabled={disabled}
+        className={inputClassName}
+        onChange={(e) => {
+          const next = e.target.value
+          setText(next)
+          if (next.trim() === '') return
+          const parsed = Number.parseInt(next, 10)
+          if (!Number.isNaN(parsed)) onChange(parsed)
+        }}
+        onBlur={() => commit(text)}
+      />
+      <p className="text-sm text-muted-foreground">
+        Mínimo: {min} {unit}
+      </p>
+    </div>
+  )
 }
 
 export function RangeStatField({
@@ -24,7 +91,23 @@ export function RangeStatField({
   step = 1,
   unit,
   disabled = false,
+  inputClassName,
 }: Props) {
+  if (max == null) {
+    return (
+      <UnboundedNumberField
+        label={label}
+        value={value}
+        onChange={onChange}
+        min={min}
+        step={step}
+        unit={unit}
+        disabled={disabled}
+        inputClassName={inputClassName}
+      />
+    )
+  }
+
   return (
     <div className="space-y-3">
       <div className="space-y-1">

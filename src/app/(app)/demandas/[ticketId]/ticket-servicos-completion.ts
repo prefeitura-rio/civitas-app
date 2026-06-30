@@ -11,7 +11,7 @@ export const SERVICO_CAMPO_OBRIGATORIO = 'Campo obrigatório'
 const MSG_INTERVALO_INTERESSE =
   'Use um valor entre 1 e 5 (intervalo de interesse).'
 const MSG_QUANTIDADE_DETECCAO =
-  'Use um valor entre 5 e 50 (quantidade de detecção).'
+  'Use um valor de no mínimo 1 (quantidade de detecção).'
 const MSG_PLACA_INCOMPLETA = 'Informe a placa completa (7 caracteres).'
 
 function filledText(s: string | null | undefined): boolean {
@@ -44,7 +44,7 @@ function correlataIntervalMessage(value: unknown): string | null {
 function correlataDetectionCountMessage(value: unknown): string | null {
   const v = parseCorrelataInt(value)
   if (v == null) return SERVICO_CAMPO_OBRIGATORIO
-  if (v < 5 || v > 50) return MSG_QUANTIDADE_DETECCAO
+  if (v < 1) return MSG_QUANTIDADE_DETECCAO
   return null
 }
 

@@ -169,8 +169,7 @@ export function CorrelataPanel({
         <RangeStatField
           label="Quantidade de Detecção"
           value={draft.detection_count}
-          min={5}
-          max={50}
+          min={1}
           unit=""
           disabled={disabled}
           onChange={(value) =>
