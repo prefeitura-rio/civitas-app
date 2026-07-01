@@ -89,7 +89,6 @@ export function DemandVolumeTotalChart({
           value={granularity}
           onChange={onGranularityChange}
           disabled={isLoading}
-          includeDaily
         />
       </div>
 
