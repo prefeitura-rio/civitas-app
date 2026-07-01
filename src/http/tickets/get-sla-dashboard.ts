@@ -2,13 +2,14 @@ import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/t
 import { api } from '@/lib/api'
 
 import type {
+  DemandVolumeGranularity,
   DemandVolumeTicketItemOut,
   DemandVolumeTicketsOut,
 } from './get-demand-volume'
 import type { TicketDashboardServiceFilter } from './tickets-dashboard-filters'
 import { unwrapDashboardItems } from './unwrap-dashboard-items'
 
-export type SlaDashboardGranularity = 'monthly' | 'weekly' | 'yearly'
+export type SlaDashboardGranularity = DemandVolumeGranularity
 
 export type TicketPriority = 'URGENTE' | 'ALTA' | 'ROTINA'
 
@@ -69,6 +70,7 @@ export interface SlaPerformanceRowOut {
 export type SlaDashboardGranularityBucket<T> = T[] | { items?: T[] | null }
 
 export interface SlaDashboardGranularitySeries<T> {
+  daily?: SlaDashboardGranularityBucket<T>
   monthly: SlaDashboardGranularityBucket<T>
   weekly: SlaDashboardGranularityBucket<T>
   yearly: SlaDashboardGranularityBucket<T>
@@ -92,7 +94,9 @@ export function pickSlaDashboardGranularitySeries<T>(
   granularity: SlaDashboardGranularity,
 ): T[] {
   if (!series) return []
-  return unwrapDashboardItems(series[granularity])
+  const bucket = series[granularity]
+  if (!bucket) return []
+  return unwrapDashboardItems(bucket)
 }
 
 export function sanitizeSlaDashboardFilters(

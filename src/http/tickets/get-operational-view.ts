@@ -2,13 +2,14 @@ import type { TicketStatus } from '@/app/(app)/demandas/dashboard-tatico/utils/t
 import { api } from '@/lib/api'
 
 import type {
+  DemandVolumeGranularity,
   DemandVolumeTicketItemOut,
   DemandVolumeTicketsOut,
 } from './get-demand-volume'
 import type { TicketDashboardServiceFilter } from './tickets-dashboard-filters'
 import { unwrapDashboardItems } from './unwrap-dashboard-items'
 
-export type OperationalViewGranularity = 'monthly' | 'weekly' | 'yearly'
+export type OperationalViewGranularity = DemandVolumeGranularity
 
 export type OperationalViewSummaryPeriod =
   | 'current_year'
@@ -66,6 +67,7 @@ export interface TeamPeriodSeriesOut {
 export type OperationalViewGranularityBucket<T> = T[] | { items?: T[] | null }
 
 export interface OperationalViewGranularitySeries<T> {
+  daily?: OperationalViewGranularityBucket<T>
   monthly: OperationalViewGranularityBucket<T>
   weekly: OperationalViewGranularityBucket<T>
   yearly: OperationalViewGranularityBucket<T>
@@ -99,7 +101,9 @@ export function pickOperationalViewGranularitySeries<T>(
   granularity: OperationalViewGranularity,
 ): T[] {
   if (!series) return []
-  return unwrapDashboardItems(series[granularity])
+  const bucket = series[granularity]
+  if (!bucket) return []
+  return unwrapDashboardItems(bucket)
 }
 
 export function sanitizeOperationalViewFilters(
