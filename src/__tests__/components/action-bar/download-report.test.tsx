@@ -30,7 +30,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
     data: [
       {
         cetRioCode: 'RDR001',
-        codigoPontoColeta: '001',
         location: 'Local Teste - FX 01',
         company: 'Empresa Teste',
         district: 'Bairro Teste',
