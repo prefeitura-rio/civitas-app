@@ -28,22 +28,15 @@ import { updateOperation } from '@/http/operations/update-operation'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
-interface OperationDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onOpen: () => void
-}
-
-export function OperationFormDialog({
-  isOpen,
-  onClose,
-  onOpen,
-}: OperationDialogProps) {
+export function OperationFormDialog() {
   const [isLoading, setIsLoading] = useState(false)
   const {
+    formDialogDisclosure,
     dialogInitialData: initialData,
     setDialogInitialData: setInitialData,
   } = useOperations()
+
+  const { isOpen, onClose, onOpen } = formDialogDisclosure
 
   const {
     register,
