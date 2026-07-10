@@ -164,7 +164,7 @@ export function MonitoredPlateAuthorityLinksPanel({
       active: payload.active,
       monitorAllCollectionPoints: payload.monitorAllCollectionPoints,
       notificationChannelIds: payload.notificationChannelIds ?? [],
-      collectionPointCodes: payload.collectionPointCodes ?? [],
+      collectionPointIds: payload.collectionPointIds ?? [],
     })
   }
 
@@ -284,7 +284,7 @@ export function MonitoredPlateAuthorityLinksPanel({
                           ? ` · até ${formatDate(new Date(draft.validUntil), 'dd/MM/yyyy HH:mm')}`
                           : ''}
                         {` · rascunho`} ·{' '}
-                        {draft.collectionPointCodes?.length ?? 0} ponto(s)
+                        {draft.collectionPointIds?.length ?? 0} ponto(s)
                       </div>
                     </button>
                     <div
@@ -371,7 +371,7 @@ export function MonitoredPlateAuthorityLinksPanel({
                 active: payload.active,
                 monitorAllCollectionPoints: payload.monitorAllCollectionPoints,
                 notificationChannelIds: payload.notificationChannelIds,
-                collectionPointCodes: payload.collectionPointCodes,
+                collectionPointIds: payload.collectionPointIds,
               },
             ])
           }}
