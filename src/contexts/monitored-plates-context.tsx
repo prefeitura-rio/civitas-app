@@ -11,11 +11,6 @@ import { z } from 'zod'
 import { useDisclosure, type UseDisclosureReturn } from '@/hooks/use-disclosure'
 import type { MonitoredPlate } from '@/models/entities'
 
-// TODO(frontend-restructure): Replace the legacy single-operation monitored
-// plate schema with the new registration schema:
-// plate + authorities[] + per-authority notification channels +
-// collection-point scope + requested_at/valid_until validation.
-
 interface MonitoredPlatesContextProps {
   formDialogDisclosure: UseDisclosureReturn
   deleteAlertDisclosure: UseDisclosureReturn
