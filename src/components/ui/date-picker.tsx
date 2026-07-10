@@ -45,6 +45,9 @@ export function DatePicker({
   popoverContentClassName,
   timePickerContentClassName,
 }: DatePickerProps) {
+  const displayFormat =
+    type === 'datetime-local' ? 'dd MMM, y HH:mm' : 'dd MMM, y'
+
   return (
     <Popover modal={false}>
       <PopoverTrigger asChild>
@@ -60,7 +63,7 @@ export function DatePicker({
         >
           <CalendarIcon className="mr-2 size-4 shrink-0" />
           {value ? (
-            format(value, 'dd MMM, y HH:mm', { locale: dateConfig.locale })
+            format(value, displayFormat, { locale: dateConfig.locale })
           ) : (
             <span>{placeholder}</span>
           )}
