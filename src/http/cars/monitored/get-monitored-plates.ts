@@ -44,8 +44,8 @@ export async function getMonitoredPlates({
   if (typeof active !== 'undefined') searchParams.set('active', String(active))
   if (page) searchParams.set('page', String(page))
   if (size) searchParams.set('size', String(size))
-  if (createdAtFrom) searchParams.set('start_time_create', createdAtFrom)
-  if (createdAtTo) searchParams.set('end_time_create', createdAtTo)
+  if (createdAtFrom) searchParams.set('created_at_from', createdAtFrom)
+  if (createdAtTo) searchParams.set('created_at_to', createdAtTo)
 
   const originalResponse = await api.get<OriginalResponse>(
     `cars/monitored?${searchParams.toString()}`,

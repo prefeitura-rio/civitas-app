@@ -2,11 +2,10 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
 type MonitoredPlatesQueryKey = [
-  'cars',
-  'monitored',
+  'monitored-plates',
   plateContains?: string,
-  operationTitle?: string,
-  NotificationChannelTitle?: string,
+  institutionAuthorityName?: string,
+  notificationChannelTitle?: string,
   active?: boolean,
   page?: number,
   size?: number,
@@ -16,7 +15,7 @@ type MonitoredPlatesQueryKey = [
 
 export interface FormattedSearchParams {
   plateContains?: string
-  operationTitle?: string
+  institutionAuthorityName?: string
   notificationChannelTitle?: string
   active?: boolean
   page?: number
@@ -37,7 +36,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const pathName = usePathname()
 
   const plateContains = searchParams.get('plateContains') || undefined
-  const operationTitle = searchParams.get('operationTitle') || undefined
+  const institutionAuthorityName =
+    searchParams.get('institutionAuthorityName') || undefined
   const notificationChannelTitle =
     searchParams.get('notificationChannelTitle') || undefined
 
@@ -50,16 +50,23 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const createdAtFrom = searchParams.get('createdAtFrom') || undefined
   const createdAtTo = searchParams.get('createdAtTo') || undefined
 
-  function handlePaginate(index: number) {
-    const params = new URLSearchParams(searchParams.toString())
+  function buildParams(nextPage?: number) {
+    const params = new URLSearchParams()
     if (plateContains) params.set('plateContains', plateContains)
-    if (operationTitle) params.set('operationTitle', operationTitle)
+    if (institutionAuthorityName)
+      params.set('institutionAuthorityName', institutionAuthorityName)
     if (notificationChannelTitle)
       params.set('notificationChannelTitle', notificationChannelTitle)
     if (typeof active !== 'undefined') params.set('active', String(active))
-    if (page) params.set('page', index.toString())
+    if (nextPage) params.set('page', nextPage.toString())
     if (size) params.set('size', size.toString())
+    if (createdAtFrom) params.set('createdAtFrom', createdAtFrom)
+    if (createdAtTo) params.set('createdAtTo', createdAtTo)
+    return params
+  }
 
+  function handlePaginate(index: number) {
+    const params = buildParams(index)
     router.push(`${pathName}?${params.toString()}`)
   }
 
@@ -68,7 +75,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     handlePaginate,
     formattedSearchParams: {
       plateContains,
-      operationTitle,
+      institutionAuthorityName,
       notificationChannelTitle,
       active,
       page,
@@ -77,10 +84,9 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       createdAtTo,
     },
     queryKey: [
-      'cars',
-      'monitored',
+      'monitored-plates',
       plateContains,
-      operationTitle,
+      institutionAuthorityName,
       notificationChannelTitle,
       active,
       page,
