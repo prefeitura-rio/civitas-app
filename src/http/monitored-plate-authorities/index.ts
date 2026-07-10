@@ -9,7 +9,7 @@ import type {
 } from '@/models/entities'
 
 interface BackendMonitoredPlateAuthorityCollectionPoint {
-  cet_rio_code?: string
+  lpr_collection_point_id?: string
 }
 
 interface BackendMonitoredPlateAuthorityResponse
@@ -155,10 +155,12 @@ function mapBackendMonitoredPlateAuthority(
     active: item.active,
     monitorAllCollectionPoints: item.monitor_all_collection_points,
     notificationChannelIds: item.notification_channel_ids ?? [],
-    collectionPointCodes:
-      item.collection_point_codes ??
+    collectionPointIds:
+      item.collection_point_ids ??
       item.collection_points
-        ?.map((collectionPoint) => collectionPoint.cet_rio_code ?? '')
+        ?.map(
+          (collectionPoint) => collectionPoint.lpr_collection_point_id ?? '',
+        )
         .filter(Boolean) ??
       [],
     institutionAuthority: item.institution_authority
@@ -191,7 +193,7 @@ export async function createMonitoredPlateAuthority({
   active,
   monitorAllCollectionPoints,
   notificationChannelIds,
-  collectionPointCodes,
+  collectionPointIds,
 }: CreateMonitoredPlateAuthorityRequest) {
   const response = await api.post<BackendMonitoredPlateAuthorityResponse>(
     '/monitored-plate-authorities/',
@@ -204,7 +206,7 @@ export async function createMonitoredPlateAuthority({
       active,
       monitor_all_collection_points: monitorAllCollectionPoints,
       notification_channel_ids: notificationChannelIds,
-      collection_point_codes: collectionPointCodes,
+      collection_point_ids: collectionPointIds,
     },
   )
 
@@ -219,7 +221,7 @@ export async function updateMonitoredPlateAuthority({
   active,
   monitorAllCollectionPoints,
   notificationChannelIds,
-  collectionPointCodes,
+  collectionPointIds,
 }: UpdateMonitoredPlateAuthorityRequest) {
   const response = await api.patch<BackendMonitoredPlateAuthorityResponse>(
     `/monitored-plate-authorities/${id}`,
@@ -230,7 +232,7 @@ export async function updateMonitoredPlateAuthority({
       active,
       monitor_all_collection_points: monitorAllCollectionPoints,
       notification_channel_ids: notificationChannelIds,
-      collection_point_codes: collectionPointCodes,
+      collection_point_ids: collectionPointIds,
     },
   )
 

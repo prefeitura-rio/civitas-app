@@ -10,7 +10,7 @@ export type MonitoredPlateAuthorityLink = {
   active: boolean
   monitorAllCollectionPoints: boolean
   notificationChannelIds: string[]
-  collectionPointCodes: string[]
+  collectionPointIds: string[]
 }
 
 export type BackendMonitoredPlateAuthorityLink = {
@@ -23,7 +23,7 @@ export type BackendMonitoredPlateAuthorityLink = {
   active: boolean
   monitor_all_collection_points: boolean
   notification_channel_ids: string[]
-  collection_point_codes: string[]
+  collection_point_ids: string[]
 }
 
 export type MonitoredPlateRecord = {

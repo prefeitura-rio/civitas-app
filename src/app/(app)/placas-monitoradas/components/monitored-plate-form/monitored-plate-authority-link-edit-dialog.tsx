@@ -42,7 +42,7 @@ import {
 import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-authority-link-valid-until-picker'
 import { MonitoredPlateAuthorityCollectionPointMultiSelect } from './picker/monitored-plate-authority-collection-point-multi-select'
 
-function collectionPointCodesEqual(a: string[], b: string[]) {
+function collectionPointIdsEqual(a: string[], b: string[]) {
   const sa = [...a].sort().join('\u0000')
   const sb = [...b].sort().join('\u0000')
   return sa === sb
@@ -71,7 +71,7 @@ interface MonitoredPlateAuthorityLinkEditDialogProps {
       | 'active'
       | 'monitorAllCollectionPoints'
       | 'notificationChannelIds'
-      | 'collectionPointCodes'
+      | 'collectionPointIds'
     >,
   ) => Promise<void>
   onRemove: (id: string) => Promise<void>
@@ -94,7 +94,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
   const [notificationChannelIds, setNotificationChannelIds] = useState<
     string[]
   >([])
-  const [collectionPointCodes, setCollectionPointCodes] = useState<string[]>([])
+  const [collectionPointIds, setCollectionPointIds] = useState<string[]>([])
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
 
   const { data: authorityLink, isLoading } = useQuery({
@@ -111,10 +111,10 @@ export function MonitoredPlateAuthorityLinkEditDialog({
     setValidUntilDate(parseIsoToDate(authorityLink.validUntil))
     setActive(authorityLink.active)
     setNotificationChannelIds([...authorityLink.notificationChannelIds])
-    setCollectionPointCodes(
+    setCollectionPointIds(
       authorityLink.monitorAllCollectionPoints
         ? []
-        : [...authorityLink.collectionPointCodes],
+        : [...authorityLink.collectionPointIds],
     )
   }, [authorityLink])
 
@@ -168,17 +168,17 @@ export function MonitoredPlateAuthorityLinkEditDialog({
         validUntilDate,
       ) &&
       active === authorityLink.active &&
-      (collectionPointCodes.length === 0) ===
+      (collectionPointIds.length === 0) ===
         authorityLink.monitorAllCollectionPoints &&
       notificationChannelIdsEqual(
         authorityLink.notificationChannelIds,
         notificationChannelIds,
       ) &&
-      collectionPointCodesEqual(
+      collectionPointIdsEqual(
         authorityLink.monitorAllCollectionPoints
           ? []
-          : authorityLink.collectionPointCodes,
-        collectionPointCodes,
+          : authorityLink.collectionPointIds,
+        collectionPointIds,
       )
     ) {
       toast.message('Nada alterado neste vínculo.')
@@ -190,9 +190,9 @@ export function MonitoredPlateAuthorityLinkEditDialog({
       requestedAt: requestedAtIso,
       validUntil,
       active,
-      monitorAllCollectionPoints: collectionPointCodes.length === 0,
+      monitorAllCollectionPoints: collectionPointIds.length === 0,
       notificationChannelIds,
-      collectionPointCodes,
+      collectionPointIds,
     })
     toast.success('Vínculo atualizado com sucesso.')
     onOpenChange(false)
@@ -296,8 +296,8 @@ export function MonitoredPlateAuthorityLinkEditDialog({
 
                 <div className="min-w-0">
                   <MonitoredPlateAuthorityCollectionPointMultiSelect
-                    value={collectionPointCodes}
-                    onChange={setCollectionPointCodes}
+                    value={collectionPointIds}
+                    onChange={setCollectionPointIds}
                     disabled={isBusy}
                   />
                 </div>

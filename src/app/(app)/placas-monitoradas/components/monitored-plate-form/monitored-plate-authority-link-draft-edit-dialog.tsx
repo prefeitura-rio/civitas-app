@@ -39,7 +39,7 @@ import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-autho
 import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-authority-link'
 import { MonitoredPlateAuthorityCollectionPointMultiSelect } from './picker/monitored-plate-authority-collection-point-multi-select'
 
-function collectionPointCodesEqual(
+function collectionPointIdsEqual(
   a: string[] | undefined,
   b: string[] | undefined,
 ) {
@@ -89,7 +89,7 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
   const [notificationChannelIds, setNotificationChannelIds] = useState<
     string[]
   >([])
-  const [collectionPointCodes, setCollectionPointCodes] = useState<string[]>([])
+  const [collectionPointIds, setCollectionPointIds] = useState<string[]>([])
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
 
   useEffect(() => {
@@ -103,11 +103,11 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
     setNotificationChannelIds(
       draft.notificationChannelIds ? [...draft.notificationChannelIds] : [],
     )
-    setCollectionPointCodes(
+    setCollectionPointIds(
       draft.monitorAllCollectionPoints
         ? []
-        : draft.collectionPointCodes
-          ? [...draft.collectionPointCodes]
+        : draft.collectionPointIds
+          ? [...draft.collectionPointIds]
           : [],
     )
   }, [draft])
@@ -161,15 +161,14 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
         validUntilDate,
       ) &&
       active === draft.active &&
-      (collectionPointCodes.length === 0) ===
-        draft.monitorAllCollectionPoints &&
+      (collectionPointIds.length === 0) === draft.monitorAllCollectionPoints &&
       notificationChannelIdsEqual(
         draft.notificationChannelIds,
         notificationChannelIds,
       ) &&
-      collectionPointCodesEqual(
-        draft.monitorAllCollectionPoints ? [] : draft.collectionPointCodes,
-        collectionPointCodes,
+      collectionPointIdsEqual(
+        draft.monitorAllCollectionPoints ? [] : draft.collectionPointIds,
+        collectionPointIds,
       )
     ) {
       toast.message('Nada alterado neste vínculo.')
@@ -181,11 +180,11 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
       requestedAt: requestedAtIso,
       validUntil,
       active,
-      monitorAllCollectionPoints: collectionPointCodes.length === 0,
+      monitorAllCollectionPoints: collectionPointIds.length === 0,
       notificationChannelIds:
         notificationChannelIds.length > 0 ? notificationChannelIds : undefined,
-      collectionPointCodes:
-        collectionPointCodes.length > 0 ? collectionPointCodes : undefined,
+      collectionPointIds:
+        collectionPointIds.length > 0 ? collectionPointIds : undefined,
     })
     toast.success('Vínculo atualizado no cadastro.')
     onOpenChange(false)
@@ -265,8 +264,8 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
 
             <div className="min-w-0">
               <MonitoredPlateAuthorityCollectionPointMultiSelect
-                value={collectionPointCodes}
-                onChange={setCollectionPointCodes}
+                value={collectionPointIds}
+                onChange={setCollectionPointIds}
               />
             </div>
           </div>

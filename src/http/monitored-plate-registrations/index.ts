@@ -55,7 +55,7 @@ export async function createMonitoredPlateRegistration({
         active: item.active,
         monitor_all_collection_points: item.monitorAllCollectionPoints,
         notification_channel_ids: item.notificationChannelIds,
-        collection_point_codes: item.collectionPointCodes,
+        collection_point_ids: item.collectionPointIds,
       })),
     },
   )

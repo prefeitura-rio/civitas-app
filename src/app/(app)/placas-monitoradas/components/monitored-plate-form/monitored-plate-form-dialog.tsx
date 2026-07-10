@@ -239,7 +239,7 @@ export function MonitoredPlateFormDialog({
           link.notificationChannelIds && link.notificationChannelIds.length > 0
             ? link.notificationChannelIds
             : values.notificationChannels.map((item) => item.value),
-        collectionPointCodes: link.collectionPointCodes ?? [],
+        collectionPointIds: link.collectionPointIds ?? [],
       })),
     })
 

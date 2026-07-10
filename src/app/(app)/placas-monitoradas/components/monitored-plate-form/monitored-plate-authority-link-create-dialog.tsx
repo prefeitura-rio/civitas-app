@@ -39,7 +39,7 @@ export interface MonitoredPlateAuthorityDraftCreatePayload {
   active: boolean
   monitorAllCollectionPoints: boolean
   notificationChannelIds?: string[]
-  collectionPointCodes?: string[]
+  collectionPointIds?: string[]
 }
 
 interface MonitoredPlateAuthorityLinkCreateDialogProps {
@@ -84,7 +84,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
   const [notificationChannelIds, setNotificationChannelIds] = useState<
     string[]
   >([])
-  const [collectionPointCodes, setCollectionPointCodes] = useState<string[]>([])
+  const [collectionPointIds, setCollectionPointIds] = useState<string[]>([])
 
   useEffect(() => {
     if (!open) {
@@ -95,7 +95,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       setValidUntilDate(undefined)
       setActive(true)
       setNotificationChannelIds([])
-      setCollectionPointCodes([])
+      setCollectionPointIds([])
       return
     }
 
@@ -146,11 +146,11 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       requestedAt: requestedAtIso,
       validUntil: validUntilIso,
       active,
-      monitorAllCollectionPoints: collectionPointCodes.length === 0,
+      monitorAllCollectionPoints: collectionPointIds.length === 0,
       notificationChannelIds:
         notificationChannelIds.length > 0 ? notificationChannelIds : undefined,
-      collectionPointCodes:
-        collectionPointCodes.length > 0 ? collectionPointCodes : undefined,
+      collectionPointIds:
+        collectionPointIds.length > 0 ? collectionPointIds : undefined,
     })
     toast.success(successMessage)
     onOpenChange(false)
@@ -256,8 +256,8 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
 
           <div className="min-w-0">
             <MonitoredPlateAuthorityCollectionPointMultiSelect
-              value={collectionPointCodes}
-              onChange={setCollectionPointCodes}
+              value={collectionPointIds}
+              onChange={setCollectionPointIds}
               disabled={disabled || isSubmitting}
             />
           </div>
