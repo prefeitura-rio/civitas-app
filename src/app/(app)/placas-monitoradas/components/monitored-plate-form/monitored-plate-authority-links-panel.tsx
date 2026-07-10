@@ -1,0 +1,399 @@
+'use client'
+import { useMutation } from '@tanstack/react-query'
+import { formatDate } from 'date-fns'
+import { type Dispatch, type SetStateAction, useState } from 'react'
+import { toast } from 'sonner'
+
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import {
+  createMonitoredPlateAuthority,
+  deleteMonitoredPlateAuthority,
+  updateMonitoredPlateAuthority,
+} from '@/http/monitored-plate-authorities'
+import type { MonitoredPlateAuthoritySummary } from '@/http/monitored-plates'
+import { queryClient } from '@/lib/react-query'
+import type {
+  InstitutionAuthority,
+  NotificationChannel,
+} from '@/models/entities'
+import { genericErrorMessage } from '@/utils/error-handlers'
+
+import {
+  type MonitoredPlateAuthorityDraftCreatePayload,
+  MonitoredPlateAuthorityLinkCreateDialog,
+} from './monitored-plate-authority-link-create-dialog'
+import { MonitoredPlateAuthorityLinkDraftEditDialog } from './monitored-plate-authority-link-draft-edit-dialog'
+import { MonitoredPlateAuthorityLinkEditDialog } from './monitored-plate-authority-link-edit-dialog'
+import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-authority-link'
+
+type PanelMode = 'persisted' | 'draft'
+
+interface MonitoredPlateAuthorityLinksPanelProps {
+  mode: PanelMode
+  plate: string
+  monitoredPlateId?: string
+  links?: MonitoredPlateAuthoritySummary[]
+  draftLinks?: MonitoredPlateDraftAuthorityLink[]
+  onDraftLinksChange?: Dispatch<
+    SetStateAction<MonitoredPlateDraftAuthorityLink[]>
+  >
+  institutionAuthorities: InstitutionAuthority[]
+  notificationChannels: NotificationChannel[]
+  disabled?: boolean
+}
+
+export function MonitoredPlateAuthorityLinksPanel({
+  mode,
+  plate,
+  monitoredPlateId,
+  links = [],
+  draftLinks = [],
+  onDraftLinksChange,
+  institutionAuthorities,
+  notificationChannels,
+  disabled = false,
+}: MonitoredPlateAuthorityLinksPanelProps) {
+  const [editingDraft, setEditingDraft] =
+    useState<MonitoredPlateDraftAuthorityLink | null>(null)
+  const [editingPersisted, setEditingPersisted] =
+    useState<MonitoredPlateAuthoritySummary | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+
+  const reservedAuthorityIds =
+    mode === 'persisted'
+      ? links.map((link) => link.institutionAuthority.id)
+      : draftLinks.map((draft) => draft.institutionAuthorityId)
+
+  const { mutateAsync: createPersistedLink, isPending: isCreatingPersisted } =
+    useMutation({
+      mutationFn: createMonitoredPlateAuthority,
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['monitored-plates'] }),
+          queryClient.invalidateQueries({
+            queryKey: ['monitored-plates', plate],
+          }),
+        ])
+      },
+      onError: () => {
+        toast.error(genericErrorMessage)
+      },
+    })
+
+  const { mutateAsync: updatePersistedLink, isPending: isUpdatingPersisted } =
+    useMutation({
+      mutationFn: updateMonitoredPlateAuthority,
+      onSuccess: async (_, variables) => {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ['monitored-plate-authorities', variables.id],
+          }),
+          queryClient.invalidateQueries({ queryKey: ['monitored-plates'] }),
+          queryClient.invalidateQueries({
+            queryKey: ['monitored-plates', plate],
+          }),
+        ])
+      },
+      onError: () => {
+        toast.error(genericErrorMessage)
+      },
+    })
+
+  const { mutateAsync: removePersistedLink, isPending: isRemovingPersisted } =
+    useMutation({
+      mutationFn: deleteMonitoredPlateAuthority,
+      onSuccess: async (_, id) => {
+        await Promise.all([
+          queryClient.removeQueries({
+            queryKey: ['monitored-plate-authorities', id],
+          }),
+          queryClient.invalidateQueries({ queryKey: ['monitored-plates'] }),
+          queryClient.invalidateQueries({
+            queryKey: ['monitored-plates', plate],
+          }),
+        ])
+      },
+      onError: () => {
+        toast.error(genericErrorMessage)
+      },
+    })
+
+  function updateDraft(
+    clientId: string,
+    data: Omit<
+      MonitoredPlateDraftAuthorityLink,
+      'clientId' | 'institutionAuthorityId'
+    >,
+  ) {
+    if (!onDraftLinksChange) return
+    onDraftLinksChange((prev) =>
+      prev.map((draft) =>
+        draft.clientId === clientId ? { ...draft, ...data } : draft,
+      ),
+    )
+  }
+
+  function removeDraft(clientId: string) {
+    if (!onDraftLinksChange) return
+    onDraftLinksChange((prev) =>
+      prev.filter((draft) => draft.clientId !== clientId),
+    )
+  }
+
+  function setDraftActive(clientId: string, active: boolean) {
+    if (!onDraftLinksChange) return
+    onDraftLinksChange((prev) =>
+      prev.map((draft) =>
+        draft.clientId === clientId ? { ...draft, active } : draft,
+      ),
+    )
+  }
+
+  async function handlePersistedCreate(
+    payload: MonitoredPlateAuthorityDraftCreatePayload,
+  ) {
+    if (!monitoredPlateId) return
+
+    await createPersistedLink({
+      monitoredPlateId,
+      institutionAuthorityId: payload.institutionAuthorityId,
+      referenceNumber: payload.referenceNumber,
+      requestedAt: payload.requestedAt,
+      validUntil: payload.validUntil,
+      active: payload.active,
+      monitorAllCollectionPoints: payload.monitorAllCollectionPoints,
+      notificationChannelIds: payload.notificationChannelIds ?? [],
+      collectionPointCodes: payload.collectionPointCodes ?? [],
+    })
+  }
+
+  const isMutatingPersisted =
+    isCreatingPersisted || isUpdatingPersisted || isRemovingPersisted
+
+  return (
+    <div className="flex flex-col gap-3 rounded-md border bg-muted/40 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-medium text-foreground">
+          Vínculos com autoridades
+        </p>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          disabled={
+            disabled ||
+            (mode === 'persisted' && !monitoredPlateId) ||
+            isMutatingPersisted
+          }
+          onClick={() => setCreateOpen(true)}
+        >
+          Adicionar novo vínculo
+        </Button>
+      </div>
+
+      {mode === 'persisted' ? (
+        links.length > 0 ? (
+          <ul className="flex max-h-60 flex-col gap-2 overflow-auto pr-1">
+            {links.map((link) => (
+              <li key={link.id}>
+                <div className="rounded-md border bg-background px-3 py-2 transition-colors hover:bg-muted/60">
+                  <div className="flex items-start justify-between gap-3">
+                    <button
+                      type="button"
+                      disabled={disabled || isMutatingPersisted}
+                      className="min-w-0 flex-1 text-left disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => setEditingPersisted(link)}
+                    >
+                      <div className="font-medium">
+                        {link.institutionAuthority.name}
+                      </div>
+                      {link.institutionAuthority.requestingInstitution ? (
+                        <div className="text-xs text-muted-foreground">
+                          Requisitante:{' '}
+                          {link.institutionAuthority.requestingInstitution.name}
+                        </div>
+                      ) : null}
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Ref. {link.referenceNumber}
+                        {link.validUntil
+                          ? ` · até ${formatDate(new Date(link.validUntil), 'dd/MM/yyyy HH:mm')}`
+                          : ''}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Canais:{' '}
+                        {link.notificationChannels
+                          .map((item) => item.title || item.id)
+                          .join(', ') || 'Nenhum'}
+                      </div>
+                    </button>
+                    <div
+                      className="inline-flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs text-muted-foreground"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <span>{link.active ? 'Ativo' : 'Inativo'}</span>
+                      <Switch
+                        checked={link.active}
+                        disabled={disabled || isMutatingPersisted}
+                        aria-label={`Vínculo ${link.active ? 'ativo' : 'inativo'}`}
+                        onCheckedChange={async (checked) => {
+                          await updatePersistedLink({
+                            id: link.id,
+                            active: checked,
+                          })
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Nenhum vínculo cadastrado ainda.
+          </p>
+        )
+      ) : draftLinks.length > 0 ? (
+        <ul className="flex max-h-60 flex-col gap-2 overflow-auto pr-1">
+          {draftLinks.map((draft) => {
+            const authority = institutionAuthorities.find(
+              (item) => item.id === draft.institutionAuthorityId,
+            )
+            if (!authority) return null
+
+            return (
+              <li key={draft.clientId}>
+                <div className="rounded-md border bg-background px-3 py-2 transition-colors hover:bg-muted/60">
+                  <div className="flex items-start justify-between gap-3">
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      className="min-w-0 flex-1 text-left disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => setEditingDraft(draft)}
+                    >
+                      <div className="font-medium">{authority.name}</div>
+                      {authority.requestingInstitution ? (
+                        <div className="text-xs text-muted-foreground">
+                          Requisitante: {authority.requestingInstitution.name}
+                        </div>
+                      ) : null}
+                      <div className="text-xs text-muted-foreground">
+                        Ref. {draft.referenceNumber}
+                        {draft.validUntil
+                          ? ` · até ${formatDate(new Date(draft.validUntil), 'dd/MM/yyyy HH:mm')}`
+                          : ''}
+                        {` · rascunho`} ·{' '}
+                        {draft.collectionPointCodes?.length ?? 0} ponto(s)
+                      </div>
+                    </button>
+                    <div
+                      className="inline-flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs text-muted-foreground"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <span>{draft.active ? 'Ativo' : 'Inativo'}</span>
+                      <Switch
+                        checked={draft.active}
+                        disabled={disabled}
+                        aria-label={`Vínculo ${draft.active ? 'ativo' : 'inativo'}`}
+                        onCheckedChange={(checked) =>
+                          setDraftActive(draft.clientId, checked)
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Nenhum vínculo na lista ainda.
+        </p>
+      )}
+
+      {mode === 'draft' ? (
+        <MonitoredPlateAuthorityLinkDraftEditDialog
+          open={!!editingDraft}
+          onOpenChange={(next) => {
+            if (!next) setEditingDraft(null)
+          }}
+          draft={editingDraft}
+          institutionAuthority={
+            editingDraft
+              ? institutionAuthorities.find(
+                  (item) => item.id === editingDraft.institutionAuthorityId,
+                )
+              : undefined
+          }
+          notificationChannels={notificationChannels}
+          onSave={updateDraft}
+          onRemove={removeDraft}
+        />
+      ) : (
+        <MonitoredPlateAuthorityLinkEditDialog
+          open={!!editingPersisted}
+          onOpenChange={(next) => {
+            if (!next) setEditingPersisted(null)
+          }}
+          link={editingPersisted}
+          notificationChannels={notificationChannels}
+          isSaving={isUpdatingPersisted}
+          isRemoving={isRemovingPersisted}
+          onSave={async (id, data) => {
+            await updatePersistedLink({ id, ...data })
+          }}
+          onRemove={async (id) => {
+            await removePersistedLink(id)
+          }}
+        />
+      )}
+
+      {mode === 'draft' && onDraftLinksChange ? (
+        <MonitoredPlateAuthorityLinkCreateDialog
+          plate={plate}
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          institutionAuthorities={institutionAuthorities}
+          notificationChannels={notificationChannels}
+          reservedAuthorityIds={reservedAuthorityIds}
+          plateDescription={plate}
+          onCreate={(payload) => {
+            onDraftLinksChange((prev) => [
+              ...prev,
+              {
+                clientId: crypto.randomUUID(),
+                institutionAuthorityId: payload.institutionAuthorityId,
+                referenceNumber: payload.referenceNumber,
+                requestedAt: payload.requestedAt,
+                validUntil: payload.validUntil,
+                active: payload.active,
+                monitorAllCollectionPoints: payload.monitorAllCollectionPoints,
+                notificationChannelIds: payload.notificationChannelIds,
+                collectionPointCodes: payload.collectionPointCodes,
+              },
+            ])
+          }}
+        />
+      ) : null}
+
+      {mode === 'persisted' && monitoredPlateId ? (
+        <MonitoredPlateAuthorityLinkCreateDialog
+          plate={plate}
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          institutionAuthorities={institutionAuthorities}
+          notificationChannels={notificationChannels}
+          reservedAuthorityIds={reservedAuthorityIds}
+          plateDescription={plate}
+          onCreate={handlePersistedCreate}
+          submitLabel="Salvar vínculo"
+          successMessage="Vínculo salvo com sucesso."
+          disabled={disabled}
+          isSubmitting={isCreatingPersisted}
+        />
+      ) : null}
+    </div>
+  )
+}
