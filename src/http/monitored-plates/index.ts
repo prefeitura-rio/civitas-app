@@ -9,7 +9,7 @@ import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
 
 interface BackendMonitoredPlateAuthorityCollectionPointSummary {
   id: string
-  cet_rio_code?: string
+  lpr_collection_point_id?: string
   active: boolean
   created_at: string | null
   updated_at: string | null
@@ -49,7 +49,7 @@ export interface MonitoredPlateAuthoritySummary {
   id: string
   institutionAuthority: InstitutionAuthority
   notificationChannels: NotificationChannel[]
-  collectionPointCodes: string[]
+  collectionPointIds: string[]
   referenceNumber: string
   validUntil: string
   active: boolean
@@ -213,9 +213,11 @@ export function mapBackendMonitoredPlate(
       notificationChannels: authority.notification_channels.map(
         mapBackendNotificationChannel,
       ),
-      collectionPointCodes:
+      collectionPointIds:
         authority.collection_points
-          ?.map((collectionPoint) => collectionPoint.cet_rio_code ?? '')
+          ?.map(
+            (collectionPoint) => collectionPoint.lpr_collection_point_id ?? '',
+          )
           .filter(Boolean) ?? [],
       referenceNumber: authority.reference_number,
       validUntil: authority.valid_until,

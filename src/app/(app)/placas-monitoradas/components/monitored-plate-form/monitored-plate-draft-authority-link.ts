@@ -7,5 +7,5 @@ export type MonitoredPlateDraftAuthorityLink = {
   active: boolean
   monitorAllCollectionPoints: boolean
   notificationChannelIds?: string[]
-  collectionPointCodes?: string[]
+  collectionPointIds?: string[]
 }
