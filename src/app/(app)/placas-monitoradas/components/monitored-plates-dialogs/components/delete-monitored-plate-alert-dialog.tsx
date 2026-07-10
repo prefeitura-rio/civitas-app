@@ -30,13 +30,20 @@ export function DeleteMonitoredPlateAlertDialog({
   const { onDeleteMonitoredPlateProps, setOnDeleteMonitoredPlateProps } =
     useMonitoredPlates()
 
+  function closeDialog() {
+    onClose()
+    setOnDeleteMonitoredPlateProps(null)
+  }
+
   const { mutateAsync: deleteMonitoredPlateMutation } = useMutation({
     mutationFn: deleteMonitoredPlate,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
+      queryClient.invalidateQueries({ queryKey: ['monitored-plates'] })
       queryClient.invalidateQueries({
-        queryKey: ['cars', 'monitored', onDeleteMonitoredPlateProps?.plate],
+        queryKey: ['monitored-plates', onDeleteMonitoredPlateProps?.plate],
       })
+      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
+      closeDialog()
     },
   })
 
@@ -64,8 +71,7 @@ export function DeleteMonitoredPlateAlertDialog({
     if (open) {
       onOpen()
     } else {
-      onClose()
-      setOnDeleteMonitoredPlateProps(null)
+      closeDialog()
     }
   }
 

@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { updateMonitoredPlate } from '@/http/cars/monitored/update-monitored-plate'
+import { updateMonitoredPlate } from '@/http/monitored-plates'
 import { queryClient } from '@/lib/react-query'
 
 interface DisableMonitoringAlertDialogProps {
@@ -27,7 +27,9 @@ export function DisableMonitoringAlertDialog({
   const { mutateAsync: updateMonitoredPlateMutation } = useMutation({
     mutationFn: () => updateMonitoredPlate({ plate, active: false }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored', plate] })
+      queryClient.invalidateQueries({ queryKey: ['monitored-plates', plate] })
+      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
+      queryClient.invalidateQueries({ queryKey: ['monitored-plates'] })
     },
   })
 

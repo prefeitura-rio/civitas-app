@@ -2,7 +2,7 @@
 
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 
-import { MonitoredPlateFormDialog } from '../../../components/monitored-plate-form-dialog'
+import { MonitoredPlateFormDialog } from '../monitored-plate-form/monitored-plate-form-dialog'
 import { DeleteMonitoredPlateAlertDialog } from './components/delete-monitored-plate-alert-dialog'
 
 export function Dialogs() {
