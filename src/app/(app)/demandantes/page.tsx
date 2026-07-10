@@ -19,22 +19,22 @@ export default function DemandantesPage() {
       ref={containerRef}
       className="page-content space-y-6 overflow-y-scroll"
     >
-      <h2 className="text-2xl font-semibold">Requisitantes e autoridades</h2>
+      <h2 className="text-2xl font-semibold">Demandantes e requisitantes</h2>
 
       <Tabs
-        defaultValue="demandantes"
+        defaultValue="requisitantes"
         onValueChange={() => containerRef.current?.scrollTo(0, 0)}
       >
         <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="demandantes" className="flex-1 sm:flex-none">
+            Demandantes
+          </TabsTrigger>
           <TabsTrigger value="requisitantes" className="flex-1 sm:flex-none">
             Requisitantes
           </TabsTrigger>
-          <TabsTrigger value="demandantes" className="flex-1 sm:flex-none">
-            Autoridades
-          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="requisitantes">
+        <TabsContent value="demandantes">
           <section className="space-y-4">
             <RequestingInstitutionsHeader />
             <RequestingInstitutionsTable />
@@ -42,7 +42,7 @@ export default function DemandantesPage() {
           </section>
         </TabsContent>
 
-        <TabsContent value="demandantes">
+        <TabsContent value="requisitantes">
           <section className="space-y-4">
             <InstitutionAuthoritiesHeader />
             <InstitutionAuthoritiesTable />
