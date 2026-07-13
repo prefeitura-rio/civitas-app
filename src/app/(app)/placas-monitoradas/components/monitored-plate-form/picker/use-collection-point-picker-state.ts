@@ -1,5 +1,12 @@
 import { type MapViewState, WebMercatorViewport } from '@deck.gl/core'
-import { Deck, IconLayer, type PickingInfo } from 'deck.gl'
+import {
+  Deck,
+  IconLayer,
+  LineLayer,
+  type PickingInfo,
+  PolygonLayer,
+  ScatterplotLayer,
+} from 'deck.gl'
 import type { Feature } from 'geojson'
 import {
   type MouseEvent,
@@ -9,6 +16,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import type { MapRef } from 'react-map-gl'
 
 import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Option } from '@/components/custom/multiselect-with-search'
@@ -21,6 +29,7 @@ import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 import {
   buildOptionsFromCollectionPoints,
   buildPointMeta,
+  getCollectionPointIdsWithinPolygon,
   getMapViewport,
   isFullCollectionPointSelection,
   isPointVisibleInViewport,
@@ -35,6 +44,12 @@ const RADAR_LIST_ITEM_HEIGHT = 92
 const RADAR_LIST_OVERSCAN = 6
 const RADAR_LIST_PAGE_SIZE = 20
 const POINT_LAYER_ID = 'collection-point-picker-point-layer'
+const AREA_VERTEX_LAYER_ID = 'collection-point-picker-area-vertex-layer'
+const AREA_LINE_LAYER_ID = 'collection-point-picker-area-line-layer'
+const AREA_POLYGON_LAYER_ID = 'collection-point-picker-area-polygon-layer'
+
+type AreaSelectionMode = 'polygon' | null
+type LngLatTuple = [number, number]
 
 const iconMapping = {
   default: { x: 0, y: 0, width: 48, height: 48, mask: false },
@@ -108,6 +123,19 @@ function getPickingButton(info: PickingInfo<CollectionPoint>) {
   return sourceEvent?.button ?? 0
 }
 
+function buildPolygonFeature(points: LngLatTuple[]) {
+  if (points.length < 3) return null
+
+  return {
+    type: 'Feature' as const,
+    properties: {},
+    geometry: {
+      type: 'Polygon' as const,
+      coordinates: [[...points, points[0]]],
+    },
+  }
+}
+
 export function useCollectionPointPickerState({
   value,
   onChange,
@@ -133,7 +161,12 @@ export function useCollectionPointPickerState({
     string | null
   >(null)
   const [hasInitializedViewport, setHasInitializedViewport] = useState(false)
+  const [areaSelectionMode, setAreaSelectionMode] =
+    useState<AreaSelectionMode>(null)
+  const [areaSelectedIds, setAreaSelectedIds] = useState<string[]>([])
+  const [areaDraftPoints, setAreaDraftPoints] = useState<LngLatTuple[]>([])
   const deckRef = useRef<Deck | null>(null)
+  const mapRef = useRef<MapRef | null>(null)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const listViewportRef = useRef<HTMLDivElement | null>(null)
   const suppressMapClickUntilRef = useRef(0)
@@ -208,6 +241,11 @@ export function useCollectionPointPickerState({
 
     return { west, south, east, north }
   }, [mapHeight, mapWidth, viewState])
+
+  const areaPolygonFeature = useMemo(
+    () => buildPolygonFeature(areaDraftPoints),
+    [areaDraftPoints],
+  )
 
   const listBuckets = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase()
@@ -388,6 +426,16 @@ export function useCollectionPointPickerState({
     }
   }
 
+  function resetAreaSelectionState() {
+    setAreaSelectionMode(null)
+    setAreaSelectedIds([])
+    setAreaDraftPoints([])
+  }
+
+  function clearAreaSelection() {
+    resetAreaSelectionState()
+  }
+
   useEffect(() => {
     if (!expanded) {
       setDraftValue(value)
@@ -403,6 +451,7 @@ export function useCollectionPointPickerState({
       setPopupState(null)
       setPendingScrollOptionId(null)
       setHasInitializedViewport(false)
+      resetAreaSelectionState()
       resetListViewport()
       setViewState({ ...INITIAL_VIEW_PORT, pitch: 0, bearing: 0 })
     }
@@ -580,6 +629,7 @@ export function useCollectionPointPickerState({
   }
 
   function toggleSelectedOnlyInMap() {
+    clearAreaSelection()
     setFocusedPointId(null)
     setPopupState(null)
     setShowSelectedOnlyInMap((prev) => !prev)
@@ -591,6 +641,7 @@ export function useCollectionPointPickerState({
 
   function clearDraftSelection() {
     updateSelection([])
+    clearAreaSelection()
     setFocusedPointId(null)
     setPopupState(null)
   }
@@ -601,6 +652,11 @@ export function useCollectionPointPickerState({
   }
 
   function handleMapContextMenu(event: MouseEvent<HTMLDivElement>) {
+    if (areaSelectionMode) {
+      event.preventDefault()
+      return
+    }
+
     event.preventDefault()
     suppressMapClickUntilRef.current = Date.now() + 250
 
@@ -747,15 +803,56 @@ export function useCollectionPointPickerState({
   }
 
   function handleMapBackgroundClick(info: PickingInfo) {
+    if (areaSelectionMode === 'polygon') {
+      const coordinates = info.coordinate as LngLatTuple | undefined
+      if (!coordinates) return
+
+      setPopupState(null)
+      setFocusedPointId(null)
+      setAreaDraftPoints((prev) => [...prev, coordinates])
+      return
+    }
+
     if (!info.object) {
       setFocusedPointId(null)
       setPopupState(null)
     }
   }
 
+  function completeAreaSelection() {
+    if (areaDraftPoints.length < 3) return
+
+    const polygonFeature = buildPolygonFeature(areaDraftPoints)
+    if (!polygonFeature) return
+
+    const nextIds = getCollectionPointIdsWithinPolygon(
+      mapPoints,
+      polygonFeature,
+    )
+    setAreaSelectedIds(nextIds)
+    setDraftValue((prev) => Array.from(new Set([...prev, ...nextIds])))
+    setAreaSelectionMode(null)
+  }
+
+  function undoLastAreaPoint() {
+    setAreaDraftPoints((prev) => prev.slice(0, -1))
+  }
+
   function handleViewStateChange(nextViewState: MapViewState) {
     setPopupState(null)
     setViewState(nextViewState)
+  }
+
+  function handleMapLoad() {
+    // Kept for parity with the existing picker API.
+  }
+
+  function startAreaSelection() {
+    setFocusedPointId(null)
+    setPopupState(null)
+    setAreaSelectedIds([])
+    setAreaDraftPoints([])
+    setAreaSelectionMode('polygon')
   }
 
   const pointLayer = useMemo(
@@ -789,22 +886,94 @@ export function useCollectionPointPickerState({
         },
         onClick: (info: PickingInfo<CollectionPoint>) => {
           if (!info.object) return
+          if (areaSelectionMode) return
           if (Date.now() < suppressMapClickUntilRef.current) return
           if (getPickingButton(info) !== 0) return
 
           togglePointFromMapOrList(info.object)
         },
       }),
-    [draftValue, focusedPointId, mapPoints],
+    [areaSelectionMode, draftValue, focusedPointId, mapPoints],
+  )
+
+  const areaLineLayer = useMemo(() => {
+    if (areaDraftPoints.length < 2) return null
+
+    return new LineLayer<LngLatTuple>({
+      id: AREA_LINE_LAYER_ID,
+      data: areaDraftPoints,
+      pickable: false,
+      getSourcePosition: (_point, { index, data }) => data[index],
+      getTargetPosition: (_point, { index, data }) =>
+        data[Math.min(index + 1, data.length - 1)],
+      getColor: [37, 99, 235, 220],
+      getWidth: 3,
+      widthUnits: 'pixels',
+      parameters: { depthTest: false },
+      visible: true,
+    })
+  }, [areaDraftPoints])
+
+  const areaPolygonLayer = useMemo(() => {
+    if (!areaPolygonFeature) return null
+
+    return new PolygonLayer<LngLatTuple[]>({
+      id: AREA_POLYGON_LAYER_ID,
+      data: [areaPolygonFeature.geometry.coordinates[0] as LngLatTuple[]],
+      pickable: false,
+      stroked: true,
+      filled: true,
+      wireframe: false,
+      getPolygon: (polygon) => polygon,
+      getFillColor: [37, 99, 235, 48],
+      getLineColor: [37, 99, 235, 220],
+      getLineWidth: 2,
+      lineWidthUnits: 'pixels',
+      parameters: { depthTest: false },
+    })
+  }, [areaPolygonFeature])
+
+  const areaVertexLayer = useMemo(() => {
+    if (areaDraftPoints.length === 0) return null
+
+    return new ScatterplotLayer<LngLatTuple>({
+      id: AREA_VERTEX_LAYER_ID,
+      data: areaDraftPoints,
+      pickable: false,
+      getPosition: (point) => point,
+      getFillColor: [37, 99, 235, 255],
+      getLineColor: [255, 255, 255, 255],
+      lineWidthUnits: 'pixels',
+      lineWidthMinPixels: 2,
+      stroked: true,
+      radiusUnits: 'pixels',
+      radiusMinPixels: 5,
+      radiusMaxPixels: 5,
+      parameters: { depthTest: false },
+    })
+  }, [areaDraftPoints])
+
+  const mapLayers = useMemo(
+    () =>
+      [areaPolygonLayer, areaLineLayer, areaVertexLayer, pointLayer].filter(
+        Boolean,
+      ),
+    [areaLineLayer, areaPolygonLayer, areaVertexLayer, pointLayer],
   )
 
   return {
     allSelected,
+    applyMapSearchFeature,
+    areaDraftPointCount: areaDraftPoints.length,
+    areaSelectedCount: areaSelectedIds.length,
+    areaSelectionMode,
+    clearAreaSelection,
     clearCommittedSelection,
     clearDraftSelection,
     clearMapSearch,
     closePicker,
     collectionPointsById,
+    completeAreaSelection,
     deckRef,
     displayedOutsideCount,
     displayedSelectedCount,
@@ -819,25 +988,29 @@ export function useCollectionPointPickerState({
     handleListScroll,
     handleMapBackgroundClick,
     handleMapContextMenu,
+    handleMapLoad,
     handleMapSearchChange,
     handleMapSearchFocus,
     handleMapSearchSubmit,
     handleSearchChange,
     handleViewStateChange,
+    hasAreaSelection: areaSelectedIds.length > 0,
     hasMoreListResults,
+    isAreaSelectionCompleteReady: areaDraftPoints.length >= 3,
     isMapSearchLoading,
     isPending,
     listBuckets,
     listViewportRef,
     mapContainerRef,
+    mapLayers,
     mapPoints,
+    mapRef,
     mapSearch,
     mapSearchError,
     mapSearchSuggestions,
     openMapSearchSuggestions,
     openPickerWithSelectedList,
     options,
-    pointLayer,
     popupState,
     previewPoint,
     search,
@@ -850,15 +1023,16 @@ export function useCollectionPointPickerState({
     showSelectedOnlyInList,
     showSelectedOnlyInMap,
     showSelectedSection,
+    startAreaSelection,
     toggleDraftId,
     toggleExpanded,
     togglePointFromMapOrList,
     toggleSelectedOnlyInList,
     toggleSelectedOnlyInMap,
     toggleSelectedSection,
+    undoLastAreaPoint,
     value,
     viewState,
     virtualRange,
-    applyMapSearchFeature,
   }
 }

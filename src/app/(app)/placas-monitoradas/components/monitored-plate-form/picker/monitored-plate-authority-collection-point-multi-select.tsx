@@ -11,7 +11,7 @@ import {
   Navigation,
   Search,
 } from 'lucide-react'
-import MapGl from 'react-map-gl'
+import MapGl, { type ViewStateChangeEvent } from 'react-map-gl'
 
 import { MAPBOX_ACCESS_TOKEN } from '@/app/(app)/veiculos/components/map/components/constants'
 import { Badge } from '@/components/ui/badge'
@@ -146,8 +146,10 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                   <div>
                     <p className="text-sm font-medium text-foreground">Mapa</p>
                     <p className="text-xs text-muted-foreground">
-                      Clique com o botao esquerdo para selecionar. Clique com o
-                      botao direito para ver os detalhes do radar.
+                      Clique com o botão esquerdo para selecionar. Use
+                      selecionar por área para marcar vértices no mapa e
+                      concluir a seleção de vários radares de uma vez. Clique
+                      com o botao direito para ver os detalhes do radar.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -185,6 +187,55 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                       onClick={picker.fitMapPoints}
                     >
                       Ajustar ao mapa
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={
+                        picker.areaSelectionMode ? 'secondary' : 'outline'
+                      }
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={
+                        picker.mapPoints.length === 0 ||
+                        picker.showSelectedOnlyInMap
+                      }
+                      onClick={picker.startAreaSelection}
+                    >
+                      Selecionar por area
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={picker.areaDraftPointCount === 0}
+                      onClick={picker.undoLastAreaPoint}
+                    >
+                      Desfazer ponto
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={!picker.isAreaSelectionCompleteReady}
+                      onClick={picker.completeAreaSelection}
+                    >
+                      Concluir area
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={
+                        !picker.hasAreaSelection &&
+                        picker.areaDraftPointCount === 0 &&
+                        !picker.areaSelectionMode
+                      }
+                      onClick={picker.clearAreaSelection}
+                    >
+                      Limpar area
                     </Button>
                   </div>
                 </div>
@@ -287,6 +338,22 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                         {picker.mapSearchError}
                       </p>
                     ) : null}
+                    {picker.showSelectedOnlyInMap ? (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Desative "Mostrar so selecionados" para desenhar uma
+                        area no mapa.
+                      </p>
+                    ) : picker.areaSelectionMode ? (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Clique no mapa para adicionar pontos. Use "Concluir
+                        area" quando terminar o contorno.
+                      </p>
+                    ) : picker.hasAreaSelection ? (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Area aplicada: {picker.areaSelectedCount} radar(es)
+                        adicionados ao rascunho.
+                      </p>
+                    ) : null}
                   </div>
 
                   {picker.mapPoints.length > 0 ? (
@@ -295,18 +362,25 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                       style={{ width: '100%', height: '100%' }}
                       controller
                       viewState={picker.viewState}
-                      layers={[picker.pointLayer]}
+                      layers={picker.mapLayers}
                       onClick={picker.handleMapBackgroundClick}
                       onViewStateChange={({ viewState: nextViewState }) => {
                         picker.handleViewStateChange(
                           nextViewState as MapViewState,
                         )
                       }}
-                      getCursor={() => 'pointer'}
+                      getCursor={() =>
+                        picker.areaSelectionMode ? 'crosshair' : 'pointer'
+                      }
                     >
                       <MapGl
+                        ref={picker.mapRef}
                         mapStyle="mapbox://styles/mapbox/light-v11"
                         mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+                        onLoad={picker.handleMapLoad}
+                        onMove={(event: ViewStateChangeEvent) => {
+                          picker.handleViewStateChange(event.viewState)
+                        }}
                       />
 
                       {picker.popupState ? (
