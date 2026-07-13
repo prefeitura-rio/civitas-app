@@ -1,4 +1,6 @@
 import { type MapViewState, WebMercatorViewport } from '@deck.gl/core'
+import * as turf from '@turf/turf'
+import type { Feature, Polygon } from 'geojson'
 
 import type { Option } from '@/components/custom/multiselect-with-search'
 import type { CollectionPoint } from '@/models/entities'
@@ -138,4 +140,22 @@ export function getMapViewport(
     pitch: 0,
     bearing: 0,
   }
+}
+
+export function getCollectionPointIdsWithinPolygon(
+  points: CollectionPoint[],
+  polygonFeature: Feature | null | undefined,
+): string[] {
+  if (!polygonFeature || polygonFeature.geometry?.type !== 'Polygon') {
+    return []
+  }
+
+  return points
+    .filter((point) =>
+      turf.booleanPointInPolygon(
+        turf.point([point.longitude, point.latitude]),
+        polygonFeature as Feature<Polygon>,
+      ),
+    )
+    .map((point) => point.cetRioCode)
 }
