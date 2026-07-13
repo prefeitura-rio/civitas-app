@@ -9,6 +9,10 @@ import {
   validateAndRefreshSession,
 } from '@/auth/session'
 import { config } from '@/config'
+import {
+  getClientIpFromHeaders,
+  setForwardedClientIpHeaders,
+} from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
   'GET',
@@ -21,6 +25,8 @@ const ALLOWED_METHODS = new Set([
 
 const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
+
+export const runtime = 'nodejs'
 
 async function handler(
   request: NextRequest,
@@ -68,6 +74,8 @@ async function handler(
     headers.set(key, value)
   }
 
+  const clientIp = getClientIpFromHeaders(request.headers)
+  setForwardedClientIpHeaders(headers, clientIp)
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
 
   let body: BodyInit | undefined
