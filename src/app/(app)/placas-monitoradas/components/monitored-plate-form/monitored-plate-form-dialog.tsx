@@ -219,7 +219,7 @@ export function MonitoredPlateFormDialog({
 
   async function onSubmit(values: MonitoredPlateCreateForm) {
     if (draftLinks.length === 0) {
-      toast.error('Adicione ao menos um vínculo com autoridade.')
+      toast.error('Adicione ao menos um vínculo com requisitante.')
       return
     }
 
@@ -304,7 +304,7 @@ export function MonitoredPlateFormDialog({
         <DialogHeader>
           <DialogTitle>Placa monitorada</DialogTitle>
           <DialogDescription>
-            Dados da placa, canais de notificação e vínculos com autoridades.
+            Dados da placa, canais de notificação e vínculos com requisitantes.
           </DialogDescription>
         </DialogHeader>
 

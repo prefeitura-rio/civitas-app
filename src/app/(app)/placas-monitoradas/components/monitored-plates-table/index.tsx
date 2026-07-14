@@ -87,7 +87,7 @@ export function MonitoredPlatesTable() {
     },
     {
       id: 'authorities',
-      header: 'Autoridades',
+      header: 'Requisitantes',
       cell: ({ row }) => {
         const uniqueAuthorities = Array.from(
           new Map(
@@ -226,9 +226,11 @@ export function MonitoredPlatesTable() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedAuthority?.name ?? 'Autoridade'}</DialogTitle>
+            <DialogTitle>
+              {selectedAuthority?.name ?? 'Requisitante'}
+            </DialogTitle>
             <DialogDescription>
-              Informações da autoridade vinculada a esta placa monitorada.
+              Informações do requisitante vinculado a esta placa monitorada.
             </DialogDescription>
           </DialogHeader>
 
@@ -239,7 +241,7 @@ export function MonitoredPlatesTable() {
           ) : displayedAuthority ? (
             <div className="flex flex-col gap-3 text-sm">
               <div>
-                <span className="font-medium">Requisitante:</span>{' '}
+                <span className="font-medium">Demandante:</span>{' '}
                 {displayedAuthority.requestingInstitution?.name ?? ' - '}
               </div>
               <div>
