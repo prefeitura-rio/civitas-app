@@ -2,6 +2,16 @@ import { getPublicEnv } from '@/lib/public-env'
 
 type AuthCookieSameSite = 'lax' | 'strict' | 'none'
 
+// During `next build`, Next.js loads route handlers to collect page metadata,
+// which triggers module-level code like `export const config = getConfig()`.
+// At that point no runtime env vars exist yet (Infisical injects them at
+// container startup, not at image build time). We detect the build phase and
+// return safe empty defaults so the build succeeds; the real values are
+// validated on the first actual request at runtime.
+const isBuildPhase =
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  process.env.NEXT_PHASE === 'phase-export'
+
 function getServerNumberEnv(name: string) {
   const value = Number(process.env[name])
   if (Number.isNaN(value)) {
@@ -23,17 +33,15 @@ const getConfig = () => {
     'CIVITAS_API_URL',
     process.env.NEXT_PUBLIC_CIVITAS_API_URL,
   )
-  if (!apiUrl) {
+  if (!apiUrl && !isBuildPhase) {
     throw new Error('CIVITAS_API_URL is not set')
   }
-  // Trim any trailing slash from the API URL
-  const trimmedApiUrl = apiUrl.replace(/\/+$/, '')
 
   const mapboxAccessToken = getPublicEnv(
     'MAPBOX_ACCESS_TOKEN',
     process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
   )
-  if (!mapboxAccessToken) {
+  if (!mapboxAccessToken && !isBuildPhase) {
     throw new Error('MAPBOX_ACCESS_TOKEN is not set')
   }
 
@@ -48,8 +56,9 @@ const getConfig = () => {
   )
 
   return {
-    apiUrl: trimmedApiUrl,
-    mapboxAccessToken,
+    // Empty strings during build phase — real values come from Infisical at runtime
+    apiUrl: (apiUrl ?? '').replace(/\/+$/, ''),
+    mapboxAccessToken: mapboxAccessToken ?? '',
     enableChamados,
     enableImpersonation,
   }
