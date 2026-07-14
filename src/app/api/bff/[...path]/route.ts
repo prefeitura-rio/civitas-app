@@ -75,7 +75,20 @@ async function handler(
   }
 
   const clientIp = getClientIpFromHeaders(request.headers)
-  setForwardedClientIpHeaders(headers, clientIp)
+  console.log('[BFF client IP]', {
+    method: request.method,
+    path: request.nextUrl.pathname,
+    clientIp,
+    xForwardedFor: request.headers.get('x-forwarded-for'),
+    xOriginalForwardedFor: request.headers.get('x-original-forwarded-for'),
+    xRealIp: request.headers.get('x-real-ip'),
+    xClientIp: request.headers.get('x-client-ip'),
+    forwarded: request.headers.get('forwarded'),
+    cfConnectingIp: request.headers.get('cf-connecting-ip'),
+    trueClientIp: request.headers.get('true-client-ip'),
+  })
+
+  setForwardedClientIpHeaders(headers, request.headers)
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
 
   let body: BodyInit | undefined

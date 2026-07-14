@@ -6,6 +6,8 @@ const DIRECT_CLIENT_IP_HEADERS = [
   'x-client-ip',
 ]
 
+const FORWARDED_FOR_HEADERS = ['x-original-forwarded-for', 'x-forwarded-for']
+
 function normalizeIpCandidate(value: string) {
   let candidate = value.trim().replace(/^"|"$/g, '')
 
@@ -25,19 +27,21 @@ function normalizeIpCandidate(value: string) {
   return net.isIP(candidate) ? candidate : null
 }
 
-function getFirstIpFromList(value: string | null) {
-  if (!value) return null
+function getIpsFromList(value: string | null) {
+  const ips: string[] = []
+  if (!value) return ips
 
   for (const item of value.split(',')) {
     const ip = normalizeIpCandidate(item)
-    if (ip) return ip
+    if (ip) ips.push(ip)
   }
 
-  return null
+  return ips
 }
 
-function getFirstIpFromForwardedHeader(value: string | null) {
-  if (!value) return null
+function getIpsFromForwardedHeader(value: string | null) {
+  const ips: string[] = []
+  if (!value) return ips
 
   for (const forwardedEntry of value.split(',')) {
     const params = forwardedEntry.split(';')
@@ -47,11 +51,11 @@ function getFirstIpFromForwardedHeader(value: string | null) {
       if (key.trim().toLowerCase() !== 'for') continue
 
       const ip = normalizeIpCandidate(rest.join('='))
-      if (ip) return ip
+      if (ip) ips.push(ip)
     }
   }
 
-  return null
+  return ips
 }
 
 function formatForwardedForHeader(ip: string) {
@@ -64,20 +68,35 @@ export function getClientIpFromHeaders(headers: Headers) {
     if (ip) return ip
   }
 
-  return (
-    getFirstIpFromList(headers.get('x-forwarded-for')) ??
-    getFirstIpFromForwardedHeader(headers.get('forwarded')) ??
-    normalizeIpCandidate(headers.get('x-real-ip') ?? '')
-  )
+  for (const header of FORWARDED_FOR_HEADERS) {
+    const [ip] = getIpsFromList(headers.get(header))
+    if (ip) return ip
+  }
+
+  const [forwardedIp] = getIpsFromForwardedHeader(headers.get('forwarded'))
+  if (forwardedIp) return forwardedIp
+
+  return normalizeIpCandidate(headers.get('x-real-ip') ?? '')
 }
 
-export function setForwardedClientIpHeaders(
-  headers: Headers,
-  clientIp: string | null,
-) {
+function getForwardedForHeader(headers: Headers, clientIp: string | null) {
+  for (const header of FORWARDED_FOR_HEADERS) {
+    const ips = getIpsFromList(headers.get(header))
+    if (ips.length > 0) return ips.join(', ')
+  }
+
+  return clientIp
+}
+
+export function setForwardedClientIpHeaders(headers: Headers, source: Headers) {
+  const clientIp = getClientIpFromHeaders(source)
   if (!clientIp) return
 
-  headers.set('x-forwarded-for', clientIp)
+  const forwardedFor = getForwardedForHeader(source, clientIp)
+  if (forwardedFor) {
+    headers.set('x-forwarded-for', forwardedFor)
+  }
+
   headers.set('x-real-ip', clientIp)
   headers.set('x-client-ip', clientIp)
   headers.set('forwarded', formatForwardedForHeader(clientIp))
