@@ -15,6 +15,9 @@ helmCharts:
         tag: migrate
         pullPolicy: Always
 
+      securityContext:
+        runAsUser: 1000
+
       healthCheck:
         path: /
 
