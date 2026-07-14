@@ -1,0 +1,43 @@
+name: Deploy Frontend to Migrate Infrastructure
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chore/migrate-infra
+    paths:
+      - src/**
+      - public/**
+      - next.config.*
+      - tsconfig*.json
+      - tailwind.config.*
+      - Dockerfile
+      - scripts/docker-entrypoint.sh
+      - package.json
+      - pnpm-lock.yaml
+      - k8s/**
+
+jobs:
+  build:
+    name: Build Frontend for Migrate Infrastructure
+    runs-on: ubuntu-latest
+    environment: migrate-infra
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: chore/migrate-infra
+
+      - name: Build and push Frontend Docker image
+        uses: ./.github/actions/docker-build
+        with:
+          working-directory: .
+          image-tag: migrate
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # No --build-arg needed: public env vars (CIVITAS_API_URL, MAPBOX_ACCESS_TOKEN,
+          # etc.) are injected at container startup via scripts/docker-entrypoint.sh,
+          # which reads them from the pod's process environment (Infisical).
+          # A single image serves all environments without rebuild.
