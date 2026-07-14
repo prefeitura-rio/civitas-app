@@ -223,7 +223,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
               </span>
               {link.institutionAuthority.requestingInstitution ? (
                 <span className="block text-sm text-muted-foreground">
-                  Requisitante:{' '}
+                  Demandante:{' '}
                   {link.institutionAuthority.requestingInstitution.name}
                 </span>
               ) : null}
@@ -341,7 +341,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Remover vínculo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação desvincula a autoridade desta placa monitorada.
+              Esta ação desvincula o requisitante desta placa monitorada.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -45,9 +45,9 @@ export function DeleteInstitutionAuthorityAlertDialog({
 
       const response = deleteMutation(onDeleteInstitutionAuthorityProps.id)
       toast.promise(response, {
-        loading: `Excluindo autoridade ${onDeleteInstitutionAuthorityProps.name}...`,
+        loading: `Excluindo requisitante ${onDeleteInstitutionAuthorityProps.name}...`,
         success: () =>
-          `Autoridade ${onDeleteInstitutionAuthorityProps.name} excluída com sucesso!`,
+          `Requisitante ${onDeleteInstitutionAuthorityProps.name} excluída com sucesso!`,
         error: genericErrorMessage,
       })
       await response
@@ -70,14 +70,14 @@ export function DeleteInstitutionAuthorityAlertDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Tem certeza que deseja excluir a autoridade{' '}
+            Tem certeza que deseja excluir o requisitante{' '}
             <span className="font-semibold text-destructive">
               {onDeleteInstitutionAuthorityProps?.name}
             </span>
             ?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Essa ação apagará definitivamente a autoridade e seus contatos
+            Essa ação apagará definitivamente a requisitante e seus contatos
             cadastrados.
           </AlertDialogDescription>
         </AlertDialogHeader>

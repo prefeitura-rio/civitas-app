@@ -120,7 +120,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
   async function handleSubmit() {
     const ref = reference.trim()
     if (!authorityId || !ref || !requestedAt) {
-      toast.error('Selecione a autoridade e preencha os campos obrigatórios.')
+      toast.error('Selecione o requisitante e preencha os campos obrigatórios.')
       return
     }
     if (isMonitoredPlateAuthorityValidUntilBeyondMax(validUntilDate)) {
@@ -162,7 +162,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto overflow-x-hidden sm:max-w-6xl">
         <DialogHeader>
-          <DialogTitle>Novo vínculo com autoridade</DialogTitle>
+          <DialogTitle>Novo vínculo com requisitante</DialogTitle>
           <DialogDescription>
             Placa <strong>{plateLine}</strong>
           </DialogDescription>
@@ -171,7 +171,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
           <div className="flex min-w-0 flex-col gap-3 lg:max-w-xl">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between gap-2">
-                <Label>Autoridade</Label>
+                <Label>Requisitante</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -183,7 +183,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
                     formDialogDisclosure.onOpen()
                   }}
                 >
-                  Nova autoridade
+                  Novo requisitante
                 </Button>
               </div>
               <SelectWithSearch

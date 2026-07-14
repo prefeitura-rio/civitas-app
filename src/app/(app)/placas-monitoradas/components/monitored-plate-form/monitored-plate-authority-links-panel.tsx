@@ -175,7 +175,7 @@ export function MonitoredPlateAuthorityLinksPanel({
     <div className="flex flex-col gap-3 rounded-md border bg-muted/40 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium text-foreground">
-          Vínculos com autoridades
+          Vínculos com requisitantes
         </p>
         <Button
           type="button"
@@ -210,7 +210,7 @@ export function MonitoredPlateAuthorityLinksPanel({
                       </div>
                       {link.institutionAuthority.requestingInstitution ? (
                         <div className="text-xs text-muted-foreground">
-                          Requisitante:{' '}
+                          Demandante:{' '}
                           {link.institutionAuthority.requestingInstitution.name}
                         </div>
                       ) : null}
@@ -275,7 +275,7 @@ export function MonitoredPlateAuthorityLinksPanel({
                       <div className="font-medium">{authority.name}</div>
                       {authority.requestingInstitution ? (
                         <div className="text-xs text-muted-foreground">
-                          Requisitante: {authority.requestingInstitution.name}
+                          Demandante: {authority.requestingInstitution.name}
                         </div>
                       ) : null}
                       <div className="text-xs text-muted-foreground">

@@ -44,9 +44,9 @@ export function DeleteRequestingInstitutionAlertDialog({
       if (onDeleteRequestingInstitutionProps) {
         const response = deleteMutation(onDeleteRequestingInstitutionProps.id)
         toast.promise(response, {
-          loading: `Excluindo requisitante ${onDeleteRequestingInstitutionProps.name}...`,
+          loading: `Excluindo demandante ${onDeleteRequestingInstitutionProps.name}...`,
           success: () =>
-            `Requisitante ${onDeleteRequestingInstitutionProps.name} excluído com sucesso!`,
+            `Demandante ${onDeleteRequestingInstitutionProps.name} excluído com sucesso!`,
           error: genericErrorMessage,
         })
         await response
@@ -70,14 +70,14 @@ export function DeleteRequestingInstitutionAlertDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Tem certeza que deseja excluir o requisitante{' '}
+            Tem certeza que deseja excluir o demandante{' '}
             <span className="font-semibold text-destructive">
               {onDeleteRequestingInstitutionProps?.name}
             </span>
             ?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Essa ação apagará definitivamente o requisitante{' '}
+            Essa ação apagará definitivamente o demandante{' '}
             <span className="font-semibold text-destructive">
               {onDeleteRequestingInstitutionProps?.name}
             </span>{' '}

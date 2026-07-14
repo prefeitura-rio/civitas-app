@@ -184,7 +184,7 @@ export function InstitutionAuthorityFormDialog({
         })
       }
 
-      toast.success('Autoridade atualizada.')
+      toast.success('Requisitante atualizada.')
     } else {
       const createdAuthority = await createMutation({
         name: values.name.trim(),
@@ -200,7 +200,7 @@ export function InstitutionAuthorityFormDialog({
         })
       }
 
-      toast.success('Autoridade criado.')
+      toast.success('Requisitante criado.')
     }
 
     handleOnOpenChange(false)
@@ -238,13 +238,13 @@ export function InstitutionAuthorityFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {initialData?.id ? 'Editar demandante' : 'Novo demandante'}
+            {initialData?.id ? 'Editar requisitante' : 'Novo requisitante'}
           </DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label>Requisitante</Label>
+              <Label>Demandante</Label>
               <InputError message={errors.requestingInstitutionId?.message} />
             </div>
             <Controller
@@ -259,7 +259,7 @@ export function InstitutionAuthorityFormDialog({
                   <SelectWithSearch
                     disabled={isLoading}
                     value={selected?.label ?? ''}
-                    placeholder="Selecione o requisitante"
+                    placeholder="Selecione o demandante"
                     options={requestingInstitutionOptions}
                     onSelect={(item) =>
                       setValue('requestingInstitutionId', item.value, {
@@ -274,7 +274,7 @@ export function InstitutionAuthorityFormDialog({
 
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="ia-name">Autoridade</Label>
+              <Label htmlFor="ia-name">Requisitante</Label>
               <InputError message={errors.name?.message} />
             </div>
             <Input
