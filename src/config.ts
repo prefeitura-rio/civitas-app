@@ -1,3 +1,5 @@
+import { getPublicEnv } from '@/lib/public-env'
+
 type AuthCookieSameSite = 'lax' | 'strict' | 'none'
 
 function getServerNumberEnv(name: string) {
@@ -9,24 +11,40 @@ function getServerNumberEnv(name: string) {
 }
 
 // This function will validate and return build-safe public environment variables.
+//
+// Public vars are sourced at runtime from window.__ENV__ (client-side, production)
+// or process.env (server-side and local dev). See src/lib/public-env.ts for details.
 const getConfig = () => {
   const isTruthy = (value?: string) => value?.toLowerCase() === 'true'
 
-  const apiUrl = process.env.NEXT_PUBLIC_CIVITAS_API_URL
+  // The second argument (process.env.NEXT_PUBLIC_*) is statically replaced by Next.js
+  // at build time: it becomes the real value in dev builds and undefined in production.
+  const apiUrl = getPublicEnv(
+    'CIVITAS_API_URL',
+    process.env.NEXT_PUBLIC_CIVITAS_API_URL,
+  )
   if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_CIVITAS_API_URL is not set')
+    throw new Error('CIVITAS_API_URL is not set')
   }
   // Trim any trailing slash from the API URL
   const trimmedApiUrl = apiUrl.replace(/\/+$/, '')
 
-  const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+  const mapboxAccessToken = getPublicEnv(
+    'MAPBOX_ACCESS_TOKEN',
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
+  )
   if (!mapboxAccessToken) {
-    throw new Error('NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN is not set')
+    throw new Error('MAPBOX_ACCESS_TOKEN is not set')
   }
 
-  const enableChamados = isTruthy(process.env.NEXT_PUBLIC_ENABLE_CHAMADOS)
+  const enableChamados = isTruthy(
+    getPublicEnv('ENABLE_CHAMADOS', process.env.NEXT_PUBLIC_ENABLE_CHAMADOS),
+  )
   const enableImpersonation = isTruthy(
-    process.env.NEXT_PUBLIC_ENABLE_IMPERSONATION,
+    getPublicEnv(
+      'ENABLE_IMPERSONATION',
+      process.env.NEXT_PUBLIC_ENABLE_IMPERSONATION,
+    ),
   )
 
   return {

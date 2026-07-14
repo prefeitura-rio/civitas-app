@@ -6,7 +6,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Enable corepack and install the current latest stable version of pnpm 
+# Enable corepack and install the current latest stable version of pnpm
 RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
 
 # Install dependencies based on the preferred package manager
@@ -30,12 +30,13 @@ RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 
-# Optimize build performance
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# No NEXT_PUBLIC_* build args needed — public env vars are injected at runtime
+# via window.__ENV__ (see scripts/docker-entrypoint.sh and src/lib/public-env.ts).
+# The NEXT_PUBLIC_* fallbacks in src/config.ts are only used in local development,
+# where Next.js statically replaces them from .env.local at dev-server startup.
 
 RUN \
     if [ -f yarn.lock ]; then yarn run build; \
@@ -48,14 +49,16 @@ RUN \
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=8080
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+# public/ must be writable by nextjs so that docker-entrypoint.sh can
+# generate env-config.js at container startup with the runtime env vars.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
@@ -66,12 +69,12 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Entrypoint script: generates public/env-config.js from runtime env vars,
+# then starts the Next.js standalone server.
+COPY --chown=nextjs:nodejs scripts/docker-entrypoint.sh ./
+
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 8080
 
-ENV PORT 3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD ["sh", "docker-entrypoint.sh"]
