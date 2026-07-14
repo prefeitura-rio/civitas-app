@@ -9,10 +9,7 @@ import {
   validateAndRefreshSession,
 } from '@/auth/session'
 import { config } from '@/config'
-import {
-  getClientIpFromHeaders,
-  setForwardedClientIpHeaders,
-} from '@/lib/request-client-ip'
+import { setForwardedClientIpHeaders } from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
   'GET',
@@ -25,8 +22,19 @@ const ALLOWED_METHODS = new Set([
 
 const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
-
-export const runtime = 'nodejs'
+const OMITTED_REQUEST_HEADERS = new Set([
+  'host',
+  'cookie',
+  'content-length',
+  'connection',
+  'forwarded',
+  'x-client-ip',
+  'x-forwarded-for',
+  'x-original-forwarded-for',
+  'x-real-ip',
+  'cf-connecting-ip',
+  'true-client-ip',
+])
 
 async function handler(
   request: NextRequest,
@@ -68,25 +76,11 @@ async function handler(
   const headers = new Headers()
   for (const [key, value] of request.headers.entries()) {
     const lowerKey = key.toLowerCase()
-    if (['host', 'cookie', 'content-length', 'connection'].includes(lowerKey)) {
+    if (OMITTED_REQUEST_HEADERS.has(lowerKey)) {
       continue
     }
     headers.set(key, value)
   }
-
-  const clientIp = getClientIpFromHeaders(request.headers)
-  console.log('[BFF client IP]', {
-    method: request.method,
-    path: request.nextUrl.pathname,
-    clientIp,
-    xForwardedFor: request.headers.get('x-forwarded-for'),
-    xOriginalForwardedFor: request.headers.get('x-original-forwarded-for'),
-    xRealIp: request.headers.get('x-real-ip'),
-    xClientIp: request.headers.get('x-client-ip'),
-    forwarded: request.headers.get('forwarded'),
-    cfConnectingIp: request.headers.get('cf-connecting-ip'),
-    trueClientIp: request.headers.get('true-client-ip'),
-  })
 
   setForwardedClientIpHeaders(headers, request.headers)
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
