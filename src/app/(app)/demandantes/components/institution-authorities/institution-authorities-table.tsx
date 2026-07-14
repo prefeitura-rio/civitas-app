@@ -72,11 +72,11 @@ export function InstitutionAuthoritiesTable() {
   const columns: ColumnDef<InstitutionAuthority>[] = [
     {
       accessorKey: 'name',
-      header: 'Demandante',
+      header: 'Requisitante',
     },
     {
       id: 'requestingInstitution',
-      header: 'Requisitante',
+      header: 'Demandante',
       cell: ({ row }) =>
         requestingInstitutionsById.get(row.original.requestingInstitutionId) ??
         '—',

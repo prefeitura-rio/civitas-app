@@ -12,7 +12,7 @@ export function InstitutionAuthoritiesHeader() {
 
   return (
     <div className="flex w-full items-center justify-between gap-2">
-      <h3 className="text-lg font-semibold">Autoridades</h3>
+      <h3 className="text-lg font-semibold">Requisitante</h3>
       <Tooltip
         disabledText={notAllowed}
         disabled={!profile?.is_admin}
@@ -27,7 +27,7 @@ export function InstitutionAuthoritiesHeader() {
             formDialogDisclosure.onOpen()
           }}
         >
-          Adicionar autoridade
+          Adicionar requisitante
         </Button>
       </Tooltip>
     </div>

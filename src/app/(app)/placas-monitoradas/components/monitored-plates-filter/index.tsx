@@ -143,7 +143,7 @@ export function MonitoredPlatesFilter() {
           htmlFor="institutionAuthorityName"
           className="text-xs text-muted-foreground"
         >
-          Autoridade
+          Requisitante
         </Label>
         <Input
           className="h-9 w-40"

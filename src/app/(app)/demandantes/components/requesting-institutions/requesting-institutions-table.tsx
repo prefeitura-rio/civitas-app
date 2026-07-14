@@ -49,7 +49,7 @@ export function RequestingInstitutionsTable() {
   const columns: ColumnDef<RequestingInstitution>[] = [
     {
       accessorKey: 'name',
-      header: 'Requisitante',
+      header: 'Demandante',
     },
     {
       accessorKey: 'type',

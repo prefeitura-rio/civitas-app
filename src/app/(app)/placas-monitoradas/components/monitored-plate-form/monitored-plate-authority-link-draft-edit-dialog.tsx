@@ -204,8 +204,7 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
               </span>
               {institutionAuthority.requestingInstitution ? (
                 <span className="block text-sm text-muted-foreground">
-                  Requisitante:{' '}
-                  {institutionAuthority.requestingInstitution.name}
+                  Demandante: {institutionAuthority.requestingInstitution.name}
                 </span>
               ) : null}
               <span className="block text-sm text-muted-foreground">

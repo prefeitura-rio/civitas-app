@@ -122,10 +122,10 @@ export function RequestingInstitutionFormDialog({
   async function onSubmit(props: RequestingInstitutionForm) {
     if (initialData?.id) {
       await updateMutation({ id: initialData.id, ...props })
-      toast.success('Requisitante atualizado.')
+      toast.success('Demandante atualizado.')
     } else {
       await createMutation(props)
-      toast.success('Requisitante criado.')
+      toast.success('Demandante criado.')
     }
     handleOnOpenChange(false)
   }
@@ -184,13 +184,13 @@ export function RequestingInstitutionFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {initialData?.id ? 'Editar requisitante' : 'Novo requisitante'}
+            {initialData?.id ? 'Editar demandante' : 'Novo demandante'}
           </DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="ri-name">Requisitante</Label>
+              <Label htmlFor="ri-name">Demandante</Label>
               <InputError message={errors.name?.message} />
             </div>
             <Input
