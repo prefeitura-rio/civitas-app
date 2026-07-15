@@ -1,5 +1,6 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
 import { FilterX, Search } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -19,18 +20,28 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-const activeOptions = ['all', 'true', 'false']
+const activeOptions = ['all', 'true', 'false'] as const
 
 const filterFormSchema = z.object({
   plateContains: z.string().toUpperCase().optional(),
-  operationTitle: z.string().optional(),
+  institutionAuthorityName: z.string().optional(),
   notificationChannelTitle: z.string().optional(),
-  active: z.enum([activeOptions[0], ...activeOptions]),
+  active: z.enum(activeOptions),
   createdAtFrom: z.string().optional(),
   createdAtTo: z.string().optional(),
 })
 
 type FilterForm = z.infer<typeof filterFormSchema>
+
+function parseDateOnly(value: string | null) {
+  if (!value) return undefined
+  return new Date(`${value}T00:00:00`)
+}
+
+function formatDateOnly(date: Date | undefined) {
+  if (!date) return undefined
+  return format(date, 'yyyy-MM-dd')
+}
 
 export function MonitoredPlatesFilter() {
   const searchParams = useSearchParams()
@@ -51,24 +62,35 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     const pActive = searchParams.get('active')
     const pPlate = searchParams.get('plateContains')
-    const pOperation = searchParams.get('operationTitle')
+    const pInstitutionAuthority = searchParams.get('institutionAuthorityName')
     const pChannel = searchParams.get('notificationChannelTitle')
     const pCreatedAtFrom = searchParams.get('createdAtFrom')
     const pCreatedAtTo = searchParams.get('createdAtTo')
 
-    if (pActive) setValue('active', pActive)
+    if (
+      pActive &&
+      activeOptions.includes(pActive as (typeof activeOptions)[number])
+    ) {
+      setValue('active', pActive as FilterForm['active'])
+    }
     if (pPlate) setValue('plateContains', pPlate)
-    if (pOperation) setValue('operationTitle', pOperation)
+    if (pInstitutionAuthority)
+      setValue('institutionAuthorityName', pInstitutionAuthority)
     if (pChannel) setValue('notificationChannelTitle', pChannel)
     if (pCreatedAtFrom) {
       setValue('createdAtFrom', pCreatedAtFrom)
-      setCreatedAtFrom(new Date(pCreatedAtFrom))
+      setCreatedAtFrom(parseDateOnly(pCreatedAtFrom))
+    } else {
+      setCreatedAtFrom(undefined)
     }
     if (pCreatedAtTo) {
       setValue('createdAtTo', pCreatedAtTo)
-      setCreatedAtTo(new Date(pCreatedAtTo))
+      setCreatedAtTo(parseDateOnly(pCreatedAtTo))
+    } else {
+      setCreatedAtTo(undefined)
     }
-  }, [])
+  }, [searchParams, setValue])
+
   function handleClearFilters() {
     reset()
     setValue('active', 'all')
@@ -81,7 +103,8 @@ export function MonitoredPlatesFilter() {
     const params = new URLSearchParams()
 
     if (props.plateContains) params.set('plateContains', props.plateContains)
-    if (props.operationTitle) params.set('operationTitle', props.operationTitle)
+    if (props.institutionAuthorityName)
+      params.set('institutionAuthorityName', props.institutionAuthorityName)
     if (props.notificationChannelTitle)
       params.set('notificationChannelTitle', props.notificationChannelTitle)
 
@@ -98,7 +121,7 @@ export function MonitoredPlatesFilter() {
       className="flex items-end space-x-2"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="">
+      <div>
         <Label
           htmlFor="plateContains"
           className="text-xs text-muted-foreground"
@@ -109,26 +132,24 @@ export function MonitoredPlatesFilter() {
           className="h-9 w-40"
           id="plateContains"
           type="text"
-          // placeholder="Placa"
           {...register('plateContains')}
           onChange={(e) =>
             setValue('plateContains', e.target.value.toUpperCase())
           }
         />
       </div>
-      <div className="">
+      <div>
         <Label
-          htmlFor="operationTitle"
+          htmlFor="institutionAuthorityName"
           className="text-xs text-muted-foreground"
         >
-          Demandante
+          Requisitante
         </Label>
         <Input
           className="h-9 w-40"
-          id="operationTitle"
+          id="institutionAuthorityName"
           type="text"
-          // placeholder="Demandante"
-          {...register('operationTitle')}
+          {...register('institutionAuthorityName')}
         />
       </div>
       <div>
@@ -149,18 +170,15 @@ export function MonitoredPlatesFilter() {
         <div className="flex items-center space-x-2">
           <div className="flex flex-col">
             <Label className="mb-0.5 text-xs text-muted-foreground">
-              Data de criação, de:
+              Data de criação de:
             </Label>
             <DatePicker
               value={createdAtFrom}
               onChange={(date) => {
-                setCreatedAtFrom(date)
-                setValue(
-                  'createdAtFrom',
-                  date instanceof Date ? date.toISOString() : undefined,
-                )
+                const nextDate = date instanceof Date ? date : undefined
+                setCreatedAtFrom(nextDate)
+                setValue('createdAtFrom', formatDateOnly(nextDate))
               }}
-              type="datetime-local"
               className="h-9 w-48"
             />
           </div>
@@ -169,13 +187,10 @@ export function MonitoredPlatesFilter() {
             <DatePicker
               value={createdAtTo}
               onChange={(date) => {
-                setCreatedAtTo(date)
-                setValue(
-                  'createdAtTo',
-                  date instanceof Date ? date.toISOString() : undefined,
-                )
+                const nextDate = date instanceof Date ? date : undefined
+                setCreatedAtTo(nextDate)
+                setValue('createdAtTo', formatDateOnly(nextDate))
               }}
-              type="datetime-local"
               className="h-9 w-48"
               fromDate={createdAtFrom}
             />

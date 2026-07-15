@@ -7,8 +7,10 @@ import {
   validateAndRefreshSession,
 } from '@/auth/session'
 import { SessionActivityTracker } from '@/components/custom/session-activity-tracker'
+import { InstitutionAuthoritiesContextProvider } from '@/contexts/institution-authorities-context'
 import { MonitoredPlatesContextProvider } from '@/contexts/monitored-plates-context'
 import { OperationsContextProvider } from '@/contexts/operations-context'
+import { RequestingInstitutionsContextProvider } from '@/contexts/requesting-institutions-context'
 import { CustomQueryClientProvider } from '@/hooks/query-client-provider'
 import {
   parseTicketModulePermissionsCookie,
@@ -28,7 +30,6 @@ export default async function AppLayout({
     redirect('/auth/sign-in')
   }
 
-  // Server-side check without refresh to avoid renewal unrelated to user activity.
   const result = await validateAndRefreshSession(sessionValue, false, false)
   if (!result.session) {
     redirect('/auth/sign-in')
@@ -40,17 +41,21 @@ export default async function AppLayout({
 
   return (
     <CustomQueryClientProvider>
-      <OperationsContextProvider>
-        <MonitoredPlatesContextProvider>
-          <div className="flex min-h-screen w-full">
-            <SessionActivityTracker />
-            <Sidebar
-              initialTicketModulePermissions={ticketPermissionsFromCookie}
-            />
-            {children}
-          </div>
-        </MonitoredPlatesContextProvider>
-      </OperationsContextProvider>
+      <RequestingInstitutionsContextProvider>
+        <InstitutionAuthoritiesContextProvider>
+          <OperationsContextProvider>
+            <MonitoredPlatesContextProvider>
+              <div className="flex min-h-screen w-full">
+                <SessionActivityTracker />
+                <Sidebar
+                  initialTicketModulePermissions={ticketPermissionsFromCookie}
+                />
+                {children}
+              </div>
+            </MonitoredPlatesContextProvider>
+          </OperationsContextProvider>
+        </InstitutionAuthoritiesContextProvider>
+      </RequestingInstitutionsContextProvider>
     </CustomQueryClientProvider>
   )
 }

@@ -5,14 +5,10 @@ import { DeleteOperationAlertDialog } from './components/delete-operation-alert-
 import { OperationFormDialog } from './components/operation-form-dialog'
 
 export function OperationDialogs() {
-  const { formDialogDisclosure, deleteAlertDisclosure } = useOperations()
+  const { deleteAlertDisclosure } = useOperations()
   return (
     <>
-      <OperationFormDialog
-        isOpen={formDialogDisclosure.isOpen}
-        onClose={formDialogDisclosure.onClose}
-        onOpen={formDialogDisclosure.onOpen}
-      />
+      <OperationFormDialog />
       <DeleteOperationAlertDialog
         isOpen={deleteAlertDisclosure.isOpen}
         onClose={deleteAlertDisclosure.onClose}

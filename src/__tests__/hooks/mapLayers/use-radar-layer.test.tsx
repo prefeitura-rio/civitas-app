@@ -7,7 +7,6 @@ import type { CollectionPoint } from '@/models/entities'
 
 const mockCollectionPoint: CollectionPoint = {
   cetRioCode: 'RDR123',
-  codigoPontoColeta: '123',
   location: 'avenida brasil',
   district: 'centro',
   latitude: -22.9068,
@@ -39,7 +38,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
     data: [
       {
         cetRioCode: 'RDR123',
-        codigoPontoColeta: '123',
         location: 'avenida brasil',
         district: 'centro',
         latitude: -22.9068,
@@ -54,7 +52,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
       },
       {
         cetRioCode: 'RDR456',
-        codigoPontoColeta: '456',
         location: 'copacabana',
         district: 'zona sul',
         latitude: -22.9707,

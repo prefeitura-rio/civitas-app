@@ -3,16 +3,29 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
+import { useState } from 'react'
 
+import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Pagination } from '@/components/ui/pagination'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 import { useMonitoredPlatesSearchParams } from '@/hooks/useParams/useMonitoredPlatesSearchParams'
 import { useProfile } from '@/hooks/useQueries/useProfile'
-import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
-import type { MonitoredPlate } from '@/models/entities'
+import { getInstitutionAuthority } from '@/http/institution-authorities'
+import {
+  getMonitoredPlates,
+  type MonitoredPlateReadModel,
+} from '@/http/monitored-plates'
+import type { InstitutionAuthority } from '@/models/entities'
 import { notAllowed } from '@/utils/template-messages'
 
 export function MonitoredPlatesTable() {
@@ -24,111 +37,113 @@ export function MonitoredPlatesTable() {
     setOnDeleteMonitoredPlateProps,
     deleteAlertDisclosure,
   } = useMonitoredPlates()
-  // const [plate, setPlate] = useState<string>()
   const { data: profile, isLoading: isProfileLoading } = useProfile()
+  const [selectedAuthority, setSelectedAuthority] =
+    useState<InstitutionAuthority | null>(null)
 
-  const { data: MonitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
+  const { data: monitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
     useQuery({
       queryKey,
       queryFn: () =>
         getMonitoredPlates({
-          ...formattedSearchParams,
+          active: formattedSearchParams.active,
+          plateContains: formattedSearchParams.plateContains,
+          institutionAuthorityName:
+            formattedSearchParams.institutionAuthorityName,
+          notificationChannelTitle:
+            formattedSearchParams.notificationChannelTitle,
+          startTimeCreate: formattedSearchParams.startTimeCreate,
+          endTimeCreate: formattedSearchParams.endTimeCreate,
+          page: formattedSearchParams.page,
+          size: formattedSearchParams.size,
         }),
     })
 
-  // const {
-  //   mutateAsync: updateMonitoredPlateMutation,
-  //   isPending: IsUpdatingLoading,
-  // } = useMutation({
-  //   mutationFn: updateMonitoredPlate,
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
-  //   },
-  // })
+  const data = monitoredPlatesResponse?.data
 
-  const data = MonitoredPlatesResponse?.data
+  const { data: authorityDetail, isLoading: isAuthorityDetailLoading } =
+    useQuery({
+      queryKey: ['institution-authorities', selectedAuthority?.id],
+      queryFn: () => getInstitutionAuthority({ id: selectedAuthority!.id }),
+      enabled: Boolean(selectedAuthority?.id),
+    })
 
-  const columns: ColumnDef<MonitoredPlate>[] = [
+  const displayedAuthority = authorityDetail ?? selectedAuthority
+
+  const currentPage = formattedSearchParams.page ?? 1
+  const pageSize = formattedSearchParams.size ?? 10
+  const paginatedItems = data?.items ?? []
+  const total = data?.total ?? 0
+
+  const columns: ColumnDef<MonitoredPlateReadModel>[] = [
     {
       accessorKey: 'plate',
       header: 'Placa',
     },
     {
-      accessorKey: 'contactInfo',
-      header: 'Contatos',
-    },
-    {
       accessorKey: 'notes',
       header: 'Observações',
+      cell: ({ row }) => row.original.notes || ' - ',
     },
     {
-      accessorKey: 'operation.title',
-      header: 'Demandante',
-    },
-    {
-      accessorKey: 'notificationChannels',
-      header: 'Canais de notificação',
+      id: 'authorities',
+      header: 'Requisitantes',
       cell: ({ row }) => {
-        if (row.original.notificationChannels) {
-          const concatenated = row.original.notificationChannels.reduce(
-            (acc, cur) => (acc ? `${acc}, ${cur.title}` : cur.title),
-            '',
-          )
-          return <span>{concatenated}</span>
-        } else {
-          return <div />
+        const uniqueAuthorities = Array.from(
+          new Map(
+            row.original.authorities.map((authority) => [
+              authority.institutionAuthority.id,
+              authority.institutionAuthority,
+            ]),
+          ).values(),
+        )
+
+        if (uniqueAuthorities.length === 0) {
+          return <span className="text-sm text-muted-foreground">Nenhum</span>
         }
+
+        const visibleAuthorities = uniqueAuthorities.slice(0, 2)
+        const hiddenCount = uniqueAuthorities.length - visibleAuthorities.length
+
+        return (
+          <div className="flex flex-wrap gap-1">
+            {visibleAuthorities.map((authority) => (
+              <Button
+                key={authority.id}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setSelectedAuthority(authority)}
+              >
+                {authority.name}
+              </Button>
+            ))}
+            {hiddenCount > 0 ? (
+              <span className="inline-flex h-7 items-center rounded-md border border-border bg-muted px-2 text-xs text-muted-foreground">
+                +{hiddenCount}
+              </span>
+            ) : null}
+          </div>
+        )
       },
     },
     {
       accessorKey: 'createdAt',
       header: 'Data de criação',
-      cell: ({ row }) => formatDate(row.original.createdAt, 'dd/MM/yyyy HH:mm'),
+      cell: ({ row }) =>
+        row.original.createdAt
+          ? formatDate(new Date(row.original.createdAt), 'dd/MM/yyyy HH:mm')
+          : ' - ',
     },
     {
       accessorKey: 'updatedAt',
       header: 'Última atualização',
-      cell: ({ row }) => formatDate(row.original.updatedAt, 'dd/MM/yyyy HH:mm'),
+      cell: ({ row }) =>
+        row.original.updatedAt
+          ? formatDate(new Date(row.original.updatedAt), 'dd/MM/yyyy HH:mm')
+          : ' - ',
     },
-    // {
-    //   accessorKey: 'active',
-    //   header: 'Status',
-    //   cell: ({ row }) => {
-    //     return (
-    //       <Tooltip
-    //         text={row.original.active ? 'Ativo' : 'Inativo'}
-    //         disabled={
-    //           (IsUpdatingLoading && plate === row.original.plate) ||
-    //           !profile ||
-    //           !profile?.is_admin
-    //         }
-    //         disabledText={notAllowed}
-    //         asChild
-    //       >
-    //         <div>
-    //           <Switch
-    //             id="active"
-    //             size="sm"
-    //             checked={row.original.active}
-    //             disabled={
-    //               (IsUpdatingLoading && plate === row.original.plate) ||
-    //               !profile ||
-    //               !profile?.is_admin
-    //             }
-    //             className="disabled:cursor-default"
-    //             onCheckedChange={() => {
-    //               setPlate(row.original.plate)
-    //               updateMonitoredPlateMutation({
-    //                 plate: row.original.plate,
-    //                 active: !row.original.active,
-    //               })
-    //             }}
-    //           />
-    //         </div>
-    //       </Tooltip>
-    //     )
-    //   },
-    // },
     {
       id: 'actions',
       header: () => (
@@ -160,11 +175,8 @@ export function MonitoredPlatesTable() {
               </Button>
             </Tooltip>
             <Tooltip
-              text={'Excluir'}
-              disabled={
-                // (IsUpdatingLoading && plate === row.original.plate) ||
-                !profile || !profile?.is_admin
-              }
+              text="Excluir"
+              disabled={!profile || !profile?.is_admin}
               disabledText={notAllowed}
               asChild
             >
@@ -178,10 +190,7 @@ export function MonitoredPlatesTable() {
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={
-                  // (IsUpdatingLoading && plate === row.original.plate) ||
-                  !profile || !profile?.is_admin
-                }
+                disabled={!profile || !profile?.is_admin}
               >
                 <span className="sr-only">Excluir linha</span>
                 <Trash className="h-4 w-4" />
@@ -194,20 +203,85 @@ export function MonitoredPlatesTable() {
   ]
 
   return (
-    <div className="flex flex-col gap-8">
-      <DataTable
-        columns={columns}
-        data={data?.items || []}
-        isLoading={isMonitoredPlatesLoading || isProfileLoading}
-      />
-      {data && (
+    <>
+      <div className="flex flex-col gap-8">
+        <DataTable
+          columns={columns}
+          data={paginatedItems}
+          isLoading={isMonitoredPlatesLoading || isProfileLoading}
+        />
         <Pagination
-          page={data.page}
-          total={data.total}
-          size={data.size}
+          page={currentPage}
+          total={total}
+          size={pageSize}
           onPageChange={handlePaginate}
         />
-      )}
-    </div>
+      </div>
+
+      <Dialog
+        open={Boolean(selectedAuthority)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedAuthority(null)
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedAuthority?.name ?? 'Requisitante'}
+            </DialogTitle>
+            <DialogDescription>
+              Informações do requisitante vinculado a esta placa monitorada.
+            </DialogDescription>
+          </DialogHeader>
+
+          {isAuthorityDetailLoading && !authorityDetail ? (
+            <div className="flex items-center justify-center py-6">
+              <Spinner className="size-5" />
+            </div>
+          ) : displayedAuthority ? (
+            <div className="flex flex-col gap-3 text-sm">
+              <div>
+                <span className="font-medium">Demandante:</span>{' '}
+                {displayedAuthority.requestingInstitution?.name ?? ' - '}
+              </div>
+              <div>
+                <span className="font-medium">Telefone principal:</span>{' '}
+                {displayedAuthority.primaryContact?.phone?.phone ?? ' - '}
+              </div>
+              <div>
+                <span className="font-medium">E-mail principal:</span>{' '}
+                {displayedAuthority.primaryContact?.email?.email ?? ' - '}
+              </div>
+              <div>
+                <span className="font-medium">Telefones adicionais:</span>{' '}
+                {displayedAuthority.contacts?.phones
+                  ?.map((item) => item.phone)
+                  .filter(
+                    (value): value is string =>
+                      Boolean(value) &&
+                      value !== displayedAuthority.primaryContact?.phone?.phone,
+                  )
+                  .join(', ') || ' - '}
+              </div>
+              <div>
+                <span className="font-medium">E-mails adicionais:</span>{' '}
+                {displayedAuthority.contacts?.emails
+                  ?.map((item) => item.email)
+                  .filter(
+                    (value): value is string =>
+                      Boolean(value) &&
+                      value !== displayedAuthority.primaryContact?.email?.email,
+                  )
+                  .join(', ') || ' - '}
+              </div>
+              <div>
+                <span className="font-medium">Ponto focal:</span>{' '}
+                {displayedAuthority.isFocalPoint ? 'Sim' : 'Não'}
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -1,0 +1,272 @@
+'use client'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+
+import { InputError } from '@/components/custom/input-error'
+import { Spinner } from '@/components/custom/spinner'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  type RequestingInstitutionForm,
+  requestingInstitutionFormSchema,
+} from '@/contexts/requesting-institutions-context'
+import { useRequestingInstitutions } from '@/hooks/useContexts/use-requesting-institutions-context'
+import {
+  createRequestingInstitution,
+  getRequestingInstitution,
+  updateRequestingInstitution,
+} from '@/http/requesting-institutions'
+import { queryClient } from '@/lib/react-query'
+import { genericErrorMessage } from '@/utils/error-handlers'
+
+interface RequestingInstitutionFormDialogProps {
+  isOpen: boolean
+  onClose: () => void
+  onOpen: () => void
+}
+
+const jurisdictionOptions = [
+  { value: 'municipal', label: 'Municipal' },
+  { value: 'estadual', label: 'Estadual' },
+  { value: 'distrital', label: 'Distrital' },
+  { value: 'federal', label: 'Federal' },
+  { value: 'outros', label: 'Outros' },
+] as const
+
+export function RequestingInstitutionFormDialog({
+  isOpen,
+  onClose,
+  onOpen,
+}: RequestingInstitutionFormDialogProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const {
+    dialogInitialData: initialData,
+    setDialogInitialData: setInitialData,
+  } = useRequestingInstitutions()
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<RequestingInstitutionForm>({
+    resolver: zodResolver(requestingInstitutionFormSchema),
+    defaultValues: {
+      name: '',
+      type: '',
+      agency: '',
+      jurisdictionLevel: 'estadual',
+    },
+  })
+
+  const { mutateAsync: createMutation, isPending: isPendingCreate } =
+    useMutation({
+      mutationFn: createRequestingInstitution,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['requesting-institutions'] })
+      },
+      onError: () => {
+        toast.error(genericErrorMessage)
+      },
+    })
+
+  const { mutateAsync: updateMutation, isPending: isPendingUpdate } =
+    useMutation({
+      mutationFn: updateRequestingInstitution,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['requesting-institutions'] })
+      },
+      onError: () => {
+        toast.error(genericErrorMessage)
+      },
+    })
+
+  const {
+    data: requestingInstitution,
+    isLoading: isLoadingRequestingInstitution,
+  } = useQuery({
+    queryKey: ['requesting-institutions', initialData?.id],
+    queryFn: () => getRequestingInstitution({ id: initialData!.id }),
+    enabled: Boolean(initialData?.id && isOpen),
+  })
+
+  function handleOnOpenChange(open: boolean) {
+    if (open) {
+      onOpen()
+    } else {
+      onClose()
+      reset()
+      setInitialData(null)
+    }
+  }
+
+  async function onSubmit(props: RequestingInstitutionForm) {
+    if (initialData?.id) {
+      await updateMutation({ id: initialData.id, ...props })
+      toast.success('Demandante atualizado.')
+    } else {
+      await createMutation(props)
+      toast.success('Demandante criado.')
+    }
+    handleOnOpenChange(false)
+  }
+
+  useEffect(() => {
+    if (
+      initialData &&
+      isOpen &&
+      requestingInstitution &&
+      !isLoadingRequestingInstitution
+    ) {
+      setValue('name', requestingInstitution.name)
+      setValue('type', requestingInstitution.type)
+      setValue('agency', requestingInstitution.agency)
+      setValue('jurisdictionLevel', requestingInstitution.jurisdictionLevel)
+    }
+  }, [
+    initialData,
+    isOpen,
+    requestingInstitution,
+    isLoadingRequestingInstitution,
+    setValue,
+  ])
+
+  useEffect(() => {
+    if (!isOpen) reset()
+  }, [isOpen, reset])
+
+  useEffect(() => {
+    if (isOpen && !initialData?.id) {
+      reset({
+        name: '',
+        type: '',
+        agency: '',
+        jurisdictionLevel: 'estadual',
+      })
+    }
+  }, [isOpen, initialData?.id, reset])
+
+  useEffect(() => {
+    setIsLoading(
+      isLoadingRequestingInstitution ||
+        isSubmitting ||
+        isPendingCreate ||
+        isPendingUpdate,
+    )
+  }, [
+    isLoadingRequestingInstitution,
+    isSubmitting,
+    isPendingCreate,
+    isPendingUpdate,
+  ])
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {initialData?.id ? 'Editar demandante' : 'Novo demandante'}
+          </DialogTitle>
+        </DialogHeader>
+        <form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label htmlFor="ri-name">Demandante</Label>
+              <InputError message={errors.name?.message} />
+            </div>
+            <Input
+              id="ri-name"
+              {...register('name')}
+              disabled={isLoading}
+              placeholder="Ex.: 1ª DP - Praça Mauá"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label htmlFor="ri-type">Tipo</Label>
+              <InputError message={errors.type?.message} />
+            </div>
+            <Input
+              id="ri-type"
+              {...register('type')}
+              placeholder="Ex.: Delegacia de Polícia Civil"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label htmlFor="ri-agency">Órgão</Label>
+              <InputError message={errors.agency?.message} />
+            </div>
+            <Input
+              id="ri-agency"
+              {...register('agency')}
+              disabled={isLoading}
+              placeholder="Ex.: PCERJ"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label>Competência</Label>
+              <InputError message={errors.jurisdictionLevel?.message} />
+            </div>
+            <Controller
+              control={control}
+              name="jurisdictionLevel"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="ri-jurisdiction">
+                    <SelectValue placeholder="Selecione a competência" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jurisdictionOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          <div className="mt-2 flex w-full justify-end">
+            <Button type="submit" disabled={isLoading}>
+              {isPendingCreate || isPendingUpdate ? (
+                <Spinner />
+              ) : (
+                <span>{initialData?.id ? 'Salvar' : 'Criar'}</span>
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
