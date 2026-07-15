@@ -10,7 +10,8 @@ type AuthCookieSameSite = 'lax' | 'strict' | 'none'
 // validated on the first actual request at runtime.
 const isBuildPhase =
   process.env.NEXT_PHASE === 'phase-production-build' ||
-  process.env.NEXT_PHASE === 'phase-export'
+  process.env.NEXT_PHASE === 'phase-export' ||
+  process.env.NODE_ENV === 'test'
 
 function getServerNumberEnv(name: string) {
   const value = Number(process.env[name])
@@ -20,47 +21,24 @@ function getServerNumberEnv(name: string) {
   return value
 }
 
-// This function will validate and return build-safe public environment variables.
-//
-// Public vars are sourced at runtime from window.__ENV__ (client-side, production)
-// or process.env (server-side and local dev). See src/lib/public-env.ts for details.
 const getConfig = () => {
   const isTruthy = (value?: string) => value?.toLowerCase() === 'true'
 
-  // The second argument (process.env.NEXT_PUBLIC_*) is statically replaced by Next.js
-  // at build time: it becomes the real value in dev builds and undefined in production.
-  const apiUrl = getPublicEnv(
-    'CIVITAS_API_URL',
-    process.env.NEXT_PUBLIC_CIVITAS_API_URL,
-  )
+  const apiUrl = getPublicEnv('CIVITAS_API_URL')
   if (!apiUrl && !isBuildPhase) {
     throw new Error('CIVITAS_API_URL is not set')
   }
 
-  const mapboxAccessToken = getPublicEnv(
-    'MAPBOX_ACCESS_TOKEN',
-    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
-  )
+  const mapboxAccessToken = getPublicEnv('MAPBOX_ACCESS_TOKEN')
   if (!mapboxAccessToken && !isBuildPhase) {
     throw new Error('MAPBOX_ACCESS_TOKEN is not set')
   }
 
-  const enableChamados = isTruthy(
-    getPublicEnv('ENABLE_CHAMADOS', process.env.NEXT_PUBLIC_ENABLE_CHAMADOS),
-  )
-  const enableImpersonation = isTruthy(
-    getPublicEnv(
-      'ENABLE_IMPERSONATION',
-      process.env.NEXT_PUBLIC_ENABLE_IMPERSONATION,
-    ),
-  )
-
   return {
-    // Empty strings during build phase — real values come from Infisical at runtime
     apiUrl: (apiUrl ?? '').replace(/\/+$/, ''),
     mapboxAccessToken: mapboxAccessToken ?? '',
-    enableChamados,
-    enableImpersonation,
+    enableChamados: isTruthy(getPublicEnv('ENABLE_CHAMADOS')),
+    enableImpersonation: isTruthy(getPublicEnv('ENABLE_IMPERSONATION')),
   }
 }
 
