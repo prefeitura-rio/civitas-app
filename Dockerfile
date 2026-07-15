@@ -53,8 +53,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=8080
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1000 nodejs
+RUN adduser --system --uid 1000 nextjs
 
 # public/ must be writable by nextjs so that docker-entrypoint.sh can
 # generate env-config.js at container startup with the runtime env vars.
