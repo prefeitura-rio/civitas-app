@@ -53,27 +53,18 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=8080
 
-RUN addgroup --system --gid 1000 nodejs
-RUN adduser --system --uid 1000 nextjs
+# node:20-alpine already ships with user "node" at uid/gid 1000.
+# Copy everything as root first, then transfer ownership in a single
+# chown -R so that docker-entrypoint.sh can write public/env-config.js
+# at container startup regardless of the pod's runAsUser setting.
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY scripts/docker-entrypoint.sh ./
 
-# public/ must be writable by nextjs so that docker-entrypoint.sh can
-# generate env-config.js at container startup with the runtime env vars.
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+RUN chown -R node:node /app
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Entrypoint script: generates public/env-config.js from runtime env vars,
-# then starts the Next.js standalone server.
-COPY --chown=nextjs:nodejs scripts/docker-entrypoint.sh ./
-
-USER nextjs
+USER node
 
 EXPOSE 8080
 
