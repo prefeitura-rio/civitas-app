@@ -37,52 +37,6 @@ const OMITTED_REQUEST_HEADERS = new Set([
   'true-client-ip',
 ])
 
-const DEBUG_CLIENT_IP_REQUEST_HEADERS = [
-  'cf-connecting-ip',
-  'true-client-ip',
-  'x-civitas-client-ip',
-  'x-real-ip',
-  'x-client-ip',
-  'x-forwarded-for',
-  'x-original-forwarded-for',
-  'forwarded',
-]
-
-function setClientIpDebugResponseHeaders(
-  response: NextResponse,
-  upstreamHeaders: Headers,
-  sourceHeaders: Headers,
-) {
-  const upstreamForwardedFor = upstreamHeaders.get('x-forwarded-for')
-  const upstreamRealIp = upstreamHeaders.get('x-real-ip')
-  const upstreamCivitasClientIp = upstreamHeaders.get('x-civitas-client-ip')
-
-  if (upstreamCivitasClientIp) {
-    response.headers.set(
-      'x-debug-upstream-x-civitas-client-ip',
-      upstreamCivitasClientIp,
-    )
-  }
-
-  if (upstreamForwardedFor) {
-    response.headers.set(
-      'x-debug-upstream-x-forwarded-for',
-      upstreamForwardedFor,
-    )
-  }
-
-  if (upstreamRealIp) {
-    response.headers.set('x-debug-upstream-x-real-ip', upstreamRealIp)
-  }
-
-  for (const header of DEBUG_CLIENT_IP_REQUEST_HEADERS) {
-    const value = sourceHeaders.get(header)
-    if (value) {
-      response.headers.set(`x-debug-incoming-${header}`, value)
-    }
-  }
-}
-
 async function handler(
   request: NextRequest,
   { params }: { params: { path: string[] } },
@@ -180,8 +134,6 @@ async function handler(
     }
     response.headers.set(key, value)
   }
-
-  setClientIpDebugResponseHeaders(response, headers, request.headers)
 
   const sessionCookie = serializeSession(result.session)
   const accessTokenCookie = serializeAccessToken(result.session)
