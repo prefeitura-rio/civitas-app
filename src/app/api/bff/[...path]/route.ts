@@ -29,6 +29,7 @@ const OMITTED_REQUEST_HEADERS = new Set([
   'connection',
   'forwarded',
   'x-client-ip',
+  'x-civitas-client-ip',
   'x-forwarded-for',
   'x-original-forwarded-for',
   'x-real-ip',
@@ -39,6 +40,7 @@ const OMITTED_REQUEST_HEADERS = new Set([
 const DEBUG_CLIENT_IP_REQUEST_HEADERS = [
   'cf-connecting-ip',
   'true-client-ip',
+  'x-civitas-client-ip',
   'x-real-ip',
   'x-client-ip',
   'x-forwarded-for',
@@ -53,6 +55,14 @@ function setClientIpDebugResponseHeaders(
 ) {
   const upstreamForwardedFor = upstreamHeaders.get('x-forwarded-for')
   const upstreamRealIp = upstreamHeaders.get('x-real-ip')
+  const upstreamCivitasClientIp = upstreamHeaders.get('x-civitas-client-ip')
+
+  if (upstreamCivitasClientIp) {
+    response.headers.set(
+      'x-debug-upstream-x-civitas-client-ip',
+      upstreamCivitasClientIp,
+    )
+  }
 
   if (upstreamForwardedFor) {
     response.headers.set(
