@@ -903,13 +903,13 @@ export function useCollectionPointPickerState({
       id: AREA_LINE_LAYER_ID,
       data: areaDraftPoints,
       pickable: false,
-      getSourcePosition: (_point, { index, data }) => data[index],
-      getTargetPosition: (_point, { index, data }) =>
-        data[Math.min(index + 1, data.length - 1)],
+      getSourcePosition: (_point, { index }) => areaDraftPoints[index],
+      getTargetPosition: (_point, { index }) =>
+        areaDraftPoints[Math.min(index + 1, areaDraftPoints.length - 1)],
       getColor: [37, 99, 235, 220],
       getWidth: 3,
       widthUnits: 'pixels',
-      parameters: { depthTest: false },
+      parameters: { depthWriteEnabled: false, depthCompare: 'always' },
       visible: true,
     })
   }, [areaDraftPoints])
@@ -929,7 +929,7 @@ export function useCollectionPointPickerState({
       getLineColor: [37, 99, 235, 220],
       getLineWidth: 2,
       lineWidthUnits: 'pixels',
-      parameters: { depthTest: false },
+      parameters: { depthWriteEnabled: false, depthCompare: 'always' },
     })
   }, [areaPolygonFeature])
 
@@ -949,7 +949,7 @@ export function useCollectionPointPickerState({
       radiusUnits: 'pixels',
       radiusMinPixels: 5,
       radiusMaxPixels: 5,
-      parameters: { depthTest: false },
+      parameters: { depthWriteEnabled: false, depthCompare: 'always' },
     })
   }, [areaDraftPoints])
 

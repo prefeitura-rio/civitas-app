@@ -52,8 +52,8 @@ export function MonitoredPlatesTable() {
             formattedSearchParams.institutionAuthorityName,
           notificationChannelTitle:
             formattedSearchParams.notificationChannelTitle,
-          startTimeCreate: formattedSearchParams.startTimeCreate,
-          endTimeCreate: formattedSearchParams.endTimeCreate,
+          startTimeCreate: formattedSearchParams.createdAtFrom,
+          endTimeCreate: formattedSearchParams.createdAtTo,
           page: formattedSearchParams.page,
           size: formattedSearchParams.size,
         }),
