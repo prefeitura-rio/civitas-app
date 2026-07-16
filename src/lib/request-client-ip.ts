@@ -128,6 +128,7 @@ export function setForwardedClientIpHeaders(headers: Headers, source: Headers) {
     return
   }
 
+  headers.set('x-civitas-client-ip', clientIp)
   headers.set('x-forwarded-for', clientIp)
   headers.set('x-real-ip', clientIp)
 }
