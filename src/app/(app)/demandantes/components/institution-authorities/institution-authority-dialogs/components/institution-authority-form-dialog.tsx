@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { InputError } from '@/components/custom/input-error'
 import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
+import { PhoneInput } from '@/components/reui/phone-input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -32,7 +33,7 @@ import {
 } from '@/http/institution-authorities'
 import { getRequestingInstitutions } from '@/http/requesting-institutions'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 interface InstitutionAuthorityFormDialogProps {
   isOpen: boolean
@@ -107,8 +108,8 @@ export function InstitutionAuthorityFormDialog({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
       },
-      onError: () => {
-        toast.error(genericErrorMessage)
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
       },
     })
 
@@ -118,16 +119,16 @@ export function InstitutionAuthorityFormDialog({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
       },
-      onError: () => {
-        toast.error(genericErrorMessage)
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
       },
     })
 
   const { mutateAsync: replaceContactsMutation, isPending: isPendingContacts } =
     useMutation({
       mutationFn: replaceInstitutionAuthorityContacts,
-      onError: () => {
-        toast.error(genericErrorMessage)
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
       },
     })
 
@@ -153,17 +154,21 @@ export function InstitutionAuthorityFormDialog({
 
   async function onSubmit(values: InstitutionAuthorityForm) {
     const phones = ensureSinglePrimary(
-      values.phones.map((item) => ({
-        phone: item.phone.trim(),
-        isPrimary: item.isPrimary,
-      })),
+      values.phones
+        .map((item) => ({
+          phone: item.phone.trim(),
+          isPrimary: item.isPrimary,
+        }))
+        .filter((item) => item.phone.length > 0),
     )
 
     const emails = ensureSinglePrimary(
-      values.emails.map((item) => ({
-        email: item.email.trim(),
-        isPrimary: item.isPrimary,
-      })),
+      values.emails
+        .map((item) => ({
+          email: item.email.trim(),
+          isPrimary: item.isPrimary,
+        }))
+        .filter((item) => item.email.length > 0),
     )
 
     const hasAnyContacts = phones.length > 0 || emails.length > 0
@@ -337,11 +342,23 @@ export function InstitutionAuthorityFormDialog({
                           message={errors.phones?.[index]?.phone?.message}
                         />
                       </div>
-                      <Input
-                        id={`phones.${index}.phone`}
-                        {...register(`phones.${index}.phone`)}
-                        disabled={isLoading}
-                        placeholder="Ex.: (21) 99999-9999"
+                      <Controller
+                        control={control}
+                        name={`phones.${index}.phone`}
+                        render={({ field: phoneField }) => (
+                          <PhoneInput
+                            id={`phones.${index}.phone`}
+                            value={phoneField.value}
+                            onChange={(value) =>
+                              phoneField.onChange(value ?? '')
+                            }
+                            onBlur={phoneField.onBlur}
+                            name={phoneField.name}
+                            ref={phoneField.ref}
+                            disabled={isLoading}
+                            placeholder="(21) 99999-9999"
+                          />
+                        )}
                       />
                     </div>
 
