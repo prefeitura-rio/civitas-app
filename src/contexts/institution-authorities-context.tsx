@@ -6,6 +6,7 @@ import {
   type SetStateAction,
   useState,
 } from 'react'
+import { isPossiblePhoneNumber } from 'react-phone-number-input'
 import { z } from 'zod'
 
 import { useDisclosure, type UseDisclosureReturn } from '@/hooks/use-disclosure'
@@ -36,7 +37,13 @@ interface InstitutionAuthoritiesContextProviderProps {
 }
 
 const authorityContactPhoneSchema = z.object({
-  phone: z.string().trim().min(1, { message: 'Campo obrigatório' }),
+  phone: z
+    .string()
+    .trim()
+    .min(1, { message: 'Campo obrigatório' })
+    .refine((value) => isPossiblePhoneNumber(value), {
+      message: 'Telefone inválido',
+    }),
   isPrimary: z.boolean(),
 })
 
