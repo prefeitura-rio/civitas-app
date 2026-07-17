@@ -196,7 +196,7 @@ export async function createMonitoredPlateAuthority({
   collectionPointIds,
 }: CreateMonitoredPlateAuthorityRequest) {
   const response = await api.post<BackendMonitoredPlateAuthorityResponse>(
-    '/monitored-plate-authorities/',
+    '/monitored-plate-authorities',
     {
       monitored_plate_id: monitoredPlateId,
       institution_authority_id: institutionAuthorityId,

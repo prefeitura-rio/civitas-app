@@ -55,7 +55,7 @@ export async function getRequestingInstitutions({
   size,
 }: PaginationRequest) {
   const response = await api.get<BackendGetRequestingInstitutionsResponse>(
-    '/requesting-institutions/',
+    '/requesting-institutions',
     {
       params: { page, size },
     },
@@ -87,7 +87,7 @@ export async function createRequestingInstitution({
   jurisdictionLevel,
 }: CreateRequestingInstitutionRequest) {
   const response = await api.post<BackendRequestingInstitution>(
-    '/requesting-institutions/',
+    '/requesting-institutions',
     {
       name,
       type,
