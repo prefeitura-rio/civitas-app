@@ -154,7 +154,7 @@ export async function getInstitutionAuthorities({
   size,
 }: GetInstitutionAuthoritiesRequest) {
   const response = await api.get<BackendGetInstitutionAuthoritiesResponse>(
-    '/institution-authorities/',
+    '/institution-authorities',
     {
       params: { page, size },
     },
@@ -185,7 +185,7 @@ export async function createInstitutionAuthority({
   isFocalPoint,
 }: CreateInstitutionAuthorityRequest) {
   const response = await api.post<BackendInstitutionAuthority>(
-    '/institution-authorities/',
+    '/institution-authorities',
     {
       name,
       requesting_institution_id: requestingInstitutionId,
