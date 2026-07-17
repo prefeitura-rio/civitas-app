@@ -174,7 +174,12 @@ async function handler(
   for (const [key, value] of upstreamResponse.headers.entries()) {
     const lowerKey = key.toLowerCase()
     if (
-      ['content-length', 'transfer-encoding', 'connection'].includes(lowerKey)
+      [
+        'content-length',
+        'transfer-encoding',
+        'connection',
+        'content-encoding',
+      ].includes(lowerKey)
     ) {
       continue
     }
