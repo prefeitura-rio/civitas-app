@@ -5,6 +5,8 @@ import remarkGfm from 'remark-gfm'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Keep trailing slashes on BFF proxy paths
+  skipTrailingSlashRedirect: true,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   // Optimize build performance
   swcMinify: true,
