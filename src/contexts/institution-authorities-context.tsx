@@ -40,6 +40,10 @@ function hasAtMostOnePrimary<T extends { isPrimary: boolean }>(items: T[]) {
   return items.filter((item) => item.isPrimary).length <= 1
 }
 
+function normalizePhoneForComparison(value: string) {
+  return value.replace(/\D/g, '')
+}
+
 const authorityContactPhoneSchema = z.object({
   phone: z
     .string()
@@ -67,6 +71,26 @@ export const institutionAuthorityFormSchema = z
     emails: z.array(authorityContactEmailSchema),
   })
   .superRefine((values, ctx) => {
+    const seenPhones = new Map<string, number>()
+
+    values.phones.forEach((item, index) => {
+      const phone = normalizePhoneForComparison(item.phone)
+      if (!phone) return
+
+      const firstIndex = seenPhones.get(phone)
+
+      if (firstIndex !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Telefone já cadastrado para este requisitante',
+          path: ['phones', index, 'phone'],
+        })
+        return
+      }
+
+      seenPhones.set(phone, index)
+    })
+
     if (!hasAtMostOnePrimary(values.phones)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
