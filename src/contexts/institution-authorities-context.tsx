@@ -36,6 +36,10 @@ interface InstitutionAuthoritiesContextProviderProps {
   children: ReactNode
 }
 
+function hasAtMostOnePrimary<T extends { isPrimary: boolean }>(items: T[]) {
+  return items.filter((item) => item.isPrimary).length <= 1
+}
+
 const authorityContactPhoneSchema = z.object({
   phone: z
     .string()
@@ -52,13 +56,33 @@ const authorityContactEmailSchema = z.object({
   isPrimary: z.boolean(),
 })
 
-export const institutionAuthorityFormSchema = z.object({
-  requestingInstitutionId: z.string().min(1, { message: 'Campo obrigatório' }),
-  name: z.string().trim().min(1, { message: 'Campo obrigatório' }),
-  isFocalPoint: z.boolean(),
-  phones: z.array(authorityContactPhoneSchema),
-  emails: z.array(authorityContactEmailSchema),
-})
+export const institutionAuthorityFormSchema = z
+  .object({
+    requestingInstitutionId: z
+      .string()
+      .min(1, { message: 'Campo obrigatório' }),
+    name: z.string().trim().min(1, { message: 'Campo obrigatório' }),
+    isFocalPoint: z.boolean(),
+    phones: z.array(authorityContactPhoneSchema),
+    emails: z.array(authorityContactEmailSchema),
+  })
+  .superRefine((values, ctx) => {
+    if (!hasAtMostOnePrimary(values.phones)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Apenas um telefone pode ser principal',
+        path: ['phones'],
+      })
+    }
+
+    if (!hasAtMostOnePrimary(values.emails)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Apenas um e-mail pode ser principal',
+        path: ['emails'],
+      })
+    }
+  })
 
 export type InstitutionAuthorityForm = z.infer<
   typeof institutionAuthorityFormSchema
