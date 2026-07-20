@@ -143,6 +143,9 @@ export function InstitutionAuthorityFormDialog({
   const { mutateAsync: replaceContactsMutation, isPending: isPendingContacts } =
     useMutation({
       mutationFn: replaceInstitutionAuthorityContacts,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
+      },
       onError: (error) => {
         toast.error(getApiErrorMessage(error))
       },

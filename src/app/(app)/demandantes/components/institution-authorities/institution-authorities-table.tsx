@@ -2,8 +2,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
-import { PencilLine, Trash } from 'lucide-react'
+import { Copy, PencilLine, Trash } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
@@ -18,21 +19,99 @@ import {
 import { getRequestingInstitutions } from '@/http/requesting-institutions'
 import { notAllowed } from '@/utils/template-messages'
 
-function getContactsSummary(authority: InstitutionAuthority) {
-  const phoneCount = authority.contacts?.phones.length ?? 0
-  const emailCount = authority.contacts?.emails.length ?? 0
+function getPrimaryPhone(authority: InstitutionAuthority) {
+  return (
+    authority.primaryContact?.phone?.phone ??
+    authority.contacts?.phones.find((item) => item.isPrimary)?.phone ??
+    authority.contacts?.phones.at(0)?.phone
+  )
+}
 
-  if (phoneCount === 0 && emailCount === 0) return '—'
+function getPrimaryEmail(authority: InstitutionAuthority) {
+  return (
+    authority.primaryContact?.email?.email ??
+    authority.contacts?.emails.find((item) => item.isPrimary)?.email ??
+    authority.contacts?.emails.at(0)?.email
+  )
+}
 
-  const parts = []
-  if (phoneCount > 0) {
-    parts.push(`${phoneCount} telefone${phoneCount > 1 ? 's' : ''}`)
+function formatPhoneForDisplay(value: string) {
+  const digits = value.replace(/\D/g, '')
+  const withoutCountryCode = digits.startsWith('55') ? digits.slice(2) : digits
+
+  if (withoutCountryCode.length === 11) {
+    return `(${withoutCountryCode.slice(0, 2)}) ${withoutCountryCode.slice(
+      2,
+      7,
+    )}-${withoutCountryCode.slice(7)}`
   }
-  if (emailCount > 0) {
-    parts.push(`${emailCount} e-mail${emailCount > 1 ? 's' : ''}`)
+
+  if (withoutCountryCode.length === 10) {
+    return `(${withoutCountryCode.slice(0, 2)}) ${withoutCountryCode.slice(
+      2,
+      6,
+    )}-${withoutCountryCode.slice(6)}`
   }
 
-  return parts.join(' • ')
+  return value.replace(/^\+55\s*/, '')
+}
+
+async function copyContact(value: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    toast.success(`${label} copiado.`)
+  } catch {
+    toast.error('Não foi possível copiar o contato.')
+  }
+}
+
+function ContactValue({
+  label,
+  value,
+  displayValue = value,
+}: {
+  label: string
+  value?: string
+  displayValue?: string
+}) {
+  if (!value) return null
+
+  return (
+    <div className="flex min-w-0 items-center gap-1">
+      <span className="shrink-0 text-muted-foreground">{label}:</span>
+      <span className="truncate">{displayValue}</span>
+      <Tooltip text={`Copiar ${label.toLowerCase()}`} asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 shrink-0"
+          onClick={() => copyContact(value, label)}
+        >
+          <span className="sr-only">Copiar {label.toLowerCase()}</span>
+          <Copy className="h-3.5 w-3.5" />
+        </Button>
+      </Tooltip>
+    </div>
+  )
+}
+
+function ContactsCell({ authority }: { authority: InstitutionAuthority }) {
+  const phone = getPrimaryPhone(authority)
+  const email = getPrimaryEmail(authority)
+
+  if (!phone && !email) return '—'
+
+  return (
+    <div className="flex max-w-[18rem] flex-col gap-1">
+      <ContactValue
+        label="Telefone"
+        value={phone}
+        displayValue={phone ? formatPhoneForDisplay(phone) : undefined}
+      />
+      <ContactValue label="E-mail" value={email} />
+    </div>
+  )
 }
 
 export function InstitutionAuthoritiesTable() {
@@ -89,7 +168,7 @@ export function InstitutionAuthoritiesTable() {
     {
       id: 'contacts',
       header: 'Contatos',
-      cell: ({ row }) => getContactsSummary(row.original),
+      cell: ({ row }) => <ContactsCell authority={row.original} />,
     },
     {
       accessorKey: 'createdAt',
