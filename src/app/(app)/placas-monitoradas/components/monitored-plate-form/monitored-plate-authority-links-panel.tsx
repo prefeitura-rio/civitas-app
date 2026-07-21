@@ -1,5 +1,5 @@
 'use client'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueries } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
 import { type Dispatch, type SetStateAction, useState } from 'react'
 import { toast } from 'sonner'
@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch'
 import {
   createMonitoredPlateAuthority,
   deleteMonitoredPlateAuthority,
+  getMonitoredPlateAuthority,
   updateMonitoredPlateAuthority,
 } from '@/http/monitored-plate-authorities'
 import type { MonitoredPlateAuthoritySummary } from '@/http/monitored-plates'
@@ -28,6 +29,19 @@ import { MonitoredPlateAuthorityLinkEditDialog } from './monitored-plate-authori
 import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-authority-link'
 
 type PanelMode = 'persisted' | 'draft'
+
+function getCollectionPointScopeLabel(
+  monitorAllCollectionPoints: boolean,
+  collectionPointIds: string[] | undefined,
+) {
+  const collectionPointCount = collectionPointIds?.length ?? 0
+
+  if (monitorAllCollectionPoints) return 'Todos radares do cerco'
+
+  return collectionPointCount === 1
+    ? '1 ponto monitorado'
+    : String(collectionPointCount) + ' pontos monitorados'
+}
 
 interface MonitoredPlateAuthorityLinksPanelProps {
   mode: PanelMode
@@ -64,6 +78,36 @@ export function MonitoredPlateAuthorityLinksPanel({
     mode === 'persisted'
       ? links.map((link) => link.institutionAuthority.id)
       : draftLinks.map((draft) => draft.institutionAuthorityId)
+
+  const persistedLinkDetailQueries = useQueries({
+    queries:
+      mode === 'persisted'
+        ? links.map((link) => ({
+            queryKey: ['monitored-plate-authorities', link.id],
+            queryFn: () => getMonitoredPlateAuthority({ id: link.id }),
+            enabled:
+              !link.monitorAllCollectionPoints &&
+              link.collectionPointIds.length === 0,
+          }))
+        : [],
+  })
+
+  function getPersistedLinkScope(link: MonitoredPlateAuthoritySummary) {
+    const detailQuery = persistedLinkDetailQueries[links.indexOf(link)]
+    const collectionPointIds =
+      detailQuery?.data?.collectionPointIds ?? link.collectionPointIds
+
+    return {
+      label: getCollectionPointScopeLabel(
+        link.monitorAllCollectionPoints,
+        collectionPointIds,
+      ),
+      isLoading:
+        !link.monitorAllCollectionPoints &&
+        link.collectionPointIds.length === 0 &&
+        detailQuery?.isLoading,
+    }
+  }
 
   const { mutateAsync: createPersistedLink, isPending: isCreatingPersisted } =
     useMutation({
@@ -221,6 +265,11 @@ export function MonitoredPlateAuthorityLinksPanel({
                           : ''}
                       </div>
                       <div className="text-xs text-muted-foreground">
+                        {getPersistedLinkScope(link).isLoading
+                          ? 'Carregando pontos...'
+                          : getPersistedLinkScope(link).label}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
                         Canais:{' '}
                         {link.notificationChannels
                           .map((item) => item.title || item.id)
@@ -283,8 +332,11 @@ export function MonitoredPlateAuthorityLinksPanel({
                         {draft.validUntil
                           ? ` · até ${formatDate(new Date(draft.validUntil), 'dd/MM/yyyy HH:mm')}`
                           : ''}
-                        {` · rascunho`} ·{' '}
-                        {draft.collectionPointIds?.length ?? 0} ponto(s)
+                        {' · '}
+                        {getCollectionPointScopeLabel(
+                          draft.monitorAllCollectionPoints,
+                          draft.collectionPointIds,
+                        )}
                       </div>
                     </button>
                     <div

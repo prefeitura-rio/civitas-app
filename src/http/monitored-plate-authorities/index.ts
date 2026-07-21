@@ -156,13 +156,14 @@ function mapBackendMonitoredPlateAuthority(
     monitorAllCollectionPoints: item.monitor_all_collection_points,
     notificationChannelIds: item.notification_channel_ids ?? [],
     collectionPointIds:
-      item.collection_point_ids ??
-      item.collection_points
-        ?.map(
-          (collectionPoint) => collectionPoint.lpr_collection_point_id ?? '',
-        )
-        .filter(Boolean) ??
-      [],
+      item.collection_point_ids && item.collection_point_ids.length > 0
+        ? item.collection_point_ids
+        : (item.collection_points
+            ?.map(
+              (collectionPoint) =>
+                collectionPoint.lpr_collection_point_id ?? '',
+            )
+            .filter(Boolean) ?? []),
     institutionAuthority: item.institution_authority
       ? mapBackendInstitutionAuthority(item.institution_authority)
       : undefined,
