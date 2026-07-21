@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import type { MouseEvent } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -14,7 +15,7 @@ import {
 import { useInstitutionAuthorities } from '@/hooks/useContexts/use-institution-authorities-context'
 import { deleteInstitutionAuthority } from '@/http/institution-authorities'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 interface DeleteInstitutionAuthorityAlertDialogProps {
   isOpen: boolean
@@ -32,27 +33,34 @@ export function DeleteInstitutionAuthorityAlertDialog({
     setOnDeleteInstitutionAuthorityProps,
   } = useInstitutionAuthorities()
 
-  const { mutateAsync: deleteMutation } = useMutation({
+  const { mutateAsync: deleteMutation, isPending: isDeleting } = useMutation({
     mutationFn: deleteInstitutionAuthority,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
-    },
   })
 
-  async function handleDelete() {
-    try {
-      if (!onDeleteInstitutionAuthorityProps) return
+  async function handleDeleteSuccess(name: string, toastId: string | number) {
+    await queryClient.invalidateQueries({
+      queryKey: ['institution-authorities'],
+    })
+    toast.success(`Requisitante ${name} excluído com sucesso!`, {
+      id: toastId,
+    })
+    onClose()
+    setOnDeleteInstitutionAuthorityProps(null)
+  }
 
-      const response = deleteMutation(onDeleteInstitutionAuthorityProps.id)
-      toast.promise(response, {
-        loading: `Excluindo requisitante ${onDeleteInstitutionAuthorityProps.name}...`,
-        success: () =>
-          `Requisitante ${onDeleteInstitutionAuthorityProps.name} excluída com sucesso!`,
-        error: genericErrorMessage,
-      })
-      await response
-    } catch {
-      toast.error(genericErrorMessage)
+  async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
+
+    if (!onDeleteInstitutionAuthorityProps) return
+
+    const authority = onDeleteInstitutionAuthorityProps
+    const toastId = toast.loading(`Excluindo requisitante ${authority.name}...`)
+
+    try {
+      await deleteMutation(authority.id)
+      await handleDeleteSuccess(authority.name, toastId)
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { id: toastId })
     }
   }
 
@@ -83,7 +91,9 @@ export function DeleteInstitutionAuthorityAlertDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+            Excluir
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
