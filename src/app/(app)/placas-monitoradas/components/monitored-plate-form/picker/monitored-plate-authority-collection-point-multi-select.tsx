@@ -351,7 +351,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                     ) : picker.hasAreaSelection ? (
                       <p className="mt-2 text-xs text-muted-foreground">
                         Area aplicada: {picker.areaSelectedCount} radar(es)
-                        adicionados ao rascunho.
+                        adicionados a selecao.
                       </p>
                     ) : null}
                   </div>
@@ -536,7 +536,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                   disabled={picker.draftValue.length === 0}
                   onClick={picker.clearDraftSelection}
                 >
-                  Limpar rascunho
+                  Limpar selecao
                 </Button>
               </div>
 
@@ -732,14 +732,14 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                   variant="outline"
                   onClick={picker.closePicker}
                 >
-                  Fechar sem aplicar
+                  Fechar
                 </Button>
                 <Button
                   type="button"
                   onClick={picker.handleApply}
                   disabled={disabled || picker.isPending}
                 >
-                  Aplicar selecao
+                  Concluir selecao
                 </Button>
               </div>
             </div>
