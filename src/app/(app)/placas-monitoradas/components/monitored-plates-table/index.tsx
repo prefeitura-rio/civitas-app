@@ -60,6 +60,12 @@ export function MonitoredPlatesTable() {
     })
 
   const data = monitoredPlatesResponse?.data
+  const canEditMonitoredPlates = Boolean(profile?.is_admin)
+
+  const openEditDialog = (plate: MonitoredPlateReadModel['plate']) => {
+    setDialogInitialData({ plate })
+    formDialogDisclosure.onOpen()
+  }
 
   const { data: authorityDetail, isLoading: isAuthorityDetailLoading } =
     useQuery({
@@ -120,9 +126,16 @@ export function MonitoredPlatesTable() {
               </Button>
             ))}
             {hiddenCount > 0 ? (
-              <span className="inline-flex h-7 items-center rounded-md border border-border bg-muted px-2 text-xs text-muted-foreground">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 bg-muted px-2 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => openEditDialog(row.original.plate)}
+                disabled={!canEditMonitoredPlates}
+              >
                 +{hiddenCount}
-              </span>
+              </Button>
             ) : null}
           </div>
         )
@@ -164,11 +177,8 @@ export function MonitoredPlatesTable() {
                 variant="ghost"
                 className="h-8 w-8 p-0"
                 type="button"
-                onClick={() => {
-                  setDialogInitialData({ plate: row.original.plate })
-                  formDialogDisclosure.onOpen()
-                }}
-                disabled={!profile || !profile?.is_admin}
+                onClick={() => openEditDialog(row.original.plate)}
+                disabled={!canEditMonitoredPlates}
               >
                 <span className="sr-only">Editar linha</span>
                 <PencilLine className="h-4 w-4" />
