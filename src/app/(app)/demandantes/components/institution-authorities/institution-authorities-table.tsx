@@ -1,6 +1,10 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
-import { type ColumnDef } from '@tanstack/react-table'
+import {
+  type ColumnDef,
+  type OnChangeFn,
+  type SortingState,
+} from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { Copy, PencilLine, Trash } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -15,9 +19,35 @@ import { useProfile } from '@/hooks/useQueries/useProfile'
 import {
   getInstitutionAuthorities,
   type InstitutionAuthority,
+  type InstitutionAuthoritySortBy,
+  type SortDirection,
 } from '@/http/institution-authorities'
 import { getRequestingInstitutions } from '@/http/requesting-institutions'
 import { notAllowed } from '@/utils/template-messages'
+
+const sortableColumns = {
+  name: 'name',
+  requesting_institution_name: 'requesting_institution_name',
+  created_at: 'created_at',
+} as const satisfies Record<string, InstitutionAuthoritySortBy>
+
+function getSortBy(sortingState: SortingState) {
+  const columnId = sortingState[0]?.id
+
+  if (!columnId) return undefined
+
+  return sortableColumns[columnId as keyof typeof sortableColumns]
+}
+
+function getSortDirection(
+  sortingState: SortingState,
+): SortDirection | undefined {
+  const sort = sortingState[0]
+
+  if (!sort) return undefined
+
+  return sort.desc ? 'desc' : 'asc'
+}
 
 function getPrimaryPhone(authority: InstitutionAuthority) {
   return (
@@ -117,6 +147,7 @@ function ContactsCell({ authority }: { authority: InstitutionAuthority }) {
 export function InstitutionAuthoritiesTable() {
   const [page, setPage] = useState(1)
   const [size] = useState(10)
+  const [sortingState, setSortingState] = useState<SortingState>([])
   const {
     formDialogDisclosure,
     setDialogInitialData,
@@ -125,9 +156,25 @@ export function InstitutionAuthoritiesTable() {
   } = useInstitutionAuthorities()
   const { data: profile } = useProfile()
 
+  const sortBy = getSortBy(sortingState)
+  const sortDirection = getSortDirection(sortingState)
+
+  const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
+    setSortingState((current) =>
+      typeof updater === 'function' ? updater(current) : updater,
+    )
+    setPage(1)
+  }
+
   const { data: response, isLoading } = useQuery({
-    queryKey: ['institution-authorities', page, size],
-    queryFn: () => getInstitutionAuthorities({ page, size }),
+    queryKey: ['institution-authorities', page, size, sortBy, sortDirection],
+    queryFn: () =>
+      getInstitutionAuthorities({
+        page,
+        size,
+        sortBy,
+        sortDirection,
+      }),
   })
 
   const { data: requestingInstitutionsResponse } = useQuery({
@@ -152,27 +199,38 @@ export function InstitutionAuthoritiesTable() {
     {
       accessorKey: 'name',
       header: 'Requisitante',
+      enableSorting: true,
     },
     {
-      id: 'requestingInstitution',
+      id: 'requesting_institution_name',
+      accessorFn: (row) =>
+        row.requestingInstitution?.name ??
+        requestingInstitutionsById.get(row.requestingInstitutionId) ??
+        '',
       header: 'Demandante',
       cell: ({ row }) =>
+        row.original.requestingInstitution?.name ??
         requestingInstitutionsById.get(row.original.requestingInstitutionId) ??
         '—',
+      enableSorting: true,
     },
     {
       accessorKey: 'isFocalPoint',
+      enableSorting: false,
       header: 'Ponto focal',
       cell: ({ row }) => (row.original.isFocalPoint ? 'Sim' : 'Não'),
     },
     {
       id: 'contacts',
+      enableSorting: false,
       header: 'Contatos',
       cell: ({ row }) => <ContactsCell authority={row.original} />,
     },
     {
+      id: 'created_at',
       accessorKey: 'createdAt',
       header: 'Criado em',
+      enableSorting: true,
       cell: ({ row }) =>
         row.original.createdAt
           ? formatDate(row.original.createdAt, 'dd/MM/yyyy HH:mm')
@@ -180,6 +238,7 @@ export function InstitutionAuthoritiesTable() {
     },
     {
       id: 'actions',
+      enableSorting: false,
       header: () => (
         <div className="flex justify-end">
           <p className="w-[4.5rem] text-center">Ações</p>
@@ -243,6 +302,10 @@ export function InstitutionAuthoritiesTable() {
         columns={columns}
         data={data?.items || []}
         isLoading={isLoading}
+        sorting
+        sortingState={sortingState}
+        onSortingChange={handleSortingChange}
+        manualSorting
       />
       {data && (
         <Pagination
