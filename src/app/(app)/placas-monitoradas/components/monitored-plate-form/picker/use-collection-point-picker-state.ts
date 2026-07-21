@@ -557,12 +557,18 @@ export function useCollectionPointPickerState({
 
   function updateSelection(nextIds: string[]) {
     setDraftValue(nextIds)
+    onChange(nextIds)
   }
 
   function toggleDraftId(id: string) {
-    setDraftValue((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    )
+    setDraftValue((prev) => {
+      const nextIds = prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : [...prev, id]
+
+      onChange(nextIds)
+      return nextIds
+    })
   }
 
   function centerPointOnMap(point: CollectionPoint) {
@@ -625,6 +631,7 @@ export function useCollectionPointPickerState({
   }
 
   function clearCommittedSelection() {
+    setDraftValue([])
     onChange([])
   }
 
@@ -830,7 +837,12 @@ export function useCollectionPointPickerState({
       polygonFeature,
     )
     setAreaSelectedIds(nextIds)
-    setDraftValue((prev) => Array.from(new Set([...prev, ...nextIds])))
+    setDraftValue((prev) => {
+      const selectedIds = Array.from(new Set([...prev, ...nextIds]))
+
+      onChange(selectedIds)
+      return selectedIds
+    })
     setAreaSelectionMode(null)
   }
 
