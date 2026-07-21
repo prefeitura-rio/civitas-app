@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus, Trash2 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -27,7 +27,9 @@ import {
 import { useInstitutionAuthorities } from '@/hooks/useContexts/use-institution-authorities-context'
 import {
   createInstitutionAuthority,
+  getInstitutionAuthorities,
   getInstitutionAuthority,
+  type InstitutionAuthority,
   replaceInstitutionAuthorityContacts,
   updateInstitutionAuthority,
 } from '@/http/institution-authorities'
@@ -67,6 +69,25 @@ const emptyFormValues: InstitutionAuthorityForm = {
   emails: [],
 }
 
+async function getAllInstitutionAuthorities() {
+  const firstPage = await getInstitutionAuthorities({ page: 1, size: 100 })
+  const firstItems = firstPage.data.items
+  const totalPages = firstPage.data.pages
+
+  if (totalPages <= 1) return firstItems
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getInstitutionAuthorities({ page: index + 2, size: 100 }),
+    ),
+  )
+
+  return remainingPages.reduce<InstitutionAuthority[]>(
+    (items, response) => [...items, ...response.data.items],
+    firstItems,
+  )
+}
+
 export function InstitutionAuthorityFormDialog({
   isOpen,
   onClose,
@@ -89,9 +110,14 @@ export function InstitutionAuthorityFormDialog({
     reset,
     setValue,
     getValues,
+    setError,
+    clearErrors,
+    watch,
     formState,
   } = form
   const { errors, isSubmitting } = formState
+
+  const [shouldReplaceFocalPoint, setShouldReplaceFocalPoint] = useState(false)
 
   const phonesFieldArray = useFieldArray({
     control,
@@ -116,6 +142,15 @@ export function InstitutionAuthorityFormDialog({
     queryKey: ['institution-authorities', initialData?.id],
     queryFn: () => getInstitutionAuthority({ id: initialData!.id }),
     enabled: Boolean(initialData?.id && isOpen),
+  })
+
+  const {
+    data: institutionAuthorities = [],
+    isLoading: isLoadingInstitutionAuthorities,
+  } = useQuery({
+    queryKey: ['institution-authorities', 'focal-point-check'],
+    queryFn: getAllInstitutionAuthorities,
+    enabled: isOpen,
   })
 
   const { mutateAsync: createMutation, isPending: isPendingCreate } =
@@ -168,6 +203,7 @@ export function InstitutionAuthorityFormDialog({
 
     onClose()
     reset(emptyFormValues)
+    setShouldReplaceFocalPoint(false)
     setInitialData(null)
   }
 
@@ -205,7 +241,47 @@ export function InstitutionAuthorityFormDialog({
     })
   }
 
+  function getExistingFocalPoint(values: InstitutionAuthorityForm) {
+    if (!values.isFocalPoint || !values.requestingInstitutionId) {
+      return undefined
+    }
+
+    return institutionAuthorities.find(
+      (item) =>
+        item.isFocalPoint &&
+        item.requestingInstitutionId === values.requestingInstitutionId &&
+        item.id !== initialData?.id,
+    )
+  }
+
+  const selectedRequestingInstitutionId = watch('requestingInstitutionId')
+  const selectedIsFocalPoint = watch('isFocalPoint')
+  const currentFocalPoint = getExistingFocalPoint({
+    ...emptyFormValues,
+    requestingInstitutionId: selectedRequestingInstitutionId,
+    isFocalPoint: selectedIsFocalPoint,
+  })
+
   async function onSubmit(values: InstitutionAuthorityForm) {
+    const existingFocalPoint = getExistingFocalPoint(values)
+
+    if (existingFocalPoint && !shouldReplaceFocalPoint) {
+      setError('isFocalPoint', {
+        type: 'validate',
+        message: `Confirme a substituição para definir este requisitante como ponto focal.`,
+      })
+      return
+    }
+
+    if (existingFocalPoint && shouldReplaceFocalPoint) {
+      await updateMutation({
+        id: existingFocalPoint.id,
+        name: existingFocalPoint.name,
+        requestingInstitutionId: existingFocalPoint.requestingInstitutionId,
+        isFocalPoint: false,
+      })
+    }
+
     const phones = normalizePrimaryContact(
       values.phones
         .map((item) => ({
@@ -281,11 +357,14 @@ export function InstitutionAuthorityFormDialog({
     if (!initialData?.id) {
       reset(emptyFormValues)
     }
+
+    setShouldReplaceFocalPoint(false)
   }, [authority, initialData?.id, isOpen, reset])
 
   const isLoading =
     isLoadingAuthority ||
     isLoadingRequesters ||
+    isLoadingInstitutionAuthorities ||
     isSubmitting ||
     isPendingCreate ||
     isPendingUpdate ||
@@ -319,11 +398,13 @@ export function InstitutionAuthorityFormDialog({
                     value={selected?.label ?? ''}
                     placeholder="Selecione o demandante"
                     options={requestingInstitutionOptions}
-                    onSelect={(item) =>
+                    onSelect={(item) => {
+                      clearErrors('isFocalPoint')
+                      setShouldReplaceFocalPoint(false)
                       setValue('requestingInstitutionId', item.value, {
                         shouldValidate: true,
                       })
-                    }
+                    }}
                   />
                 )
               }}
@@ -350,13 +431,38 @@ export function InstitutionAuthorityFormDialog({
               <label className="flex items-center gap-3 rounded-md border p-3">
                 <Checkbox
                   checked={field.value}
-                  onCheckedChange={(value) => field.onChange(Boolean(value))}
+                  onCheckedChange={(value) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(false)
+                    field.onChange(Boolean(value))
+                  }}
                   disabled={isLoading}
                 />
                 <span className="text-sm">Marcar como ponto focal</span>
+                <InputError message={errors.isFocalPoint?.message} />
               </label>
             )}
           />
+
+          {currentFocalPoint ? (
+            <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3 text-sm">
+              <p>
+                <span className="font-medium">{currentFocalPoint.name}</span> já
+                está marcado como ponto focal deste demandante.
+              </p>
+              <label className="flex items-center gap-3">
+                <Checkbox
+                  checked={shouldReplaceFocalPoint}
+                  onCheckedChange={(value) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(Boolean(value))
+                  }}
+                  disabled={isLoading}
+                />
+                <span>Substituir pelo requisitante atual</span>
+              </label>
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-3 rounded-md border p-4">
             <div className="flex items-center justify-between gap-2">
