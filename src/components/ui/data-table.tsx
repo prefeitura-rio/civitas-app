@@ -6,10 +6,15 @@ import {
   getCoreRowModel,
   // getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  type OnChangeFn,
+  type SortingState,
   useReactTable,
 } from '@tanstack/react-table'
-
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 // import { Input } from '@/components/ui/input'
+import { useState } from 'react'
+
 import {
   Table,
   TableBody,
@@ -18,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 import { Spinner } from '../custom/spinner'
 import { Pagination } from './pagination'
@@ -32,6 +38,16 @@ interface DataTableProps<TData, TValue> {
   isLoading: boolean
   filters?: Filter[]
   pagination?: boolean
+  sorting?: boolean
+  sortingState?: SortingState
+  onSortingChange?: OnChangeFn<SortingState>
+  manualSorting?: boolean
+}
+
+function SortIcon({ direction }: { direction: false | 'asc' | 'desc' }) {
+  if (direction === 'asc') return <ArrowUp className="h-3.5 w-3.5" />
+  if (direction === 'desc') return <ArrowDown className="h-3.5 w-3.5" />
+  return <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
 }
 
 export function DataTable<TData, TValue>({
@@ -40,13 +56,29 @@ export function DataTable<TData, TValue>({
   isLoading,
   // filters,
   pagination = false,
+  sorting = false,
+  sortingState,
+  onSortingChange,
+  manualSorting = false,
 }: DataTableProps<TData, TValue>) {
+  const [internalSortingState, setInternalSortingState] =
+    useState<SortingState>([])
+  const currentSortingState = sortingState ?? internalSortingState
+
   const table = useReactTable({
     data,
     columns,
+    state: sorting ? { sorting: currentSortingState } : undefined,
+    onSortingChange: sorting
+      ? (onSortingChange ?? setInternalSortingState)
+      : undefined,
+    manualSorting: sorting ? manualSorting : undefined,
+    enableMultiSort: false,
     getCoreRowModel: getCoreRowModel(),
     // getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel:
+      sorting && !manualSorting ? getSortedRowModel() : undefined,
   })
 
   return (
@@ -57,14 +89,31 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  const canSort = sorting && header.column.getCanSort()
+
                   return (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
+                      {header.isPlaceholder ? null : canSort ? (
+                        <button
+                          type="button"
+                          className={cn(
+                            'flex items-center gap-2 text-left font-medium',
+                            'cursor-pointer select-none hover:text-foreground',
+                          )}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(
                             header.column.columnDef.header,
                             header.getContext(),
                           )}
+                          <SortIcon direction={header.column.getIsSorted()} />
+                        </button>
+                      ) : (
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )
+                      )}
                     </TableHead>
                   )
                 })}
