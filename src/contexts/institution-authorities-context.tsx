@@ -67,8 +67,12 @@ export const institutionAuthorityFormSchema = z
       .min(1, { message: 'Campo obrigatório' }),
     name: z.string().trim().min(1, { message: 'Campo obrigatório' }),
     isFocalPoint: z.boolean(),
-    phones: z.array(authorityContactPhoneSchema),
-    emails: z.array(authorityContactEmailSchema),
+    phones: z
+      .array(authorityContactPhoneSchema)
+      .min(1, { message: 'Campo obrigatório' }),
+    emails: z
+      .array(authorityContactEmailSchema)
+      .min(1, { message: 'Campo obrigatório' }),
   })
   .superRefine((values, ctx) => {
     const seenPhones = new Map<string, number>()

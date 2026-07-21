@@ -466,7 +466,16 @@ export function InstitutionAuthorityFormDialog({
 
           <div className="flex flex-col gap-3 rounded-md border p-4">
             <div className="flex items-center justify-between gap-2">
-              <Label>Telefones</Label>
+              <div className="flex gap-2">
+                <Label>Telefones</Label>
+                <InputError
+                  message={
+                    typeof errors.phones?.message === 'string'
+                      ? errors.phones.message
+                      : undefined
+                  }
+                />
+              </div>
               <Button
                 type="button"
                 variant="outline"
@@ -559,7 +568,16 @@ export function InstitutionAuthorityFormDialog({
 
           <div className="flex flex-col gap-3 rounded-md border p-4">
             <div className="flex items-center justify-between gap-2">
-              <Label>E-mails</Label>
+              <div className="flex gap-2">
+                <Label>E-mails</Label>
+                <InputError
+                  message={
+                    typeof errors.emails?.message === 'string'
+                      ? errors.emails.message
+                      : undefined
+                  }
+                />
+              </div>
               <Button
                 type="button"
                 variant="outline"
