@@ -26,7 +26,17 @@ export interface BackendGetInstitutionAuthoritiesResponse {
 
 export type { InstitutionAuthority } from '@/models/entities'
 
-export interface GetInstitutionAuthoritiesRequest extends PaginationRequest {}
+export type InstitutionAuthoritySortBy =
+  | 'name'
+  | 'requesting_institution_name'
+  | 'created_at'
+
+export type SortDirection = 'asc' | 'desc'
+
+export interface GetInstitutionAuthoritiesRequest extends PaginationRequest {
+  sortBy?: InstitutionAuthoritySortBy
+  sortDirection?: SortDirection
+}
 
 interface GetInstitutionAuthorityRequest {
   id: string
@@ -152,11 +162,19 @@ function mapBackendInstitutionAuthority(
 export async function getInstitutionAuthorities({
   page,
   size,
+  sortBy,
+  sortDirection,
 }: GetInstitutionAuthoritiesRequest) {
   const response = await api.get<BackendGetInstitutionAuthoritiesResponse>(
     '/institution-authorities',
     {
-      params: { page, size },
+      params: {
+        page,
+        size,
+        ...(sortBy && sortDirection
+          ? { sort_by: sortBy, sort_direction: sortDirection }
+          : {}),
+      },
     },
   )
 

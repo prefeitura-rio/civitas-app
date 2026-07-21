@@ -16,6 +16,15 @@ interface BackendGetRequestingInstitutionsResponse {
 
 export type { RequestingInstitution } from '@/models/entities'
 
+export type RequestingInstitutionSortBy =
+  | 'name'
+  | 'type'
+  | 'agency'
+  | 'jurisdiction_level'
+  | 'created_at'
+
+export type SortDirection = 'asc' | 'desc'
+
 interface GetRequestingInstitutionRequest {
   id: string
 }
@@ -50,14 +59,27 @@ function mapBackendRequestingInstitution(
   }
 }
 
+export interface GetRequestingInstitutionsRequest extends PaginationRequest {
+  sortBy?: RequestingInstitutionSortBy
+  sortDirection?: SortDirection
+}
+
 export async function getRequestingInstitutions({
   page,
   size,
-}: PaginationRequest) {
+  sortBy,
+  sortDirection,
+}: GetRequestingInstitutionsRequest) {
   const response = await api.get<BackendGetRequestingInstitutionsResponse>(
     '/requesting-institutions',
     {
-      params: { page, size },
+      params: {
+        page,
+        size,
+        ...(sortBy && sortDirection
+          ? { sort_by: sortBy, sort_direction: sortDirection }
+          : {}),
+      },
     },
   )
 
