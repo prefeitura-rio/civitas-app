@@ -215,9 +215,7 @@ export async function updateInstitutionAuthority({
 }
 
 export function deleteInstitutionAuthority(id: string) {
-  return api.delete<BackendInstitutionAuthority>(
-    `/institution-authorities/${id}`,
-  )
+  return api.delete<void>(`/institution-authorities/${id}`)
 }
 
 export async function replaceInstitutionAuthorityContacts({
