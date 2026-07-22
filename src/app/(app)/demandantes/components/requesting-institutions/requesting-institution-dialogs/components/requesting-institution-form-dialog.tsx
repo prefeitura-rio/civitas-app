@@ -31,6 +31,7 @@ import { useRequestingInstitutions } from '@/hooks/useContexts/use-requesting-in
 import {
   createRequestingInstitution,
   getRequestingInstitution,
+  getRequestingInstitutions,
   updateRequestingInstitution,
 } from '@/http/requesting-institutions'
 import { queryClient } from '@/lib/react-query'
@@ -50,6 +51,10 @@ const jurisdictionOptions = [
   { value: 'outros', label: 'Outros' },
 ] as const
 
+function normalizeDemandanteName(value: string) {
+  return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR')
+}
+
 export function RequestingInstitutionFormDialog({
   isOpen,
   onClose,
@@ -64,6 +69,7 @@ export function RequestingInstitutionFormDialog({
   const {
     register,
     handleSubmit,
+    setError,
     setValue,
     control,
     formState: { errors, isSubmitting },
@@ -120,6 +126,26 @@ export function RequestingInstitutionFormDialog({
   }
 
   async function onSubmit(props: RequestingInstitutionForm) {
+    const normalizedName = normalizeDemandanteName(props.name)
+    const existingDemandantes = await getRequestingInstitutions({
+      page: 1,
+      size: 100,
+      search: props.name.trim(),
+    })
+    const hasDuplicateName = existingDemandantes.data.items.some(
+      (item) =>
+        item.id !== initialData?.id &&
+        normalizeDemandanteName(item.name) === normalizedName,
+    )
+
+    if (hasDuplicateName) {
+      setError('name', {
+        type: 'validate',
+        message: 'Já existe um demandante com este nome.',
+      })
+      return
+    }
+
     if (initialData?.id) {
       await updateMutation({ id: initialData.id, ...props })
       toast.success('Demandante atualizado.')
