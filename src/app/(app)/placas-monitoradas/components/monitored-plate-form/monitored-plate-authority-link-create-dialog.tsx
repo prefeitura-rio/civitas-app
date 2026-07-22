@@ -75,6 +75,9 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
 }: MonitoredPlateAuthorityLinkCreateDialogProps) {
   const { formDialogDisclosure, setDialogInitialData } =
     useInstitutionAuthorities()
+  const [requestingInstitutionTitle, setRequestingInstitutionTitle] =
+    useState('')
+  const [requestingInstitutionId, setRequestingInstitutionId] = useState('')
   const [authorityTitle, setAuthorityTitle] = useState('')
   const [authorityId, setAuthorityId] = useState('')
   const [reference, setReference] = useState('')
@@ -88,6 +91,8 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
 
   useEffect(() => {
     if (!open) {
+      setRequestingInstitutionTitle('')
+      setRequestingInstitutionId('')
       setAuthorityTitle('')
       setAuthorityId('')
       setReference('')
@@ -103,10 +108,35 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
     setValidUntilDate(getDefaultMonitoredPlateAuthorityValidUntil())
   }, [open])
 
-  const reserved = new Set(reservedAuthorityIds)
-  const availableAuthorities = institutionAuthorities.filter(
-    (item) => !reserved.has(item.id),
-  )
+  const availableAuthorities = useMemo(() => {
+    const reserved = new Set(reservedAuthorityIds)
+
+    return institutionAuthorities.filter((item) => !reserved.has(item.id))
+  }, [institutionAuthorities, reservedAuthorityIds])
+  const requestingInstitutionOptions = useMemo(() => {
+    const institutions = new Map<string, string>()
+
+    availableAuthorities.forEach((item) => {
+      const institutionId =
+        item.requestingInstitution?.id || item.requestingInstitutionId
+      const institutionName = item.requestingInstitution?.name
+
+      if (!institutionId || !institutionName) return
+
+      institutions.set(institutionId, institutionName)
+    })
+
+    return Array.from(institutions.entries())
+      .map(([value, label]) => ({ label, value }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'))
+  }, [availableAuthorities])
+  const filteredAuthorities = requestingInstitutionId
+    ? availableAuthorities.filter(
+        (item) =>
+          (item.requestingInstitution?.id || item.requestingInstitutionId) ===
+          requestingInstitutionId,
+      )
+    : availableAuthorities
 
   const notificationChannelOptions = useMemo(
     () =>
@@ -160,17 +190,57 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto overflow-x-hidden sm:max-w-6xl">
-        <DialogHeader>
-          <DialogTitle>Novo vínculo com requisitante</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-none overflow-y-auto overflow-x-hidden p-4 sm:w-full sm:max-w-3xl sm:p-6 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+        <DialogHeader className="pr-8">
+          <DialogTitle className="leading-tight">
+            Novo vínculo com requisitante
+          </DialogTitle>
+          <DialogDescription className="break-words">
             Placa <strong>{plateLine}</strong>
           </DialogDescription>
         </DialogHeader>
         <div className="flex min-h-0 flex-col gap-6 py-2">
-          <div className="flex min-w-0 flex-col gap-3 lg:max-w-xl">
+          <div className="flex w-full min-w-0 flex-col gap-3">
             <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Label>Demandante</Label>
+                {requestingInstitutionId ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-xs font-normal"
+                    disabled={disabled || isSubmitting}
+                    onClick={() => {
+                      setRequestingInstitutionTitle('')
+                      setRequestingInstitutionId('')
+                      setAuthorityTitle('')
+                      setAuthorityId('')
+                    }}
+                  >
+                    Limpar filtro
+                  </Button>
+                ) : null}
+              </div>
+              <SelectWithSearch
+                value={requestingInstitutionTitle}
+                onSelect={(item) => {
+                  setRequestingInstitutionTitle(item.label)
+                  setRequestingInstitutionId(item.value)
+                  setAuthorityTitle('')
+                  setAuthorityId('')
+                }}
+                options={requestingInstitutionOptions}
+                disabled={
+                  disabled ||
+                  isSubmitting ||
+                  requestingInstitutionOptions.length === 0
+                }
+                placeholder="Filtrar por demandante"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <Label>Requisitante</Label>
                 <Button
                   type="button"
@@ -192,14 +262,18 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
                   setAuthorityTitle(item.label)
                   setAuthorityId(item.value)
                 }}
-                options={availableAuthorities.map((item) => ({
+                options={filteredAuthorities.map((item) => ({
                   label: item.requestingInstitution
                     ? `${item.name} — ${item.requestingInstitution.name}`
                     : item.name,
                   value: item.id,
                 }))}
                 disabled={disabled || isSubmitting}
-                placeholder="Selecione"
+                placeholder={
+                  requestingInstitutionId
+                    ? 'Selecione o requisitante'
+                    : 'Selecione ou filtre por demandante'
+                }
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -262,11 +336,11 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
             />
           </div>
         </div>
-        <div className="mt-2 flex w-full min-w-0 flex-col gap-2 border-t border-border pt-4">
+        <div className="sticky bottom-0 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
           <Button
             type="button"
             variant="outline"
-            className="h-10 w-full shrink-0 font-normal"
+            className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
             disabled={disabled || isSubmitting}
             onClick={() => onOpenChange(false)}
           >
@@ -274,7 +348,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
           </Button>
           <Button
             type="button"
-            className="h-10 w-full shrink-0 font-normal"
+            className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
             disabled={disabled || isSubmitting}
             onClick={handleSubmit}
           >

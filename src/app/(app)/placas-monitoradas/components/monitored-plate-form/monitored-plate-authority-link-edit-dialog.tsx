@@ -214,10 +214,10 @@ export function MonitoredPlateAuthorityLinkEditDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto overflow-x-hidden sm:max-w-6xl">
-          <DialogHeader>
+        <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-none overflow-y-auto overflow-x-hidden p-4 sm:w-full sm:max-w-3xl sm:p-6 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+          <DialogHeader className="pr-8">
             <DialogTitle>Editar vínculo</DialogTitle>
-            <DialogDescription className="space-y-1 text-left">
+            <DialogDescription className="space-y-1 break-words text-left">
               <span className="block text-foreground">
                 {link.institutionAuthority.name}
               </span>
@@ -237,7 +237,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
           ) : (
             <>
               <div className="flex min-h-0 flex-col gap-6 py-2">
-                <div className="flex min-w-0 flex-col gap-3 lg:max-w-xl">
+                <div className="flex w-full min-w-0 flex-col gap-3">
                   <div className="flex flex-col gap-1">
                     <Label htmlFor="persisted-edit-ref">Nº de referência</Label>
                     <Input
@@ -265,7 +265,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
                     value={validUntilDate}
                     onChange={setValidUntilDate}
                   />
-                  <div className="flex flex-col gap-1">
+                  <div className="flex min-w-0 flex-col gap-1">
                     <Label>Canais de notificação</Label>
                     <MultipleSelector
                       value={notificationChannelOptions.filter((item) =>
@@ -283,7 +283,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
                       disabled={isBusy}
                     />
                   </div>
-                  <label className="flex items-center justify-between gap-3 rounded-md border p-3">
+                  <label className="flex min-h-10 items-center justify-between gap-3 rounded-md border p-3">
                     <span className="text-sm">Vínculo ativo</span>
                     <Switch
                       checked={active}
@@ -303,11 +303,11 @@ export function MonitoredPlateAuthorityLinkEditDialog({
                 </div>
               </div>
 
-              <div className="mt-2 flex w-full min-w-0 flex-col gap-2 border-t border-border pt-4">
+              <div className="sticky bottom-0 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 w-full shrink-0 font-normal"
+                  className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
                   disabled={isBusy}
                   onClick={() => onOpenChange(false)}
                 >
@@ -315,7 +315,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
                 </Button>
                 <Button
                   type="button"
-                  className="h-10 w-full shrink-0 font-normal"
+                  className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
                   disabled={isBusy}
                   onClick={handleSave}
                 >
