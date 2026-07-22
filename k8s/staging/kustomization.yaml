@@ -40,7 +40,7 @@ helmCharts:
           proxyMemoryLimit: "512Mi"
         virtualService:
           hosts:
-            - "app.staging.civitas.rio"
+            - "staging.app.civitas.rio"
           # proxy-buffer-size e proxy-buffers-number (nginx) não têm equivalente direto
           # no base-chart/Istio; o Envoy usa 60KB de limite para headers por padrão,
           # que cobre o uso do civitas-app. Adicionar EnvoyFilter customizado se
