@@ -248,7 +248,7 @@ export async function getMonitoredPlates({
   endTimeCreate,
 }: GetMonitoredPlatesRequest) {
   const response = await api.get<BackendGetMonitoredPlatesResponse>(
-    '/monitored-plates',
+    '/monitored-plates/',
     {
       params: {
         page,
@@ -287,7 +287,7 @@ export async function createMonitoredPlate({
   additionalInfo,
 }: CreateMonitoredPlateRequest) {
   const response = await api.post<BackendMonitoredPlateResponse>(
-    '/monitored-plates',
+    '/monitored-plates/',
     {
       plate,
       active,

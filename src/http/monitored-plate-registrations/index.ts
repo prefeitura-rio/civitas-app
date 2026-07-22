@@ -41,7 +41,7 @@ export async function createMonitoredPlateRegistration({
   authorities,
 }: CreateMonitoredPlateRegistrationRequest): Promise<MonitoredPlateReadModel> {
   const response = await api.post<BackendMonitoredPlateResponse>(
-    '/monitored-plate-registrations',
+    '/monitored-plate-registrations/',
     {
       plate,
       active,
