@@ -6,7 +6,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Enable corepack and install the current latest stable version of pnpm 
+# Enable corepack and install the current latest stable version of pnpm
 RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
 
 # Install dependencies based on the preferred package manager
@@ -30,12 +30,13 @@ RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 
-# Optimize build performance
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# No NEXT_PUBLIC_* build args needed — public env vars are injected at runtime
+# via window.__ENV__ (see scripts/docker-entrypoint.sh and src/lib/public-env.ts).
+# The NEXT_PUBLIC_* fallbacks in src/config.ts are only used in local development,
+# where Next.js statically replaces them from .env.local at dev-server startup.
 
 RUN \
     if [ -f yarn.lock ]; then yarn run build; \
@@ -48,30 +49,23 @@ RUN \
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=8080
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
+# node:20-alpine already ships with user "node" at uid/gid 1000.
+# Copy everything as root first, then transfer ownership in a single
+# chown -R so that docker-entrypoint.sh can write public/env-config.js
+# at container startup regardless of the pod's runAsUser setting.
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY scripts/docker-entrypoint.sh ./
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN chown -R node:node /app
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+USER node
 
-USER nextjs
+EXPOSE 8080
 
-EXPOSE 3000
-
-ENV PORT 3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD ["sh", "docker-entrypoint.sh"]

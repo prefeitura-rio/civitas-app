@@ -4,6 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "predev": "node scripts/generate-env-config.js",
     "dev": "next dev",
     "build": "next build",
     "build:with-lint": "next lint --fix && next build",
