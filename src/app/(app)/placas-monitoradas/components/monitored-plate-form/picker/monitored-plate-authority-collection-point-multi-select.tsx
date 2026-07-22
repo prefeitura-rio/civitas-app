@@ -138,8 +138,8 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
       </div>
 
       {picker.expanded ? (
-        <div className="min-w-0 rounded-lg border bg-background p-4">
-          <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(21rem,0.9fr)]">
+        <div className="min-w-0 rounded-lg border bg-background p-3 sm:p-4">
+          <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
             <div className="flex min-h-0 flex-col gap-3">
               <div className="rounded-md border bg-muted/10 p-2">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-1">
@@ -241,12 +241,12 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                 </div>
                 <div
                   ref={picker.mapContainerRef}
-                  className="relative h-[620px] overflow-hidden rounded-md border"
+                  className="relative h-[360px] overflow-hidden rounded-md border sm:h-[460px] xl:h-[620px]"
                   onContextMenu={picker.handleMapContextMenu}
                 >
-                  <div className="absolute right-3 top-3 z-10 w-80">
+                  <div className="absolute inset-x-2 top-2 z-10 sm:left-auto sm:right-3 sm:top-3 sm:w-80">
                     <div className="rounded-md border bg-background/95 p-2 shadow-sm backdrop-blur">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Search className="h-4 w-4 text-muted-foreground" />
                         <Input
                           value={picker.mapSearch}
@@ -263,7 +263,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                             }
                           }}
                           placeholder="Buscar rua ou endereco no mapa"
-                          className="h-8"
+                          className="h-8 min-w-0 flex-1 basis-40"
                         />
                         <Button
                           type="button"
@@ -444,7 +444,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                       ) : null}
                     </DeckGL>
                   ) : (
-                    <div className="flex h-[620px] items-center justify-center px-6 text-center text-sm text-muted-foreground">
+                    <div className="flex h-[360px] items-center justify-center px-6 text-center text-sm text-muted-foreground sm:h-[460px] xl:h-[620px]">
                       Nenhum ponto disponivel para este filtro.
                     </div>
                   )}
@@ -637,7 +637,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
 
               <div
                 ref={picker.listViewportRef}
-                className="h-[430px] overflow-y-auto pr-3"
+                className="h-[320px] overflow-y-auto pr-1 sm:h-[430px] sm:pr-3"
                 onScroll={picker.handleListScroll}
               >
                 {picker.filteredOptions.length > 0 ? (
@@ -726,7 +726,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                 )}
               </div>
 
-              <div className="flex flex-wrap justify-end gap-2 border-t pt-3">
+              <div className="flex flex-col-reverse gap-2 border-t pt-3 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
                   variant="outline"
