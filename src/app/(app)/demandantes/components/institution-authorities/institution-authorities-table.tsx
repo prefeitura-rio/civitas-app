@@ -18,6 +18,7 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
@@ -215,6 +216,11 @@ export function InstitutionAuthoritiesTable() {
 
   const sortBy = getSortBy(sortingState)
   const sortDirection = getSortDirection(sortingState)
+  const debouncedSearch = useDebounce(search, 350)
+  const debouncedRequestingInstitutionSearch = useDebounce(
+    requestingInstitutionSearch,
+    350,
+  )
   const hasActiveFilters =
     search.trim().length > 0 ||
     requestingInstitutionId !== 'all' ||
@@ -248,7 +254,7 @@ export function InstitutionAuthoritiesTable() {
       'institution-authorities',
       page,
       size,
-      search,
+      debouncedSearch,
       requestingInstitutionId,
       focalPointFilter,
       jurisdictionFilter,
@@ -259,7 +265,7 @@ export function InstitutionAuthoritiesTable() {
       getInstitutionAuthorities({
         page,
         size,
-        search,
+        search: debouncedSearch,
         requestingInstitutionId:
           requestingInstitutionId === 'all'
             ? undefined
@@ -279,13 +285,13 @@ export function InstitutionAuthoritiesTable() {
     queryKey: [
       'requesting-institutions',
       'filter-options',
-      requestingInstitutionSearch,
+      debouncedRequestingInstitutionSearch,
     ],
     queryFn: () =>
       getRequestingInstitutions({
         page: 1,
         size: 20,
-        search: requestingInstitutionSearch,
+        search: debouncedRequestingInstitutionSearch,
         sortBy: 'name',
         sortDirection: 'asc',
       }),
@@ -436,7 +442,7 @@ export function InstitutionAuthoritiesTable() {
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[22rem] p-0">
+            <PopoverContent className="w-[min(22rem,calc(100vw-2rem))] p-0">
               <Command shouldFilter={false}>
                 <CommandInput
                   value={requestingInstitutionSearch}
