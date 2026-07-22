@@ -91,7 +91,7 @@ export async function getRequestingInstitutions({
       : {}),
   })
   const response = await api.get<BackendGetRequestingInstitutionsResponse>(
-    `/requesting-institutions${queryString ? `?${queryString}` : ''}`,
+    `/requesting-institutions/${queryString ? `?${queryString}` : ''}`,
   )
 
   return {
@@ -120,7 +120,7 @@ export async function createRequestingInstitution({
   jurisdictionLevel,
 }: CreateRequestingInstitutionRequest) {
   const response = await api.post<BackendRequestingInstitution>(
-    '/requesting-institutions',
+    '/requesting-institutions/',
     {
       name,
       type,

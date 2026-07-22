@@ -186,7 +186,7 @@ export async function getInstitutionAuthorities({
       : {}),
   })
   const response = await api.get<BackendGetInstitutionAuthoritiesResponse>(
-    `/institution-authorities${queryString ? `?${queryString}` : ''}`,
+    `/institution-authorities/${queryString ? `?${queryString}` : ''}`,
   )
 
   return {
@@ -214,7 +214,7 @@ export async function createInstitutionAuthority({
   isFocalPoint,
 }: CreateInstitutionAuthorityRequest) {
   const response = await api.post<BackendInstitutionAuthority>(
-    '/institution-authorities',
+    '/institution-authorities/',
     {
       name,
       requesting_institution_id: requestingInstitutionId,
