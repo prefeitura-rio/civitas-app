@@ -14,6 +14,7 @@ import type {
   RequestingInstitution,
 } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
+import { toCleanQueryString } from '@/utils/to-query-params'
 
 export interface GetInstitutionAuthoritiesResponse extends PaginationResponse {
   items: InstitutionAuthority[]
@@ -34,6 +35,10 @@ export type InstitutionAuthoritySortBy =
 export type SortDirection = 'asc' | 'desc'
 
 export interface GetInstitutionAuthoritiesRequest extends PaginationRequest {
+  search?: string
+  requestingInstitutionId?: string
+  isFocalPoint?: boolean
+  jurisdictionLevel?: RequestingInstitution['jurisdictionLevel']
   sortBy?: InstitutionAuthoritySortBy
   sortDirection?: SortDirection
 }
@@ -162,20 +167,26 @@ function mapBackendInstitutionAuthority(
 export async function getInstitutionAuthorities({
   page,
   size,
+  search,
+  requestingInstitutionId,
+  isFocalPoint,
+  jurisdictionLevel,
   sortBy,
   sortDirection,
 }: GetInstitutionAuthoritiesRequest) {
+  const queryString = toCleanQueryString({
+    page,
+    size,
+    search,
+    requesting_institution_id: requestingInstitutionId,
+    is_focal_point: isFocalPoint,
+    jurisdiction_level: jurisdictionLevel,
+    ...(sortBy && sortDirection
+      ? { sort_by: sortBy, sort_direction: sortDirection }
+      : {}),
+  })
   const response = await api.get<BackendGetInstitutionAuthoritiesResponse>(
-    '/institution-authorities',
-    {
-      params: {
-        page,
-        size,
-        ...(sortBy && sortDirection
-          ? { sort_by: sortBy, sort_direction: sortDirection }
-          : {}),
-      },
-    },
+    `/institution-authorities${queryString ? `?${queryString}` : ''}`,
   )
 
   return {
