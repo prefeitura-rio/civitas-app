@@ -1,10 +1,10 @@
-name: Deploy Frontend to Migrate Infrastructure
+name: Deploy Frontend to Staging
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - chore/migrate-infra
+      - staging
     paths:
       - src/**
       - public/**
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: chore/migrate-infra
+          ref: staging
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -45,10 +45,9 @@ jobs:
         run: pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathIgnorePatterns="e2e" --maxWorkers=2
 
   build:
-    name: Build Frontend for Migrate Infrastructure
+    name: Build Frontend for Staging
     runs-on: ubuntu-latest
     needs: test
-    environment: migrate-infra
     permissions:
       contents: read
       packages: write
@@ -56,13 +55,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: chore/migrate-infra
+          ref: staging
 
       - name: Build and push Frontend Docker image
         uses: ./.github/actions/docker-build
         with:
           working-directory: .
-          image-tag: migrate
+          image-tag: staging
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # No --build-arg needed: public env vars (CIVITAS_API_URL, MAPBOX_ACCESS_TOKEN,
           # etc.) are injected at container startup via scripts/docker-entrypoint.sh,
