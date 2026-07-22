@@ -9,6 +9,7 @@ import { formatDate } from 'date-fns'
 import { PencilLine, Search, Trash, X } from 'lucide-react'
 import { useState } from 'react'
 
+import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
@@ -83,6 +84,9 @@ export function RequestingInstitutionsTable() {
 
   const sortBy = getSortBy(sortingState)
   const sortDirection = getSortDirection(sortingState)
+  const debouncedSearch = useDebounce(search, 350)
+  const debouncedTypeFilter = useDebounce(typeFilter, 350)
+  const debouncedAgencyFilter = useDebounce(agencyFilter, 350)
   const hasActiveFilters =
     search.trim().length > 0 ||
     typeFilter.trim().length > 0 ||
@@ -114,9 +118,9 @@ export function RequestingInstitutionsTable() {
       'requesting-institutions',
       page,
       size,
-      search,
-      typeFilter,
-      agencyFilter,
+      debouncedSearch,
+      debouncedTypeFilter,
+      debouncedAgencyFilter,
       jurisdictionFilter,
       sortBy,
       sortDirection,
@@ -125,9 +129,9 @@ export function RequestingInstitutionsTable() {
       getRequestingInstitutions({
         page,
         size,
-        search,
-        type: typeFilter,
-        agency: agencyFilter,
+        search: debouncedSearch,
+        type: debouncedTypeFilter,
+        agency: debouncedAgencyFilter,
         jurisdictionLevel:
           jurisdictionFilter === 'all' ? undefined : jurisdictionFilter,
         sortBy,

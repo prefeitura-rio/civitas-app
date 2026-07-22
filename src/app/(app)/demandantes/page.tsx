@@ -15,26 +15,27 @@ export default function DemandantesPage() {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   return (
-    <div
-      ref={containerRef}
-      className="page-content space-y-6 overflow-y-scroll"
-    >
-      <h2 className="text-2xl font-semibold">Demandantes e requisitantes</h2>
-
+    <div ref={containerRef} className="page-content overflow-y-scroll">
       <Tabs
-        defaultValue="requisitantes"
+        defaultValue="demandantes"
         onValueChange={() => containerRef.current?.scrollTo(0, 0)}
       >
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="demandantes" className="flex-1 sm:flex-none">
+        <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
+          <TabsTrigger
+            value="demandantes"
+            className="rounded-none border-b-2 border-transparent bg-transparent px-5 py-3 text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
+          >
             Demandantes
           </TabsTrigger>
-          <TabsTrigger value="requisitantes" className="flex-1 sm:flex-none">
+          <TabsTrigger
+            value="requisitantes"
+            className="rounded-none border-b-2 border-transparent bg-transparent px-5 py-3 text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
+          >
             Requisitantes
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="demandantes">
+        <TabsContent value="demandantes" className="mt-6">
           <section className="space-y-4">
             <RequestingInstitutionsHeader />
             <RequestingInstitutionsTable />
@@ -42,7 +43,7 @@ export default function DemandantesPage() {
           </section>
         </TabsContent>
 
-        <TabsContent value="requisitantes">
+        <TabsContent value="requisitantes" className="mt-6">
           <section className="space-y-4">
             <InstitutionAuthoritiesHeader />
             <InstitutionAuthoritiesTable />
