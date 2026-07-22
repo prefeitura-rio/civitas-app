@@ -6,13 +6,26 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
-import { PencilLine, Trash } from 'lucide-react'
+import { PencilLine, Search, Trash, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Pagination } from '@/components/ui/pagination'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  institutionJurisdictionLabels,
+  institutionJurisdictionOptions,
+} from '@/constants/institutions'
 import { useRequestingInstitutions } from '@/hooks/useContexts/use-requesting-institutions-context'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import {
@@ -30,6 +43,8 @@ const sortableColumns = {
   jurisdiction_level: 'jurisdiction_level',
   created_at: 'created_at',
 } as const satisfies Record<string, RequestingInstitutionSortBy>
+
+type JurisdictionFilter = RequestingInstitution['jurisdictionLevel'] | 'all'
 
 function getSortBy(sortingState: SortingState) {
   const columnId = sortingState[0]?.id
@@ -49,20 +64,14 @@ function getSortDirection(
   return sort.desc ? 'desc' : 'asc'
 }
 
-const jurisdictionLabels: Record<
-  RequestingInstitution['jurisdictionLevel'],
-  string
-> = {
-  municipal: 'Municipal',
-  estadual: 'Estadual',
-  distrital: 'Distrital',
-  federal: 'Federal',
-  outros: 'Outros',
-}
-
 export function RequestingInstitutionsTable() {
   const [page, setPage] = useState(1)
   const [size] = useState(10)
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [agencyFilter, setAgencyFilter] = useState('')
+  const [jurisdictionFilter, setJurisdictionFilter] =
+    useState<JurisdictionFilter>('all')
   const [sortingState, setSortingState] = useState<SortingState>([])
   const {
     formDialogDisclosure,
@@ -74,6 +83,24 @@ export function RequestingInstitutionsTable() {
 
   const sortBy = getSortBy(sortingState)
   const sortDirection = getSortDirection(sortingState)
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    typeFilter.trim().length > 0 ||
+    agencyFilter.trim().length > 0 ||
+    jurisdictionFilter !== 'all'
+
+  function resetPageAndRun(action: () => void) {
+    action()
+    setPage(1)
+  }
+
+  function clearFilters() {
+    setSearch('')
+    setTypeFilter('')
+    setAgencyFilter('')
+    setJurisdictionFilter('all')
+    setPage(1)
+  }
 
   const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
     setSortingState((current) =>
@@ -83,11 +110,26 @@ export function RequestingInstitutionsTable() {
   }
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ['requesting-institutions', page, size, sortBy, sortDirection],
+    queryKey: [
+      'requesting-institutions',
+      page,
+      size,
+      search,
+      typeFilter,
+      agencyFilter,
+      jurisdictionFilter,
+      sortBy,
+      sortDirection,
+    ],
     queryFn: () =>
       getRequestingInstitutions({
         page,
         size,
+        search,
+        type: typeFilter,
+        agency: agencyFilter,
+        jurisdictionLevel:
+          jurisdictionFilter === 'all' ? undefined : jurisdictionFilter,
         sortBy,
         sortDirection,
       }),
@@ -115,7 +157,8 @@ export function RequestingInstitutionsTable() {
       id: 'jurisdiction_level',
       accessorKey: 'jurisdictionLevel',
       header: 'Competência',
-      cell: ({ row }) => jurisdictionLabels[row.original.jurisdictionLevel],
+      cell: ({ row }) =>
+        institutionJurisdictionLabels[row.original.jurisdictionLevel],
       enableSorting: true,
     },
     {
@@ -190,6 +233,78 @@ export function RequestingInstitutionsTable() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="grid gap-3 rounded-md border bg-background/40 p-3 md:grid-cols-[minmax(16rem,1.4fr)_minmax(10rem,1fr)_minmax(10rem,1fr)_minmax(10rem,1fr)_auto] md:items-end">
+        <div className="space-y-1.5">
+          <Label htmlFor="requesting-institutions-search">Buscar</Label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="requesting-institutions-search"
+              value={search}
+              onChange={(event) =>
+                resetPageAndRun(() => setSearch(event.target.value))
+              }
+              placeholder="Demandante"
+              className="pl-9"
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="requesting-institutions-type">Tipo</Label>
+          <Input
+            id="requesting-institutions-type"
+            value={typeFilter}
+            onChange={(event) =>
+              resetPageAndRun(() => setTypeFilter(event.target.value))
+            }
+            placeholder="Tipo"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="requesting-institutions-agency">Órgão</Label>
+          <Input
+            id="requesting-institutions-agency"
+            value={agencyFilter}
+            onChange={(event) =>
+              resetPageAndRun(() => setAgencyFilter(event.target.value))
+            }
+            placeholder="Órgão"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="requesting-institutions-jurisdiction">
+            Competência
+          </Label>
+          <Select
+            value={jurisdictionFilter}
+            onValueChange={(value: JurisdictionFilter) =>
+              resetPageAndRun(() => setJurisdictionFilter(value))
+            }
+          >
+            <SelectTrigger id="requesting-institutions-jurisdiction">
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {institutionJurisdictionOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={clearFilters}
+          disabled={!hasActiveFilters}
+          className="gap-2"
+        >
+          <X className="h-4 w-4" />
+          Limpar
+        </Button>
+      </div>
       <DataTable
         columns={columns}
         data={data?.items || []}
