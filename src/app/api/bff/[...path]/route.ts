@@ -13,6 +13,7 @@ import { setForwardedClientIpHeaders } from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
   'GET',
+  'HEAD',
   'POST',
   'PUT',
   'PATCH',
@@ -22,6 +23,7 @@ const ALLOWED_METHODS = new Set([
 
 const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
+const NO_BODY_RESPONSE_STATUSES = new Set([204, 205, 304])
 const OMITTED_REQUEST_HEADERS = new Set([
   'host',
   'cookie',
@@ -162,7 +164,10 @@ async function handler(request: NextRequest) {
     upstreamResponse = await fetchUpstream(currentUpstreamUrl)
   }
 
-  const responseBody = await upstreamResponse.arrayBuffer()
+  const hasNoBody =
+    request.method === 'HEAD' ||
+    NO_BODY_RESPONSE_STATUSES.has(upstreamResponse.status)
+  const responseBody = hasNoBody ? null : await upstreamResponse.arrayBuffer()
 
   const response = new NextResponse(responseBody, {
     status: upstreamResponse.status,
@@ -200,6 +205,7 @@ async function handler(request: NextRequest) {
 
 export {
   handler as GET,
+  handler as HEAD,
   handler as POST,
   handler as PUT,
   handler as PATCH,

@@ -2,13 +2,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus, Trash2 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { InputError } from '@/components/custom/input-error'
 import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
+import { PhoneInput } from '@/components/reui/phone-input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -26,13 +27,15 @@ import {
 import { useInstitutionAuthorities } from '@/hooks/useContexts/use-institution-authorities-context'
 import {
   createInstitutionAuthority,
+  getInstitutionAuthorities,
   getInstitutionAuthority,
+  type InstitutionAuthority,
   replaceInstitutionAuthorityContacts,
   updateInstitutionAuthority,
 } from '@/http/institution-authorities'
 import { getRequestingInstitutions } from '@/http/requesting-institutions'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 interface InstitutionAuthorityFormDialogProps {
   isOpen: boolean
@@ -40,13 +43,21 @@ interface InstitutionAuthorityFormDialogProps {
   onOpen: () => void
 }
 
-function ensureSinglePrimary<T extends { isPrimary: boolean }>(items: T[]) {
+function normalizePrimaryContact<T extends { isPrimary: boolean }>(items: T[]) {
   if (items.length === 0) return items
-  if (items.some((item) => item.isPrimary)) return items
+
+  const primaryIndex = items.findIndex((item) => item.isPrimary)
+
+  if (primaryIndex === -1) {
+    return items.map((item, index) => ({
+      ...item,
+      isPrimary: index === 0,
+    }))
+  }
 
   return items.map((item, index) => ({
     ...item,
-    isPrimary: index === 0,
+    isPrimary: index === primaryIndex,
   }))
 }
 
@@ -56,6 +67,25 @@ const emptyFormValues: InstitutionAuthorityForm = {
   isFocalPoint: false,
   phones: [],
   emails: [],
+}
+
+async function getAllInstitutionAuthorities() {
+  const firstPage = await getInstitutionAuthorities({ page: 1, size: 100 })
+  const firstItems = firstPage.data.items
+  const totalPages = firstPage.data.pages
+
+  if (totalPages <= 1) return firstItems
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getInstitutionAuthorities({ page: index + 2, size: 100 }),
+    ),
+  )
+
+  return remainingPages.reduce<InstitutionAuthority[]>(
+    (items, response) => [...items, ...response.data.items],
+    firstItems,
+  )
 }
 
 export function InstitutionAuthorityFormDialog({
@@ -73,8 +103,21 @@ export function InstitutionAuthorityFormDialog({
     defaultValues: emptyFormValues,
   })
 
-  const { register, control, handleSubmit, reset, setValue, formState } = form
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    getValues,
+    setError,
+    clearErrors,
+    watch,
+    formState,
+  } = form
   const { errors, isSubmitting } = formState
+
+  const [shouldReplaceFocalPoint, setShouldReplaceFocalPoint] = useState(false)
 
   const phonesFieldArray = useFieldArray({
     control,
@@ -101,14 +144,23 @@ export function InstitutionAuthorityFormDialog({
     enabled: Boolean(initialData?.id && isOpen),
   })
 
+  const {
+    data: institutionAuthorities = [],
+    isLoading: isLoadingInstitutionAuthorities,
+  } = useQuery({
+    queryKey: ['institution-authorities', 'focal-point-check'],
+    queryFn: getAllInstitutionAuthorities,
+    enabled: isOpen,
+  })
+
   const { mutateAsync: createMutation, isPending: isPendingCreate } =
     useMutation({
       mutationFn: createInstitutionAuthority,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
       },
-      onError: () => {
-        toast.error(genericErrorMessage)
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
       },
     })
 
@@ -118,16 +170,19 @@ export function InstitutionAuthorityFormDialog({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
       },
-      onError: () => {
-        toast.error(genericErrorMessage)
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
       },
     })
 
   const { mutateAsync: replaceContactsMutation, isPending: isPendingContacts } =
     useMutation({
       mutationFn: replaceInstitutionAuthorityContacts,
-      onError: () => {
-        toast.error(genericErrorMessage)
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
+      },
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
       },
     })
 
@@ -148,22 +203,101 @@ export function InstitutionAuthorityFormDialog({
 
     onClose()
     reset(emptyFormValues)
+    setShouldReplaceFocalPoint(false)
     setInitialData(null)
   }
 
+  function setSinglePrimaryPhone(selectedIndex: number, checked: boolean) {
+    const items = getValues('phones')
+
+    if (checked) {
+      items.forEach((_, index) => {
+        setValue(`phones.${index}.isPrimary`, index === selectedIndex, {
+          shouldDirty: true,
+        })
+      })
+      return
+    }
+
+    setValue(`phones.${selectedIndex}.isPrimary`, false, {
+      shouldDirty: true,
+    })
+  }
+
+  function setSinglePrimaryEmail(selectedIndex: number, checked: boolean) {
+    const items = getValues('emails')
+
+    if (checked) {
+      items.forEach((_, index) => {
+        setValue(`emails.${index}.isPrimary`, index === selectedIndex, {
+          shouldDirty: true,
+        })
+      })
+      return
+    }
+
+    setValue(`emails.${selectedIndex}.isPrimary`, false, {
+      shouldDirty: true,
+    })
+  }
+
+  function getExistingFocalPoint(values: InstitutionAuthorityForm) {
+    if (!values.isFocalPoint || !values.requestingInstitutionId) {
+      return undefined
+    }
+
+    return institutionAuthorities.find(
+      (item) =>
+        item.isFocalPoint &&
+        item.requestingInstitutionId === values.requestingInstitutionId &&
+        item.id !== initialData?.id,
+    )
+  }
+
+  const selectedRequestingInstitutionId = watch('requestingInstitutionId')
+  const selectedIsFocalPoint = watch('isFocalPoint')
+  const currentFocalPoint = getExistingFocalPoint({
+    ...emptyFormValues,
+    requestingInstitutionId: selectedRequestingInstitutionId,
+    isFocalPoint: selectedIsFocalPoint,
+  })
+
   async function onSubmit(values: InstitutionAuthorityForm) {
-    const phones = ensureSinglePrimary(
-      values.phones.map((item) => ({
-        phone: item.phone.trim(),
-        isPrimary: item.isPrimary,
-      })),
+    const existingFocalPoint = getExistingFocalPoint(values)
+
+    if (existingFocalPoint && !shouldReplaceFocalPoint) {
+      setError('isFocalPoint', {
+        type: 'validate',
+        message: `Confirme a substituição para definir este requisitante como ponto focal.`,
+      })
+      return
+    }
+
+    if (existingFocalPoint && shouldReplaceFocalPoint) {
+      await updateMutation({
+        id: existingFocalPoint.id,
+        name: existingFocalPoint.name,
+        requestingInstitutionId: existingFocalPoint.requestingInstitutionId,
+        isFocalPoint: false,
+      })
+    }
+
+    const phones = normalizePrimaryContact(
+      values.phones
+        .map((item) => ({
+          phone: item.phone.trim(),
+          isPrimary: item.isPrimary,
+        }))
+        .filter((item) => item.phone.length > 0),
     )
 
-    const emails = ensureSinglePrimary(
-      values.emails.map((item) => ({
-        email: item.email.trim(),
-        isPrimary: item.isPrimary,
-      })),
+    const emails = normalizePrimaryContact(
+      values.emails
+        .map((item) => ({
+          email: item.email.trim(),
+          isPrimary: item.isPrimary,
+        }))
+        .filter((item) => item.email.length > 0),
     )
 
     const hasAnyContacts = phones.length > 0 || emails.length > 0
@@ -223,11 +357,14 @@ export function InstitutionAuthorityFormDialog({
     if (!initialData?.id) {
       reset(emptyFormValues)
     }
+
+    setShouldReplaceFocalPoint(false)
   }, [authority, initialData?.id, isOpen, reset])
 
   const isLoading =
     isLoadingAuthority ||
     isLoadingRequesters ||
+    isLoadingInstitutionAuthorities ||
     isSubmitting ||
     isPendingCreate ||
     isPendingUpdate ||
@@ -261,11 +398,13 @@ export function InstitutionAuthorityFormDialog({
                     value={selected?.label ?? ''}
                     placeholder="Selecione o demandante"
                     options={requestingInstitutionOptions}
-                    onSelect={(item) =>
+                    onSelect={(item) => {
+                      clearErrors('isFocalPoint')
+                      setShouldReplaceFocalPoint(false)
                       setValue('requestingInstitutionId', item.value, {
                         shouldValidate: true,
                       })
-                    }
+                    }}
                   />
                 )
               }}
@@ -292,24 +431,61 @@ export function InstitutionAuthorityFormDialog({
               <label className="flex items-center gap-3 rounded-md border p-3">
                 <Checkbox
                   checked={field.value}
-                  onCheckedChange={(value) => field.onChange(Boolean(value))}
+                  onCheckedChange={(value) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(false)
+                    field.onChange(Boolean(value))
+                  }}
                   disabled={isLoading}
                 />
                 <span className="text-sm">Marcar como ponto focal</span>
+                <InputError message={errors.isFocalPoint?.message} />
               </label>
             )}
           />
 
+          {currentFocalPoint ? (
+            <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3 text-sm">
+              <p>
+                <span className="font-medium">{currentFocalPoint.name}</span> já
+                está marcado como ponto focal deste demandante.
+              </p>
+              <label className="flex items-center gap-3">
+                <Checkbox
+                  checked={shouldReplaceFocalPoint}
+                  onCheckedChange={(value) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(Boolean(value))
+                  }}
+                  disabled={isLoading}
+                />
+                <span>Substituir pelo requisitante atual</span>
+              </label>
+            </div>
+          ) : null}
+
           <div className="flex flex-col gap-3 rounded-md border p-4">
             <div className="flex items-center justify-between gap-2">
-              <Label>Telefones</Label>
+              <div className="flex gap-2">
+                <Label>Telefones</Label>
+                <InputError
+                  message={
+                    typeof errors.phones?.message === 'string'
+                      ? errors.phones.message
+                      : undefined
+                  }
+                />
+              </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 disabled={isLoading}
                 onClick={() =>
-                  phonesFieldArray.append({ phone: '', isPrimary: false })
+                  phonesFieldArray.append({
+                    phone: '',
+                    isPrimary: phonesFieldArray.fields.length === 0,
+                  })
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -337,11 +513,23 @@ export function InstitutionAuthorityFormDialog({
                           message={errors.phones?.[index]?.phone?.message}
                         />
                       </div>
-                      <Input
-                        id={`phones.${index}.phone`}
-                        {...register(`phones.${index}.phone`)}
-                        disabled={isLoading}
-                        placeholder="Ex.: (21) 99999-9999"
+                      <Controller
+                        control={control}
+                        name={`phones.${index}.phone`}
+                        render={({ field: phoneField }) => (
+                          <PhoneInput
+                            id={`phones.${index}.phone`}
+                            value={phoneField.value}
+                            onChange={(value) =>
+                              phoneField.onChange(value ?? '')
+                            }
+                            onBlur={phoneField.onBlur}
+                            name={phoneField.name}
+                            ref={phoneField.ref}
+                            disabled={isLoading}
+                            placeholder="(21) 99999-9999"
+                          />
+                        )}
                       />
                     </div>
 
@@ -353,7 +541,7 @@ export function InstitutionAuthorityFormDialog({
                           <Checkbox
                             checked={checkboxField.value}
                             onCheckedChange={(value) =>
-                              checkboxField.onChange(Boolean(value))
+                              setSinglePrimaryPhone(index, Boolean(value))
                             }
                             disabled={isLoading}
                           />
@@ -380,14 +568,26 @@ export function InstitutionAuthorityFormDialog({
 
           <div className="flex flex-col gap-3 rounded-md border p-4">
             <div className="flex items-center justify-between gap-2">
-              <Label>E-mails</Label>
+              <div className="flex gap-2">
+                <Label>E-mails</Label>
+                <InputError
+                  message={
+                    typeof errors.emails?.message === 'string'
+                      ? errors.emails.message
+                      : undefined
+                  }
+                />
+              </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 disabled={isLoading}
                 onClick={() =>
-                  emailsFieldArray.append({ email: '', isPrimary: false })
+                  emailsFieldArray.append({
+                    email: '',
+                    isPrimary: emailsFieldArray.fields.length === 0,
+                  })
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -430,7 +630,7 @@ export function InstitutionAuthorityFormDialog({
                           <Checkbox
                             checked={checkboxField.value}
                             onCheckedChange={(value) =>
-                              checkboxField.onChange(Boolean(value))
+                              setSinglePrimaryEmail(index, Boolean(value))
                             }
                             disabled={isLoading}
                           />

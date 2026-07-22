@@ -4,6 +4,7 @@ import type {
   RequestingInstitution,
 } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
+import { toCleanQueryString } from '@/utils/to-query-params'
 
 export interface GetRequestingInstitutionsResponse extends PaginationResponse {
   items: RequestingInstitution[]
@@ -15,6 +16,15 @@ interface BackendGetRequestingInstitutionsResponse {
 }
 
 export type { RequestingInstitution } from '@/models/entities'
+
+export type RequestingInstitutionSortBy =
+  | 'name'
+  | 'type'
+  | 'agency'
+  | 'jurisdiction_level'
+  | 'created_at'
+
+export type SortDirection = 'asc' | 'desc'
 
 interface GetRequestingInstitutionRequest {
   id: string
@@ -50,15 +60,38 @@ function mapBackendRequestingInstitution(
   }
 }
 
+export interface GetRequestingInstitutionsRequest extends PaginationRequest {
+  search?: string
+  type?: string
+  agency?: string
+  jurisdictionLevel?: RequestingInstitution['jurisdictionLevel']
+  sortBy?: RequestingInstitutionSortBy
+  sortDirection?: SortDirection
+}
+
 export async function getRequestingInstitutions({
   page,
   size,
-}: PaginationRequest) {
+  search,
+  type,
+  agency,
+  jurisdictionLevel,
+  sortBy,
+  sortDirection,
+}: GetRequestingInstitutionsRequest) {
+  const queryString = toCleanQueryString({
+    page,
+    size,
+    search,
+    type,
+    agency,
+    jurisdiction_level: jurisdictionLevel,
+    ...(sortBy && sortDirection
+      ? { sort_by: sortBy, sort_direction: sortDirection }
+      : {}),
+  })
   const response = await api.get<BackendGetRequestingInstitutionsResponse>(
-    '/requesting-institutions/',
-    {
-      params: { page, size },
-    },
+    `/requesting-institutions${queryString ? `?${queryString}` : ''}`,
   )
 
   return {
@@ -87,7 +120,7 @@ export async function createRequestingInstitution({
   jurisdictionLevel,
 }: CreateRequestingInstitutionRequest) {
   const response = await api.post<BackendRequestingInstitution>(
-    '/requesting-institutions/',
+    '/requesting-institutions',
     {
       name,
       type,

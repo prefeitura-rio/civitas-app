@@ -53,13 +53,15 @@ export function SelectWithSearch({
             !value && 'text-muted-foreground',
           )}
         >
-          {value
-            ? options.find((item) => item.label === value)?.label
-            : placeholder}
+          <span className="min-w-0 truncate">
+            {value
+              ? options.find((item) => item.label === value)?.label
+              : placeholder}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[29rem] p-0">
+      <PopoverContent className="w-[min(29rem,calc(100vw-2rem))] p-0">
         <Command>
           <CommandInput placeholder="Pesquise" className="h-9" />
           <CommandEmpty className="flex justify-center p-2">
