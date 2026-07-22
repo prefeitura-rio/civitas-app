@@ -12,7 +12,7 @@ helmCharts:
 
       image:
         repository: ghcr.io/prefeitura-rio/civitas-app
-        tag: migrate
+        tag: staging
         pullPolicy: Always
 
       securityContext:
