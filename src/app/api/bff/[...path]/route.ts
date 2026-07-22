@@ -29,6 +29,7 @@ const OMITTED_REQUEST_HEADERS = new Set([
   'cookie',
   'content-length',
   'connection',
+  'accept-encoding',
   'forwarded',
   'x-client-ip',
   'x-civitas-client-ip',
@@ -37,6 +38,12 @@ const OMITTED_REQUEST_HEADERS = new Set([
   'x-real-ip',
   'cf-connecting-ip',
   'true-client-ip',
+])
+const OMITTED_RESPONSE_HEADERS = new Set([
+  'content-encoding',
+  'content-length',
+  'transfer-encoding',
+  'connection',
 ])
 
 const DEBUG_CLIENT_IP_REQUEST_HEADERS = [
@@ -131,6 +138,7 @@ async function handler(request: NextRequest) {
 
   setForwardedClientIpHeaders(headers, request.headers)
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
+  headers.set('Accept-Encoding', 'identity')
 
   let body: BodyInit | undefined
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -176,9 +184,7 @@ async function handler(request: NextRequest) {
 
   for (const [key, value] of upstreamResponse.headers.entries()) {
     const lowerKey = key.toLowerCase()
-    if (
-      ['content-length', 'transfer-encoding', 'connection'].includes(lowerKey)
-    ) {
+    if (OMITTED_RESPONSE_HEADERS.has(lowerKey)) {
       continue
     }
     response.headers.set(key, value)
