@@ -11,11 +11,13 @@ on:
       - next.config.*
       - tsconfig*.json
       - tailwind.config.*
+      - postcss.config.*
       - Dockerfile
-      - scripts/docker-entrypoint.sh
+      - .dockerignore
+      - scripts/**
       - package.json
       - pnpm-lock.yaml
-      - k8s/**
+      - .github/actions/docker-build/**
 
 jobs:
   test:
