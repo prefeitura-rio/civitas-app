@@ -5,6 +5,7 @@ describe('session', () => {
     const baseTime = 1_700_000_000_000
     const session = {
       accessToken: 'token',
+      sessionId: 'session-id',
       username: 'user',
       password: 'pass',
       accessTokenExpiresAt: baseTime + 3600_000,
@@ -22,6 +23,7 @@ describe('session', () => {
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
     const session = {
       accessToken: 'token',
+      sessionId: 'session-id',
       username: 'user',
       password: 'pass',
       accessTokenExpiresAt: baseTime + 3600_000,

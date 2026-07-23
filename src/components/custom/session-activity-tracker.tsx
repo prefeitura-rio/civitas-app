@@ -26,6 +26,15 @@ export function SessionActivityTracker() {
         })
 
         if (response.status === 401) {
+          try {
+            const body = (await response.json()) as { code?: string }
+            if (body.code === 'session_invalidated') {
+              sessionStorage.setItem('session-invalidated-toast', '1')
+            }
+          } catch {
+            // Keep the generic login redirect if the response body is not JSON.
+          }
+
           window.location.href = '/auth/sign-in'
         }
       } catch {

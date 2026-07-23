@@ -12,8 +12,7 @@ interface BackendMonitoredPlateAuthorityCollectionPoint {
   lpr_collection_point_id?: string
 }
 
-interface BackendMonitoredPlateAuthorityResponse
-  extends BackendMonitoredPlateAuthorityLink {
+interface BackendMonitoredPlateAuthorityResponse extends BackendMonitoredPlateAuthorityLink {
   institution_authority?: BackendInstitutionAuthority
   notification_channels?: BackendNotificationChannel[]
   collection_points?: BackendMonitoredPlateAuthorityCollectionPoint[]
@@ -21,8 +20,7 @@ interface BackendMonitoredPlateAuthorityResponse
   updated_at?: string | null
 }
 
-export interface MonitoredPlateAuthorityRecord
-  extends MonitoredPlateAuthorityLink {
+export interface MonitoredPlateAuthorityRecord extends MonitoredPlateAuthorityLink {
   institutionAuthority?: InstitutionAuthority
   notificationChannels?: NotificationChannel[]
   createdAt?: string | null
@@ -33,16 +31,17 @@ interface GetMonitoredPlateAuthorityRequest {
   id: string
 }
 
-export interface CreateMonitoredPlateAuthorityRequest
-  extends Omit<MonitoredPlateAuthorityLink, 'id'> {}
+export interface CreateMonitoredPlateAuthorityRequest extends Omit<
+  MonitoredPlateAuthorityLink,
+  'id'
+> {}
 
-export interface UpdateMonitoredPlateAuthorityRequest
-  extends Partial<
-    Omit<
-      MonitoredPlateAuthorityLink,
-      'id' | 'monitoredPlateId' | 'institutionAuthorityId'
-    >
-  > {
+export interface UpdateMonitoredPlateAuthorityRequest extends Partial<
+  Omit<
+    MonitoredPlateAuthorityLink,
+    'id' | 'monitoredPlateId' | 'institutionAuthorityId'
+  >
+> {
   id: string
 }
 

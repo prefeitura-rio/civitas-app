@@ -7,6 +7,7 @@ import {
   buildSessionFromTokenResponse,
   serializeAccessToken,
   serializeSession,
+  serializeSessionId,
 } from '@/auth/session'
 import { config, getServerConfig } from '@/config'
 import {
@@ -62,6 +63,7 @@ export async function signInAction(data: FormData) {
     const tokens = (await response.json()) as {
       access_token: string
       expires_in: number
+      session_id: string
     }
 
     const session = buildSessionFromTokenResponse(
@@ -71,6 +73,7 @@ export async function signInAction(data: FormData) {
     )
     const sessionCookie = serializeSession(session)
     const accessTokenCookie = serializeAccessToken(session)
+    const sessionIdCookie = serializeSessionId(session)
 
     cookies().set(
       sessionCookie.name,
@@ -82,12 +85,20 @@ export async function signInAction(data: FormData) {
       accessTokenCookie.value,
       accessTokenCookie.options,
     )
+    cookies().set(
+      sessionIdCookie.name,
+      sessionIdCookie.value,
+      sessionIdCookie.options,
+    )
 
     try {
       const permRes = await fetch(
         `${config.apiUrl}${TICKET_MODULE_PERMISSIONS_PATH}`,
         {
-          headers: { Authorization: `Bearer ${tokens.access_token}` },
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+            'X-Civitas-Session-Id': tokens.session_id,
+          },
         },
       )
       if (permRes.ok) {

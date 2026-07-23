@@ -28,9 +28,7 @@ export interface BackendGetInstitutionAuthoritiesResponse {
 export type { InstitutionAuthority } from '@/models/entities'
 
 export type InstitutionAuthoritySortBy =
-  | 'name'
-  | 'requesting_institution_name'
-  | 'created_at'
+  'name' | 'requesting_institution_name' | 'created_at'
 
 export type SortDirection = 'asc' | 'desc'
 
@@ -47,24 +45,21 @@ interface GetInstitutionAuthorityRequest {
   id: string
 }
 
-export interface CreateInstitutionAuthorityRequest
-  extends Pick<
+export interface CreateInstitutionAuthorityRequest extends Pick<
+  InstitutionAuthority,
+  'name' | 'requestingInstitutionId' | 'isFocalPoint'
+> {}
+
+export interface UpdateInstitutionAuthorityRequest extends Partial<
+  Pick<
     InstitutionAuthority,
     'name' | 'requestingInstitutionId' | 'isFocalPoint'
-  > {}
-
-export interface UpdateInstitutionAuthorityRequest
-  extends Partial<
-    Pick<
-      InstitutionAuthority,
-      'name' | 'requestingInstitutionId' | 'isFocalPoint'
-    >
-  > {
+  >
+> {
   id: string
 }
 
-export interface ReplaceInstitutionAuthorityContactsRequest
-  extends InstitutionAuthorityContacts {
+export interface ReplaceInstitutionAuthorityContactsRequest extends InstitutionAuthorityContacts {
   id: string
 }
 

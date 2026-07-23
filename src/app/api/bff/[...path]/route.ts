@@ -6,6 +6,7 @@ import {
   getSessionCookieName,
   serializeAccessToken,
   serializeSession,
+  serializeSessionId,
   validateAndRefreshSession,
 } from '@/auth/session'
 import { config } from '@/config'
@@ -138,7 +139,7 @@ async function handler(request: NextRequest) {
 
   setForwardedClientIpHeaders(headers, request.headers)
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
-  headers.set('Accept-Encoding', 'identity')
+  headers.set('X-Civitas-Session-Id', result.session.sessionId)
 
   let body: BodyInit | undefined
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -192,8 +193,17 @@ async function handler(request: NextRequest) {
 
   setClientIpDebugResponseHeaders(response, headers, request.headers)
 
+  if (upstreamResponse.status === 401) {
+    for (const cookie of clearSessionCookies()) {
+      response.cookies.set(cookie.name, cookie.value, cookie.options)
+    }
+
+    return response
+  }
+
   const sessionCookie = serializeSession(result.session)
   const accessTokenCookie = serializeAccessToken(result.session)
+  const sessionIdCookie = serializeSessionId(result.session)
 
   response.cookies.set(
     sessionCookie.name,
@@ -204,6 +214,11 @@ async function handler(request: NextRequest) {
     accessTokenCookie.name,
     accessTokenCookie.value,
     accessTokenCookie.options,
+  )
+  response.cookies.set(
+    sessionIdCookie.name,
+    sessionIdCookie.value,
+    sessionIdCookie.options,
   )
 
   return response

@@ -18,11 +18,7 @@ interface BackendGetRequestingInstitutionsResponse {
 export type { RequestingInstitution } from '@/models/entities'
 
 export type RequestingInstitutionSortBy =
-  | 'name'
-  | 'type'
-  | 'agency'
-  | 'jurisdiction_level'
-  | 'created_at'
+  'name' | 'type' | 'agency' | 'jurisdiction_level' | 'created_at'
 
 export type SortDirection = 'asc' | 'desc'
 
@@ -30,19 +26,14 @@ interface GetRequestingInstitutionRequest {
   id: string
 }
 
-export interface CreateRequestingInstitutionRequest
-  extends Pick<
-    RequestingInstitution,
-    'name' | 'type' | 'agency' | 'jurisdictionLevel'
-  > {}
+export interface CreateRequestingInstitutionRequest extends Pick<
+  RequestingInstitution,
+  'name' | 'type' | 'agency' | 'jurisdictionLevel'
+> {}
 
-export interface UpdateRequestingInstitutionRequest
-  extends Partial<
-    Pick<
-      RequestingInstitution,
-      'name' | 'type' | 'agency' | 'jurisdictionLevel'
-    >
-  > {
+export interface UpdateRequestingInstitutionRequest extends Partial<
+  Pick<RequestingInstitution, 'name' | 'type' | 'agency' | 'jurisdictionLevel'>
+> {
   id: string
 }
 
