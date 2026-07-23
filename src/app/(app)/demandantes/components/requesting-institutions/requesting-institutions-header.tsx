@@ -11,8 +11,8 @@ export function RequestingInstitutionsHeader() {
   const { data: profile } = useProfile()
 
   return (
-    <div className="flex w-full items-center justify-between gap-2">
-      <h3 className="text-lg font-semibold">Demandantes</h3>
+    <div className="flex w-full items-center justify-between gap-4">
+      <h2 className="min-w-0 flex-1 text-2xl font-semibold">Demandantes</h2>
       <Tooltip
         disabledText={notAllowed}
         disabled={!profile?.is_admin}
@@ -21,6 +21,7 @@ export function RequestingInstitutionsHeader() {
       >
         <Button
           size="sm"
+          className="min-w-[11.5rem] shrink-0"
           disabled={!profile?.is_admin}
           onClick={() => {
             setDialogInitialData(null)

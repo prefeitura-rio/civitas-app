@@ -14,6 +14,7 @@ import type {
   RequestingInstitution,
 } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
+import { toCleanQueryString } from '@/utils/to-query-params'
 
 export interface GetInstitutionAuthoritiesResponse extends PaginationResponse {
   items: InstitutionAuthority[]
@@ -26,30 +27,39 @@ export interface BackendGetInstitutionAuthoritiesResponse {
 
 export type { InstitutionAuthority } from '@/models/entities'
 
-export interface GetInstitutionAuthoritiesRequest extends PaginationRequest {}
+export type InstitutionAuthoritySortBy =
+  'name' | 'requesting_institution_name' | 'created_at'
+
+export type SortDirection = 'asc' | 'desc'
+
+export interface GetInstitutionAuthoritiesRequest extends PaginationRequest {
+  search?: string
+  requestingInstitutionId?: string
+  isFocalPoint?: boolean
+  jurisdictionLevel?: RequestingInstitution['jurisdictionLevel']
+  sortBy?: InstitutionAuthoritySortBy
+  sortDirection?: SortDirection
+}
 
 interface GetInstitutionAuthorityRequest {
   id: string
 }
 
-export interface CreateInstitutionAuthorityRequest
-  extends Pick<
+export interface CreateInstitutionAuthorityRequest extends Pick<
+  InstitutionAuthority,
+  'name' | 'requestingInstitutionId' | 'isFocalPoint'
+> {}
+
+export interface UpdateInstitutionAuthorityRequest extends Partial<
+  Pick<
     InstitutionAuthority,
     'name' | 'requestingInstitutionId' | 'isFocalPoint'
-  > {}
-
-export interface UpdateInstitutionAuthorityRequest
-  extends Partial<
-    Pick<
-      InstitutionAuthority,
-      'name' | 'requestingInstitutionId' | 'isFocalPoint'
-    >
-  > {
+  >
+> {
   id: string
 }
 
-export interface ReplaceInstitutionAuthorityContactsRequest
-  extends InstitutionAuthorityContacts {
+export interface ReplaceInstitutionAuthorityContactsRequest extends InstitutionAuthorityContacts {
   id: string
 }
 
@@ -152,12 +162,26 @@ function mapBackendInstitutionAuthority(
 export async function getInstitutionAuthorities({
   page,
   size,
+  search,
+  requestingInstitutionId,
+  isFocalPoint,
+  jurisdictionLevel,
+  sortBy,
+  sortDirection,
 }: GetInstitutionAuthoritiesRequest) {
+  const queryString = toCleanQueryString({
+    page,
+    size,
+    search,
+    requesting_institution_id: requestingInstitutionId,
+    is_focal_point: isFocalPoint,
+    jurisdiction_level: jurisdictionLevel,
+    ...(sortBy && sortDirection
+      ? { sort_by: sortBy, sort_direction: sortDirection }
+      : {}),
+  })
   const response = await api.get<BackendGetInstitutionAuthoritiesResponse>(
-    '/institution-authorities/',
-    {
-      params: { page, size },
-    },
+    `/institution-authorities/${queryString ? `?${queryString}` : ''}`,
   )
 
   return {
@@ -215,9 +239,7 @@ export async function updateInstitutionAuthority({
 }
 
 export function deleteInstitutionAuthority(id: string) {
-  return api.delete<BackendInstitutionAuthority>(
-    `/institution-authorities/${id}`,
-  )
+  return api.delete<void>(`/institution-authorities/${id}`)
 }
 
 export async function replaceInstitutionAuthorityContacts({

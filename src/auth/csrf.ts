@@ -7,12 +7,14 @@ function getTrustedHosts(request: Request) {
     trustedHosts.add(host)
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  // APP_URL is a server-side env var (no NEXT_PUBLIC_ prefix) — injected by
+  // Infisical in production and defined in .env.local for local development.
+  const appUrl = process.env.APP_URL
   if (appUrl) {
     try {
       trustedHosts.add(new URL(appUrl).host)
     } catch {
-      // ignore malformed NEXT_PUBLIC_APP_URL
+      // ignore malformed APP_URL
     }
   }
 

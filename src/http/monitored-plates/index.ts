@@ -19,6 +19,7 @@ interface BackendMonitoredPlateAuthoritySummary {
   id: string
   institution_authority: BackendInstitutionAuthority
   notification_channels: BackendNotificationChannel[]
+  collection_point_ids?: string[]
   collection_points?: BackendMonitoredPlateAuthorityCollectionPointSummary[]
   reference_number: string
   valid_until: string
@@ -88,15 +89,15 @@ export interface GetMonitoredPlatesRequest extends PaginationRequest {
 }
 
 export interface CreateMonitoredPlateRequest
-  extends Pick<MonitoredPlateReadModel, 'plate'>,
+  extends
+    Pick<MonitoredPlateReadModel, 'plate'>,
     Partial<
       Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
     > {}
 
-export interface UpdateMonitoredPlateRequest
-  extends Partial<
-    Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
-  > {
+export interface UpdateMonitoredPlateRequest extends Partial<
+  Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
+> {
   plate: string
 }
 
@@ -214,11 +215,15 @@ export function mapBackendMonitoredPlate(
         mapBackendNotificationChannel,
       ),
       collectionPointIds:
-        authority.collection_points
-          ?.map(
-            (collectionPoint) => collectionPoint.lpr_collection_point_id ?? '',
-          )
-          .filter(Boolean) ?? [],
+        authority.collection_point_ids &&
+        authority.collection_point_ids.length > 0
+          ? authority.collection_point_ids
+          : (authority.collection_points
+              ?.map(
+                (collectionPoint) =>
+                  collectionPoint.lpr_collection_point_id ?? '',
+              )
+              .filter(Boolean) ?? []),
       referenceNumber: authority.reference_number,
       validUntil: authority.valid_until,
       active: authority.active,

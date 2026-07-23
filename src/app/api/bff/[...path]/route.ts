@@ -14,6 +14,7 @@ import { setForwardedClientIpHeaders } from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
   'GET',
+  'HEAD',
   'POST',
   'PUT',
   'PATCH',
@@ -23,11 +24,13 @@ const ALLOWED_METHODS = new Set([
 
 const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
+const NO_BODY_RESPONSE_STATUSES = new Set([204, 205, 304])
 const OMITTED_REQUEST_HEADERS = new Set([
   'host',
   'cookie',
   'content-length',
   'connection',
+  'accept-encoding',
   'forwarded',
   'x-client-ip',
   'x-civitas-client-ip',
@@ -36,6 +39,12 @@ const OMITTED_REQUEST_HEADERS = new Set([
   'x-real-ip',
   'cf-connecting-ip',
   'true-client-ip',
+])
+const OMITTED_RESPONSE_HEADERS = new Set([
+  'content-encoding',
+  'content-length',
+  'transfer-encoding',
+  'connection',
 ])
 
 const DEBUG_CLIENT_IP_REQUEST_HEADERS = [
@@ -84,10 +93,7 @@ function setClientIpDebugResponseHeaders(
   }
 }
 
-async function handler(
-  request: NextRequest,
-  { params }: { params: { path: string[] } },
-) {
+async function handler(request: NextRequest) {
   if (!ALLOWED_METHODS.has(request.method)) {
     return NextResponse.json({ message: 'Method not allowed' }, { status: 405 })
   }
@@ -118,8 +124,9 @@ async function handler(
     return response
   }
 
-  const upstreamPath = params.path.join('/')
-  const upstreamUrl = `${config.apiUrl}/${upstreamPath}${request.nextUrl.search}`
+  // Preserve trailing slash from the incoming BFF path
+  const upstreamPath = request.nextUrl.pathname.replace(/^\/api\/bff/, '')
+  const upstreamUrl = `${config.apiUrl}${upstreamPath}${request.nextUrl.search}`
 
   const headers = new Headers()
   for (const [key, value] of request.headers.entries()) {
@@ -166,7 +173,10 @@ async function handler(
     upstreamResponse = await fetchUpstream(currentUpstreamUrl)
   }
 
-  const responseBody = await upstreamResponse.arrayBuffer()
+  const hasNoBody =
+    request.method === 'HEAD' ||
+    NO_BODY_RESPONSE_STATUSES.has(upstreamResponse.status)
+  const responseBody = hasNoBody ? null : await upstreamResponse.arrayBuffer()
 
   const response = new NextResponse(responseBody, {
     status: upstreamResponse.status,
@@ -175,9 +185,7 @@ async function handler(
 
   for (const [key, value] of upstreamResponse.headers.entries()) {
     const lowerKey = key.toLowerCase()
-    if (
-      ['content-length', 'transfer-encoding', 'connection'].includes(lowerKey)
-    ) {
+    if (OMITTED_RESPONSE_HEADERS.has(lowerKey)) {
       continue
     }
     response.headers.set(key, value)
@@ -218,6 +226,7 @@ async function handler(
 
 export {
   handler as GET,
+  handler as HEAD,
   handler as POST,
   handler as PUT,
   handler as PATCH,

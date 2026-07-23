@@ -5,12 +5,13 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get('session')?.value
   const token = request.cookies.get('token')?.value
 
-  // Allow requests to /auth/*, /privacidade and static files
+  // Allow requests to /auth/*, /privacidade, runtime env config, and static files
   if (
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/privacidade') ||
     request.nextUrl.pathname.startsWith('/api/auth') ||
-    request.nextUrl.pathname.startsWith('/_next')
+    request.nextUrl.pathname.startsWith('/_next') ||
+    request.nextUrl.pathname === '/env-config.js'
   ) {
     return NextResponse.next()
   }
@@ -28,6 +29,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Apply the middleware to all routes except for those under /auth
-  matcher: ['/((?!auth|privacidade|_next|favicon.ico).*)'],
+  // Skip auth gate for public routes and runtime env-config.js (loaded before login)
+  matcher: ['/((?!auth|privacidade|_next|favicon\\.ico|env-config\\.js).*)'],
 }
