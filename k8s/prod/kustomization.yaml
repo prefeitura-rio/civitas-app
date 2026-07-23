@@ -19,7 +19,31 @@ helmCharts:
         runAsUser: 1000
 
       healthCheck:
-        path: /
+        path: ""
+
+      startupProbe:
+        httpGet:
+          path: /api/health
+          port: 8080
+        failureThreshold: 18
+        periodSeconds: 10
+        timeoutSeconds: 5
+
+      livenessProbe:
+        httpGet:
+          path: /api/health
+          port: 8080
+        failureThreshold: 3
+        periodSeconds: 10
+        timeoutSeconds: 5
+
+      readinessProbe:
+        httpGet:
+          path: /api/health
+          port: 8080
+        failureThreshold: 3
+        periodSeconds: 10
+        timeoutSeconds: 5
 
       service:
         port: 80
