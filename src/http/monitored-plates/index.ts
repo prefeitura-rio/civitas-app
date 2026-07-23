@@ -89,15 +89,15 @@ export interface GetMonitoredPlatesRequest extends PaginationRequest {
 }
 
 export interface CreateMonitoredPlateRequest
-  extends
-    Pick<MonitoredPlateReadModel, 'plate'>,
+  extends Pick<MonitoredPlateReadModel, 'plate'>,
     Partial<
       Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
     > {}
 
-export interface UpdateMonitoredPlateRequest extends Partial<
-  Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
-> {
+export interface UpdateMonitoredPlateRequest
+  extends Partial<
+    Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
+  > {
   plate: string
 }
 
