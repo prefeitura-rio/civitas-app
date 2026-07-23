@@ -1,7 +1,8 @@
 'use client'
 import { AlertTriangle, icons } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -26,6 +27,19 @@ export default function SignInForm() {
   >('password')
 
   const LucideIcon = icons[passwordFieldType === 'password' ? 'EyeOff' : 'Eye']
+
+  useEffect(() => {
+    if (sessionStorage.getItem('session-invalidated-toast') !== '1') {
+      return
+    }
+
+    sessionStorage.removeItem('session-invalidated-toast')
+    toast.warning('Sua sessão foi encerrada', {
+      id: 'session-invalidated',
+      description:
+        'Este usuário entrou em outro dispositivo ou navegador. Faça login novamente para continuar.',
+    })
+  }, [])
 
   return (
     <form

@@ -6,15 +6,18 @@ import { getSessionPolicy } from './session-config'
 
 const SESSION_COOKIE_NAME = 'session'
 const ACCESS_TOKEN_COOKIE_NAME = 'token'
+const SESSION_ID_COOKIE_NAME = 'session_id'
 
 type OAuthTokenResponse = {
   access_token: string
   expires_in: number
   token_type?: string
+  session_id: string
 }
 
 type SessionPayload = {
   accessToken: string
+  sessionId: string
   username: string
   password: string
   accessTokenExpiresAt: number
@@ -29,6 +32,10 @@ export function getSessionCookieName() {
 
 export function getAccessTokenCookieName() {
   return ACCESS_TOKEN_COOKIE_NAME
+}
+
+export function getSessionIdCookieName() {
+  return SESSION_ID_COOKIE_NAME
 }
 
 function toBase64Url(input: Buffer | string) {
@@ -118,6 +125,7 @@ function unsealSession(value: string): SessionPayload | null {
 
     if (
       !parsed.accessToken ||
+      !parsed.sessionId ||
       !parsed.username ||
       !parsed.password ||
       !parsed.createdAt ||
@@ -185,6 +193,7 @@ export function buildSessionFromTokenResponse(
 
   return {
     accessToken: tokenResponse.access_token,
+    sessionId: tokenResponse.session_id,
     username: credentials.username,
     password: credentials.password,
     accessTokenExpiresAt: nowMs + tokenResponse.expires_in * 1000,
@@ -202,6 +211,7 @@ export async function refreshAccessToken(session: SessionPayload) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Civitas-Session-Id': session.sessionId,
       },
       body: new URLSearchParams({
         username: session.username,
@@ -224,6 +234,7 @@ export async function refreshAccessToken(session: SessionPayload) {
   return {
     ...session,
     accessToken: data.access_token,
+    sessionId: data.session_id,
     accessTokenExpiresAt: Date.now() + data.expires_in * 1000,
   }
 }
@@ -306,6 +317,16 @@ export function serializeAccessToken(session: SessionPayload) {
   }
 }
 
+export function serializeSessionId(session: SessionPayload) {
+  const policy = getSessionPolicy(session.rememberMe)
+
+  return {
+    name: SESSION_ID_COOKIE_NAME,
+    value: session.sessionId,
+    options: getAccessTokenCookieOptions(policy.absoluteTimeoutSeconds),
+  }
+}
+
 export function clearSessionCookies() {
   const serverConfig = getServerConfig()
 
@@ -323,6 +344,17 @@ export function clearSessionCookies() {
     },
     {
       name: ACCESS_TOKEN_COOKIE_NAME,
+      value: '',
+      options: {
+        httpOnly: true,
+        secure: serverConfig.authCookieSecure,
+        sameSite: serverConfig.authCookieSameSite,
+        path: '/',
+        maxAge: 0,
+      } as const,
+    },
+    {
+      name: SESSION_ID_COOKIE_NAME,
       value: '',
       options: {
         httpOnly: true,

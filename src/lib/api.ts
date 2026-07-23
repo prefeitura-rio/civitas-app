@@ -26,9 +26,13 @@ api.interceptors.request.use(async (requestConfig) => {
     cookieStore = serverCookies
   }
   const token = getCookie('token', { cookies: cookieStore })
+  const sessionId = getCookie('session_id', { cookies: cookieStore })
 
   if (token) {
     requestConfig.headers.Authorization = `Bearer ${token}`
+  }
+  if (sessionId) {
+    requestConfig.headers['X-Civitas-Session-Id'] = sessionId
   }
 
   const shouldAttachImpersonation =
@@ -56,7 +60,9 @@ api.interceptors.response.use(
     const status = error?.response?.status
 
     if (typeof window !== 'undefined' && status === 401) {
+      const errorCode = error?.response?.data?.code
       deleteCookie('token')
+      deleteCookie('session_id')
       deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
       queryClient.clear()
       await fetch('/api/auth/logout', {
@@ -64,6 +70,10 @@ api.interceptors.response.use(
         credentials: 'include',
       })
       if (window.location.pathname !== '/auth/sign-in') {
+        if (errorCode === 'session_invalidated') {
+          sessionStorage.setItem('session-invalidated-toast', '1')
+        }
+
         window.location.href = '/auth/sign-in'
       }
     }
