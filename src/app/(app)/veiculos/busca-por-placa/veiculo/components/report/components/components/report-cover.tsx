@@ -97,7 +97,7 @@ const bulletPoints: BulletPoint[] = [
           },
           {
             value:
-              'O alerta é ativado quando a velocidade necessária para percorrer a distância entre dois pontos excede 110 km/h, considerando uma linha reta entre os pontos e desconsiderando possíveis rotas reais.',
+              'O alerta é ativado quando a velocidade necessária para percorrer a distância entre dois pontos é igual ou superior a 110 km/h, considerando uma linha reta entre os pontos e desconsiderando possíveis rotas reais. Detecções com distância inferior a 1 km são desconsideradas para esse alerta.',
           },
           {
             value: 'Os alertas são representados de duas formas:',
