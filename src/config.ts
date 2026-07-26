@@ -1,4 +1,17 @@
+import { getPublicEnv } from '@/lib/public-env'
+
 type AuthCookieSameSite = 'lax' | 'strict' | 'none'
+
+// During `next build`, Next.js loads route handlers to collect page metadata,
+// which triggers module-level code like `export const config = getConfig()`.
+// At that point no runtime env vars exist yet (Infisical injects them at
+// container startup, not at image build time). We detect the build phase and
+// return safe empty defaults so the build succeeds; the real values are
+// validated on the first actual request at runtime.
+const isBuildPhase =
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  process.env.NEXT_PHASE === 'phase-export' ||
+  process.env.NODE_ENV === 'test'
 
 function getServerNumberEnv(name: string) {
   const value = Number(process.env[name])
@@ -8,32 +21,24 @@ function getServerNumberEnv(name: string) {
   return value
 }
 
-// This function will validate and return build-safe public environment variables.
 const getConfig = () => {
   const isTruthy = (value?: string) => value?.toLowerCase() === 'true'
 
-  const apiUrl = process.env.NEXT_PUBLIC_CIVITAS_API_URL
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_CIVITAS_API_URL is not set')
-  }
-  // Trim any trailing slash from the API URL
-  const trimmedApiUrl = apiUrl.replace(/\/+$/, '')
-
-  const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-  if (!mapboxAccessToken) {
-    throw new Error('NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN is not set')
+  const apiUrl = getPublicEnv('CIVITAS_API_URL')
+  if (!apiUrl && !isBuildPhase) {
+    throw new Error('CIVITAS_API_URL is not set')
   }
 
-  const enableChamados = isTruthy(process.env.NEXT_PUBLIC_ENABLE_CHAMADOS)
-  const enableImpersonation = isTruthy(
-    process.env.NEXT_PUBLIC_ENABLE_IMPERSONATION,
-  )
+  const mapboxAccessToken = getPublicEnv('MAPBOX_ACCESS_TOKEN')
+  if (!mapboxAccessToken && !isBuildPhase) {
+    throw new Error('MAPBOX_ACCESS_TOKEN is not set')
+  }
 
   return {
-    apiUrl: trimmedApiUrl,
-    mapboxAccessToken,
-    enableChamados,
-    enableImpersonation,
+    apiUrl: (apiUrl ?? '').replace(/\/+$/, ''),
+    mapboxAccessToken: mapboxAccessToken ?? '',
+    enableChamados: isTruthy(getPublicEnv('ENABLE_CHAMADOS')),
+    enableImpersonation: isTruthy(getPublicEnv('ENABLE_IMPERSONATION')),
   }
 }
 
