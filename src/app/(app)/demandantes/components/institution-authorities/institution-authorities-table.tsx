@@ -16,6 +16,11 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import {
+  formatPhoneNumber,
+  formatPhoneNumberIntl,
+  parsePhoneNumber,
+} from 'react-phone-number-input'
 import { toast } from 'sonner'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
@@ -106,24 +111,12 @@ function getPrimaryEmail(authority: InstitutionAuthority) {
 }
 
 function formatPhoneForDisplay(value: string) {
-  const digits = value.replace(/\D/g, '')
-  const withoutCountryCode = digits.startsWith('55') ? digits.slice(2) : digits
+  const parsed = parsePhoneNumber(value)
+  if (!parsed) return value
 
-  if (withoutCountryCode.length === 11) {
-    return `(${withoutCountryCode.slice(0, 2)}) ${withoutCountryCode.slice(
-      2,
-      7,
-    )}-${withoutCountryCode.slice(7)}`
-  }
+  if (parsed.country === 'BR') return formatPhoneNumber(value)
 
-  if (withoutCountryCode.length === 10) {
-    return `(${withoutCountryCode.slice(0, 2)}) ${withoutCountryCode.slice(
-      2,
-      6,
-    )}-${withoutCountryCode.slice(6)}`
-  }
-
-  return value.replace(/^\+55\s*/, '')
+  return formatPhoneNumberIntl(value)
 }
 
 function getFocalPointFilterValue(value: FocalPointFilter) {
