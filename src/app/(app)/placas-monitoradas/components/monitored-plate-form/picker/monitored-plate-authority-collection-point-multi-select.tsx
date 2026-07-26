@@ -2,15 +2,8 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 import type { MapViewState } from '@deck.gl/core'
 import { DeckGL } from 'deck.gl'
-import {
-  ChevronDown,
-  ChevronRight,
-  Crosshair,
-  ListFilter,
-  MapPin,
-  Navigation,
-  Search,
-} from 'lucide-react'
+import { Check, Crosshair, MapPin, Navigation, Search } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import MapGl, { type ViewStateChangeEvent } from 'react-map-gl'
 
 import { MAPBOX_ACCESS_TOKEN } from '@/app/(app)/veiculos/components/map/components/constants'
@@ -18,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 
 import { useCollectionPointPickerState } from './use-collection-point-picker-state'
@@ -28,22 +22,42 @@ interface MonitoredPlateAuthorityCollectionPointMultiSelectProps {
   value: string[]
   onChange: (ids: string[]) => void
   disabled?: boolean
-  showSelectAllCollectionPoints?: boolean
+  /** Exibe o toggle "Monitorar todos os pontos" e controla seu estado. */
+  monitorAll?: boolean
+  onMonitorAllChange?: (value: boolean) => void
+  /** Quando true, seleciona todos os pontos automaticamente na primeira carga. */
+  defaultSelectAll?: boolean
 }
 
 export function MonitoredPlateAuthorityCollectionPointMultiSelect({
   label = 'Pontos de coleta',
-  description = 'Selecione radares apenas se este vinculo nao valer para todos os pontos de coleta.',
+  description,
   value,
   onChange,
   disabled = false,
-  showSelectAllCollectionPoints = false,
+  monitorAll,
+  onMonitorAllChange,
+  defaultSelectAll = false,
 }: MonitoredPlateAuthorityCollectionPointMultiSelectProps) {
-  const picker = useCollectionPointPickerState({ value, onChange })
-  const showCompactAllSummary =
-    showSelectAllCollectionPoints &&
-    picker.allSelected &&
-    picker.options.length > 0
+  const hasMonitorAllToggle = onMonitorAllChange !== undefined
+  const picker = useCollectionPointPickerState({
+    value,
+    onChange,
+    defaultSelectAll,
+  })
+
+  // Abre o picker automaticamente quando o toggle passa de "monitorar todos" para "específicos"
+  const prevMonitorAllRef = useRef(monitorAll)
+  useEffect(() => {
+    if (
+      prevMonitorAllRef.current === true &&
+      monitorAll === false &&
+      !picker.expanded
+    ) {
+      picker.openPicker()
+    }
+    prevMonitorAllRef.current = monitorAll
+  }, [monitorAll, picker])
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -56,102 +70,43 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
         ) : null}
       </div>
 
-      <div className="rounded-md border border-border bg-muted/30 px-3 py-3">
-        <div className="flex flex-col gap-3">
-          {showCompactAllSummary ? (
-            <p className="text-sm text-foreground">
-              Todos os pontos de coleta selecionados.
-            </p>
-          ) : picker.selectedOptions.length > 0 ? (
-            <>
-              <p className="text-sm text-foreground">
-                {picker.selectedOptions.length} radares selecionados
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {picker.selectedOptions.slice(0, 6).map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className="max-w-full"
-                    disabled={disabled || picker.isPending}
-                    onClick={() =>
-                      picker.openPickerWithSelectedList(option.value)
-                    }
-                  >
-                    <Badge
-                      variant="outline"
-                      className="max-w-full truncate px-2 py-1 text-xs font-normal hover:bg-accent"
-                    >
-                      {picker.collectionPointsById.get(option.value)
-                        ?.cetRioCode ?? option.label}
-                    </Badge>
-                  </button>
-                ))}
-                {picker.selectedOptions.length > 6 ? (
-                  <button
-                    type="button"
-                    className="max-w-full"
-                    disabled={disabled || picker.isPending}
-                    onClick={() => picker.openPickerWithSelectedList()}
-                  >
-                    <Badge
-                      variant="outline"
-                      className="px-2 py-1 text-xs font-normal text-muted-foreground hover:bg-accent"
-                    >
-                      +{picker.selectedOptions.length - 6}
-                    </Badge>
-                  </button>
-                ) : null}
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Nenhum radar selecionado.
-            </p>
-          )}
+      {hasMonitorAllToggle ? (
+        <label className="flex min-h-10 cursor-pointer items-center justify-between gap-3 rounded-md border p-3">
+          <span className="text-sm">Monitorar todos os pontos de coleta</span>
+          <Switch
+            checked={monitorAll ?? true}
+            onCheckedChange={onMonitorAllChange}
+            disabled={disabled}
+            aria-label="Monitorar todos os pontos de coleta"
+          />
+        </label>
+      ) : null}
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              disabled={disabled || picker.isPending}
-              onClick={picker.toggleExpanded}
-            >
-              {picker.expanded
-                ? 'Fechar busca de radares'
-                : 'Buscar e selecionar radares'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              disabled={disabled || picker.isPending || value.length === 0}
-              onClick={picker.clearCommittedSelection}
-            >
-              Limpar selecao
-            </Button>
-          </div>
-        </div>
-      </div>
+      {monitorAll ? (
+        <p className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
+          Todas as câmeras disponíveis serão monitoradas. Desative o toggle
+          acima para selecionar pontos específicos.
+        </p>
+      ) : null}
 
-      {picker.expanded ? (
+      {!monitorAll && picker.expanded ? (
         <div className="min-w-0 rounded-lg border bg-background p-3 sm:p-4">
           <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
+            {/* ── Coluna do mapa ─────────────────────────────────────────── */}
             <div className="flex min-h-0 flex-col gap-3">
               <div className="rounded-md border bg-muted/10 p-2">
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-1">
+                {/* Cabeçalho do mapa */}
+                <div className="mb-2 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 px-1">
                   <div>
                     <p className="text-sm font-medium text-foreground">Mapa</p>
                     <p className="text-xs text-muted-foreground">
-                      Clique com o botão esquerdo para selecionar. Use
-                      selecionar por área para marcar vértices no mapa e
-                      concluir a seleção de vários radares de uma vez. Clique
-                      com o botao direito para ver os detalhes do radar.
+                      Clique para selecionar radares. Botão direito para ver
+                      detalhes. Use "Selecionar por área" para marcar múltiplos
+                      radares de uma vez.
                     </p>
                   </div>
+
+                  {/* Botões de visão */}
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
@@ -164,8 +119,8 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                       onClick={picker.toggleSelectedOnlyInMap}
                     >
                       {picker.showSelectedOnlyInMap
-                        ? 'Mostrar todos no mapa'
-                        : 'Mostrar so selecionados'}
+                        ? 'Ver todos'
+                        : 'Focar selecionados'}
                     </Button>
                     <Button
                       type="button"
@@ -176,7 +131,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                       onClick={picker.fitSelectedPoints}
                     >
                       <Crosshair className="mr-1 h-3.5 w-3.5" />
-                      Ajustar aos selecionados
+                      Centralizar selecionados
                     </Button>
                     <Button
                       type="button"
@@ -186,8 +141,12 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                       disabled={picker.mapPoints.length === 0}
                       onClick={picker.fitMapPoints}
                     >
-                      Ajustar ao mapa
+                      Ver mapa completo
                     </Button>
+                  </div>
+
+                  {/* Botões de seleção por área */}
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
                       variant={
@@ -201,49 +160,53 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                       }
                       onClick={picker.startAreaSelection}
                     >
-                      Selecionar por area
+                      Selecionar por área
                     </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      disabled={picker.areaDraftPointCount === 0}
-                      onClick={picker.undoLastAreaPoint}
-                    >
-                      Desfazer ponto
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      disabled={!picker.isAreaSelectionCompleteReady}
-                      onClick={picker.completeAreaSelection}
-                    >
-                      Concluir area
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      disabled={
-                        !picker.hasAreaSelection &&
-                        picker.areaDraftPointCount === 0 &&
-                        !picker.areaSelectionMode
-                      }
-                      onClick={picker.clearAreaSelection}
-                    >
-                      Limpar area
-                    </Button>
+                    {picker.areaSelectionMode ||
+                    picker.areaDraftPointCount > 0 ||
+                    picker.hasAreaSelection ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs"
+                          disabled={picker.areaDraftPointCount === 0}
+                          onClick={picker.undoLastAreaPoint}
+                        >
+                          Desfazer
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs"
+                          disabled={!picker.isAreaSelectionCompleteReady}
+                          onClick={picker.completeAreaSelection}
+                        >
+                          Confirmar área
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={picker.clearAreaSelection}
+                        >
+                          Limpar área
+                        </Button>
+                      </>
+                    ) : null}
                   </div>
                 </div>
+
+                {/* Mapa */}
                 <div
                   ref={picker.mapContainerRef}
                   className="relative h-[360px] overflow-hidden rounded-md border sm:h-[460px] xl:h-[620px]"
                   onContextMenu={picker.handleMapContextMenu}
                 >
+                  {/* Barra de busca de endereço */}
                   <div className="absolute inset-x-2 top-2 z-10 sm:left-auto sm:right-3 sm:top-3 sm:w-80">
                     <div className="rounded-md border bg-background/95 p-2 shadow-sm backdrop-blur">
                       <div className="flex flex-wrap items-center gap-2">
@@ -262,7 +225,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                                 .catch(() => undefined)
                             }
                           }}
-                          placeholder="Buscar rua ou endereco no mapa"
+                          placeholder="Buscar rua ou endereço no mapa"
                           className="h-8 min-w-0 flex-1 basis-40"
                         />
                         <Button
@@ -280,7 +243,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                               .catch(() => undefined)
                           }}
                         >
-                          {picker.isMapSearchLoading ? 'Buscando' : 'Ir'}
+                          {picker.isMapSearchLoading ? 'Buscando…' : 'Ir'}
                         </Button>
                         {picker.mapSearch.trim() ? (
                           <Button
@@ -318,7 +281,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                                 {String(
                                   item.properties?.full_address ??
                                     item.properties?.name ??
-                                    'Endereco',
+                                    'Endereço',
                                 )}
                               </span>
                               <span className="text-[11px] text-muted-foreground">
@@ -340,18 +303,18 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                     ) : null}
                     {picker.showSelectedOnlyInMap ? (
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Desative "Mostrar so selecionados" para desenhar uma
-                        area no mapa.
+                        Desative "Focar selecionados" para desenhar uma área no
+                        mapa.
                       </p>
                     ) : picker.areaSelectionMode ? (
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Clique no mapa para adicionar pontos. Use "Concluir
-                        area" quando terminar o contorno.
+                        Clique no mapa para marcar os vértices. Use "Confirmar
+                        área" ao terminar o contorno.
                       </p>
                     ) : picker.hasAreaSelection ? (
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Area aplicada: {picker.areaSelectedCount} radar(es)
-                        adicionados a selecao.
+                        Área aplicada — {picker.areaSelectedCount} radar(es)
+                        adicionado(s) à seleção.
                       </p>
                     ) : null}
                   </div>
@@ -394,26 +357,24 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                           <div className="space-y-3">
                             <div className="space-y-1">
                               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                Codigo
+                                Código
                               </span>
                               <p className="text-sm font-semibold text-foreground">
                                 {picker.popupState.point.cetRioCode}
                               </p>
                             </div>
-
                             <div className="space-y-1">
                               <div className="flex items-center gap-1">
                                 <MapPin className="h-3.5 w-3.5" />
                                 <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                  Localizacao
+                                  Localização
                                 </span>
                               </div>
                               <p className="text-sm text-foreground">
                                 {picker.popupState.point.location ||
-                                  'Nao informado'}
+                                  'Não informado'}
                               </p>
                             </div>
-
                             <div className="space-y-1">
                               <div className="flex items-center gap-1">
                                 <Navigation className="h-3.5 w-3.5" />
@@ -423,10 +384,9 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                               </div>
                               <p className="text-sm text-foreground">
                                 {picker.popupState.point.district ||
-                                  'Nao informado'}
+                                  'Não informado'}
                               </p>
                             </div>
-
                             <div className="space-y-1">
                               <div className="flex items-center gap-1">
                                 <Navigation className="h-3.5 w-3.5" />
@@ -436,7 +396,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                               </div>
                               <p className="text-sm text-foreground">
                                 {picker.popupState.point.direction ||
-                                  'Nao informado'}
+                                  'Não informado'}
                               </p>
                             </div>
                           </div>
@@ -445,20 +405,24 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                     </DeckGL>
                   ) : (
                     <div className="flex h-[360px] items-center justify-center px-6 text-center text-sm text-muted-foreground sm:h-[460px] xl:h-[620px]">
-                      Nenhum ponto disponivel para este filtro.
+                      Nenhum ponto disponível para este filtro.
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex min-h-0 flex-col gap-3 rounded-md border bg-muted/20 p-3">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Buscar radares
-                </p>
+            {/* ── Coluna da lista ─────────────────────────────────────────── */}
+            <div className="flex min-h-0 flex-col gap-3 rounded-md border bg-muted/20 px-3 pb-0 pt-3">
+              {/* Cabeçalho com contagem */}
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-foreground">Radares</p>
+                <Badge variant="secondary" className="font-normal">
+                  {picker.draftValue.length} selecionado(s)
+                </Badge>
               </div>
 
+              {/* Busca */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -468,65 +432,59 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                   }
                   placeholder={
                     picker.isPending
-                      ? 'Carregando pontos...'
-                      : 'Buscar por codigo, local, bairro ou faixa'
+                      ? 'Carregando pontos…'
+                      : 'Buscar por código, local, bairro ou faixa'
                   }
                   disabled={picker.isPending}
                   className="pl-9"
                 />
               </div>
 
-              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                {picker.listBuckets.hasActiveSearch ? (
-                  <Badge variant="outline" className="font-normal">
-                    {picker.displayedOutsideCount}/
-                    {picker.listBuckets.outsideCount} fora da area
-                  </Badge>
-                ) : null}
+              {/* Tabs Todos / Selecionados */}
+              <div className="flex rounded-md border bg-background p-0.5 text-xs">
+                <button
+                  type="button"
+                  className={cn(
+                    'flex-1 rounded px-2 py-1.5 font-medium transition-colors',
+                    !picker.showSelectedOnlyInList
+                      ? 'bg-muted text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                  onClick={() => {
+                    if (picker.showSelectedOnlyInList)
+                      picker.toggleSelectedOnlyInList()
+                  }}
+                >
+                  Todos ({picker.options.length})
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    'flex-1 rounded px-2 py-1.5 font-medium transition-colors',
+                    picker.showSelectedOnlyInList
+                      ? 'bg-muted text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                  onClick={() => {
+                    if (!picker.showSelectedOnlyInList)
+                      picker.toggleSelectedOnlyInList()
+                  }}
+                >
+                  Selecionados ({picker.draftValue.length})
+                </button>
               </div>
 
-              {picker.showSelectedOnlyInList && picker.hasMoreListResults ? (
-                <div className="rounded-md border border-dashed bg-background px-3 py-2 text-xs text-muted-foreground">
-                  Mostrando {picker.displayedSelectedCount} radares
-                  selecionados.
-                </div>
-              ) : null}
-
-              {!picker.showSelectedOnlyInList &&
-              picker.listBuckets.hasActiveSearch &&
-              picker.hasMoreListResults ? (
-                <div className="rounded-md border border-dashed bg-background px-3 py-2 text-xs text-muted-foreground">
-                  Mostrando {picker.filteredOptions.length} resultados da busca.
-                </div>
-              ) : null}
-
+              {/* Ações */}
               <div className="flex flex-wrap gap-2">
-                {showSelectAllCollectionPoints ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs"
-                    disabled={picker.isPending || picker.options.length === 0}
-                    onClick={picker.selectAllCollectionPointIds}
-                  >
-                    Selecionar todos os pontos
-                  </Button>
-                ) : null}
                 <Button
                   type="button"
-                  variant={
-                    picker.showSelectedOnlyInList ? 'secondary' : 'outline'
-                  }
+                  variant="outline"
                   size="sm"
                   className="h-8 text-xs"
-                  disabled={picker.draftValue.length === 0}
-                  onClick={picker.toggleSelectedOnlyInList}
+                  disabled={picker.isPending || picker.options.length === 0}
+                  onClick={picker.selectAllCollectionPointIds}
                 >
-                  <ListFilter className="mr-1 h-3.5 w-3.5" />
-                  {picker.showSelectedOnlyInList
-                    ? 'Ver todos'
-                    : 'Ver selecionados'}
+                  Selecionar todos
                 </Button>
                 <Button
                   type="button"
@@ -536,105 +494,33 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                   disabled={picker.draftValue.length === 0}
                   onClick={picker.clearDraftSelection}
                 >
-                  Limpar selecao
+                  Limpar seleção
                 </Button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="secondary" className="font-normal">
-                  {picker.draftSelectedOptions.length} selecionado(s)
+              {/* Indicadores de busca */}
+              {picker.listBuckets.hasActiveSearch ? (
+                <Badge variant="outline" className="w-fit font-normal">
+                  {picker.displayedOutsideCount}/
+                  {picker.listBuckets.outsideCount} fora da área visível
                 </Badge>
-                <Badge variant="outline" className="font-normal">
-                  {picker.mapPoints.length} no mapa
-                </Badge>
-                {picker.search.trim() ? (
-                  <Badge variant="outline" className="font-normal">
-                    busca ativa
-                  </Badge>
-                ) : null}
-              </div>
-
-              {picker.selectedListRows.length > 0 &&
-              !picker.showSelectedOnlyInList ? (
-                <div className="rounded-md border bg-background p-2">
-                  <button
-                    type="button"
-                    className="flex h-6 w-full items-center justify-between gap-2 text-left"
-                    onClick={picker.toggleSelectedSection}
-                  >
-                    <div className="flex h-6 items-center gap-2">
-                      {picker.showSelectedSection ? (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span className="inline-flex h-6 items-center text-xs font-medium leading-none text-foreground">
-                        Selecionados
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="inline-flex h-5 min-w-5 items-center justify-center self-center rounded-full px-1.5 text-[10px] font-normal leading-none"
-                      >
-                        {picker.selectedListRows.length}
-                      </Badge>
-                    </div>
-                    <span className="inline-flex h-6 items-center text-[11px] text-muted-foreground">
-                      {picker.showSelectedSection ? 'Ocultar' : 'Ver'}
-                    </span>
-                  </button>
-                  {picker.showSelectedSection ? (
-                    <div className="mt-2 max-h-40 space-y-2 overflow-y-auto pr-1">
-                      {picker.selectedListRows.map((point) => {
-                        return (
-                          <button
-                            key={point.cetRioCode}
-                            type="button"
-                            className={cn(
-                              'flex w-full items-start justify-between gap-2 rounded-md border bg-primary/5 px-3 py-2 text-left transition-colors hover:bg-primary/10',
-                              picker.focusedPointId === point.cetRioCode &&
-                                'ring-1 ring-primary',
-                            )}
-                            onClick={() => picker.previewPoint(point)}
-                          >
-                            <div className="min-w-0">
-                              <div className="truncate text-xs font-semibold text-foreground">
-                                {point.cetRioCode}
-                              </div>
-                              <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                                Localizacao: {point.location || 'Nao informado'}
-                              </div>
-                              <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                                Bairro: {point.district || 'Nao informado'}
-                              </div>
-                              <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                                Sentido: {point.direction || 'Nao informado'}
-                              </div>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                              <Badge variant="default" className="text-[10px]">
-                                Selecionado
-                              </Badge>
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                className="h-7 px-2 text-[11px]"
-                                onClick={(event) => {
-                                  event.stopPropagation()
-                                  picker.togglePointFromMapOrList(point)
-                                }}
-                              >
-                                Remover
-                              </Button>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  ) : null}
-                </div>
               ) : null}
 
+              {picker.hasMoreListResults ? (
+                <p className="text-xs text-muted-foreground">
+                  Mostrando{' '}
+                  {picker.showSelectedOnlyInList
+                    ? picker.displayedSelectedCount
+                    : picker.filteredOptions.length}{' '}
+                  de{' '}
+                  {picker.showSelectedOnlyInList
+                    ? picker.listBuckets.selectedCount
+                    : picker.filteredOptions.length}{' '}
+                  radares.
+                </p>
+              ) : null}
+
+              {/* Lista virtualizada */}
               <div
                 ref={picker.listViewportRef}
                 className="h-[320px] overflow-y-auto pr-1 sm:h-[430px] sm:pr-3"
@@ -646,7 +532,7 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                     style={{ height: picker.virtualRange.totalHeight }}
                   >
                     <div
-                      className="absolute left-0 right-0 flex flex-col gap-2"
+                      className="absolute left-0 right-0 flex flex-col gap-1.5"
                       style={{
                         transform: `translateY(${picker.virtualRange.topPadding}px)`,
                       }}
@@ -664,55 +550,46 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                             key={option.value}
                             type="button"
                             className={cn(
-                              'min-h-[84px] rounded-md border bg-background px-3 py-2 text-left transition-colors hover:bg-muted/30',
-                              selected && 'border-primary/40 bg-primary/5',
+                              'flex w-full items-start gap-3 rounded-md border bg-background px-3 py-2.5 text-left transition-colors hover:bg-muted/30',
+                              selected &&
+                                'border-primary/40 bg-primary/5 hover:bg-primary/10',
                               picker.focusedPointId === option.value &&
                                 'ring-1 ring-primary',
                             )}
                             onClick={() => {
                               if (!point) return
-                              picker.previewPoint(point)
+                              picker.togglePointFromMapOrList(point)
                             }}
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <div className="truncate text-xs font-semibold text-foreground">
-                                  {picker.collectionPointsById.get(option.value)
-                                    ?.cetRioCode ?? option.label}
-                                </div>
-                                <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                                  Localizacao:{' '}
-                                  {point?.location || 'Nao informado'}
-                                </div>
-                                <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                                  Bairro: {point?.district || 'Nao informado'}
-                                </div>
-                                <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                                  Sentido: {point?.direction || 'Nao informado'}
-                                </div>
-                              </div>
-                              {selected ? (
-                                <Badge variant="default" className="shrink-0">
-                                  Selecionado
-                                </Badge>
-                              ) : null}
+                            {/* Checkbox visual */}
+                            <div
+                              className={cn(
+                                'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border',
+                                selected
+                                  ? 'border-primary bg-primary text-primary-foreground'
+                                  : 'border-muted-foreground/40',
+                              )}
+                            >
+                              {selected ? <Check className="h-3 w-3" /> : null}
                             </div>
 
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              <Button
-                                type="button"
-                                variant={selected ? 'secondary' : 'default'}
-                                size="sm"
-                                className="h-7 px-2 text-[11px]"
-                                onClick={(event) => {
-                                  event.stopPropagation()
-                                  picker.toggleDraftId(option.value)
-                                }}
-                              >
-                                {selected
-                                  ? 'Remover da selecao'
-                                  : 'Selecionar radar'}
-                              </Button>
+                            {/* Dados do radar */}
+                            <div className="min-w-0">
+                              <div className="truncate text-xs font-semibold text-foreground">
+                                {point?.cetRioCode ?? option.label}
+                              </div>
+                              {point?.location ? (
+                                <div className="mt-0.5 truncate text-[11px] leading-tight text-muted-foreground">
+                                  {point.location}
+                                </div>
+                              ) : null}
+                              {point?.district || point?.direction ? (
+                                <div className="mt-0.5 truncate text-[11px] leading-tight text-muted-foreground">
+                                  {[point?.district, point?.direction]
+                                    .filter(Boolean)
+                                    .join(' · ')}
+                                </div>
+                              ) : null}
                             </div>
                           </button>
                         )
@@ -721,30 +598,49 @@ export function MonitoredPlateAuthorityCollectionPointMultiSelect({
                   </div>
                 ) : (
                   <div className="px-3 py-6 text-sm text-muted-foreground">
-                    Nenhum ponto encontrado.
+                    {picker.showSelectedOnlyInList
+                      ? 'Nenhum radar selecionado.'
+                      : 'Nenhum ponto encontrado.'}
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-col-reverse gap-2 border-t pt-3 sm:flex-row sm:justify-end">
+              {/* Rodapé */}
+              <div className="flex flex-col-reverse gap-2 border-t pb-3 pt-3 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={picker.closePicker}
                 >
-                  Fechar
+                  Cancelar
                 </Button>
                 <Button
                   type="button"
                   onClick={picker.handleApply}
                   disabled={disabled || picker.isPending}
                 >
-                  Concluir selecao
+                  Confirmar seleção
                 </Button>
               </div>
             </div>
           </div>
         </div>
+      ) : null}
+
+      {/* Botão para abrir o picker quando monitorAll=false e picker fechado */}
+      {!monitorAll && !picker.expanded ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="self-start text-xs"
+          disabled={disabled || picker.isPending}
+          onClick={picker.openPicker}
+        >
+          {picker.value.length > 0
+            ? `${picker.value.length} radar(es) selecionado(s) — editar`
+            : 'Buscar e selecionar radares'}
+        </Button>
       ) : null}
     </div>
   )

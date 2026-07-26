@@ -83,6 +83,9 @@ export interface RadarPopupState {
 interface UseCollectionPointPickerStateProps {
   value: string[]
   onChange: (ids: string[]) => void
+  /** Quando true, seleciona automaticamente todos os pontos na primeira carga,
+   *  se nenhum ponto estiver selecionado. */
+  defaultSelectAll?: boolean
 }
 
 function getPopupPosition(x: number, y: number, width: number, height: number) {
@@ -139,6 +142,7 @@ function buildPolygonFeature(points: LngLatTuple[]) {
 export function useCollectionPointPickerState({
   value,
   onChange,
+  defaultSelectAll = false,
 }: UseCollectionPointPickerStateProps) {
   const { data: collectionPoints, isPending } = useCollectionPoints()
   const [expanded, setExpanded] = useState(false)
@@ -388,6 +392,20 @@ export function useCollectionPointPickerState({
     [value, options],
   )
 
+  // Auto-seleciona todos os pontos na primeira carga quando `defaultSelectAll`
+  // está ativo e nenhum ponto foi selecionado ainda.
+  const hasAutoSelectedRef = useRef(false)
+  useEffect(() => {
+    if (!defaultSelectAll) return
+    if (isPending || options.length === 0) return
+    if (hasAutoSelectedRef.current) return
+    hasAutoSelectedRef.current = true
+    if (value.length > 0) return
+    const allIds = options.map((o) => o.value)
+    setDraftValue(allIds)
+    onChange(allIds)
+  }, [defaultSelectAll, isPending, onChange, options, value.length])
+
   const filteredOptionIndexById = useMemo(() => {
     const indexById = new Map<string, number>()
     filteredOptions.forEach((option, index) => {
@@ -623,6 +641,11 @@ export function useCollectionPointPickerState({
     } else {
       setFocusedPointId(null)
     }
+  }
+
+  function openPicker() {
+    setDraftValue(value)
+    setExpanded(true)
   }
 
   function closePicker() {
@@ -1021,6 +1044,7 @@ export function useCollectionPointPickerState({
     mapSearchError,
     mapSearchSuggestions,
     openMapSearchSuggestions,
+    openPicker,
     openPickerWithSelectedList,
     options,
     popupState,
