@@ -48,3 +48,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 claude.md
+
+# Generated at dev startup and container startup — never commit real values
+public/env-config.js
