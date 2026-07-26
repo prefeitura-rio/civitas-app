@@ -89,6 +89,7 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
   const [notificationChannelIds, setNotificationChannelIds] = useState<
     string[]
   >([])
+  const [monitorAll, setMonitorAll] = useState(true)
   const [collectionPointIds, setCollectionPointIds] = useState<string[]>([])
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
 
@@ -103,6 +104,7 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
     setNotificationChannelIds(
       draft.notificationChannelIds ? [...draft.notificationChannelIds] : [],
     )
+    setMonitorAll(draft.monitorAllCollectionPoints)
     setCollectionPointIds(
       draft.monitorAllCollectionPoints
         ? []
@@ -161,7 +163,7 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
         validUntilDate,
       ) &&
       active === draft.active &&
-      (collectionPointIds.length === 0) === draft.monitorAllCollectionPoints &&
+      monitorAll === draft.monitorAllCollectionPoints &&
       notificationChannelIdsEqual(
         draft.notificationChannelIds,
         notificationChannelIds,
@@ -180,11 +182,10 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
       requestedAt: requestedAtIso,
       validUntil,
       active,
-      monitorAllCollectionPoints: collectionPointIds.length === 0,
+      monitorAllCollectionPoints: monitorAll,
       notificationChannelIds:
         notificationChannelIds.length > 0 ? notificationChannelIds : undefined,
-      collectionPointIds:
-        collectionPointIds.length > 0 ? collectionPointIds : undefined,
+      collectionPointIds: monitorAll ? undefined : collectionPointIds,
     })
     toast.success('Vínculo atualizado no cadastro.')
     onOpenChange(false)
@@ -265,6 +266,8 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
               <MonitoredPlateAuthorityCollectionPointMultiSelect
                 value={collectionPointIds}
                 onChange={setCollectionPointIds}
+                monitorAll={monitorAll}
+                onMonitorAllChange={setMonitorAll}
               />
             </div>
           </div>

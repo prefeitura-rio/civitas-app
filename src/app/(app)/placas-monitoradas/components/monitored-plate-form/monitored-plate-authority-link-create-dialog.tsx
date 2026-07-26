@@ -87,6 +87,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
   const [notificationChannelIds, setNotificationChannelIds] = useState<
     string[]
   >([])
+  const [monitorAll, setMonitorAll] = useState(true)
   const [collectionPointIds, setCollectionPointIds] = useState<string[]>([])
 
   useEffect(() => {
@@ -100,6 +101,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       setValidUntilDate(undefined)
       setActive(true)
       setNotificationChannelIds([])
+      setMonitorAll(true)
       setCollectionPointIds([])
       return
     }
@@ -176,11 +178,10 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       requestedAt: requestedAtIso,
       validUntil: validUntilIso,
       active,
-      monitorAllCollectionPoints: collectionPointIds.length === 0,
+      monitorAllCollectionPoints: monitorAll,
       notificationChannelIds:
         notificationChannelIds.length > 0 ? notificationChannelIds : undefined,
-      collectionPointIds:
-        collectionPointIds.length > 0 ? collectionPointIds : undefined,
+      collectionPointIds: monitorAll ? undefined : collectionPointIds,
     })
     toast.success(successMessage)
     onOpenChange(false)
@@ -333,10 +334,13 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
               value={collectionPointIds}
               onChange={setCollectionPointIds}
               disabled={disabled || isSubmitting}
+              monitorAll={monitorAll}
+              onMonitorAllChange={setMonitorAll}
+              defaultSelectAll={true}
             />
           </div>
         </div>
-        <div className="sticky bottom-0 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
+        <div className="sticky bottom-0 z-10 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
           <Button
             type="button"
             variant="outline"

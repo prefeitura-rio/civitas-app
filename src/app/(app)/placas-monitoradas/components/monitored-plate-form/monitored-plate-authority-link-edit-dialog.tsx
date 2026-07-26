@@ -94,6 +94,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
   const [notificationChannelIds, setNotificationChannelIds] = useState<
     string[]
   >([])
+  const [monitorAll, setMonitorAll] = useState(true)
   const [collectionPointIds, setCollectionPointIds] = useState<string[]>([])
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
 
@@ -111,6 +112,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
     setValidUntilDate(parseIsoToDate(authorityLink.validUntil))
     setActive(authorityLink.active)
     setNotificationChannelIds([...authorityLink.notificationChannelIds])
+    setMonitorAll(authorityLink.monitorAllCollectionPoints)
     setCollectionPointIds(
       authorityLink.monitorAllCollectionPoints
         ? []
@@ -168,8 +170,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
         validUntilDate,
       ) &&
       active === authorityLink.active &&
-      (collectionPointIds.length === 0) ===
-        authorityLink.monitorAllCollectionPoints &&
+      monitorAll === authorityLink.monitorAllCollectionPoints &&
       notificationChannelIdsEqual(
         authorityLink.notificationChannelIds,
         notificationChannelIds,
@@ -190,9 +191,9 @@ export function MonitoredPlateAuthorityLinkEditDialog({
       requestedAt: requestedAtIso,
       validUntil,
       active,
-      monitorAllCollectionPoints: collectionPointIds.length === 0,
+      monitorAllCollectionPoints: monitorAll,
       notificationChannelIds,
-      collectionPointIds,
+      collectionPointIds: monitorAll ? [] : collectionPointIds,
     })
     toast.success('Vínculo atualizado com sucesso.')
     onOpenChange(false)
@@ -299,11 +300,13 @@ export function MonitoredPlateAuthorityLinkEditDialog({
                     value={collectionPointIds}
                     onChange={setCollectionPointIds}
                     disabled={isBusy}
+                    monitorAll={monitorAll}
+                    onMonitorAllChange={setMonitorAll}
                   />
                 </div>
               </div>
 
-              <div className="sticky bottom-0 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
+              <div className="sticky bottom-0 z-10 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
                 <Button
                   type="button"
                   variant="outline"
