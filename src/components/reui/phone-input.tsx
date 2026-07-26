@@ -1,5 +1,7 @@
 'use client'
 
+import examples from 'libphonenumber-js/examples.mobile.json'
+import { getExampleNumber } from 'libphonenumber-js/min'
 import { Check, ChevronDown } from 'lucide-react'
 import * as React from 'react'
 import type { Country } from 'react-phone-number-input'
@@ -34,6 +36,16 @@ const displayNames =
 
 function getCountryLabel(country: Country) {
   return displayNames?.of(country) ?? country
+}
+
+function getMaxLength(country: Country): number {
+  return getExampleNumber(country, examples)?.formatNational()?.length ?? 20
+}
+
+function getPlaceholder(country: Country): string {
+  return (
+    getExampleNumber(country, examples)?.formatNational() ?? 'Digite o telefone'
+  )
 }
 
 type PhoneInputProps = {
@@ -71,7 +83,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
       name,
       onBlur,
       onChange,
-      placeholder = 'Digite o telefone',
+      placeholder,
       value,
     },
     ref,
@@ -81,7 +93,6 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
 
     React.useEffect(() => {
       if (!value) {
-        setCountry(defaultCountry)
         return
       }
 
@@ -89,7 +100,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
       if (parsed?.country) {
         setCountry(parsed.country)
       }
-    }, [defaultCountry, value])
+    }, [value])
 
     const countryOptions = React.useMemo(
       () =>
@@ -104,6 +115,12 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     const selectedCountry =
       countryOptions.find((option) => option.country === country) ??
       countryOptions[0]
+
+    const maxLength = React.useMemo(() => getMaxLength(country), [country])
+    const dynamicPlaceholder = React.useMemo(
+      () => placeholder ?? getPlaceholder(country),
+      [country, placeholder],
+    )
 
     return (
       <div className={cn('flex w-full gap-2', className)}>
@@ -135,6 +152,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
                     value={`${option.country} ${option.label} ${option.callingCode}`}
                     onSelect={() => {
                       setCountry(option.country)
+                      onChange?.('')
                       setOpen(false)
                     }}
                   >
@@ -171,8 +189,9 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
           name={name}
           onBlur={onBlur}
           disabled={disabled}
-          placeholder={placeholder}
+          placeholder={dynamicPlaceholder}
           className="flex-1"
+          maxLength={maxLength}
         />
       </div>
     )
