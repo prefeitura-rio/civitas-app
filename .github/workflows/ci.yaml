@@ -1,0 +1,74 @@
+name: Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+  push:
+    branches:
+      - staging
+      - main
+    paths:
+      - src/**
+      - public/**
+      - next.config.*
+      - tsconfig*.json
+      - tailwind.config.*
+      - postcss.config.*
+      - Dockerfile
+      - .dockerignore
+      - scripts/**
+      - package.json
+      - pnpm-lock.yaml
+      - .github/actions/docker-build/**
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathIgnorePatterns="e2e" --maxWorkers=2
+
+  deploy:
+    name: Deploy ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'staging') }}
+    runs-on: civitas-runners
+    needs: test
+    environment: ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'staging') }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Build and push Docker image
+        uses: ./.github/actions/docker-build
+        with:
+          working-directory: .
+          image-tag: ${{ github.ref_name == 'main' && 'prod' || 'staging' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
