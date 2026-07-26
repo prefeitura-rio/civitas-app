@@ -55,7 +55,7 @@ jobs:
 
   deploy:
     name: Deploy ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'staging') }}
-    runs-on: civitas-runners
+    runs-on: ubuntu-latest
     needs: test
     environment: ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'staging') }}
     permissions:
