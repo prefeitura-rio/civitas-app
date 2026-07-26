@@ -22,10 +22,7 @@ const ALLOWED_METHODS = new Set([
 const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
 
-async function handler(
-  request: NextRequest,
-  { params }: { params: { path: string[] } },
-) {
+async function handler(request: NextRequest) {
   if (!ALLOWED_METHODS.has(request.method)) {
     return NextResponse.json({ message: 'Method not allowed' }, { status: 405 })
   }
@@ -56,8 +53,9 @@ async function handler(
     return response
   }
 
-  const upstreamPath = params.path.join('/')
-  const upstreamUrl = `${config.apiUrl}/${upstreamPath}${request.nextUrl.search}`
+  // Preserve trailing slash from the incoming BFF path
+  const upstreamPath = request.nextUrl.pathname.replace(/^\/api\/bff/, '')
+  const upstreamUrl = `${config.apiUrl}${upstreamPath}${request.nextUrl.search}`
 
   const headers = new Headers()
   for (const [key, value] of request.headers.entries()) {
