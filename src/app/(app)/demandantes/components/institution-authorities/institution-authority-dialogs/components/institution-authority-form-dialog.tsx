@@ -527,7 +527,6 @@ export function InstitutionAuthorityFormDialog({
                             name={phoneField.name}
                             ref={phoneField.ref}
                             disabled={isLoading}
-                            placeholder="(21) 99999-9999"
                           />
                         )}
                       />
