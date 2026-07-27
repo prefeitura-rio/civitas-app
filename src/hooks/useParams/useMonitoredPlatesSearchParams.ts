@@ -42,7 +42,13 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     searchParams.get('notificationChannelTitle') || undefined
 
   const pActive = searchParams.get('active')
-  const active = pActive === null ? undefined : pActive === 'true'
+  // Default: only plates with ≥1 active authority link
+  const active =
+    pActive === null || pActive === 'true'
+      ? true
+      : pActive === 'false'
+        ? false
+        : undefined
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
@@ -57,7 +63,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       params.set('institutionAuthorityName', institutionAuthorityName)
     if (notificationChannelTitle)
       params.set('notificationChannelTitle', notificationChannelTitle)
-    if (typeof active !== 'undefined') params.set('active', String(active))
+    if (pActive === 'all') params.set('active', 'all')
+    else if (typeof active !== 'undefined') params.set('active', String(active))
     if (nextPage) params.set('page', nextPage.toString())
     if (size) params.set('size', size.toString())
     if (createdAtFrom) params.set('createdAtFrom', createdAtFrom)

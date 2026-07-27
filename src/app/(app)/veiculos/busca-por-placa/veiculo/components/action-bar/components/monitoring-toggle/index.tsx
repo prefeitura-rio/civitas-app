@@ -14,11 +14,8 @@ import { getMonitoredPlate } from '@/http/monitored-plates'
 import { isApiError } from '@/lib/api'
 import { notAllowed } from '@/utils/template-messages'
 
-import { DisableMonitoringAlertDialog } from './components/disable-monitoring-alert-dialog'
-
 export function MonitoringToggle() {
   const monitoredPlateFormDialog = useDisclosure()
-  const disableMonitoringAlertDisclosure = useDisclosure()
   const { setDialogInitialData } = useMonitoredPlates()
   const [monitored, setMonitored] = useState(false)
   const {
@@ -58,6 +55,7 @@ export function MonitoringToggle() {
 
   useEffect(() => {
     if (!isLoadingMonitoredPlate) {
+      // Derived from authority links (read-only pressed state)
       setMonitored(monitoredPlate?.active ?? false)
     }
   }, [monitoredPlate, isLoadingMonitoredPlate])
@@ -100,11 +98,6 @@ export function MonitoringToggle() {
             onClose={monitoredPlateFormDialog.onClose}
             onOpen={monitoredPlateFormDialog.onOpen}
             shouldFetchData={Boolean(monitoredPlate)}
-          />
-          <DisableMonitoringAlertDialog
-            isOpen={disableMonitoringAlertDisclosure.isOpen}
-            onOpenChange={disableMonitoringAlertDisclosure.onOpenChange}
-            plate={lastSearchParams.plate}
           />
         </div>
       )}

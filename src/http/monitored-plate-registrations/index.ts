@@ -35,7 +35,6 @@ export interface CreateMonitoredPlateRegistrationRequest
 
 export async function createMonitoredPlateRegistration({
   plate,
-  active,
   notes,
   additionalInfo,
   authorities,
@@ -44,7 +43,6 @@ export async function createMonitoredPlateRegistration({
     '/monitored-plate-registrations',
     {
       plate,
-      active,
       notes,
       additional_info: additionalInfo,
       authorities: authorities.map((item) => ({

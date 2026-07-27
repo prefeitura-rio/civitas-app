@@ -90,14 +90,10 @@ export interface GetMonitoredPlatesRequest extends PaginationRequest {
 
 export interface CreateMonitoredPlateRequest
   extends Pick<MonitoredPlateReadModel, 'plate'>,
-    Partial<
-      Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
-    > {}
+    Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>> {}
 
 export interface UpdateMonitoredPlateRequest
-  extends Partial<
-    Pick<MonitoredPlateReadModel, 'active' | 'notes' | 'additionalInfo'>
-  > {
+  extends Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>> {
   plate: string
 }
 
@@ -282,7 +278,6 @@ export async function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
 
 export async function createMonitoredPlate({
   plate,
-  active,
   notes,
   additionalInfo,
 }: CreateMonitoredPlateRequest) {
@@ -290,7 +285,6 @@ export async function createMonitoredPlate({
     '/monitored-plates',
     {
       plate,
-      active,
       notes,
       additional_info: additionalInfo,
     },
@@ -301,14 +295,12 @@ export async function createMonitoredPlate({
 
 export async function updateMonitoredPlate({
   plate,
-  active,
   notes,
   additionalInfo,
 }: UpdateMonitoredPlateRequest) {
   const response = await api.patch<BackendMonitoredPlateResponse>(
     `/monitored-plates/${plate}`,
     {
-      active,
       notes,
       additional_info: additionalInfo,
     },
