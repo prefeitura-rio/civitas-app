@@ -108,13 +108,36 @@ export function MonitoredPlateAuthorityLinkEditDialog({
   })
 
   useEffect(() => {
+    if (!open || !link) return
+
+    setReference(link.referenceNumber)
+    setRequestedAt(parseIsoToDate(link.requestedAt))
+    setValidUntilDate(parseIsoToDate(link.validUntil))
+    setActive(link.active)
+    setNotificationChannelIds(
+      link.notificationChannels.map((channel) => channel.id).filter(Boolean),
+    )
+    setMonitorAll(link.monitorAllCollectionPoints)
+    setCollectionPointIds(
+      link.monitorAllCollectionPoints ? [] : [...link.collectionPointIds],
+    )
+    setFieldErrors({})
+  }, [open, link])
+
+  useEffect(() => {
     if (!authorityLink) return
 
     setReference(authorityLink.referenceNumber)
     setRequestedAt(parseIsoToDate(authorityLink.requestedAt))
     setValidUntilDate(parseIsoToDate(authorityLink.validUntil))
     setActive(authorityLink.active)
-    setNotificationChannelIds([...authorityLink.notificationChannelIds])
+    setNotificationChannelIds(
+      authorityLink.notificationChannelIds.length > 0
+        ? [...authorityLink.notificationChannelIds]
+        : (authorityLink.notificationChannels
+            ?.map((channel) => channel.id)
+            .filter(Boolean) ?? []),
+    )
     setMonitorAll(authorityLink.monitorAllCollectionPoints)
     setCollectionPointIds(
       authorityLink.monitorAllCollectionPoints
@@ -131,14 +154,40 @@ export function MonitoredPlateAuthorityLinkEditDialog({
     }
   }, [open])
 
-  const notificationChannelOptions = useMemo(
-    () =>
-      notificationChannels.map((item) => ({
+  const notificationChannelOptions = useMemo(() => {
+    const byId = new Map<string, { label: string; value: string }>()
+
+    for (const item of notificationChannels) {
+      byId.set(item.id, {
         label: item.title || item.id,
         value: item.id,
-      })),
-    [notificationChannels],
-  )
+      })
+    }
+
+    for (const item of link?.notificationChannels ?? []) {
+      if (!byId.has(item.id)) {
+        byId.set(item.id, {
+          label: item.title || item.id,
+          value: item.id,
+        })
+      }
+    }
+
+    for (const item of authorityLink?.notificationChannels ?? []) {
+      if (!byId.has(item.id)) {
+        byId.set(item.id, {
+          label: item.title || item.id,
+          value: item.id,
+        })
+      }
+    }
+
+    return Array.from(byId.values())
+  }, [
+    authorityLink?.notificationChannels,
+    link?.notificationChannels,
+    notificationChannels,
+  ])
 
   async function handleSave() {
     if (!link || !authorityLink) return
