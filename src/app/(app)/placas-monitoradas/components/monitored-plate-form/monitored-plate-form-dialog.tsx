@@ -352,31 +352,35 @@ export function MonitoredPlateFormDialog({
         </DialogHeader>
 
         {isEditingExistingPlate ? (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={handleEditSubmit(onSubmitEdit)}
-          >
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label htmlFor="edit-plate">Placa</Label>
-                <InputError message={editErrors.plate?.message} />
-              </div>
-              <Input id="edit-plate" {...registerEdit('plate')} disabled />
+          isLoadingMonitoredPlate || !monitoredPlate ? (
+            <div className="flex items-center justify-center py-10">
+              <Spinner className="size-6" />
             </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label htmlFor="edit-notes">Observações (placa)</Label>
-                <InputError message={editErrors.notes?.message} />
+          ) : (
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleEditSubmit(onSubmitEdit)}
+            >
+              <div className="flex flex-col gap-1">
+                <div className="flex gap-2">
+                  <Label htmlFor="edit-plate">Placa</Label>
+                  <InputError message={editErrors.plate?.message} />
+                </div>
+                <Input id="edit-plate" {...registerEdit('plate')} disabled />
               </div>
-              <Textarea
-                id="edit-notes"
-                {...registerEdit('notes')}
-                disabled={isEditLoading}
-              />
-            </div>
 
-            {monitoredPlate ? (
+              <div className="flex flex-col gap-1">
+                <div className="flex gap-2">
+                  <Label htmlFor="edit-notes">Observações (placa)</Label>
+                  <InputError message={editErrors.notes?.message} />
+                </div>
+                <Textarea
+                  id="edit-notes"
+                  {...registerEdit('notes')}
+                  disabled={isEditLoading}
+                />
+              </div>
+
               <MonitoredPlateAuthorityLinksPanel
                 mode="persisted"
                 plate={monitoredPlate.plate}
@@ -386,14 +390,18 @@ export function MonitoredPlateFormDialog({
                 notificationChannels={notificationChannels}
                 disabled={isEditLoading}
               />
-            ) : null}
 
-            <div className="mt-4 flex w-full justify-end">
-              <Button type="submit" disabled={isEditLoading || !monitoredPlate}>
-                {isEditLoading ? <Spinner /> : <span>Atualizar</span>}
-              </Button>
-            </div>
-          </form>
+              <div className="mt-4 flex w-full justify-end">
+                <Button type="submit" disabled={isEditLoading}>
+                  {isPendingUpdate || isSubmittingEdit ? (
+                    <Spinner />
+                  ) : (
+                    <span>Atualizar</span>
+                  )}
+                </Button>
+              </div>
+            </form>
+          )
         ) : (
           <form
             className="flex flex-col gap-4"
