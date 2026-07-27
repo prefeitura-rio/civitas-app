@@ -145,6 +145,15 @@ function mapBackendNotificationChannel(
 function mapBackendMonitoredPlateAuthority(
   item: BackendMonitoredPlateAuthorityResponse,
 ): MonitoredPlateAuthorityRecord {
+  const notificationChannels = item.notification_channels?.map(
+    mapBackendNotificationChannel,
+  )
+  const notificationChannelIds =
+    item.notification_channel_ids && item.notification_channel_ids.length > 0
+      ? item.notification_channel_ids
+      : (notificationChannels?.map((channel) => channel.id).filter(Boolean) ??
+        [])
+
   return {
     id: item.id,
     monitoredPlateId: item.monitored_plate_id,
@@ -154,7 +163,7 @@ function mapBackendMonitoredPlateAuthority(
     validUntil: item.valid_until ?? undefined,
     active: item.active,
     monitorAllCollectionPoints: item.monitor_all_collection_points,
-    notificationChannelIds: item.notification_channel_ids ?? [],
+    notificationChannelIds,
     collectionPointIds:
       item.collection_point_ids && item.collection_point_ids.length > 0
         ? item.collection_point_ids
@@ -167,9 +176,7 @@ function mapBackendMonitoredPlateAuthority(
     institutionAuthority: item.institution_authority
       ? mapBackendInstitutionAuthority(item.institution_authority)
       : undefined,
-    notificationChannels: item.notification_channels?.map(
-      mapBackendNotificationChannel,
-    ),
+    notificationChannels,
     createdAt: item.created_at,
     updatedAt: item.updated_at,
   }
