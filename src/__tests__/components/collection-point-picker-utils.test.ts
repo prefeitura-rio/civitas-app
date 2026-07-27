@@ -1,6 +1,6 @@
 import type { Feature, Polygon } from 'geojson'
 
-import { getCollectionPointIdsWithinPolygon } from '@/app/(app)/placas-monitoradas/components/monitored-plate-form/picker/collection-point-picker-utils'
+import { getCollectionPointIdsWithinPolygon } from '@/components/custom/collection-point-picker/collection-point-picker-utils'
 import type { CollectionPoint } from '@/models/entities'
 
 const collectionPoints: CollectionPoint[] = [

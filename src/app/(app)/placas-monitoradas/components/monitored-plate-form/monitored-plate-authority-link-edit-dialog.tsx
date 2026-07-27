@@ -1,4 +1,5 @@
 'use client'
+
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -17,13 +18,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -34,13 +28,14 @@ import {
 import type { MonitoredPlateAuthoritySummary } from '@/http/monitored-plates'
 import type { NotificationChannel } from '@/models/entities'
 
+import { AuthorityLinkDialogShell } from './authority-link-dialog-shell'
+import { MonitoredPlateAuthorityCollectionPointField } from './monitored-plate-authority-collection-point-field'
 import {
   isMonitoredPlateAuthorityValidUntilBeyondMax,
   parseIsoToDate,
   validUntilInstantsEqual,
 } from './monitored-plate-authority-link-datetime'
 import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-authority-link-valid-until-picker'
-import { MonitoredPlateAuthorityCollectionPointMultiSelect } from './picker/monitored-plate-authority-collection-point-multi-select'
 
 function collectionPointIdsEqual(a: string[], b: string[]) {
   const sa = [...a].sort().join('\u0000')
@@ -214,130 +209,120 @@ export function MonitoredPlateAuthorityLinkEditDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-none overflow-y-auto overflow-x-hidden p-4 sm:w-full sm:max-w-3xl sm:p-6 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
-          <DialogHeader className="pr-8">
-            <DialogTitle>Editar vínculo</DialogTitle>
-            <DialogDescription className="space-y-1 break-words text-left">
-              <span className="block text-foreground">
-                {link.institutionAuthority.name}
+      <AuthorityLinkDialogShell
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Editar vínculo"
+        description={
+          <span className="space-y-1">
+            <span className="block text-foreground">
+              {link.institutionAuthority.name}
+            </span>
+            {link.institutionAuthority.requestingInstitution ? (
+              <span className="block text-sm text-muted-foreground">
+                Demandante:{' '}
+                {link.institutionAuthority.requestingInstitution.name}
               </span>
-              {link.institutionAuthority.requestingInstitution ? (
-                <span className="block text-sm text-muted-foreground">
-                  Demandante:{' '}
-                  {link.institutionAuthority.requestingInstitution.name}
-                </span>
-              ) : null}
-            </DialogDescription>
-          </DialogHeader>
-
-          {isLoading && !authorityLink ? (
-            <div className="flex items-center justify-center py-8">
-              <Spinner />
+            ) : null}
+          </span>
+        }
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive sm:mr-auto sm:w-auto"
+              disabled={isBusy}
+              onClick={() => setConfirmRemoveOpen(true)}
+            >
+              Remover vínculo
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto sm:min-w-32"
+              disabled={isBusy}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="w-full sm:w-auto sm:min-w-32"
+              disabled={isBusy}
+              onClick={handleSave}
+            >
+              {isSaving ? <Spinner /> : 'Salvar alterações'}
+            </Button>
+          </>
+        }
+      >
+        {isLoading && !authorityLink ? (
+          <div className="flex items-center justify-center py-8">
+            <Spinner />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="persisted-edit-ref">Nº de referência</Label>
+              <Input
+                id="persisted-edit-ref"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                maxLength={50}
+                disabled={isBusy}
+              />
             </div>
-          ) : (
-            <>
-              <div className="flex min-h-0 flex-col gap-6 py-2">
-                <div className="flex w-full min-w-0 flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <Label htmlFor="persisted-edit-ref">Nº de referência</Label>
-                    <Input
-                      id="persisted-edit-ref"
-                      value={reference}
-                      onChange={(e) => setReference(e.target.value)}
-                      maxLength={50}
-                      disabled={isBusy}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Label htmlFor="persisted-edit-requested">
-                      Solicitado em
-                    </Label>
-                    <DatePicker
-                      value={requestedAt}
-                      onChange={setRequestedAt}
-                      type="datetime-local"
-                      timePickerDisableFuture={false}
-                      disabled={isBusy}
-                    />
-                  </div>
-                  <MonitoredPlateAuthorityValidUntilPicker
-                    label="Validade do vínculo"
-                    value={validUntilDate}
-                    onChange={setValidUntilDate}
-                  />
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <Label>Canais de notificação</Label>
-                    <MultipleSelector
-                      value={notificationChannelOptions.filter((item) =>
-                        notificationChannelIds.includes(item.value),
-                      )}
-                      onChange={(items) =>
-                        setNotificationChannelIds(
-                          items.map((item) => item.value),
-                        )
-                      }
-                      defaultOptions={notificationChannelOptions}
-                      options={notificationChannelOptions}
-                      placeholder="Selecione um ou mais canais"
-                      emptyIndicator={<p>Nenhum resultado encontrado.</p>}
-                      disabled={isBusy}
-                    />
-                  </div>
-                  <label className="flex min-h-10 items-center justify-between gap-3 rounded-md border p-3">
-                    <span className="text-sm">Vínculo ativo</span>
-                    <Switch
-                      checked={active}
-                      onCheckedChange={setActive}
-                      disabled={isBusy}
-                      aria-label="Vínculo ativo"
-                    />
-                  </label>
-                </div>
-
-                <div className="min-w-0">
-                  <MonitoredPlateAuthorityCollectionPointMultiSelect
-                    value={collectionPointIds}
-                    onChange={setCollectionPointIds}
-                    disabled={isBusy}
-                    monitorAll={monitorAll}
-                    onMonitorAllChange={setMonitorAll}
-                  />
-                </div>
-              </div>
-
-              <div className="sticky bottom-0 z-10 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
-                  disabled={isBusy}
-                  onClick={() => onOpenChange(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="button"
-                  className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
-                  disabled={isBusy}
-                  onClick={handleSave}
-                >
-                  {isSaving ? <Spinner /> : 'Salvar alterações'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-10 w-full shrink-0 font-normal text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  disabled={isBusy}
-                  onClick={() => setConfirmRemoveOpen(true)}
-                >
-                  Remover vínculo
-                </Button>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="persisted-edit-requested">Solicitado em</Label>
+              <DatePicker
+                value={requestedAt}
+                onChange={setRequestedAt}
+                type="datetime-local"
+                timePickerDisableFuture={false}
+                disabled={isBusy}
+              />
+            </div>
+            <MonitoredPlateAuthorityValidUntilPicker
+              label="Validade do vínculo"
+              value={validUntilDate}
+              onChange={setValidUntilDate}
+            />
+            <div className="flex min-w-0 flex-col gap-1">
+              <Label>Canais de notificação</Label>
+              <MultipleSelector
+                value={notificationChannelOptions.filter((item) =>
+                  notificationChannelIds.includes(item.value),
+                )}
+                onChange={(items) =>
+                  setNotificationChannelIds(items.map((item) => item.value))
+                }
+                defaultOptions={notificationChannelOptions}
+                options={notificationChannelOptions}
+                placeholder="Selecione um ou mais canais"
+                emptyIndicator={<p>Nenhum resultado encontrado.</p>}
+                disabled={isBusy}
+              />
+            </div>
+            <label className="flex min-h-10 items-center justify-between gap-3 rounded-md border p-3">
+              <span className="text-sm">Vínculo ativo</span>
+              <Switch
+                checked={active}
+                onCheckedChange={setActive}
+                disabled={isBusy}
+                aria-label="Vínculo ativo"
+              />
+            </label>
+            <MonitoredPlateAuthorityCollectionPointField
+              value={collectionPointIds}
+              onChange={setCollectionPointIds}
+              disabled={isBusy}
+              monitorAll={monitorAll}
+              onMonitorAllChange={setMonitorAll}
+            />
+          </div>
+        )}
+      </AuthorityLinkDialogShell>
 
       <AlertDialog open={confirmRemoveOpen} onOpenChange={setConfirmRemoveOpen}>
         <AlertDialogContent>

@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -16,13 +17,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DatePicker } from '@/components/ui/date-picker'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type {
@@ -30,6 +24,8 @@ import type {
   NotificationChannel,
 } from '@/models/entities'
 
+import { AuthorityLinkDialogShell } from './authority-link-dialog-shell'
+import { MonitoredPlateAuthorityCollectionPointField } from './monitored-plate-authority-collection-point-field'
 import {
   isMonitoredPlateAuthorityValidUntilBeyondMax,
   parseIsoToDate,
@@ -37,7 +33,6 @@ import {
 } from './monitored-plate-authority-link-datetime'
 import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-authority-link-valid-until-picker'
 import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-authority-link'
-import { MonitoredPlateAuthorityCollectionPointMultiSelect } from './picker/monitored-plate-authority-collection-point-multi-select'
 
 function collectionPointIdsEqual(
   a: string[] | undefined,
@@ -195,110 +190,107 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-none overflow-y-auto overflow-x-hidden p-4 sm:w-full sm:max-w-3xl sm:p-6 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
-          <DialogHeader className="pr-8">
-            <DialogTitle>Editar vínculo</DialogTitle>
-            <DialogDescription className="space-y-1 break-words text-left">
-              <span className="block text-foreground">
-                {institutionAuthority.name}
-              </span>
-              {institutionAuthority.requestingInstitution ? (
-                <span className="block text-sm text-muted-foreground">
-                  Demandante: {institutionAuthority.requestingInstitution.name}
-                </span>
-              ) : null}
+      <AuthorityLinkDialogShell
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Editar vínculo"
+        description={
+          <span className="space-y-1">
+            <span className="block text-foreground">
+              {institutionAuthority.name}
+            </span>
+            {institutionAuthority.requestingInstitution ? (
               <span className="block text-sm text-muted-foreground">
-                Será enviado ao salvar a placa.
+                Demandante: {institutionAuthority.requestingInstitution.name}
               </span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex min-h-0 flex-col gap-6 py-2">
-            <div className="flex w-full min-w-0 flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="draft-edit-ref">Nº de referência</Label>
-                <Input
-                  id="draft-edit-ref"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  maxLength={50}
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="draft-edit-requested">Solicitado em</Label>
-                <DatePicker
-                  value={requestedAt}
-                  onChange={setRequestedAt}
-                  type="datetime-local"
-                  timePickerDisableFuture={false}
-                />
-              </div>
-              <MonitoredPlateAuthorityValidUntilPicker
-                label="Validade do vínculo"
-                value={validUntilDate}
-                onChange={setValidUntilDate}
-              />
-              <div className="flex flex-col gap-1">
-                <Label>Canais de notificação</Label>
-                <MultipleSelector
-                  value={notificationChannelOptions.filter((item) =>
-                    notificationChannelIds.includes(item.value),
-                  )}
-                  onChange={(items) =>
-                    setNotificationChannelIds(items.map((item) => item.value))
-                  }
-                  defaultOptions={notificationChannelOptions}
-                  options={notificationChannelOptions}
-                  placeholder="Selecione um ou mais canais"
-                  emptyIndicator={<p>Nenhum resultado encontrado.</p>}
-                />
-              </div>
-              <label className="flex items-center gap-3 rounded-md border p-3">
-                <Checkbox
-                  checked={active}
-                  onCheckedChange={(value) => setActive(Boolean(value))}
-                />
-                <span className="text-sm">Vínculo ativo</span>
-              </label>
-            </div>
-
-            <div className="min-w-0">
-              <MonitoredPlateAuthorityCollectionPointMultiSelect
-                value={collectionPointIds}
-                onChange={setCollectionPointIds}
-                monitorAll={monitorAll}
-                onMonitorAllChange={setMonitorAll}
-              />
-            </div>
-          </div>
-
-          <div className="mt-2 flex w-full min-w-0 flex-col gap-2 border-t border-border pt-4">
+            ) : null}
+            <span className="block text-sm text-muted-foreground">
+              Será enviado ao salvar a placa.
+            </span>
+          </span>
+        }
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive sm:mr-auto sm:w-auto"
+              onClick={() => setConfirmRemoveOpen(true)}
+            >
+              Remover desta lista
+            </Button>
             <Button
               type="button"
               variant="outline"
-              className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
+              className="w-full sm:w-auto sm:min-w-32"
               onClick={() => onOpenChange(false)}
             >
               Cancelar
             </Button>
             <Button
               type="button"
-              className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
+              className="w-full sm:w-auto sm:min-w-32"
               onClick={handleSave}
             >
               Salvar alterações
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-10 w-full shrink-0 font-normal text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => setConfirmRemoveOpen(true)}
-            >
-              Remover desta lista
-            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="draft-edit-ref">Nº de referência</Label>
+            <Input
+              id="draft-edit-ref"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              maxLength={50}
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="draft-edit-requested">Solicitado em</Label>
+            <DatePicker
+              value={requestedAt}
+              onChange={setRequestedAt}
+              type="datetime-local"
+              timePickerDisableFuture={false}
+            />
+          </div>
+          <MonitoredPlateAuthorityValidUntilPicker
+            label="Validade do vínculo"
+            value={validUntilDate}
+            onChange={setValidUntilDate}
+          />
+          <div className="flex flex-col gap-1">
+            <Label>Canais de notificação</Label>
+            <MultipleSelector
+              value={notificationChannelOptions.filter((item) =>
+                notificationChannelIds.includes(item.value),
+              )}
+              onChange={(items) =>
+                setNotificationChannelIds(items.map((item) => item.value))
+              }
+              defaultOptions={notificationChannelOptions}
+              options={notificationChannelOptions}
+              placeholder="Selecione um ou mais canais"
+              emptyIndicator={<p>Nenhum resultado encontrado.</p>}
+            />
+          </div>
+          <label className="flex items-center gap-3 rounded-md border p-3">
+            <Checkbox
+              checked={active}
+              onCheckedChange={(value) => setActive(Boolean(value))}
+            />
+            <span className="text-sm">Vínculo ativo</span>
+          </label>
+          <MonitoredPlateAuthorityCollectionPointField
+            value={collectionPointIds}
+            onChange={setCollectionPointIds}
+            monitorAll={monitorAll}
+            onMonitorAllChange={setMonitorAll}
+          />
+        </div>
+      </AuthorityLinkDialogShell>
 
       <AlertDialog open={confirmRemoveOpen} onOpenChange={setConfirmRemoveOpen}>
         <AlertDialogContent>

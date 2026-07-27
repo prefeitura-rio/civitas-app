@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -8,13 +9,6 @@ import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -24,12 +18,13 @@ import type {
   NotificationChannel,
 } from '@/models/entities'
 
+import { AuthorityLinkDialogShell } from './authority-link-dialog-shell'
+import { MonitoredPlateAuthorityCollectionPointField } from './monitored-plate-authority-collection-point-field'
 import {
   getDefaultMonitoredPlateAuthorityValidUntil,
   isMonitoredPlateAuthorityValidUntilBeyondMax,
 } from './monitored-plate-authority-link-datetime'
 import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-authority-link-valid-until-picker'
-import { MonitoredPlateAuthorityCollectionPointMultiSelect } from './picker/monitored-plate-authority-collection-point-multi-select'
 
 export interface MonitoredPlateAuthorityDraftCreatePayload {
   institutionAuthorityId: string
@@ -112,9 +107,9 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
 
   const availableAuthorities = useMemo(() => {
     const reserved = new Set(reservedAuthorityIds)
-
     return institutionAuthorities.filter((item) => !reserved.has(item.id))
   }, [institutionAuthorities, reservedAuthorityIds])
+
   const requestingInstitutionOptions = useMemo(() => {
     const institutions = new Map<string, string>()
 
@@ -122,9 +117,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       const institutionId =
         item.requestingInstitution?.id || item.requestingInstitutionId
       const institutionName = item.requestingInstitution?.name
-
       if (!institutionId || !institutionName) return
-
       institutions.set(institutionId, institutionName)
     })
 
@@ -132,6 +125,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       .map(([value, label]) => ({ label, value }))
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'))
   }, [availableAuthorities])
+
   const filteredAuthorities = requestingInstitutionId
     ? availableAuthorities.filter(
         (item) =>
@@ -188,183 +182,186 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
   }
 
   const plateLine = plateDescription.trim() || plate || '(defina a placa acima)'
+  const isBusy = disabled || isSubmitting
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-none overflow-y-auto overflow-x-hidden p-4 sm:w-full sm:max-w-3xl sm:p-6 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
-        <DialogHeader className="pr-8">
-          <DialogTitle className="leading-tight">
-            Novo vínculo com requisitante
-          </DialogTitle>
-          <DialogDescription className="break-words">
+    <>
+      <AuthorityLinkDialogShell
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Novo vínculo com requisitante"
+        description={
+          <>
             Placa <strong>{plateLine}</strong>
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex min-h-0 flex-col gap-6 py-2">
-          <div className="flex w-full min-w-0 flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <Label>Demandante</Label>
-                {requestingInstitutionId ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 text-xs font-normal"
-                    disabled={disabled || isSubmitting}
-                    onClick={() => {
-                      setRequestingInstitutionTitle('')
-                      setRequestingInstitutionId('')
-                      setAuthorityTitle('')
-                      setAuthorityId('')
-                    }}
-                  >
-                    Limpar filtro
-                  </Button>
-                ) : null}
-              </div>
-              <SelectWithSearch
-                value={requestingInstitutionTitle}
-                onSelect={(item) => {
-                  setRequestingInstitutionTitle(item.label)
-                  setRequestingInstitutionId(item.value)
-                  setAuthorityTitle('')
-                  setAuthorityId('')
-                }}
-                options={requestingInstitutionOptions}
-                disabled={
-                  disabled ||
-                  isSubmitting ||
-                  requestingInstitutionOptions.length === 0
-                }
-                placeholder="Filtrar por demandante"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <Label>Requisitante</Label>
+          </>
+        }
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto sm:min-w-32"
+              disabled={isBusy}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="w-full sm:w-auto sm:min-w-32"
+              disabled={isBusy}
+              onClick={handleSubmit}
+            >
+              {isSubmitting ? <Spinner /> : submitLabel}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Label>Demandante</Label>
+              {requestingInstitutionId ? (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   className="h-8 px-2 text-xs font-normal"
-                  disabled={disabled || isSubmitting}
+                  disabled={isBusy}
                   onClick={() => {
-                    setDialogInitialData(null)
-                    formDialogDisclosure.onOpen()
+                    setRequestingInstitutionTitle('')
+                    setRequestingInstitutionId('')
+                    setAuthorityTitle('')
+                    setAuthorityId('')
                   }}
                 >
-                  Novo requisitante
+                  Limpar filtro
                 </Button>
-              </div>
-              <SelectWithSearch
-                value={authorityTitle}
-                onSelect={(item) => {
-                  setAuthorityTitle(item.label)
-                  setAuthorityId(item.value)
-                }}
-                options={filteredAuthorities.map((item) => ({
-                  label: item.requestingInstitution
-                    ? `${item.name} — ${item.requestingInstitution.name}`
-                    : item.name,
-                  value: item.id,
-                }))}
-                disabled={disabled || isSubmitting}
-                placeholder={
-                  requestingInstitutionId
-                    ? 'Selecione o requisitante'
-                    : 'Selecione ou filtre por demandante'
-                }
-              />
+              ) : null}
             </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="create-link-ref">Nº de referência</Label>
-              <Input
-                id="create-link-ref"
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                maxLength={50}
-                disabled={disabled || isSubmitting}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="create-link-requested">Solicitado em</Label>
-              <DatePicker
-                value={requestedAt}
-                onChange={setRequestedAt}
-                type="datetime-local"
-                timePickerDisableFuture={false}
-                disabled={disabled || isSubmitting}
-              />
-            </div>
-            <MonitoredPlateAuthorityValidUntilPicker
-              label="Validade (opcional)"
-              value={validUntilDate}
-              onChange={setValidUntilDate}
+            <SelectWithSearch
+              value={requestingInstitutionTitle}
+              onSelect={(item) => {
+                setRequestingInstitutionTitle(item.label)
+                setRequestingInstitutionId(item.value)
+                setAuthorityTitle('')
+                setAuthorityId('')
+              }}
+              options={requestingInstitutionOptions}
+              disabled={isBusy || requestingInstitutionOptions.length === 0}
+              placeholder="Filtrar por demandante"
             />
-            <div className="flex flex-col gap-1">
-              <Label>Canais de notificação</Label>
-              <MultipleSelector
-                value={notificationChannelOptions.filter((item) =>
-                  notificationChannelIds.includes(item.value),
-                )}
-                onChange={(items) =>
-                  setNotificationChannelIds(items.map((item) => item.value))
-                }
-                defaultOptions={notificationChannelOptions}
-                options={notificationChannelOptions}
-                disabled={disabled || isSubmitting}
-                placeholder="Selecione um ou mais canais"
-                emptyIndicator={<p>Nenhum resultado encontrado.</p>}
-              />
-            </div>
-            <label className="flex items-center justify-between gap-3 rounded-md border p-3">
-              <span className="text-sm">Vínculo ativo</span>
-              <Switch
-                checked={active}
-                onCheckedChange={setActive}
-                disabled={disabled || isSubmitting}
-                aria-label="Vínculo ativo"
-              />
-            </label>
           </div>
 
-          <div className="min-w-0">
-            <MonitoredPlateAuthorityCollectionPointMultiSelect
-              value={collectionPointIds}
-              onChange={setCollectionPointIds}
-              disabled={disabled || isSubmitting}
-              monitorAll={monitorAll}
-              onMonitorAllChange={setMonitorAll}
-              defaultSelectAll={true}
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Label>Requisitante</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 text-xs font-normal"
+                disabled={isBusy}
+                onClick={() => {
+                  setDialogInitialData(null)
+                  formDialogDisclosure.onOpen()
+                }}
+              >
+                Novo requisitante
+              </Button>
+            </div>
+            <SelectWithSearch
+              value={authorityTitle}
+              onSelect={(item) => {
+                setAuthorityTitle(item.label)
+                setAuthorityId(item.value)
+              }}
+              options={filteredAuthorities.map((item) => ({
+                label: item.requestingInstitution
+                  ? `${item.name} — ${item.requestingInstitution.name}`
+                  : item.name,
+                value: item.id,
+              }))}
+              disabled={isBusy}
+              placeholder={
+                requestingInstitutionId
+                  ? 'Selecione o requisitante'
+                  : 'Selecione ou filtre por demandante'
+              }
             />
           </div>
+
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="create-link-ref">Nº de referência</Label>
+            <Input
+              id="create-link-ref"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              maxLength={50}
+              disabled={isBusy}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="create-link-requested">Solicitado em</Label>
+            <DatePicker
+              value={requestedAt}
+              onChange={setRequestedAt}
+              type="datetime-local"
+              timePickerDisableFuture={false}
+              disabled={isBusy}
+            />
+          </div>
+
+          <MonitoredPlateAuthorityValidUntilPicker
+            label="Validade (opcional)"
+            value={validUntilDate}
+            onChange={setValidUntilDate}
+          />
+
+          <div className="flex flex-col gap-1">
+            <Label>Canais de notificação</Label>
+            <MultipleSelector
+              value={notificationChannelOptions.filter((item) =>
+                notificationChannelIds.includes(item.value),
+              )}
+              onChange={(items) =>
+                setNotificationChannelIds(items.map((item) => item.value))
+              }
+              defaultOptions={notificationChannelOptions}
+              options={notificationChannelOptions}
+              disabled={isBusy}
+              placeholder="Selecione um ou mais canais"
+              emptyIndicator={<p>Nenhum resultado encontrado.</p>}
+            />
+          </div>
+
+          <label className="flex items-center justify-between gap-3 rounded-md border p-3">
+            <span className="text-sm">Vínculo ativo</span>
+            <Switch
+              checked={active}
+              onCheckedChange={setActive}
+              disabled={isBusy}
+              aria-label="Vínculo ativo"
+            />
+          </label>
+
+          <MonitoredPlateAuthorityCollectionPointField
+            value={collectionPointIds}
+            onChange={setCollectionPointIds}
+            disabled={isBusy}
+            monitorAll={monitorAll}
+            onMonitorAllChange={setMonitorAll}
+            defaultSelectAll={true}
+          />
         </div>
-        <div className="sticky bottom-0 z-10 -mx-4 mt-2 flex w-auto min-w-0 flex-col gap-2 border-t border-border bg-background px-4 pb-1 pt-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
-            disabled={disabled || isSubmitting}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            className="h-10 w-full shrink-0 font-normal sm:w-auto sm:min-w-32"
-            disabled={disabled || isSubmitting}
-            onClick={handleSubmit}
-          >
-            {isSubmitting ? <Spinner /> : submitLabel}
-          </Button>
-        </div>
-      </DialogContent>
+      </AuthorityLinkDialogShell>
+
       <InstitutionAuthorityFormDialog
         isOpen={formDialogDisclosure.isOpen}
         onClose={formDialogDisclosure.onClose}
         onOpen={formDialogDisclosure.onOpen}
       />
-    </Dialog>
+    </>
   )
 }
