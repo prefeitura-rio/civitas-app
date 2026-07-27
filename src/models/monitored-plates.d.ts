@@ -58,7 +58,6 @@ export type BackendMonitoredPlateRegistrationAuthority = Omit<
 
 export type MonitoredPlateRegistration = {
   plate: string
-  active: boolean
   notes?: string | null
   additionalInfo?: Record<string, unknown> | null
   authorities: MonitoredPlateRegistrationAuthority[]
@@ -66,7 +65,6 @@ export type MonitoredPlateRegistration = {
 
 export type BackendMonitoredPlateRegistration = {
   plate: string
-  active: boolean
   notes?: string | null
   additional_info?: Record<string, unknown> | null
   authorities: BackendMonitoredPlateRegistrationAuthority[]

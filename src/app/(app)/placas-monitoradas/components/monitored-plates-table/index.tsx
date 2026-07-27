@@ -87,6 +87,11 @@ export function MonitoredPlatesTable() {
       header: 'Placa',
     },
     {
+      accessorKey: 'active',
+      header: 'Status',
+      cell: ({ row }) => (row.original.active ? 'Ativa' : 'Inativa'),
+    },
+    {
       accessorKey: 'notes',
       header: 'Observações',
       cell: ({ row }) => row.original.notes || ' - ',

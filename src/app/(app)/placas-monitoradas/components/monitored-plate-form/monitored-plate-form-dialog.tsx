@@ -10,7 +10,6 @@ import { InputError } from '@/components/custom/input-error'
 import MultipleSelector from '@/components/custom/multiselect-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -60,14 +59,12 @@ const monitoredPlateCreateFormSchema = z.object({
     .min(1, { message: 'Campo obrigatório' })
     .toUpperCase()
     .regex(MONITORED_PLATE_REGEX, 'Formato inválido'),
-  active: z.boolean().default(true),
   notes: z.string(),
   notificationChannels: z.array(optionSchema),
 })
 
 const monitoredPlateEditFormSchema = z.object({
   plate: z.string(),
-  active: z.boolean().default(true),
   notes: z.string(),
 })
 
@@ -94,7 +91,6 @@ export function MonitoredPlateFormDialog({
     resolver: zodResolver(monitoredPlateCreateFormSchema),
     defaultValues: {
       plate: '',
-      active: true,
       notes: '',
       notificationChannels: [],
     },
@@ -104,7 +100,6 @@ export function MonitoredPlateFormDialog({
     resolver: zodResolver(monitoredPlateEditFormSchema),
     defaultValues: {
       plate: '',
-      active: true,
       notes: '',
     },
   })
@@ -254,13 +249,11 @@ export function MonitoredPlateFormDialog({
     onClose()
     reset({
       plate: '',
-      active: true,
       notes: '',
       notificationChannels: [],
     })
     resetEdit({
       plate: '',
-      active: true,
       notes: '',
     })
     setDraftLinks([])
@@ -275,7 +268,6 @@ export function MonitoredPlateFormDialog({
 
     await createRegistrationMutation({
       plate: values.plate,
-      active: values.active,
       notes: values.notes.trim() || null,
       additionalInfo: null,
       authorities: draftLinks.map((link) => ({
@@ -306,7 +298,6 @@ export function MonitoredPlateFormDialog({
 
     await updateMonitoredPlateMutation({
       plate,
-      active: values.active,
       notes: values.notes.trim() || null,
       additionalInfo: monitoredPlate?.additionalInfo ?? null,
     })
@@ -321,7 +312,6 @@ export function MonitoredPlateFormDialog({
       if (monitoredPlate) {
         resetEdit({
           plate: monitoredPlate.plate,
-          active: monitoredPlate.active,
           notes: monitoredPlate.notes ?? '',
         })
       }
@@ -330,7 +320,6 @@ export function MonitoredPlateFormDialog({
 
     reset({
       plate: initialData?.plate ?? '',
-      active: true,
       notes: '',
       notificationChannels: [],
     })
@@ -473,21 +462,6 @@ export function MonitoredPlateFormDialog({
                 Usado como padrão quando um vínculo não define canais próprios.
               </p>
             </div>
-
-            <Controller
-              control={control}
-              name="active"
-              render={({ field }) => (
-                <label className="flex items-center gap-3 rounded-md border p-3">
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(value) => field.onChange(Boolean(value))}
-                    disabled={isCreateLoading}
-                  />
-                  <span className="text-sm">Criar placa como ativa</span>
-                </label>
-              )}
-            />
 
             <MonitoredPlateAuthorityLinksPanel
               mode="draft"

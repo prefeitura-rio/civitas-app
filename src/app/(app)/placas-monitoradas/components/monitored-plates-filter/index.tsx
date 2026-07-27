@@ -52,7 +52,7 @@ export function MonitoredPlatesFilter() {
     useForm<FilterForm>({
       resolver: zodResolver(filterFormSchema),
       defaultValues: {
-        active: 'all',
+        active: 'true',
       },
     })
 
@@ -72,6 +72,8 @@ export function MonitoredPlatesFilter() {
       activeOptions.includes(pActive as (typeof activeOptions)[number])
     ) {
       setValue('active', pActive as FilterForm['active'])
+    } else {
+      setValue('active', 'true')
     }
     if (pPlate) setValue('plateContains', pPlate)
     if (pInstitutionAuthority)
@@ -92,8 +94,7 @@ export function MonitoredPlatesFilter() {
   }, [searchParams, setValue])
 
   function handleClearFilters() {
-    reset()
-    setValue('active', 'all')
+    reset({ active: 'true' })
     setCreatedAtFrom(undefined)
     setCreatedAtTo(undefined)
     router.replace(pathName)
@@ -108,8 +109,8 @@ export function MonitoredPlatesFilter() {
     if (props.notificationChannelTitle)
       params.set('notificationChannelTitle', props.notificationChannelTitle)
 
-    if (props.active && props.active !== 'all')
-      params.set('active', props.active)
+    if (props.active === 'all') params.set('active', 'all')
+    else params.set('active', props.active)
     if (props.createdAtFrom) params.set('createdAtFrom', props.createdAtFrom)
     if (props.createdAtTo) params.set('createdAtTo', props.createdAtTo)
 
@@ -205,16 +206,16 @@ export function MonitoredPlatesFilter() {
             <Label className="text-xs text-muted-foreground">Status</Label>
             <Select
               onValueChange={field.onChange}
-              defaultValue="all"
+              defaultValue="true"
               value={field.value}
             >
-              <SelectTrigger className="h-9 w-36">
+              <SelectTrigger className="h-9 w-56">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="true">Ativo</SelectItem>
-                <SelectItem value="false">Inativo</SelectItem>
+                <SelectItem value="true">Ativa (com vínculo ativo)</SelectItem>
+                <SelectItem value="false">Inativa</SelectItem>
               </SelectContent>
             </Select>
           </div>
