@@ -28,7 +28,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 30,
-    paddingVertical: 40,
+    paddingTop: 40,
+    paddingBottom: 72,
     fontSize: 11,
   },
   groupTitle: {
