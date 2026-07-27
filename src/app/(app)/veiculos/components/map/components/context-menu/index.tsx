@@ -12,7 +12,6 @@ import { CISPInfo } from './components/cisp-info'
 import { FogoCruzadoInfo } from './components/fogo-cruzado-info'
 import { RadarInfo } from './components/radar-info'
 import { SchoolInfo } from './components/school-info'
-import { WazePoliceAlertInfo } from './components/waze-police-alert-info'
 
 interface ContextMenuProps {
   pickingInfo: PickingInfo | null
@@ -47,10 +46,6 @@ export function ContextMenu({
       return <CISPInfo pickingInfo={pickingInfo} />
     }
 
-    if (pickingInfo?.layer?.id === 'waze-police-alert') {
-      return <WazePoliceAlertInfo pickingInfo={pickingInfo} />
-    }
-
     if (pickingInfo?.layer?.id === 'fogocruzado-incidents') {
       return <FogoCruzadoInfo pickingInfo={pickingInfo} />
     }
@@ -63,14 +58,9 @@ export function ContextMenu({
   return (
     <Popover open={open} onOpenChange={onOpenChange} modal={false}>
       {pickingInfo.layer?.id &&
-        [
-          'radars',
-          'AISP',
-          'CISP',
-          'waze-police-alert',
-          'fogocruzado-incidents',
-          'schools',
-        ].includes(pickingInfo.layer.id) && (
+        ['radars', 'AISP', 'CISP', 'fogocruzado-incidents', 'schools'].includes(
+          pickingInfo.layer.id,
+        ) && (
           <PopoverContent
             ref={(ref) => setCardRef(ref)}
             style={{
