@@ -4,13 +4,11 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 import type {
-  Agent,
   Camera,
   FogoCruzadoIncident,
   Point,
   Radar,
   Report,
-  WazeAlert,
 } from '@/models/entities'
 
 import { Card } from '../ui/card'
@@ -18,7 +16,7 @@ import { Card } from '../ui/card'
 interface MapHoverCardProps {
   children?: ReactNode
   hoveredObject: PickingInfo<
-    Camera | Radar | FogoCruzadoIncident | Agent | WazeAlert | Report | Point
+    Camera | Radar | FogoCruzadoIncident | Report | Point
   > | null
   className?: string
 }

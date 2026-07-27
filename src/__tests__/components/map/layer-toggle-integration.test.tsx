@@ -6,8 +6,6 @@ import { MapContextProvider } from '@/contexts/map-context'
 
 const mockSetIsRadarVisible = jest.fn()
 const mockSetIsCameraVisible = jest.fn()
-const mockSetIsAgentsVisible = jest.fn()
-const mockSetIsWazeVisible = jest.fn()
 const mockSetIsFogoCruzadoVisible = jest.fn()
 const mockSetIsAISPVisible = jest.fn()
 const mockSetIsCISPVisible = jest.fn()
@@ -32,28 +30,10 @@ jest.mock('@/hooks/mapLayers/use-cameras', () => ({
   }),
 }))
 
-jest.mock('@/hooks/mapLayers/use-agents', () => ({
-  useAgents: () => ({
-    isVisible: false, // Agentes NÃO deve estar visível por padrão
-    setIsVisible: mockSetIsAgentsVisible,
-    data: [],
-    layer: {},
-  }),
-}))
-
 jest.mock('@/hooks/mapLayers/use-fogo-cruzado', () => ({
   useFogoCruzadoIncidents: () => ({
     isVisible: false, // Fogo Cruzado NÃO deve estar visível por padrão
     setIsVisible: mockSetIsFogoCruzadoVisible,
-    data: [],
-    layer: {},
-  }),
-}))
-
-jest.mock('@/hooks/mapLayers/use-waze-police-alerts', () => ({
-  useWazePoliceAlerts: () => ({
-    isVisible: false, // Waze NÃO deve estar visível por padrão
-    setIsVisible: mockSetIsWazeVisible,
     data: [],
     layer: {},
   }),
@@ -164,40 +144,6 @@ describe('MapLayerControl Integration', () => {
     })
   })
 
-  it('should call setIsVisible when agents layer is toggled', async () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Abre o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Clica na camada de agentes
-    const agentsButton = screen.getByLabelText('Toggle Agentes layer')
-    fireEvent.click(agentsButton)
-
-    // Verifica se a função setIsVisible foi chamada
-    await waitFor(() => {
-      expect(mockSetIsAgentsVisible).toHaveBeenCalledWith(true)
-    })
-  })
-
-  it('should call setIsVisible when waze layer is toggled', async () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Abre o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Clica na camada de waze
-    const wazeButton = screen.getByLabelText('Toggle Policiamento (Waze) layer')
-    fireEvent.click(wazeButton)
-
-    // Verifica se a função setIsVisible foi chamada
-    await waitFor(() => {
-      expect(mockSetIsWazeVisible).toHaveBeenCalledWith(true)
-    })
-  })
-
   it('should call setIsVisible when fogo cruzado layer is toggled', async () => {
     render(<MapLayerControl />, { wrapper: createWrapper })
 
@@ -295,19 +241,18 @@ describe('MapLayerControl Integration', () => {
     fireEvent.click(button)
 
     // Habilita várias camadas
-    const agentsButton = screen.getByLabelText('Toggle Agentes layer')
-    const wazeButton = screen.getByLabelText('Toggle Policiamento (Waze) layer')
     const fogoCruzadoButton = screen.getByLabelText('Toggle Fogo Cruzado layer')
+    const schoolsButton = screen.getByLabelText(
+      'Toggle Escolas Municipais layer',
+    )
 
-    fireEvent.click(agentsButton)
-    fireEvent.click(wazeButton)
     fireEvent.click(fogoCruzadoButton)
+    fireEvent.click(schoolsButton)
 
     // Verifica se todas as funções foram chamadas corretamente
     await waitFor(() => {
-      expect(mockSetIsAgentsVisible).toHaveBeenCalledWith(true)
-      expect(mockSetIsWazeVisible).toHaveBeenCalledWith(true)
       expect(mockSetIsFogoCruzadoVisible).toHaveBeenCalledWith(true)
+      expect(mockSetIsSchoolsVisible).toHaveBeenCalledWith(true)
     })
   })
 
@@ -330,11 +275,6 @@ describe('MapLayerControl Integration', () => {
     const layerTests = [
       { button: 'Toggle LPR layer', mock: mockSetIsRadarVisible },
       { button: 'Toggle Câmeras layer', mock: mockSetIsCameraVisible },
-      { button: 'Toggle Agentes layer', mock: mockSetIsAgentsVisible },
-      {
-        button: 'Toggle Policiamento (Waze) layer',
-        mock: mockSetIsWazeVisible,
-      },
       {
         button: 'Toggle Fogo Cruzado layer',
         mock: mockSetIsFogoCruzadoVisible,
