@@ -46,7 +46,7 @@ export function getMonitoredPlateAuthorityValidUntilCalendarTo(
 export function getDefaultMonitoredPlateAuthorityValidUntil(
   now = new Date(),
 ): Date {
-  return getMonitoredPlateAuthorityValidUntilMaxInstant(now)
+  return getMonitoredPlateAuthorityValidUntilMaxDayStart(now)
 }
 
 export function isMonitoredPlateAuthorityValidUntilBeyondMax(
@@ -54,8 +54,8 @@ export function isMonitoredPlateAuthorityValidUntilBeyondMax(
   now = new Date(),
 ): boolean {
   if (!date) return false
-  const max = getMonitoredPlateAuthorityValidUntilMaxInstant(now)
-  return date.getTime() > max.getTime()
+  const max = getMonitoredPlateAuthorityValidUntilMaxDayStart(now)
+  return startOfDay(date).getTime() > max.getTime()
 }
 
 export function parseIsoToDate(
@@ -63,15 +63,19 @@ export function parseIsoToDate(
 ): Date | undefined {
   if (!iso) return undefined
   const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? undefined : d
+  return Number.isNaN(d.getTime()) ? undefined : startOfDay(d)
+}
+
+export function toMonitoredPlateAuthorityValidUntilIso(date: Date): string {
+  return endOfDay(date).toISOString()
 }
 
 export function validUntilInstantsEqual(
   a: Date | undefined,
   b: Date | undefined,
 ): boolean {
-  const ta = a?.getTime()
-  const tb = b?.getTime()
+  const ta = a ? startOfDay(a).getTime() : undefined
+  const tb = b ? startOfDay(b).getTime() : undefined
   if (ta === undefined && tb === undefined) return true
   if (ta === undefined || tb === undefined) return false
   return ta === tb

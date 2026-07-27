@@ -261,7 +261,7 @@ export function MonitoredPlateAuthorityLinksPanel({
                       <div className="mt-1 text-xs text-muted-foreground">
                         Ref. {link.referenceNumber}
                         {link.validUntil
-                          ? ` · até ${formatDate(new Date(link.validUntil), 'dd/MM/yyyy HH:mm')}`
+                          ? ` · até ${formatDate(new Date(link.validUntil), 'dd/MM/yyyy')}`
                           : ''}
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -330,7 +330,7 @@ export function MonitoredPlateAuthorityLinksPanel({
                       <div className="text-xs text-muted-foreground">
                         Ref. {draft.referenceNumber}
                         {draft.validUntil
-                          ? ` · até ${formatDate(new Date(draft.validUntil), 'dd/MM/yyyy HH:mm')}`
+                          ? ` · até ${formatDate(new Date(draft.validUntil), 'dd/MM/yyyy')}`
                           : ''}
                         {' · '}
                         {getCollectionPointScopeLabel(
