@@ -1,13 +1,12 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { InputError } from '@/components/custom/input-error'
-import MultipleSelector from '@/components/custom/multiselect-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import {
@@ -47,11 +46,6 @@ interface MonitoredPlateDialogProps {
   shouldFetchData?: boolean
 }
 
-const optionSchema = z.object({
-  label: z.string().min(1),
-  value: z.string().min(1),
-})
-
 const monitoredPlateCreateFormSchema = z.object({
   plate: z
     .string()
@@ -60,7 +54,6 @@ const monitoredPlateCreateFormSchema = z.object({
     .toUpperCase()
     .regex(MONITORED_PLATE_REGEX, 'Formato inválido'),
   notes: z.string(),
-  notificationChannels: z.array(optionSchema),
 })
 
 const monitoredPlateEditFormSchema = z.object({
@@ -92,7 +85,6 @@ export function MonitoredPlateFormDialog({
     defaultValues: {
       plate: '',
       notes: '',
-      notificationChannels: [],
     },
   })
 
@@ -108,7 +100,6 @@ export function MonitoredPlateFormDialog({
     register,
     handleSubmit,
     setValue,
-    control,
     watch,
     formState: { errors, isSubmitting },
     reset,
@@ -191,15 +182,6 @@ export function MonitoredPlateFormDialog({
     institutionAuthoritiesResponse?.data.items ?? []
   const notificationChannels = notificationChannelsResponse?.data.items ?? []
 
-  const notificationChannelOptions = useMemo(
-    () =>
-      notificationChannels.map((item) => ({
-        label: item.title || item.id,
-        value: item.id,
-      })),
-    [notificationChannels],
-  )
-
   const {
     mutateAsync: createRegistrationMutation,
     isPending: isPendingCreate,
@@ -250,7 +232,6 @@ export function MonitoredPlateFormDialog({
     reset({
       plate: '',
       notes: '',
-      notificationChannels: [],
     })
     resetEdit({
       plate: '',
@@ -277,10 +258,7 @@ export function MonitoredPlateFormDialog({
         validUntil: link.validUntil,
         active: link.active,
         monitorAllCollectionPoints: link.monitorAllCollectionPoints,
-        notificationChannelIds:
-          link.notificationChannelIds && link.notificationChannelIds.length > 0
-            ? link.notificationChannelIds
-            : values.notificationChannels.map((item) => item.value),
+        notificationChannelIds: link.notificationChannelIds ?? [],
         collectionPointIds: link.collectionPointIds ?? [],
       })),
     })
@@ -321,7 +299,6 @@ export function MonitoredPlateFormDialog({
     reset({
       plate: initialData?.plate ?? '',
       notes: '',
-      notificationChannels: [],
     })
     setDraftLinks([])
   }, [
@@ -347,7 +324,7 @@ export function MonitoredPlateFormDialog({
               : 'Nova placa monitorada'}
           </DialogTitle>
           <DialogDescription>
-            Dados da placa, canais de notificação e vínculos com requisitantes.
+            Dados da placa e vínculos com requisitantes.
           </DialogDescription>
         </DialogHeader>
 
@@ -440,35 +417,6 @@ export function MonitoredPlateFormDialog({
                 {...register('notes')}
                 disabled={isCreateLoading}
               />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label>Canal de notificação padrão</Label>
-                <InputError
-                  message={
-                    errors.notificationChannels?.message as string | undefined
-                  }
-                />
-              </div>
-              <Controller
-                control={control}
-                name="notificationChannels"
-                render={({ field }) => (
-                  <MultipleSelector
-                    value={field.value}
-                    onChange={field.onChange}
-                    defaultOptions={notificationChannelOptions}
-                    options={notificationChannelOptions}
-                    disabled={isCreateLoading}
-                    placeholder="Selecione um canal"
-                    emptyIndicator={<p>Nenhum resultado encontrado.</p>}
-                  />
-                )}
-              />
-              <p className="text-xs text-muted-foreground">
-                Usado como padrão quando um vínculo não define canais próprios.
-              </p>
             </div>
 
             <MonitoredPlateAuthorityLinksPanel

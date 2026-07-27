@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { InputError } from '@/components/custom/input-error'
 import MultipleSelector from '@/components/custom/multiselect-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import {
@@ -33,6 +34,7 @@ import { MonitoredPlateAuthorityCollectionPointField } from './monitored-plate-a
 import {
   isMonitoredPlateAuthorityValidUntilBeyondMax,
   parseIsoToDate,
+  toMonitoredPlateAuthorityValidUntilIso,
   validUntilInstantsEqual,
 } from './monitored-plate-authority-link-datetime'
 import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-authority-link-valid-until-picker'
@@ -92,6 +94,12 @@ export function MonitoredPlateAuthorityLinkEditDialog({
   const [monitorAll, setMonitorAll] = useState(true)
   const [collectionPointIds, setCollectionPointIds] = useState<string[]>([])
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<{
+    reference?: string
+    requestedAt?: string
+    validUntil?: string
+    notificationChannelIds?: string
+  }>({})
 
   const { data: authorityLink, isLoading } = useQuery({
     queryKey: ['monitored-plate-authorities', link?.id],
@@ -113,10 +121,14 @@ export function MonitoredPlateAuthorityLinkEditDialog({
         ? []
         : [...authorityLink.collectionPointIds],
     )
+    setFieldErrors({})
   }, [authorityLink])
 
   useEffect(() => {
-    if (!open) setConfirmRemoveOpen(false)
+    if (!open) {
+      setConfirmRemoveOpen(false)
+      setFieldErrors({})
+    }
   }, [open])
 
   const notificationChannelOptions = useMemo(
@@ -132,10 +144,25 @@ export function MonitoredPlateAuthorityLinkEditDialog({
     if (!link || !authorityLink) return
 
     const trimmedRef = reference.trim()
-    if (!trimmedRef || !requestedAt) {
-      toast.error('Preencha os campos obrigatórios.')
+    const nextErrors = {
+      reference: trimmedRef ? undefined : 'Campo obrigatório',
+      requestedAt: requestedAt ? undefined : 'Campo obrigatório',
+      validUntil: validUntilDate ? undefined : 'Campo obrigatório',
+      notificationChannelIds:
+        notificationChannelIds.length > 0 ? undefined : 'Campo obrigatório',
+    }
+
+    setFieldErrors(nextErrors)
+
+    if (
+      nextErrors.reference ||
+      nextErrors.requestedAt ||
+      nextErrors.validUntil ||
+      nextErrors.notificationChannelIds
+    ) {
       return
     }
+
     if (isMonitoredPlateAuthorityValidUntilBeyondMax(validUntilDate)) {
       toast.error(
         'A data de validade não pode ser superior a 60 dias a partir de hoje.',
@@ -143,12 +170,9 @@ export function MonitoredPlateAuthorityLinkEditDialog({
       return
     }
 
-    const requestedAtIso = requestedAt.toISOString()
-    const validUntil = validUntilDate?.toISOString()
-    if (
-      validUntil &&
-      new Date(validUntil).getTime() <= new Date(requestedAtIso).getTime()
-    ) {
+    const requestedAtIso = requestedAt!.toISOString()
+    const validUntil = toMonitoredPlateAuthorityValidUntilIso(validUntilDate!)
+    if (new Date(validUntil).getTime() <= new Date(requestedAtIso).getTime()) {
       toast.error('A validade deve ser posterior à solicitação.')
       return
     }
@@ -264,20 +288,38 @@ export function MonitoredPlateAuthorityLinkEditDialog({
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="persisted-edit-ref">Nº de referência</Label>
+              <div className="flex gap-2">
+                <Label htmlFor="persisted-edit-ref">Nº de referência</Label>
+                <InputError message={fieldErrors.reference} />
+              </div>
               <Input
                 id="persisted-edit-ref"
                 value={reference}
-                onChange={(e) => setReference(e.target.value)}
+                onChange={(e) => {
+                  setReference(e.target.value)
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    reference: undefined,
+                  }))
+                }}
                 maxLength={50}
                 disabled={isBusy}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="persisted-edit-requested">Solicitado em</Label>
+              <div className="flex gap-2">
+                <Label htmlFor="persisted-edit-requested">Solicitado em</Label>
+                <InputError message={fieldErrors.requestedAt} />
+              </div>
               <DatePicker
                 value={requestedAt}
-                onChange={setRequestedAt}
+                onChange={(value) => {
+                  setRequestedAt(value)
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    requestedAt: undefined,
+                  }))
+                }}
                 type="datetime-local"
                 timePickerDisableFuture={false}
                 disabled={isBusy}
@@ -286,17 +328,33 @@ export function MonitoredPlateAuthorityLinkEditDialog({
             <MonitoredPlateAuthorityValidUntilPicker
               label="Validade do vínculo"
               value={validUntilDate}
-              onChange={setValidUntilDate}
+              onChange={(updater) => {
+                setValidUntilDate(updater)
+                setFieldErrors((prev) => ({
+                  ...prev,
+                  validUntil: undefined,
+                }))
+              }}
+              errorMessage={fieldErrors.validUntil}
+              allowClear={false}
+              disabled={isBusy}
             />
             <div className="flex min-w-0 flex-col gap-1">
-              <Label>Canais de notificação</Label>
+              <div className="flex gap-2">
+                <Label>Canais de notificação</Label>
+                <InputError message={fieldErrors.notificationChannelIds} />
+              </div>
               <MultipleSelector
                 value={notificationChannelOptions.filter((item) =>
                   notificationChannelIds.includes(item.value),
                 )}
-                onChange={(items) =>
+                onChange={(items) => {
                   setNotificationChannelIds(items.map((item) => item.value))
-                }
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    notificationChannelIds: undefined,
+                  }))
+                }}
                 defaultOptions={notificationChannelOptions}
                 options={notificationChannelOptions}
                 placeholder="Selecione um ou mais canais"

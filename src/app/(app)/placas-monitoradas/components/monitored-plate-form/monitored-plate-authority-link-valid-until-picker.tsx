@@ -1,9 +1,10 @@
 'use client'
 
-import { format } from 'date-fns'
+import { format, startOfDay } from 'date-fns'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback } from 'react'
 
+import { InputError } from '@/components/custom/input-error'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Label } from '@/components/ui/label'
@@ -13,7 +14,6 @@ import {
   getMonitoredPlateAuthorityValidUntilCalendarFrom,
   getMonitoredPlateAuthorityValidUntilCalendarTo,
   getMonitoredPlateAuthorityValidUntilMaxDayStart,
-  getMonitoredPlateAuthorityValidUntilMaxInstant,
   MONITORED_PLATE_AUTHORITY_VALID_UNTIL_MAX_DAYS,
 } from './monitored-plate-authority-link-datetime'
 
@@ -23,6 +23,8 @@ interface MonitoredPlateAuthorityValidUntilPickerProps {
   value: Date | undefined
   onChange: Dispatch<SetStateAction<Date | undefined>>
   disabled?: boolean
+  errorMessage?: string
+  allowClear?: boolean
 }
 
 export function MonitoredPlateAuthorityValidUntilPicker({
@@ -31,6 +33,8 @@ export function MonitoredPlateAuthorityValidUntilPicker({
   value,
   onChange,
   disabled = false,
+  errorMessage,
+  allowClear = true,
 }: MonitoredPlateAuthorityValidUntilPickerProps) {
   const now = new Date()
   const fromDate = getMonitoredPlateAuthorityValidUntilCalendarFrom(value, now)
@@ -48,9 +52,12 @@ export function MonitoredPlateAuthorityValidUntilPicker({
       onChange((prev) => {
         const next = typeof updater === 'function' ? updater(prev) : updater
         if (!next) return undefined
-        const max = getMonitoredPlateAuthorityValidUntilMaxInstant(new Date())
-        if (next.getTime() > max.getTime()) return new Date(max.getTime())
-        return next
+        const maxDay = getMonitoredPlateAuthorityValidUntilMaxDayStart(
+          new Date(),
+        )
+        const dayStart = startOfDay(next)
+        if (dayStart.getTime() > maxDay.getTime()) return new Date(maxDay)
+        return dayStart
       })
     },
     [onChange],
@@ -58,23 +65,25 @@ export function MonitoredPlateAuthorityValidUntilPicker({
 
   return (
     <div className="flex flex-col gap-1">
-      <Label className="text-foreground">{label}</Label>
+      <div className="flex gap-2">
+        <Label className="text-foreground">{label}</Label>
+        <InputError message={errorMessage} />
+      </div>
       <p className="text-xs leading-snug text-muted-foreground">
         {validUntilHint}
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
         <DatePicker
-          type="datetime-local"
+          type="date"
           value={value}
           onChange={handleChange}
           fromDate={fromDate}
           toDate={toDate}
-          timePickerDisableFuture={false}
           disabled={disabled}
-          placeholder="Sem validade"
+          placeholder="Selecione a validade"
           className="min-w-0 flex-1"
         />
-        {value && !disabled ? (
+        {allowClear && value && !disabled ? (
           <Button
             type="button"
             variant="outline"
