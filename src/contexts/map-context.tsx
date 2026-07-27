@@ -9,7 +9,6 @@ import {
   type UseAddressMarker,
   useAddressMarker,
 } from '@/hooks/mapLayers/use-address-marker'
-import { type UseAgents, useAgents } from '@/hooks/mapLayers/use-agents'
 import {
   type UseAISPLayer,
   useAISPLayer,
@@ -36,10 +35,6 @@ import {
   useSchoolLayer,
 } from '@/hooks/mapLayers/use-school-layer'
 import { type UseTrips, useTrips } from '@/hooks/mapLayers/use-trips'
-import {
-  type UseWazePoliceAlerts,
-  useWazePoliceAlerts,
-} from '@/hooks/mapLayers/use-waze-police-alerts'
 import type { SetViewportProps } from '@/models/utils'
 import { useMapStore } from '@/stores/use-map-store'
 import { MapStyle } from '@/utils/get-map-style'
@@ -49,9 +44,7 @@ interface MapContextProps {
     radars: UseRadarLayer
     trips: UseTrips
     cameras: UseCamera
-    agents: UseAgents
     fogoCruzado: UseFogoCruzadoIncidents
-    waze: UseWazePoliceAlerts
     address: UseAddressMarker
     CISP: UseCISPLayer
     AISP: UseAISPLayer
@@ -133,9 +126,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const radars = useRadarLayer(multipleSelectedRadars)
   const trips = useTrips({ setViewport })
   const cameras = useCamera()
-  const agents = useAgents()
   const fogoCruzado = useFogoCruzadoIncidents()
-  const waze = useWazePoliceAlerts()
   const address = useAddressMarker()
   const CISP = useCISPLayer()
   const AISP = useAISPLayer()
@@ -149,9 +140,7 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
           radars,
           trips,
           cameras,
-          agents,
           fogoCruzado,
-          waze,
           address,
           CISP,
           AISP,
