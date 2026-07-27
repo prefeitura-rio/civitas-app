@@ -9,9 +9,7 @@ export function useMapLayers() {
     layers: {
       radars: radarLayer,
       cameras: cameraLayer,
-      agents: { layer: agentsLayer },
       fogoCruzado: fogoCruzadoLayer,
-      waze: { layer: wazeLayer },
       trips: { layers: tripLayers },
       address: {
         layerStates: {
@@ -60,9 +58,7 @@ export function useMapLayers() {
       cameraDC3LayerObj,
       radarLayerObj,
       radarSentryLayerObj,
-      wazeLayer,
       fogoCruzadoLayerObj,
-      agentsLayer,
       ...tripLayers,
       addressLayer,
       schoolsLayer,
@@ -75,9 +71,7 @@ export function useMapLayers() {
       cameraDC3LayerObj,
       radarLayerObj,
       radarSentryLayerObj,
-      wazeLayer,
       fogoCruzadoLayerObj,
-      agentsLayer,
       tripLayers,
       addressLayer,
       schoolsLayer,

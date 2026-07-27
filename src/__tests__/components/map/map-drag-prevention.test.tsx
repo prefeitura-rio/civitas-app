@@ -97,9 +97,7 @@ describe('Map - Drag Prevention', () => {
           handleSelectObject: mockSelectCamera,
           setSelectedObject: mockSetSelectedCamera,
         },
-        agents: { layer: {} },
         fogoCruzado: { layer: {} },
-        waze: { layer: {} },
         trips: { layers: [] },
         address: {
           layerStates: {
