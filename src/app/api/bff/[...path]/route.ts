@@ -67,6 +67,9 @@ async function handler(request: NextRequest) {
   }
 
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
+  // Node fetch auto-decompresses gzip; only advertise gzip so the API can
+  // compress the BFF←API hop without leaving br/zstd encodings we can't strip cleanly.
+  headers.set('Accept-Encoding', 'gzip')
 
   let body: BodyInit | undefined
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -109,8 +112,15 @@ async function handler(request: NextRequest) {
 
   for (const [key, value] of upstreamResponse.headers.entries()) {
     const lowerKey = key.toLowerCase()
+    // content-encoding must be stripped: fetch() already decompressed the body.
+    // Forwarding it causes NS_ERROR_INVALID_CONTENT_ENCODING in the browser.
     if (
-      ['content-length', 'transfer-encoding', 'connection'].includes(lowerKey)
+      [
+        'content-length',
+        'content-encoding',
+        'transfer-encoding',
+        'connection',
+      ].includes(lowerKey)
     ) {
       continue
     }
