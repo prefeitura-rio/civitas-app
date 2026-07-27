@@ -179,52 +179,10 @@ export type CollectionPoint = {
   lane: string | null
 }
 
-export type BackendWazeAlert = {
-  timestamp: string
-  street?: string
-  type: string
-  subtype: string
-  reliability: number
-  confidence: number
-  number_thumbs_up?: number
-  latitude: number
-  longitude: number
-}
-
-export type WazeAlert = {
-  timestamp: string
-  street?: string
-  type: string
-  subtype: string
-  reliability: number
-  confidence: number
-  numberThumbsUp?: number
-  latitude: number
-  longitude: number
-}
-
 export interface RadarDetection {
   plate: string
   timestamp: string
   speed: number
-}
-
-export type BackendAgent = {
-  name: string
-  contact_info: string
-  operation: string
-  latitude: number
-  longitude: number
-  last_update: string
-}
-
-export type Agent = {
-  name: string
-  contactInfo: string
-  operation: string
-  latitude: number
-  longitude: number
-  lastUpdate: string
 }
 
 export type Report = {
