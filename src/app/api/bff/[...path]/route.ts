@@ -73,6 +73,21 @@ async function handler(request: NextRequest) {
   if (contentType) {
     headers.set('Content-Type', contentType)
   }
+  // Required for GCS resumable uploads: API passes Origin into
+  // create_resumable_upload_session so PUT responses include ACAO for the browser.
+  const origin = request.headers.get('origin')
+  if (origin) {
+    headers.set('Origin', origin)
+  }
+  // Preserve client IP for backend audit/rate-limit when enabled.
+  const forwardedFor = request.headers.get('x-forwarded-for')
+  if (forwardedFor) {
+    headers.set('X-Forwarded-For', forwardedFor)
+  }
+  const realIp = request.headers.get('x-real-ip')
+  if (realIp) {
+    headers.set('X-Real-IP', realIp)
+  }
 
   let body: BodyInit | undefined
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -123,11 +138,16 @@ async function handler(request: NextRequest) {
   const responseBody = await upstreamResponse.arrayBuffer()
   const upstreamContentType =
     upstreamResponse.headers.get('content-type')?.toLowerCase() ?? ''
+  const contentDisposition =
+    upstreamResponse.headers.get('content-disposition')?.toLowerCase() ?? ''
+  const isAttachment = contentDisposition.includes('attachment')
+  // Block HTML *documents* (wrong upstream / Next shell). Allow legitimate
+  // HTML file downloads that use Content-Disposition: attachment.
+  const looksLikeHtmlDocument =
+    upstreamContentType.includes('text/html') && !isAttachment
 
-  // HTML from upstream usually means wrong CIVITAS_API_URL / DNS / ingress,
-  // or a redirect to the frontend. Never pass that to axios callers.
-  if (upstreamContentType.includes('text/html')) {
-    console.error('[bff] upstream returned HTML', {
+  if (looksLikeHtmlDocument) {
+    console.error('[bff] upstream returned HTML document', {
       upstreamUrl: currentUpstreamUrl,
       status: upstreamResponse.status,
       contentType: upstreamContentType,
