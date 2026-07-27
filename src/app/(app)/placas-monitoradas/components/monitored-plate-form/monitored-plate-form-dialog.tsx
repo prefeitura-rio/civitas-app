@@ -30,10 +30,16 @@ import {
 } from '@/http/monitored-plates'
 import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage, isConflictError } from '@/utils/error-handlers'
+import {
+  genericErrorMessage,
+  isConflictError,
+  isNotFoundError,
+} from '@/utils/error-handlers'
 
 import { MonitoredPlateAuthorityLinksPanel } from './monitored-plate-authority-links-panel'
 import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-authority-link'
+
+const MONITORED_PLATE_REGEX = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/
 
 interface MonitoredPlateDialogProps {
   isOpen: boolean
@@ -53,7 +59,7 @@ const monitoredPlateCreateFormSchema = z.object({
     .trim()
     .min(1, { message: 'Campo obrigatório' })
     .toUpperCase()
-    .regex(/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/, 'Formato inválido'),
+    .regex(MONITORED_PLATE_REGEX, 'Formato inválido'),
   active: z.boolean().default(true),
   notes: z.string(),
   notificationChannels: z.array(optionSchema),
@@ -121,6 +127,8 @@ export function MonitoredPlateFormDialog({
   } = editForm
 
   const currentPlate = watch('plate', '')
+  const typedPlate = currentPlate.trim().toUpperCase()
+  const isValidTypedPlate = MONITORED_PLATE_REGEX.test(typedPlate)
 
   const { data: monitoredPlate, isLoading: isLoadingMonitoredPlate } = useQuery(
     {
@@ -129,6 +137,48 @@ export function MonitoredPlateFormDialog({
       enabled: Boolean(isOpen && isEditingExistingPlate && initialData?.plate),
     },
   )
+
+  // Em modo criação: se a placa digitada já existe, troca para edição.
+  const { data: existingPlateLookup, isFetching: isCheckingExistingPlate } =
+    useQuery({
+      queryKey: ['monitored-plates', 'lookup', typedPlate],
+      queryFn: async () => {
+        try {
+          const existing = await getMonitoredPlate({ plate: typedPlate })
+          queryClient.setQueryData(
+            ['monitored-plates', existing.plate],
+            existing,
+          )
+          return existing
+        } catch (error) {
+          if (isNotFoundError(error)) return null
+          throw error
+        }
+      },
+      enabled: Boolean(
+        isOpen && !isEditingExistingPlate && isValidTypedPlate && typedPlate,
+      ),
+      retry: false,
+      staleTime: 30_000,
+    })
+
+  useEffect(() => {
+    if (!isOpen || isEditingExistingPlate) return
+    if (!existingPlateLookup?.plate) return
+    if (initialData?.plate === existingPlateLookup.plate) return
+
+    setDraftLinks([])
+    setInitialData({ plate: existingPlateLookup.plate })
+    toast.message(
+      `A placa ${existingPlateLookup.plate} já está cadastrada. Abrindo edição.`,
+    )
+  }, [
+    existingPlateLookup,
+    initialData?.plate,
+    isEditingExistingPlate,
+    isOpen,
+    setInitialData,
+  ])
 
   const { data: institutionAuthoritiesResponse } = useQuery({
     queryKey: ['institution-authorities', 'options', 100],
@@ -302,7 +352,11 @@ export function MonitoredPlateFormDialog({
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Placa monitorada</DialogTitle>
+          <DialogTitle>
+            {isEditingExistingPlate
+              ? 'Editar placa monitorada'
+              : 'Nova placa monitorada'}
+          </DialogTitle>
           <DialogDescription>
             Dados da placa, canais de notificação e vínculos com requisitantes.
           </DialogDescription>
@@ -372,6 +426,11 @@ export function MonitoredPlateFormDialog({
                 }
                 disabled={isCreateLoading || !!initialData}
               />
+              {isCheckingExistingPlate ? (
+                <p className="text-xs text-muted-foreground">
+                  Verificando se a placa já está cadastrada…
+                </p>
+              ) : null}
             </div>
 
             <div className="flex flex-col gap-1">
