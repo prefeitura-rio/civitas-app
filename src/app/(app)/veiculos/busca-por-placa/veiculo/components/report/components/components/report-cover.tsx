@@ -143,8 +143,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     fontSize: 16,
     fontWeight: 600,
-    marginTop: 0,
-    marginBottom: 6,
+    marginTop: 24,
+    marginBottom: 18,
   },
   subsectionTitle: {
     fontFamily: 'Open Sans',
@@ -195,45 +195,28 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 1.5,
   },
-  kpiTable: {
+  kpiList: {
     marginTop: 8,
     marginBottom: 14,
   },
-  kpiTableHeader: {
-    flexDirection: 'row',
-    marginBottom: 8,
+  kpiListItem: {
+    marginBottom: 10,
   },
-  kpiTableRow: {
+  kpiIndicatorRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   kpiIndicator: {
-    width: 118,
-    paddingRight: 8,
+    flex: 1,
     fontFamily: 'Open Sans',
     fontSize: 11,
     fontWeight: 600,
-  },
-  kpiHeaderIndicator: {
-    width: 118,
-    paddingRight: 8,
-    fontFamily: 'Open Sans',
-    fontSize: 11,
-    fontWeight: 600,
-    textAlign: 'center',
   },
   kpiDescription: {
-    flex: 1,
+    marginLeft: 24,
     fontFamily: 'Open Sans',
     fontSize: 11,
     lineHeight: 1.5,
-  },
-  kpiHeaderDescription: {
-    flex: 1,
-    fontFamily: 'Open Sans',
-    fontSize: 11,
-    fontWeight: 600,
-    textAlign: 'center',
   },
   tableRow: {
     flexDirection: 'row',
@@ -389,7 +372,7 @@ export function ReportCover({
 
         <Text style={styles.sectionTitle}>Como interpretar este relatório</Text>
 
-        <Text style={styles.subsectionTitle}>a. Ponto de detecção</Text>
+        <Text style={styles.subsectionTitle}>1. Ponto de detecção</Text>
         <Text style={styles.paragraph}>
           <Text style={styles.strong}>
             Um ponto de detecção corresponde ao registro de um veículo de
@@ -403,7 +386,7 @@ export function ReportCover({
 
         <View break />
 
-        <Text style={styles.subsectionTitle}>b. Viagem</Text>
+        <Text style={styles.subsectionTitle}>2. Viagem</Text>
         <Text style={styles.paragraph}>
           Uma viagem corresponde ao conjunto de pontos de detecção de um veículo
           de interesse que formam um deslocamento contínuo.{' '}
@@ -435,7 +418,7 @@ export function ReportCover({
         </View>
 
         <Text style={styles.subsectionTitle}>
-          c. Alerta de suspeita de clonagem
+          3. Alerta de suspeita de clonagem
         </Text>
         <Text style={styles.paragraph}>
           O relatório apresenta um alerta automático quando o intervalo de tempo
@@ -450,22 +433,19 @@ export function ReportCover({
           fazer a apuração dos fatos.
         </Text>
 
-        <View break />
-
         <Text style={styles.sectionTitle}>Indicadores Analíticos (KPIs)</Text>
         <Text style={styles.paragraph}>
           Os indicadores analíticos resumem os principais padrões identificados
           nos registros do veículo de interesse durante o período consultado.
         </Text>
 
-        <View style={styles.kpiTable}>
-          <View style={styles.kpiTableHeader}>
-            <Text style={styles.kpiHeaderIndicator}>Indicador</Text>
-            <Text style={styles.kpiHeaderDescription}>Descrição</Text>
-          </View>
+        <View style={styles.kpiList}>
           {kpiDescriptions.map((item) => (
-            <View key={item.indicator} style={styles.kpiTableRow}>
-              <Text style={styles.kpiIndicator}>{item.indicator}</Text>
+            <View key={item.indicator} style={styles.kpiListItem}>
+              <View style={styles.kpiIndicatorRow}>
+                <Text style={styles.unorderedBullet}>{'\u2022'}</Text>
+                <Text style={styles.kpiIndicator}>{item.indicator}</Text>
+              </View>
               <Text style={styles.kpiDescription}>
                 {'description' in item
                   ? item.description
@@ -484,16 +464,8 @@ export function ReportCover({
           considerando as seguintes limitações:
         </Text>
         <View style={styles.unorderedList}>
-          {limitations.slice(0, 2).map(renderLimitationItem)}
+          {limitations.map(renderLimitationItem)}
         </View>
-
-        <View break />
-
-        <View style={styles.unorderedList}>
-          {limitations.slice(2).map(renderLimitationItem)}
-        </View>
-
-        <View break />
 
         <Text style={styles.resultsTitle}>Resultados</Text>
 
