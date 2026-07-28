@@ -1,10 +1,18 @@
-name: Deploy Frontend to Staging
-
+name: Deploy
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
   push:
     branches:
       - staging
+      - main
     paths:
       - src/**
       - public/**
@@ -18,16 +26,15 @@ on:
       - package.json
       - pnpm-lock.yaml
       - .github/actions/docker-build/**
-
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
-          ref: staging
+          ref: ${{ github.ref_name }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -46,26 +53,22 @@ jobs:
       - name: Run tests
         run: pnpm test -- --passWithNoTests --watchAll=false --coverage=false --testPathIgnorePatterns="e2e" --maxWorkers=2
 
-  build:
-    name: Build Frontend for Staging
+  deploy:
+    name: Deploy ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'staging') }}
     runs-on: ubuntu-latest
     needs: test
+    environment: ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'staging') }}
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
-          ref: staging
-
-      - name: Build and push Frontend Docker image
+          ref: ${{ github.ref_name }}
+      - name: Build and push Docker image
         uses: ./.github/actions/docker-build
         with:
           working-directory: .
-          image-tag: staging
+          image-tag: ${{ github.ref_name == 'main' && 'prod' || 'staging' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # No --build-arg needed: public env vars (CIVITAS_API_URL, MAPBOX_ACCESS_TOKEN,
-          # etc.) are injected at container startup via scripts/docker-entrypoint.sh,
-          # which reads them from the pod's process environment (Infisical).
-          # A single image serves all environments without rebuild.

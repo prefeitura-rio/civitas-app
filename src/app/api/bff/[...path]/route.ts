@@ -25,73 +25,12 @@ const ALLOWED_METHODS = new Set([
 const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
 const NO_BODY_RESPONSE_STATUSES = new Set([204, 205, 304])
-const OMITTED_REQUEST_HEADERS = new Set([
-  'host',
-  'cookie',
-  'content-length',
-  'connection',
-  'accept-encoding',
-  'forwarded',
-  'x-client-ip',
-  'x-civitas-client-ip',
-  'x-forwarded-for',
-  'x-original-forwarded-for',
-  'x-real-ip',
-  'cf-connecting-ip',
-  'true-client-ip',
-])
 const OMITTED_RESPONSE_HEADERS = new Set([
   'content-encoding',
   'content-length',
   'transfer-encoding',
   'connection',
 ])
-
-const DEBUG_CLIENT_IP_REQUEST_HEADERS = [
-  'cf-connecting-ip',
-  'true-client-ip',
-  'x-civitas-client-ip',
-  'x-real-ip',
-  'x-client-ip',
-  'x-forwarded-for',
-  'x-original-forwarded-for',
-  'forwarded',
-]
-
-function setClientIpDebugResponseHeaders(
-  response: NextResponse,
-  upstreamHeaders: Headers,
-  sourceHeaders: Headers,
-) {
-  const upstreamForwardedFor = upstreamHeaders.get('x-forwarded-for')
-  const upstreamRealIp = upstreamHeaders.get('x-real-ip')
-  const upstreamCivitasClientIp = upstreamHeaders.get('x-civitas-client-ip')
-
-  if (upstreamCivitasClientIp) {
-    response.headers.set(
-      'x-debug-upstream-x-civitas-client-ip',
-      upstreamCivitasClientIp,
-    )
-  }
-
-  if (upstreamForwardedFor) {
-    response.headers.set(
-      'x-debug-upstream-x-forwarded-for',
-      upstreamForwardedFor,
-    )
-  }
-
-  if (upstreamRealIp) {
-    response.headers.set('x-debug-upstream-x-real-ip', upstreamRealIp)
-  }
-
-  for (const header of DEBUG_CLIENT_IP_REQUEST_HEADERS) {
-    const value = sourceHeaders.get(header)
-    if (value) {
-      response.headers.set(`x-debug-incoming-${header}`, value)
-    }
-  }
-}
 
 async function handler(request: NextRequest) {
   if (!ALLOWED_METHODS.has(request.method)) {
@@ -128,18 +67,30 @@ async function handler(request: NextRequest) {
   const upstreamPath = request.nextUrl.pathname.replace(/^\/api\/bff/, '')
   const upstreamUrl = `${config.apiUrl}${upstreamPath}${request.nextUrl.search}`
 
+  // Do not forward browser/Next headers (RSC, cookies, accept: text/html, etc.).
+  // Those can confuse upstream or, on bad DNS, make a loop look like a document request.
   const headers = new Headers()
-  for (const [key, value] of request.headers.entries()) {
-    const lowerKey = key.toLowerCase()
-    if (OMITTED_REQUEST_HEADERS.has(lowerKey)) {
-      continue
-    }
-    headers.set(key, value)
-  }
-
-  setForwardedClientIpHeaders(headers, request.headers)
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
   headers.set('X-Civitas-Session-Id', result.session.sessionId)
+  const accept = request.headers.get('accept')
+  headers.set(
+    'Accept',
+    accept && !accept.includes('text/html') ? accept : 'application/json',
+  )
+  // Node fetch auto-decompresses gzip; only advertise gzip so the API can
+  // compress the BFF←API hop without leaving br/zstd encodings we can't strip cleanly.
+  headers.set('Accept-Encoding', 'gzip')
+  const contentType = request.headers.get('content-type')
+  if (contentType) {
+    headers.set('Content-Type', contentType)
+  }
+  // Required for GCS resumable uploads: API passes Origin into
+  // create_resumable_upload_session so PUT responses include ACAO for the browser.
+  const origin = request.headers.get('origin')
+  if (origin) {
+    headers.set('Origin', origin)
+  }
+  setForwardedClientIpHeaders(headers, request.headers)
 
   let body: BodyInit | undefined
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -155,6 +106,7 @@ async function handler(request: NextRequest) {
       redirect: 'manual',
     })
 
+  const upstreamOrigin = new URL(upstreamUrl).origin
   let currentUpstreamUrl = upstreamUrl
   let upstreamResponse = await fetchUpstream(currentUpstreamUrl)
 
@@ -169,7 +121,20 @@ async function handler(request: NextRequest) {
       break
     }
 
-    currentUpstreamUrl = new URL(location, currentUpstreamUrl).toString()
+    const nextUpstreamUrl = new URL(location, currentUpstreamUrl)
+    // Refuse cross-origin redirects (e.g. API → app HTML) which break the BFF.
+    if (nextUpstreamUrl.origin !== upstreamOrigin) {
+      console.error('[bff] refused cross-origin upstream redirect', {
+        from: currentUpstreamUrl,
+        to: nextUpstreamUrl.toString(),
+      })
+      return NextResponse.json(
+        { message: 'Bad gateway: upstream redirected off API origin' },
+        { status: 502 },
+      )
+    }
+
+    currentUpstreamUrl = nextUpstreamUrl.toString()
     upstreamResponse = await fetchUpstream(currentUpstreamUrl)
   }
 
@@ -177,6 +142,30 @@ async function handler(request: NextRequest) {
     request.method === 'HEAD' ||
     NO_BODY_RESPONSE_STATUSES.has(upstreamResponse.status)
   const responseBody = hasNoBody ? null : await upstreamResponse.arrayBuffer()
+  const upstreamContentType =
+    upstreamResponse.headers.get('content-type')?.toLowerCase() ?? ''
+  const contentDisposition =
+    upstreamResponse.headers.get('content-disposition')?.toLowerCase() ?? ''
+  const isAttachment = contentDisposition.includes('attachment')
+  // Block HTML *documents* (wrong upstream / Next shell). Allow legitimate
+  // HTML file downloads that use Content-Disposition: attachment.
+  const looksLikeHtmlDocument =
+    upstreamContentType.includes('text/html') && !isAttachment
+
+  if (looksLikeHtmlDocument) {
+    console.error('[bff] upstream returned HTML document', {
+      upstreamUrl: currentUpstreamUrl,
+      status: upstreamResponse.status,
+      contentType: upstreamContentType,
+    })
+    return NextResponse.json(
+      {
+        message: 'Bad gateway: upstream returned HTML instead of API data',
+        upstream: currentUpstreamUrl,
+      },
+      { status: 502 },
+    )
+  }
 
   const response = new NextResponse(responseBody, {
     status: upstreamResponse.status,
@@ -185,13 +174,13 @@ async function handler(request: NextRequest) {
 
   for (const [key, value] of upstreamResponse.headers.entries()) {
     const lowerKey = key.toLowerCase()
+    // content-encoding must be stripped: fetch() already decompressed the body.
+    // Forwarding it causes NS_ERROR_INVALID_CONTENT_ENCODING in the browser.
     if (OMITTED_RESPONSE_HEADERS.has(lowerKey)) {
       continue
     }
     response.headers.set(key, value)
   }
-
-  setClientIpDebugResponseHeaders(response, headers, request.headers)
 
   if (upstreamResponse.status === 401) {
     for (const cookie of clearSessionCookies()) {

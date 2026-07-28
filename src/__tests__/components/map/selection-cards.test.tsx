@@ -87,12 +87,6 @@ describe('SelectionCards', () => {
           isFetching: false,
           isError: false,
         },
-        agents: {
-          layer: null,
-        },
-        waze: {
-          layer: null,
-        },
         trips: {
           layers: [],
         },
@@ -205,12 +199,6 @@ describe('SelectionCards', () => {
           isFetching: false,
           isError: false,
         },
-        agents: {
-          layer: null,
-        },
-        waze: {
-          layer: null,
-        },
         trips: {
           layers: [],
         },
@@ -309,12 +297,6 @@ describe('SelectionCards', () => {
           refetch: jest.fn(),
           isFetching: false,
           isError: false,
-        },
-        agents: {
-          layer: null,
-        },
-        waze: {
-          layer: null,
         },
         trips: {
           layers: [],
