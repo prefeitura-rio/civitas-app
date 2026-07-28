@@ -8,7 +8,6 @@ import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
 import type { Trip, Vehicle } from '@/models/entities'
 
 import { ReportCover } from './components/report-cover'
-import { ReportEmptyResult } from './components/report-empty-result'
 import { ReportTrip } from './components/report-trip'
 
 const styles = StyleSheet.create({
@@ -18,7 +17,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 30,
-    paddingVertical: 40,
+    paddingTop: 40,
+    paddingBottom: 72,
   },
 })
 
@@ -64,29 +64,21 @@ export function ReportDocument({
         <ReportFooter />
       </Page>
 
-      {trips.length > 0 ? (
-        trips.map((trip, index) => {
-          return (
-            <Page key={index} size="A4" style={styles.page}>
-              <ReportHeader title={reportTitle} />
-              <ReportTrip
-                trip={trip}
-                plate={searchParams.plate}
-                totalTrips={trips.length}
-                useImgCounter={useImgCounter}
-                useTableCounter={useTableCounter}
-              />
-              <ReportFooter />
-            </Page>
-          )
-        })
-      ) : (
-        <Page size="A4" style={styles.page}>
-          <ReportHeader title={reportTitle} />
-          <ReportEmptyResult searchParams={searchParams} />
-          <ReportFooter />
-        </Page>
-      )}
+      {trips.map((trip, index) => {
+        return (
+          <Page key={index} size="A4" style={styles.page}>
+            <ReportHeader title={reportTitle} />
+            <ReportTrip
+              trip={trip}
+              plate={searchParams.plate}
+              totalTrips={trips.length}
+              useImgCounter={useImgCounter}
+              useTableCounter={useTableCounter}
+            />
+            <ReportFooter />
+          </Page>
+        )
+      })}
     </Document>
   )
 }

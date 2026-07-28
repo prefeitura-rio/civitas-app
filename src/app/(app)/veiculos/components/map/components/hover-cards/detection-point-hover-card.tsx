@@ -30,9 +30,20 @@ export function DetectionPointHoverCard({
     if (secondsToNextPoint === null) {
       return '--'
     }
-    const minutes = Math.floor(secondsToNextPoint / 60)
-    const seconds = secondsToNextPoint % 60
-    return `${minutes}min ${seconds}s`
+
+    const roundedSeconds = Math.round(secondsToNextPoint)
+    if (roundedSeconds < 60) {
+      return `${roundedSeconds} s`
+    }
+
+    const minutes = Math.floor(roundedSeconds / 60)
+    const seconds = roundedSeconds % 60
+
+    if (seconds === 0) {
+      return `${minutes} min`
+    }
+
+    return `${minutes} min ${seconds} s`
   }
 
   const distance =
@@ -169,7 +180,9 @@ export function DetectionPointHoverCard({
                       significativamente grande em relação ao intervalo de tempo
                       entre eles. Isso pode indicar uma possível clonagem de
                       placa, sugerindo que dois veículos distintos estejam
-                      circulando simultaneamente com a mesma placa.
+                      circulando simultaneamente com a mesma placa. Detecções
+                      com distância inferior a 1 km são desconsideradas para
+                      esse alerta.
                     </p>
                   </div>
                 </div>
