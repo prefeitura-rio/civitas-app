@@ -14,170 +14,90 @@ interface ReportCoverProps {
   vehicle?: Vehicle
 }
 
-type BulletPoint = {
-  value: string
-  children?: BulletPoint[]
-}
-
-const bulletPoints: BulletPoint[] = [
+const methodologySteps = [
   {
-    value: 'Estrutura do relatório:',
-    children: [
-      {
-        value: 'Ponto de detecção:',
-        children: [
-          {
-            value:
-              'Um ponto de detecção é definido pelo local, data e hora onde uma placa foi detectada por um equipamento de leitura de placa (LPR) da Prefeitura da cidade do Rio de Janeiro.',
-          },
-          {
-            value:
-              'Os pontos de detecção possuem uma numeração chamada "posição", que indica  a ordem cronológica dos registros dentro de uma viagem.',
-          },
-        ],
-      },
-
-      {
-        value: 'Viagem:',
-        children: [
-          {
-            value:
-              'Os pontos de detecção são agrupados em "viagens" no relatório.',
-          },
-          {
-            value:
-              'Uma viagem consiste em um conjunto de pontos de detecção com intervalo de tempo inferior a 1 hora entre si.',
-          },
-          {
-            value:
-              'As viagens são exibidas da mais recente para a mais antiga, e por isso a numeração da viagem é apresentada em ordem decrescente.',
-          },
-          {
-            value:
-              'As viagens podem ser particionadas para facilitar a visualização dos pontos de detecção.',
-          },
-          {
-            value:
-              'O relatório exibe as viagens por meio de mapas e tabelas, destacando os pontos de detecção e seus detalhes.',
-          },
-        ],
-      },
-      {
-        value: 'Critérios de particionamento de uma viagem:',
-        children: [
-          {
-            value:
-              'Viagens são particionadas quando atendem a um ou mais dos seguintes critérios:',
-            children: [
-              {
-                value:
-                  'Múltiplos pontos de detecção no mesmo equipamento de leitura de placa (LPR).',
-              },
-              {
-                value: 'Viagem contendo mais de 10 pontos de detecção.',
-              },
-              {
-                value:
-                  'Dois pontos subsequentes com uma distância superior a 6 km entre si.',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        value: 'Alerta de suspeita de placa clonada:',
-        children: [
-          {
-            value:
-              'Um ícone de alerta é exibido quando o intervalo de tempo e a distância entre dois pontos de detecção são incompatíveis. Por exemplo, um curto intervalo de tempo aliado a uma longa distância pode sugerir a presença de dois veículos com a mesma placa circulando simultaneamente.',
-          },
-          {
-            value:
-              'Falhas na leitura dos equipamentos de leitura de placa (LPR) podem, entretanto, gerar situações similares ao exemplo acima.',
-          },
-          {
-            value:
-              'O alerta é ativado quando a velocidade necessária para percorrer a distância entre dois pontos excede 110 km/h, considerando uma linha reta entre os pontos e desconsiderando possíveis rotas reais.',
-          },
-          {
-            value: 'Os alertas são representados de duas formas:',
-            children: [
-              {
-                value: 'No mapa, por um marcador de cor vermelha.',
-              },
-              {
-                value:
-                  'Na tabela, com um ícone vermelho ao lado do índice da posição do ponto.',
-              },
-            ],
-          },
-        ],
-      },
-    ],
+    highlight: 'Recebimento da solicitação',
+    text: ' contendo a identificação do veículo e o período de interesse.',
   },
   {
-    value: 'Limitações do relatório:',
-    children: [
-      {
-        value: 'Período disponível para consultas:',
-        children: [
-          {
-            value:
-              'Os dados para geração automática deste e de outros relatórios de identificação de pontos de detecção no sistema CIVITAS estão disponíveis apenas a partir de 01/06/2024.',
-          },
-        ],
-      },
-      {
-        value: 'Conceito de viagem:',
-        children: [
-          {
-            value:
-              'A definição de viagem utilizada no relatório é arbitrária e pode ser inadequada em alguns casos. Por exemplo, se uma viagem dura mais de 1 hora e contém apenas duas detecções, uma no início e outra no final, o relatório pode exibi-la como duas viagens separadas.',
-          },
-        ],
-      },
-      {
-        value: 'Detecção de placas:',
-        children: [
-          {
-            value:
-              'A ausência de um registro de detecção não significa que o veículo não passou por uma área monitorada por equipamento de leitura de placa (LPR).',
-          },
-        ],
-      },
-      {
-        value: 'Aferição de trajetos:',
-        children: [
-          {
-            value:
-              'Não é possível determinar o trajeto exato entre os pontos de detecção registrados.',
-          },
-        ],
-      },
-      {
-        value: 'Alertas de suspeita de placa clonada:',
-        children: [
-          {
-            value: 'Cálculo da velocidade média entre dois pontos:',
-            children: [
-              {
-                value:
-                  'O cálculo é baseado na distância em linha reta entre dois pontos na superfície terrestre, sem levar em conta possíveis rotas reais percorridas pelo veículo.',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        value: 'Estimativa de velocidade média:',
-        children: [
-          {
-            value:
-              'Nem todas as passagens possuem velocidade associada. A ausência dessa informação pode ocorrer devido a falhas na aferição ou à desativação da funcionalidade de estimativa de velocidade no equipamento.',
-          },
-        ],
-      },
-    ],
+    highlight: 'Consulta aos registros de leitura automática de placas (LPR)',
+    text: ' disponíveis no sistema CIVITAS para o período informado.',
+  },
+  {
+    highlight: 'Identificação de todos os pontos de detecção',
+    text: ' associados ao veículo de interesse.',
+  },
+  {
+    highlight: 'Agrupamento dos pontos de detecção em viagens',
+    text: ', conforme os critérios descritos na Seção 2.b.',
+  },
+  {
+    highlight: 'Cálculo dos indicadores analíticos (KPIs)',
+    text: ', conforme descritos na Seção 3.',
+  },
+  {
+    highlight: 'Geração dos mapas e tabelas',
+    text: ' contendo as viagens, seus respectivos pontos de detecção e eventuais alertas de suspeita de clonagem de placa.',
+  },
+]
+
+const kpiDescriptions = [
+  {
+    indicator: 'Bairro com mais viagens distintas',
+    description:
+      'Identifica o bairro que aparece no maior número de viagens do veículo de interesse durante o período analisado. Um mesmo bairro é contabilizado apenas uma vez por viagem.',
+  },
+  {
+    indicator: 'Local com maior número de passagens',
+    description:
+      'Identifica o equipamento de leitura automática de placas (LPR) que registrou o maior número de detecções do veículo de interesse durante o período analisado.',
+  },
+  {
+    indicator: 'Bairro com mais detecções',
+    description:
+      'Identifica o bairro que concentrou o maior número total de pontos de detecção do veículo de interesse durante o período analisado.',
+  },
+  {
+    indicator: 'Turno com mais detecções',
+    descriptionPrefix:
+      'Identifica a faixa do dia com maior concentração de detecções do veículo de interesse, considerando os períodos: ',
+    descriptionHighlight:
+      'Madrugada (00h00 às 05h59), Manhã (06h00 às 11h59), Tarde (12h00 às 17h59) e Noite (18h00 às 23h59).',
+  },
+  {
+    indicator: 'Detecções por turno',
+    descriptionPrefix:
+      'Apresenta a distribuição das detecções do veículo de interesse entre os períodos de ',
+    descriptionHighlight:
+      'Madrugada (00h00 às 05h59), Manhã (06h00 às 11h59), Tarde (12h00 às 17h59) e Noite (18h00 às 23h59).',
+  },
+]
+
+const limitations = [
+  {
+    text: 'O relatório utiliza exclusivamente os registros de leitura automática de placas (LPR) disponíveis no sistema CIVITAS durante o período consultado.',
+  },
+  {
+    text: 'Os dados utilizados para geração deste relatório estão disponíveis apenas para registros realizados a partir de ',
+    highlight: '01/06/2024.',
+  },
+  {
+    text: 'A ausência de detecções não significa, necessariamente, que o veículo de interesse tenha circulado por determinada região, uma vez que fatores como cobertura da rede de equipamentos, falhas de leitura ou ausência de captura podem impedir o registro.',
+  },
+  {
+    text: 'O conceito de viagem adotado neste relatório possui finalidade operacional e pode não representar exatamente um deslocamento real do veículo, uma vez que as viagens são definidas exclusivamente pelo intervalo de tempo entre detecções consecutivas.',
+  },
+  {
+    text: 'Os pontos de detecção representam apenas os locais onde o veículo de interesse foi registrado pelos equipamentos LPR. Não é possível determinar o trajeto efetivamente percorrido entre dois pontos de detecção.',
+  },
+  {
+    text: 'Os indicadores analíticos possuem caráter descritivo e destinam-se exclusivamente ao apoio da análise dos registros do veículo de interesse, não sendo suficientes, isoladamente, para comprovar rotas, permanência, destino ou comportamento do veículo.',
+  },
+  {
+    text: 'A distribuição dos equipamentos de leitura automática de placas (LPR) não é homogênea entre os bairros do município, podendo influenciar o volume de detecções registrado em cada localidade.',
+  },
+  {
+    text: 'Os alertas de suspeita de clonagem representam apenas indícios e não constituem confirmação de clonagem do veículo de interesse. Eventuais limitações técnicas inerentes ao sistema de leitura automática de placas (LPR), como diferenças de sincronização de horários entre diferentes equipamentos ou outras condições operacionais da rede de monitoramento podem ocasionar alertas sem que haja efetiva clonagem. Dessa forma, o alerta deve ser interpretado apenas como um indicativo para aprofundamento da análise.',
   },
 ]
 
@@ -196,49 +116,107 @@ Font.register({
 
 const styles = StyleSheet.create({
   container: {
+    fontFamily: 'Open Sans',
     display: 'flex',
     flexDirection: 'column',
     fontSize: 11,
   },
-  title: {
-    paddingBottom: 12,
-
-    textAlign: 'center',
+  paragraph: {
     fontFamily: 'Open Sans',
-    fontSize: 14,
-    fontWeight: 600,
-  },
-  bulletRow: {
-    display: 'flex',
-    flexDirection: 'row',
-  },
-  bulletSubRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginLeft: 20,
-  },
-  bulletSubSubRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginLeft: 40,
-  },
-  bulletSubSubSubRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginLeft: 60,
-  },
-  bullet: {
-    height: '100%',
-  },
-  bulletTitle: {
-    fontFamily: 'Open Sans',
-    fontSize: 11,
-    fontWeight: 600,
-  },
-  bulletContent: {
-    fontFamily: 'Open Sans',
-    fontSize: 11,
+    fontSize: 12,
+    lineHeight: 1.5,
+    marginBottom: 14,
     textAlign: 'justify',
+  },
+  strong: {
+    fontFamily: 'Open Sans',
+    fontWeight: 600,
+  },
+  sectionTitle: {
+    fontFamily: 'Open Sans',
+    fontSize: 16,
+    fontWeight: 600,
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  resultsTitle: {
+    fontFamily: 'Open Sans',
+    fontSize: 16,
+    fontWeight: 600,
+    marginTop: 24,
+    marginBottom: 18,
+  },
+  subsectionTitle: {
+    fontFamily: 'Open Sans',
+    fontSize: 12,
+    fontWeight: 600,
+    marginTop: 10,
+    marginBottom: 10,
+    paddingLeft: 20,
+  },
+  orderedList: {
+    marginBottom: 18,
+    paddingLeft: 20,
+  },
+  orderedListItem: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  orderedListNumber: {
+    width: 16,
+    fontFamily: 'Open Sans',
+    fontSize: 11,
+    textAlign: 'right',
+  },
+  orderedListText: {
+    flex: 1,
+    paddingLeft: 8,
+    fontFamily: 'Open Sans',
+    fontSize: 11,
+    lineHeight: 1.5,
+  },
+  unorderedList: {
+    marginTop: 4,
+    marginBottom: 14,
+    paddingLeft: 20,
+  },
+  unorderedListItem: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  unorderedBullet: {
+    width: 10,
+    fontFamily: 'Open Sans',
+    fontSize: 11,
+  },
+  unorderedText: {
+    flex: 1,
+    fontFamily: 'Open Sans',
+    fontSize: 11,
+    lineHeight: 1.5,
+  },
+  kpiList: {
+    marginTop: 8,
+    marginBottom: 14,
+  },
+  kpiListItem: {
+    marginBottom: 10,
+  },
+  kpiIndicatorRow: {
+    flexDirection: 'row',
+    marginBottom: 2,
+  },
+  kpiIndicator: {
+    flex: 1,
+    fontFamily: 'Open Sans',
+    fontSize: 11,
+    fontWeight: 600,
+  },
+  kpiDescription: {
+    marginLeft: 24,
+    fontFamily: 'Open Sans',
+    fontSize: 11,
+    lineHeight: 1.5,
   },
   tableRow: {
     flexDirection: 'row',
@@ -264,6 +242,14 @@ const styles = StyleSheet.create({
   tableRowValueCompactText: {
     fontSize: 10,
   },
+  emptyResultText: {
+    fontFamily: 'Open Sans',
+    fontSize: 12,
+    fontWeight: 600,
+    lineHeight: 1.5,
+    marginBottom: 16,
+    textAlign: 'justify',
+  },
 })
 
 export function ReportCover({
@@ -275,6 +261,7 @@ export function ReportCover({
 }: ReportCoverProps) {
   const from = formatDate(searchParams.startTime, "dd/MM/yyyy 'às' HH:mm:ss")
   const to = formatDate(searchParams.endTime, "dd/MM/yyyy 'às' HH:mm:ss")
+  const hasDetections = totalPoints > 0
 
   const topLocationText = circulationIndicators?.top_location
     ? `${circulationIndicators.top_location.localidade.capitalizeFirstLetter()} (${circulationIndicators.top_location.detections} detecções)`
@@ -325,56 +312,170 @@ export function ReportCover({
     )
   }
 
+  function renderNumberedItem(
+    item: (typeof methodologySteps)[number],
+    index: number,
+  ) {
+    return (
+      <View key={item.highlight} style={styles.orderedListItem}>
+        <Text style={styles.orderedListNumber}>{index + 1}.</Text>
+        <Text style={styles.orderedListText}>
+          <Text style={styles.strong}>{item.highlight}</Text>
+          {item.text}
+        </Text>
+      </View>
+    )
+  }
+
+  function renderLimitationItem(item: (typeof limitations)[number]) {
+    return (
+      <View key={item.text}>
+        <View style={styles.unorderedListItem}>
+          <Text style={styles.unorderedBullet}>{'\u2022'}</Text>
+          <Text style={styles.unorderedText}>
+            {item.text}
+            {item.highlight && (
+              <Text style={styles.strong}>{item.highlight}</Text>
+            )}
+          </Text>
+        </View>
+      </View>
+    )
+  }
+
   return (
     <>
       <View style={styles.container}>
-        <Text style={styles.title}>Informações gerais sobre o relatório:</Text>
+        <Text style={styles.sectionTitle}>Estrutura do Relatório</Text>
 
-        {bulletPoints.map((topic, i) => (
-          <View key={i}>
-            <View style={styles.bulletRow}>
-              <Text>{'\u2022' + ' '}</Text>
-              <Text style={styles.bulletTitle}>{topic.value}</Text>
-            </View>
+        <Text style={styles.paragraph}>
+          Este relatório tem por objetivo apresentar os registros de circulação
+          de um <Text style={styles.strong}>veículo de interesse</Text> no
+          município do Rio de Janeiro durante o período definido pela autoridade
+          solicitante, utilizando os registros de leitura automática de placas
+          (LPR) disponíveis no sistema CIVITAS.
+        </Text>
 
-            {topic.children?.map((subTopic, j) => (
-              <View key={j}>
-                <View style={styles.bulletSubRow}>
-                  <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
-                  <Text style={styles.bulletTitle}>{subTopic.value}</Text>
-                </View>
+        <Text style={styles.paragraph}>
+          Para facilitar a interpretação dos resultados, são apresentados a
+          seguir a metodologia de elaboração do relatório, sua estrutura, os
+          principais conceitos utilizados na análise e os indicadores analíticos
+          disponíveis.
+        </Text>
 
-                {subTopic.children?.map((subSubTopic, k) => (
-                  <View key={k}>
-                    <View style={styles.bulletSubSubRow}>
-                      <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
-                      <Text
-                        style={
-                          subSubTopic.children
-                            ? styles.bulletTitle
-                            : styles.bulletContent
-                        }
-                      >
-                        {subSubTopic.value}
-                      </Text>
-                    </View>
+        <Text style={styles.paragraph}>
+          A elaboração deste relatório compreende as seguintes etapas:
+        </Text>
+        <View style={styles.orderedList}>
+          {methodologySteps.map(renderNumberedItem)}
+        </View>
 
-                    {subSubTopic.children?.map((subSubSubTopic, index) => (
-                      <View key={index} style={styles.bulletSubSubSubRow}>
-                        <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
-                        <Text style={styles.bulletContent}>
-                          {subSubSubTopic.value}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                ))}
-              </View>
-            ))}
+        <Text style={styles.sectionTitle}>Como interpretar este relatório</Text>
+
+        <Text style={styles.subsectionTitle}>1. Ponto de detecção</Text>
+        <Text style={styles.paragraph}>
+          <Text style={styles.strong}>
+            Um ponto de detecção corresponde ao registro de um veículo de
+            interesse
+          </Text>
+          , contendo o local, a data e o horário em que foi identificado por um
+          equipamento de leitura automática de placas (LPR). Nos mapas, cada
+          ponto recebe um número de <Text style={styles.strong}>posição</Text>,
+          que indica sua ordem cronológica dentro da respectiva viagem.
+        </Text>
+
+        <View break />
+
+        <Text style={styles.subsectionTitle}>2. Viagem</Text>
+        <Text style={styles.paragraph}>
+          Uma viagem corresponde ao conjunto de pontos de detecção de um veículo
+          de interesse que formam um deslocamento contínuo.{' '}
+          <Text style={styles.strong}>
+            Os registros são agrupados em uma mesma viagem quando o intervalo
+            entre um ponto de detecção e o seguinte é inferior a uma hora.
+          </Text>{' '}
+          Caso esse intervalo seja igual ou superior a uma hora, entende-se que
+          houve uma interrupção do deslocamento, iniciando uma nova viagem. As
+          viagens são apresentadas da mais recente para a mais antiga. Quando
+          necessário para melhorar a visualização dos resultados, uma viagem
+          poderá ser dividida em segmentos quando:
+        </Text>
+        <View style={styles.unorderedList}>
+          <View style={styles.unorderedListItem}>
+            <Text style={styles.unorderedBullet}>{'\u2022'}</Text>
+            <Text style={styles.unorderedText}>
+              possuir mais de{' '}
+              <Text style={styles.strong}>10 pontos de detecção</Text>; ou
+            </Text>
           </View>
-        ))}
+          <View style={styles.unorderedListItem}>
+            <Text style={styles.unorderedBullet}>{'\u2022'}</Text>
+            <Text style={styles.unorderedText}>
+              existirem dois pontos consecutivos separados por distância
+              superior a <Text style={styles.strong}>6 km</Text>.
+            </Text>
+          </View>
+        </View>
 
-        <View style={{ flexDirection: 'column', marginTop: 28 }}>
+        <Text style={styles.subsectionTitle}>
+          3. Alerta de suspeita de clonagem
+        </Text>
+        <Text style={styles.paragraph}>
+          O relatório apresenta um alerta automático quando o intervalo de tempo
+          entre duas detecções consecutivas é incompatível com a distância entre
+          elas. O alerta é gerado quando a velocidade média estimada supera{' '}
+          <Text style={styles.strong}>
+            110 km/h em linha reta entre os pontos de detecção e a distância
+            entre duas detecções subsequentes é maior que 1 km.
+          </Text>{' '}
+          Esse alerta possui caráter indicativo e não confirma a existência de
+          clonagem do veículo de interesse, cabendo à autoridade competente
+          fazer a apuração dos fatos.
+        </Text>
+
+        <Text style={styles.sectionTitle}>Indicadores Analíticos (KPIs)</Text>
+        <Text style={styles.paragraph}>
+          Os indicadores analíticos resumem os principais padrões identificados
+          nos registros do veículo de interesse durante o período consultado.
+        </Text>
+
+        <View style={styles.kpiList}>
+          {kpiDescriptions.map((item) => (
+            <View key={item.indicator} style={styles.kpiListItem}>
+              <View style={styles.kpiIndicatorRow}>
+                <Text style={styles.unorderedBullet}>{'\u2022'}</Text>
+                <Text style={styles.kpiIndicator}>{item.indicator}</Text>
+              </View>
+              <Text style={styles.kpiDescription}>
+                {'description' in item
+                  ? item.description
+                  : item.descriptionPrefix}
+                {'descriptionHighlight' in item && (
+                  <Text style={styles.strong}>{item.descriptionHighlight}</Text>
+                )}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>Limitações</Text>
+        <Text style={styles.paragraph}>
+          As informações apresentadas neste relatório devem ser interpretadas
+          considerando as seguintes limitações:
+        </Text>
+        <View style={styles.unorderedList}>
+          {limitations.map(renderLimitationItem)}
+        </View>
+
+        <Text style={styles.resultsTitle}>Resultados</Text>
+
+        {!hasDetections && (
+          <Text style={styles.emptyResultText}>
+            {`A placa ${searchParams.plate} NÃO foi detectada pelos equipamentos de leitura de placa (LPR) da Prefeitura da cidade do Rio de Janeiro entre ${from} e ${to}.`}
+          </Text>
+        )}
+
+        <View style={{ flexDirection: 'column', marginTop: 0 }}>
           {renderTableRow('Placa monitorada:', searchParams.plate)}
 
           {vehicle && (

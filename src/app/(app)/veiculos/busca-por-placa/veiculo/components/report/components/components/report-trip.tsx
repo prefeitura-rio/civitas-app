@@ -117,18 +117,14 @@ export function ReportTrip({
           </View>
 
           <View style={{ flexDirection: 'column', gap: 2 }}>
-            <TripTable points={tripChunck} />
-            <Text
-              style={{
-                textAlign: 'center',
-                fontFamily: 'Open Sans',
-                fontSize: 11,
-              }}
-            >
-              {tripChunck.length === 1
-                ? `Tabela ${useImgCounter()}: Ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${reportTripNumber}.`
-                : `Tabela ${useImgCounter()}: Pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${reportTripNumber}.`}
-            </Text>
+            <TripTable
+              points={tripChunck}
+              caption={
+                tripChunck.length === 1
+                  ? `Tabela ${useImgCounter()}: Ponto de detecção de posição ${tripChunck[0].index + 1} referente à viagem ${reportTripNumber}.`
+                  : `Tabela ${useImgCounter()}: Pontos de detecção de posição ${tripChunck[0].index + 1} a ${tripChunck[tripChunck.length - 1].index + 1} referentes à viagem ${reportTripNumber}.`
+              }
+            />
           </View>
         </View>
       ))}
