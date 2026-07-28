@@ -22,27 +22,9 @@ jest.mock('@/hooks/mapLayers/use-cameras', () => ({
   }),
 }))
 
-jest.mock('@/hooks/mapLayers/use-agents', () => ({
-  useAgents: () => ({
-    isVisible: false, // Agentes NÃO deve estar visível por padrão
-    setIsVisible: jest.fn(),
-    data: [],
-    layer: {},
-  }),
-}))
-
 jest.mock('@/hooks/mapLayers/use-fogo-cruzado', () => ({
   useFogoCruzadoIncidents: () => ({
     isVisible: false, // Fogo Cruzado NÃO deve estar visível por padrão
-    setIsVisible: jest.fn(),
-    data: [],
-    layer: {},
-  }),
-}))
-
-jest.mock('@/hooks/mapLayers/use-waze-police-alerts', () => ({
-  useWazePoliceAlerts: () => ({
-    isVisible: false, // Waze NÃO deve estar visível por padrão
     setIsVisible: jest.fn(),
     data: [],
     layer: {},
@@ -150,32 +132,6 @@ describe('MapLayerControl', () => {
     expect(camerasButton).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('should show agents layer as NOT selected by default', () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Clica no botão para abrir o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Verifica se a camada de agentes NÃO está selecionada por padrão
-    const agentsButton = screen.getByLabelText('Toggle Agentes layer')
-    expect(agentsButton).toHaveAttribute('data-state', 'off')
-    expect(agentsButton).toHaveAttribute('aria-pressed', 'false')
-  })
-
-  it('should show waze layer as NOT selected by default', () => {
-    render(<MapLayerControl />, { wrapper: createWrapper })
-
-    // Clica no botão para abrir o controle de camadas
-    const button = screen.getByText('Camadas')
-    fireEvent.click(button)
-
-    // Verifica se a camada de waze NÃO está selecionada por padrão
-    const wazeButton = screen.getByLabelText('Toggle Policiamento (Waze) layer')
-    expect(wazeButton).toHaveAttribute('data-state', 'off')
-    expect(wazeButton).toHaveAttribute('aria-pressed', 'false')
-  })
-
   it('should show fogo cruzado layer as NOT selected by default', () => {
     render(<MapLayerControl />, { wrapper: createWrapper })
 
@@ -268,10 +224,6 @@ describe('MapLayerControl', () => {
     // Verifica se todas as camadas estão presentes
     expect(screen.getByLabelText('Toggle LPR layer')).toBeInTheDocument()
     expect(screen.getByLabelText('Toggle Câmeras layer')).toBeInTheDocument()
-    expect(screen.getByLabelText('Toggle Agentes layer')).toBeInTheDocument()
-    expect(
-      screen.getByLabelText('Toggle Policiamento (Waze) layer'),
-    ).toBeInTheDocument()
     expect(
       screen.getByLabelText('Toggle Fogo Cruzado layer'),
     ).toBeInTheDocument()
@@ -296,8 +248,6 @@ describe('MapLayerControl', () => {
     // Verifica se os nomes das camadas estão corretos
     expect(screen.getByText('LPR')).toBeInTheDocument()
     expect(screen.getByText('Câmeras')).toBeInTheDocument()
-    expect(screen.getByText('Agentes')).toBeInTheDocument()
-    expect(screen.getByText('Policiamento (Waze)')).toBeInTheDocument()
     expect(screen.getByText('Fogo Cruzado')).toBeInTheDocument()
     expect(screen.getByText('Satélite')).toBeInTheDocument()
     expect(screen.getByText('AISP')).toBeInTheDocument()
@@ -331,11 +281,9 @@ describe('MapLayerControl', () => {
     fireEvent.click(button)
 
     // Verifica se as camadas não selecionadas têm a classe correta
-    const agentsButton = screen.getByLabelText('Toggle Agentes layer')
-    const wazeButton = screen.getByLabelText('Toggle Policiamento (Waze) layer')
+    const fogoCruzadoButton = screen.getByLabelText('Toggle Fogo Cruzado layer')
 
-    expect(agentsButton).toHaveAttribute('data-state', 'off')
-    expect(wazeButton).toHaveAttribute('data-state', 'off')
+    expect(fogoCruzadoButton).toHaveAttribute('data-state', 'off')
   })
 
   it('should ensure only radar and cameras are selected by default', () => {

@@ -10,8 +10,6 @@ import {
   Satellite,
   School,
   Shield,
-  Siren,
-  UsersRound,
   Video,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -39,12 +37,10 @@ export function MapLayerControl() {
     layers: {
       radars: { isVisible: isRadarVisible, setIsVisible: setIsRadarVisible },
       cameras: { isVisible: isCameraVisible, setIsVisible: setIsCameraVisible },
-      agents: { isVisible: isAgentsVisible, setIsVisible: setIsAgentsVisible },
       fogoCruzado: {
         isVisible: isFogoCruzadoVisible,
         setIsVisible: setIsFogoCruzadoVisible,
       },
-      waze: { isVisible: isWazeVisible, setIsVisible: setIsWazeVisible },
       AISP: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
       CISP: { isVisible: isCISPVisible, setIsVisible: setIsCISPVisible },
       schools: {
@@ -74,18 +70,6 @@ export function MapLayerControl() {
       icon: <Video />,
       isVisible: isCameraVisible,
       setIsVisible: setIsCameraVisible,
-    },
-    {
-      name: 'Agentes',
-      icon: <UsersRound />,
-      isVisible: isAgentsVisible,
-      setIsVisible: setIsAgentsVisible,
-    },
-    {
-      name: 'Policiamento (Waze)',
-      icon: <Siren />,
-      isVisible: isWazeVisible,
-      setIsVisible: setIsWazeVisible,
     },
     {
       name: 'Fogo Cruzado',

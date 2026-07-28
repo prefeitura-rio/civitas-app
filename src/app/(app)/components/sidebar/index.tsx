@@ -58,7 +58,7 @@ export function Sidebar({
       <nav className="group absolute left-0 top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-x-hidden border-r-2 bg-background p-2 transition-all duration-300 ease-in hover:w-64">
         <div className="flex flex-col">
           <div className="relative h-20">
-            {profile ? (
+            {profile?.username ? (
               <div className="">
                 <span className="absolute-centered text-2xl opacity-100 transition-opacity duration-300 group-hover:opacity-0">
                   {profile.username[0].toUpperCase()}

@@ -10,7 +10,6 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
 import { useAddressMarker } from '@/hooks/mapLayers/use-address-marker'
-import { useAgents } from '@/hooks/mapLayers/use-agents'
 import { useAISPLayer } from '@/hooks/mapLayers/use-AISP-layer'
 import { useBusStopLayer } from '@/hooks/mapLayers/use-bus-stop-layer'
 import { useCamera } from '@/hooks/mapLayers/use-cameras'
@@ -19,7 +18,6 @@ import { useFogoCruzadoIncidents } from '@/hooks/mapLayers/use-fogo-cruzado'
 import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
 import { useSchoolLayer } from '@/hooks/mapLayers/use-school-layer'
 import { useTrips } from '@/hooks/mapLayers/use-trips'
-import { useWazePoliceAlerts } from '@/hooks/mapLayers/use-waze-police-alerts'
 import type { CollectionPoint } from '@/models/entities'
 import type { SetViewportProps } from '@/models/utils'
 import { MapStyle } from '@/utils/get-map-style'
@@ -181,9 +179,7 @@ export function useMapLayers() {
   const radars = useRadarLayer(multipleSelectedRadars)
   const trips = useTrips({ setViewport })
   const cameras = useCamera()
-  const agents = useAgents()
   const fogoCruzado = useFogoCruzadoIncidents()
-  const waze = useWazePoliceAlerts()
   const address = useAddressMarker()
   const CISP = useCISPLayer()
   const AISP = useAISPLayer()
@@ -194,9 +190,7 @@ export function useMapLayers() {
     radars,
     trips,
     cameras,
-    agents,
     fogoCruzado,
-    waze,
     address,
     CISP,
     AISP,
