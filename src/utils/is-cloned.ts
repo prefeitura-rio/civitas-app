@@ -25,6 +25,8 @@ export function isCloned({ pointA, pointB }: isCLonedProps) {
     60 /
     60
 
+  if (distanceInKilometers < 1) return false
+
   if (distanceInKilometers / intervalInHours >= 110) return true
 
   return false
