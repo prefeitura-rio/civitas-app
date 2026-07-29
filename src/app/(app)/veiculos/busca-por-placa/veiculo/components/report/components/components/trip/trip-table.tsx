@@ -7,6 +7,7 @@ import type { Point } from '@/models/entities'
 
 interface TripTableProps {
   points: Point[]
+  caption?: string
 }
 
 Font.registerHyphenationCallback((word) => [word])
@@ -90,11 +91,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 4,
   },
+  caption: {
+    marginTop: 2,
+    textAlign: 'center',
+    fontFamily: 'Open Sans',
+    fontSize: 11,
+  },
 })
 
-export function TripTable({ points }: TripTableProps) {
+export function TripTable({ points, caption }: TripTableProps) {
   return (
-    <View style={{ flexDirection: 'column' }}>
+    <View style={{ flexDirection: 'column' }} wrap={false}>
       <View style={styles.row} wrap={false}>
         <View style={styles.index}>
           <Text>Posição</Text>
@@ -181,6 +188,8 @@ export function TripTable({ points }: TripTableProps) {
           </>
         )
       })}
+
+      {caption && <Text style={styles.caption}>{caption}</Text>}
     </View>
   )
 }

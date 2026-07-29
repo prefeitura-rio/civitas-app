@@ -112,7 +112,10 @@ export function TripCard({
                   são incompatíveis. Por exemplo, se dois pontos subsequentes
                   apresentam um intervalo curto e uma distância grande, isso
                   pode sugerir que há dois veículos com a mesma placa circulando
-                  pela cidade simultaneamente.
+                  pela cidade simultaneamente. O alerta é exibido quando a
+                  velocidade média estimada entre os pontos é igual ou superior
+                  a 110 km/h. Detecções com distância inferior a 1 km são
+                  desconsideradas para esse alerta.
                 </p>
 
                 <p>
