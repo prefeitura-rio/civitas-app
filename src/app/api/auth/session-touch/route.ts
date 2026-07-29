@@ -6,8 +6,10 @@ import {
   getSessionCookieName,
   serializeAccessToken,
   serializeSession,
+  serializeSessionId,
   validateAndRefreshSession,
 } from '@/auth/session'
+import { config } from '@/config'
 
 export async function POST(request: NextRequest) {
   if (!isTrustedOrigin(request)) {
@@ -19,11 +21,39 @@ export async function POST(request: NextRequest) {
 
   const sessionValue = request.cookies.get(getSessionCookieName())?.value
 
-  const result = await validateAndRefreshSession(sessionValue, true)
+  const result = await validateAndRefreshSession(sessionValue, true, false)
 
   if (!result.session) {
     const response = NextResponse.json(
       { authenticated: false },
+      { status: 401 },
+    )
+    for (const cookie of clearSessionCookies()) {
+      response.cookies.set(cookie.name, cookie.value, cookie.options)
+    }
+
+    return response
+  }
+
+  const validationResponse = await fetch(`${config.apiUrl}/users/me`, {
+    headers: {
+      Authorization: `Bearer ${result.session.accessToken}`,
+      'X-Civitas-Session-Id': result.session.sessionId,
+    },
+    cache: 'no-store',
+  })
+
+  if (!validationResponse.ok) {
+    let errorCode: string | undefined
+    try {
+      const body = (await validationResponse.json()) as { code?: string }
+      errorCode = body.code
+    } catch {
+      // Keep the generic unauthorized response if upstream did not return JSON.
+    }
+
+    const response = NextResponse.json(
+      { authenticated: false, code: errorCode },
       { status: 401 },
     )
     for (const cookie of clearSessionCookies()) {
@@ -40,6 +70,7 @@ export async function POST(request: NextRequest) {
 
   const sessionCookie = serializeSession(result.session)
   const accessTokenCookie = serializeAccessToken(result.session)
+  const sessionIdCookie = serializeSessionId(result.session)
 
   response.cookies.set(
     sessionCookie.name,
@@ -50,6 +81,11 @@ export async function POST(request: NextRequest) {
     accessTokenCookie.name,
     accessTokenCookie.value,
     accessTokenCookie.options,
+  )
+  response.cookies.set(
+    sessionIdCookie.name,
+    sessionIdCookie.value,
+    sessionIdCookie.options,
   )
 
   return response
