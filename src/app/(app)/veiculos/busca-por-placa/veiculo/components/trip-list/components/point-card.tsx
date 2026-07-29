@@ -39,6 +39,26 @@ export function PointCard({ point }: PointCardProps) {
 
   const speed = distanceInKilometers / intervalInHours
 
+  function formatSecondsToMinutes(secondsToNextPoint: number | null) {
+    if (secondsToNextPoint === null) {
+      return '--'
+    }
+
+    const roundedSeconds = Math.round(secondsToNextPoint)
+    if (roundedSeconds < 60) {
+      return `${roundedSeconds} s`
+    }
+
+    const minutes = Math.floor(roundedSeconds / 60)
+    const seconds = roundedSeconds % 60
+
+    if (seconds === 0) {
+      return `${minutes} min`
+    }
+
+    return `${minutes} min ${seconds} s`
+  }
+
   function handlePointClick() {
     const longitude = point.from[0]
     const latitude = point.from[1]
@@ -81,9 +101,13 @@ export function PointCard({ point }: PointCardProps) {
                       </span>
                     </li>
                     <li>
+                      <span className="text-muted-foreground">Distância: </span>
+                      <span>{distanceInKilometers.toFixed(1)} Km</span>
+                    </li>
+                    <li>
                       <span className="text-muted-foreground">Intervalo: </span>
                       <span>
-                        {((point.secondsToNextPoint || 0) / 60).toFixed(0)} min
+                        {formatSecondsToMinutes(point.secondsToNextPoint)}
                       </span>
                     </li>
                     <li>
@@ -99,7 +123,10 @@ export function PointCard({ point }: PointCardProps) {
                   <p className="">
                     Obs.: A velocidade média informada acima é calculada para
                     uma linha reta entre dois pontos na superfície da terra, não
-                    considerando possíveis trajetos realizados pelo veículo.
+                    considerando possíveis trajetos realizados pelo veículo. O
+                    alerta é exibido quando essa velocidade média é igual ou
+                    superior a 110 km/h. Detecções com distância inferior a 1 km
+                    são desconsideradas para esse alerta.
                   </p>
                 </CardContent>
               </Card>
