@@ -19,6 +19,69 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '29 de Julho de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Aprimoramento do alerta de suspeita de clonagem',
+        content: (
+          <>
+            <p>
+              Os critérios para geração de alertas de suspeita de clonagem foram
+              ajustados para aumentar a precisão da análise e reduzir possíveis
+              falsos positivos.
+            </p>
+            <ul>
+              <li>
+                Adicionado: a distância entre duas detecções consecutivas deve
+                ser maior ou igual a 1 km.
+              </li>
+              <li>
+                Mantido: a velocidade média estimada entre as detecções deve ser
+                maior ou igual a 110 km/h.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Ajustes no Relatório de Pontos de Detecção',
+        content: (
+          <>
+            <p>
+              O relatório de busca por placa recebeu uma nova organização na
+              capa, com textos mais claros para apoiar a interpretação dos
+              resultados.
+            </p>
+            <ul>
+              <li>
+                A capa passou a apresentar a estrutura do relatório, a
+                metodologia de geração, os conceitos utilizados na análise e as
+                limitações dos dados.
+              </li>
+              <li>
+                Os indicadores analíticos foram reorganizados em uma lista
+                explicativa, facilitando a compreensão de cada KPI exibido no
+                resumo.
+              </li>
+              <li>
+                A seção <code>Resultados</code> foi adicionada antes da tabela
+                de resumo, separando melhor o conteúdo explicativo dos dados
+                consultados.
+              </li>
+              <li>
+                Quando a placa não possuir detecções no período consultado, o
+                relatório passa a exibir uma mensagem destacada antes da tabela
+                de resumo.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '08 de Junho de 2026',
     subCards: [
       {
