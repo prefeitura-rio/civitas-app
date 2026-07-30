@@ -9,6 +9,7 @@ import {
   validateAndRefreshSession,
 } from '@/auth/session'
 import { config } from '@/config'
+import { setForwardedClientIpHeaders } from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
   'GET',
@@ -79,15 +80,7 @@ async function handler(request: NextRequest) {
   if (origin) {
     headers.set('Origin', origin)
   }
-  // Preserve client IP for backend audit/rate-limit when enabled.
-  const forwardedFor = request.headers.get('x-forwarded-for')
-  if (forwardedFor) {
-    headers.set('X-Forwarded-For', forwardedFor)
-  }
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) {
-    headers.set('X-Real-IP', realIp)
-  }
+  setForwardedClientIpHeaders(headers, request.headers)
 
   let body: BodyInit | undefined
   if (request.method !== 'GET' && request.method !== 'HEAD') {
