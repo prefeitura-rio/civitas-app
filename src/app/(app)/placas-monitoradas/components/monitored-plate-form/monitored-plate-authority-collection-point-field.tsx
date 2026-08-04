@@ -56,6 +56,25 @@ export function MonitoredPlateAuthorityCollectionPointField({
     prevMonitorAllRef.current = monitorAll
   }, [monitorAll, picker])
 
+  // Reverte o toggle para "monitorar todos" quando o picker é fechado sem
+  // nenhum equipamento selecionado. Evita estado inconsistente em que o toggle
+  // indica seleção específica mas nenhum radar foi escolhido.
+  const prevExpandedRef = useRef(picker.expanded)
+  useEffect(() => {
+    const wasExpanded = prevExpandedRef.current
+    prevExpandedRef.current = picker.expanded
+
+    if (
+      wasExpanded &&
+      !picker.expanded &&
+      monitorAll === false &&
+      value.length === 0 &&
+      onMonitorAllChange
+    ) {
+      onMonitorAllChange(true)
+    }
+  }, [picker.expanded, monitorAll, value.length, onMonitorAllChange])
+
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <div className="flex flex-col gap-1">
