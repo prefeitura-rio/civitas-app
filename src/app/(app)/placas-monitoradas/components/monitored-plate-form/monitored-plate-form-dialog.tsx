@@ -1,7 +1,7 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -34,7 +34,10 @@ import {
   isNotFoundError,
 } from '@/utils/error-handlers'
 
-import { MonitoredPlateAuthorityLinksPanel } from './monitored-plate-authority-links-panel'
+import {
+  MonitoredPlateAuthorityLinksPanel,
+  type MonitoredPlateAuthorityLinksPanelHandle,
+} from './monitored-plate-authority-links-panel'
 import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-authority-link'
 
 const MONITORED_PLATE_REGEX = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/
@@ -73,6 +76,8 @@ export function MonitoredPlateFormDialog({
   const [draftLinks, setDraftLinks] = useState<
     MonitoredPlateDraftAuthorityLink[]
   >([])
+  const authorityLinksPanelRef =
+    useRef<MonitoredPlateAuthorityLinksPanelHandle>(null)
   const {
     dialogInitialData: initialData,
     setDialogInitialData: setInitialData,
@@ -279,6 +284,7 @@ export function MonitoredPlateFormDialog({
       notes: values.notes.trim() || null,
       additionalInfo: monitoredPlate?.additionalInfo ?? null,
     })
+    await authorityLinksPanelRef.current?.flushPendingActiveChanges()
 
     handleOnOpenChange(false)
   }
@@ -359,6 +365,7 @@ export function MonitoredPlateFormDialog({
               </div>
 
               <MonitoredPlateAuthorityLinksPanel
+                ref={authorityLinksPanelRef}
                 mode="persisted"
                 plate={monitoredPlate.plate}
                 monitoredPlateId={monitoredPlate.id}
