@@ -143,9 +143,7 @@ async function handler(request: NextRequest) {
   // Block HTML *documents* (wrong upstream / Next shell). Allow legitimate
   // HTML file downloads that use Content-Disposition: attachment.
   const looksLikeHtmlDocument =
-    !hasNoBody &&
-    upstreamContentType.includes('text/html') &&
-    !isAttachment
+    !hasNoBody && upstreamContentType.includes('text/html') && !isAttachment
 
   if (looksLikeHtmlDocument) {
     console.error('[bff] upstream returned HTML document', {

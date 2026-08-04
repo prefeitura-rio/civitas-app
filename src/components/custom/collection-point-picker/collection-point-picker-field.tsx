@@ -25,8 +25,9 @@ export function CollectionPointPickerField({
   onChange,
   disabled = false,
   defaultSelectAll = false,
-  emptyButtonLabel = 'Buscar e selecionar radares',
-  selectedButtonLabel = (count) => `${count} radar(es) selecionado(s) — editar`,
+  emptyButtonLabel = 'Buscar e selecionar equipamentos de LPR',
+  selectedButtonLabel = (count) =>
+    `${count} equipamento(s) de LPR selecionado(s) — editar`,
 }: CollectionPointPickerFieldProps) {
   const picker = useCollectionPointPickerState({
     value,

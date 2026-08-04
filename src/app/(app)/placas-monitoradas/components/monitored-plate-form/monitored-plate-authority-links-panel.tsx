@@ -36,7 +36,7 @@ function getCollectionPointScopeLabel(
 ) {
   const collectionPointCount = collectionPointIds?.length ?? 0
 
-  if (monitorAllCollectionPoints) return 'Todos radares do cerco'
+  if (monitorAllCollectionPoints) return 'Todos equipamentos de LPR do cerco'
 
   return collectionPointCount === 1
     ? '1 ponto monitorado'

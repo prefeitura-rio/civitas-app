@@ -49,7 +49,7 @@ export function CollectionPointPickerDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex h-[min(92vh,900px)] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl">
         <DialogHeader className="shrink-0 space-y-1 border-b px-4 py-4 pr-12 text-left sm:px-6">
-          <DialogTitle>Selecionar radares</DialogTitle>
+          <DialogTitle>Selecionar equipamentos de LPR</DialogTitle>
           <DialogDescription>
             Clique no mapa ou na lista para marcar pontos. Confirme para aplicar
             a seleção ao vínculo.
@@ -64,9 +64,9 @@ export function CollectionPointPickerDialog({
                   <div>
                     <p className="text-sm font-medium text-foreground">Mapa</p>
                     <p className="text-xs text-muted-foreground">
-                      Clique para selecionar radares. Botão direito para ver
-                      detalhes. Use &quot;Selecionar por área&quot; para marcar
-                      múltiplos de uma vez.
+                      Clique para selecionar equipamentos de LPR. Botão direito
+                      para ver detalhes. Use &quot;Selecionar por área&quot;
+                      para marcar múltiplos de uma vez.
                     </p>
                   </div>
 
