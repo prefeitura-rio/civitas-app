@@ -1,7 +1,13 @@
 'use client'
 import { useMutation, useQueries } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
-import { type Dispatch, type SetStateAction, useState } from 'react'
+import {
+  type Dispatch,
+  forwardRef,
+  type SetStateAction,
+  useImperativeHandle,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -30,6 +36,11 @@ import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-a
 
 type PanelMode = 'persisted' | 'draft'
 
+export type MonitoredPlateAuthorityLinksPanelHandle = {
+  /** Applies deferred active toggles from the list Switch (edit plate flow). */
+  flushPendingActiveChanges: () => Promise<void>
+}
+
 function getCollectionPointScopeLabel(
   monitorAllCollectionPoints: boolean,
   collectionPointIds: string[] | undefined,
@@ -57,22 +68,31 @@ interface MonitoredPlateAuthorityLinksPanelProps {
   disabled?: boolean
 }
 
-export function MonitoredPlateAuthorityLinksPanel({
-  mode,
-  plate,
-  monitoredPlateId,
-  links = [],
-  draftLinks = [],
-  onDraftLinksChange,
-  institutionAuthorities,
-  notificationChannels,
-  disabled = false,
-}: MonitoredPlateAuthorityLinksPanelProps) {
+export const MonitoredPlateAuthorityLinksPanel = forwardRef<
+  MonitoredPlateAuthorityLinksPanelHandle,
+  MonitoredPlateAuthorityLinksPanelProps
+>(function MonitoredPlateAuthorityLinksPanel(
+  {
+    mode,
+    plate,
+    monitoredPlateId,
+    links = [],
+    draftLinks = [],
+    onDraftLinksChange,
+    institutionAuthorities,
+    notificationChannels,
+    disabled = false,
+  },
+  ref,
+) {
   const [editingDraft, setEditingDraft] =
     useState<MonitoredPlateDraftAuthorityLink | null>(null)
   const [editingPersisted, setEditingPersisted] =
     useState<MonitoredPlateAuthoritySummary | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [pendingActiveByLinkId, setPendingActiveByLinkId] = useState<
+    Record<string, boolean>
+  >({})
 
   const reservedAuthorityIds =
     mode === 'persisted'
@@ -194,6 +214,49 @@ export function MonitoredPlateAuthorityLinksPanel({
     )
   }
 
+  function getPersistedLinkActive(link: MonitoredPlateAuthoritySummary) {
+    return pendingActiveByLinkId[link.id] ?? link.active
+  }
+
+  function omitPendingActive(
+    prev: Record<string, boolean>,
+    linkId: string,
+  ): Record<string, boolean> {
+    const next = { ...prev }
+    delete next[linkId]
+    return next
+  }
+
+  function setPendingPersistedActive(linkId: string, active: boolean) {
+    const link = links.find((item) => item.id === linkId)
+    setPendingActiveByLinkId((prev) => {
+      if (link && link.active === active) {
+        return omitPendingActive(prev, linkId)
+      }
+      return { ...prev, [linkId]: active }
+    })
+  }
+
+  useImperativeHandle(ref, () => ({
+    async flushPendingActiveChanges() {
+      const pendingEntries = Object.entries(pendingActiveByLinkId).filter(
+        ([linkId, active]) => {
+          const link = links.find((item) => item.id === linkId)
+          return link != null && link.active !== active
+        },
+      )
+
+      if (pendingEntries.length === 0) return
+
+      await Promise.all(
+        pendingEntries.map(([id, active]) =>
+          updatePersistedLink({ id, active }),
+        ),
+      )
+      setPendingActiveByLinkId({})
+    },
+  }))
+
   async function handlePersistedCreate(
     payload: MonitoredPlateAuthorityDraftCreatePayload,
   ) {
@@ -280,17 +343,16 @@ export function MonitoredPlateAuthorityLinksPanel({
                       className="inline-flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs text-muted-foreground"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <span>{link.active ? 'Ativo' : 'Inativo'}</span>
+                      <span>
+                        {getPersistedLinkActive(link) ? 'Ativo' : 'Inativo'}
+                      </span>
                       <Switch
-                        checked={link.active}
+                        checked={getPersistedLinkActive(link)}
                         disabled={disabled || isMutatingPersisted}
-                        aria-label={`Vínculo ${link.active ? 'ativo' : 'inativo'}`}
-                        onCheckedChange={async (checked) => {
-                          await updatePersistedLink({
-                            id: link.id,
-                            active: checked,
-                          })
-                        }}
+                        aria-label={`Vínculo ${getPersistedLinkActive(link) ? 'ativo' : 'inativo'}`}
+                        onCheckedChange={(checked) =>
+                          setPendingPersistedActive(link.id, checked)
+                        }
                       />
                     </div>
                   </div>
@@ -395,9 +457,11 @@ export function MonitoredPlateAuthorityLinksPanel({
           isRemoving={isRemovingPersisted}
           onSave={async (id, data) => {
             await updatePersistedLink({ id, ...data })
+            setPendingActiveByLinkId((prev) => omitPendingActive(prev, id))
           }}
           onRemove={async (id) => {
             await removePersistedLink(id)
+            setPendingActiveByLinkId((prev) => omitPendingActive(prev, id))
           }}
         />
       )}
@@ -448,4 +512,4 @@ export function MonitoredPlateAuthorityLinksPanel({
       ) : null}
     </div>
   )
-}
+})
