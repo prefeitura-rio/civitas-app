@@ -94,8 +94,8 @@ export function MonitoredPlateAuthorityCollectionPointField({
           onClick={picker.openPicker}
         >
           {value.length > 0
-            ? `${value.length} radar(es) selecionado(s) — editar`
-            : 'Buscar e selecionar radares'}
+            ? `${value.length} equipamento(s) de LPR selecionado(s) — editar`
+            : 'Buscar e selecionar equipamentos de LPR'}
         </Button>
       )}
 
