@@ -48,10 +48,8 @@ export function MonitoredPlatesTable() {
         getMonitoredPlates({
           active: formattedSearchParams.active,
           plateContains: formattedSearchParams.plateContains,
-          institutionAuthorityName:
-            formattedSearchParams.institutionAuthorityName,
-          notificationChannelTitle:
-            formattedSearchParams.notificationChannelTitle,
+          institutionAuthorityId: formattedSearchParams.institutionAuthorityId,
+          notificationChannelId: formattedSearchParams.notificationChannelId,
           startTimeCreate: formattedSearchParams.startTimeCreate,
           endTimeCreate: formattedSearchParams.endTimeCreate,
           page: formattedSearchParams.page,

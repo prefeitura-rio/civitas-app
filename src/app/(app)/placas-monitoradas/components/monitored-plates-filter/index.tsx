@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { Search, X } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -17,6 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { getInstitutionAuthorities } from '@/http/institution-authorities'
+import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
+
+import {
+  type FilterComboboxOption,
+  MonitoredPlatesFilterCombobox,
+} from './monitored-plates-filter-combobox'
 
 const activeOptions = ['all', 'true', 'false'] as const
 type ActiveFilter = (typeof activeOptions)[number]
@@ -48,31 +56,33 @@ function readEndDateParam(searchParams: URLSearchParams) {
   return searchParams.get('endTimeCreate') || searchParams.get('createdAtTo')
 }
 
-function buildFilterParams({
-  plateContains,
-  institutionAuthorityName,
-  notificationChannelTitle,
-  active,
-  startTimeCreate,
-  endTimeCreate,
-  size,
-}: {
+type FilterSnapshot = {
   plateContains: string
-  institutionAuthorityName: string
-  notificationChannelTitle: string
+  institutionAuthorityId: string
+  notificationChannelId: string
   active: ActiveFilter
   startTimeCreate?: string
   endTimeCreate?: string
   size?: string | null
-}) {
+}
+
+function buildFilterParams({
+  plateContains,
+  institutionAuthorityId,
+  notificationChannelId,
+  active,
+  startTimeCreate,
+  endTimeCreate,
+  size,
+}: FilterSnapshot) {
   const params = new URLSearchParams()
   const plate = plateContains.trim().toUpperCase()
-  const authority = institutionAuthorityName.trim()
-  const channel = notificationChannelTitle.trim()
 
   if (plate) params.set('plateContains', plate)
-  if (authority) params.set('institutionAuthorityName', authority)
-  if (channel) params.set('notificationChannelTitle', channel)
+  if (institutionAuthorityId !== 'all')
+    params.set('institutionAuthorityId', institutionAuthorityId)
+  if (notificationChannelId !== 'all')
+    params.set('notificationChannelId', notificationChannelId)
   params.set('active', active)
   if (startTimeCreate) params.set('startTimeCreate', startTimeCreate)
   if (endTimeCreate) params.set('endTimeCreate', endTimeCreate)
@@ -90,12 +100,21 @@ export function MonitoredPlatesFilter() {
   const [plateContains, setPlateContains] = useState(
     () => searchParams.get('plateContains') ?? '',
   )
-  const [institutionAuthorityName, setInstitutionAuthorityName] = useState(
-    () => searchParams.get('institutionAuthorityName') ?? '',
+  const [institutionAuthorityId, setInstitutionAuthorityId] = useState(
+    () => searchParams.get('institutionAuthorityId') ?? 'all',
   )
-  const [notificationChannelTitle, setNotificationChannelTitle] = useState(
-    () => searchParams.get('notificationChannelTitle') ?? '',
+  const [institutionAuthorityName, setInstitutionAuthorityName] = useState('')
+  const [institutionAuthoritySearch, setInstitutionAuthoritySearch] =
+    useState('')
+  const [isAuthorityOpen, setIsAuthorityOpen] = useState(false)
+
+  const [notificationChannelId, setNotificationChannelId] = useState(
+    () => searchParams.get('notificationChannelId') ?? 'all',
   )
+  const [notificationChannelTitle, setNotificationChannelTitle] = useState('')
+  const [notificationChannelSearch, setNotificationChannelSearch] = useState('')
+  const [isChannelOpen, setIsChannelOpen] = useState(false)
+
   const [active, setActive] = useState<ActiveFilter>(() =>
     readActiveParam(searchParams.get('active')),
   )
@@ -107,22 +126,67 @@ export function MonitoredPlatesFilter() {
   )
 
   const debouncedPlateContains = useDebounce(plateContains, 350)
-  const debouncedInstitutionAuthorityName = useDebounce(
-    institutionAuthorityName,
-    350,
-  )
-  const debouncedNotificationChannelTitle = useDebounce(
-    notificationChannelTitle,
-    350,
-  )
+  const debouncedAuthoritySearch = useDebounce(institutionAuthoritySearch, 350)
+  const debouncedChannelSearch = useDebounce(notificationChannelSearch, 350)
 
   const hasActiveFilters =
     plateContains.trim().length > 0 ||
-    institutionAuthorityName.trim().length > 0 ||
-    notificationChannelTitle.trim().length > 0 ||
+    institutionAuthorityId !== 'all' ||
+    notificationChannelId !== 'all' ||
     active !== 'true' ||
     startTimeCreate != null ||
     endTimeCreate != null
+
+  const { data: authoritiesResponse, isLoading: isLoadingAuthorities } =
+    useQuery({
+      queryKey: ['institution-authorities', 'filter', debouncedAuthoritySearch],
+      queryFn: () =>
+        getInstitutionAuthorities({
+          page: 1,
+          size: 20,
+          search: debouncedAuthoritySearch,
+        }),
+      enabled: isAuthorityOpen || institutionAuthorityId !== 'all',
+    })
+
+  const { data: channelsResponse, isLoading: isLoadingChannels } = useQuery({
+    queryKey: ['notification-channels', 'filter', 100],
+    queryFn: () => getNotificationChannels({ page: 1, size: 100 }),
+    enabled: isChannelOpen || notificationChannelId !== 'all',
+  })
+
+  const authorityOptions: FilterComboboxOption[] = (
+    authoritiesResponse?.data.items ?? []
+  ).map((item) => ({ id: item.id, label: item.name }))
+
+  const channelOptions: FilterComboboxOption[] = (
+    channelsResponse?.data.items ?? []
+  )
+    .filter((item) => {
+      const query = debouncedChannelSearch.trim().toLowerCase()
+      if (!query) return true
+      return (item.title || item.id).toLowerCase().includes(query)
+    })
+    .map((item) => ({
+      id: item.id,
+      label: item.title || item.id,
+    }))
+
+  useEffect(() => {
+    if (institutionAuthorityId === 'all' || institutionAuthorityName) return
+    const match = authorityOptions.find(
+      (item) => item.id === institutionAuthorityId,
+    )
+    if (match) setInstitutionAuthorityName(match.label)
+  }, [authorityOptions, institutionAuthorityId, institutionAuthorityName])
+
+  useEffect(() => {
+    if (notificationChannelId === 'all' || notificationChannelTitle) return
+    const match = channelOptions.find(
+      (item) => item.id === notificationChannelId,
+    )
+    if (match) setNotificationChannelTitle(match.label)
+  }, [channelOptions, notificationChannelId, notificationChannelTitle])
 
   useEffect(() => {
     if (skipNextUrlSync.current) {
@@ -131,12 +195,10 @@ export function MonitoredPlatesFilter() {
     }
 
     setPlateContains(searchParams.get('plateContains') ?? '')
-    setInstitutionAuthorityName(
-      searchParams.get('institutionAuthorityName') ?? '',
+    setInstitutionAuthorityId(
+      searchParams.get('institutionAuthorityId') ?? 'all',
     )
-    setNotificationChannelTitle(
-      searchParams.get('notificationChannelTitle') ?? '',
-    )
+    setNotificationChannelId(searchParams.get('notificationChannelId') ?? 'all')
     setActive(readActiveParam(searchParams.get('active')))
     setStartTimeCreate(parseDateOnly(readStartDateParam(searchParams)))
     setEndTimeCreate(parseDateOnly(readEndDateParam(searchParams)))
@@ -145,8 +207,8 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     const nextParams = buildFilterParams({
       plateContains: debouncedPlateContains,
-      institutionAuthorityName: debouncedInstitutionAuthorityName,
-      notificationChannelTitle: debouncedNotificationChannelTitle,
+      institutionAuthorityId,
+      notificationChannelId,
       active,
       startTimeCreate: formatDateOnly(startTimeCreate),
       endTimeCreate: formatDateOnly(endTimeCreate),
@@ -156,10 +218,9 @@ export function MonitoredPlatesFilter() {
 
     const currentComparable = buildFilterParams({
       plateContains: searchParams.get('plateContains') ?? '',
-      institutionAuthorityName:
-        searchParams.get('institutionAuthorityName') ?? '',
-      notificationChannelTitle:
-        searchParams.get('notificationChannelTitle') ?? '',
+      institutionAuthorityId:
+        searchParams.get('institutionAuthorityId') ?? 'all',
+      notificationChannelId: searchParams.get('notificationChannelId') ?? 'all',
       active: readActiveParam(searchParams.get('active')),
       startTimeCreate: readStartDateParam(searchParams) ?? undefined,
       endTimeCreate: readEndDateParam(searchParams) ?? undefined,
@@ -172,10 +233,10 @@ export function MonitoredPlatesFilter() {
     router.replace(nextQuery ? `${pathName}?${nextQuery}` : pathName)
   }, [
     active,
-    debouncedInstitutionAuthorityName,
-    debouncedNotificationChannelTitle,
     debouncedPlateContains,
     endTimeCreate,
+    institutionAuthorityId,
+    notificationChannelId,
     pathName,
     router,
     searchParams,
@@ -184,16 +245,20 @@ export function MonitoredPlatesFilter() {
 
   function clearFilters() {
     setPlateContains('')
+    setInstitutionAuthorityId('all')
     setInstitutionAuthorityName('')
+    setInstitutionAuthoritySearch('')
+    setNotificationChannelId('all')
     setNotificationChannelTitle('')
+    setNotificationChannelSearch('')
     setActive('true')
     setStartTimeCreate(undefined)
     setEndTimeCreate(undefined)
 
     const params = buildFilterParams({
       plateContains: '',
-      institutionAuthorityName: '',
-      notificationChannelTitle: '',
+      institutionAuthorityId: 'all',
+      notificationChannelId: 'all',
       active: 'true',
       size: searchParams.get('size'),
     })
@@ -203,7 +268,7 @@ export function MonitoredPlatesFilter() {
   }
 
   return (
-    <div className="grid gap-3 rounded-md border bg-background/40 p-3 md:grid-cols-[minmax(9rem,0.9fr)_minmax(10rem,1fr)_minmax(10rem,1fr)_minmax(11rem,1.1fr)_minmax(11rem,1.1fr)_minmax(12rem,1fr)_auto] md:items-end">
+    <div className="grid gap-3 rounded-md border bg-background/40 p-3 md:grid-cols-[minmax(9rem,0.9fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(11rem,1fr)_minmax(11rem,1fr)_minmax(12rem,1.1fr)_auto] md:items-end">
       <div className="space-y-1.5">
         <Label htmlFor="monitored-plates-plate">Placa</Label>
         <div className="relative">
@@ -223,23 +288,53 @@ export function MonitoredPlatesFilter() {
 
       <div className="space-y-1.5">
         <Label htmlFor="monitored-plates-authority">Requisitante</Label>
-        <Input
+        <MonitoredPlatesFilterCombobox
           id="monitored-plates-authority"
-          value={institutionAuthorityName}
-          onChange={(event) => setInstitutionAuthorityName(event.target.value)}
-          placeholder="Nome do requisitante"
-          autoComplete="off"
+          valueId={institutionAuthorityId}
+          valueLabel={institutionAuthorityName}
+          allLabel="Todos"
+          searchPlaceholder="Nome do requisitante"
+          options={authorityOptions}
+          isLoading={isLoadingAuthorities}
+          search={institutionAuthoritySearch}
+          onSearchChange={setInstitutionAuthoritySearch}
+          onOpenChange={setIsAuthorityOpen}
+          onSelect={(option) => {
+            if (!option) {
+              setInstitutionAuthorityId('all')
+              setInstitutionAuthorityName('')
+              setInstitutionAuthoritySearch('')
+              return
+            }
+            setInstitutionAuthorityId(option.id)
+            setInstitutionAuthorityName(option.label)
+          }}
         />
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="monitored-plates-channel">Canal</Label>
-        <Input
+        <MonitoredPlatesFilterCombobox
           id="monitored-plates-channel"
-          value={notificationChannelTitle}
-          onChange={(event) => setNotificationChannelTitle(event.target.value)}
-          placeholder="Nome do canal"
-          autoComplete="off"
+          valueId={notificationChannelId}
+          valueLabel={notificationChannelTitle}
+          allLabel="Todos"
+          searchPlaceholder="Nome do canal"
+          options={channelOptions}
+          isLoading={isLoadingChannels}
+          search={notificationChannelSearch}
+          onSearchChange={setNotificationChannelSearch}
+          onOpenChange={setIsChannelOpen}
+          onSelect={(option) => {
+            if (!option) {
+              setNotificationChannelId('all')
+              setNotificationChannelTitle('')
+              setNotificationChannelSearch('')
+              return
+            }
+            setNotificationChannelId(option.id)
+            setNotificationChannelTitle(option.label)
+          }}
         />
       </div>
 

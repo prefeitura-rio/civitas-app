@@ -4,8 +4,8 @@ import { z } from 'zod'
 type MonitoredPlatesQueryKey = [
   'monitored-plates',
   plateContains?: string,
-  institutionAuthorityName?: string,
-  notificationChannelTitle?: string,
+  institutionAuthorityId?: string,
+  notificationChannelId?: string,
   active?: boolean,
   page?: number,
   size?: number,
@@ -15,8 +15,8 @@ type MonitoredPlatesQueryKey = [
 
 export interface FormattedSearchParams {
   plateContains?: string
-  institutionAuthorityName?: string
-  notificationChannelTitle?: string
+  institutionAuthorityId?: string
+  notificationChannelId?: string
   active?: boolean
   page?: number
   size?: number
@@ -53,10 +53,10 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const pathName = usePathname()
 
   const plateContains = searchParams.get('plateContains') || undefined
-  const institutionAuthorityName =
-    searchParams.get('institutionAuthorityName') || undefined
-  const notificationChannelTitle =
-    searchParams.get('notificationChannelTitle') || undefined
+  const institutionAuthorityId =
+    searchParams.get('institutionAuthorityId') || undefined
+  const notificationChannelId =
+    searchParams.get('notificationChannelId') || undefined
 
   const pActive = searchParams.get('active')
   // Default: only plates with ≥1 active authority link
@@ -76,10 +76,10 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   function buildParams(nextPage?: number) {
     const params = new URLSearchParams()
     if (plateContains) params.set('plateContains', plateContains)
-    if (institutionAuthorityName)
-      params.set('institutionAuthorityName', institutionAuthorityName)
-    if (notificationChannelTitle)
-      params.set('notificationChannelTitle', notificationChannelTitle)
+    if (institutionAuthorityId)
+      params.set('institutionAuthorityId', institutionAuthorityId)
+    if (notificationChannelId)
+      params.set('notificationChannelId', notificationChannelId)
     if (pActive === 'all') params.set('active', 'all')
     else if (typeof active !== 'undefined') params.set('active', String(active))
     if (nextPage) params.set('page', nextPage.toString())
@@ -99,8 +99,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     handlePaginate,
     formattedSearchParams: {
       plateContains,
-      institutionAuthorityName,
-      notificationChannelTitle,
+      institutionAuthorityId,
+      notificationChannelId,
       active,
       page,
       size,
@@ -110,8 +110,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     queryKey: [
       'monitored-plates',
       plateContains,
-      institutionAuthorityName,
-      notificationChannelTitle,
+      institutionAuthorityId,
+      notificationChannelId,
       active,
       page,
       size,
