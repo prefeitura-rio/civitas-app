@@ -392,8 +392,9 @@ export function useCollectionPointPickerState({
     [value, options],
   )
 
-  // Auto-seleciona todos os pontos na primeira carga quando `defaultSelectAll`
-  // está ativo e nenhum ponto foi selecionado ainda.
+  // Pré-seleciona todos os pontos no draft na primeira carga,
+  // sem disparar onChange. A seleção só é persistida quando o
+  // usuário confirma em handleApply.
   const hasAutoSelectedRef = useRef(false)
   useEffect(() => {
     if (!defaultSelectAll) return
@@ -403,8 +404,7 @@ export function useCollectionPointPickerState({
     if (value.length > 0) return
     const allIds = options.map((o) => o.value)
     setDraftValue(allIds)
-    onChange(allIds)
-  }, [defaultSelectAll, isPending, onChange, options, value.length])
+  }, [defaultSelectAll, isPending, options, value.length])
 
   const filteredOptionIndexById = useMemo(() => {
     const indexById = new Map<string, number>()
@@ -674,6 +674,9 @@ export function useCollectionPointPickerState({
     clearAreaSelection()
     setFocusedPointId(null)
     setPopupState(null)
+    // Desativa o modo "Focar selecionados" para evitar que o mapa fique
+    // em branco ao limpar a seleção enquanto o modo estiver ativo.
+    setShowSelectedOnlyInMap(false)
   }
 
   function handleApply() {
