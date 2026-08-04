@@ -56,7 +56,11 @@ const authorityContactPhoneSchema = z.object({
 })
 
 const authorityContactEmailSchema = z.object({
-  email: z.string().trim().email({ message: 'E-mail inválido' }),
+  email: z
+    .string()
+    .trim()
+    .min(1, { message: 'Campo obrigatório' })
+    .email({ message: 'E-mail inválido' }),
   isPrimary: z.boolean(),
 })
 

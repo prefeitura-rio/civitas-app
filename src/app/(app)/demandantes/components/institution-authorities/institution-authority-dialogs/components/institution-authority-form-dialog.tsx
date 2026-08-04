@@ -3,7 +3,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import {
+  Controller,
+  type FieldError,
+  useFieldArray,
+  useForm,
+} from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { InputError } from '@/components/custom/input-error'
@@ -67,6 +72,22 @@ const emptyFormValues: InstitutionAuthorityForm = {
   isFocalPoint: false,
   phones: [],
   emails: [],
+}
+
+function getFieldArrayErrorMessage(
+  error:
+    | FieldError
+    | (Record<string, unknown> & { message?: string; root?: FieldError })
+    | undefined,
+) {
+  if (!error) return undefined
+  if (typeof error.root?.message === 'string' && error.root.message) {
+    return error.root.message
+  }
+  if (typeof error.message === 'string' && error.message) {
+    return error.message
+  }
+  return undefined
 }
 
 async function getAllInstitutionAuthorities() {
@@ -351,15 +372,15 @@ export function InstitutionAuthorityFormDialog({
         phones: authority.contacts?.phones ?? [],
         emails: authority.contacts?.emails ?? [],
       })
+      setShouldReplaceFocalPoint(false)
       return
     }
 
     if (!initialData?.id) {
       reset(emptyFormValues)
+      setShouldReplaceFocalPoint(false)
     }
-
-    setShouldReplaceFocalPoint(false)
-  }, [authority, initialData?.id, isOpen, reset])
+  }, [authority?.id, initialData?.id, isOpen, reset])
 
   const isLoading =
     isLoadingAuthority ||
@@ -469,11 +490,7 @@ export function InstitutionAuthorityFormDialog({
               <div className="flex gap-2">
                 <Label>Telefones</Label>
                 <InputError
-                  message={
-                    typeof errors.phones?.message === 'string'
-                      ? errors.phones.message
-                      : undefined
-                  }
+                  message={getFieldArrayErrorMessage(errors.phones)}
                 />
               </div>
               <Button
@@ -570,11 +587,7 @@ export function InstitutionAuthorityFormDialog({
               <div className="flex gap-2">
                 <Label>E-mails</Label>
                 <InputError
-                  message={
-                    typeof errors.emails?.message === 'string'
-                      ? errors.emails.message
-                      : undefined
-                  }
+                  message={getFieldArrayErrorMessage(errors.emails)}
                 />
               </div>
               <Button
