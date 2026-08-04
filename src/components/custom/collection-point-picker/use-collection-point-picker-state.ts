@@ -174,6 +174,11 @@ export function useCollectionPointPickerState({
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const listViewportRef = useRef<HTMLDivElement | null>(null)
   const suppressMapClickUntilRef = useRef(0)
+  const mapResizeTimeoutRef = useRef<number | null>(null)
+  // Bumped on each open so DeckGL+Mapbox remount cleanly inside the dialog.
+  const [mapSurfaceGeneration, setMapSurfaceGeneration] = useState(0)
+  // Bumped after map.resize() so IconLayer reloads atlas into a fresh texture.
+  const [iconAtlasGeneration, setIconAtlasGeneration] = useState(0)
   const [listScrollTop, setListScrollTop] = useState(0)
   const [loadedListResultsCount, setLoadedListResultsCount] =
     useState(RADAR_LIST_PAGE_SIZE)
@@ -456,6 +461,10 @@ export function useCollectionPointPickerState({
 
   useEffect(() => {
     if (!expanded) {
+      if (mapResizeTimeoutRef.current !== null) {
+        window.clearTimeout(mapResizeTimeoutRef.current)
+        mapResizeTimeoutRef.current = null
+      }
       setDraftValue(value)
       setSearch('')
       setMapSearch('')
@@ -474,6 +483,15 @@ export function useCollectionPointPickerState({
       setViewState({ ...INITIAL_VIEW_PORT, pitch: 0, bearing: 0 })
     }
   }, [expanded, value])
+
+  useEffect(() => {
+    return () => {
+      if (mapResizeTimeoutRef.current !== null) {
+        window.clearTimeout(mapResizeTimeoutRef.current)
+        mapResizeTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!expanded || hasInitializedViewport) return
@@ -629,6 +647,7 @@ export function useCollectionPointPickerState({
     setDraftValue(value)
     setShowSelectedOnlyInList(true)
     setShowSelectedOnlyInMap(true)
+    setMapSurfaceGeneration((generation) => generation + 1)
     setExpanded(true)
     setPopupState(null)
 
@@ -645,6 +664,7 @@ export function useCollectionPointPickerState({
 
   function openPicker() {
     setDraftValue(value)
+    setMapSurfaceGeneration((generation) => generation + 1)
     setExpanded(true)
   }
 
@@ -705,7 +725,7 @@ export function useCollectionPointPickerState({
       x,
       y,
       radius: 8,
-      layerIds: [POINT_LAYER_ID],
+      layerIds: [`${POINT_LAYER_ID}-${iconAtlasGeneration}`],
     }) as PickingInfo<CollectionPoint>
 
     if (!picked?.object) {
@@ -881,8 +901,26 @@ export function useCollectionPointPickerState({
     setViewState(nextViewState)
   }
 
+  function resizePickerMap() {
+    mapRef.current?.resize()
+  }
+
+  function handleMapResize() {
+    resizePickerMap()
+  }
+
   function handleMapLoad() {
-    // Kept for parity with the existing picker API.
+    // Wait for dialog layout/animation, resize Mapbox once, then remount the
+    // IconLayer so the atlas texture is created after resize (resize can
+    // destroy textures on the shared WebGL context).
+    if (mapResizeTimeoutRef.current !== null) {
+      window.clearTimeout(mapResizeTimeoutRef.current)
+    }
+    mapResizeTimeoutRef.current = window.setTimeout(() => {
+      resizePickerMap()
+      setIconAtlasGeneration((generation) => generation + 1)
+      mapResizeTimeoutRef.current = null
+    }, 250)
   }
 
   function startAreaSelection() {
@@ -896,12 +934,18 @@ export function useCollectionPointPickerState({
   const pointLayer = useMemo(
     () =>
       new IconLayer<CollectionPoint>({
-        id: POINT_LAYER_ID,
+        id: `${POINT_LAYER_ID}-${iconAtlasGeneration}`,
         data: mapPoints,
         pickable: true,
         sizeScale: 24,
-        iconAtlas: radarIconAtlas.src,
+        iconAtlas:
+          typeof radarIconAtlas === 'string'
+            ? radarIconAtlas
+            : radarIconAtlas.src,
         iconMapping,
+        // mask:false icons are modulated by getColor; white preserves atlas.
+        getColor: [255, 255, 255] as [number, number, number],
+        getSize: 1,
         getPosition: (point) => [point.longitude, point.latitude],
         getIcon: (point) => {
           const isSelected = draftValue.includes(
@@ -931,7 +975,13 @@ export function useCollectionPointPickerState({
           togglePointFromMapOrList(info.object)
         },
       }),
-    [areaSelectionMode, draftValue, focusedPointId, mapPoints],
+    [
+      areaSelectionMode,
+      draftValue,
+      focusedPointId,
+      iconAtlasGeneration,
+      mapPoints,
+    ],
   )
 
   const areaLineLayer = useMemo(() => {
@@ -1027,6 +1077,7 @@ export function useCollectionPointPickerState({
     handleMapBackgroundClick,
     handleMapContextMenu,
     handleMapLoad,
+    handleMapResize,
     handleMapSearchChange,
     handleMapSearchFocus,
     handleMapSearchSubmit,
@@ -1046,6 +1097,7 @@ export function useCollectionPointPickerState({
     mapSearch,
     mapSearchError,
     mapSearchSuggestions,
+    mapSurfaceGeneration,
     openMapSearchSuggestions,
     openPicker,
     openPickerWithSelectedList,

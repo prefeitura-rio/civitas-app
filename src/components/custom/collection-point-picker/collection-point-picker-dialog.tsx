@@ -281,11 +281,13 @@ export function CollectionPointPickerDialog({
 
                   {picker.mapPoints.length > 0 ? (
                     <DeckGL
+                      key={picker.mapSurfaceGeneration}
                       ref={picker.deckRef}
                       style={{ width: '100%', height: '100%' }}
                       controller
                       viewState={picker.viewState}
                       layers={picker.mapLayers}
+                      onResize={picker.handleMapResize}
                       onClick={picker.handleMapBackgroundClick}
                       onViewStateChange={({ viewState: nextViewState }) => {
                         picker.handleViewStateChange(
