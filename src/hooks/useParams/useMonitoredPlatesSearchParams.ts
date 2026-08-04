@@ -9,8 +9,8 @@ type MonitoredPlatesQueryKey = [
   active?: boolean,
   page?: number,
   size?: number,
-  createdAtFrom?: string,
-  createdAtTo?: string,
+  startTimeCreate?: string,
+  endTimeCreate?: string,
 ]
 
 export interface FormattedSearchParams {
@@ -20,14 +20,31 @@ export interface FormattedSearchParams {
   active?: boolean
   page?: number
   size?: number
-  createdAtFrom?: string
-  createdAtTo?: string
+  startTimeCreate?: string
+  endTimeCreate?: string
 }
+
 interface UseMonitoredPlatesSearchParamsReturn {
   searchParams: URLSearchParams
   formattedSearchParams: FormattedSearchParams
   queryKey: MonitoredPlatesQueryKey
   handlePaginate: (index: number) => void
+}
+
+function readDateParam(searchParams: URLSearchParams, key: 'start' | 'end') {
+  if (key === 'start') {
+    return (
+      searchParams.get('startTimeCreate') ||
+      searchParams.get('createdAtFrom') ||
+      undefined
+    )
+  }
+
+  return (
+    searchParams.get('endTimeCreate') ||
+    searchParams.get('createdAtTo') ||
+    undefined
+  )
 }
 
 export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParamsReturn {
@@ -53,8 +70,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
 
-  const createdAtFrom = searchParams.get('createdAtFrom') || undefined
-  const createdAtTo = searchParams.get('createdAtTo') || undefined
+  const startTimeCreate = readDateParam(searchParams, 'start')
+  const endTimeCreate = readDateParam(searchParams, 'end')
 
   function buildParams(nextPage?: number) {
     const params = new URLSearchParams()
@@ -66,9 +83,9 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     if (pActive === 'all') params.set('active', 'all')
     else if (typeof active !== 'undefined') params.set('active', String(active))
     if (nextPage) params.set('page', nextPage.toString())
-    if (size) params.set('size', size.toString())
-    if (createdAtFrom) params.set('createdAtFrom', createdAtFrom)
-    if (createdAtTo) params.set('createdAtTo', createdAtTo)
+    if (size && size !== 10) params.set('size', size.toString())
+    if (startTimeCreate) params.set('startTimeCreate', startTimeCreate)
+    if (endTimeCreate) params.set('endTimeCreate', endTimeCreate)
     return params
   }
 
@@ -87,8 +104,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       active,
       page,
       size,
-      createdAtFrom,
-      createdAtTo,
+      startTimeCreate,
+      endTimeCreate,
     },
     queryKey: [
       'monitored-plates',
@@ -98,8 +115,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       active,
       page,
       size,
-      createdAtFrom,
-      createdAtTo,
+      startTimeCreate,
+      endTimeCreate,
     ],
   }
 }
