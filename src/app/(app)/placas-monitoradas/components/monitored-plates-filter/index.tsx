@@ -1,13 +1,11 @@
 'use client'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
-import { FilterX, Search } from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 
-import { Tooltip } from '@/components/custom/tooltip'
+import { format } from 'date-fns'
+import { Search, X } from 'lucide-react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+
+import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
@@ -21,19 +19,9 @@ import {
 } from '@/components/ui/select'
 
 const activeOptions = ['all', 'true', 'false'] as const
+type ActiveFilter = (typeof activeOptions)[number]
 
-const filterFormSchema = z.object({
-  plateContains: z.string().toUpperCase().optional(),
-  institutionAuthorityName: z.string().optional(),
-  notificationChannelTitle: z.string().optional(),
-  active: z.enum(activeOptions),
-  createdAtFrom: z.string().optional(),
-  createdAtTo: z.string().optional(),
-})
-
-type FilterForm = z.infer<typeof filterFormSchema>
-
-function parseDateOnly(value: string | null) {
+function parseDateOnly(value: string | null | undefined) {
   if (!value) return undefined
   return new Date(`${value}T00:00:00`)
 }
@@ -43,200 +31,268 @@ function formatDateOnly(date: Date | undefined) {
   return format(date, 'yyyy-MM-dd')
 }
 
+function readActiveParam(value: string | null): ActiveFilter {
+  if (value && activeOptions.includes(value as ActiveFilter)) {
+    return value as ActiveFilter
+  }
+  return 'true'
+}
+
+function readStartDateParam(searchParams: URLSearchParams) {
+  return (
+    searchParams.get('startTimeCreate') || searchParams.get('createdAtFrom')
+  )
+}
+
+function readEndDateParam(searchParams: URLSearchParams) {
+  return searchParams.get('endTimeCreate') || searchParams.get('createdAtTo')
+}
+
+function buildFilterParams({
+  plateContains,
+  institutionAuthorityName,
+  notificationChannelTitle,
+  active,
+  startTimeCreate,
+  endTimeCreate,
+  size,
+}: {
+  plateContains: string
+  institutionAuthorityName: string
+  notificationChannelTitle: string
+  active: ActiveFilter
+  startTimeCreate?: string
+  endTimeCreate?: string
+  size?: string | null
+}) {
+  const params = new URLSearchParams()
+  const plate = plateContains.trim().toUpperCase()
+  const authority = institutionAuthorityName.trim()
+  const channel = notificationChannelTitle.trim()
+
+  if (plate) params.set('plateContains', plate)
+  if (authority) params.set('institutionAuthorityName', authority)
+  if (channel) params.set('notificationChannelTitle', channel)
+  params.set('active', active)
+  if (startTimeCreate) params.set('startTimeCreate', startTimeCreate)
+  if (endTimeCreate) params.set('endTimeCreate', endTimeCreate)
+  if (size && size !== '10') params.set('size', size)
+
+  return params
+}
+
 export function MonitoredPlatesFilter() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathName = usePathname()
+  const skipNextUrlSync = useRef(false)
 
-  const { register, handleSubmit, setValue, reset, control } =
-    useForm<FilterForm>({
-      resolver: zodResolver(filterFormSchema),
-      defaultValues: {
-        active: 'true',
-      },
-    })
+  const [plateContains, setPlateContains] = useState(
+    () => searchParams.get('plateContains') ?? '',
+  )
+  const [institutionAuthorityName, setInstitutionAuthorityName] = useState(
+    () => searchParams.get('institutionAuthorityName') ?? '',
+  )
+  const [notificationChannelTitle, setNotificationChannelTitle] = useState(
+    () => searchParams.get('notificationChannelTitle') ?? '',
+  )
+  const [active, setActive] = useState<ActiveFilter>(() =>
+    readActiveParam(searchParams.get('active')),
+  )
+  const [startTimeCreate, setStartTimeCreate] = useState<Date | undefined>(() =>
+    parseDateOnly(readStartDateParam(searchParams)),
+  )
+  const [endTimeCreate, setEndTimeCreate] = useState<Date | undefined>(() =>
+    parseDateOnly(readEndDateParam(searchParams)),
+  )
 
-  const [createdAtFrom, setCreatedAtFrom] = useState<Date | undefined>()
-  const [createdAtTo, setCreatedAtTo] = useState<Date | undefined>()
+  const debouncedPlateContains = useDebounce(plateContains, 350)
+  const debouncedInstitutionAuthorityName = useDebounce(
+    institutionAuthorityName,
+    350,
+  )
+  const debouncedNotificationChannelTitle = useDebounce(
+    notificationChannelTitle,
+    350,
+  )
+
+  const hasActiveFilters =
+    plateContains.trim().length > 0 ||
+    institutionAuthorityName.trim().length > 0 ||
+    notificationChannelTitle.trim().length > 0 ||
+    active !== 'true' ||
+    startTimeCreate != null ||
+    endTimeCreate != null
 
   useEffect(() => {
-    const pActive = searchParams.get('active')
-    const pPlate = searchParams.get('plateContains')
-    const pInstitutionAuthority = searchParams.get('institutionAuthorityName')
-    const pChannel = searchParams.get('notificationChannelTitle')
-    const pCreatedAtFrom = searchParams.get('createdAtFrom')
-    const pCreatedAtTo = searchParams.get('createdAtTo')
-
-    if (
-      pActive &&
-      activeOptions.includes(pActive as (typeof activeOptions)[number])
-    ) {
-      setValue('active', pActive as FilterForm['active'])
-    } else {
-      setValue('active', 'true')
+    if (skipNextUrlSync.current) {
+      skipNextUrlSync.current = false
+      return
     }
-    if (pPlate) setValue('plateContains', pPlate)
-    if (pInstitutionAuthority)
-      setValue('institutionAuthorityName', pInstitutionAuthority)
-    if (pChannel) setValue('notificationChannelTitle', pChannel)
-    if (pCreatedAtFrom) {
-      setValue('createdAtFrom', pCreatedAtFrom)
-      setCreatedAtFrom(parseDateOnly(pCreatedAtFrom))
-    } else {
-      setCreatedAtFrom(undefined)
-    }
-    if (pCreatedAtTo) {
-      setValue('createdAtTo', pCreatedAtTo)
-      setCreatedAtTo(parseDateOnly(pCreatedAtTo))
-    } else {
-      setCreatedAtTo(undefined)
-    }
-  }, [searchParams, setValue])
 
-  function handleClearFilters() {
-    reset({ active: 'true' })
-    setCreatedAtFrom(undefined)
-    setCreatedAtTo(undefined)
-    router.replace(pathName)
-  }
+    setPlateContains(searchParams.get('plateContains') ?? '')
+    setInstitutionAuthorityName(
+      searchParams.get('institutionAuthorityName') ?? '',
+    )
+    setNotificationChannelTitle(
+      searchParams.get('notificationChannelTitle') ?? '',
+    )
+    setActive(readActiveParam(searchParams.get('active')))
+    setStartTimeCreate(parseDateOnly(readStartDateParam(searchParams)))
+    setEndTimeCreate(parseDateOnly(readEndDateParam(searchParams)))
+  }, [searchParams])
 
-  async function onSubmit(props: FilterForm) {
-    const params = new URLSearchParams()
+  useEffect(() => {
+    const nextParams = buildFilterParams({
+      plateContains: debouncedPlateContains,
+      institutionAuthorityName: debouncedInstitutionAuthorityName,
+      notificationChannelTitle: debouncedNotificationChannelTitle,
+      active,
+      startTimeCreate: formatDateOnly(startTimeCreate),
+      endTimeCreate: formatDateOnly(endTimeCreate),
+      size: searchParams.get('size'),
+    })
+    const nextQuery = nextParams.toString()
 
-    if (props.plateContains) params.set('plateContains', props.plateContains)
-    if (props.institutionAuthorityName)
-      params.set('institutionAuthorityName', props.institutionAuthorityName)
-    if (props.notificationChannelTitle)
-      params.set('notificationChannelTitle', props.notificationChannelTitle)
+    const currentComparable = buildFilterParams({
+      plateContains: searchParams.get('plateContains') ?? '',
+      institutionAuthorityName:
+        searchParams.get('institutionAuthorityName') ?? '',
+      notificationChannelTitle:
+        searchParams.get('notificationChannelTitle') ?? '',
+      active: readActiveParam(searchParams.get('active')),
+      startTimeCreate: readStartDateParam(searchParams) ?? undefined,
+      endTimeCreate: readEndDateParam(searchParams) ?? undefined,
+      size: searchParams.get('size'),
+    }).toString()
 
-    if (props.active === 'all') params.set('active', 'all')
-    else params.set('active', props.active)
-    if (props.createdAtFrom) params.set('createdAtFrom', props.createdAtFrom)
-    if (props.createdAtTo) params.set('createdAtTo', props.createdAtTo)
+    if (nextQuery === currentComparable) return
 
+    skipNextUrlSync.current = true
+    router.replace(nextQuery ? `${pathName}?${nextQuery}` : pathName)
+  }, [
+    active,
+    debouncedInstitutionAuthorityName,
+    debouncedNotificationChannelTitle,
+    debouncedPlateContains,
+    endTimeCreate,
+    pathName,
+    router,
+    searchParams,
+    startTimeCreate,
+  ])
+
+  function clearFilters() {
+    setPlateContains('')
+    setInstitutionAuthorityName('')
+    setNotificationChannelTitle('')
+    setActive('true')
+    setStartTimeCreate(undefined)
+    setEndTimeCreate(undefined)
+
+    const params = buildFilterParams({
+      plateContains: '',
+      institutionAuthorityName: '',
+      notificationChannelTitle: '',
+      active: 'true',
+      size: searchParams.get('size'),
+    })
+
+    skipNextUrlSync.current = true
     router.replace(`${pathName}?${params.toString()}`)
   }
 
   return (
-    <form
-      className="flex items-end space-x-2"
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <div>
-        <Label
-          htmlFor="plateContains"
-          className="text-xs text-muted-foreground"
-        >
-          Placa
-        </Label>
-        <Input
-          className="h-9 w-40"
-          id="plateContains"
-          type="text"
-          {...register('plateContains')}
-          onChange={(e) =>
-            setValue('plateContains', e.target.value.toUpperCase())
-          }
-        />
-      </div>
-      <div>
-        <Label
-          htmlFor="institutionAuthorityName"
-          className="text-xs text-muted-foreground"
-        >
-          Requisitante
-        </Label>
-        <Input
-          className="h-9 w-40"
-          id="institutionAuthorityName"
-          type="text"
-          {...register('institutionAuthorityName')}
-        />
-      </div>
-      <div>
-        <Label
-          htmlFor="notificationChannelTitle"
-          className="text-xs text-muted-foreground"
-        >
-          Canal de notificação
-        </Label>
-        <Input
-          className="h-9 w-40"
-          id="notificationChannelTitle"
-          type="text"
-          {...register('notificationChannelTitle')}
-        />
-      </div>
-      <div className="flex flex-col space-y-1">
-        <div className="flex items-center space-x-2">
-          <div className="flex flex-col">
-            <Label className="mb-0.5 text-xs text-muted-foreground">
-              Data de criação de:
-            </Label>
-            <DatePicker
-              value={createdAtFrom}
-              onChange={(date) => {
-                const nextDate = date instanceof Date ? date : undefined
-                setCreatedAtFrom(nextDate)
-                setValue('createdAtFrom', formatDateOnly(nextDate))
-              }}
-              className="h-9 w-48"
-            />
-          </div>
-          <div className="flex flex-col">
-            <Label className="mb-0.5 text-xs text-muted-foreground">Até:</Label>
-            <DatePicker
-              value={createdAtTo}
-              onChange={(date) => {
-                const nextDate = date instanceof Date ? date : undefined
-                setCreatedAtTo(nextDate)
-                setValue('createdAtTo', formatDateOnly(nextDate))
-              }}
-              className="h-9 w-48"
-              fromDate={createdAtFrom}
-            />
-          </div>
+    <div className="grid gap-3 rounded-md border bg-background/40 p-3 md:grid-cols-[minmax(9rem,0.9fr)_minmax(10rem,1fr)_minmax(10rem,1fr)_minmax(11rem,1.1fr)_minmax(11rem,1.1fr)_minmax(12rem,1fr)_auto] md:items-end">
+      <div className="space-y-1.5">
+        <Label htmlFor="monitored-plates-plate">Placa</Label>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="monitored-plates-plate"
+            value={plateContains}
+            onChange={(event) =>
+              setPlateContains(event.target.value.toUpperCase())
+            }
+            placeholder="ABC1D23"
+            className="pl-9 uppercase"
+            autoComplete="off"
+          />
         </div>
       </div>
-      <Controller
-        control={control}
-        name="active"
-        render={({ field }) => (
-          <div>
-            <Label className="text-xs text-muted-foreground">Status</Label>
-            <Select
-              onValueChange={field.onChange}
-              defaultValue="true"
-              value={field.value}
-            >
-              <SelectTrigger className="h-9 w-56">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="true">Ativa (com vínculo ativo)</SelectItem>
-                <SelectItem value="false">Inativa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-      />
 
-      <Button size="sm" variant="outline" type="submit" className="space-x-1">
-        <Search className="h-4 w-4" />
-        <span>Filtrar</span>
-      </Button>
-      <Tooltip text="Limpar filtro" asChild>
-        <Button
-          size="sm"
-          variant="secondary"
-          type="button"
-          onClick={handleClearFilters}
+      <div className="space-y-1.5">
+        <Label htmlFor="monitored-plates-authority">Requisitante</Label>
+        <Input
+          id="monitored-plates-authority"
+          value={institutionAuthorityName}
+          onChange={(event) => setInstitutionAuthorityName(event.target.value)}
+          placeholder="Nome do requisitante"
+          autoComplete="off"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="monitored-plates-channel">Canal</Label>
+        <Input
+          id="monitored-plates-channel"
+          value={notificationChannelTitle}
+          onChange={(event) => setNotificationChannelTitle(event.target.value)}
+          placeholder="Nome do canal"
+          autoComplete="off"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Data de criação de</Label>
+        <DatePicker
+          value={startTimeCreate}
+          onChange={(date) => {
+            setStartTimeCreate(date instanceof Date ? date : undefined)
+          }}
+          className="h-9 w-full"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Até</Label>
+        <DatePicker
+          value={endTimeCreate}
+          onChange={(date) => {
+            setEndTimeCreate(date instanceof Date ? date : undefined)
+          }}
+          className="h-9 w-full"
+          fromDate={startTimeCreate}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="monitored-plates-active">Status</Label>
+        <Select
+          value={active}
+          onValueChange={(value: ActiveFilter) => setActive(value)}
         >
-          <FilterX className="h-4 w-4" />
-          <span className="sr-only">Limpar filtro</span>
-        </Button>
-      </Tooltip>
-    </form>
+          <SelectTrigger id="monitored-plates-active">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="true">Ativa (com vínculo ativo)</SelectItem>
+            <SelectItem value="false">Inativa</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        onClick={clearFilters}
+        disabled={!hasActiveFilters}
+        className="gap-2"
+      >
+        <X className="h-4 w-4" />
+        Limpar
+      </Button>
+    </div>
   )
 }

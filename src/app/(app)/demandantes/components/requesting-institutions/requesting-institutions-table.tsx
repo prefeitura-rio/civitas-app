@@ -248,7 +248,7 @@ export function RequestingInstitutionsTable() {
               onChange={(event) =>
                 resetPageAndRun(() => setSearch(event.target.value))
               }
-              placeholder="Demandante"
+              placeholder="Nome do demandante"
               className="pl-9"
             />
           </div>
@@ -261,7 +261,7 @@ export function RequestingInstitutionsTable() {
             onChange={(event) =>
               resetPageAndRun(() => setTypeFilter(event.target.value))
             }
-            placeholder="Tipo"
+            placeholder="Ex.: Polícia Civil"
           />
         </div>
         <div className="space-y-1.5">
@@ -272,7 +272,7 @@ export function RequestingInstitutionsTable() {
             onChange={(event) =>
               resetPageAndRun(() => setAgencyFilter(event.target.value))
             }
-            placeholder="Órgão"
+            placeholder="Ex.: SEPOL"
           />
         </div>
         <div className="space-y-1.5">
@@ -286,7 +286,7 @@ export function RequestingInstitutionsTable() {
             }
           >
             <SelectTrigger id="requesting-institutions-jurisdiction">
-              <SelectValue placeholder="Todas" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>

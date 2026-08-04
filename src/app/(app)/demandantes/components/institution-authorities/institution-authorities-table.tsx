@@ -404,7 +404,7 @@ export function InstitutionAuthoritiesTable() {
               onChange={(event) =>
                 resetPageAndRun(() => setSearch(event.target.value))
               }
-              placeholder="Requisitante, demandante, órgão ou tipo"
+              placeholder="Ex.: João Silva, Polícia Civil"
               className="pl-9"
             />
           </div>
@@ -440,7 +440,7 @@ export function InstitutionAuthoritiesTable() {
                 <CommandInput
                   value={requestingInstitutionSearch}
                   onValueChange={setRequestingInstitutionSearch}
-                  placeholder="Buscar demandante"
+                  placeholder="Nome do demandante"
                 />
                 <CommandList>
                   <CommandEmpty>
@@ -514,7 +514,7 @@ export function InstitutionAuthoritiesTable() {
             }
           >
             <SelectTrigger id="institution-authorities-focal-point">
-              <SelectValue placeholder="Todos" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
@@ -534,7 +534,7 @@ export function InstitutionAuthoritiesTable() {
             }
           >
             <SelectTrigger id="institution-authorities-jurisdiction">
-              <SelectValue placeholder="Todas" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
