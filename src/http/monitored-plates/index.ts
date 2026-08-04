@@ -82,10 +82,15 @@ interface GetMonitoredPlateRequest {
 export interface GetMonitoredPlatesRequest extends PaginationRequest {
   active?: boolean
   plateContains?: string
-  institutionAuthorityName?: string
-  notificationChannelTitle?: string
+  institutionAuthorityId?: string
+  notificationChannelId?: string
+  requestingInstitutionId?: string
+  referenceNumberContains?: string
+  notesContains?: string
   startTimeCreate?: string
   endTimeCreate?: string
+  validUntilFrom?: string
+  validUntilTo?: string
 }
 
 export interface CreateMonitoredPlateRequest
@@ -238,10 +243,15 @@ export async function getMonitoredPlates({
   size,
   active,
   plateContains,
-  institutionAuthorityName,
-  notificationChannelTitle,
+  institutionAuthorityId,
+  notificationChannelId,
+  requestingInstitutionId,
+  referenceNumberContains,
+  notesContains,
   startTimeCreate,
   endTimeCreate,
+  validUntilFrom,
+  validUntilTo,
 }: GetMonitoredPlatesRequest) {
   const response = await api.get<BackendGetMonitoredPlatesResponse>(
     '/monitored-plates',
@@ -251,10 +261,15 @@ export async function getMonitoredPlates({
         size,
         active,
         plate_contains: plateContains,
-        institution_authority_name: institutionAuthorityName,
-        notification_channel_title: notificationChannelTitle,
+        institution_authority_id: institutionAuthorityId,
+        notification_channel_id: notificationChannelId,
+        requesting_institution_id: requestingInstitutionId,
+        reference_number_contains: referenceNumberContains,
+        notes_contains: notesContains,
         start_time_create: startTimeCreate,
         end_time_create: endTimeCreate,
+        valid_until_from: validUntilFrom,
+        valid_until_to: validUntilTo,
       },
     },
   )
