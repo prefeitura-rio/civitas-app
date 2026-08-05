@@ -115,19 +115,26 @@ async function handler(request: NextRequest) {
     }
 
     const nextUpstreamUrl = new URL(location, currentUpstreamUrl)
-    // Refuse cross-origin redirects (e.g. API → app HTML) which break the BFF.
+    // If the redirect is cross-origin (e.g. FastAPI trailing-slash redirect
+    // generates an absolute URL with internal host/scheme that differs from
+    // config.apiUrl), normalize it back to the upstream origin so the BFF
+    // can follow it safely. True cross-app redirects (different path root)
+    // are still caught by the HTML-document guard below.
     if (nextUpstreamUrl.origin !== upstreamOrigin) {
-      console.error('[bff] refused cross-origin upstream redirect', {
-        from: currentUpstreamUrl,
-        to: nextUpstreamUrl.toString(),
-      })
-      return NextResponse.json(
-        { message: 'Bad gateway: upstream redirected off API origin' },
-        { status: 502 },
+      const normalized = new URL(
+        nextUpstreamUrl.pathname + nextUpstreamUrl.search,
+        upstreamOrigin,
       )
+      console.warn('[bff] normalized cross-origin upstream redirect', {
+        from: currentUpstreamUrl,
+        original: nextUpstreamUrl.toString(),
+        normalized: normalized.toString(),
+      })
+      currentUpstreamUrl = normalized.toString()
+    } else {
+      currentUpstreamUrl = nextUpstreamUrl.toString()
     }
 
-    currentUpstreamUrl = nextUpstreamUrl.toString()
     upstreamResponse = await fetchUpstream(currentUpstreamUrl)
   }
 
