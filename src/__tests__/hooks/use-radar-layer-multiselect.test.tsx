@@ -13,7 +13,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
     data: [
       {
         cetRioCode: '0540461121',
-        codigoPontoColeta: '1121',
         location: 'ESTRADA DOS BANDEIRANTES',
         district: 'centro',
         latitude: -22.9068,
@@ -28,7 +27,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
       },
       {
         cetRioCode: '0540461122',
-        codigoPontoColeta: '1122',
         location: 'AVENIDA BRASIL',
         district: 'zona norte',
         latitude: -22.9069,
@@ -43,7 +41,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
       },
       {
         cetRioCode: '0540461123',
-        codigoPontoColeta: '1123',
         location: 'COPACABANA',
         district: 'zona sul',
         latitude: -22.907,
@@ -58,7 +55,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
       },
       {
         cetRioCode: '0540461124',
-        codigoPontoColeta: '1124',
         location: 'TIJUCA',
         district: 'zona norte',
         latitude: -22.9071,
@@ -73,7 +69,6 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
       },
       {
         cetRioCode: '0540461125',
-        codigoPontoColeta: '1125',
         location: 'BARRA DA TIJUCA',
         district: 'zona oeste',
         latitude: -22.9072,
