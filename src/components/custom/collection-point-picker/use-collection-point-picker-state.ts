@@ -991,13 +991,17 @@ export function useCollectionPointPickerState({
       id: AREA_LINE_LAYER_ID,
       data: areaDraftPoints,
       pickable: false,
-      getSourcePosition: (_point, { index, data }) => data[index],
-      getTargetPosition: (_point, { index, data }) =>
-        data[Math.min(index + 1, data.length - 1)],
+      getSourcePosition: (_point, { index, data }) =>
+        (data as LngLatTuple[])[index],
+      getTargetPosition: (_point, { index, data }) => {
+        const points = data as LngLatTuple[]
+        return points[Math.min(index + 1, points.length - 1)]
+      },
       getColor: [37, 99, 235, 220],
       getWidth: 3,
       widthUnits: 'pixels',
-      parameters: { depthTest: false },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parameters: { depthTest: false } as any,
       visible: true,
     })
   }, [areaDraftPoints])
@@ -1017,7 +1021,8 @@ export function useCollectionPointPickerState({
       getLineColor: [37, 99, 235, 220],
       getLineWidth: 2,
       lineWidthUnits: 'pixels',
-      parameters: { depthTest: false },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parameters: { depthTest: false } as any,
     })
   }, [areaPolygonFeature])
 
@@ -1037,7 +1042,8 @@ export function useCollectionPointPickerState({
       radiusUnits: 'pixels',
       radiusMinPixels: 5,
       radiusMaxPixels: 5,
-      parameters: { depthTest: false },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parameters: { depthTest: false } as any,
     })
   }, [areaDraftPoints])
 
