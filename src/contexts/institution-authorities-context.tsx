@@ -1,4 +1,5 @@
 'use client'
+import { isValidPhoneNumber } from 'libphonenumber-js/mobile'
 import {
   createContext,
   type Dispatch,
@@ -6,7 +7,6 @@ import {
   type SetStateAction,
   useState,
 } from 'react'
-import { isPossiblePhoneNumber } from 'react-phone-number-input'
 import { z } from 'zod'
 
 import { useDisclosure, type UseDisclosureReturn } from '@/hooks/use-disclosure'
@@ -49,8 +49,8 @@ const authorityContactPhoneSchema = z.object({
     .string()
     .trim()
     .min(1, { message: 'Campo obrigatório' })
-    .refine((value) => isPossiblePhoneNumber(value), {
-      message: 'Telefone inválido',
+    .refine((value) => isValidPhoneNumber(value), {
+      message: 'Telefone inválido (use apenas celular)',
     }),
   isPrimary: z.boolean(),
 })
