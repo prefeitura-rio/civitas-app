@@ -79,6 +79,14 @@ interface GetMonitoredPlateRequest {
   plate: string
 }
 
+export type MonitoredPlatesSortBy =
+  | 'plate'
+  | 'active'
+  | 'created_at'
+  | 'updated_at'
+
+export type SortDirection = 'asc' | 'desc'
+
 export interface GetMonitoredPlatesRequest extends PaginationRequest {
   active?: boolean
   plateContains?: string
@@ -91,6 +99,8 @@ export interface GetMonitoredPlatesRequest extends PaginationRequest {
   endTimeCreate?: string
   validUntilFrom?: string
   validUntilTo?: string
+  sortBy?: MonitoredPlatesSortBy
+  sortDirection?: SortDirection
 }
 
 export interface CreateMonitoredPlateRequest
@@ -252,6 +262,8 @@ export async function getMonitoredPlates({
   endTimeCreate,
   validUntilFrom,
   validUntilTo,
+  sortBy,
+  sortDirection,
 }: GetMonitoredPlatesRequest) {
   const response = await api.get<BackendGetMonitoredPlatesResponse>(
     '/monitored-plates',
@@ -270,6 +282,9 @@ export async function getMonitoredPlates({
         end_time_create: endTimeCreate,
         valid_until_from: validUntilFrom,
         valid_until_to: validUntilTo,
+        ...(sortBy && sortDirection
+          ? { sort_by: sortBy, sort_direction: sortDirection }
+          : {}),
       },
     },
   )
