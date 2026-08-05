@@ -1,6 +1,6 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
 import { useState } from 'react'
@@ -23,10 +23,69 @@ import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getInstitutionAuthority } from '@/http/institution-authorities'
 import {
   getMonitoredPlates,
+  type MonitoredPlateAuthoritySummary,
   type MonitoredPlateReadModel,
+  type MonitoredPlatesSortBy,
+  type SortDirection,
 } from '@/http/monitored-plates'
-import type { InstitutionAuthority } from '@/models/entities'
+import type {
+  InstitutionAuthority,
+  NotificationChannel,
+} from '@/models/entities'
 import { notAllowed } from '@/utils/template-messages'
+
+type AuthorityEntry = {
+  institutionAuthority: InstitutionAuthority
+  notificationChannels: NotificationChannel[]
+}
+
+const sortableColumns = {
+  plate: 'plate',
+  active: 'active',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+} as const satisfies Record<string, MonitoredPlatesSortBy>
+
+function getSortBy(
+  sortingState: SortingState,
+): MonitoredPlatesSortBy | undefined {
+  const columnId = sortingState[0]?.id
+  if (!columnId) return undefined
+  return sortableColumns[columnId as keyof typeof sortableColumns]
+}
+
+function getSortDirection(
+  sortingState: SortingState,
+): SortDirection | undefined {
+  const sort = sortingState[0]
+  if (!sort) return undefined
+  return sort.desc ? 'desc' : 'asc'
+}
+
+function buildAuthorityEntries(
+  authorities: MonitoredPlateAuthoritySummary[],
+): AuthorityEntry[] {
+  const map = new Map<string, AuthorityEntry>()
+
+  for (const authority of authorities) {
+    const id = authority.institutionAuthority.id
+    if (!map.has(id)) {
+      map.set(id, {
+        institutionAuthority: authority.institutionAuthority,
+        notificationChannels: [...authority.notificationChannels],
+      })
+    } else {
+      const existing = map.get(id)!
+      for (const ch of authority.notificationChannels) {
+        if (!existing.notificationChannels.some((ec) => ec.id === ch.id)) {
+          existing.notificationChannels.push(ch)
+        }
+      }
+    }
+  }
+
+  return Array.from(map.values())
+}
 
 export function MonitoredPlatesTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
@@ -38,12 +97,26 @@ export function MonitoredPlatesTable() {
     deleteAlertDisclosure,
   } = useMonitoredPlates()
   const { data: profile, isLoading: isProfileLoading } = useProfile()
-  const [selectedAuthority, setSelectedAuthority] =
-    useState<InstitutionAuthority | null>(null)
+  const [selectedEntry, setSelectedEntry] = useState<AuthorityEntry | null>(
+    null,
+  )
+  const [sortingState, setSortingState] = useState<SortingState>([])
+
+  const sortBy = getSortBy(sortingState)
+  const sortDirection = getSortDirection(sortingState)
+
+  const handleSortingChange = (
+    updater: SortingState | ((prev: SortingState) => SortingState),
+  ) => {
+    setSortingState((current) =>
+      typeof updater === 'function' ? updater(current) : updater,
+    )
+    handlePaginate(1)
+  }
 
   const { data: monitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
     useQuery({
-      queryKey,
+      queryKey: [...queryKey, sortBy, sortDirection],
       queryFn: () =>
         getMonitoredPlates({
           active: formattedSearchParams.active,
@@ -54,6 +127,8 @@ export function MonitoredPlatesTable() {
           endTimeCreate: formattedSearchParams.endTimeCreate,
           page: formattedSearchParams.page,
           size: formattedSearchParams.size,
+          sortBy,
+          sortDirection,
         }),
     })
 
@@ -67,12 +142,17 @@ export function MonitoredPlatesTable() {
 
   const { data: authorityDetail, isLoading: isAuthorityDetailLoading } =
     useQuery({
-      queryKey: ['institution-authorities', selectedAuthority?.id],
-      queryFn: () => getInstitutionAuthority({ id: selectedAuthority!.id }),
-      enabled: Boolean(selectedAuthority?.id),
+      queryKey: [
+        'institution-authorities',
+        selectedEntry?.institutionAuthority.id,
+      ],
+      queryFn: () =>
+        getInstitutionAuthority({ id: selectedEntry!.institutionAuthority.id }),
+      enabled: Boolean(selectedEntry?.institutionAuthority.id),
     })
 
-  const displayedAuthority = authorityDetail ?? selectedAuthority
+  const displayedAuthority =
+    authorityDetail ?? selectedEntry?.institutionAuthority
 
   const currentPage = formattedSearchParams.page ?? 1
   const pageSize = formattedSearchParams.size ?? 10
@@ -83,49 +163,46 @@ export function MonitoredPlatesTable() {
     {
       accessorKey: 'plate',
       header: 'Placa',
+      enableSorting: true,
     },
     {
       accessorKey: 'active',
       header: 'Status',
+      enableSorting: true,
       cell: ({ row }) => (row.original.active ? 'Ativa' : 'Inativa'),
     },
     {
       accessorKey: 'notes',
       header: 'Observações',
+      enableSorting: false,
       cell: ({ row }) => row.original.notes || ' - ',
     },
     {
       id: 'authorities',
       header: 'Requisitantes',
+      enableSorting: false,
       cell: ({ row }) => {
-        const uniqueAuthorities = Array.from(
-          new Map(
-            row.original.authorities.map((authority) => [
-              authority.institutionAuthority.id,
-              authority.institutionAuthority,
-            ]),
-          ).values(),
-        )
+        const entries = buildAuthorityEntries(row.original.authorities)
 
-        if (uniqueAuthorities.length === 0) {
+        if (entries.length === 0) {
           return <span className="text-sm text-muted-foreground">Nenhum</span>
         }
 
-        const visibleAuthorities = uniqueAuthorities.slice(0, 2)
-        const hiddenCount = uniqueAuthorities.length - visibleAuthorities.length
+        const visibleEntries = entries.slice(0, 2)
+        const hiddenCount = entries.length - visibleEntries.length
 
         return (
           <div className="flex flex-wrap gap-1">
-            {visibleAuthorities.map((authority) => (
+            {visibleEntries.map((entry) => (
               <Button
-                key={authority.id}
+                key={entry.institutionAuthority.id}
                 type="button"
                 variant="outline"
                 size="sm"
                 className="h-7 px-2 text-xs"
-                onClick={() => setSelectedAuthority(authority)}
+                onClick={() => setSelectedEntry(entry)}
               >
-                {authority.name}
+                {entry.institutionAuthority.name}
               </Button>
             ))}
             {hiddenCount > 0 ? (
@@ -147,6 +224,7 @@ export function MonitoredPlatesTable() {
     {
       accessorKey: 'createdAt',
       header: 'Data de criação',
+      enableSorting: true,
       cell: ({ row }) =>
         row.original.createdAt
           ? formatDate(new Date(row.original.createdAt), 'dd/MM/yyyy HH:mm')
@@ -155,6 +233,7 @@ export function MonitoredPlatesTable() {
     {
       accessorKey: 'updatedAt',
       header: 'Última atualização',
+      enableSorting: true,
       cell: ({ row }) =>
         row.original.updatedAt
           ? formatDate(new Date(row.original.updatedAt), 'dd/MM/yyyy HH:mm')
@@ -167,6 +246,7 @@ export function MonitoredPlatesTable() {
           <p className="w-[4.5rem] text-center">Ações</p>
         </div>
       ),
+      enableSorting: false,
       cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
@@ -222,6 +302,10 @@ export function MonitoredPlatesTable() {
           columns={columns}
           data={paginatedItems}
           isLoading={isMonitoredPlatesLoading || isProfileLoading}
+          sorting
+          sortingState={sortingState}
+          onSortingChange={handleSortingChange}
+          manualSorting
         />
         <Pagination
           page={currentPage}
@@ -232,15 +316,15 @@ export function MonitoredPlatesTable() {
       </div>
 
       <Dialog
-        open={Boolean(selectedAuthority)}
+        open={Boolean(selectedEntry)}
         onOpenChange={(open) => {
-          if (!open) setSelectedAuthority(null)
+          if (!open) setSelectedEntry(null)
         }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {selectedAuthority?.name ?? 'Requisitante'}
+              {selectedEntry?.institutionAuthority.name ?? 'Requisitante'}
             </DialogTitle>
             <DialogDescription>
               Informações do requisitante vinculado a esta placa monitorada.
@@ -290,6 +374,14 @@ export function MonitoredPlatesTable() {
               <div>
                 <span className="font-medium">Ponto focal:</span>{' '}
                 {displayedAuthority.isFocalPoint ? 'Sim' : 'Não'}
+              </div>
+              <div>
+                <span className="font-medium">Canais de notificação:</span>{' '}
+                {selectedEntry?.notificationChannels.length
+                  ? selectedEntry.notificationChannels
+                      .map((ch) => ch.title || ch.id)
+                      .join(', ')
+                  : ' - '}
               </div>
             </div>
           ) : null}
