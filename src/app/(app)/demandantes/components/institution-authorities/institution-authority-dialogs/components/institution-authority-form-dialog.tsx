@@ -139,6 +139,9 @@ export function InstitutionAuthorityFormDialog({
   const { errors, isSubmitting } = formState
 
   const [shouldReplaceFocalPoint, setShouldReplaceFocalPoint] = useState(false)
+  const [createdAuthorityId, setCreatedAuthorityId] = useState<string | null>(
+    null,
+  )
 
   const phonesFieldArray = useFieldArray({
     control,
@@ -202,9 +205,6 @@ export function InstitutionAuthorityFormDialog({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
       },
-      onError: (error) => {
-        toast.error(getApiErrorMessage(error))
-      },
     })
 
   const requestingInstitutionOptions = useMemo(
@@ -225,6 +225,7 @@ export function InstitutionAuthorityFormDialog({
     onClose()
     reset(emptyFormValues)
     setShouldReplaceFocalPoint(false)
+    setCreatedAuthorityId(null)
     setInitialData(null)
   }
 
@@ -341,20 +342,37 @@ export function InstitutionAuthorityFormDialog({
 
       toast.success('Requisitante atualizada.')
     } else {
-      const createdAuthority = await createMutation({
-        name: values.name.trim(),
-        requestingInstitutionId: values.requestingInstitutionId,
-        isFocalPoint: values.isFocalPoint,
-      })
+      const authorityId =
+        createdAuthorityId ??
+        (
+          await createMutation({
+            name: values.name.trim(),
+            requestingInstitutionId: values.requestingInstitutionId,
+            isFocalPoint: values.isFocalPoint,
+          })
+        ).id
+
+      setCreatedAuthorityId(authorityId)
 
       if (hasAnyContacts) {
-        await replaceContactsMutation({
-          id: createdAuthority.id,
-          phones,
-          emails,
-        })
+        try {
+          await replaceContactsMutation({
+            id: authorityId,
+            phones,
+            emails,
+          })
+        } catch {
+          phones.forEach((_, i) => {
+            setError(`phones.${i}.phone`, {
+              type: 'server',
+              message: 'Telefone inválido. Verifique o número.',
+            })
+          })
+          return
+        }
       }
 
+      setCreatedAuthorityId(null)
       toast.success('Requisitante criado.')
     }
 
