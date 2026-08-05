@@ -11,6 +11,35 @@ import { queryClient } from './react-query'
 export const isApiError = axios.isAxiosError
 
 const isServer = typeof window === 'undefined'
+let isAuthRedirecting = false
+
+function redirectToSignIn(errorCode?: string) {
+  if (isAuthRedirecting || window.location.pathname === '/auth/sign-in') {
+    return
+  }
+
+  isAuthRedirecting = true
+
+  deleteCookie('token')
+  deleteCookie('session_id')
+  deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
+  queryClient.clear()
+
+  if (errorCode === 'session_invalidated') {
+    sessionStorage.setItem('session-invalidated-toast', '1')
+  }
+
+  fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+  })
+    .catch(() => {
+      // The redirect must continue even if the logout endpoint is unavailable.
+    })
+    .finally(() => {
+      window.location.replace('/auth/sign-in')
+    })
+}
 
 export const api = axios.create({
   baseURL: isServer ? appConfig.apiUrl : '/api/bff',
@@ -26,9 +55,13 @@ api.interceptors.request.use(async (requestConfig) => {
     cookieStore = serverCookies
   }
   const token = getCookie('token', { cookies: cookieStore })
+  const sessionId = getCookie('session_id', { cookies: cookieStore })
 
   if (token) {
     requestConfig.headers.Authorization = `Bearer ${token}`
+  }
+  if (sessionId) {
+    requestConfig.headers['X-Civitas-Session-Id'] = sessionId
   }
 
   const shouldAttachImpersonation =
@@ -56,15 +89,15 @@ api.interceptors.response.use(
     const status = error?.response?.status
 
     if (typeof window !== 'undefined' && status === 401) {
-      deleteCookie('token')
-      deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
-      queryClient.clear()
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
+      const errorCode = error?.response?.data?.code
+
       if (window.location.pathname !== '/auth/sign-in') {
-        window.location.href = '/auth/sign-in'
+        redirectToSignIn(errorCode)
+
+        return new Promise(() => {
+          // Keep callers from rendering transient query/error states while the
+          // browser is being redirected to sign-in.
+        })
       }
     }
 
