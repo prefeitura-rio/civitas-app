@@ -32,11 +32,52 @@ import type {
   InstitutionAuthority,
   NotificationChannel,
 } from '@/models/entities'
+import type { VehicleType } from '@/models/monitored-plates'
 import { notAllowed } from '@/utils/template-messages'
 
 type AuthorityEntry = {
   institutionAuthority: InstitutionAuthority
   notificationChannels: NotificationChannel[]
+}
+
+const VEHICLE_TYPE_LABELS: Record<VehicleType, string> = {
+  automovel: 'Automóvel',
+  motocicleta: 'Motocicleta',
+  caminhao: 'Caminhão',
+  onibus: 'Ônibus',
+  utilitario: 'Utilitário',
+  van: 'Van / Microônibus',
+  reboque: 'Reboque / Semi-reboque',
+  trator: 'Trator',
+  outro: 'Outro',
+}
+
+function formatVehicleSummary(plate: MonitoredPlateReadModel): {
+  line1: string | null
+  line2: string | null
+} {
+  const typePart = plate.vehicleType
+    ? VEHICLE_TYPE_LABELS[plate.vehicleType]
+    : null
+  const colorPart = plate.color?.trim() || null
+  const brandPart = plate.brand?.trim() || null
+  const modelPart = plate.model?.trim() || null
+  const modelYearPart = plate.modelYear?.trim() || null
+  const manufactureYearPart = plate.manufactureYear?.trim() || null
+
+  const line1Parts = [typePart, colorPart].filter(Boolean)
+  const line1 = line1Parts.length > 0 ? line1Parts.join(' · ') : null
+
+  const brandModel = [brandPart, modelPart].filter(Boolean).join(' ')
+  const yearsPart =
+    modelYearPart && manufactureYearPart
+      ? `${modelYearPart} (fab. ${manufactureYearPart})`
+      : (modelYearPart ??
+        (manufactureYearPart ? `fab. ${manufactureYearPart}` : null))
+  const line2Parts = [brandModel || null, yearsPart].filter(Boolean)
+  const line2 = line2Parts.length > 0 ? line2Parts.join(' · ') : null
+
+  return { line1, line2 }
 }
 
 const sortableColumns = {
@@ -176,6 +217,25 @@ export function MonitoredPlatesTable() {
       header: 'Observações',
       enableSorting: false,
       cell: ({ row }) => row.original.notes || ' - ',
+    },
+    {
+      id: 'vehicle',
+      header: 'Veículo',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const { line1, line2 } = formatVehicleSummary(row.original)
+        if (!line1 && !line2) {
+          return <span className="text-sm text-muted-foreground"> - </span>
+        }
+        return (
+          <div className="flex flex-col gap-0.5 text-sm">
+            {line1 ? <span>{line1}</span> : null}
+            {line2 ? (
+              <span className="text-muted-foreground">{line2}</span>
+            ) : null}
+          </div>
+        )
+      },
     },
     {
       id: 'authorities',

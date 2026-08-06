@@ -26,12 +26,32 @@ export type BackendMonitoredPlateAuthorityLink = {
   collection_point_ids: string[]
 }
 
+export type VehicleType =
+  | 'automovel'
+  | 'motocicleta'
+  | 'caminhao'
+  | 'onibus'
+  | 'utilitario'
+  | 'van'
+  | 'reboque'
+  | 'trator'
+  | 'outro'
+
+export type VehicleInfoSource = 'cortex' | 'manual' | 'mixed'
+
 export type MonitoredPlateRecord = {
   id: string
   plate: string
   active: boolean
   notes: string | null
   additionalInfo: Record<string, unknown> | null
+  vehicleType: VehicleType | null
+  brand: string | null
+  model: string | null
+  modelYear: string | null
+  manufactureYear: string | null
+  color: string | null
+  vehicleInfoSource: VehicleInfoSource | null
   createdAt?: string
   updatedAt?: string
 }
@@ -42,6 +62,13 @@ export type BackendMonitoredPlateRecord = {
   active: boolean
   notes: string | null
   additional_info: Record<string, unknown> | null
+  vehicle_type: VehicleType | null
+  brand: string | null
+  model: string | null
+  model_year: string | null
+  manufacture_year: string | null
+  color: string | null
+  vehicle_info_source: VehicleInfoSource | null
   created_at?: string
   updated_at?: string
 }
@@ -60,6 +87,13 @@ export type MonitoredPlateRegistration = {
   plate: string
   notes?: string | null
   additionalInfo?: Record<string, unknown> | null
+  vehicleType?: VehicleType | null
+  brand?: string | null
+  model?: string | null
+  modelYear?: string | null
+  manufactureYear?: string | null
+  color?: string | null
+  vehicleInfoSource?: VehicleInfoSource | null
   authorities: MonitoredPlateRegistrationAuthority[]
 }
 
@@ -67,6 +101,13 @@ export type BackendMonitoredPlateRegistration = {
   plate: string
   notes?: string | null
   additional_info?: Record<string, unknown> | null
+  vehicle_type?: VehicleType | null
+  brand?: string | null
+  model?: string | null
+  model_year?: string | null
+  manufacture_year?: string | null
+  color?: string | null
+  vehicle_info_source?: VehicleInfoSource | null
   authorities: BackendMonitoredPlateRegistrationAuthority[]
 }
 

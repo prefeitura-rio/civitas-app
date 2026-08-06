@@ -25,6 +25,13 @@ interface BackendMonitoredPlateResponse {
   active: boolean
   notes: string | null
   additional_info: Record<string, unknown> | null
+  vehicle_type: string | null
+  brand: string | null
+  model: string | null
+  model_year: string | null
+  manufacture_year: string | null
+  color: string | null
+  vehicle_info_source: string | null
   authorities: BackendMonitoredPlateAuthoritySummary[]
   created_at: string | null
   updated_at: string | null
@@ -37,6 +44,13 @@ export async function createMonitoredPlateRegistration({
   plate,
   notes,
   additionalInfo,
+  vehicleType,
+  brand,
+  model,
+  modelYear,
+  manufactureYear,
+  color,
+  vehicleInfoSource,
   authorities,
 }: CreateMonitoredPlateRegistrationRequest): Promise<MonitoredPlateReadModel> {
   const response = await api.post<BackendMonitoredPlateResponse>(
@@ -45,6 +59,13 @@ export async function createMonitoredPlateRegistration({
       plate,
       notes,
       additional_info: additionalInfo,
+      vehicle_type: vehicleType ?? null,
+      brand: brand ?? null,
+      model: model ?? null,
+      model_year: modelYear ?? null,
+      manufacture_year: manufactureYear ?? null,
+      color: color ?? null,
+      vehicle_info_source: vehicleInfoSource ?? null,
       authorities: authorities.map((item) => ({
         institution_authority_id: item.institutionAuthorityId,
         reference_number: item.referenceNumber,

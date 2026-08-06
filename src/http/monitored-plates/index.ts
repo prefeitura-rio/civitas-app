@@ -4,6 +4,8 @@ import type {
   BackendNotificationChannel,
   InstitutionAuthority,
   NotificationChannel,
+  VehicleInfoSource,
+  VehicleType,
 } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
 
@@ -36,6 +38,13 @@ interface BackendMonitoredPlateResponse {
   active: boolean
   notes: string | null
   additional_info: Record<string, unknown> | null
+  vehicle_type: VehicleType | null
+  brand: string | null
+  model: string | null
+  model_year: string | null
+  manufacture_year: string | null
+  color: string | null
+  vehicle_info_source: VehicleInfoSource | null
   authorities: BackendMonitoredPlateAuthoritySummary[]
   created_at: string | null
   updated_at: string | null
@@ -66,6 +75,13 @@ export interface MonitoredPlateReadModel {
   active: boolean
   notes: string | null
   additionalInfo: Record<string, unknown> | null
+  vehicleType: VehicleType | null
+  brand: string | null
+  model: string | null
+  modelYear: string | null
+  manufactureYear: string | null
+  color: string | null
+  vehicleInfoSource: VehicleInfoSource | null
   authorities: MonitoredPlateAuthoritySummary[]
   createdAt: string | null
   updatedAt: string | null
@@ -103,12 +119,27 @@ export interface GetMonitoredPlatesRequest extends PaginationRequest {
   sortDirection?: SortDirection
 }
 
+export type VehicleFields = Partial<
+  Pick<
+    MonitoredPlateReadModel,
+    | 'vehicleType'
+    | 'brand'
+    | 'model'
+    | 'modelYear'
+    | 'manufactureYear'
+    | 'color'
+    | 'vehicleInfoSource'
+  >
+>
+
 export interface CreateMonitoredPlateRequest
   extends Pick<MonitoredPlateReadModel, 'plate'>,
-    Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>> {}
+    Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>>,
+    VehicleFields {}
 
 export interface UpdateMonitoredPlateRequest
-  extends Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>> {
+  extends Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>>,
+    VehicleFields {
   plate: string
 }
 
@@ -217,6 +248,13 @@ export function mapBackendMonitoredPlate(
     active: item.active,
     notes: item.notes,
     additionalInfo: item.additional_info,
+    vehicleType: item.vehicle_type,
+    brand: item.brand,
+    model: item.model,
+    modelYear: item.model_year,
+    manufactureYear: item.manufacture_year,
+    color: item.color,
+    vehicleInfoSource: item.vehicle_info_source,
     authorities: item.authorities.map((authority) => ({
       id: authority.id,
       institutionAuthority: mapBackendInstitutionAuthority(
@@ -310,6 +348,13 @@ export async function createMonitoredPlate({
   plate,
   notes,
   additionalInfo,
+  vehicleType,
+  brand,
+  model,
+  modelYear,
+  manufactureYear,
+  color,
+  vehicleInfoSource,
 }: CreateMonitoredPlateRequest) {
   const response = await api.post<BackendMonitoredPlateResponse>(
     '/monitored-plates',
@@ -317,6 +362,13 @@ export async function createMonitoredPlate({
       plate,
       notes,
       additional_info: additionalInfo,
+      vehicle_type: vehicleType ?? null,
+      brand: brand ?? null,
+      model: model ?? null,
+      model_year: modelYear ?? null,
+      manufacture_year: manufactureYear ?? null,
+      color: color ?? null,
+      vehicle_info_source: vehicleInfoSource ?? null,
     },
   )
 
@@ -327,12 +379,26 @@ export async function updateMonitoredPlate({
   plate,
   notes,
   additionalInfo,
+  vehicleType,
+  brand,
+  model,
+  modelYear,
+  manufactureYear,
+  color,
+  vehicleInfoSource,
 }: UpdateMonitoredPlateRequest) {
   const response = await api.patch<BackendMonitoredPlateResponse>(
     `/monitored-plates/${plate}`,
     {
       notes,
       additional_info: additionalInfo,
+      vehicle_type: vehicleType ?? null,
+      brand: brand ?? null,
+      model: model ?? null,
+      model_year: modelYear ?? null,
+      manufacture_year: manufactureYear ?? null,
+      color: color ?? null,
+      vehicle_info_source: vehicleInfoSource ?? null,
     },
   )
 

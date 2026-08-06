@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -18,6 +18,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 import { getInstitutionAuthorities } from '@/http/institution-authorities'
@@ -28,6 +35,7 @@ import {
 } from '@/http/monitored-plates'
 import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
 import { queryClient } from '@/lib/react-query'
+import type { VehicleType } from '@/models/monitored-plates'
 import {
   genericErrorMessage,
   isConflictError,
@@ -42,11 +50,44 @@ import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-a
 
 const MONITORED_PLATE_REGEX = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/
 
+const VEHICLE_TYPE_OPTIONS: { value: VehicleType; label: string }[] = [
+  { value: 'automovel', label: 'Automóvel' },
+  { value: 'motocicleta', label: 'Motocicleta' },
+  { value: 'caminhao', label: 'Caminhão' },
+  { value: 'onibus', label: 'Ônibus' },
+  { value: 'utilitario', label: 'Utilitário' },
+  { value: 'van', label: 'Van / Microônibus' },
+  { value: 'reboque', label: 'Reboque / Semi-reboque' },
+  { value: 'trator', label: 'Trator' },
+  { value: 'outro', label: 'Outro' },
+]
+
+const vehicleTypeSchema = z.enum([
+  'automovel',
+  'motocicleta',
+  'caminhao',
+  'onibus',
+  'utilitario',
+  'van',
+  'reboque',
+  'trator',
+  'outro',
+])
+
 interface MonitoredPlateDialogProps {
   isOpen: boolean
   onClose: () => void
   onOpen: () => void
   shouldFetchData?: boolean
+}
+
+const vehicleFieldsSchema = {
+  vehicleType: vehicleTypeSchema.optional().nullable(),
+  brand: z.string().optional().nullable(),
+  model: z.string().optional().nullable(),
+  modelYear: z.string().max(4).optional().nullable(),
+  manufactureYear: z.string().max(4).optional().nullable(),
+  color: z.string().optional().nullable(),
 }
 
 const monitoredPlateCreateFormSchema = z.object({
@@ -57,11 +98,13 @@ const monitoredPlateCreateFormSchema = z.object({
     .toUpperCase()
     .regex(MONITORED_PLATE_REGEX, 'Formato inválido'),
   notes: z.string(),
+  ...vehicleFieldsSchema,
 })
 
 const monitoredPlateEditFormSchema = z.object({
   plate: z.string(),
   notes: z.string(),
+  ...vehicleFieldsSchema,
 })
 
 type MonitoredPlateCreateForm = z.infer<typeof monitoredPlateCreateFormSchema>
@@ -106,6 +149,7 @@ export function MonitoredPlateFormDialog({
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors, isSubmitting },
     reset,
   } = createForm
@@ -113,6 +157,7 @@ export function MonitoredPlateFormDialog({
   const {
     register: registerEdit,
     handleSubmit: handleEditSubmit,
+    control: controlEdit,
     formState: { errors: editErrors, isSubmitting: isSubmittingEdit },
     reset: resetEdit,
   } = editForm
@@ -237,10 +282,22 @@ export function MonitoredPlateFormDialog({
     reset({
       plate: '',
       notes: '',
+      vehicleType: null,
+      brand: null,
+      model: null,
+      modelYear: null,
+      manufactureYear: null,
+      color: null,
     })
     resetEdit({
       plate: '',
       notes: '',
+      vehicleType: null,
+      brand: null,
+      model: null,
+      modelYear: null,
+      manufactureYear: null,
+      color: null,
     })
     setDraftLinks([])
     setInitialData(null)
@@ -252,10 +309,21 @@ export function MonitoredPlateFormDialog({
       return
     }
 
+    const hasVehicleData = Boolean(
+      values.vehicleType || values.brand || values.model || values.color,
+    )
+
     await createRegistrationMutation({
       plate: values.plate,
       notes: values.notes.trim() || null,
       additionalInfo: null,
+      vehicleType: values.vehicleType ?? null,
+      brand: values.brand?.trim() || null,
+      model: values.model?.trim() || null,
+      modelYear: values.modelYear?.trim() || null,
+      manufactureYear: values.manufactureYear?.trim() || null,
+      color: values.color?.trim() || null,
+      vehicleInfoSource: hasVehicleData ? 'manual' : null,
       authorities: draftLinks.map((link) => ({
         institutionAuthorityId: link.institutionAuthorityId,
         referenceNumber: link.referenceNumber.trim(),
@@ -279,10 +347,21 @@ export function MonitoredPlateFormDialog({
       return
     }
 
+    const hasVehicleData = Boolean(
+      values.vehicleType || values.brand || values.model || values.color,
+    )
+
     await updateMonitoredPlateMutation({
       plate,
       notes: values.notes.trim() || null,
       additionalInfo: monitoredPlate?.additionalInfo ?? null,
+      vehicleType: values.vehicleType ?? null,
+      brand: values.brand?.trim() || null,
+      model: values.model?.trim() || null,
+      modelYear: values.modelYear?.trim() || null,
+      manufactureYear: values.manufactureYear?.trim() || null,
+      color: values.color?.trim() || null,
+      vehicleInfoSource: hasVehicleData ? 'manual' : null,
     })
     await authorityLinksPanelRef.current?.flushPendingActiveChanges()
 
@@ -297,6 +376,12 @@ export function MonitoredPlateFormDialog({
         resetEdit({
           plate: monitoredPlate.plate,
           notes: monitoredPlate.notes ?? '',
+          vehicleType: monitoredPlate.vehicleType ?? null,
+          brand: monitoredPlate.brand ?? null,
+          model: monitoredPlate.model ?? null,
+          modelYear: monitoredPlate.modelYear ?? null,
+          manufactureYear: monitoredPlate.manufactureYear ?? null,
+          color: monitoredPlate.color ?? null,
         })
       }
       return
@@ -305,6 +390,12 @@ export function MonitoredPlateFormDialog({
     reset({
       plate: initialData?.plate ?? '',
       notes: '',
+      vehicleType: null,
+      brand: null,
+      model: null,
+      modelYear: null,
+      manufactureYear: null,
+      color: null,
     })
     setDraftLinks([])
   }, [
@@ -362,6 +453,89 @@ export function MonitoredPlateFormDialog({
                   {...registerEdit('notes')}
                   disabled={isEditLoading}
                 />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Dados do veículo
+                </p>
+
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="edit-vehicle-type">Tipo</Label>
+                  <Controller
+                    name="vehicleType"
+                    control={controlEdit}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ?? ''}
+                        onValueChange={(v) => field.onChange(v || null)}
+                        disabled={isEditLoading}
+                      >
+                        <SelectTrigger id="edit-vehicle-type">
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VEHICLE_TYPE_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="edit-brand">Marca</Label>
+                    <Input
+                      id="edit-brand"
+                      {...registerEdit('brand')}
+                      disabled={isEditLoading}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="edit-model">Modelo</Label>
+                    <Input
+                      id="edit-model"
+                      {...registerEdit('model')}
+                      disabled={isEditLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="edit-model-year">Ano modelo</Label>
+                    <Input
+                      id="edit-model-year"
+                      maxLength={4}
+                      {...registerEdit('modelYear')}
+                      disabled={isEditLoading}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="edit-manufacture-year">
+                      Ano fabricação
+                    </Label>
+                    <Input
+                      id="edit-manufacture-year"
+                      maxLength={4}
+                      {...registerEdit('manufactureYear')}
+                      disabled={isEditLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="edit-color">Cor</Label>
+                  <Input
+                    id="edit-color"
+                    {...registerEdit('color')}
+                    disabled={isEditLoading}
+                  />
+                </div>
               </div>
 
               <MonitoredPlateAuthorityLinksPanel
@@ -424,6 +598,87 @@ export function MonitoredPlateFormDialog({
                 {...register('notes')}
                 disabled={isCreateLoading}
               />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                Dados do veículo
+              </p>
+
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="vehicle-type">Tipo</Label>
+                <Controller
+                  name="vehicleType"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ?? ''}
+                      onValueChange={(v) => field.onChange(v || null)}
+                      disabled={isCreateLoading}
+                    >
+                      <SelectTrigger id="vehicle-type">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VEHICLE_TYPE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="brand">Marca</Label>
+                  <Input
+                    id="brand"
+                    {...register('brand')}
+                    disabled={isCreateLoading}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="model">Modelo</Label>
+                  <Input
+                    id="model"
+                    {...register('model')}
+                    disabled={isCreateLoading}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="model-year">Ano modelo</Label>
+                  <Input
+                    id="model-year"
+                    maxLength={4}
+                    {...register('modelYear')}
+                    disabled={isCreateLoading}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="manufacture-year">Ano fabricação</Label>
+                  <Input
+                    id="manufacture-year"
+                    maxLength={4}
+                    {...register('manufactureYear')}
+                    disabled={isCreateLoading}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="color">Cor</Label>
+                <Input
+                  id="color"
+                  {...register('color')}
+                  disabled={isCreateLoading}
+                />
+              </div>
             </div>
 
             <MonitoredPlateAuthorityLinksPanel
