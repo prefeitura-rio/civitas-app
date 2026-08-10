@@ -1,0 +1,28 @@
+name: SAST
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+      - name: Run SAST (local action)
+        uses: prefeitura-rio/actions/sast@master
+        with:
+          sonar_url: ${{ vars.SONARQUBE_URL }}
+          sonar_token: ${{ secrets.SONARQUBE_TOKEN }}
+          dd_url: ${{ vars.DEFECTDOJO_URL }}
+          dd_token: ${{ secrets.DEFECTDOJO_TOKEN }}
+          ts_tags: tag:prefect-cicd
+          ts_oauth_client_id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts_oauth_secret: ${{ secrets.TS_OAUTH_SECRET }}
