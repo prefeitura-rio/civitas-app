@@ -14,6 +14,7 @@ import {
 } from 'react'
 import { toast } from 'sonner'
 
+import { Tooltip } from '@/components/custom/tooltip'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
@@ -57,6 +58,7 @@ import {
   type TicketRelatorioCompletoTopics,
 } from '@/http/tickets/get-ticket-relatorio-completo'
 import { type TicketReassignPriority } from '@/http/tickets/reassign-ticket'
+import { resendTicketResponseLinks } from '@/http/tickets/resend-ticket-response-links'
 import { getTicketAttachments } from '@/http/tickets/ticket-attachments'
 import { cn } from '@/lib/utils'
 import { getApiErrorMessage, isNotFoundError } from '@/utils/error-handlers'
@@ -170,6 +172,21 @@ type TicketWorkflowConfirmableAction =
   | 'DESBLOQUEAR'
   | 'ENVIAR_PARA_REVISAO'
   | 'REABRIR_DEMANDA'
+  | 'REENVIAR_LINKS_RESPOSTA'
+
+const RESPONSE_LINK_RESEND_MAX_AGE_DAYS = 180
+const RESPONSE_LINK_RESEND_EXPIRATION_MESSAGE =
+  'O reenvio de links só é permitido até 180 dias após a abertura da demanda.'
+
+function hasResponseLinkResendExpired(createdAt?: string | null) {
+  const openedAt = Date.parse(createdAt ?? '')
+  if (Number.isNaN(openedAt)) return false
+
+  return (
+    Date.now() >
+    openedAt + RESPONSE_LINK_RESEND_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+  )
+}
 
 export function TicketDetailView({ ticketId }: Props) {
   const router = useRouter()
@@ -380,6 +397,9 @@ export function TicketDetailView({ ticketId }: Props) {
     'FINALIZAR_SEM_ENCAMINHAR',
   )
   const canReopenDemand = allowedActionIds.includes('REABRIR_DEMANDA')
+  const isResponseLinkResendExpired = hasResponseLinkResendExpired(
+    cab?.created_at,
+  )
 
   const teamsByRoleQuery = useQuery({
     queryKey: ['teams', 'by-role'],
@@ -401,7 +421,9 @@ export function TicketDetailView({ ticketId }: Props) {
   const notificationEmailsQuery = useQuery({
     queryKey: ['ticket', ticketId, 'notification-emails'],
     queryFn: () => getTicketNotificationEmails(ticketId),
-    enabled: workflowCommentAction === 'ENVIAR_EMAIL',
+    enabled:
+      workflowCommentAction === 'ENVIAR_EMAIL' ||
+      workflowCommentAction === 'REENVIAR_LINKS_RESPOSTA',
     retry: false,
   })
 
@@ -482,6 +504,17 @@ export function TicketDetailView({ ticketId }: Props) {
       setTimeout(() => {
         router.push('/demandas')
       }, 1500)
+    },
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error))
+    },
+  })
+
+  const resendResponseLinksMutation = useMutation({
+    mutationFn: () => resendTicketResponseLinks(ticketId),
+    onSuccess: () => {
+      toast.success('E-mail de resposta reenviado com links atualizados.')
+      setWorkflowCommentAction(null)
     },
     onError: (error: unknown) => {
       toast.error(getApiErrorMessage(error))
@@ -625,6 +658,12 @@ export function TicketDetailView({ ticketId }: Props) {
     )
 
   const isWorkflowEmailAction = workflowCommentAction === 'ENVIAR_EMAIL'
+  const isResendResponseLinksAction =
+    workflowCommentAction === 'REENVIAR_LINKS_RESPOSTA'
+  const isEmailRecipientAction =
+    isWorkflowEmailAction || isResendResponseLinksAction
+  const isConfirmDialogPending =
+    workflowActionMutation.isPending || resendResponseLinksMutation.isPending
 
   const canSubmitReassignment =
     selectedTeamId.length > 0 &&
@@ -811,16 +850,46 @@ export function TicketDetailView({ ticketId }: Props) {
             </button>
           ) : null}
           {canReopenDemand ? (
-            <button
-              type="button"
-              className={`${styles.actionSlot} ${styles.actionSecondary}`}
-              onClick={() => setWorkflowCommentAction('REABRIR_DEMANDA')}
-              disabled={workflowActionMutation.isPending}
-            >
-              {workflowActionMutation.isPending
-                ? 'Aplicando ação…'
-                : 'Reabrir Demanda'}
-            </button>
+            <>
+              <button
+                type="button"
+                className={`${styles.actionSlot} ${styles.actionSecondary}`}
+                onClick={() => setWorkflowCommentAction('REABRIR_DEMANDA')}
+                disabled={workflowActionMutation.isPending}
+              >
+                {workflowActionMutation.isPending
+                  ? 'Aplicando ação…'
+                  : 'Reabrir Demanda'}
+              </button>
+              <Tooltip
+                asChild
+                text={RESPONSE_LINK_RESEND_EXPIRATION_MESSAGE}
+                hideContent={!isResponseLinkResendExpired}
+              >
+                <button
+                  type="button"
+                  className={cn(
+                    styles.actionSlot,
+                    styles.actionPrimary,
+                    isResponseLinkResendExpired &&
+                      'cursor-not-allowed opacity-50',
+                  )}
+                  aria-disabled={isResponseLinkResendExpired}
+                  onClick={() => {
+                    if (isResponseLinkResendExpired) {
+                      toast.error(RESPONSE_LINK_RESEND_EXPIRATION_MESSAGE)
+                      return
+                    }
+                    setWorkflowCommentAction('REENVIAR_LINKS_RESPOSTA')
+                  }}
+                  disabled={resendResponseLinksMutation.isPending}
+                >
+                  {resendResponseLinksMutation.isPending
+                    ? 'Reenviando…'
+                    : 'Reenviar Links'}
+                </button>
+              </Tooltip>
+            </>
           ) : null}
           {canReassignTicket ? (
             <button
@@ -995,10 +1064,10 @@ export function TicketDetailView({ ticketId }: Props) {
             <div
               className={cn(
                 styles.reassignDialogInner,
-                isWorkflowEmailAction && styles.workflowEmailDialogInner,
+                isEmailRecipientAction && styles.workflowEmailDialogInner,
               )}
             >
-              {!isWorkflowEmailAction ? (
+              {!isEmailRecipientAction ? (
                 <DialogHeader className={styles.reassignDialogHeader}>
                   <DialogTitle className={styles.reassignDialogTitle}>
                     {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
@@ -1016,7 +1085,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 </DialogHeader>
               ) : null}
               <div className={styles.reassignFields}>
-                {!isWorkflowEmailAction ? (
+                {!isEmailRecipientAction ? (
                   <div className={styles.reassignField}>
                     <p className={styles.reassignFieldMessage}>
                       {workflowCommentAction === 'FINALIZAR_SEM_ENCAMINHAR'
@@ -1033,11 +1102,12 @@ export function TicketDetailView({ ticketId }: Props) {
                     </p>
                   </div>
                 ) : null}
-                {isWorkflowEmailAction ? (
+                {isEmailRecipientAction ? (
                   <div className={styles.workflowEmailContent}>
                     <h3 className={styles.workflowEmailTitle}>
-                      Confirmar o envio do e-mail com a resposta do chamado
-                      para:
+                      {isResendResponseLinksAction
+                        ? 'O e-mail de resposta será reenviado com links atualizados para:'
+                        : 'Confirmar o envio do e-mail com a resposta do chamado para:'}
                     </h3>
                     <div className={styles.workflowEmailSelectWrap}>
                       <Popover>
@@ -1049,7 +1119,7 @@ export function TicketDetailView({ ticketId }: Props) {
                               'flex w-full cursor-pointer items-center justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
                             )}
                             disabled={
-                              workflowActionMutation.isPending ||
+                              isConfirmDialogPending ||
                               notificationEmailsQuery.isLoading ||
                               (notificationEmailsQuery.data ?? []).length === 0
                             }
@@ -1107,18 +1177,20 @@ export function TicketDetailView({ ticketId }: Props) {
                         </p>
                       ) : null}
                     </div>
-                    <div className={styles.reassignField}>
-                      <span className={styles.reassignLabel}>Despacho</span>
-                      <Textarea
-                        value={workflowComment}
-                        onChange={(event) =>
-                          setWorkflowComment(event.target.value)
-                        }
-                        placeholder="Digite o despacho"
-                        className={styles.reassignTextarea}
-                        disabled={workflowActionMutation.isPending}
-                      />
-                    </div>
+                    {isWorkflowEmailAction ? (
+                      <div className={styles.reassignField}>
+                        <span className={styles.reassignLabel}>Despacho</span>
+                        <Textarea
+                          value={workflowComment}
+                          onChange={(event) =>
+                            setWorkflowComment(event.target.value)
+                          }
+                          placeholder="Digite o despacho"
+                          className={styles.reassignTextarea}
+                          disabled={isConfirmDialogPending}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 ) : (
                   <div className={styles.reassignField}>
@@ -1138,7 +1210,7 @@ export function TicketDetailView({ ticketId }: Props) {
               <DialogFooter
                 className={cn(
                   styles.footerActions,
-                  isWorkflowEmailAction && styles.footerActionsCentered,
+                  isEmailRecipientAction && styles.footerActionsCentered,
                 )}
               >
                 <button
@@ -1148,7 +1220,7 @@ export function TicketDetailView({ ticketId }: Props) {
                     setWorkflowCommentAction(null)
                     setWorkflowComment('')
                   }}
-                  disabled={workflowActionMutation.isPending}
+                  disabled={isConfirmDialogPending}
                 >
                   Cancelar
                 </button>
@@ -1156,14 +1228,17 @@ export function TicketDetailView({ ticketId }: Props) {
                   type="button"
                   className={`${styles.footerBtn} ${styles.footerBtnPrimary}`}
                   disabled={
-                    workflowActionMutation.isPending ||
-                    workflowComment.trim().length === 0 ||
+                    isConfirmDialogPending ||
                     (isWorkflowEmailAction &&
+                      workflowComment.trim().length === 0) ||
+                    (isEmailRecipientAction &&
                       (notificationEmailsQuery.isLoading ||
                         (notificationEmailsQuery.data ?? []).length === 0))
                   }
                   onClick={() => {
-                    if (workflowCommentAction) {
+                    if (isResendResponseLinksAction) {
+                      resendResponseLinksMutation.mutate()
+                    } else if (workflowCommentAction) {
                       workflowActionMutation.mutate({
                         actionId: workflowCommentAction,
                         comment: workflowComment.trim(),
@@ -1171,11 +1246,15 @@ export function TicketDetailView({ ticketId }: Props) {
                     }
                   }}
                 >
-                  {workflowActionMutation.isPending
-                    ? 'Aplicando ação…'
-                    : isWorkflowEmailAction
-                      ? 'Enviar E-mail'
-                      : 'Confirmar'}
+                  {isConfirmDialogPending
+                    ? isResendResponseLinksAction
+                      ? 'Reenviando…'
+                      : 'Aplicando ação…'
+                    : isResendResponseLinksAction
+                      ? 'Reenviar Links'
+                      : isWorkflowEmailAction
+                        ? 'Enviar E-mail'
+                        : 'Confirmar'}
                 </button>
               </DialogFooter>
             </div>
