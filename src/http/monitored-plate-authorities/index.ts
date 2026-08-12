@@ -46,6 +46,38 @@ export interface UpdateMonitoredPlateAuthorityRequest
   id: string
 }
 
+export function buildMonitoredPlateAuthorityActiveUpdate(
+  link: {
+    id: string
+    referenceNumber: string
+    requestedAt: string
+    validUntil: string
+    monitorAllCollectionPoints: boolean
+    notificationChannels?: { id: string }[]
+    notificationChannelIds?: string[]
+    collectionPointIds: string[]
+  },
+  active: boolean,
+): UpdateMonitoredPlateAuthorityRequest {
+  const notificationChannelIds =
+    link.notificationChannelIds && link.notificationChannelIds.length > 0
+      ? link.notificationChannelIds
+      : (link.notificationChannels
+          ?.map((channel) => channel.id)
+          .filter(Boolean) ?? [])
+
+  return {
+    id: link.id,
+    active,
+    referenceNumber: link.referenceNumber,
+    requestedAt: link.requestedAt,
+    validUntil: link.validUntil,
+    monitorAllCollectionPoints: link.monitorAllCollectionPoints,
+    notificationChannelIds,
+    collectionPointIds: link.collectionPointIds,
+  }
+}
+
 function mapBackendRequestingInstitution(
   item?: BackendInstitutionAuthority['requesting_institution'],
 ) {

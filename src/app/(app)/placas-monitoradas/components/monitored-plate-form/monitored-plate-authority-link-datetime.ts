@@ -58,6 +58,19 @@ export function isMonitoredPlateAuthorityValidUntilBeyondMax(
   return startOfDay(date).getTime() > max.getTime()
 }
 
+export const MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE =
+  'Não é possível ativar um vínculo com validade anterior a hoje.'
+
+export function isMonitoredPlateAuthorityValidUntilExpired(
+  validUntil: string | Date | null | undefined,
+  now = new Date(),
+): boolean {
+  if (!validUntil) return true
+  const date = validUntil instanceof Date ? validUntil : new Date(validUntil)
+  if (Number.isNaN(date.getTime())) return true
+  return startOfDay(date).getTime() < startOfToday(now).getTime()
+}
+
 export function parseIsoToDate(
   iso: string | null | undefined,
 ): Date | undefined {

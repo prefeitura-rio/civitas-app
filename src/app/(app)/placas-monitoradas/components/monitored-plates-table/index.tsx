@@ -328,7 +328,7 @@ export function MonitoredPlatesTable() {
               </Button>
             </Tooltip>
             <Tooltip
-              text="Excluir"
+              text="Desativar vínculos"
               disabled={!profile || !profile?.is_admin}
               disabledText={notAllowed}
               asChild
@@ -345,7 +345,7 @@ export function MonitoredPlatesTable() {
                 }}
                 disabled={!profile || !profile?.is_admin}
               >
-                <span className="sr-only">Excluir linha</span>
+                <span className="sr-only">Desativar vínculos da linha</span>
                 <Trash className="h-4 w-4" />
               </Button>
             </Tooltip>

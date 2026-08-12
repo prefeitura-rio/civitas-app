@@ -24,6 +24,8 @@ import { MonitoredPlateAuthorityCollectionPointField } from './monitored-plate-a
 import {
   getDefaultMonitoredPlateAuthorityValidUntil,
   isMonitoredPlateAuthorityValidUntilBeyondMax,
+  isMonitoredPlateAuthorityValidUntilExpired,
+  MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE,
   toMonitoredPlateAuthorityValidUntilIso,
 } from './monitored-plate-authority-link-datetime'
 import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-authority-link-valid-until-picker'
@@ -180,6 +182,11 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       toast.error(
         'A data de validade não pode ser superior a 60 dias a partir de hoje.',
       )
+      return
+    }
+
+    if (active && isMonitoredPlateAuthorityValidUntilExpired(validUntilDate)) {
+      toast.error(MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE)
       return
     }
 
@@ -430,7 +437,16 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
             <span className="text-sm">Vínculo ativo</span>
             <Switch
               checked={active}
-              onCheckedChange={setActive}
+              onCheckedChange={(next) => {
+                if (
+                  next &&
+                  isMonitoredPlateAuthorityValidUntilExpired(validUntilDate)
+                ) {
+                  toast.error(MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE)
+                  return
+                }
+                setActive(next)
+              }}
               disabled={isBusy}
               aria-label="Vínculo ativo"
             />

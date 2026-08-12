@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import type { MouseEvent } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -12,9 +13,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
-import { deleteMonitoredPlate } from '@/http/cars/monitored/delete-monitored-plate'
+import { deactivateMonitoredPlateAuthorityLinks } from '@/http/monitored-plates'
 import { queryClient } from '@/lib/react-query'
-import { genericErrorMessage } from '@/utils/error-handlers'
+import { getApiErrorMessage } from '@/utils/error-handlers'
 
 interface DeleteMonitoredPlateAlertDialogProps {
   isOpen: boolean
@@ -35,35 +36,39 @@ export function DeleteMonitoredPlateAlertDialog({
     setOnDeleteMonitoredPlateProps(null)
   }
 
-  const { mutateAsync: deleteMonitoredPlateMutation } = useMutation({
-    mutationFn: deleteMonitoredPlate,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['monitored-plates'] })
-      queryClient.invalidateQueries({
-        queryKey: ['monitored-plates', onDeleteMonitoredPlateProps?.plate],
-      })
-      queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
-      closeDialog()
-    },
-  })
-
-  async function handleDeleteMonitoredPlate() {
-    try {
-      if (onDeleteMonitoredPlateProps) {
-        const response = deleteMonitoredPlateMutation(
-          onDeleteMonitoredPlateProps.plate,
-        )
-        toast.promise(response, {
-          loading: `Excluindo placa ${onDeleteMonitoredPlateProps?.plate}...`,
-          success: (data) => {
-            return `Placa ${data.data.plate} excluída com sucesso!`
-          },
-          error: genericErrorMessage,
+  const { mutateAsync: deactivateAuthorityLinksMutation, isPending } =
+    useMutation({
+      mutationFn: deactivateMonitoredPlateAuthorityLinks,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['monitored-plates'] })
+        queryClient.invalidateQueries({
+          queryKey: ['monitored-plates', onDeleteMonitoredPlateProps?.plate],
         })
-        await response
-      }
+        queryClient.invalidateQueries({
+          queryKey: ['monitored-plate-authorities'],
+        })
+        closeDialog()
+      },
+    })
+
+  async function handleDeactivateMonitoredPlateLinks(
+    event: MouseEvent<HTMLButtonElement>,
+  ) {
+    event.preventDefault()
+
+    if (!onDeleteMonitoredPlateProps || isPending) return
+
+    const plate = onDeleteMonitoredPlateProps.plate
+    const toastId = toast.loading(`Desativando vínculos da placa ${plate}...`)
+
+    try {
+      const data = await deactivateAuthorityLinksMutation(plate)
+      toast.success(
+        `Vínculos de requisitante da placa ${data.plate} desativados com sucesso!`,
+        { id: toastId },
+      )
     } catch (error) {
-      toast.error(genericErrorMessage)
+      toast.error(getApiErrorMessage(error), { id: toastId })
     }
   }
 
@@ -80,25 +85,24 @@ export function DeleteMonitoredPlateAlertDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Tem certeza que deseja excluir a placa{' '}
+            Tem certeza que deseja desativar os vínculos da placa{' '}
             <span className="font-semibold text-destructive">
               {onDeleteMonitoredPlateProps?.plate}
             </span>
             ?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Essa ação removerá a placa{' '}
-            <span className="font-semibold text-destructive">
-              {onDeleteMonitoredPlateProps?.plate}
-            </span>{' '}
-            do monitoramento de placas. Você poderá adicioná-la novamente mais
-            tarde, se desejar.
+            Essa ação desativa todos os vínculos de requisitante da placa.
+            <br />A placa permanece cadastrada, mas não será mais monitorada.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDeleteMonitoredPlate}>
-            Excluir
+          <AlertDialogAction
+            disabled={isPending}
+            onClick={handleDeactivateMonitoredPlateLinks}
+          >
+            Desativar
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

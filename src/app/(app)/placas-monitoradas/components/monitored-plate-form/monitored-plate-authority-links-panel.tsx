@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import {
+  buildMonitoredPlateAuthorityActiveUpdate,
   createMonitoredPlateAuthority,
   deleteMonitoredPlateAuthority,
   getMonitoredPlateAuthority,
@@ -30,6 +31,10 @@ import {
   type MonitoredPlateAuthorityDraftCreatePayload,
   MonitoredPlateAuthorityLinkCreateDialog,
 } from './monitored-plate-authority-link-create-dialog'
+import {
+  isMonitoredPlateAuthorityValidUntilExpired,
+  MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE,
+} from './monitored-plate-authority-link-datetime'
 import { MonitoredPlateAuthorityLinkDraftEditDialog } from './monitored-plate-authority-link-draft-edit-dialog'
 import { MonitoredPlateAuthorityLinkEditDialog } from './monitored-plate-authority-link-edit-dialog'
 import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-authority-link'
@@ -207,9 +212,17 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
 
   function setDraftActive(clientId: string, active: boolean) {
     if (!onDraftLinksChange) return
+    const draft = draftLinks.find((item) => item.clientId === clientId)
+    if (
+      active &&
+      isMonitoredPlateAuthorityValidUntilExpired(draft?.validUntil)
+    ) {
+      toast.error(MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE)
+      return
+    }
     onDraftLinksChange((prev) =>
-      prev.map((draft) =>
-        draft.clientId === clientId ? { ...draft, active } : draft,
+      prev.map((item) =>
+        item.clientId === clientId ? { ...item, active } : item,
       ),
     )
   }
@@ -229,6 +242,13 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
 
   function setPendingPersistedActive(linkId: string, active: boolean) {
     const link = links.find((item) => item.id === linkId)
+    if (
+      active &&
+      isMonitoredPlateAuthorityValidUntilExpired(link?.validUntil)
+    ) {
+      toast.error(MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE)
+      return
+    }
     setPendingActiveByLinkId((prev) => {
       if (link && link.active === active) {
         return omitPendingActive(prev, linkId)
@@ -248,10 +268,25 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
 
       if (pendingEntries.length === 0) return
 
+      for (const [id, active] of pendingEntries) {
+        const link = links.find((item) => item.id === id)
+        if (
+          active &&
+          isMonitoredPlateAuthorityValidUntilExpired(link?.validUntil)
+        ) {
+          throw new Error(MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE)
+        }
+      }
+
       await Promise.all(
-        pendingEntries.map(([id, active]) =>
-          updatePersistedLink({ id, active }),
-        ),
+        pendingEntries.map(([id, active]) => {
+          const link = links.find((item) => item.id === id)
+          if (!link) return Promise.resolve()
+
+          return updatePersistedLink(
+            buildMonitoredPlateAuthorityActiveUpdate(link, active),
+          )
+        }),
       )
       setPendingActiveByLinkId({})
     },

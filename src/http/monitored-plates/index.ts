@@ -1,3 +1,7 @@
+import {
+  buildMonitoredPlateAuthorityActiveUpdate,
+  updateMonitoredPlateAuthority,
+} from '@/http/monitored-plate-authorities'
 import { api } from '@/lib/api'
 import type {
   BackendInstitutionAuthority,
@@ -403,4 +407,19 @@ export async function updateMonitoredPlate({
   )
 
   return mapBackendMonitoredPlate(response.data)
+}
+
+export async function deactivateMonitoredPlateAuthorityLinks(plate: string) {
+  const monitoredPlate = await getMonitoredPlate({ plate })
+  const activeLinks = monitoredPlate.authorities.filter((link) => link.active)
+
+  await Promise.all(
+    activeLinks.map((link) =>
+      updateMonitoredPlateAuthority(
+        buildMonitoredPlateAuthorityActiveUpdate(link, false),
+      ),
+    ),
+  )
+
+  return monitoredPlate
 }

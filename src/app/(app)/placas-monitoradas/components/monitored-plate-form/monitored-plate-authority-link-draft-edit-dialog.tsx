@@ -29,6 +29,8 @@ import { AuthorityLinkDialogShell } from './authority-link-dialog-shell'
 import { MonitoredPlateAuthorityCollectionPointField } from './monitored-plate-authority-collection-point-field'
 import {
   isMonitoredPlateAuthorityValidUntilBeyondMax,
+  isMonitoredPlateAuthorityValidUntilExpired,
+  MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE,
   parseIsoToDate,
   toMonitoredPlateAuthorityValidUntilIso,
   validUntilInstantsEqual,
@@ -160,6 +162,11 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
       toast.error(
         'A data de validade não pode ser superior a 60 dias a partir de hoje.',
       )
+      return
+    }
+
+    if (active && isMonitoredPlateAuthorityValidUntilExpired(validUntilDate)) {
+      toast.error(MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE)
       return
     }
 
@@ -332,7 +339,17 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
           <label className="flex items-center gap-3 rounded-md border p-3">
             <Checkbox
               checked={active}
-              onCheckedChange={(value) => setActive(Boolean(value))}
+              onCheckedChange={(value) => {
+                const next = Boolean(value)
+                if (
+                  next &&
+                  isMonitoredPlateAuthorityValidUntilExpired(validUntilDate)
+                ) {
+                  toast.error(MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE)
+                  return
+                }
+                setActive(next)
+              }}
             />
             <span className="text-sm">Vínculo ativo</span>
           </label>
