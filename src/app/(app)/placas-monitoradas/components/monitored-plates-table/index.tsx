@@ -109,6 +109,8 @@ function buildAuthorityEntries(
   const map = new Map<string, AuthorityEntry>()
 
   for (const authority of authorities) {
+    if (!authority.active) continue
+
     const id = authority.institutionAuthority.id
     if (!map.has(id)) {
       map.set(id, {

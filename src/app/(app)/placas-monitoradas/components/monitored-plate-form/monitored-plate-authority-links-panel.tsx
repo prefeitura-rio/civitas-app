@@ -41,6 +41,31 @@ import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-a
 
 type PanelMode = 'persisted' | 'draft'
 
+function compareValidUntilDesc(
+  a: string | undefined,
+  b: string | undefined,
+): number {
+  const timeA = a ? new Date(a).getTime() : Number.NaN
+  const timeB = b ? new Date(b).getTime() : Number.NaN
+  const aOk = Number.isFinite(timeA)
+  const bOk = Number.isFinite(timeB)
+  if (!aOk && !bOk) return 0
+  if (!aOk) return 1
+  if (!bOk) return -1
+  return timeB - timeA
+}
+
+function sortLinksByActiveThenValidUntilDesc<
+  T extends { active: boolean; validUntil?: string },
+>(items: T[], isActive: (item: T) => boolean = (item) => item.active): T[] {
+  return [...items].sort((a, b) => {
+    const activeA = isActive(a) ? 1 : 0
+    const activeB = isActive(b) ? 1 : 0
+    if (activeA !== activeB) return activeB - activeA
+    return compareValidUntilDesc(a.validUntil, b.validUntil)
+  })
+}
+
 export type MonitoredPlateAuthorityLinksPanelHandle = {
   /** Applies deferred active toggles from the list Switch (edit plate flow). */
   flushPendingActiveChanges: () => Promise<void>
@@ -313,6 +338,12 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
   const isMutatingPersisted =
     isCreatingPersisted || isUpdatingPersisted || isRemovingPersisted
 
+  const sortedPersistedLinks = sortLinksByActiveThenValidUntilDesc(
+    links,
+    getPersistedLinkActive,
+  )
+  const sortedDraftLinks = sortLinksByActiveThenValidUntilDesc(draftLinks)
+
   return (
     <div className="flex flex-col gap-3 rounded-md border bg-muted/40 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -337,7 +368,7 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
       {mode === 'persisted' ? (
         links.length > 0 ? (
           <ul className="flex max-h-60 flex-col gap-2 overflow-auto pr-1">
-            {links.map((link) => (
+            {sortedPersistedLinks.map((link) => (
               <li key={link.id}>
                 <div className="rounded-md border bg-background px-3 py-2 transition-colors hover:bg-muted/60">
                   <div className="flex items-start justify-between gap-3">
@@ -402,7 +433,7 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
         )
       ) : draftLinks.length > 0 ? (
         <ul className="flex max-h-60 flex-col gap-2 overflow-auto pr-1">
-          {draftLinks.map((draft) => {
+          {sortedDraftLinks.map((draft) => {
             const authority = institutionAuthorities.find(
               (item) => item.id === draft.institutionAuthorityId,
             )
