@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
-import { getInstitutionAuthorities } from '@/http/institution-authorities'
 import { createMonitoredPlateRegistration } from '@/http/monitored-plate-registrations'
 import {
   getMonitoredPlate,
@@ -216,20 +215,12 @@ export function MonitoredPlateFormDialog({
     setInitialData,
   ])
 
-  const { data: institutionAuthoritiesResponse } = useQuery({
-    queryKey: ['institution-authorities', 'options', 100],
-    queryFn: () => getInstitutionAuthorities({ page: 1, size: 100 }),
-    enabled: isOpen,
-  })
-
   const { data: notificationChannelsResponse } = useQuery({
     queryKey: ['notification-channels', 'options', 100],
     queryFn: () => getNotificationChannels({ size: 100 }),
     enabled: isOpen,
   })
 
-  const institutionAuthorities =
-    institutionAuthoritiesResponse?.data.items ?? []
   const notificationChannels = notificationChannelsResponse?.data.items ?? []
 
   const {
@@ -544,7 +535,6 @@ export function MonitoredPlateFormDialog({
                 plate={monitoredPlate.plate}
                 monitoredPlateId={monitoredPlate.id}
                 links={monitoredPlate.authorities}
-                institutionAuthorities={institutionAuthorities}
                 notificationChannels={notificationChannels}
                 disabled={isEditLoading}
               />
@@ -686,7 +676,6 @@ export function MonitoredPlateFormDialog({
               plate={currentPlate?.trim() ?? ''}
               draftLinks={draftLinks}
               onDraftLinksChange={setDraftLinks}
-              institutionAuthorities={institutionAuthorities}
               notificationChannels={notificationChannels}
               disabled={isCreateLoading}
             />

@@ -1,12 +1,15 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { InstitutionAuthorityFormDialog } from '@/app/(app)/demandantes/components/institution-authorities/institution-authority-dialogs/components/institution-authority-form-dialog'
 import { InputError } from '@/components/custom/input-error'
 import MultipleSelector from '@/components/custom/multiselect-with-search'
-import { SelectWithSearch } from '@/components/custom/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectWithSearchFetchPageArgs,
+} from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -14,6 +17,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useInstitutionAuthorities } from '@/hooks/useContexts/use-institution-authorities-context'
+import { getInstitutionAuthorities } from '@/http/institution-authorities'
+import { getRequestingInstitutions } from '@/http/requesting-institutions'
 import type {
   InstitutionAuthority,
   NotificationChannel,
@@ -32,6 +37,8 @@ import { MonitoredPlateAuthorityValidUntilPicker } from './monitored-plate-autho
 
 export interface MonitoredPlateAuthorityDraftCreatePayload {
   institutionAuthorityId: string
+  institutionAuthorityName?: string
+  requestingInstitutionName?: string
   referenceNumber: string
   requestedAt: string
   validUntil: string
@@ -45,7 +52,6 @@ interface MonitoredPlateAuthorityLinkCreateDialogProps {
   plate: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  institutionAuthorities: InstitutionAuthority[]
   notificationChannels: NotificationChannel[]
   reservedAuthorityIds: string[]
   plateDescription: string
@@ -62,7 +68,6 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
   plate,
   open,
   onOpenChange,
-  institutionAuthorities,
   notificationChannels,
   reservedAuthorityIds,
   plateDescription,
@@ -96,6 +101,12 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
     notificationChannelIds?: string
   }>({})
 
+  const authoritiesByIdRef = useRef(new Map<string, InstitutionAuthority>())
+  const reservedAuthorityIdsSet = useMemo(
+    () => new Set(reservedAuthorityIds),
+    [reservedAuthorityIds],
+  )
+
   useEffect(() => {
     if (!open) {
       setRequestingInstitutionTitle('')
@@ -117,34 +128,56 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
     setValidUntilDate(getDefaultMonitoredPlateAuthorityValidUntil())
   }, [open])
 
-  const availableAuthorities = useMemo(() => {
-    const reserved = new Set(reservedAuthorityIds)
-    return institutionAuthorities.filter((item) => !reserved.has(item.id))
-  }, [institutionAuthorities, reservedAuthorityIds])
-
-  const requestingInstitutionOptions = useMemo(() => {
-    const institutions = new Map<string, string>()
-
-    availableAuthorities.forEach((item) => {
-      const institutionId =
-        item.requestingInstitution?.id || item.requestingInstitutionId
-      const institutionName = item.requestingInstitution?.name
-      if (!institutionId || !institutionName) return
-      institutions.set(institutionId, institutionName)
+  async function fetchRequestingInstitutionPage({
+    page,
+    size,
+    search,
+  }: SelectWithSearchFetchPageArgs) {
+    const response = await getRequestingInstitutions({
+      page,
+      size,
+      search: search || undefined,
     })
 
-    return Array.from(institutions.entries())
-      .map(([value, label]) => ({ label, value }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'))
-  }, [availableAuthorities])
+    return {
+      items: response.data.items.map((item) => ({
+        label: item.name,
+        value: item.id,
+      })),
+      page: response.data.page,
+      pages: response.data.pages,
+    }
+  }
 
-  const filteredAuthorities = requestingInstitutionId
-    ? availableAuthorities.filter(
-        (item) =>
-          (item.requestingInstitution?.id || item.requestingInstitutionId) ===
-          requestingInstitutionId,
-      )
-    : availableAuthorities
+  async function fetchInstitutionAuthorityPage({
+    page,
+    size,
+    search,
+  }: SelectWithSearchFetchPageArgs) {
+    const response = await getInstitutionAuthorities({
+      page,
+      size,
+      search: search || undefined,
+      requestingInstitutionId: requestingInstitutionId || undefined,
+    })
+
+    response.data.items.forEach((item) => {
+      authoritiesByIdRef.current.set(item.id, item)
+    })
+
+    return {
+      items: response.data.items
+        .filter((item) => !reservedAuthorityIdsSet.has(item.id))
+        .map((item) => ({
+          label: item.requestingInstitution
+            ? `${item.name} — ${item.requestingInstitution.name}`
+            : item.name,
+          value: item.id,
+        })),
+      page: response.data.page,
+      pages: response.data.pages,
+    }
+  }
 
   const notificationChannelOptions = useMemo(
     () =>
@@ -201,8 +234,15 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
       return
     }
 
+    const selectedAuthority = authoritiesByIdRef.current.get(authorityId)
+
     await onCreate({
       institutionAuthorityId: authorityId,
+      institutionAuthorityName: selectedAuthority?.name,
+      requestingInstitutionName:
+        selectedAuthority?.requestingInstitution?.name ||
+        requestingInstitutionTitle ||
+        undefined,
       referenceNumber: ref,
       requestedAt: requestedAtIso,
       validUntil: validUntilIso,
@@ -275,14 +315,24 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
             </div>
             <SelectWithSearch
               value={requestingInstitutionTitle}
+              selectedOption={
+                requestingInstitutionId
+                  ? {
+                      value: requestingInstitutionId,
+                      label: requestingInstitutionTitle,
+                    }
+                  : undefined
+              }
               onSelect={(item) => {
                 setRequestingInstitutionTitle(item.label)
                 setRequestingInstitutionId(item.value)
                 setAuthorityTitle('')
                 setAuthorityId('')
               }}
-              options={requestingInstitutionOptions}
-              disabled={isBusy || requestingInstitutionOptions.length === 0}
+              queryKey={['requesting-institutions', 'select']}
+              enabled={open}
+              fetchPage={fetchRequestingInstitutionPage}
+              disabled={isBusy}
               placeholder="Filtrar por demandante"
             />
           </div>
@@ -309,24 +359,22 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
             </div>
             <SelectWithSearch
               value={authorityTitle}
+              selectedOption={
+                authorityId
+                  ? { value: authorityId, label: authorityTitle }
+                  : undefined
+              }
               onSelect={(item) => {
                 setAuthorityTitle(item.label)
                 setAuthorityId(item.value)
 
-                const authority = availableAuthorities.find(
-                  (entry) => entry.id === item.value,
-                )
+                const authority = authoritiesByIdRef.current.get(item.value)
                 const institutionId =
                   authority?.requestingInstitution?.id ||
                   authority?.requestingInstitutionId
 
                 if (institutionId) {
-                  const institutionOption = requestingInstitutionOptions.find(
-                    (option) => option.value === institutionId,
-                  )
-                  const institutionName =
-                    institutionOption?.label ||
-                    authority?.requestingInstitution?.name
+                  const institutionName = authority?.requestingInstitution?.name
 
                   if (institutionName) {
                     setRequestingInstitutionId(institutionId)
@@ -339,12 +387,14 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
                   authorityId: undefined,
                 }))
               }}
-              options={filteredAuthorities.map((item) => ({
-                label: item.requestingInstitution
-                  ? `${item.name} — ${item.requestingInstitution.name}`
-                  : item.name,
-                value: item.id,
-              }))}
+              queryKey={[
+                'institution-authorities',
+                'select',
+                requestingInstitutionId,
+                reservedAuthorityIds.join(','),
+              ]}
+              enabled={open}
+              fetchPage={fetchInstitutionAuthorityPage}
               disabled={isBusy}
               placeholder={
                 requestingInstitutionId

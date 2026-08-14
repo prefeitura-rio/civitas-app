@@ -1,6 +1,8 @@
 export type MonitoredPlateDraftAuthorityLink = {
   clientId: string
   institutionAuthorityId: string
+  institutionAuthorityName?: string
+  requestingInstitutionName?: string
   referenceNumber: string
   requestedAt: string
   validUntil?: string

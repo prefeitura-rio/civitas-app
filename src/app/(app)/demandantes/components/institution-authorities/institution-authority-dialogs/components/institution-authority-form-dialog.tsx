@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Controller,
   type FieldError,
@@ -12,7 +12,10 @@ import {
 import { toast } from 'sonner'
 
 import { InputError } from '@/components/custom/input-error'
-import { SelectWithSearch } from '@/components/custom/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectWithSearchFetchPageArgs,
+} from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { PhoneInput } from '@/components/reui/phone-input'
 import { Button } from '@/components/ui/button'
@@ -153,15 +156,6 @@ export function InstitutionAuthorityFormDialog({
     name: 'emails',
   })
 
-  const {
-    data: requestingInstitutionsResponse,
-    isLoading: isLoadingRequesters,
-  } = useQuery({
-    queryKey: ['requesting-institutions', 'options', 100],
-    queryFn: () => getRequestingInstitutions({ page: 1, size: 100 }),
-    enabled: isOpen,
-  })
-
   const { data: authority, isLoading: isLoadingAuthority } = useQuery({
     queryKey: ['institution-authorities', initialData?.id],
     queryFn: () => getInstitutionAuthority({ id: initialData!.id }),
@@ -207,14 +201,29 @@ export function InstitutionAuthorityFormDialog({
       },
     })
 
-  const requestingInstitutionOptions = useMemo(
-    () =>
-      (requestingInstitutionsResponse?.data.items ?? []).map((item) => ({
+  const [selectedRequestingInstitution, setSelectedRequestingInstitution] =
+    useState<{ label: string; value: string } | null>(null)
+
+  async function fetchRequestingInstitutionPage({
+    page,
+    size,
+    search,
+  }: SelectWithSearchFetchPageArgs) {
+    const response = await getRequestingInstitutions({
+      page,
+      size,
+      search: search || undefined,
+    })
+
+    return {
+      items: response.data.items.map((item) => ({
         label: item.name,
         value: item.id,
       })),
-    [requestingInstitutionsResponse?.data.items],
-  )
+      page: response.data.page,
+      pages: response.data.pages,
+    }
+  }
 
   function handleOnOpenChange(open: boolean) {
     if (open) {
@@ -226,6 +235,7 @@ export function InstitutionAuthorityFormDialog({
     reset(emptyFormValues)
     setShouldReplaceFocalPoint(false)
     setCreatedAuthorityId(null)
+    setSelectedRequestingInstitution(null)
     setInitialData(null)
   }
 
@@ -390,19 +400,30 @@ export function InstitutionAuthorityFormDialog({
         phones: authority.contacts?.phones ?? [],
         emails: authority.contacts?.emails ?? [],
       })
+      setSelectedRequestingInstitution(
+        authority.requestingInstitution
+          ? {
+              value: authority.requestingInstitutionId,
+              label: authority.requestingInstitution.name,
+            }
+          : {
+              value: authority.requestingInstitutionId,
+              label: authority.requestingInstitutionId,
+            },
+      )
       setShouldReplaceFocalPoint(false)
       return
     }
 
     if (!initialData?.id) {
       reset(emptyFormValues)
+      setSelectedRequestingInstitution(null)
       setShouldReplaceFocalPoint(false)
     }
   }, [authority?.id, initialData?.id, isOpen, reset])
 
   const isLoading =
     isLoadingAuthority ||
-    isLoadingRequesters ||
     isLoadingInstitutionAuthorities ||
     isSubmitting ||
     isPendingCreate ||
@@ -426,27 +447,25 @@ export function InstitutionAuthorityFormDialog({
             <Controller
               control={control}
               name="requestingInstitutionId"
-              render={({ field }) => {
-                const selected = requestingInstitutionOptions.find(
-                  (option) => option.value === field.value,
-                )
-
-                return (
-                  <SelectWithSearch
-                    disabled={isLoading}
-                    value={selected?.label ?? ''}
-                    placeholder="Selecione o demandante"
-                    options={requestingInstitutionOptions}
-                    onSelect={(item) => {
-                      clearErrors('isFocalPoint')
-                      setShouldReplaceFocalPoint(false)
-                      setValue('requestingInstitutionId', item.value, {
-                        shouldValidate: true,
-                      })
-                    }}
-                  />
-                )
-              }}
+              render={() => (
+                <SelectWithSearch
+                  disabled={isLoading}
+                  value={selectedRequestingInstitution?.label ?? ''}
+                  selectedOption={selectedRequestingInstitution ?? undefined}
+                  placeholder="Selecione o demandante"
+                  queryKey={['requesting-institutions', 'select']}
+                  enabled={isOpen}
+                  fetchPage={fetchRequestingInstitutionPage}
+                  onSelect={(item) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(false)
+                    setSelectedRequestingInstitution(item)
+                    setValue('requestingInstitutionId', item.value, {
+                      shouldValidate: true,
+                    })
+                  }}
+                />
+              )}
             />
           </div>
 

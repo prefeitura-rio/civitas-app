@@ -21,10 +21,7 @@ import {
 } from '@/http/monitored-plate-authorities'
 import type { MonitoredPlateAuthoritySummary } from '@/http/monitored-plates'
 import { queryClient } from '@/lib/react-query'
-import type {
-  InstitutionAuthority,
-  NotificationChannel,
-} from '@/models/entities'
+import type { NotificationChannel } from '@/models/entities'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 import {
@@ -93,7 +90,6 @@ interface MonitoredPlateAuthorityLinksPanelProps {
   onDraftLinksChange?: Dispatch<
     SetStateAction<MonitoredPlateDraftAuthorityLink[]>
   >
-  institutionAuthorities: InstitutionAuthority[]
   notificationChannels: NotificationChannel[]
   disabled?: boolean
 }
@@ -109,7 +105,6 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
     links = [],
     draftLinks = [],
     onDraftLinksChange,
-    institutionAuthorities,
     notificationChannels,
     disabled = false,
   },
@@ -434,10 +429,9 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
       ) : draftLinks.length > 0 ? (
         <ul className="flex max-h-60 flex-col gap-2 overflow-auto pr-1">
           {sortedDraftLinks.map((draft) => {
-            const authority = institutionAuthorities.find(
-              (item) => item.id === draft.institutionAuthorityId,
-            )
-            if (!authority) return null
+            const authorityName =
+              draft.institutionAuthorityName ?? draft.institutionAuthorityId
+            const requestingInstitutionName = draft.requestingInstitutionName
 
             return (
               <li key={draft.clientId}>
@@ -449,10 +443,10 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
                       className="min-w-0 flex-1 text-left disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => setEditingDraft(draft)}
                     >
-                      <div className="font-medium">{authority.name}</div>
-                      {authority.requestingInstitution ? (
+                      <div className="font-medium">{authorityName}</div>
+                      {requestingInstitutionName ? (
                         <div className="text-xs text-muted-foreground">
-                          Demandante: {authority.requestingInstitution.name}
+                          Demandante: {requestingInstitutionName}
                         </div>
                       ) : null}
                       <div className="text-xs text-muted-foreground">
@@ -500,13 +494,8 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
             if (!next) setEditingDraft(null)
           }}
           draft={editingDraft}
-          institutionAuthority={
-            editingDraft
-              ? institutionAuthorities.find(
-                  (item) => item.id === editingDraft.institutionAuthorityId,
-                )
-              : undefined
-          }
+          institutionAuthorityName={editingDraft?.institutionAuthorityName}
+          requestingInstitutionName={editingDraft?.requestingInstitutionName}
           notificationChannels={notificationChannels}
           onSave={updateDraft}
           onRemove={removeDraft}
@@ -537,7 +526,6 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
           plate={plate}
           open={createOpen}
           onOpenChange={setCreateOpen}
-          institutionAuthorities={institutionAuthorities}
           notificationChannels={notificationChannels}
           reservedAuthorityIds={reservedAuthorityIds}
           plateDescription={plate}
@@ -547,6 +535,8 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
               {
                 clientId: crypto.randomUUID(),
                 institutionAuthorityId: payload.institutionAuthorityId,
+                institutionAuthorityName: payload.institutionAuthorityName,
+                requestingInstitutionName: payload.requestingInstitutionName,
                 referenceNumber: payload.referenceNumber,
                 requestedAt: payload.requestedAt,
                 validUntil: payload.validUntil,
@@ -565,7 +555,6 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
           plate={plate}
           open={createOpen}
           onOpenChange={setCreateOpen}
-          institutionAuthorities={institutionAuthorities}
           notificationChannels={notificationChannels}
           reservedAuthorityIds={reservedAuthorityIds}
           plateDescription={plate}

@@ -20,10 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type {
-  InstitutionAuthority,
-  NotificationChannel,
-} from '@/models/entities'
+import type { NotificationChannel } from '@/models/entities'
 
 import { AuthorityLinkDialogShell } from './authority-link-dialog-shell'
 import { MonitoredPlateAuthorityCollectionPointField } from './monitored-plate-authority-collection-point-field'
@@ -60,7 +57,8 @@ interface MonitoredPlateAuthorityLinkDraftEditDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   draft: MonitoredPlateDraftAuthorityLink | null
-  institutionAuthority: InstitutionAuthority | undefined
+  institutionAuthorityName?: string
+  requestingInstitutionName?: string
   notificationChannels: NotificationChannel[]
   onSave: (
     clientId: string,
@@ -76,7 +74,8 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
   open,
   onOpenChange,
   draft,
-  institutionAuthority,
+  institutionAuthorityName,
+  requestingInstitutionName,
   notificationChannels,
   onSave,
   onRemove,
@@ -216,7 +215,7 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
     onOpenChange(false)
   }
 
-  if (!draft || !institutionAuthority) return null
+  if (!draft) return null
 
   return (
     <>
@@ -227,11 +226,11 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
         description={
           <span className="space-y-1">
             <span className="block text-foreground">
-              {institutionAuthority.name}
+              {institutionAuthorityName ?? draft.institutionAuthorityId}
             </span>
-            {institutionAuthority.requestingInstitution ? (
+            {requestingInstitutionName ? (
               <span className="block text-sm text-muted-foreground">
-                Demandante: {institutionAuthority.requestingInstitution.name}
+                Demandante: {requestingInstitutionName}
               </span>
             ) : null}
           </span>
@@ -367,8 +366,10 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Remover vínculo?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{institutionAuthority.name}</strong> sai da lista deste
-              cadastro (ainda não foi enviado à API).
+              <strong>
+                {institutionAuthorityName ?? draft.institutionAuthorityId}
+              </strong>{' '}
+              sai da lista deste cadastro (ainda não foi enviado à API).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
