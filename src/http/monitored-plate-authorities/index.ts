@@ -74,7 +74,8 @@ export function buildMonitoredPlateAuthorityActiveUpdate(
     validUntil: link.validUntil,
     monitorAllCollectionPoints: link.monitorAllCollectionPoints,
     notificationChannelIds,
-    collectionPointIds: link.collectionPointIds,
+    collectionPointIds:
+      link.collectionPointIds.length > 0 ? link.collectionPointIds : undefined,
   }
 }
 
@@ -253,6 +254,12 @@ export async function createMonitoredPlateAuthority({
   return mapBackendMonitoredPlateAuthority(response.data)
 }
 
+function omitUndefined<T extends Record<string, unknown>>(payload: T) {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined),
+  )
+}
+
 export async function updateMonitoredPlateAuthority({
   id,
   referenceNumber,
@@ -265,7 +272,7 @@ export async function updateMonitoredPlateAuthority({
 }: UpdateMonitoredPlateAuthorityRequest) {
   const response = await api.patch<BackendMonitoredPlateAuthorityResponse>(
     `/monitored-plate-authorities/${id}`,
-    {
+    omitUndefined({
       reference_number: referenceNumber,
       requested_at: requestedAt,
       valid_until: validUntil,
@@ -273,7 +280,7 @@ export async function updateMonitoredPlateAuthority({
       monitor_all_collection_points: monitorAllCollectionPoints,
       notification_channel_ids: notificationChannelIds,
       collection_point_ids: collectionPointIds,
-    },
+    }),
   )
 
   return mapBackendMonitoredPlateAuthority(response.data)
