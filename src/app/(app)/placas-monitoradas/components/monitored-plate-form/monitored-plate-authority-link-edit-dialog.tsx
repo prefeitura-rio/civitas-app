@@ -64,10 +64,10 @@ interface MonitoredPlateAuthorityLinkEditDialogProps {
     id: string,
     data: Pick<
       MonitoredPlateAuthorityRecord,
+      | 'active'
       | 'referenceNumber'
       | 'requestedAt'
       | 'validUntil'
-      | 'active'
       | 'monitorAllCollectionPoints'
       | 'notificationChannelIds'
       | 'collectionPointIds'
@@ -238,13 +238,13 @@ export function MonitoredPlateAuthorityLinkEditDialog({
       new Date(requestedAtIso).getTime()
 
     if (
+      active === authorityLink.active &&
       trimmedRef === authorityLink.referenceNumber.trim() &&
       requestedAtUnchanged &&
       validUntilInstantsEqual(
         parseIsoToDate(authorityLink.validUntil),
         validUntilDate,
       ) &&
-      active === authorityLink.active &&
       monitorAll === authorityLink.monitorAllCollectionPoints &&
       notificationChannelIdsEqual(
         authorityLink.notificationChannelIds,
@@ -262,10 +262,10 @@ export function MonitoredPlateAuthorityLinkEditDialog({
     }
 
     await onSave(link.id, {
+      active,
       referenceNumber: trimmedRef,
       requestedAt: requestedAtIso,
       validUntil,
-      active,
       monitorAllCollectionPoints: monitorAll,
       notificationChannelIds,
       collectionPointIds: monitorAll ? [] : collectionPointIds,
@@ -422,18 +422,7 @@ export function MonitoredPlateAuthorityLinkEditDialog({
               <span className="text-sm">Vínculo ativo</span>
               <Switch
                 checked={active}
-                onCheckedChange={(next) => {
-                  if (
-                    next &&
-                    isMonitoredPlateAuthorityValidUntilExpired(validUntilDate)
-                  ) {
-                    toast.error(
-                      MONITORED_PLATE_AUTHORITY_EXPIRED_ACTIVE_MESSAGE,
-                    )
-                    return
-                  }
-                  setActive(next)
-                }}
+                onCheckedChange={setActive}
                 disabled={isBusy}
                 aria-label="Vínculo ativo"
               />

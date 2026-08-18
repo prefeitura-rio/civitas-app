@@ -22,21 +22,19 @@ import { useMonitoredPlatesSearchParams } from '@/hooks/useParams/useMonitoredPl
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getInstitutionAuthority } from '@/http/institution-authorities'
 import {
+  type EmbeddedInstitutionAuthority,
   getMonitoredPlates,
   type MonitoredPlateAuthoritySummary,
   type MonitoredPlateReadModel,
   type MonitoredPlatesSortBy,
   type SortDirection,
 } from '@/http/monitored-plates'
-import type {
-  InstitutionAuthority,
-  NotificationChannel,
-} from '@/models/entities'
+import type { NotificationChannel } from '@/models/entities'
 import type { VehicleType } from '@/models/monitored-plates'
 import { notAllowed } from '@/utils/template-messages'
 
 type AuthorityEntry = {
-  institutionAuthority: InstitutionAuthority
+  institutionAuthority: EmbeddedInstitutionAuthority
   notificationChannels: NotificationChannel[]
 }
 

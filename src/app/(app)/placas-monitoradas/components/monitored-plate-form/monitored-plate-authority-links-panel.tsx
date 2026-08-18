@@ -1,5 +1,5 @@
 'use client'
-import { useMutation, useQueries } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { formatDate } from 'date-fns'
 import {
   type Dispatch,
@@ -13,10 +13,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import {
-  buildMonitoredPlateAuthorityActiveUpdate,
   createMonitoredPlateAuthority,
   deleteMonitoredPlateAuthority,
-  getMonitoredPlateAuthority,
   updateMonitoredPlateAuthority,
 } from '@/http/monitored-plate-authorities'
 import type { MonitoredPlateAuthoritySummary } from '@/http/monitored-plates'
@@ -124,33 +122,13 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
       ? links.map((link) => link.institutionAuthority.id)
       : draftLinks.map((draft) => draft.institutionAuthorityId)
 
-  const persistedLinkDetailQueries = useQueries({
-    queries:
-      mode === 'persisted'
-        ? links.map((link) => ({
-            queryKey: ['monitored-plate-authorities', link.id],
-            queryFn: () => getMonitoredPlateAuthority({ id: link.id }),
-            enabled:
-              !link.monitorAllCollectionPoints &&
-              link.collectionPointIds.length === 0,
-          }))
-        : [],
-  })
-
   function getPersistedLinkScope(link: MonitoredPlateAuthoritySummary) {
-    const detailQuery = persistedLinkDetailQueries[links.indexOf(link)]
-    const collectionPointIds =
-      detailQuery?.data?.collectionPointIds ?? link.collectionPointIds
-
     return {
       label: getCollectionPointScopeLabel(
         link.monitorAllCollectionPoints,
-        collectionPointIds,
+        link.collectionPointIds,
       ),
-      isLoading:
-        !link.monitorAllCollectionPoints &&
-        link.collectionPointIds.length === 0 &&
-        detailQuery?.isLoading,
+      isLoading: false,
     }
   }
 
@@ -300,12 +278,8 @@ export const MonitoredPlateAuthorityLinksPanel = forwardRef<
 
       await Promise.all(
         pendingEntries.map(([id, active]) => {
-          const link = links.find((item) => item.id === id)
-          if (!link) return Promise.resolve()
-
-          return updatePersistedLink(
-            buildMonitoredPlateAuthorityActiveUpdate(link, active),
-          )
+          if (!links.find((item) => item.id === id)) return Promise.resolve()
+          return updatePersistedLink({ id, active })
         }),
       )
       setPendingActiveByLinkId({})

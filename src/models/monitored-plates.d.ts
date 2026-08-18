@@ -115,7 +115,6 @@ export type NotificationChannel = {
   id: string
   title: string
   channelType: string
-  parameters: JSON
   active: boolean
 }
 
@@ -123,10 +122,10 @@ export type BackendNotificationChannel = {
   id: string
   title: string
   channel_type: string
-  parameters: JSON
   active: boolean
 }
 
+// Legacy types — used by /cars/monitored endpoints (out of scope for new API)
 export type MonitoredPlate = {
   id: string
   plate: string

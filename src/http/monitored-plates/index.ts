@@ -4,29 +4,27 @@ import {
 } from '@/http/monitored-plate-authorities'
 import { api } from '@/lib/api'
 import type {
-  BackendInstitutionAuthority,
   BackendNotificationChannel,
-  InstitutionAuthority,
   NotificationChannel,
   VehicleInfoSource,
   VehicleType,
 } from '@/models/entities'
 import type { PaginationRequest, PaginationResponse } from '@/models/pagination'
 
-interface BackendMonitoredPlateAuthorityCollectionPointSummary {
+/** Lean shape returned when institution_authority is embedded in plate responses.
+ *  Contact data is intentionally absent — fetch via GET /institution-authorities/:id. */
+interface BackendEmbeddedInstitutionAuthority {
   id: string
-  lpr_collection_point_id?: string
-  active: boolean
-  created_at: string | null
-  updated_at: string | null
+  name: string
+  is_focal_point: boolean
+  requesting_institution: { id: string; name: string }
 }
 
 interface BackendMonitoredPlateAuthoritySummary {
   id: string
-  institution_authority: BackendInstitutionAuthority
+  institution_authority: BackendEmbeddedInstitutionAuthority
   notification_channels: BackendNotificationChannel[]
-  collection_point_ids?: string[]
-  collection_points?: BackendMonitoredPlateAuthorityCollectionPointSummary[]
+  collection_point_ids: string[]
   reference_number: string
   valid_until: string
   active: boolean
@@ -59,9 +57,21 @@ interface BackendGetMonitoredPlatesResponse {
   pagination: PaginationResponse
 }
 
+/** Lean authority reference embedded inside plate list/detail responses.
+ *  Contact data is absent — use GET /institution-authorities/:id on demand. */
+export interface EmbeddedInstitutionAuthority {
+  id: string
+  name: string
+  requestingInstitutionId: string
+  requestingInstitution: { id: string; name: string }
+  isFocalPoint: boolean
+  primaryContact: null
+  contacts: null
+}
+
 export interface MonitoredPlateAuthoritySummary {
   id: string
-  institutionAuthority: InstitutionAuthority
+  institutionAuthority: EmbeddedInstitutionAuthority
   notificationChannels: NotificationChannel[]
   collectionPointIds: string[]
   referenceNumber: string
@@ -147,87 +157,22 @@ export interface UpdateMonitoredPlateRequest
   plate: string
 }
 
-function mapBackendRequestingInstitution(
-  item?: BackendInstitutionAuthority['requesting_institution'],
+/** Maps the lean institution_authority shape embedded in plate list/detail
+ *  responses. Contact data is absent — use GET /institution-authorities/:id. */
+function mapBackendEmbeddedInstitutionAuthority(
+  item: BackendEmbeddedInstitutionAuthority,
 ) {
-  if (!item) return undefined
-
   return {
     id: item.id,
     name: item.name,
-    type: item.type,
-    agency: item.agency,
-    jurisdictionLevel: item.jurisdiction_level,
-    createdAt: item.created_at,
-    updatedAt: item.updated_at,
-  }
-}
-
-function mapBackendPhone(item: {
-  id?: string
-  phone: string
-  is_primary: boolean
-}) {
-  return {
-    id: item.id,
-    phone: item.phone,
-    isPrimary: item.is_primary,
-  }
-}
-
-function mapBackendEmail(item: {
-  id?: string
-  email: string
-  is_primary: boolean
-}) {
-  return {
-    id: item.id,
-    email: item.email,
-    isPrimary: item.is_primary,
-  }
-}
-
-function mapBackendInstitutionAuthority(
-  item: BackendInstitutionAuthority,
-): InstitutionAuthority {
-  const requestingInstitution = mapBackendRequestingInstitution(
-    item.requesting_institution,
-  )
-  const contacts = item.contact
-    ? {
-        phones: (item.contact.phones ?? []).map(mapBackendPhone),
-        emails: (item.contact.emails ?? []).map(mapBackendEmail),
-      }
-    : null
-  const primaryContact = item.primary_contact
-    ? {
-        phone: item.primary_contact.phone
-          ? mapBackendPhone(item.primary_contact.phone)
-          : undefined,
-        email: item.primary_contact.email
-          ? mapBackendEmail(item.primary_contact.email)
-          : undefined,
-      }
-    : {
-        phone:
-          contacts?.phones.find((contact) => contact.isPrimary) ??
-          contacts?.phones.at(0),
-        email:
-          contacts?.emails.find((contact) => contact.isPrimary) ??
-          contacts?.emails.at(0),
-      }
-
-  return {
-    id: item.id,
-    name: item.name,
-    requestingInstitutionId:
-      item.requesting_institution_id ?? requestingInstitution?.id ?? '',
-    requestingInstitution,
-    primaryContact,
-    contacts,
+    requestingInstitutionId: item.requesting_institution.id,
+    requestingInstitution: {
+      id: item.requesting_institution.id,
+      name: item.requesting_institution.name,
+    },
+    primaryContact: null,
+    contacts: null,
     isFocalPoint: item.is_focal_point,
-    createdAt: item.created_at,
-    updatedAt: item.updated_at,
   }
 }
 
@@ -238,7 +183,6 @@ function mapBackendNotificationChannel(
     id: item.id,
     title: item.title ?? '',
     channelType: item.channel_type,
-    parameters: item.parameters,
     active: item.active,
   }
 }
@@ -261,22 +205,13 @@ export function mapBackendMonitoredPlate(
     vehicleInfoSource: item.vehicle_info_source,
     authorities: item.authorities.map((authority) => ({
       id: authority.id,
-      institutionAuthority: mapBackendInstitutionAuthority(
+      institutionAuthority: mapBackendEmbeddedInstitutionAuthority(
         authority.institution_authority,
       ),
       notificationChannels: authority.notification_channels.map(
         mapBackendNotificationChannel,
       ),
-      collectionPointIds:
-        authority.collection_point_ids &&
-        authority.collection_point_ids.length > 0
-          ? authority.collection_point_ids
-          : (authority.collection_points
-              ?.map(
-                (collectionPoint) =>
-                  collectionPoint.lpr_collection_point_id ?? '',
-              )
-              .filter(Boolean) ?? []),
+      collectionPointIds: authority.collection_point_ids,
       referenceNumber: authority.reference_number,
       validUntil: authority.valid_until,
       active: authority.active,

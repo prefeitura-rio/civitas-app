@@ -8,15 +8,10 @@ import type {
   NotificationChannel,
 } from '@/models/entities'
 
-interface BackendMonitoredPlateAuthorityCollectionPoint {
-  lpr_collection_point_id?: string
-}
-
 interface BackendMonitoredPlateAuthorityResponse
   extends BackendMonitoredPlateAuthorityLink {
   institution_authority?: BackendInstitutionAuthority
   notification_channels?: BackendNotificationChannel[]
-  collection_points?: BackendMonitoredPlateAuthorityCollectionPoint[]
   created_at?: string | null
   updated_at?: string | null
 }
@@ -46,6 +41,8 @@ export interface UpdateMonitoredPlateAuthorityRequest
   id: string
 }
 
+/** Builds a PATCH payload for deactivating an authority link (active=false).
+ *  For reactivation use renewMonitoredPlateAuthority instead. */
 export function buildMonitoredPlateAuthorityActiveUpdate(
   link: {
     id: string
@@ -57,7 +54,7 @@ export function buildMonitoredPlateAuthorityActiveUpdate(
     notificationChannelIds?: string[]
     collectionPointIds: string[]
   },
-  active: boolean,
+  active: false,
 ): UpdateMonitoredPlateAuthorityRequest {
   const notificationChannelIds =
     link.notificationChannelIds && link.notificationChannelIds.length > 0
@@ -170,7 +167,6 @@ function mapBackendNotificationChannel(
     id: item.id,
     title: item.title ?? '',
     channelType: item.channel_type,
-    parameters: item.parameters,
     active: item.active,
   }
 }
@@ -197,15 +193,7 @@ function mapBackendMonitoredPlateAuthority(
     active: item.active,
     monitorAllCollectionPoints: item.monitor_all_collection_points,
     notificationChannelIds,
-    collectionPointIds:
-      item.collection_point_ids && item.collection_point_ids.length > 0
-        ? item.collection_point_ids
-        : (item.collection_points
-            ?.map(
-              (collectionPoint) =>
-                collectionPoint.lpr_collection_point_id ?? '',
-            )
-            .filter(Boolean) ?? []),
+    collectionPointIds: item.collection_point_ids ?? [],
     institutionAuthority: item.institution_authority
       ? mapBackendInstitutionAuthority(item.institution_authority)
       : undefined,
@@ -267,7 +255,6 @@ export async function updateMonitoredPlateAuthority({
   validUntil,
   active,
   monitorAllCollectionPoints,
-  notificationChannelIds,
   collectionPointIds,
 }: UpdateMonitoredPlateAuthorityRequest) {
   const response = await api.patch<BackendMonitoredPlateAuthorityResponse>(
@@ -276,9 +263,9 @@ export async function updateMonitoredPlateAuthority({
       reference_number: referenceNumber,
       requested_at: requestedAt,
       valid_until: validUntil,
-      active,
+      // active is explicitly included (boolean or undefined → omitted by omitUndefined)
+      ...(active !== undefined ? { active } : {}),
       monitor_all_collection_points: monitorAllCollectionPoints,
-      notification_channel_ids: notificationChannelIds,
       collection_point_ids: collectionPointIds,
     }),
   )
@@ -288,4 +275,22 @@ export async function updateMonitoredPlateAuthority({
 
 export function deleteMonitoredPlateAuthority(id: string) {
   return api.delete(`/monitored-plate-authorities/${id}`)
+}
+
+/** Reactivates an authority link via PATCH /{id}/renew.
+ *  If validUntil is omitted the backend keeps the current value
+ *  (fails with 400 if it is already expired). */
+export async function renewMonitoredPlateAuthority({
+  id,
+  validUntil,
+}: {
+  id: string
+  validUntil?: string
+}) {
+  const response = await api.patch<BackendMonitoredPlateAuthorityResponse>(
+    `/monitored-plate-authorities/${id}/renew`,
+    validUntil ? { valid_until: validUntil } : {},
+  )
+
+  return mapBackendMonitoredPlateAuthority(response.data)
 }
