@@ -245,6 +245,22 @@ export async function searchTicketResponsibles(
   }))
 }
 
+export async function searchTicketArchiveParticipants(
+  search: string,
+): Promise<SearchOption[]> {
+  const response = await api.get<ResponsibleSearchResponse[]>(
+    '/tickets/archive-participants/search',
+    {
+      params: { search },
+    },
+  )
+
+  return response.data.map((item) => ({
+    label: item.user_name,
+    value: item.user_id,
+  }))
+}
+
 export async function searchFocalPoints(
   search: string,
 ): Promise<SearchOption[]> {

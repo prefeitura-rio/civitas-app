@@ -129,6 +129,66 @@
   overflow: visible;
 }
 
+.teamsCell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.teamTag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  max-width: 160px;
+  padding: 2px 6px;
+  overflow: hidden;
+  border: 1px solid #2e5d7f;
+  border-radius: 4px;
+  background: #1d3449;
+  color: #f9fafa;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.participantName {
+  color: #f9fafa;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.teamTooltipSurface {
+  max-width: 280px;
+  padding: 12px 14px;
+  border-color: rgba(91, 141, 197, 0.22);
+  background: #0e1a24;
+}
+
+.teamTooltipDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.extraTeamDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.extraTeamName {
+  color: #97c9f4;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
 .serviceTag {
   display: inline-flex;
   align-items: center;
