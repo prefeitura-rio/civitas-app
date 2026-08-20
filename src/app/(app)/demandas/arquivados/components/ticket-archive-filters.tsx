@@ -12,6 +12,7 @@ import {
   searchOperations,
   type SearchOption,
   searchRequesters,
+  searchTicketArchiveParticipants,
   searchTicketResponsibles,
 } from '@/http/tickets/tickets-dashboard-filters'
 
@@ -21,6 +22,7 @@ export type TicketArchiveFilterState = {
   operation_id: SearchOption[]
   requester: SearchOption[]
   assignee_id: SearchOption[]
+  participant_id: SearchOption[]
   base_date_start: string
   base_date_end: string
   entry_date_start: string
@@ -39,6 +41,7 @@ type SearchMultiSelectProps = {
   searchFn?: (search: string) => Promise<SearchOption[]>
   optionsLoading?: boolean
   minCharsMessage?: string
+  selectedChipsClassName?: string
 }
 
 const SEARCH_TOOLTIP_TEXT =
@@ -87,6 +90,7 @@ export function emptyArchiveFilters(): TicketArchiveFilterState {
     operation_id: [],
     requester: [],
     assignee_id: [],
+    participant_id: [],
     base_date_start: '',
     base_date_end: '',
     entry_date_start: '',
@@ -106,6 +110,7 @@ function SearchMultiSelect({
   searchFn,
   optionsLoading,
   minCharsMessage = 'Digite ao menos 2 caracteres',
+  selectedChipsClassName,
 }: SearchMultiSelectProps) {
   const [search, setSearch] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -222,7 +227,11 @@ function SearchMultiSelect({
         </div>
 
         {value.length > 0 ? (
-          <div className={filterModalStyles.selectedChips}>
+          <div
+            className={[filterModalStyles.selectedChips, selectedChipsClassName]
+              .filter(Boolean)
+              .join(' ')}
+          >
             {value.map((item) => (
               <span key={item.value} className={filterModalStyles.selectedChip}>
                 {item.label}
@@ -308,17 +317,19 @@ export function TicketArchiveFiltersModal({
 
         <div className={styles.modalBody}>
           <div className={filterModalStyles.filterGrid}>
-            <SearchMultiSelect
-              label="DEMANDANTE"
-              value={draftFilters.operation_id}
-              onChange={(value) =>
-                setDraftFilters((current) => ({
-                  ...current,
-                  operation_id: value,
-                }))
-              }
-              searchFn={searchOperations}
-            />
+            <div className={styles.requesterFilter}>
+              <SearchMultiSelect
+                label="DEMANDANTE"
+                value={draftFilters.operation_id}
+                onChange={(value) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    operation_id: value,
+                  }))
+                }
+                searchFn={searchOperations}
+              />
+            </div>
             <SearchMultiSelect
               label="REQUISITANTE"
               value={draftFilters.requester}
@@ -342,6 +353,18 @@ export function TicketArchiveFiltersModal({
               searchFn={searchTicketResponsibles}
             />
             <SearchMultiSelect
+              label="PARTICIPANTE"
+              value={draftFilters.participant_id}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  participant_id: value,
+                }))
+              }
+              placeholder="Digite o nome"
+              searchFn={searchTicketArchiveParticipants}
+            />
+            <SearchMultiSelect
               label="SERVIÇOS"
               value={draftFilters.services}
               onChange={(value) =>
@@ -349,9 +372,6 @@ export function TicketArchiveFiltersModal({
               }
               staticOptions={servicoOptions}
             />
-          </div>
-
-          <div className={filterModalStyles.filterTogglesGrid}>
             <SearchMultiSelect
               label="PRIORIDADE"
               value={draftFilters.priority}
@@ -371,7 +391,11 @@ export function TicketArchiveFiltersModal({
               }
               staticOptions={teamSearchOptions ?? []}
               optionsLoading={isTeamsLoading}
+              selectedChipsClassName={styles.teamSelectedChips}
             />
+          </div>
+
+          <div className={filterModalStyles.filterTogglesGrid}>
             <div className={filterModalStyles.filterBlock}>
               <span className={filterModalStyles.filterLabel}>DATA BASE</span>
               <FilterDateRangeField
