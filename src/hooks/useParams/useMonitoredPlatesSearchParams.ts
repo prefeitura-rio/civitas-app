@@ -1,10 +1,13 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
+import { PENDING_CADASTRO_FILTER_ID } from '@/app/(app)/placas-monitoradas/components/monitored-plates-filter/pending-cadastro-filter'
+
 type MonitoredPlatesQueryKey = [
   'monitored-plates',
   plateContains?: string,
   institutionAuthorityId?: string,
+  withoutAuthorities?: boolean,
   notificationChannelId?: string,
   active?: boolean,
   page?: number,
@@ -16,6 +19,7 @@ type MonitoredPlatesQueryKey = [
 export interface FormattedSearchParams {
   plateContains?: string
   institutionAuthorityId?: string
+  withoutAuthorities?: boolean
   notificationChannelId?: string
   active?: boolean
   page?: number
@@ -53,15 +57,23 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const pathName = usePathname()
 
   const plateContains = searchParams.get('plateContains') || undefined
-  const institutionAuthorityId =
+  const rawInstitutionAuthorityId =
     searchParams.get('institutionAuthorityId') || undefined
+  const isNoneAuthorityFilter =
+    rawInstitutionAuthorityId === PENDING_CADASTRO_FILTER_ID
+  const institutionAuthorityId = isNoneAuthorityFilter
+    ? undefined
+    : rawInstitutionAuthorityId
+  const withoutAuthorities = isNoneAuthorityFilter // TODO(pending-cadastro)
   const notificationChannelId =
     searchParams.get('notificationChannelId') || undefined
 
   const pActive = searchParams.get('active')
-  // Default: only plates with ≥1 active authority link
-  const active =
-    pActive === null || pActive === 'true'
+  // Default: only plates with ≥1 active authority link.
+  // Unlinked plates have no active links, so skip this when filtering them.
+  const active = isNoneAuthorityFilter
+    ? undefined
+    : pActive === null || pActive === 'true'
       ? true
       : pActive === 'false'
         ? false
@@ -76,7 +88,9 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   function buildParams(nextPage?: number) {
     const params = new URLSearchParams()
     if (plateContains) params.set('plateContains', plateContains)
-    if (institutionAuthorityId)
+    if (isNoneAuthorityFilter)
+      params.set('institutionAuthorityId', PENDING_CADASTRO_FILTER_ID)
+    else if (institutionAuthorityId)
       params.set('institutionAuthorityId', institutionAuthorityId)
     if (notificationChannelId)
       params.set('notificationChannelId', notificationChannelId)
@@ -100,6 +114,7 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     formattedSearchParams: {
       plateContains,
       institutionAuthorityId,
+      withoutAuthorities,
       notificationChannelId,
       active,
       page,
@@ -110,7 +125,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     queryKey: [
       'monitored-plates',
       plateContains,
-      institutionAuthorityId,
+      rawInstitutionAuthorityId,
+      withoutAuthorities,
       notificationChannelId,
       active,
       page,

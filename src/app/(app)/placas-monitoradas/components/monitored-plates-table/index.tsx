@@ -23,6 +23,7 @@ import { getInstitutionAuthority } from '@/http/institution-authorities'
 import {
   type EmbeddedInstitutionAuthority,
   getMonitoredPlates,
+  getMonitoredPlatesWithoutAuthorities,
   type MonitoredPlateAuthoritySummary,
   type MonitoredPlateReadModel,
   type MonitoredPlatesSortBy,
@@ -156,11 +157,9 @@ export function MonitoredPlatesTable() {
   const { data: monitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
     useQuery({
       queryKey: [...queryKey, sortBy, sortDirection],
-      queryFn: () =>
-        getMonitoredPlates({
-          active: formattedSearchParams.active,
+      queryFn: () => {
+        const request = {
           plateContains: formattedSearchParams.plateContains,
-          institutionAuthorityId: formattedSearchParams.institutionAuthorityId,
           notificationChannelId: formattedSearchParams.notificationChannelId,
           startTimeCreate: formattedSearchParams.startTimeCreate,
           endTimeCreate: formattedSearchParams.endTimeCreate,
@@ -168,7 +167,19 @@ export function MonitoredPlatesTable() {
           size: formattedSearchParams.size,
           sortBy,
           sortDirection,
-        }),
+        }
+
+        if (formattedSearchParams.withoutAuthorities) {
+          // TODO(pending-cadastro)
+          return getMonitoredPlatesWithoutAuthorities(request)
+        }
+
+        return getMonitoredPlates({
+          ...request,
+          active: formattedSearchParams.active,
+          institutionAuthorityId: formattedSearchParams.institutionAuthorityId,
+        })
+      },
     })
 
   const data = monitoredPlatesResponse?.data
