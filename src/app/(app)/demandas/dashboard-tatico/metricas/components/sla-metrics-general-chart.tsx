@@ -37,13 +37,13 @@ const SERIES = [
   {
     key: 'from_registration_days',
     label: 'A partir do cadastro',
-    color: '#b93d52',
+    color: '#06b2bb',
     labelPosition: 'top' as const,
   },
   {
     key: 'from_email_days',
     label: 'A partir do e-mail',
-    color: '#06b2bb',
+    color: '#8b5cf6',
     labelPosition: 'bottom' as const,
   },
 ] as const

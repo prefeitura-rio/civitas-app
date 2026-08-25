@@ -215,7 +215,7 @@ export function OperationalViewView() {
       />
 
       <OperationalViewTeamLineChart
-        title="Volume de Chamados Fechados por Equipe"
+        title="Volume de demandas atribuídas por equipe"
         tooltip={OPERATIONAL_CLOSED_BY_TEAM_TOOLTIP}
         chartData={closedVolumeChart.chartData}
         teams={closedVolumeChart.teams}

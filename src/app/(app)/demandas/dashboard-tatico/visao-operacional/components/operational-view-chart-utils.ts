@@ -49,8 +49,8 @@ const OPEN_TICKETS_STATUS_LABELS: Record<string, string> = {
 }
 
 export const OPEN_TICKETS_STATUS_COLORS: Record<string, string> = {
-  pendente: '#06b2bb',
-  pending: '#06b2bb',
+  pendente: '#d6a84a',
+  pending: '#d6a84a',
   bloqueado: '#b93d52',
   blocked: '#b93d52',
   restrito: '#6b7c8a',

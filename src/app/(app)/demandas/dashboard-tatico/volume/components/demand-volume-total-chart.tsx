@@ -36,13 +36,13 @@ const SERIES = [
   {
     key: 'created',
     label: 'Chamados Criados',
-    color: '#b93d52',
+    color: '#06b2bb',
     labelPosition: 'top' as const,
   },
   {
     key: 'closed',
     label: 'Chamados Encerrados',
-    color: '#06b2bb',
+    color: '#8b5cf6',
     labelPosition: 'bottom' as const,
   },
 ] as const
