@@ -22,7 +22,7 @@ export function RequestingInstitutionsHeader() {
         <Button
           size="sm"
           className="min-w-[11.5rem] shrink-0"
-          disabled
+          disabled={!profile?.is_admin}
           onClick={() => {
             setDialogInitialData(null)
             formDialogDisclosure.onOpen()

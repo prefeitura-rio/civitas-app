@@ -59,6 +59,8 @@ interface SelectWithSearchProps {
   queryKey?: unknown[]
   enabled?: boolean
   pageSize?: number
+  creatable?: boolean
+  clearOptionLabel?: string
 }
 
 function mergeSelectedOption(
@@ -98,6 +100,10 @@ function InfiniteScrollSentinel({
   return <div ref={ref} className="h-1 w-full" aria-hidden />
 }
 
+function normalizeComboboxValue(value: string) {
+  return value.trim().toLocaleLowerCase('pt-BR')
+}
+
 export function SelectWithSearch({
   value,
   options = [],
@@ -111,6 +117,8 @@ export function SelectWithSearch({
   queryKey,
   enabled = true,
   pageSize = SELECT_WITH_SEARCH_PAGE_SIZE,
+  creatable = false,
+  clearOptionLabel,
 }: SelectWithSearchProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -181,6 +189,18 @@ export function SelectWithSearch({
     !infiniteQuery.isFetchingNextPage &&
     asyncOptions.length === 0
 
+  const createTerm = debouncedSearch.trim()
+  const hasExactMatch = displayOptions.some((item) => {
+    const normalizedCreateTerm = normalizeComboboxValue(createTerm)
+    return (
+      normalizeComboboxValue(item.label) === normalizedCreateTerm ||
+      normalizeComboboxValue(item.value) === normalizedCreateTerm
+    )
+  })
+  const showCreate = Boolean(
+    creatable && createTerm && !hasExactMatch && !isInitialLoading,
+  )
+
   function handleOpenChange(open: boolean) {
     setIsOpen(open)
     if (!open) setSearch('')
@@ -218,14 +238,33 @@ export function SelectWithSearch({
               </div>
             ) : (
               <>
-                <CommandEmpty className="flex justify-center p-2">
-                  {emptyIndicator || (
-                    <span className="text-muted-foreground">
-                      Nenhum resultado encontrado
-                    </span>
-                  )}
-                </CommandEmpty>
+                {showCreate ? null : (
+                  <CommandEmpty className="flex justify-center p-2">
+                    {emptyIndicator || (
+                      <span className="text-muted-foreground">
+                        Nenhum resultado encontrado
+                      </span>
+                    )}
+                  </CommandEmpty>
+                )}
                 <CommandGroup>
+                  {clearOptionLabel ? (
+                    <CommandItem
+                      value={clearOptionLabel}
+                      onSelect={() => {
+                        onSelect({ label: '', value: '' })
+                        handleOpenChange(false)
+                      }}
+                    >
+                      {clearOptionLabel}
+                      <CheckIcon
+                        className={cn(
+                          'ml-auto h-4 w-4',
+                          value ? 'opacity-0' : 'opacity-100',
+                        )}
+                      />
+                    </CommandItem>
+                  ) : null}
                   {topAction}
                   {displayOptions.map((item) => (
                     <CommandItem
@@ -247,6 +286,17 @@ export function SelectWithSearch({
                       />
                     </CommandItem>
                   ))}
+                  {showCreate ? (
+                    <CommandItem
+                      value={createTerm}
+                      onSelect={() => {
+                        onSelect({ label: createTerm, value: createTerm })
+                        handleOpenChange(false)
+                      }}
+                    >
+                      Usar &quot;{createTerm}&quot;
+                    </CommandItem>
+                  ) : null}
                   {isAsync &&
                   (infiniteQuery.hasNextPage ||
                     infiniteQuery.isFetchingNextPage) ? (

@@ -10,6 +10,7 @@ import { PencilLine, Search, Trash, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
+import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
@@ -36,6 +37,8 @@ import {
   type SortDirection,
 } from '@/http/requesting-institutions'
 import { notAllowed } from '@/utils/template-messages'
+
+import { fetchRequestingInstitutionFieldPage } from './fetch-requesting-institution-field-page'
 
 const sortableColumns = {
   name: 'name',
@@ -85,8 +88,6 @@ export function RequestingInstitutionsTable() {
   const sortBy = getSortBy(sortingState)
   const sortDirection = getSortDirection(sortingState)
   const debouncedSearch = useDebounce(search, 350)
-  const debouncedTypeFilter = useDebounce(typeFilter, 350)
-  const debouncedAgencyFilter = useDebounce(agencyFilter, 350)
   const hasActiveFilters =
     search.trim().length > 0 ||
     typeFilter.trim().length > 0 ||
@@ -119,8 +120,8 @@ export function RequestingInstitutionsTable() {
       page,
       size,
       debouncedSearch,
-      debouncedTypeFilter,
-      debouncedAgencyFilter,
+      typeFilter,
+      agencyFilter,
       jurisdictionFilter,
       sortBy,
       sortDirection,
@@ -130,8 +131,8 @@ export function RequestingInstitutionsTable() {
         page,
         size,
         search: debouncedSearch,
-        type: debouncedTypeFilter,
-        agency: debouncedAgencyFilter,
+        type: typeFilter,
+        agency: agencyFilter,
         jurisdictionLevel:
           jurisdictionFilter === 'all' ? undefined : jurisdictionFilter,
         sortBy,
@@ -254,25 +255,41 @@ export function RequestingInstitutionsTable() {
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="requesting-institutions-type">Tipo</Label>
-          <Input
-            id="requesting-institutions-type"
+          <Label>Tipo</Label>
+          <SelectWithSearch
             value={typeFilter}
-            onChange={(event) =>
-              resetPageAndRun(() => setTypeFilter(event.target.value))
+            selectedOption={
+              typeFilter ? { label: typeFilter, value: typeFilter } : undefined
             }
-            placeholder="Ex.: Polícia Civil"
+            onSelect={(item) =>
+              resetPageAndRun(() => setTypeFilter(item.value))
+            }
+            placeholder="Todos"
+            clearOptionLabel="Todos"
+            queryKey={['requesting-institutions', 'field-options', 'type']}
+            fetchPage={(args) =>
+              fetchRequestingInstitutionFieldPage('type', args)
+            }
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="requesting-institutions-agency">Órgão</Label>
-          <Input
-            id="requesting-institutions-agency"
+          <Label>Órgão</Label>
+          <SelectWithSearch
             value={agencyFilter}
-            onChange={(event) =>
-              resetPageAndRun(() => setAgencyFilter(event.target.value))
+            selectedOption={
+              agencyFilter
+                ? { label: agencyFilter, value: agencyFilter }
+                : undefined
             }
-            placeholder="Ex.: SEPOL"
+            onSelect={(item) =>
+              resetPageAndRun(() => setAgencyFilter(item.value))
+            }
+            placeholder="Todos"
+            clearOptionLabel="Todos"
+            queryKey={['requesting-institutions', 'field-options', 'agency']}
+            fetchPage={(args) =>
+              fetchRequestingInstitutionFieldPage('agency', args)
+            }
           />
         </div>
         <div className="space-y-1.5">

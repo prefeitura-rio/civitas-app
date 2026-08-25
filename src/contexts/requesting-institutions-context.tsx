@@ -44,9 +44,21 @@ const jurisdictionLevels = [
 ] as const
 
 export const requestingInstitutionFormSchema = z.object({
-  name: z.string().min(1, { message: 'Campo obrigatório' }),
-  type: z.string().min(1, { message: 'Campo obrigatório' }),
-  agency: z.string().min(1, { message: 'Campo obrigatório' }),
+  name: z
+    .string()
+    .trim()
+    .min(3, { message: 'Mínimo de 3 caracteres' })
+    .max(120, { message: 'Máximo de 120 caracteres' }),
+  type: z
+    .string()
+    .trim()
+    .min(2, { message: 'Mínimo de 2 caracteres' })
+    .max(80, { message: 'Máximo de 80 caracteres' }),
+  agency: z
+    .string()
+    .trim()
+    .min(2, { message: 'Mínimo de 2 caracteres' })
+    .max(80, { message: 'Máximo de 80 caracteres' }),
   jurisdictionLevel: z.enum(jurisdictionLevels, {
     message: 'Campo obrigatório',
   }),

@@ -6,6 +6,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { InputError } from '@/components/custom/input-error'
+import { SelectWithSearch } from '@/components/custom/select-with-search'
 import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,6 +37,8 @@ import {
 } from '@/http/requesting-institutions'
 import { queryClient } from '@/lib/react-query'
 import { genericErrorMessage } from '@/utils/error-handlers'
+
+import { fetchRequestingInstitutionFieldPage } from '../../fetch-requesting-institution-field-page'
 
 interface RequestingInstitutionFormDialogProps {
   isOpen: boolean
@@ -229,27 +232,69 @@ export function RequestingInstitutionFormDialog({
 
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="ri-type">Tipo</Label>
+              <Label>Tipo</Label>
               <InputError message={errors.type?.message} />
             </div>
-            <Input
-              id="ri-type"
-              {...register('type')}
-              placeholder="Ex.: Delegacia de Polícia Civil"
-              disabled={isLoading}
+            <Controller
+              control={control}
+              name="type"
+              render={({ field }) => (
+                <SelectWithSearch
+                  value={field.value}
+                  selectedOption={
+                    field.value
+                      ? { label: field.value, value: field.value }
+                      : undefined
+                  }
+                  onSelect={(item) => field.onChange(item.value)}
+                  placeholder="Selecione ou digite o tipo"
+                  disabled={isLoading}
+                  creatable
+                  enabled={isOpen}
+                  queryKey={[
+                    'requesting-institutions',
+                    'field-options',
+                    'type',
+                  ]}
+                  fetchPage={(args) =>
+                    fetchRequestingInstitutionFieldPage('type', args)
+                  }
+                />
+              )}
             />
           </div>
 
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="ri-agency">Órgão</Label>
+              <Label>Órgão</Label>
               <InputError message={errors.agency?.message} />
             </div>
-            <Input
-              id="ri-agency"
-              {...register('agency')}
-              disabled={isLoading}
-              placeholder="Ex.: PCERJ"
+            <Controller
+              control={control}
+              name="agency"
+              render={({ field }) => (
+                <SelectWithSearch
+                  value={field.value}
+                  selectedOption={
+                    field.value
+                      ? { label: field.value, value: field.value }
+                      : undefined
+                  }
+                  onSelect={(item) => field.onChange(item.value)}
+                  placeholder="Selecione ou digite o órgão"
+                  disabled={isLoading}
+                  creatable
+                  enabled={isOpen}
+                  queryKey={[
+                    'requesting-institutions',
+                    'field-options',
+                    'agency',
+                  ]}
+                  fetchPage={(args) =>
+                    fetchRequestingInstitutionFieldPage('agency', args)
+                  }
+                />
+              )}
             />
           </div>
 
