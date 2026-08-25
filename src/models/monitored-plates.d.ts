@@ -27,15 +27,16 @@ export type BackendMonitoredPlateAuthorityLink = {
 }
 
 export type VehicleType =
-  | 'automovel'
-  | 'motocicleta'
-  | 'caminhao'
+  | 'moto'
+  | 'carro'
   | 'onibus'
-  | 'utilitario'
-  | 'van'
+  | 'bonde'
   | 'reboque'
+  | 'caminhao'
   | 'trator'
-  | 'outro'
+  | 'caminhonete'
+  | 'utilitario'
+  | 'motorhome'
 
 export type VehicleInfoSource = 'cortex' | 'manual' | 'mixed'
 

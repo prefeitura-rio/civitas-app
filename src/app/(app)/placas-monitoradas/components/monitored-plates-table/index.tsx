@@ -39,15 +39,16 @@ type AuthorityEntry = {
 }
 
 const VEHICLE_TYPE_LABELS: Record<VehicleType, string> = {
-  automovel: 'Automóvel',
-  motocicleta: 'Motocicleta',
-  caminhao: 'Caminhão',
+  moto: 'Moto',
+  carro: 'Carro',
   onibus: 'Ônibus',
-  utilitario: 'Utilitário',
-  van: 'Van / Microônibus',
-  reboque: 'Reboque / Semi-reboque',
+  bonde: 'Bonde',
+  reboque: 'Reboque',
+  caminhao: 'Caminhão',
   trator: 'Trator',
-  outro: 'Outro',
+  caminhonete: 'Caminhonete',
+  utilitario: 'Utilitário',
+  motorhome: 'Motorhome',
 }
 
 function formatVehicleSummary(plate: MonitoredPlateReadModel): {

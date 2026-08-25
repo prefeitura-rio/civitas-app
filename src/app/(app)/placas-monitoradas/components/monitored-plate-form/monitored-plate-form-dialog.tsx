@@ -50,27 +50,29 @@ import type { MonitoredPlateDraftAuthorityLink } from './monitored-plate-draft-a
 const MONITORED_PLATE_REGEX = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/
 
 const VEHICLE_TYPE_OPTIONS: { value: VehicleType; label: string }[] = [
-  { value: 'automovel', label: 'Automóvel' },
-  { value: 'motocicleta', label: 'Motocicleta' },
-  { value: 'caminhao', label: 'Caminhão' },
+  { value: 'moto', label: 'Moto' },
+  { value: 'carro', label: 'Carro' },
   { value: 'onibus', label: 'Ônibus' },
-  { value: 'utilitario', label: 'Utilitário' },
-  { value: 'van', label: 'Van / Microônibus' },
-  { value: 'reboque', label: 'Reboque / Semi-reboque' },
+  { value: 'bonde', label: 'Bonde' },
+  { value: 'reboque', label: 'Reboque' },
+  { value: 'caminhao', label: 'Caminhão' },
   { value: 'trator', label: 'Trator' },
-  { value: 'outro', label: 'Outro' },
+  { value: 'caminhonete', label: 'Caminhonete' },
+  { value: 'utilitario', label: 'Utilitário' },
+  { value: 'motorhome', label: 'Motorhome' },
 ]
 
 const vehicleTypeSchema = z.enum([
-  'automovel',
-  'motocicleta',
-  'caminhao',
+  'moto',
+  'carro',
   'onibus',
-  'utilitario',
-  'van',
+  'bonde',
   'reboque',
+  'caminhao',
   'trator',
-  'outro',
+  'caminhonete',
+  'utilitario',
+  'motorhome',
 ])
 
 interface MonitoredPlateDialogProps {
