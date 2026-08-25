@@ -40,7 +40,7 @@ import type { TeamsController } from '../hooks/use-teams-controller'
 const roleEnumValues = [
   'Adjunto',
   'Auxiliar de Adjunto',
-  'Operador',
+  'Agente',
   'Líder de Ilha',
 ] as const satisfies readonly UserRoleEnum[]
 
@@ -53,11 +53,11 @@ const memberFormSchema = z
     is_active: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    if (data.role === 'Operador' && !data.island_id) {
+    if (data.role === 'Agente' && !data.island_id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['island_id'],
-        message: 'Ilha obrigatória para Operador',
+        message: 'Ilha obrigatória para Agente',
       })
     }
 
@@ -85,7 +85,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
   'Auxiliar de Adjunto': 'Auxiliar de Adjunto',
   Assessor: 'Assessor',
   'Líder de Ilha': 'Líder de Ilha',
-  Operador: 'Operador',
+  Agente: 'Agente',
 }
 
 interface TeamMemberFormDialogProps {
@@ -148,7 +148,7 @@ export function TeamMemberFormDialog({
   const islands = islandsResponse?.data?.items ?? []
 
   const shouldShowIslandSelect =
-    selectedRole === 'Operador' || selectedRole === 'Líder de Ilha'
+    selectedRole === 'Agente' || selectedRole === 'Líder de Ilha'
 
   const { mutateAsync: createTeamMemberMutation, isPending: isPendingCreate } =
     useMutation({
@@ -191,7 +191,7 @@ export function TeamMemberFormDialog({
 
   async function onSubmit(data: MemberForm) {
     const needsIslandId =
-      data.role === 'Operador' || data.role === 'Líder de Ilha'
+      data.role === 'Agente' || data.role === 'Líder de Ilha'
 
     if (memberDialogInitialData?.id) {
       await updateTeamMemberMutation({
@@ -232,7 +232,7 @@ export function TeamMemberFormDialog({
           ? (initialRole as MemberForm['role'])
           : ('' as unknown as MemberForm['role'])
       const needsIslandId =
-        roleInForm === 'Operador' || roleInForm === 'Líder de Ilha'
+        roleInForm === 'Agente' || roleInForm === 'Líder de Ilha'
 
       reset({
         user_id: memberDialogInitialData.user_id || '',
@@ -267,7 +267,7 @@ export function TeamMemberFormDialog({
   useEffect(() => {
     if (!selectedRole) return
 
-    if (selectedRole !== 'Operador' && selectedRole !== 'Líder de Ilha') {
+    if (selectedRole !== 'Agente' && selectedRole !== 'Líder de Ilha') {
       setValue('island_id', null, { shouldDirty: true, shouldValidate: true })
     }
   }, [selectedRole, setValue])

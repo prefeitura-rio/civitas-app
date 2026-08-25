@@ -176,7 +176,7 @@ export const changelog: Card[] = [
           <>
             <p>
               O relatório de busca por placa agora inclui indicadores de
-              circulação para oferecer mais contexto aos operadores.
+              circulação para oferecer mais contexto aos agentes.
             </p>
             <ul>
               <li>
@@ -852,7 +852,7 @@ export const changelog: Card[] = [
                   Agora, todas as mensagens de detecção incluirão uma informação
                   de atraso, indicando o tempo decorrido entre a detecção do
                   veículo e a publicação do alerta. Essa melhoria permite que os
-                  operadores avaliem a urgência de cada mensagem com maior
+                  agentes avaliem a urgência de cada mensagem com maior
                   precisão.
                 </li>
               </ul>

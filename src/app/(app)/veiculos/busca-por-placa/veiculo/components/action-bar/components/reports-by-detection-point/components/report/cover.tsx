@@ -16,7 +16,7 @@ const bulletPoints: BulletPoint[] = [
         children: [
           {
             value:
-              'As buscas por placas conjuntas podem ser feitas até cinco minutos antes e cinco minutos depois da passagem da placa principal monitorada. A escolha dos parâmetros é feita pelo solicitante da informação. Quando não há informação sobre o período de busca na solicitação, o operador da Civitas utiliza o intervalo padrão definido nas diretrizes operacionais internas (três minutos antes e três minutos depois e de até 50 placas).',
+              'As buscas por placas conjuntas podem ser feitas até cinco minutos antes e cinco minutos depois da passagem da placa principal monitorada. A escolha dos parâmetros é feita pelo solicitante da informação. Quando não há informação sobre o período de busca na solicitação, o agente da Civitas utiliza o intervalo padrão definido nas diretrizes operacionais internas (três minutos antes e três minutos depois e de até 50 placas).',
           },
         ],
       },
