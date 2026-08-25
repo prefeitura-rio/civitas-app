@@ -34,7 +34,7 @@ const roleOptions = [
   { value: 'Auxiliar de Adjunto', label: 'Auxiliar de Adjunto' },
   { value: 'Assessor', label: 'Assessor' },
   { value: 'Líder de Ilha', label: 'Líder de Ilha' },
-  { value: 'Operador', label: 'Operador' },
+  { value: 'Agente', label: 'Agente' },
 ] as const satisfies { value: UserRoleEnum; label: string }[]
 
 const profileAccessFormSchema = z.object({
@@ -46,7 +46,7 @@ const profileAccessFormSchema = z.object({
       'Auxiliar de Adjunto',
       'Assessor',
       'Líder de Ilha',
-      'Operador',
+      'Agente',
     ])
     .optional(),
 })

@@ -19,6 +19,34 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '25 de Agosto de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Papel Operador passa a se chamar Agente',
+        content: (
+          <>
+            <p>
+              O papel de usuário <strong>Operador</strong> nas Demandas foi
+              renomeado para <strong>Agente</strong>, alinhando a nomenclatura
+              em telas, permissões, equipes e histórico.
+            </p>
+            <ul>
+              <li>
+                Perfis, equipes, workflow e permissões de telas passam a exibir
+                e gravar o papel como Agente.
+              </li>
+              <li>
+                Badges no parecer interno e no histórico da demanda reconhecem o
+                novo nome.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '14 de Agosto de 2026',
     subCards: [
       {
@@ -213,7 +241,7 @@ export const changelog: Card[] = [
           <>
             <p>
               O relatório de busca por placa agora inclui indicadores de
-              circulação para oferecer mais contexto aos operadores.
+              circulação para oferecer mais contexto aos agentes.
             </p>
             <ul>
               <li>
@@ -889,7 +917,7 @@ export const changelog: Card[] = [
                   Agora, todas as mensagens de detecção incluirão uma informação
                   de atraso, indicando o tempo decorrido entre a detecção do
                   veículo e a publicação do alerta. Essa melhoria permite que os
-                  operadores avaliem a urgência de cada mensagem com maior
+                  agentes avaliem a urgência de cada mensagem com maior
                   precisão.
                 </li>
               </ul>

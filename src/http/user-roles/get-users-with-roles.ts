@@ -7,7 +7,7 @@ export type UserRoleEnum =
   | 'Auxiliar de Adjunto'
   | 'Assessor'
   | 'Líder de Ilha'
-  | 'Operador'
+  | 'Agente'
 
 export interface UserRoleListItem {
   id: string

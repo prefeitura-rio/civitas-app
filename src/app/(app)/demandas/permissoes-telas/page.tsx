@@ -39,7 +39,7 @@ const ROLE_OPTIONS: UserRoleEnum[] = [
   'Adjunto',
   'Auxiliar de Adjunto',
   'Líder de Ilha',
-  'Operador',
+  'Agente',
   'Assessor',
 ]
 

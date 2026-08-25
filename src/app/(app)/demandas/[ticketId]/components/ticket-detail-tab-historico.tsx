@@ -22,7 +22,7 @@ function formatHistoricoTimestamp(iso: string): string {
 
 function badgeClassForPapel(papel: string): string {
   const p = papel.trim().toLowerCase()
-  if (p.includes('operador')) return styles.parecerBadgeOperador
+  if (p.includes('agente')) return styles.parecerBadgeAgente
   if (p.includes('adjunto')) return styles.parecerBadgeAdjunto
   if (p.includes('administrativo')) return styles.parecerBadgeAdmin
   return styles.parecerBadgeDefault
