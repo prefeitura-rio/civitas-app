@@ -19,6 +19,43 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '14 de Agosto de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Reenvio de links da resposta de demandas',
+        content: (
+          <>
+            <p>
+              O e-mail de resposta enviado ao solicitante pode ser reenviado com
+              links atualizados. Assim, caso os links anteriores estejam
+              expirados, o solicitante recebe novos acessos válidos sem que seja
+              necessário reabrir o chamado.
+            </p>
+            <ul>
+              <li>
+                A ação <strong>Reenviar Links</strong> foi adicionada aos
+                detalhes da demanda quando o chamado permite reabertura.
+              </li>
+              <li>
+                O conteúdo da resposta é mantido; apenas os links dos anexos são
+                renovados antes do envio.
+              </li>
+              <li>
+                Antes de reenviar, o sistema exibe os destinatários que
+                receberão novamente o e-mail.
+              </li>
+              <li>
+                O reenvio fica disponível por até 180 dias após a abertura da
+                demanda.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '29 de Julho de 2026',
     subCards: [
       {
