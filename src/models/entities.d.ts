@@ -40,7 +40,6 @@ export type BackendProfile = {
   agency: string
   sector: string
   email: string
-  is_admin: boolean
 }
 
 export type Profile = {
@@ -52,7 +51,6 @@ export type Profile = {
   agency: string
   sector: string
   email: string
-  isAdmin: boolean
 }
 
 export type BackendCamera = {

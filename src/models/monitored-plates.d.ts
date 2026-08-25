@@ -166,7 +166,6 @@ export type MonitoredPlateHistoryItem = {
     agency: string
     sector: string
     email: string
-    is_admin: boolean
   } | null
   deleted_timestamp: string | null
   deleted_by: {
@@ -178,6 +177,5 @@ export type MonitoredPlateHistoryItem = {
     agency: string
     sector: string
     email: string
-    is_admin: boolean
   } | null
 }

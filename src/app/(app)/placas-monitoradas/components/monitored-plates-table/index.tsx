@@ -19,7 +19,6 @@ import {
 import { Pagination } from '@/components/ui/pagination'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 import { useMonitoredPlatesSearchParams } from '@/hooks/useParams/useMonitoredPlatesSearchParams'
-import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getInstitutionAuthority } from '@/http/institution-authorities'
 import {
   type EmbeddedInstitutionAuthority,
@@ -31,7 +30,6 @@ import {
 } from '@/http/monitored-plates'
 import type { NotificationChannel } from '@/models/entities'
 import type { VehicleType } from '@/models/monitored-plates'
-import { notAllowed } from '@/utils/template-messages'
 
 type AuthorityEntry = {
   institutionAuthority: EmbeddedInstitutionAuthority
@@ -138,7 +136,6 @@ export function MonitoredPlatesTable() {
     setOnDeleteMonitoredPlateProps,
     deleteAlertDisclosure,
   } = useMonitoredPlates()
-  const { data: profile, isLoading: isProfileLoading } = useProfile()
   const [selectedEntry, setSelectedEntry] = useState<AuthorityEntry | null>(
     null,
   )
@@ -175,7 +172,6 @@ export function MonitoredPlatesTable() {
     })
 
   const data = monitoredPlatesResponse?.data
-  const canEditMonitoredPlates = Boolean(profile?.is_admin)
 
   const openEditDialog = (plate: MonitoredPlateReadModel['plate']) => {
     setDialogInitialData({ plate })
@@ -273,7 +269,6 @@ export function MonitoredPlatesTable() {
                 size="sm"
                 className="h-7 bg-muted px-2 text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => openEditDialog(row.original.plate)}
-                disabled={!canEditMonitoredPlates}
               >
                 +{hiddenCount}
               </Button>
@@ -311,29 +306,18 @@ export function MonitoredPlatesTable() {
       cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
-            <Tooltip
-              disabled={!profile || !profile?.is_admin}
-              disabledText={notAllowed}
-              text="Editar"
-              asChild
-            >
+            <Tooltip text="Editar" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
                 type="button"
                 onClick={() => openEditDialog(row.original.plate)}
-                disabled={!canEditMonitoredPlates}
               >
                 <span className="sr-only">Editar linha</span>
                 <PencilLine className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <Tooltip
-              text="Desativar vínculos"
-              disabled={!profile || !profile?.is_admin}
-              disabledText={notAllowed}
-              asChild
-            >
+            <Tooltip text="Desativar vínculos" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -344,7 +328,6 @@ export function MonitoredPlatesTable() {
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={!profile || !profile?.is_admin}
               >
                 <span className="sr-only">Desativar vínculos da linha</span>
                 <Trash className="h-4 w-4" />
@@ -362,7 +345,7 @@ export function MonitoredPlatesTable() {
         <DataTable
           columns={columns}
           data={paginatedItems}
-          isLoading={isMonitoredPlatesLoading || isProfileLoading}
+          isLoading={isMonitoredPlatesLoading}
           sorting
           sortingState={sortingState}
           onSortingChange={handleSortingChange}

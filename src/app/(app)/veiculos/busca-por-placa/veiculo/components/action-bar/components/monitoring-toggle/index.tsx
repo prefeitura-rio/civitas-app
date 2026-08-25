@@ -9,10 +9,8 @@ import { Toggle } from '@/components/ui/toggle'
 import { useDisclosure } from '@/hooks/use-disclosure'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
-import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getMonitoredPlate } from '@/http/monitored-plates'
 import { isApiError } from '@/lib/api'
-import { notAllowed } from '@/utils/template-messages'
 
 export function MonitoringToggle() {
   const monitoredPlateFormDialog = useDisclosure()
@@ -23,7 +21,6 @@ export function MonitoringToggle() {
       trips: { lastSearchParams, isLoading: isLoadingGetCarPath },
     },
   } = useMap()
-  const { data: profile } = useProfile()
 
   const { data: monitoredPlate, isLoading: isLoadingMonitoredPlate } = useQuery(
     {
@@ -66,27 +63,15 @@ export function MonitoringToggle() {
         <div>
           <Tooltip
             text="Gerenciar monitoramento"
-            disabled={
-              isLoadingGetCarPath ||
-              isLoadingMonitoredPlate ||
-              !profile ||
-              !profile.is_admin
-            }
-            disabledText={
-              isLoadingGetCarPath || isLoadingMonitoredPlate ? '' : notAllowed
-            }
+            disabled={isLoadingGetCarPath || isLoadingMonitoredPlate}
+            disabledText=""
             asChild
           >
             <div>
               <Toggle
                 pressed={monitored}
                 onPressedChange={handleSetMonitored}
-                disabled={
-                  isLoadingGetCarPath ||
-                  isLoadingMonitoredPlate ||
-                  !profile ||
-                  !profile.is_admin
-                }
+                disabled={isLoadingGetCarPath || isLoadingMonitoredPlate}
                 size="sm"
               >
                 <Siren className="h-4 w-4" />

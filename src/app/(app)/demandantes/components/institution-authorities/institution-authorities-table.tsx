@@ -53,7 +53,6 @@ import {
 } from '@/components/ui/select'
 import { institutionJurisdictionOptions } from '@/constants/institutions'
 import { useInstitutionAuthorities } from '@/hooks/useContexts/use-institution-authorities-context'
-import { useProfile } from '@/hooks/useQueries/useProfile'
 import {
   getInstitutionAuthorities,
   type InstitutionAuthority,
@@ -65,7 +64,6 @@ import {
   type RequestingInstitution,
 } from '@/http/requesting-institutions'
 import { cn } from '@/lib/utils'
-import { notAllowed } from '@/utils/template-messages'
 
 const sortableColumns = {
   name: 'name',
@@ -205,7 +203,6 @@ export function InstitutionAuthoritiesTable() {
     setOnDeleteInstitutionAuthorityProps,
     deleteAlertDisclosure,
   } = useInstitutionAuthorities()
-  const { data: profile } = useProfile()
 
   const sortBy = getSortBy(sortingState)
   const sortDirection = getSortDirection(sortingState)
@@ -342,12 +339,7 @@ export function InstitutionAuthoritiesTable() {
       cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
-            <Tooltip
-              text="Editar"
-              disabledText={notAllowed}
-              disabled={!profile?.is_admin}
-              asChild
-            >
+            <Tooltip text="Editar" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -356,18 +348,12 @@ export function InstitutionAuthoritiesTable() {
                   setDialogInitialData({ id: row.original.id })
                   formDialogDisclosure.onOpen()
                 }}
-                disabled={!profile?.is_admin}
               >
                 <span className="sr-only">Editar</span>
                 <PencilLine className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <Tooltip
-              text="Excluir"
-              disabledText={notAllowed}
-              disabled={!profile?.is_admin}
-              asChild
-            >
+            <Tooltip text="Excluir" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -379,7 +365,6 @@ export function InstitutionAuthoritiesTable() {
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={!profile?.is_admin}
               >
                 <span className="sr-only">Excluir</span>
                 <Trash className="h-4 w-4" />

@@ -29,14 +29,12 @@ import {
   institutionJurisdictionOptions,
 } from '@/constants/institutions'
 import { useRequestingInstitutions } from '@/hooks/useContexts/use-requesting-institutions-context'
-import { useProfile } from '@/hooks/useQueries/useProfile'
 import {
   getRequestingInstitutions,
   type RequestingInstitution,
   type RequestingInstitutionSortBy,
   type SortDirection,
 } from '@/http/requesting-institutions'
-import { notAllowed } from '@/utils/template-messages'
 
 import { fetchRequestingInstitutionFieldPage } from './fetch-requesting-institution-field-page'
 
@@ -83,7 +81,6 @@ export function RequestingInstitutionsTable() {
     setOnDeleteRequestingInstitutionProps,
     deleteAlertDisclosure,
   } = useRequestingInstitutions()
-  const { data: profile } = useProfile()
 
   const sortBy = getSortBy(sortingState)
   const sortDirection = getSortDirection(sortingState)
@@ -187,12 +184,7 @@ export function RequestingInstitutionsTable() {
       cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
-            <Tooltip
-              text="Editar"
-              disabledText={notAllowed}
-              disabled={!profile?.is_admin}
-              asChild
-            >
+            <Tooltip text="Editar" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -201,18 +193,12 @@ export function RequestingInstitutionsTable() {
                   setDialogInitialData({ id: row.original.id })
                   formDialogDisclosure.onOpen()
                 }}
-                disabled={!profile?.is_admin}
               >
                 <span className="sr-only">Editar</span>
                 <PencilLine className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <Tooltip
-              text="Excluir"
-              disabledText={notAllowed}
-              disabled={!profile?.is_admin}
-              asChild
-            >
+            <Tooltip text="Excluir" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -224,7 +210,6 @@ export function RequestingInstitutionsTable() {
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={!profile?.is_admin}
               >
                 <span className="sr-only">Excluir</span>
                 <Trash className="h-4 w-4" />
