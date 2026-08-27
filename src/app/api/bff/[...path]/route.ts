@@ -6,7 +6,6 @@ import {
   getSessionCookieName,
   serializeAccessToken,
   serializeSession,
-  serializeSessionId,
   validateAndRefreshSession,
 } from '@/auth/session'
 import { config } from '@/config'
@@ -188,7 +187,6 @@ async function handler(request: NextRequest) {
 
   const sessionCookie = serializeSession(result.session)
   const accessTokenCookie = serializeAccessToken(result.session)
-  const sessionIdCookie = serializeSessionId(result.session)
 
   response.cookies.set(
     sessionCookie.name,
@@ -199,11 +197,6 @@ async function handler(request: NextRequest) {
     accessTokenCookie.name,
     accessTokenCookie.value,
     accessTokenCookie.options,
-  )
-  response.cookies.set(
-    sessionIdCookie.name,
-    sessionIdCookie.value,
-    sessionIdCookie.options,
   )
 
   return response

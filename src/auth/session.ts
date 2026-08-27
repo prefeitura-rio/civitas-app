@@ -6,7 +6,6 @@ import { getSessionPolicy } from './session-config'
 
 const SESSION_COOKIE_NAME = 'session'
 const ACCESS_TOKEN_COOKIE_NAME = 'token'
-const SESSION_ID_COOKIE_NAME = 'session_id'
 
 type OAuthTokenResponse = {
   access_token: string
@@ -28,14 +27,6 @@ type SessionPayload = {
 
 export function getSessionCookieName() {
   return SESSION_COOKIE_NAME
-}
-
-export function getAccessTokenCookieName() {
-  return ACCESS_TOKEN_COOKIE_NAME
-}
-
-export function getSessionIdCookieName() {
-  return SESSION_ID_COOKIE_NAME
 }
 
 function toBase64Url(input: Buffer | string) {
@@ -240,16 +231,23 @@ export async function refreshAccessToken(session: SessionPayload) {
 }
 
 export function isValidSession(sessionValue: string | undefined) {
+  return getValidSession(sessionValue) !== null
+}
+
+export function getValidSession(
+  sessionValue: string | undefined,
+  nowMs = Date.now(),
+) {
   if (!sessionValue) {
-    return false
+    return null
   }
 
   const session = unsealSession(sessionValue)
-  if (!session) {
-    return false
+  if (!session || isSessionExpired(session, nowMs)) {
+    return null
   }
 
-  return !isSessionExpired(session)
+  return session
 }
 
 export async function validateAndRefreshSession(
@@ -317,16 +315,6 @@ export function serializeAccessToken(session: SessionPayload) {
   }
 }
 
-export function serializeSessionId(session: SessionPayload) {
-  const policy = getSessionPolicy(session.rememberMe)
-
-  return {
-    name: SESSION_ID_COOKIE_NAME,
-    value: session.sessionId,
-    options: getAccessTokenCookieOptions(policy.absoluteTimeoutSeconds),
-  }
-}
-
 export function clearSessionCookies() {
   const serverConfig = getServerConfig()
 
@@ -344,17 +332,6 @@ export function clearSessionCookies() {
     },
     {
       name: ACCESS_TOKEN_COOKIE_NAME,
-      value: '',
-      options: {
-        httpOnly: true,
-        secure: serverConfig.authCookieSecure,
-        sameSite: serverConfig.authCookieSameSite,
-        path: '/',
-        maxAge: 0,
-      } as const,
-    },
-    {
-      name: SESSION_ID_COOKIE_NAME,
       value: '',
       options: {
         httpOnly: true,

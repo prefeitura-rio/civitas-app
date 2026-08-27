@@ -7,7 +7,6 @@ import {
   buildSessionFromTokenResponse,
   serializeAccessToken,
   serializeSession,
-  serializeSessionId,
 } from '@/auth/session'
 import { config, getServerConfig } from '@/config'
 import {
@@ -73,7 +72,6 @@ export async function signInAction(data: FormData) {
     )
     const sessionCookie = serializeSession(session)
     const accessTokenCookie = serializeAccessToken(session)
-    const sessionIdCookie = serializeSessionId(session)
 
     cookies().set(
       sessionCookie.name,
@@ -84,11 +82,6 @@ export async function signInAction(data: FormData) {
       accessTokenCookie.name,
       accessTokenCookie.value,
       accessTokenCookie.options,
-    )
-    cookies().set(
-      sessionIdCookie.name,
-      sessionIdCookie.value,
-      sessionIdCookie.options,
     )
 
     try {

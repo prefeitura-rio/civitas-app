@@ -2,6 +2,7 @@ import axios from 'axios'
 import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
+import { getSessionCookieName, getValidSession } from '@/auth/session'
 import { config as appConfig } from '@/config'
 import { TICKET_MODULE_PERMISSIONS_COOKIE } from '@/http/tickets/ticket-module-permissions-me'
 import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
@@ -21,7 +22,6 @@ function redirectToSignIn(errorCode?: string) {
   isAuthRedirecting = true
 
   deleteCookie('token')
-  deleteCookie('session_id')
   deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
   queryClient.clear()
 
@@ -46,22 +46,23 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use(async (requestConfig) => {
-  // Try to get token from cookies
   let cookieStore: CookiesFn | undefined
 
   if (isServer) {
     const { cookies: serverCookies } = await import('next/headers')
-
     cookieStore = serverCookies
-  }
-  const token = getCookie('token', { cookies: cookieStore })
-  const sessionId = getCookie('session_id', { cookies: cookieStore })
+    const session = getValidSession(
+      serverCookies().get(getSessionCookieName())?.value,
+    )
 
+    if (session) {
+      requestConfig.headers['X-Civitas-Session-Id'] = session.sessionId
+    }
+  }
+
+  const token = getCookie('token', { cookies: cookieStore })
   if (token) {
     requestConfig.headers.Authorization = `Bearer ${token}`
-  }
-  if (sessionId) {
-    requestConfig.headers['X-Civitas-Session-Id'] = sessionId
   }
 
   const shouldAttachImpersonation =
