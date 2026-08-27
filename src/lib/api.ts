@@ -2,7 +2,10 @@ import axios from 'axios'
 import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
-import { getSessionCookieName, getValidSession } from '@/auth/session'
+import {
+  getSessionCookieName,
+  getSessionIdFromValidSession,
+} from '@/auth/session'
 import { config as appConfig } from '@/config'
 import { TICKET_MODULE_PERMISSIONS_COOKIE } from '@/http/tickets/ticket-module-permissions-me'
 import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
@@ -51,12 +54,12 @@ api.interceptors.request.use(async (requestConfig) => {
   if (isServer) {
     const { cookies: serverCookies } = await import('next/headers')
     cookieStore = serverCookies
-    const session = getValidSession(
+    const sessionId = getSessionIdFromValidSession(
       serverCookies().get(getSessionCookieName())?.value,
     )
 
-    if (session) {
-      requestConfig.headers['X-Civitas-Session-Id'] = session.sessionId
+    if (sessionId) {
+      requestConfig.headers['X-Civitas-Session-Id'] = sessionId
     }
   }
 

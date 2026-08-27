@@ -231,10 +231,10 @@ export async function refreshAccessToken(session: SessionPayload) {
 }
 
 export function isValidSession(sessionValue: string | undefined) {
-  return getValidSession(sessionValue) !== null
+  return getSessionIdFromValidSession(sessionValue) !== null
 }
 
-export function getValidSession(
+export function getSessionIdFromValidSession(
   sessionValue: string | undefined,
   nowMs = Date.now(),
 ) {
@@ -247,7 +247,7 @@ export function getValidSession(
     return null
   }
 
-  return session
+  return session.sessionId
 }
 
 export async function validateAndRefreshSession(
