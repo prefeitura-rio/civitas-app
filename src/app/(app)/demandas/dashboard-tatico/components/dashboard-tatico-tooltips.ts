@@ -47,7 +47,7 @@ export const OPERATIONAL_OPEN_BY_TEAM_TOOLTIP =
   'Chamados em aberto por equipe e status, no período do filtro.'
 
 export const OPERATIONAL_CLOSED_BY_TEAM_TOOLTIP =
-  'Chamados encerrados por equipe que finalizou. Exclui Administrativo e Coordenadores.'
+  'Chamados registrados no fechamento de turno de cada equipe, pela data do turno. Exclui Administrativo e Coordenadores.'
 
 export const OPERATIONAL_RESOLUTION_BY_TEAM_TOOLTIP =
   'Dias médios de resolução por equipe que finalizou. Exclui Administrativo e Coordenadores.'

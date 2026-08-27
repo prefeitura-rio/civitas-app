@@ -19,6 +19,57 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '26 de Agosto de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Métrica de chamados no fechamento por equipe',
+        content: (
+          <>
+            <p>
+              A métrica da Visão Operacional passou a considerar os chamados
+              registrados no fechamento de turno de cada equipe, pela data do
+              turno.
+            </p>
+            <ul>
+              <li>
+                O volume representa chamados atribuídos ou mantidos sob a
+                responsabilidade da equipe durante o turno.
+              </li>
+              <li>
+                A visualização não inclui as equipes Administrativo e
+                Coordenadores.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Padronização das cores das métricas',
+        content: (
+          <>
+            <p>
+              As cores do Dashboard Tático foram ajustadas para facilitar a
+              leitura e manter o mesmo significado visual entre os gráficos.
+            </p>
+            <ul>
+              <li>
+                Resultados acima da média passam a ser exibidos em azul, e os
+                abaixo da média, em vermelho.
+              </li>
+              <li>
+                Chamados criados e o tempo a partir do cadastro usam azul;
+                chamados encerrados e o tempo a partir do e-mail usam roxo.
+              </li>
+              <li>O status Pendente passa a usar um tom âmbar suave.</li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '25 de Agosto de 2026',
     subCards: [
       {

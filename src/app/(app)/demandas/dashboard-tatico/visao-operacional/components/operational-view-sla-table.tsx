@@ -29,13 +29,13 @@ function getCellVariant(
 
 const CELL_STYLES: Record<CellVariant, CSSProperties> = {
   above: {
-    backgroundColor: 'rgba(185, 61, 82, 0.25)',
-    color: '#f9a7b3',
+    backgroundColor: 'rgba(6, 178, 187, 0.15)',
+    color: '#06b2bb',
     fontWeight: 600,
   },
   below: {
-    backgroundColor: 'rgba(6, 178, 187, 0.15)',
-    color: '#06b2bb',
+    backgroundColor: 'rgba(185, 61, 82, 0.25)',
+    color: '#f9a7b3',
     fontWeight: 600,
   },
   neutral: {
@@ -189,13 +189,13 @@ export function OperationalViewSlaTable({
             }}
           >
             <LegendItem
-              color="#f9a7b3"
-              bg="rgba(185, 61, 82, 0.25)"
+              color="#06b2bb"
+              bg="rgba(6, 178, 187, 0.15)"
               label="Acima da média"
             />
             <LegendItem
-              color="#06b2bb"
-              bg="rgba(6, 178, 187, 0.15)"
+              color="#f9a7b3"
+              bg="rgba(185, 61, 82, 0.25)"
               label="Abaixo da média"
             />
           </div>
