@@ -2,6 +2,10 @@ import axios from 'axios'
 import { deleteCookie, getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
+import {
+  getSessionCookieName,
+  getSessionIdFromValidSession,
+} from '@/auth/session'
 import { config as appConfig } from '@/config'
 import { TICKET_MODULE_PERMISSIONS_COOKIE } from '@/http/tickets/ticket-module-permissions-me'
 import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
@@ -11,22 +15,55 @@ import { queryClient } from './react-query'
 export const isApiError = axios.isAxiosError
 
 const isServer = typeof window === 'undefined'
+let isAuthRedirecting = false
+
+function redirectToSignIn(errorCode?: string) {
+  if (isAuthRedirecting || window.location.pathname === '/auth/sign-in') {
+    return
+  }
+
+  isAuthRedirecting = true
+
+  deleteCookie('token')
+  deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
+  queryClient.clear()
+
+  if (errorCode === 'session_invalidated') {
+    sessionStorage.setItem('session-invalidated-toast', '1')
+  }
+
+  fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+  })
+    .catch(() => {
+      // The redirect must continue even if the logout endpoint is unavailable.
+    })
+    .finally(() => {
+      window.location.replace('/auth/sign-in')
+    })
+}
 
 export const api = axios.create({
   baseURL: isServer ? appConfig.apiUrl : '/api/bff',
 })
 
 api.interceptors.request.use(async (requestConfig) => {
-  // Try to get token from cookies
   let cookieStore: CookiesFn | undefined
 
   if (isServer) {
     const { cookies: serverCookies } = await import('next/headers')
-
     cookieStore = serverCookies
-  }
-  const token = getCookie('token', { cookies: cookieStore })
+    const sessionId = getSessionIdFromValidSession(
+      serverCookies().get(getSessionCookieName())?.value,
+    )
 
+    if (sessionId) {
+      requestConfig.headers['X-Civitas-Session-Id'] = sessionId
+    }
+  }
+
+  const token = getCookie('token', { cookies: cookieStore })
   if (token) {
     requestConfig.headers.Authorization = `Bearer ${token}`
   }
@@ -56,15 +93,15 @@ api.interceptors.response.use(
     const status = error?.response?.status
 
     if (typeof window !== 'undefined' && status === 401) {
-      deleteCookie('token')
-      deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
-      queryClient.clear()
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
+      const errorCode = error?.response?.data?.code
+
       if (window.location.pathname !== '/auth/sign-in') {
-        window.location.href = '/auth/sign-in'
+        redirectToSignIn(errorCode)
+
+        return new Promise(() => {
+          // Keep callers from rendering transient query/error states while the
+          // browser is being redirected to sign-in.
+        })
       }
     }
 

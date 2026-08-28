@@ -62,6 +62,7 @@ export async function signInAction(data: FormData) {
     const tokens = (await response.json()) as {
       access_token: string
       expires_in: number
+      session_id: string
     }
 
     const session = buildSessionFromTokenResponse(
@@ -87,7 +88,10 @@ export async function signInAction(data: FormData) {
       const permRes = await fetch(
         `${config.apiUrl}${TICKET_MODULE_PERMISSIONS_PATH}`,
         {
-          headers: { Authorization: `Bearer ${tokens.access_token}` },
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+            'X-Civitas-Session-Id': tokens.session_id,
+          },
         },
       )
       if (permRes.ok) {

@@ -62,6 +62,7 @@ async function handler(request: NextRequest) {
   // Those can confuse upstream or, on bad DNS, make a loop look like a document request.
   const headers = new Headers()
   headers.set('Authorization', `Bearer ${result.session.accessToken}`)
+  headers.set('X-Civitas-Session-Id', result.session.sessionId)
   const accept = request.headers.get('accept')
   headers.set(
     'Accept',
@@ -174,6 +175,14 @@ async function handler(request: NextRequest) {
       continue
     }
     response.headers.set(key, value)
+  }
+
+  if (upstreamResponse.status === 401) {
+    for (const cookie of clearSessionCookies()) {
+      response.cookies.set(cookie.name, cookie.value, cookie.options)
+    }
+
+    return response
   }
 
   const sessionCookie = serializeSession(result.session)

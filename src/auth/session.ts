@@ -11,10 +11,12 @@ type OAuthTokenResponse = {
   access_token: string
   expires_in: number
   token_type?: string
+  session_id: string
 }
 
 type SessionPayload = {
   accessToken: string
+  sessionId: string
   username: string
   password: string
   accessTokenExpiresAt: number
@@ -25,10 +27,6 @@ type SessionPayload = {
 
 export function getSessionCookieName() {
   return SESSION_COOKIE_NAME
-}
-
-export function getAccessTokenCookieName() {
-  return ACCESS_TOKEN_COOKIE_NAME
 }
 
 function toBase64Url(input: Buffer | string) {
@@ -118,6 +116,7 @@ function unsealSession(value: string): SessionPayload | null {
 
     if (
       !parsed.accessToken ||
+      !parsed.sessionId ||
       !parsed.username ||
       !parsed.password ||
       !parsed.createdAt ||
@@ -185,6 +184,7 @@ export function buildSessionFromTokenResponse(
 
   return {
     accessToken: tokenResponse.access_token,
+    sessionId: tokenResponse.session_id,
     username: credentials.username,
     password: credentials.password,
     accessTokenExpiresAt: nowMs + tokenResponse.expires_in * 1000,
@@ -202,6 +202,7 @@ export async function refreshAccessToken(session: SessionPayload) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Civitas-Session-Id': session.sessionId,
       },
       body: new URLSearchParams({
         username: session.username,
@@ -224,21 +225,29 @@ export async function refreshAccessToken(session: SessionPayload) {
   return {
     ...session,
     accessToken: data.access_token,
+    sessionId: data.session_id,
     accessTokenExpiresAt: Date.now() + data.expires_in * 1000,
   }
 }
 
 export function isValidSession(sessionValue: string | undefined) {
+  return getSessionIdFromValidSession(sessionValue) !== null
+}
+
+export function getSessionIdFromValidSession(
+  sessionValue: string | undefined,
+  nowMs = Date.now(),
+) {
   if (!sessionValue) {
-    return false
+    return null
   }
 
   const session = unsealSession(sessionValue)
-  if (!session) {
-    return false
+  if (!session || isSessionExpired(session, nowMs)) {
+    return null
   }
 
-  return !isSessionExpired(session)
+  return session.sessionId
 }
 
 export async function validateAndRefreshSession(
