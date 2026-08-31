@@ -15,14 +15,12 @@ export function updateMonitoredPlate({
   operationId,
   contactInfo,
   notes,
-  active,
   additionalInfo,
   notificationChannels,
 }: UpdateMonitoredPlateRequest) {
   const response = api.put<MonitoredPlate>(`/cars/monitored/${plate}`, {
     plate,
     operation_id: operationId,
-    active,
     contact_info: contactInfo,
     notes,
     additional_info: additionalInfo,

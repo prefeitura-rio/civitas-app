@@ -1,0 +1,720 @@
+'use client'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Plus, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import {
+  Controller,
+  type FieldError,
+  useFieldArray,
+  useForm,
+} from 'react-hook-form'
+import { toast } from 'sonner'
+
+import { InputError } from '@/components/custom/input-error'
+import {
+  SelectWithSearch,
+  type SelectWithSearchFetchPageArgs,
+} from '@/components/custom/select-with-search'
+import { Spinner } from '@/components/custom/spinner'
+import { PhoneInput } from '@/components/reui/phone-input'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  type InstitutionAuthorityForm,
+  institutionAuthorityFormSchema,
+} from '@/contexts/institution-authorities-context'
+import { useInstitutionAuthorities } from '@/hooks/useContexts/use-institution-authorities-context'
+import {
+  createInstitutionAuthority,
+  getInstitutionAuthorities,
+  getInstitutionAuthority,
+  type InstitutionAuthority,
+  replaceInstitutionAuthorityContacts,
+  updateInstitutionAuthority,
+} from '@/http/institution-authorities'
+import { getRequestingInstitutions } from '@/http/requesting-institutions'
+import { queryClient } from '@/lib/react-query'
+import { getApiErrorMessage } from '@/utils/error-handlers'
+
+interface InstitutionAuthorityFormDialogProps {
+  isOpen: boolean
+  onClose: () => void
+  onOpen: () => void
+}
+
+function normalizePrimaryContact<T extends { isPrimary: boolean }>(items: T[]) {
+  if (items.length === 0) return items
+
+  const primaryIndex = items.findIndex((item) => item.isPrimary)
+
+  if (primaryIndex === -1) {
+    return items.map((item, index) => ({
+      ...item,
+      isPrimary: index === 0,
+    }))
+  }
+
+  return items.map((item, index) => ({
+    ...item,
+    isPrimary: index === primaryIndex,
+  }))
+}
+
+const emptyFormValues: InstitutionAuthorityForm = {
+  requestingInstitutionId: '',
+  name: '',
+  isFocalPoint: false,
+  phones: [],
+  emails: [],
+}
+
+function getFieldArrayErrorMessage(
+  error:
+    | FieldError
+    | (Record<string, unknown> & { message?: string; root?: FieldError })
+    | undefined,
+) {
+  if (!error) return undefined
+  if (typeof error.root?.message === 'string' && error.root.message) {
+    return error.root.message
+  }
+  if (typeof error.message === 'string' && error.message) {
+    return error.message
+  }
+  return undefined
+}
+
+async function getAllInstitutionAuthorities() {
+  const firstPage = await getInstitutionAuthorities({ page: 1, size: 100 })
+  const firstItems = firstPage.data.items
+  const totalPages = firstPage.data.pages
+
+  if (totalPages <= 1) return firstItems
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getInstitutionAuthorities({ page: index + 2, size: 100 }),
+    ),
+  )
+
+  return remainingPages.reduce<InstitutionAuthority[]>(
+    (items, response) => [...items, ...response.data.items],
+    firstItems,
+  )
+}
+
+export function InstitutionAuthorityFormDialog({
+  isOpen,
+  onClose,
+  onOpen,
+}: InstitutionAuthorityFormDialogProps) {
+  const {
+    dialogInitialData: initialData,
+    setDialogInitialData: setInitialData,
+  } = useInstitutionAuthorities()
+
+  const form = useForm<InstitutionAuthorityForm>({
+    resolver: zodResolver(institutionAuthorityFormSchema),
+    defaultValues: emptyFormValues,
+  })
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    getValues,
+    setError,
+    clearErrors,
+    watch,
+    formState,
+  } = form
+  const { errors, isSubmitting } = formState
+
+  const [shouldReplaceFocalPoint, setShouldReplaceFocalPoint] = useState(false)
+  const [createdAuthorityId, setCreatedAuthorityId] = useState<string | null>(
+    null,
+  )
+
+  const phonesFieldArray = useFieldArray({
+    control,
+    name: 'phones',
+  })
+
+  const emailsFieldArray = useFieldArray({
+    control,
+    name: 'emails',
+  })
+
+  const { data: authority, isLoading: isLoadingAuthority } = useQuery({
+    queryKey: ['institution-authorities', initialData?.id],
+    queryFn: () => getInstitutionAuthority({ id: initialData!.id }),
+    enabled: Boolean(initialData?.id && isOpen),
+  })
+
+  const {
+    data: institutionAuthorities = [],
+    isLoading: isLoadingInstitutionAuthorities,
+  } = useQuery({
+    queryKey: ['institution-authorities', 'focal-point-check'],
+    queryFn: getAllInstitutionAuthorities,
+    enabled: isOpen,
+  })
+
+  const { mutateAsync: createMutation, isPending: isPendingCreate } =
+    useMutation({
+      mutationFn: createInstitutionAuthority,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
+      },
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
+      },
+    })
+
+  const { mutateAsync: updateMutation, isPending: isPendingUpdate } =
+    useMutation({
+      mutationFn: updateInstitutionAuthority,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
+      },
+      onError: (error) => {
+        toast.error(getApiErrorMessage(error))
+      },
+    })
+
+  const { mutateAsync: replaceContactsMutation, isPending: isPendingContacts } =
+    useMutation({
+      mutationFn: replaceInstitutionAuthorityContacts,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['institution-authorities'] })
+      },
+    })
+
+  const [selectedRequestingInstitution, setSelectedRequestingInstitution] =
+    useState<{ label: string; value: string } | null>(null)
+
+  async function fetchRequestingInstitutionPage({
+    page,
+    size,
+    search,
+  }: SelectWithSearchFetchPageArgs) {
+    const response = await getRequestingInstitutions({
+      page,
+      size,
+      search: search || undefined,
+    })
+
+    return {
+      items: response.data.items.map((item) => ({
+        label: item.name,
+        value: item.id,
+      })),
+      page: response.data.page,
+      pages: response.data.pages,
+    }
+  }
+
+  function handleOnOpenChange(open: boolean) {
+    if (open) {
+      onOpen()
+      return
+    }
+
+    onClose()
+    reset(emptyFormValues)
+    setShouldReplaceFocalPoint(false)
+    setCreatedAuthorityId(null)
+    setSelectedRequestingInstitution(null)
+    setInitialData(null)
+  }
+
+  function setSinglePrimaryPhone(selectedIndex: number, checked: boolean) {
+    const items = getValues('phones')
+
+    if (checked) {
+      items.forEach((_, index) => {
+        setValue(`phones.${index}.isPrimary`, index === selectedIndex, {
+          shouldDirty: true,
+        })
+      })
+      return
+    }
+
+    setValue(`phones.${selectedIndex}.isPrimary`, false, {
+      shouldDirty: true,
+    })
+  }
+
+  function setSinglePrimaryEmail(selectedIndex: number, checked: boolean) {
+    const items = getValues('emails')
+
+    if (checked) {
+      items.forEach((_, index) => {
+        setValue(`emails.${index}.isPrimary`, index === selectedIndex, {
+          shouldDirty: true,
+        })
+      })
+      return
+    }
+
+    setValue(`emails.${selectedIndex}.isPrimary`, false, {
+      shouldDirty: true,
+    })
+  }
+
+  function getExistingFocalPoint(values: InstitutionAuthorityForm) {
+    if (!values.isFocalPoint || !values.requestingInstitutionId) {
+      return undefined
+    }
+
+    return institutionAuthorities.find(
+      (item) =>
+        item.isFocalPoint &&
+        item.requestingInstitutionId === values.requestingInstitutionId &&
+        item.id !== initialData?.id,
+    )
+  }
+
+  const selectedRequestingInstitutionId = watch('requestingInstitutionId')
+  const selectedIsFocalPoint = watch('isFocalPoint')
+  const currentFocalPoint = getExistingFocalPoint({
+    ...emptyFormValues,
+    requestingInstitutionId: selectedRequestingInstitutionId,
+    isFocalPoint: selectedIsFocalPoint,
+  })
+
+  async function onSubmit(values: InstitutionAuthorityForm) {
+    const existingFocalPoint = getExistingFocalPoint(values)
+
+    if (existingFocalPoint && !shouldReplaceFocalPoint) {
+      setError('isFocalPoint', {
+        type: 'validate',
+        message: `Confirme a substituição para definir este requisitante como ponto focal.`,
+      })
+      return
+    }
+
+    if (existingFocalPoint && shouldReplaceFocalPoint) {
+      await updateMutation({
+        id: existingFocalPoint.id,
+        name: existingFocalPoint.name,
+        requestingInstitutionId: existingFocalPoint.requestingInstitutionId,
+        isFocalPoint: false,
+      })
+    }
+
+    const phones = normalizePrimaryContact(
+      values.phones
+        .map((item) => ({
+          phone: item.phone.trim(),
+          isPrimary: item.isPrimary,
+        }))
+        .filter((item) => item.phone.length > 0),
+    )
+
+    const emails = normalizePrimaryContact(
+      values.emails
+        .map((item) => ({
+          email: item.email.trim(),
+          isPrimary: item.isPrimary,
+        }))
+        .filter((item) => item.email.length > 0),
+    )
+
+    const hasAnyContacts = phones.length > 0 || emails.length > 0
+
+    if (initialData?.id) {
+      await updateMutation({
+        id: initialData.id,
+        name: values.name.trim(),
+        requestingInstitutionId: values.requestingInstitutionId,
+        isFocalPoint: values.isFocalPoint,
+      })
+
+      if (hasAnyContacts) {
+        await replaceContactsMutation({
+          id: initialData.id,
+          phones,
+          emails,
+        })
+      }
+
+      toast.success('Requisitante atualizada.')
+    } else {
+      const authorityId =
+        createdAuthorityId ??
+        (
+          await createMutation({
+            name: values.name.trim(),
+            requestingInstitutionId: values.requestingInstitutionId,
+            isFocalPoint: values.isFocalPoint,
+          })
+        ).id
+
+      setCreatedAuthorityId(authorityId)
+
+      if (hasAnyContacts) {
+        try {
+          await replaceContactsMutation({
+            id: authorityId,
+            phones,
+            emails,
+          })
+        } catch {
+          phones.forEach((_, i) => {
+            setError(`phones.${i}.phone`, {
+              type: 'server',
+              message: 'Telefone inválido. Verifique o número.',
+            })
+          })
+          return
+        }
+      }
+
+      setCreatedAuthorityId(null)
+      toast.success('Requisitante criado.')
+    }
+
+    handleOnOpenChange(false)
+  }
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    if (initialData?.id && authority) {
+      reset({
+        requestingInstitutionId: authority.requestingInstitutionId,
+        name: authority.name,
+        isFocalPoint: authority.isFocalPoint,
+        phones: authority.contacts?.phones ?? [],
+        emails: authority.contacts?.emails ?? [],
+      })
+      setSelectedRequestingInstitution(
+        authority.requestingInstitution
+          ? {
+              value: authority.requestingInstitutionId,
+              label: authority.requestingInstitution.name,
+            }
+          : {
+              value: authority.requestingInstitutionId,
+              label: authority.requestingInstitutionId,
+            },
+      )
+      setShouldReplaceFocalPoint(false)
+      return
+    }
+
+    if (!initialData?.id) {
+      reset(emptyFormValues)
+      setSelectedRequestingInstitution(null)
+      setShouldReplaceFocalPoint(false)
+    }
+  }, [authority?.id, initialData?.id, isOpen, reset])
+
+  const isLoading =
+    isLoadingAuthority ||
+    isLoadingInstitutionAuthorities ||
+    isSubmitting ||
+    isPendingCreate ||
+    isPendingUpdate ||
+    isPendingContacts
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            {initialData?.id ? 'Editar requisitante' : 'Novo requisitante'}
+          </DialogTitle>
+        </DialogHeader>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label>Demandante</Label>
+              <InputError message={errors.requestingInstitutionId?.message} />
+            </div>
+            <Controller
+              control={control}
+              name="requestingInstitutionId"
+              render={() => (
+                <SelectWithSearch
+                  disabled={isLoading}
+                  value={selectedRequestingInstitution?.label ?? ''}
+                  selectedOption={selectedRequestingInstitution ?? undefined}
+                  placeholder="Selecione o demandante"
+                  queryKey={['requesting-institutions', 'select']}
+                  enabled={isOpen}
+                  fetchPage={fetchRequestingInstitutionPage}
+                  onSelect={(item) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(false)
+                    setSelectedRequestingInstitution(item)
+                    setValue('requestingInstitutionId', item.value, {
+                      shouldValidate: true,
+                    })
+                  }}
+                />
+              )}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Label htmlFor="ia-name">Requisitante</Label>
+              <InputError message={errors.name?.message} />
+            </div>
+            <Input
+              id="ia-name"
+              {...register('name')}
+              disabled={isLoading}
+              placeholder="Ex.: Delegado responsável"
+            />
+          </div>
+
+          <Controller
+            control={control}
+            name="isFocalPoint"
+            render={({ field }) => (
+              <label className="flex items-center gap-3 rounded-md border p-3">
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={(value) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(false)
+                    field.onChange(Boolean(value))
+                  }}
+                  disabled={isLoading}
+                />
+                <span className="text-sm">Marcar como ponto focal</span>
+                <InputError message={errors.isFocalPoint?.message} />
+              </label>
+            )}
+          />
+
+          {currentFocalPoint ? (
+            <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3 text-sm">
+              <p>
+                <span className="font-medium">{currentFocalPoint.name}</span> já
+                está marcado como ponto focal deste demandante.
+              </p>
+              <label className="flex items-center gap-3">
+                <Checkbox
+                  checked={shouldReplaceFocalPoint}
+                  onCheckedChange={(value) => {
+                    clearErrors('isFocalPoint')
+                    setShouldReplaceFocalPoint(Boolean(value))
+                  }}
+                  disabled={isLoading}
+                />
+                <span>Substituir pelo requisitante atual</span>
+              </label>
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-3 rounded-md border p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex gap-2">
+                <Label>Telefones</Label>
+                <InputError
+                  message={getFieldArrayErrorMessage(errors.phones)}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isLoading}
+                onClick={() =>
+                  phonesFieldArray.append({
+                    phone: '',
+                    isPrimary: phonesFieldArray.fields.length === 0,
+                  })
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar telefone
+              </Button>
+            </div>
+
+            {phonesFieldArray.fields.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhum telefone cadastrado.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {phonesFieldArray.fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="grid gap-3 rounded-md border p-3 sm:grid-cols-[1fr_auto_auto]"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex gap-2">
+                        <Label htmlFor={`phones.${index}.phone`}>
+                          Telefone
+                        </Label>
+                        <InputError
+                          message={errors.phones?.[index]?.phone?.message}
+                        />
+                      </div>
+                      <Controller
+                        control={control}
+                        name={`phones.${index}.phone`}
+                        render={({ field: phoneField }) => (
+                          <PhoneInput
+                            id={`phones.${index}.phone`}
+                            value={phoneField.value}
+                            onChange={(value) =>
+                              phoneField.onChange(value ?? '')
+                            }
+                            onBlur={phoneField.onBlur}
+                            name={phoneField.name}
+                            ref={phoneField.ref}
+                            disabled={isLoading}
+                          />
+                        )}
+                      />
+                    </div>
+
+                    <Controller
+                      control={control}
+                      name={`phones.${index}.isPrimary`}
+                      render={({ field: checkboxField }) => (
+                        <label className="flex items-center gap-2 self-end pb-2 text-sm">
+                          <Checkbox
+                            checked={checkboxField.value}
+                            onCheckedChange={(value) =>
+                              setSinglePrimaryPhone(index, Boolean(value))
+                            }
+                            disabled={isLoading}
+                          />
+                          Principal
+                        </label>
+                      )}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={isLoading}
+                      className="self-end text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => phonesFieldArray.remove(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-md border p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex gap-2">
+                <Label>E-mails</Label>
+                <InputError
+                  message={getFieldArrayErrorMessage(errors.emails)}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isLoading}
+                onClick={() =>
+                  emailsFieldArray.append({
+                    email: '',
+                    isPrimary: emailsFieldArray.fields.length === 0,
+                  })
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar e-mail
+              </Button>
+            </div>
+
+            {emailsFieldArray.fields.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhum e-mail cadastrado.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {emailsFieldArray.fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="grid gap-3 rounded-md border p-3 sm:grid-cols-[1fr_auto_auto]"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex gap-2">
+                        <Label htmlFor={`emails.${index}.email`}>E-mail</Label>
+                        <InputError
+                          message={errors.emails?.[index]?.email?.message}
+                        />
+                      </div>
+                      <Input
+                        id={`emails.${index}.email`}
+                        type="email"
+                        {...register(`emails.${index}.email`)}
+                        disabled={isLoading}
+                        placeholder="Ex.: contato@orgao.rj.gov.br"
+                      />
+                    </div>
+
+                    <Controller
+                      control={control}
+                      name={`emails.${index}.isPrimary`}
+                      render={({ field: checkboxField }) => (
+                        <label className="flex items-center gap-2 self-end pb-2 text-sm">
+                          <Checkbox
+                            checked={checkboxField.value}
+                            onCheckedChange={(value) =>
+                              setSinglePrimaryEmail(index, Boolean(value))
+                            }
+                            disabled={isLoading}
+                          />
+                          Principal
+                        </label>
+                      )}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={isLoading}
+                      className="self-end text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => emailsFieldArray.remove(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-2 flex w-full justify-end">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <Spinner />
+              ) : (
+                <span>{initialData?.id ? 'Salvar' : 'Criar'}</span>
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}

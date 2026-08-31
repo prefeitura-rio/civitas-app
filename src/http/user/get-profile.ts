@@ -9,7 +9,6 @@ export interface GetProfileResponse {
   agency: string
   sector: string
   email: string
-  is_admin: boolean
 }
 
 export async function getProfile() {

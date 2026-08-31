@@ -7,12 +7,7 @@ import type {
 
 export interface CreateMonitoredPlateRequest
   extends Pick<MonitoredPlate, 'plate'>,
-    Partial<
-      Pick<
-        MonitoredPlate,
-        'additionalInfo' | 'active' | 'notes' | 'contactInfo'
-      >
-    > {
+    Partial<Pick<MonitoredPlate, 'additionalInfo' | 'notes' | 'contactInfo'>> {
   operationId: Operation['id']
   notificationChannels: string[]
 }
@@ -20,7 +15,6 @@ export interface CreateMonitoredPlateRequest
 export function createMonitoredPlate({
   plate,
   operationId,
-  active,
   contactInfo,
   notes,
   additionalInfo,
@@ -31,7 +25,6 @@ export function createMonitoredPlate({
     operation_id: operationId,
     contact_info: contactInfo,
     notes,
-    active,
     additional_info: additionalInfo,
     notification_channels: notificationChannels,
   })

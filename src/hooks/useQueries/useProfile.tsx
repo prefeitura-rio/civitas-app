@@ -20,10 +20,7 @@ export function useProfile() {
         throw new Error('Invalid /users/me response: missing username')
       }
 
-      return {
-        ...profile,
-        is_admin: true,
-      }
+      return profile
     },
   })
 }

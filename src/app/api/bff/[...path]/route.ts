@@ -13,6 +13,7 @@ import { setForwardedClientIpHeaders } from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
   'GET',
+  'HEAD',
   'POST',
   'PUT',
   'PATCH',
@@ -22,6 +23,7 @@ const ALLOWED_METHODS = new Set([
 
 const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
+const NO_BODY_RESPONSE_STATUSES = new Set([204, 205, 304])
 
 async function handler(request: NextRequest) {
   if (!ALLOWED_METHODS.has(request.method)) {
@@ -113,23 +115,34 @@ async function handler(request: NextRequest) {
     }
 
     const nextUpstreamUrl = new URL(location, currentUpstreamUrl)
-    // Refuse cross-origin redirects (e.g. API → app HTML) which break the BFF.
+    // If the redirect is cross-origin (e.g. FastAPI trailing-slash redirect
+    // generates an absolute URL with internal host/scheme that differs from
+    // config.apiUrl), normalize it back to the upstream origin so the BFF
+    // can follow it safely. True cross-app redirects (different path root)
+    // are still caught by the HTML-document guard below.
     if (nextUpstreamUrl.origin !== upstreamOrigin) {
-      console.error('[bff] refused cross-origin upstream redirect', {
-        from: currentUpstreamUrl,
-        to: nextUpstreamUrl.toString(),
-      })
-      return NextResponse.json(
-        { message: 'Bad gateway: upstream redirected off API origin' },
-        { status: 502 },
+      const normalized = new URL(
+        nextUpstreamUrl.pathname + nextUpstreamUrl.search,
+        upstreamOrigin,
       )
+      console.warn('[bff] normalized cross-origin upstream redirect', {
+        from: currentUpstreamUrl,
+        original: nextUpstreamUrl.toString(),
+        normalized: normalized.toString(),
+      })
+      currentUpstreamUrl = normalized.toString()
+    } else {
+      currentUpstreamUrl = nextUpstreamUrl.toString()
     }
 
-    currentUpstreamUrl = nextUpstreamUrl.toString()
     upstreamResponse = await fetchUpstream(currentUpstreamUrl)
   }
 
-  const responseBody = await upstreamResponse.arrayBuffer()
+  const hasNoBody =
+    request.method === 'HEAD' ||
+    NO_BODY_RESPONSE_STATUSES.has(upstreamResponse.status)
+  const responseBody = hasNoBody ? null : await upstreamResponse.arrayBuffer()
+
   const upstreamContentType =
     upstreamResponse.headers.get('content-type')?.toLowerCase() ?? ''
   const contentDisposition =
@@ -138,7 +151,7 @@ async function handler(request: NextRequest) {
   // Block HTML *documents* (wrong upstream / Next shell). Allow legitimate
   // HTML file downloads that use Content-Disposition: attachment.
   const looksLikeHtmlDocument =
-    upstreamContentType.includes('text/html') && !isAttachment
+    !hasNoBody && upstreamContentType.includes('text/html') && !isAttachment
 
   if (looksLikeHtmlDocument) {
     console.error('[bff] upstream returned HTML document', {
@@ -204,6 +217,7 @@ async function handler(request: NextRequest) {
 
 export {
   handler as GET,
+  handler as HEAD,
   handler as POST,
   handler as PUT,
   handler as PATCH,
