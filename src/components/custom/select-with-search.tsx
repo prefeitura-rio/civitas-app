@@ -207,120 +207,124 @@ export function SelectWithSearch({
   }
 
   return (
-    <Popover modal={true} open={isOpen} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          disabled={disabled}
-          className={cn(
-            'w-full justify-between',
-            !value && 'text-muted-foreground',
-          )}
-        >
-          <span className="min-w-0 truncate">
-            {value ? selectedLabel : placeholder}
-          </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[min(29rem,calc(100vw-2rem))] p-0">
-        <Command shouldFilter={!isAsync}>
-          <CommandInput
-            placeholder="Pesquise"
-            className="h-9"
-            {...(isAsync ? { value: search, onValueChange: setSearch } : {})}
-          />
-          <CommandList>
-            {isInitialLoading ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
-                Carregando…
-              </div>
-            ) : (
-              <>
-                {showCreate ? null : (
-                  <CommandEmpty className="flex justify-center p-2">
-                    {emptyIndicator || (
-                      <span className="text-muted-foreground">
-                        Nenhum resultado encontrado
-                      </span>
-                    )}
-                  </CommandEmpty>
-                )}
-                <CommandGroup>
-                  {clearOptionLabel ? (
-                    <CommandItem
-                      value={clearOptionLabel}
-                      onSelect={() => {
-                        onSelect({ label: '', value: '' })
-                        handleOpenChange(false)
-                      }}
-                    >
-                      {clearOptionLabel}
-                      <CheckIcon
-                        className={cn(
-                          'ml-auto h-4 w-4',
-                          value ? 'opacity-0' : 'opacity-100',
-                        )}
-                      />
-                    </CommandItem>
-                  ) : null}
-                  {topAction}
-                  {displayOptions.map((item) => (
-                    <CommandItem
-                      value={item.label}
-                      key={item.value}
-                      onSelect={() => {
-                        onSelect({ label: item.label, value: item.value })
-                        handleOpenChange(false)
-                      }}
-                    >
-                      {item.label}
-                      <CheckIcon
-                        className={cn(
-                          'ml-auto h-4 w-4',
-                          item.label === value || item.value === value
-                            ? 'opacity-100'
-                            : 'opacity-0',
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                  {showCreate ? (
-                    <CommandItem
-                      value={createTerm}
-                      onSelect={() => {
-                        onSelect({ label: createTerm, value: createTerm })
-                        handleOpenChange(false)
-                      }}
-                    >
-                      Usar &quot;{createTerm}&quot;
-                    </CommandItem>
-                  ) : null}
-                  {isAsync &&
-                  (infiniteQuery.hasNextPage ||
-                    infiniteQuery.isFetchingNextPage) ? (
-                    <>
-                      {infiniteQuery.isFetchingNextPage ? (
-                        <div className="py-2 text-center text-xs text-muted-foreground">
-                          Carregando…
-                        </div>
-                      ) : null}
-                      <InfiniteScrollSentinel
-                        disabled={
-                          !infiniteQuery.hasNextPage ||
-                          infiniteQuery.isFetchingNextPage
-                        }
-                        onVisible={loadMore}
-                      />
-                    </>
-                  ) : null}
-                </CommandGroup>
-              </>
+    <div className="w-full min-w-0">
+      <Popover modal={true} open={isOpen} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            disabled={disabled}
+            className={cn(
+              'w-full min-w-0 justify-between overflow-hidden',
+              !value && 'text-muted-foreground',
             )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+          >
+            <span className="min-w-0 flex-1 truncate text-left">
+              {value ? selectedLabel : placeholder}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[min(29rem,calc(100vw-2rem))] p-0">
+          <Command shouldFilter={!isAsync}>
+            <CommandInput
+              placeholder="Pesquise"
+              className="h-9"
+              {...(isAsync ? { value: search, onValueChange: setSearch } : {})}
+            />
+            <CommandList>
+              {isInitialLoading ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  Carregando…
+                </div>
+              ) : (
+                <>
+                  {showCreate ? null : (
+                    <CommandEmpty className="flex justify-center p-2">
+                      {emptyIndicator || (
+                        <span className="text-muted-foreground">
+                          Nenhum resultado encontrado
+                        </span>
+                      )}
+                    </CommandEmpty>
+                  )}
+                  <CommandGroup>
+                    {clearOptionLabel ? (
+                      <CommandItem
+                        value={clearOptionLabel}
+                        onSelect={() => {
+                          onSelect({ label: '', value: '' })
+                          handleOpenChange(false)
+                        }}
+                      >
+                        {clearOptionLabel}
+                        <CheckIcon
+                          className={cn(
+                            'ml-auto h-4 w-4',
+                            value ? 'opacity-0' : 'opacity-100',
+                          )}
+                        />
+                      </CommandItem>
+                    ) : null}
+                    {topAction}
+                    {displayOptions.map((item) => (
+                      <CommandItem
+                        value={item.label}
+                        key={item.value}
+                        onSelect={() => {
+                          onSelect({ label: item.label, value: item.value })
+                          handleOpenChange(false)
+                        }}
+                      >
+                        <span className="min-w-0 flex-1 truncate">
+                          {item.label}
+                        </span>
+                        <CheckIcon
+                          className={cn(
+                            'ml-auto h-4 w-4',
+                            item.label === value || item.value === value
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                    {showCreate ? (
+                      <CommandItem
+                        value={createTerm}
+                        onSelect={() => {
+                          onSelect({ label: createTerm, value: createTerm })
+                          handleOpenChange(false)
+                        }}
+                      >
+                        Usar &quot;{createTerm}&quot;
+                      </CommandItem>
+                    ) : null}
+                    {isAsync &&
+                    (infiniteQuery.hasNextPage ||
+                      infiniteQuery.isFetchingNextPage) ? (
+                      <>
+                        {infiniteQuery.isFetchingNextPage ? (
+                          <div className="py-2 text-center text-xs text-muted-foreground">
+                            Carregando…
+                          </div>
+                        ) : null}
+                        <InfiniteScrollSentinel
+                          disabled={
+                            !infiniteQuery.hasNextPage ||
+                            infiniteQuery.isFetchingNextPage
+                          }
+                          onVisible={loadMore}
+                        />
+                      </>
+                    ) : null}
+                  </CommandGroup>
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }

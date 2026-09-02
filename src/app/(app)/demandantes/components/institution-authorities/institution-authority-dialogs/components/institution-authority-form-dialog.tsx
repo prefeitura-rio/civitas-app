@@ -432,20 +432,20 @@ export function InstitutionAuthorityFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {initialData?.id ? 'Editar requisitante' : 'Novo requisitante'}
           </DialogTitle>
         </DialogHeader>
         <form
-          className="flex flex-col gap-4"
+          className="flex min-w-0 flex-col gap-4"
           onSubmit={(event) => {
             event.stopPropagation()
             handleSubmit(onSubmit)(event).catch(() => {})
           }}
         >
-          <div className="flex flex-col gap-1">
+          <div className="flex min-w-0 flex-col gap-1">
             <div className="flex gap-2">
               <Label>Demandante</Label>
               <InputError message={errors.requestingInstitutionId?.message} />
