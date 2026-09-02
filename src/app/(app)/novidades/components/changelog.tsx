@@ -19,6 +19,97 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '2 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Cadastro de demandantes e requisitantes',
+        content: (
+          <>
+            <p>
+              A tela de operações foi substituída pelo cadastro de{' '}
+              <code>Demandantes</code> e <code>Requisitantes</code>. O
+              monitoramento de placas passa a se organizar nessa cadeia, em vez
+              de se ligar diretamente a uma operação.
+            </p>
+            <ul>
+              <li>
+                <strong>Demandante</strong> é o órgão solicitante (tipo e nome),
+                com busca e cadastro pelo combobox.
+              </li>
+              <li>
+                <strong>Requisitante</strong> é a pessoa de contato daquele
+                órgão: telefones, e-mails, um contato principal e indicação de
+                ponto focal.
+              </li>
+              <li>
+                As tabelas permitem filtrar e ordenar. O contador de placas do
+                requisitante abre a edição da placa correspondente.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Cadastro de placas monitoradas reestruturado',
+        content: (
+          <>
+            <p>
+              O cadastro da placa foi separado dos vínculos com requisitantes e
+              dos dados do veículo. Cada vínculo concentra validade, canais de
+              notificação e equipamentos de LPR.
+            </p>
+            <ul>
+              <li>
+                A placa guarda identificação e dados do veículo (tipo, marca,
+                modelo, ano e cor).
+              </li>
+              <li>
+                Cada vínculo com requisitante tem número de referência, datas,
+                status ativo, canais de notificação e pontos de LPR — ou a opção
+                de monitorar todos os equipamentos do cerco.
+              </li>
+              <li>
+                O status da placa passa a refletir os vínculos ativos. Em vez de
+                excluir a placa, os vínculos são desativados.
+              </li>
+              <li>
+                Se a placa já existir, o fluxo de adicionar abre a edição. É
+                possível cadastrar um requisitante novo durante o vínculo, sem
+                perder o formulário da placa.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Seleção de equipamentos de LPR no vínculo',
+        content: (
+          <>
+            <p>
+              No vínculo com o requisitante, os pontos monitorados podem ser
+              escolhidos no mapa: todos os equipamentos do cerco ou uma seleção
+              específica, inclusive por área (polígono).
+            </p>
+            <ul>
+              <li>
+                O seletor <code>Monitorar todos</code> cobre o cerco inteiro; ao
+                desligar, o mapa abre para marcar os pontos.
+              </li>
+              <li>
+                As abas <code>Todos</code> e <code>Selecionados</code> separam a
+                lista completa da seleção atual. Cancelar a escolha restaura o
+                estado anterior.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '26 de Agosto de 2026',
     subCards: [
       {
