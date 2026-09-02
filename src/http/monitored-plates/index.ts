@@ -275,54 +275,6 @@ export async function getMonitoredPlates({
   }
 }
 
-const UNLINKED_PLATES_FETCH_SIZE = 100
-
-/** TODO(pending-cadastro) — client-side filter; delete with the pending cadastro option. */
-export async function getMonitoredPlatesWithoutAuthorities({
-  page = 1,
-  size = 10,
-  plateContains,
-  notificationChannelId,
-  startTimeCreate,
-  endTimeCreate,
-  sortBy,
-  sortDirection,
-}: Omit<GetMonitoredPlatesRequest, 'active' | 'institutionAuthorityId'>) {
-  const unlinked: MonitoredPlateReadModel[] = []
-  let currentPage = 1
-  let pages = 1
-
-  do {
-    const response = await getMonitoredPlates({
-      page: currentPage,
-      size: UNLINKED_PLATES_FETCH_SIZE,
-      plateContains,
-      notificationChannelId,
-      startTimeCreate,
-      endTimeCreate,
-      sortBy,
-      sortDirection,
-    })
-    unlinked.push(
-      ...response.data.items.filter((item) => item.authorities.length === 0),
-    )
-    pages = response.data.pages
-    currentPage += 1
-  } while (currentPage <= pages)
-
-  const start = (page - 1) * size
-
-  return {
-    data: {
-      items: unlinked.slice(start, start + size),
-      total: unlinked.length,
-      page,
-      size,
-      pages: Math.max(1, Math.ceil(unlinked.length / size) || 1),
-    } satisfies GetMonitoredPlatesResponse,
-  }
-}
-
 export async function getMonitoredPlate({ plate }: GetMonitoredPlateRequest) {
   const response = await api.get<BackendMonitoredPlateResponse>(
     `/monitored-plates/${plate}`,

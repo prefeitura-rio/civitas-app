@@ -32,7 +32,6 @@ type MonitoredPlatesFilterComboboxProps = {
   allLabel: string
   searchPlaceholder: string
   options: FilterComboboxOption[]
-  pinnedOptions?: FilterComboboxOption[]
   isLoading?: boolean
   search: string
   onSearchChange: (value: string) => void
@@ -47,7 +46,6 @@ export function MonitoredPlatesFilterCombobox({
   allLabel,
   searchPlaceholder,
   options,
-  pinnedOptions = [],
   isLoading = false,
   search,
   onSearchChange,
@@ -56,7 +54,6 @@ export function MonitoredPlatesFilterCombobox({
 }: MonitoredPlatesFilterComboboxProps) {
   const [open, setOpen] = useState(false)
   const isAll = valueId === 'all'
-  const pinnedLabel = pinnedOptions.find((item) => item.id === valueId)?.label
 
   function handleOpenChange(next: boolean) {
     setOpen(next)
@@ -77,9 +74,7 @@ export function MonitoredPlatesFilterCombobox({
             isAll && 'text-muted-foreground',
           )}
         >
-          <span className="truncate">
-            {isAll ? allLabel : (pinnedLabel ?? valueLabel)}
-          </span>
+          <span className="truncate">{isAll ? allLabel : valueLabel}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -116,24 +111,6 @@ export function MonitoredPlatesFilterCombobox({
                   )}
                 />
               </CommandItem>
-              {pinnedOptions.map((item) => (
-                <CommandItem
-                  key={item.id}
-                  value={item.id}
-                  onSelect={() => {
-                    onSelect(item)
-                    handleOpenChange(false)
-                  }}
-                >
-                  <span className="truncate">{item.label}</span>
-                  <Check
-                    className={cn(
-                      'ml-auto h-4 w-4',
-                      valueId === item.id ? 'opacity-100' : 'opacity-0',
-                    )}
-                  />
-                </CommandItem>
-              ))}
               {options.map((item) => (
                 <CommandItem
                   key={item.id}
