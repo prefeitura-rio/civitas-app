@@ -438,7 +438,13 @@ export function InstitutionAuthorityFormDialog({
             {initialData?.id ? 'Editar requisitante' : 'Novo requisitante'}
           </DialogTitle>
         </DialogHeader>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(event) => {
+            event.stopPropagation()
+            handleSubmit(onSubmit)(event).catch(() => {})
+          }}
+        >
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
               <Label>Demandante</Label>

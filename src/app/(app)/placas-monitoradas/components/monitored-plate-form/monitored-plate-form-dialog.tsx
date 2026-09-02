@@ -424,27 +424,180 @@ export function MonitoredPlateFormDialog({
               <Spinner className="size-6" />
             </div>
           ) : (
+            <div className="flex flex-col gap-4">
+              <form
+                id="monitored-plate-edit-form"
+                className="flex flex-col gap-4"
+                onSubmit={handleEditSubmit(onSubmitEdit)}
+              >
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="edit-plate">Placa</Label>
+                    <InputError message={editErrors.plate?.message} />
+                  </div>
+                  <Input id="edit-plate" {...registerEdit('plate')} disabled />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="edit-notes">Observações (placa)</Label>
+                    <InputError message={editErrors.notes?.message} />
+                  </div>
+                  <Textarea
+                    id="edit-notes"
+                    {...registerEdit('notes')}
+                    disabled={isEditLoading}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Dados do veículo
+                  </p>
+
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="edit-vehicle-type">Tipo</Label>
+                    <Controller
+                      name="vehicleType"
+                      control={controlEdit}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value ?? ''}
+                          onValueChange={(v) => field.onChange(v || null)}
+                          disabled={isEditLoading}
+                        >
+                          <SelectTrigger id="edit-vehicle-type">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {VEHICLE_TYPE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="edit-brand">Marca</Label>
+                      <Input
+                        id="edit-brand"
+                        {...registerEdit('brand')}
+                        disabled={isEditLoading}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="edit-model">Modelo</Label>
+                      <Input
+                        id="edit-model"
+                        {...registerEdit('model')}
+                        disabled={isEditLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="edit-model-year">Ano modelo</Label>
+                      <Input
+                        id="edit-model-year"
+                        maxLength={4}
+                        {...registerEdit('modelYear')}
+                        disabled={isEditLoading}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="edit-manufacture-year">
+                        Ano fabricação
+                      </Label>
+                      <Input
+                        id="edit-manufacture-year"
+                        maxLength={4}
+                        {...registerEdit('manufactureYear')}
+                        disabled={isEditLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="edit-color">Cor</Label>
+                    <Input
+                      id="edit-color"
+                      {...registerEdit('color')}
+                      disabled={isEditLoading}
+                    />
+                  </div>
+                </div>
+              </form>
+
+              <MonitoredPlateAuthorityLinksPanel
+                ref={authorityLinksPanelRef}
+                mode="persisted"
+                plate={monitoredPlate.plate}
+                monitoredPlateId={monitoredPlate.id}
+                links={monitoredPlate.authorities}
+                notificationChannels={notificationChannels}
+                disabled={isEditLoading}
+              />
+
+              <div className="mt-4 flex w-full justify-end">
+                <Button
+                  type="submit"
+                  form="monitored-plate-edit-form"
+                  disabled={isEditLoading}
+                >
+                  {isPendingUpdate || isSubmittingEdit ? (
+                    <Spinner />
+                  ) : (
+                    <span>Atualizar</span>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="flex flex-col gap-4">
             <form
+              id="monitored-plate-create-form"
               className="flex flex-col gap-4"
-              onSubmit={handleEditSubmit(onSubmitEdit)}
+              onSubmit={handleSubmit(onSubmit)}
             >
               <div className="flex flex-col gap-1">
                 <div className="flex gap-2">
-                  <Label htmlFor="edit-plate">Placa</Label>
-                  <InputError message={editErrors.plate?.message} />
+                  <Label htmlFor="plate">Placa</Label>
+                  <InputError message={errors.plate?.message} />
                 </div>
-                <Input id="edit-plate" {...registerEdit('plate')} disabled />
+                <Input
+                  id="plate"
+                  {...register('plate')}
+                  type="text"
+                  onChange={(e) =>
+                    setValue('plate', e.target.value.toUpperCase(), {
+                      shouldValidate: true,
+                    })
+                  }
+                  disabled={isCreateLoading || !!initialData}
+                />
+                {isCheckingExistingPlate ? (
+                  <p className="text-xs text-muted-foreground">
+                    Verificando se a placa já está cadastrada…
+                  </p>
+                ) : null}
               </div>
 
               <div className="flex flex-col gap-1">
                 <div className="flex gap-2">
-                  <Label htmlFor="edit-notes">Observações (placa)</Label>
-                  <InputError message={editErrors.notes?.message} />
+                  <Label htmlFor="notes">Observações (placa)</Label>
+                  <InputError message={errors.notes?.message} />
                 </div>
                 <Textarea
-                  id="edit-notes"
-                  {...registerEdit('notes')}
-                  disabled={isEditLoading}
+                  id="notes"
+                  {...register('notes')}
+                  disabled={isCreateLoading}
                 />
               </div>
 
@@ -454,17 +607,17 @@ export function MonitoredPlateFormDialog({
                 </p>
 
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="edit-vehicle-type">Tipo</Label>
+                  <Label htmlFor="vehicle-type">Tipo</Label>
                   <Controller
                     name="vehicleType"
-                    control={controlEdit}
+                    control={control}
                     render={({ field }) => (
                       <Select
                         value={field.value ?? ''}
                         onValueChange={(v) => field.onChange(v || null)}
-                        disabled={isEditLoading}
+                        disabled={isCreateLoading}
                       >
-                        <SelectTrigger id="edit-vehicle-type">
+                        <SelectTrigger id="vehicle-type">
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -481,197 +634,54 @@ export function MonitoredPlateFormDialog({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="edit-brand">Marca</Label>
+                    <Label htmlFor="brand">Marca</Label>
                     <Input
-                      id="edit-brand"
-                      {...registerEdit('brand')}
-                      disabled={isEditLoading}
+                      id="brand"
+                      {...register('brand')}
+                      disabled={isCreateLoading}
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="edit-model">Modelo</Label>
+                    <Label htmlFor="model">Modelo</Label>
                     <Input
-                      id="edit-model"
-                      {...registerEdit('model')}
-                      disabled={isEditLoading}
+                      id="model"
+                      {...register('model')}
+                      disabled={isCreateLoading}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="edit-model-year">Ano modelo</Label>
+                    <Label htmlFor="model-year">Ano modelo</Label>
                     <Input
-                      id="edit-model-year"
+                      id="model-year"
                       maxLength={4}
-                      {...registerEdit('modelYear')}
-                      disabled={isEditLoading}
+                      {...register('modelYear')}
+                      disabled={isCreateLoading}
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label htmlFor="edit-manufacture-year">
-                      Ano fabricação
-                    </Label>
+                    <Label htmlFor="manufacture-year">Ano fabricação</Label>
                     <Input
-                      id="edit-manufacture-year"
+                      id="manufacture-year"
                       maxLength={4}
-                      {...registerEdit('manufactureYear')}
-                      disabled={isEditLoading}
+                      {...register('manufactureYear')}
+                      disabled={isCreateLoading}
                     />
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="edit-color">Cor</Label>
+                  <Label htmlFor="color">Cor</Label>
                   <Input
-                    id="edit-color"
-                    {...registerEdit('color')}
-                    disabled={isEditLoading}
+                    id="color"
+                    {...register('color')}
+                    disabled={isCreateLoading}
                   />
                 </div>
-              </div>
-
-              <MonitoredPlateAuthorityLinksPanel
-                ref={authorityLinksPanelRef}
-                mode="persisted"
-                plate={monitoredPlate.plate}
-                monitoredPlateId={monitoredPlate.id}
-                links={monitoredPlate.authorities}
-                notificationChannels={notificationChannels}
-                disabled={isEditLoading}
-              />
-
-              <div className="mt-4 flex w-full justify-end">
-                <Button type="submit" disabled={isEditLoading}>
-                  {isPendingUpdate || isSubmittingEdit ? (
-                    <Spinner />
-                  ) : (
-                    <span>Atualizar</span>
-                  )}
-                </Button>
               </div>
             </form>
-          )
-        ) : (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label htmlFor="plate">Placa</Label>
-                <InputError message={errors.plate?.message} />
-              </div>
-              <Input
-                id="plate"
-                {...register('plate')}
-                type="text"
-                onChange={(e) =>
-                  setValue('plate', e.target.value.toUpperCase(), {
-                    shouldValidate: true,
-                  })
-                }
-                disabled={isCreateLoading || !!initialData}
-              />
-              {isCheckingExistingPlate ? (
-                <p className="text-xs text-muted-foreground">
-                  Verificando se a placa já está cadastrada…
-                </p>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <Label htmlFor="notes">Observações (placa)</Label>
-                <InputError message={errors.notes?.message} />
-              </div>
-              <Textarea
-                id="notes"
-                {...register('notes')}
-                disabled={isCreateLoading}
-              />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-muted-foreground">
-                Dados do veículo
-              </p>
-
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="vehicle-type">Tipo</Label>
-                <Controller
-                  name="vehicleType"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value ?? ''}
-                      onValueChange={(v) => field.onChange(v || null)}
-                      disabled={isCreateLoading}
-                    >
-                      <SelectTrigger id="vehicle-type">
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VEHICLE_TYPE_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor="brand">Marca</Label>
-                  <Input
-                    id="brand"
-                    {...register('brand')}
-                    disabled={isCreateLoading}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor="model">Modelo</Label>
-                  <Input
-                    id="model"
-                    {...register('model')}
-                    disabled={isCreateLoading}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor="model-year">Ano modelo</Label>
-                  <Input
-                    id="model-year"
-                    maxLength={4}
-                    {...register('modelYear')}
-                    disabled={isCreateLoading}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor="manufacture-year">Ano fabricação</Label>
-                  <Input
-                    id="manufacture-year"
-                    maxLength={4}
-                    {...register('manufactureYear')}
-                    disabled={isCreateLoading}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="color">Cor</Label>
-                <Input
-                  id="color"
-                  {...register('color')}
-                  disabled={isCreateLoading}
-                />
-              </div>
-            </div>
 
             <MonitoredPlateAuthorityLinksPanel
               mode="draft"
@@ -683,11 +693,15 @@ export function MonitoredPlateFormDialog({
             />
 
             <div className="mt-4 flex w-full justify-end">
-              <Button type="submit" disabled={isCreateLoading}>
+              <Button
+                type="submit"
+                form="monitored-plate-create-form"
+                disabled={isCreateLoading}
+              >
                 {isCreateLoading ? <Spinner /> : <span>Adicionar</span>}
               </Button>
             </div>
-          </form>
+          </div>
         )}
       </DialogContent>
     </Dialog>
