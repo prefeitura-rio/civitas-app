@@ -25,18 +25,9 @@ import {
   type FilterComboboxOption,
   MonitoredPlatesFilterCombobox,
 } from './monitored-plates-filter-combobox'
-import {
-  PENDING_CADASTRO_FILTER_ID,
-  PENDING_CADASTRO_FILTER_LABEL,
-} from './pending-cadastro-filter'
 
 const activeOptions = ['all', 'true', 'false'] as const
 type ActiveFilter = (typeof activeOptions)[number]
-
-const NO_AUTHORITY_FILTER_OPTION: FilterComboboxOption = {
-  id: PENDING_CADASTRO_FILTER_ID,
-  label: PENDING_CADASTRO_FILTER_LABEL,
-}
 
 function parseDateOnly(value: string | null | undefined) {
   if (!value) return undefined
@@ -112,12 +103,7 @@ export function MonitoredPlatesFilter() {
   const [institutionAuthorityId, setInstitutionAuthorityId] = useState(
     () => searchParams.get('institutionAuthorityId') ?? 'all',
   )
-  const [institutionAuthorityName, setInstitutionAuthorityName] = useState(
-    () =>
-      searchParams.get('institutionAuthorityId') === PENDING_CADASTRO_FILTER_ID
-        ? NO_AUTHORITY_FILTER_OPTION.label
-        : '',
-  )
+  const [institutionAuthorityName, setInstitutionAuthorityName] = useState('')
   const [institutionAuthoritySearch, setInstitutionAuthoritySearch] =
     useState('')
   const [isAuthorityOpen, setIsAuthorityOpen] = useState(false)
@@ -160,10 +146,7 @@ export function MonitoredPlatesFilter() {
           size: 20,
           search: debouncedAuthoritySearch,
         }),
-      enabled:
-        isAuthorityOpen ||
-        (institutionAuthorityId !== 'all' &&
-          institutionAuthorityId !== PENDING_CADASTRO_FILTER_ID),
+      enabled: isAuthorityOpen || institutionAuthorityId !== 'all',
     })
 
   const { data: channelsResponse, isLoading: isLoadingChannels } = useQuery({
@@ -190,12 +173,7 @@ export function MonitoredPlatesFilter() {
     }))
 
   useEffect(() => {
-    if (
-      institutionAuthorityId === 'all' ||
-      institutionAuthorityId === PENDING_CADASTRO_FILTER_ID ||
-      institutionAuthorityName
-    )
-      return
+    if (institutionAuthorityId === 'all' || institutionAuthorityName) return
     const match = authorityOptions.find(
       (item) => item.id === institutionAuthorityId,
     )
@@ -217,13 +195,9 @@ export function MonitoredPlatesFilter() {
     }
 
     setPlateContains(searchParams.get('plateContains') ?? '')
-    const nextAuthorityId = searchParams.get('institutionAuthorityId') ?? 'all'
-    setInstitutionAuthorityId(nextAuthorityId)
-    if (nextAuthorityId === PENDING_CADASTRO_FILTER_ID) {
-      setInstitutionAuthorityName(NO_AUTHORITY_FILTER_OPTION.label)
-    } else if (nextAuthorityId === 'all') {
-      setInstitutionAuthorityName('')
-    }
+    setInstitutionAuthorityId(
+      searchParams.get('institutionAuthorityId') ?? 'all',
+    )
     setNotificationChannelId(searchParams.get('notificationChannelId') ?? 'all')
     setActive(readActiveParam(searchParams.get('active')))
     setStartTimeCreate(parseDateOnly(readStartDateParam(searchParams)))
@@ -321,7 +295,6 @@ export function MonitoredPlatesFilter() {
           allLabel="Todos"
           searchPlaceholder="Nome do requisitante"
           options={authorityOptions}
-          pinnedOptions={[NO_AUTHORITY_FILTER_OPTION]} // TODO(pending-cadastro)
           isLoading={isLoadingAuthorities}
           search={institutionAuthoritySearch}
           onSearchChange={setInstitutionAuthoritySearch}
