@@ -22,53 +22,10 @@ export type Trip = {
   points: Point[]
 }
 
-export type Operation = {
-  id: string
-  title: string
-  description: string
-}
-
-export type NotificationChannel = {
-  id: string
-  title: string
-  channelType: string
-  parameters: JSON
-  active: boolean
-}
-
-export type BackendNotificationChannel = {
-  id: string
-  title: string
-  channel_type: string
-  parameters: JSON
-  active: boolean
-}
-
-export type MonitoredPlate = {
-  id: string
-  plate: string
-  operation: Operation
-  contactInfo: string | null
-  notes: string
-  active: boolean
-  additionalInfo: JSON
-  notificationChannels: NotificationChannel[]
-  createdAt: string
-  updatedAt: string
-}
-
-export type BackendMonitoredPlate = {
-  id: string
-  plate: string
-  operation: Operation
-  contact_info: string | null
-  notes: string
-  active: boolean
-  additional_info: JSON
-  notification_channels: NotificationChannel[]
-  created_at: string
-  updated_at: string
-}
+export * from './operations'
+export * from './institutions'
+export * from './monitored-plates'
+export * from './collection-points'
 
 export type AdditionalInfo = {
   Operação?: string
@@ -83,7 +40,6 @@ export type BackendProfile = {
   agency: string
   sector: string
   email: string
-  is_admin: boolean
 }
 
 export type Profile = {
@@ -95,7 +51,6 @@ export type Profile = {
   agency: string
   sector: string
   email: string
-  isAdmin: boolean
 }
 
 export type BackendCamera = {
@@ -146,37 +101,6 @@ export type Radar = {
   direction: string | null
   lane: string | null
   streetNumber: string
-}
-
-export type LprCollectionPoint = {
-  id_ponto_coleta: string
-  origem_equipamento: string
-  codigo_ponto_coleta: string
-  local: string
-  bairro: string
-  sentido: string
-  latitude: number
-  longitude: number
-  status_ativo: string
-  datahora_ultima_leitura: string
-  total_leituras: number
-  ativo_ultimas_24h: boolean
-}
-
-export type CollectionPoint = {
-  cetRioCode: string
-  codigoPontoColeta: string
-  company: string | null
-  latitude: number
-  longitude: number
-  location: string | null
-  district: string | null
-  direction: string | null
-  statusAtivo: string
-  lastDetectionTime: string | null
-  totalDetections: number
-  activeInLast24Hours: boolean
-  lane: string | null
 }
 
 export interface RadarDetection {
@@ -640,35 +564,6 @@ export type DetectionGroup = {
     speed: number
     count: number
   }[]
-}
-
-export type MonitoredPlateHistoryItem = {
-  plate: string
-  notes: string | null
-  created_timestamp: string | null
-  created_by: {
-    id: string
-    username: string
-    full_name: string
-    cpf: string
-    registration: string
-    agency: string
-    sector: string
-    email: string
-    is_admin: boolean
-  } | null
-  deleted_timestamp: string | null
-  deleted_by: {
-    id: string
-    username: string
-    full_name: string
-    cpf: string
-    registration: string
-    agency: string
-    sector: string
-    email: string
-    is_admin: boolean
-  } | null
 }
 
 export type AISP = {

@@ -9,10 +9,8 @@ import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
 import { useOperations } from '@/hooks/useContexts/use-operations-context'
 import { useOperationsSearchParams } from '@/hooks/useParams/useOperationsSearchParams'
-import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getOperations } from '@/http/operations/get-operations'
 import type { Operation } from '@/models/entities'
-import { notAllowed } from '@/utils/template-messages'
 
 export function OperationsTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
@@ -23,7 +21,6 @@ export function OperationsTable() {
     setOnDeleteOperationProps,
     deleteAlertDisclosure,
   } = useOperations()
-  const { data: profile } = useProfile()
 
   const { data: response, isLoading } = useQuery({
     queryKey,
@@ -54,12 +51,7 @@ export function OperationsTable() {
       cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
-            <Tooltip
-              text="Editar"
-              disabledText={notAllowed}
-              disabled={!profile || !profile.is_admin}
-              asChild
-            >
+            <Tooltip text="Editar" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -68,18 +60,12 @@ export function OperationsTable() {
                   setDialogInitialData({ id: row.original.id })
                   formDialogDisclosure.onOpen()
                 }}
-                disabled={!profile || !profile.is_admin}
               >
                 <span className="sr-only">Editar linha</span>
                 <PencilLine className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <Tooltip
-              text="Excluir"
-              disabledText={notAllowed}
-              disabled={!profile || !profile.is_admin}
-              asChild
-            >
+            <Tooltip text="Excluir" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -91,7 +77,6 @@ export function OperationsTable() {
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={!profile || !profile.is_admin}
               >
                 <span className="sr-only">Excluir linha</span>
                 <Trash className="h-4 w-4" />

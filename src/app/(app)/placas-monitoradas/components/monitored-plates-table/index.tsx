@@ -1,19 +1,131 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
+import { useState } from 'react'
 
+import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Pagination } from '@/components/ui/pagination'
 import { useMonitoredPlates } from '@/hooks/useContexts/use-monitored-plates-context'
 import { useMonitoredPlatesSearchParams } from '@/hooks/useParams/useMonitoredPlatesSearchParams'
-import { useProfile } from '@/hooks/useQueries/useProfile'
-import { getMonitoredPlates } from '@/http/cars/monitored/get-monitored-plates'
-import type { MonitoredPlate } from '@/models/entities'
-import { notAllowed } from '@/utils/template-messages'
+import { getInstitutionAuthority } from '@/http/institution-authorities'
+import {
+  type EmbeddedInstitutionAuthority,
+  getMonitoredPlates,
+  type MonitoredPlateAuthoritySummary,
+  type MonitoredPlateReadModel,
+  type MonitoredPlatesSortBy,
+  type SortDirection,
+} from '@/http/monitored-plates'
+import type { NotificationChannel } from '@/models/entities'
+import type { VehicleType } from '@/models/monitored-plates'
+
+type AuthorityEntry = {
+  institutionAuthority: EmbeddedInstitutionAuthority
+  notificationChannels: NotificationChannel[]
+}
+
+const VEHICLE_TYPE_LABELS: Record<VehicleType, string> = {
+  moto: 'Moto',
+  carro: 'Carro',
+  onibus: 'Ônibus',
+  bonde: 'Bonde',
+  reboque: 'Reboque',
+  caminhao: 'Caminhão',
+  trator: 'Trator',
+  caminhonete: 'Caminhonete',
+  utilitario: 'Utilitário',
+  motorhome: 'Motorhome',
+}
+
+function formatVehicleSummary(plate: MonitoredPlateReadModel): {
+  line1: string | null
+  line2: string | null
+} {
+  const typePart = plate.vehicleType
+    ? VEHICLE_TYPE_LABELS[plate.vehicleType]
+    : null
+  const colorPart = plate.color?.trim() || null
+  const brandPart = plate.brand?.trim() || null
+  const modelPart = plate.model?.trim() || null
+  const modelYearPart = plate.modelYear?.trim() || null
+  const manufactureYearPart = plate.manufactureYear?.trim() || null
+
+  const line1Parts = [typePart, colorPart].filter(Boolean)
+  const line1 = line1Parts.length > 0 ? line1Parts.join(' · ') : null
+
+  const brandModel = [brandPart, modelPart].filter(Boolean).join(' ')
+  const yearsPart =
+    modelYearPart && manufactureYearPart
+      ? `${modelYearPart} (fab. ${manufactureYearPart})`
+      : (modelYearPart ??
+        (manufactureYearPart ? `fab. ${manufactureYearPart}` : null))
+  const line2Parts = [brandModel || null, yearsPart].filter(Boolean)
+  const line2 = line2Parts.length > 0 ? line2Parts.join(' · ') : null
+
+  return { line1, line2 }
+}
+
+const sortableColumns = {
+  plate: 'plate',
+  active: 'active',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+} as const satisfies Record<string, MonitoredPlatesSortBy>
+
+function getSortBy(
+  sortingState: SortingState,
+): MonitoredPlatesSortBy | undefined {
+  const columnId = sortingState[0]?.id
+  if (!columnId) return undefined
+  return sortableColumns[columnId as keyof typeof sortableColumns]
+}
+
+function getSortDirection(
+  sortingState: SortingState,
+): SortDirection | undefined {
+  const sort = sortingState[0]
+  if (!sort) return undefined
+  return sort.desc ? 'desc' : 'asc'
+}
+
+function buildAuthorityEntries(
+  authorities: MonitoredPlateAuthoritySummary[],
+): AuthorityEntry[] {
+  const map = new Map<string, AuthorityEntry>()
+
+  for (const authority of authorities) {
+    if (!authority.active) continue
+
+    const id = authority.institutionAuthority.id
+    if (!map.has(id)) {
+      map.set(id, {
+        institutionAuthority: authority.institutionAuthority,
+        notificationChannels: [...authority.notificationChannels],
+      })
+    } else {
+      const existing = map.get(id)!
+      for (const ch of authority.notificationChannels) {
+        if (!existing.notificationChannels.some((ec) => ec.id === ch.id)) {
+          existing.notificationChannels.push(ch)
+        }
+      }
+    }
+  }
+
+  return Array.from(map.values())
+}
 
 export function MonitoredPlatesTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
@@ -24,111 +136,165 @@ export function MonitoredPlatesTable() {
     setOnDeleteMonitoredPlateProps,
     deleteAlertDisclosure,
   } = useMonitoredPlates()
-  // const [plate, setPlate] = useState<string>()
-  const { data: profile, isLoading: isProfileLoading } = useProfile()
+  const [selectedEntry, setSelectedEntry] = useState<AuthorityEntry | null>(
+    null,
+  )
+  const [sortingState, setSortingState] = useState<SortingState>([])
 
-  const { data: MonitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
+  const sortBy = getSortBy(sortingState)
+  const sortDirection = getSortDirection(sortingState)
+
+  const handleSortingChange = (
+    updater: SortingState | ((prev: SortingState) => SortingState),
+  ) => {
+    setSortingState((current) =>
+      typeof updater === 'function' ? updater(current) : updater,
+    )
+    handlePaginate(1)
+  }
+
+  const { data: monitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
     useQuery({
-      queryKey,
+      queryKey: [...queryKey, sortBy, sortDirection],
       queryFn: () =>
         getMonitoredPlates({
-          ...formattedSearchParams,
+          active: formattedSearchParams.active,
+          plateContains: formattedSearchParams.plateContains,
+          institutionAuthorityId: formattedSearchParams.institutionAuthorityId,
+          notificationChannelId: formattedSearchParams.notificationChannelId,
+          startTimeCreate: formattedSearchParams.startTimeCreate,
+          endTimeCreate: formattedSearchParams.endTimeCreate,
+          page: formattedSearchParams.page,
+          size: formattedSearchParams.size,
+          sortBy,
+          sortDirection,
         }),
     })
 
-  // const {
-  //   mutateAsync: updateMonitoredPlateMutation,
-  //   isPending: IsUpdatingLoading,
-  // } = useMutation({
-  //   mutationFn: updateMonitoredPlate,
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ['cars', 'monitored'] })
-  //   },
-  // })
+  const data = monitoredPlatesResponse?.data
 
-  const data = MonitoredPlatesResponse?.data
+  const openEditDialog = (plate: MonitoredPlateReadModel['plate']) => {
+    setDialogInitialData({ plate })
+    formDialogDisclosure.onOpen()
+  }
 
-  const columns: ColumnDef<MonitoredPlate>[] = [
+  const { data: authorityDetail, isLoading: isAuthorityDetailLoading } =
+    useQuery({
+      queryKey: [
+        'institution-authorities',
+        selectedEntry?.institutionAuthority.id,
+      ],
+      queryFn: () =>
+        getInstitutionAuthority({ id: selectedEntry!.institutionAuthority.id }),
+      enabled: Boolean(selectedEntry?.institutionAuthority.id),
+    })
+
+  const displayedAuthority =
+    authorityDetail ?? selectedEntry?.institutionAuthority
+
+  const currentPage = formattedSearchParams.page ?? 1
+  const pageSize = formattedSearchParams.size ?? 10
+  const paginatedItems = data?.items ?? []
+  const total = data?.total ?? 0
+
+  const columns: ColumnDef<MonitoredPlateReadModel>[] = [
     {
       accessorKey: 'plate',
       header: 'Placa',
+      enableSorting: true,
     },
     {
-      accessorKey: 'contactInfo',
-      header: 'Contatos',
+      accessorKey: 'active',
+      header: 'Status',
+      enableSorting: true,
+      cell: ({ row }) => (row.original.active ? 'Ativa' : 'Inativa'),
     },
     {
       accessorKey: 'notes',
       header: 'Observações',
+      enableSorting: false,
+      cell: ({ row }) => row.original.notes || ' - ',
     },
     {
-      accessorKey: 'operation.title',
-      header: 'Demandante',
-    },
-    {
-      accessorKey: 'notificationChannels',
-      header: 'Canais de notificação',
+      id: 'vehicle',
+      header: 'Veículo',
+      enableSorting: false,
       cell: ({ row }) => {
-        if (row.original.notificationChannels) {
-          const concatenated = row.original.notificationChannels.reduce(
-            (acc, cur) => (acc ? `${acc}, ${cur.title}` : cur.title),
-            '',
-          )
-          return <span>{concatenated}</span>
-        } else {
-          return <div />
+        const { line1, line2 } = formatVehicleSummary(row.original)
+        if (!line1 && !line2) {
+          return <span className="text-sm text-muted-foreground"> - </span>
         }
+        return (
+          <div className="flex flex-col gap-0.5 text-sm">
+            {line1 ? <span>{line1}</span> : null}
+            {line2 ? (
+              <span className="text-muted-foreground">{line2}</span>
+            ) : null}
+          </div>
+        )
+      },
+    },
+    {
+      id: 'authorities',
+      header: 'Requisitantes',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const entries = buildAuthorityEntries(row.original.authorities)
+
+        if (entries.length === 0) {
+          return <span className="text-sm text-muted-foreground">Nenhum</span>
+        }
+
+        const visibleEntries = entries.slice(0, 2)
+        const hiddenCount = entries.length - visibleEntries.length
+
+        return (
+          <div className="flex flex-wrap gap-1">
+            {visibleEntries.map((entry) => (
+              <Button
+                key={entry.institutionAuthority.id}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setSelectedEntry(entry)}
+              >
+                {entry.institutionAuthority.name}
+              </Button>
+            ))}
+            {hiddenCount > 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 bg-muted px-2 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => openEditDialog(row.original.plate)}
+              >
+                +{hiddenCount}
+              </Button>
+            ) : null}
+          </div>
+        )
       },
     },
     {
       accessorKey: 'createdAt',
       header: 'Data de criação',
-      cell: ({ row }) => formatDate(row.original.createdAt, 'dd/MM/yyyy HH:mm'),
+      enableSorting: true,
+      cell: ({ row }) =>
+        row.original.createdAt
+          ? formatDate(new Date(row.original.createdAt), 'dd/MM/yyyy HH:mm')
+          : ' - ',
     },
     {
       accessorKey: 'updatedAt',
       header: 'Última atualização',
-      cell: ({ row }) => formatDate(row.original.updatedAt, 'dd/MM/yyyy HH:mm'),
+      enableSorting: true,
+      cell: ({ row }) =>
+        row.original.updatedAt
+          ? formatDate(new Date(row.original.updatedAt), 'dd/MM/yyyy HH:mm')
+          : ' - ',
     },
-    // {
-    //   accessorKey: 'active',
-    //   header: 'Status',
-    //   cell: ({ row }) => {
-    //     return (
-    //       <Tooltip
-    //         text={row.original.active ? 'Ativo' : 'Inativo'}
-    //         disabled={
-    //           (IsUpdatingLoading && plate === row.original.plate) ||
-    //           !profile ||
-    //           !profile?.is_admin
-    //         }
-    //         disabledText={notAllowed}
-    //         asChild
-    //       >
-    //         <div>
-    //           <Switch
-    //             id="active"
-    //             size="sm"
-    //             checked={row.original.active}
-    //             disabled={
-    //               (IsUpdatingLoading && plate === row.original.plate) ||
-    //               !profile ||
-    //               !profile?.is_admin
-    //             }
-    //             className="disabled:cursor-default"
-    //             onCheckedChange={() => {
-    //               setPlate(row.original.plate)
-    //               updateMonitoredPlateMutation({
-    //                 plate: row.original.plate,
-    //                 active: !row.original.active,
-    //               })
-    //             }}
-    //           />
-    //         </div>
-    //       </Tooltip>
-    //     )
-    //   },
-    // },
     {
       id: 'actions',
       header: () => (
@@ -136,38 +302,22 @@ export function MonitoredPlatesTable() {
           <p className="w-[4.5rem] text-center">Ações</p>
         </div>
       ),
+      enableSorting: false,
       cell: ({ row }) => (
         <div className="flex justify-end">
           <div className="flex items-center gap-2">
-            <Tooltip
-              disabled={!profile || !profile?.is_admin}
-              disabledText={notAllowed}
-              text="Editar"
-              asChild
-            >
+            <Tooltip text="Editar" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
                 type="button"
-                onClick={() => {
-                  setDialogInitialData({ plate: row.original.plate })
-                  formDialogDisclosure.onOpen()
-                }}
-                disabled={!profile || !profile?.is_admin}
+                onClick={() => openEditDialog(row.original.plate)}
               >
                 <span className="sr-only">Editar linha</span>
                 <PencilLine className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <Tooltip
-              text={'Excluir'}
-              disabled={
-                // (IsUpdatingLoading && plate === row.original.plate) ||
-                !profile || !profile?.is_admin
-              }
-              disabledText={notAllowed}
-              asChild
-            >
+            <Tooltip text="Desativar vínculos" asChild>
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -178,12 +328,8 @@ export function MonitoredPlatesTable() {
                   })
                   deleteAlertDisclosure.onOpen()
                 }}
-                disabled={
-                  // (IsUpdatingLoading && plate === row.original.plate) ||
-                  !profile || !profile?.is_admin
-                }
               >
-                <span className="sr-only">Excluir linha</span>
+                <span className="sr-only">Desativar vínculos da linha</span>
                 <Trash className="h-4 w-4" />
               </Button>
             </Tooltip>
@@ -194,20 +340,97 @@ export function MonitoredPlatesTable() {
   ]
 
   return (
-    <div className="flex flex-col gap-8">
-      <DataTable
-        columns={columns}
-        data={data?.items || []}
-        isLoading={isMonitoredPlatesLoading || isProfileLoading}
-      />
-      {data && (
+    <>
+      <div className="flex flex-col gap-8">
+        <DataTable
+          columns={columns}
+          data={paginatedItems}
+          isLoading={isMonitoredPlatesLoading}
+          sorting
+          sortingState={sortingState}
+          onSortingChange={handleSortingChange}
+          manualSorting
+        />
         <Pagination
-          page={data.page}
-          total={data.total}
-          size={data.size}
+          page={currentPage}
+          total={total}
+          size={pageSize}
           onPageChange={handlePaginate}
         />
-      )}
-    </div>
+      </div>
+
+      <Dialog
+        open={Boolean(selectedEntry)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedEntry(null)
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedEntry?.institutionAuthority.name ?? 'Requisitante'}
+            </DialogTitle>
+            <DialogDescription>
+              Informações do requisitante vinculado a esta placa monitorada.
+            </DialogDescription>
+          </DialogHeader>
+
+          {isAuthorityDetailLoading && !authorityDetail ? (
+            <div className="flex items-center justify-center py-6">
+              <Spinner className="size-5" />
+            </div>
+          ) : displayedAuthority ? (
+            <div className="flex flex-col gap-3 text-sm">
+              <div>
+                <span className="font-medium">Demandante:</span>{' '}
+                {displayedAuthority.requestingInstitution?.name ?? ' - '}
+              </div>
+              <div>
+                <span className="font-medium">Telefone principal:</span>{' '}
+                {displayedAuthority.primaryContact?.phone?.phone ?? ' - '}
+              </div>
+              <div>
+                <span className="font-medium">E-mail principal:</span>{' '}
+                {displayedAuthority.primaryContact?.email?.email ?? ' - '}
+              </div>
+              <div>
+                <span className="font-medium">Telefones adicionais:</span>{' '}
+                {displayedAuthority.contacts?.phones
+                  ?.map((item) => item.phone)
+                  .filter(
+                    (value): value is string =>
+                      Boolean(value) &&
+                      value !== displayedAuthority.primaryContact?.phone?.phone,
+                  )
+                  .join(', ') || ' - '}
+              </div>
+              <div>
+                <span className="font-medium">E-mails adicionais:</span>{' '}
+                {displayedAuthority.contacts?.emails
+                  ?.map((item) => item.email)
+                  .filter(
+                    (value): value is string =>
+                      Boolean(value) &&
+                      value !== displayedAuthority.primaryContact?.email?.email,
+                  )
+                  .join(', ') || ' - '}
+              </div>
+              <div>
+                <span className="font-medium">Ponto focal:</span>{' '}
+                {displayedAuthority.isFocalPoint ? 'Sim' : 'Não'}
+              </div>
+              <div>
+                <span className="font-medium">Canais de notificação:</span>{' '}
+                {selectedEntry?.notificationChannels.length
+                  ? selectedEntry.notificationChannels
+                      .map((ch) => ch.title || ch.id)
+                      .join(', ')
+                  : ' - '}
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
