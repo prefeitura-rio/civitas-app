@@ -315,6 +315,12 @@
   cursor: pointer;
 }
 
+.attachmentActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .downloadBtn:hover {
   color: #f9fafa;
 }

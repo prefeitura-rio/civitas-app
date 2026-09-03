@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Download, FileText, Square, User, X } from 'lucide-react'
+import { Download, Eye, FileText, Square, User, X } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
@@ -25,7 +25,10 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
-import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
+import {
+  downloadEmailAttachmentFile,
+  fetchEmailAttachmentBlob,
+} from '@/http/emails/download-email-attachment'
 import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsSpam } from '@/http/emails/mark-email-spam'
 import { cn } from '@/lib/utils'
@@ -52,6 +55,27 @@ function formatBytes(bytes: number): string {
   if (kb < 1024) return `${kb.toFixed(1)} KB`
   const mb = kb / 1024
   return `${mb.toFixed(1)} MB`
+}
+
+const PREVIEWABLE_ATTACHMENT_EXTENSIONS = new Set([
+  '.pdf',
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.gif',
+  '.webp',
+])
+
+function canPreviewAttachment(attachment: AttachmentOut) {
+  const mimeType = attachment.mime_type.toLowerCase()
+  if (mimeType === 'application/pdf' || mimeType.startsWith('image/')) {
+    return true
+  }
+
+  const dot = attachment.filename.lastIndexOf('.')
+  const extension =
+    dot === -1 ? '' : attachment.filename.slice(dot).toLowerCase()
+  return PREVIEWABLE_ATTACHMENT_EXTENSIONS.has(extension)
 }
 
 export interface EmailPreviewSheetProps {
@@ -111,6 +135,26 @@ export function EmailPreviewSheet({
         await downloadEmailAttachmentFile(a, emailId)
       } catch {
         toast.error('Não foi possível baixar o anexo.')
+      }
+    },
+    [emailId],
+  )
+
+  const handlePreview = useCallback(
+    async (attachment: AttachmentOut) => {
+      if (!emailId) return
+      try {
+        const { blob, contentType } = await fetchEmailAttachmentBlob(
+          attachment,
+          emailId,
+        )
+        const previewUrl = URL.createObjectURL(
+          new Blob([blob], { type: contentType }),
+        )
+        window.open(previewUrl, '_blank', 'noopener,noreferrer')
+        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
+      } catch {
+        toast.error('Não foi possível abrir a visualização do anexo.')
       }
     },
     [emailId],
@@ -269,14 +313,28 @@ export function EmailPreviewSheet({
                             </p>
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          className={styles.downloadBtn}
-                          aria-label={`Baixar ${att.filename}`}
-                          onClick={() => handleDownload(att)}
-                        >
-                          <Download size={16} />
-                        </button>
+                        <div className={styles.attachmentActions}>
+                          {canPreviewAttachment(att) ? (
+                            <button
+                              type="button"
+                              className={styles.downloadBtn}
+                              aria-label={`Visualizar ${att.filename}`}
+                              title="Visualizar anexo"
+                              onClick={() => handlePreview(att)}
+                            >
+                              <Eye size={16} />
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className={styles.downloadBtn}
+                            aria-label={`Baixar ${att.filename}`}
+                            title="Baixar anexo"
+                            onClick={() => handleDownload(att)}
+                          >
+                            <Download size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>

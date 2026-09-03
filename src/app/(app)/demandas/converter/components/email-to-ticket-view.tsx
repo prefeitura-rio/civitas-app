@@ -49,6 +49,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
+import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
@@ -74,6 +75,23 @@ import styles from './email-to-ticket-view.module.css'
 
 function fileSelectionKey(file: File) {
   return `${file.name}|${file.size}|${file.lastModified}`
+}
+
+const ATTACHMENT_EXTENSIONS_WITHOUT_PREVIEW = new Set([
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.mp4',
+  '.mov',
+])
+
+function isAttachmentWithoutPreview(filename?: string) {
+  if (!filename) return false
+  const dot = filename.lastIndexOf('.')
+  return ATTACHMENT_EXTENSIONS_WITHOUT_PREVIEW.has(
+    dot === -1 ? '' : filename.slice(dot).toLowerCase(),
+  )
 }
 
 function resolveEmailDate(email: EmailOut): Date | null {
@@ -361,8 +379,14 @@ export function EmailToTicketView() {
   }, [attachments.length])
 
   const currentAttachmentItem = attachments[currentAttachment]
+  const currentAttachmentHasNoPreview = isAttachmentWithoutPreview(
+    currentAttachmentItem?.filename,
+  )
   const { url: attachmentPreviewUrl, loading: attachmentPreviewLoading } =
-    useAttachmentPreviewUrl(currentAttachmentItem, emailId)
+    useAttachmentPreviewUrl(
+      currentAttachmentHasNoPreview ? undefined : currentAttachmentItem,
+      emailId,
+    )
 
   const emailDisplay = useMemo(() => {
     if (!email) return null
@@ -610,9 +634,34 @@ export function EmailToTicketView() {
 
           <div className={styles.pdfViewer}>
             {emailId &&
-            emailDisplay &&
-            attachments.length > 0 &&
-            attachmentPreviewUrl ? (
+            currentAttachmentItem &&
+            currentAttachmentHasNoPreview ? (
+              <div className={styles.pdfPlaceholder}>
+                <FileText className="h-16 w-16 opacity-30" />
+                <span>
+                  A visualização deste tipo de arquivo está indisponível.
+                </span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={async () => {
+                    try {
+                      await downloadEmailAttachmentFile(
+                        currentAttachmentItem,
+                        emailId,
+                      )
+                    } catch {
+                      toast.error('Não foi possível baixar o anexo.')
+                    }
+                  }}
+                >
+                  Baixar arquivo
+                </Button>
+              </div>
+            ) : emailId &&
+              emailDisplay &&
+              attachments.length > 0 &&
+              attachmentPreviewUrl ? (
               <iframe
                 key={attachmentPreviewUrl + currentAttachment}
                 src={attachmentPreviewUrl}
@@ -641,8 +690,7 @@ export function EmailToTicketView() {
             className="flex min-h-0 flex-1 flex-col"
             onSubmit={(e) => {
               const sub = (e.nativeEvent as SubmitEvent).submitter as
-                | HTMLButtonElement
-                | undefined
+                HTMLButtonElement | undefined
               const intent =
                 sub?.dataset?.intent === 'save-and-new'
                   ? 'save-and-new'
@@ -1881,7 +1929,7 @@ export function EmailToTicketView() {
                           className="hidden"
                           type="file"
                           multiple
-                          accept=".pdf,.doc,.docx"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.jpeg,.jpg,.png,.mp4,.mov"
                           onChange={(e) => {
                             vm.onDropFiles(e.target.files)
                             e.target.value = ''
@@ -1893,7 +1941,8 @@ export function EmailToTicketView() {
                           Clique para fazer upload ou arraste o arquivo
                         </span>
                         <span className={styles.uploadBoxHint}>
-                          PDF, DOC, DOCX (máx. 10MB)
+                          PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG, MP4, MOV
+                          (máx. 10MB)
                         </span>
                       </label>
                     </div>

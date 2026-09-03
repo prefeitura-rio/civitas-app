@@ -1204,7 +1204,7 @@ export function TicketCreateForm() {
                   className="hidden"
                   type="file"
                   multiple
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpeg,.jpg,.png,.mp4,.mov"
                   onChange={(e) => {
                     vm.onDropFiles(e.target.files)
                     e.target.value = ''
@@ -1216,7 +1216,8 @@ export function TicketCreateForm() {
                   Clique para fazer upload ou arraste o arquivo
                 </span>
                 <span className={styles.uploadBoxHint}>
-                  PDF, DOC, DOCX (máx. 10MB)
+                  PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG, MP4, MOV (máx.
+                  10MB)
                 </span>
               </label>
             </div>

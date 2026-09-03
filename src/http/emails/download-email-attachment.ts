@@ -3,6 +3,27 @@ import { downloadFile } from '@/utils/download-file'
 
 import type { AttachmentOut } from './get-email'
 
+export async function fetchEmailAttachmentBlob(
+  attachment: AttachmentOut,
+  emailId: string,
+) {
+  const response = await api.get<Blob>(
+    `/emails/${emailId}/attachments/${attachment.id}/download`,
+    {
+      responseType: 'blob',
+    },
+  )
+  const contentType = response.headers['content-type']
+
+  return {
+    blob: response.data,
+    contentType:
+      (typeof contentType === 'string' ? contentType : undefined) ||
+      attachment.mime_type ||
+      'application/octet-stream',
+  }
+}
+
 export async function downloadEmailAttachmentFile(
   attachment: AttachmentOut,
   emailId: string,
