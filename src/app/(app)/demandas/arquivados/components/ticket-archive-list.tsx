@@ -42,6 +42,33 @@ function parseServices(rawServices: unknown): string[] {
     .filter(Boolean)
 }
 
+function parseArchiveTeams(
+  rawTeams: unknown,
+  fallbackTeam: string,
+): NonNullable<TicketArchiveListItem['teams']> {
+  if (!Array.isArray(rawTeams)) {
+    return fallbackTeam && fallbackTeam !== '-'
+      ? [{ name: fallbackTeam, people: [] }]
+      : []
+  }
+
+  return rawTeams
+    .map((team) => {
+      if (!team || typeof team !== 'object') return null
+
+      const row = team as { name?: unknown; people?: unknown }
+      const name = typeof row.name === 'string' ? row.name.trim() : ''
+      const people = Array.isArray(row.people)
+        ? row.people
+            .map((person) => (typeof person === 'string' ? person.trim() : ''))
+            .filter(Boolean)
+        : []
+
+      return name ? { name, people } : null
+    })
+    .filter((team): team is { name: string; people: string[] } => Boolean(team))
+}
+
 function pickOptionalDate(row: Record<string, unknown>, ...keys: string[]) {
   for (const key of keys) {
     const value = row[key]
@@ -74,6 +101,8 @@ function normalizeArchiveItem(item: unknown): TicketArchiveListItem {
     row.ticket ?? row.internal_number ?? row.ticket_number ?? '-',
   )
 
+  const team = String(row.team ?? row.team_name ?? '-')
+
   return {
     id,
     ticket: chamado,
@@ -86,7 +115,8 @@ function normalizeArchiveItem(item: unknown): TicketArchiveListItem {
     requester_operation: String(
       row.requester_operation ?? row.requester_operation_nome ?? '-',
     ),
-    team: String(row.team ?? row.team_name ?? '-'),
+    team,
+    teams: parseArchiveTeams(row.teams, team),
     assignee: String(row.assignee ?? row.assignee_nome ?? '-'),
     services: parseServices(row.services ?? row.services),
     status: String(row.status ?? row.situacao ?? '-'),
@@ -150,7 +180,9 @@ function buildArchiveCsv(rows: TicketArchiveListItem[]): string {
         item.ticket,
         formatArchiveDate(item.completed_at),
         item.requester_operation,
-        item.team,
+        (item.teams?.length ? item.teams.map((team) => team.name) : [item.team])
+          .filter(Boolean)
+          .join('; '),
         item.assignee,
         item.services.join('; '),
         item.status,
@@ -194,6 +226,9 @@ export function TicketArchiveList() {
       assignee_id: appliedFilters.assignee_id.length
         ? appliedFilters.assignee_id.map((item) => item.value)
         : undefined,
+      participant_id: appliedFilters.participant_id.length
+        ? appliedFilters.participant_id.map((item) => item.value)
+        : undefined,
       base_date_start: appliedFilters.base_date_start || undefined,
       base_date_end: appliedFilters.base_date_end || undefined,
       entry_date_start: appliedFilters.entry_date_start || undefined,
@@ -234,6 +269,7 @@ export function TicketArchiveList() {
         appliedFilters.operation_id.length,
         appliedFilters.requester.length,
         appliedFilters.assignee_id.length,
+        appliedFilters.participant_id.length,
         appliedFilters.priority.length,
         appliedFilters.team.length,
         appliedFilters.services.length,
@@ -354,6 +390,11 @@ export function TicketArchiveList() {
                     item.services.length - previewServices.length,
                     0,
                   )
+                  const archiveTeams = item.teams ?? [
+                    { name: item.team, people: [] },
+                  ]
+                  const previewTeams = archiveTeams.slice(0, 2)
+                  const extraTeams = archiveTeams.slice(2)
 
                   return (
                     <tr key={`${item.id}-${item.ticket}`}>
@@ -387,7 +428,71 @@ export function TicketArchiveList() {
                       </td>
                       <td>{formatArchiveDate(item.completed_at)}</td>
                       <td>{item.requester_operation}</td>
-                      <td>{item.team}</td>
+                      <td>
+                        {archiveTeams.length > 0 ? (
+                          <div className={styles.teamsCell}>
+                            {previewTeams.map((team, index) => (
+                              <Tooltip
+                                key={`${item.id}-team-${team.name}-${index}`}
+                                asChild
+                                side="bottom"
+                                className={styles.teamTooltipSurface}
+                                render={
+                                  <div className={styles.teamTooltipDetails}>
+                                    {team.people.map((person) => (
+                                      <span
+                                        key={`${item.id}-${team.name}-${person}`}
+                                        className={styles.participantName}
+                                      >
+                                        {person}
+                                      </span>
+                                    ))}
+                                  </div>
+                                }
+                              >
+                                <span className={styles.teamTag}>
+                                  {team.name}
+                                </span>
+                              </Tooltip>
+                            ))}
+                            {extraTeams.length > 0 ? (
+                              <Tooltip
+                                asChild
+                                side="bottom"
+                                className={styles.teamTooltipSurface}
+                                render={
+                                  <div className={styles.teamTooltipDetails}>
+                                    {extraTeams.map((team, index) => (
+                                      <div
+                                        key={`${item.id}-extra-team-${team.name}-${index}`}
+                                        className={styles.extraTeamDetails}
+                                      >
+                                        <span className={styles.extraTeamName}>
+                                          {team.name}
+                                        </span>
+                                        {team.people.map((person) => (
+                                          <span
+                                            key={`${item.id}-${team.name}-${person}`}
+                                            className={styles.participantName}
+                                          >
+                                            {person}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ))}
+                                  </div>
+                                }
+                              >
+                                <span className={styles.extraTag}>
+                                  +{extraTeams.length}
+                                </span>
+                              </Tooltip>
+                            ) : null}
+                          </div>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                       <td>{item.assignee}</td>
                       <td>
                         <div className={styles.servicesCell}>

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import {
   Tooltip as RawTooltip,
   TooltipContent,
+  TooltipPortal,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
@@ -40,17 +41,19 @@ export function Tooltip({
           {children}
         </TooltipTrigger>
         {!hideContent && (
-          <TooltipContent
-            side={side}
-            className={cn('max-w-sm text-justify', className)}
-            sideOffset={10}
-          >
-            {render || (
-              <p className="whitespace-pre-wrap">
-                {disabled && disabledText ? disabledText : text}
-              </p>
-            )}
-          </TooltipContent>
+          <TooltipPortal>
+            <TooltipContent
+              side={side}
+              className={cn('max-w-sm text-justify', className)}
+              sideOffset={10}
+            >
+              {render || (
+                <p className="whitespace-pre-wrap">
+                  {disabled && disabledText ? disabledText : text}
+                </p>
+              )}
+            </TooltipContent>
+          </TooltipPortal>
         )}
       </RawTooltip>
     </TooltipProvider>
