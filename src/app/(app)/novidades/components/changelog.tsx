@@ -19,6 +19,44 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '04 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Novos formatos de anexos nas Demandas',
+        content: (
+          <>
+            <p>
+              O recebimento e o envio de documentos nas Demandas foram ampliados
+              para acomodar mais tipos de arquivos.
+            </p>
+            <ul>
+              <li>
+                Além de <code>PDF</code>, agora podem ser anexados documentos
+                <code>DOC</code>, <code>DOCX</code>, <code>XLS</code> e
+                <code>XLSX</code>, além de imagens <code>JPEG</code>,
+                <code>JPG</code> e <code>PNG</code>.
+              </li>
+              <li>
+                Arquivos em <code>PDF</code> e imagens permanecem disponíveis
+                para visualização direta pelo ícone de olho.
+              </li>
+              <li>
+                Documentos do Word e Excel exibem somente a opção de download
+                quando a visualização direta não está disponível.
+              </li>
+              <li>
+                As regras também se aplicam aos anexos recebidos por e-mail,
+                durante a conversão em demanda e na área de documentos
+                recebidos.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '2 de Setembro de 2026',
     subCards: [
       {
