@@ -53,8 +53,6 @@ const ALLOWED_ATTACHMENT_EXT = new Set([
   '.jpeg',
   '.jpg',
   '.png',
-  '.mp4',
-  '.mov',
 ])
 
 const TICKET_TYPE_RESTRITA_LABEL = 'requisição restrita'
@@ -471,7 +469,7 @@ export function useTicketCreateController() {
     if (invalidType.length > 0) {
       toast.error('Formato de arquivo não permitido.', {
         description:
-          'Anexe apenas PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG, MP4 ou MOV. ' +
+          'Anexe apenas PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG ou PNG. ' +
           (invalidType.length <= 3
             ? invalidType.join(', ')
             : `${invalidType.slice(0, 3).join(', ')} e mais ${invalidType.length - 3}`),
