@@ -40,6 +40,7 @@ interface BackendMonitoredPlateResponse {
   active: boolean
   notes: string | null
   additional_info: Record<string, unknown> | null
+  contact_info: string | null // TODO: remove after monitored plate authority is fully implemented
   vehicle_type: VehicleType | null
   brand: string | null
   model: string | null
@@ -89,6 +90,7 @@ export interface MonitoredPlateReadModel {
   active: boolean
   notes: string | null
   additionalInfo: Record<string, unknown> | null
+  contactInfo: string | null // TODO: remove after monitored plate authority is fully implemented
   vehicleType: VehicleType | null
   brand: string | null
   model: string | null
@@ -146,13 +148,18 @@ export type VehicleFields = Partial<
   >
 >
 
+// TODO: remove contactInfo from the request after monitored plate authority is fully implemented
 export interface CreateMonitoredPlateRequest
   extends Pick<MonitoredPlateReadModel, 'plate'>,
-    Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>>,
+    Partial<
+      Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo' | 'contactInfo'>
+    >,
     VehicleFields {}
 
 export interface UpdateMonitoredPlateRequest
-  extends Partial<Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo'>>,
+  extends Partial<
+      Pick<MonitoredPlateReadModel, 'notes' | 'additionalInfo' | 'contactInfo'>
+    >,
     VehicleFields {
   plate: string
 }
@@ -196,6 +203,7 @@ export function mapBackendMonitoredPlate(
     active: item.active,
     notes: item.notes,
     additionalInfo: item.additional_info,
+    contactInfo: item.contact_info ?? null, // TODO: remove after monitored plate authority is fully implemented
     vehicleType: item.vehicle_type,
     brand: item.brand,
     model: item.model,
@@ -287,6 +295,7 @@ export async function createMonitoredPlate({
   plate,
   notes,
   additionalInfo,
+  contactInfo, // TODO: remove after monitored plate authority is fully implemented
   vehicleType,
   brand,
   model,
@@ -301,6 +310,7 @@ export async function createMonitoredPlate({
       plate,
       notes,
       additional_info: additionalInfo,
+      contact_info: contactInfo ?? null, // TODO: remove after monitored plate authority is fully implemented
       vehicle_type: vehicleType ?? null,
       brand: brand ?? null,
       model: model ?? null,
@@ -318,6 +328,7 @@ export async function updateMonitoredPlate({
   plate,
   notes,
   additionalInfo,
+  contactInfo, // TODO: remove after monitored plate authority is fully implemented
   vehicleType,
   brand,
   model,
@@ -331,6 +342,7 @@ export async function updateMonitoredPlate({
     {
       notes,
       additional_info: additionalInfo,
+      contact_info: contactInfo ?? null, // TODO: remove after monitored plate authority is fully implemented
       vehicle_type: vehicleType ?? null,
       brand: brand ?? null,
       model: model ?? null,

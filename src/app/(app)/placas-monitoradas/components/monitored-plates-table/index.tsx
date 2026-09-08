@@ -215,6 +215,13 @@ export function MonitoredPlatesTable() {
       enableSorting: false,
       cell: ({ row }) => row.original.notes || ' - ',
     },
+    // TODO: remove after monitored plate authority is fully implemented
+    {
+      accessorKey: 'contactInfo',
+      header: 'Informações de contato [LEGADO]',
+      enableSorting: false,
+      cell: ({ row }) => row.original.contactInfo || ' - ',
+    },
     {
       id: 'vehicle',
       header: 'Veículo',
