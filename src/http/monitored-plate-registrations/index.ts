@@ -25,6 +25,7 @@ interface BackendMonitoredPlateResponse {
   active: boolean
   notes: string | null
   additional_info: Record<string, unknown> | null
+  contact_info: string | null // TODO: remove after monitored plate authority is fully implemented
   vehicle_type: string | null
   brand: string | null
   model: string | null
@@ -44,6 +45,7 @@ export async function createMonitoredPlateRegistration({
   plate,
   notes,
   additionalInfo,
+  contactInfo, // TODO: remove after monitored plate authority is fully implemented
   vehicleType,
   brand,
   model,
@@ -59,6 +61,7 @@ export async function createMonitoredPlateRegistration({
       plate,
       notes,
       additional_info: additionalInfo,
+      contact_info: contactInfo ?? null, // remove after monitored plate authority is fully implemented
       vehicle_type: vehicleType ?? null,
       brand: brand ?? null,
       model: model ?? null,

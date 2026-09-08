@@ -99,12 +99,14 @@ const monitoredPlateCreateFormSchema = z.object({
     .toUpperCase()
     .regex(MONITORED_PLATE_REGEX, 'Formato inválido'),
   notes: z.string(),
+  contactInfo: z.string().optional(), // TODO: remove after monitored plate authority is fully implemented
   ...vehicleFieldsSchema,
 })
 
 const monitoredPlateEditFormSchema = z.object({
   plate: z.string(),
   notes: z.string(),
+  contactInfo: z.string().optional(), // TODO: remove after monitored plate authority is fully implemented
   ...vehicleFieldsSchema,
 })
 
@@ -134,6 +136,7 @@ export function MonitoredPlateFormDialog({
     defaultValues: {
       plate: '',
       notes: '',
+      contactInfo: '', // TODO: remove after monitored plate authority is fully implemented
     },
   })
 
@@ -142,6 +145,7 @@ export function MonitoredPlateFormDialog({
     defaultValues: {
       plate: '',
       notes: '',
+      contactInfo: '', // TODO: remove after monitored plate authority is fully implemented
     },
   })
 
@@ -275,6 +279,7 @@ export function MonitoredPlateFormDialog({
     reset({
       plate: '',
       notes: '',
+      contactInfo: '', // TODO: remove after monitored plate authority is fully implemented
       vehicleType: null,
       brand: null,
       model: null,
@@ -286,6 +291,7 @@ export function MonitoredPlateFormDialog({
       plate: '',
       notes: '',
       vehicleType: null,
+      contactInfo: '', // TODO: remove after monitored plate authority is fully implemented
       brand: null,
       model: null,
       modelYear: null,
@@ -310,6 +316,7 @@ export function MonitoredPlateFormDialog({
       plate: values.plate,
       notes: values.notes.trim() || null,
       additionalInfo: null,
+      contactInfo: values.contactInfo?.trim() || null, // TODO: remove after monitored plate authority is fully implemented
       vehicleType: values.vehicleType ?? null,
       brand: values.brand?.trim() || null,
       model: values.model?.trim() || null,
@@ -348,6 +355,7 @@ export function MonitoredPlateFormDialog({
       plate,
       notes: values.notes.trim() || null,
       additionalInfo: monitoredPlate?.additionalInfo ?? null,
+      contactInfo: values.contactInfo?.trim() || null, // TODO: remove after monitored plate authority is fully implemented
       vehicleType: values.vehicleType ?? null,
       brand: values.brand?.trim() || null,
       model: values.model?.trim() || null,
@@ -370,6 +378,7 @@ export function MonitoredPlateFormDialog({
           plate: monitoredPlate.plate,
           notes: monitoredPlate.notes ?? '',
           vehicleType: monitoredPlate.vehicleType ?? null,
+          contactInfo: monitoredPlate.contactInfo ?? '', // TODO: remove after monitored plate authority is fully implemented
           brand: monitoredPlate.brand ?? null,
           model: monitoredPlate.model ?? null,
           modelYear: monitoredPlate.modelYear ?? null,
@@ -383,6 +392,7 @@ export function MonitoredPlateFormDialog({
     reset({
       plate: initialData?.plate ?? '',
       notes: '',
+      contactInfo: '', // TODO: remove after monitored plate authority is fully implemented
       vehicleType: null,
       brand: null,
       model: null,
@@ -446,6 +456,21 @@ export function MonitoredPlateFormDialog({
                   <Textarea
                     id="edit-notes"
                     {...registerEdit('notes')}
+                    disabled={isEditLoading}
+                  />
+                </div>
+
+                {/* TODO: remove after monitored plate authority is fully implemented */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <Label htmlFor="edit-contact-info">
+                      Informações de contato
+                    </Label>
+                    <InputError message={editErrors.contactInfo?.message} />
+                  </div>
+                  <Textarea
+                    id="edit-contact-info"
+                    {...registerEdit('contactInfo')}
                     disabled={isEditLoading}
                   />
                 </div>
@@ -597,6 +622,19 @@ export function MonitoredPlateFormDialog({
                 <Textarea
                   id="notes"
                   {...register('notes')}
+                  disabled={isCreateLoading}
+                />
+              </div>
+
+              {/* TODO: remove after monitored plate authority is fully implemented */}
+              <div className="flex flex-col gap-1">
+                <div className="flex gap-2">
+                  <Label htmlFor="contact-info">Informações de contato</Label>
+                  <InputError message={errors.contactInfo?.message} />
+                </div>
+                <Textarea
+                  id="contact-info"
+                  {...register('contactInfo')}
                   disabled={isCreateLoading}
                 />
               </div>

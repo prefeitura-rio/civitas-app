@@ -86,6 +86,7 @@ export type BackendMonitoredPlateRegistrationAuthority = Omit<
 
 export type MonitoredPlateRegistration = {
   plate: string
+  contactInfo?: string | null // TODO: remove after monitored plate authority is fully implemented
   notes?: string | null
   additionalInfo?: Record<string, unknown> | null
   vehicleType?: VehicleType | null
