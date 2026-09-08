@@ -25,6 +25,21 @@ function formatBytes(bytes: number): string {
   return `${mb.toFixed(1)} MB`
 }
 
+const PREVIEWABLE_ATTACHMENT_EXTENSIONS = new Set([
+  '.pdf',
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.gif',
+  '.webp',
+])
+
+export function canPreviewAttachment(filename: string): boolean {
+  const dot = filename.lastIndexOf('.')
+  const extension = dot === -1 ? '' : filename.slice(dot).toLowerCase()
+  return PREVIEWABLE_ATTACHMENT_EXTENSIONS.has(extension)
+}
+
 type Props = {
   ticketId: string
 }
@@ -173,16 +188,18 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
                   </div>
                 </div>
                 <div className={styles.docCardActions}>
-                  <button
-                    type="button"
-                    className={styles.docIconBtn}
-                    aria-label={`Visualizar ${att.filename}`}
-                    title="Visualizar anexo"
-                    onClick={() => handleView(att)}
-                    disabled={deletingId === att.id || viewingId === att.id}
-                  >
-                    <Eye size={18} />
-                  </button>
+                  {canPreviewAttachment(att.filename) ? (
+                    <button
+                      type="button"
+                      className={styles.docIconBtn}
+                      aria-label={`Visualizar ${att.filename}`}
+                      title="Visualizar anexo"
+                      onClick={() => handleView(att)}
+                      disabled={deletingId === att.id || viewingId === att.id}
+                    >
+                      <Eye size={18} />
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={styles.docIconBtn}

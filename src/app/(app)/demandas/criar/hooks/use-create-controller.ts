@@ -44,7 +44,16 @@ import {
 
 const OPERATION_SEARCH_PAGE_SIZE = 20
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
-const ALLOWED_ATTACHMENT_EXT = new Set(['.pdf', '.doc', '.docx'])
+const ALLOWED_ATTACHMENT_EXT = new Set([
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.jpeg',
+  '.jpg',
+  '.png',
+])
 
 const TICKET_TYPE_RESTRITA_LABEL = 'requisição restrita'
 const TEAM_COORDENADORES_LABEL = 'coordenadores'
@@ -460,7 +469,7 @@ export function useTicketCreateController() {
     if (invalidType.length > 0) {
       toast.error('Formato de arquivo não permitido.', {
         description:
-          'Anexe apenas PDF, DOC ou DOCX. ' +
+          'Anexe apenas PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG ou PNG. ' +
           (invalidType.length <= 3
             ? invalidType.join(', ')
             : `${invalidType.slice(0, 3).join(', ')} e mais ${invalidType.length - 3}`),

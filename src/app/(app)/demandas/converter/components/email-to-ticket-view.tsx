@@ -49,6 +49,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
+import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
@@ -74,6 +75,31 @@ import styles from './email-to-ticket-view.module.css'
 
 function fileSelectionKey(file: File) {
   return `${file.name}|${file.size}|${file.lastModified}`
+}
+
+const ATTACHMENT_EXTENSIONS_WITHOUT_PREVIEW = new Set([
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+])
+
+const ATTACHMENT_EXTENSIONS_BLOCKED = new Set(['.mp4', '.mov'])
+
+function isBlockedEmailAttachment(filename?: string) {
+  if (!filename) return false
+  const dot = filename.lastIndexOf('.')
+  return ATTACHMENT_EXTENSIONS_BLOCKED.has(
+    dot === -1 ? '' : filename.slice(dot).toLowerCase(),
+  )
+}
+
+function isAttachmentWithoutPreview(filename?: string) {
+  if (!filename) return false
+  const dot = filename.lastIndexOf('.')
+  return ATTACHMENT_EXTENSIONS_WITHOUT_PREVIEW.has(
+    dot === -1 ? '' : filename.slice(dot).toLowerCase(),
+  )
 }
 
 function resolveEmailDate(email: EmailOut): Date | null {
@@ -342,6 +368,9 @@ export function EmailToTicketView() {
   }, [email, vm.setValue])
 
   const attachments = email?.attachments ?? []
+  const selectableAttachments = attachments.filter(
+    (attachment) => !isBlockedEmailAttachment(attachment.filename),
+  )
 
   useEffect(() => {
     setCurrentAttachment(0)
@@ -353,16 +382,22 @@ export function EmailToTicketView() {
   }, [vm.files.length])
 
   useEffect(() => {
-    if (attachments.length === 0) {
+    if (selectableAttachments.length === 0) {
       setCurrentAttachment(0)
       return
     }
-    setCurrentAttachment((i) => Math.min(i, attachments.length - 1))
-  }, [attachments.length])
+    setCurrentAttachment((i) => Math.min(i, selectableAttachments.length - 1))
+  }, [selectableAttachments.length])
 
-  const currentAttachmentItem = attachments[currentAttachment]
+  const currentAttachmentItem = selectableAttachments[currentAttachment]
+  const currentAttachmentHasNoPreview = isAttachmentWithoutPreview(
+    currentAttachmentItem?.filename,
+  )
   const { url: attachmentPreviewUrl, loading: attachmentPreviewLoading } =
-    useAttachmentPreviewUrl(currentAttachmentItem, emailId)
+    useAttachmentPreviewUrl(
+      currentAttachmentHasNoPreview ? undefined : currentAttachmentItem,
+      emailId,
+    )
 
   const emailDisplay = useMemo(() => {
     if (!email) return null
@@ -461,7 +496,7 @@ export function EmailToTicketView() {
     const manual = vm.files.filter((f) => isManualFileIncluded(f))
     if (!emailId) return manual
 
-    const selectedEmail = attachments.filter((a) =>
+    const selectedEmail = selectableAttachments.filter((a) =>
       emailAttachmentSelectedIds.has(a.id),
     )
     if (selectedEmail.length === 0) return manual
@@ -476,10 +511,10 @@ export function EmailToTicketView() {
       throw new Error('Falha ao preparar attachments do e-mail')
     }
   }, [
-    attachments,
     emailAttachmentSelectedIds,
     emailId,
     isManualFileIncluded,
+    selectableAttachments,
     vm.files,
   ])
 
@@ -572,7 +607,7 @@ export function EmailToTicketView() {
             </>
           )}
 
-          {emailId && emailDisplay && attachments.length > 0 && (
+          {emailId && emailDisplay && selectableAttachments.length > 0 && (
             <div className={styles.attachmentBar}>
               <div className={styles.attachmentName}>
                 <FileText className="h-4 w-4" />
@@ -590,15 +625,17 @@ export function EmailToTicketView() {
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <span className={styles.attachmentNavText}>
-                  {currentAttachment + 1} / {attachments.length}
+                  {currentAttachment + 1} / {selectableAttachments.length}
                 </span>
                 <button
                   type="button"
                   className={styles.attachmentNavButton}
-                  disabled={currentAttachment >= attachments.length - 1}
+                  disabled={
+                    currentAttachment >= selectableAttachments.length - 1
+                  }
                   onClick={() =>
                     setCurrentAttachment((i) =>
-                      Math.min(attachments.length - 1, i + 1),
+                      Math.min(selectableAttachments.length - 1, i + 1),
                     )
                   }
                 >
@@ -610,9 +647,34 @@ export function EmailToTicketView() {
 
           <div className={styles.pdfViewer}>
             {emailId &&
-            emailDisplay &&
-            attachments.length > 0 &&
-            attachmentPreviewUrl ? (
+            currentAttachmentItem &&
+            currentAttachmentHasNoPreview ? (
+              <div className={styles.pdfPlaceholder}>
+                <FileText className="h-16 w-16 opacity-30" />
+                <span>
+                  A visualização deste tipo de arquivo está indisponível.
+                </span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={async () => {
+                    try {
+                      await downloadEmailAttachmentFile(
+                        currentAttachmentItem,
+                        emailId,
+                      )
+                    } catch {
+                      toast.error('Não foi possível baixar o anexo.')
+                    }
+                  }}
+                >
+                  Baixar arquivo
+                </Button>
+              </div>
+            ) : emailId &&
+              emailDisplay &&
+              selectableAttachments.length > 0 &&
+              attachmentPreviewUrl ? (
               <iframe
                 key={attachmentPreviewUrl + currentAttachment}
                 src={attachmentPreviewUrl}
@@ -621,7 +683,7 @@ export function EmailToTicketView() {
               />
             ) : emailId &&
               emailDisplay &&
-              attachments.length > 0 &&
+              selectableAttachments.length > 0 &&
               attachmentPreviewLoading ? (
               <div className={styles.pdfPlaceholder}>
                 <FileText className="h-16 w-16 opacity-30" />
@@ -1753,14 +1815,15 @@ export function EmailToTicketView() {
                 >
                   <div className={styles.attachmentsLayout}>
                     <div className={styles.attachmentsDocumentList}>
-                      {attachments.length === 0 && vm.files.length === 0 ? (
+                      {selectableAttachments.length === 0 &&
+                      vm.files.length === 0 ? (
                         <p className={styles.uploadBoxHint}>
                           Nenhum arquivo anexado.
                         </p>
                       ) : (
                         <div className={styles.fileList}>
                           {emailId
-                            ? attachments.map((att) => {
+                            ? selectableAttachments.map((att) => {
                                 const selected = emailAttachmentSelectedIds.has(
                                   att.id,
                                 )
@@ -1881,7 +1944,7 @@ export function EmailToTicketView() {
                           className="hidden"
                           type="file"
                           multiple
-                          accept=".pdf,.doc,.docx"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.jpeg,.jpg,.png"
                           onChange={(e) => {
                             vm.onDropFiles(e.target.files)
                             e.target.value = ''
@@ -1893,7 +1956,7 @@ export function EmailToTicketView() {
                           Clique para fazer upload ou arraste o arquivo
                         </span>
                         <span className={styles.uploadBoxHint}>
-                          PDF, DOC, DOCX (máx. 10MB)
+                          PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 10MB)
                         </span>
                       </label>
                     </div>
