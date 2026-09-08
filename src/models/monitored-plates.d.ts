@@ -98,20 +98,6 @@ export type MonitoredPlateRegistration = {
   authorities: MonitoredPlateRegistrationAuthority[]
 }
 
-export type BackendMonitoredPlateRegistration = {
-  plate: string
-  notes?: string | null
-  additional_info?: Record<string, unknown> | null
-  vehicle_type?: VehicleType | null
-  brand?: string | null
-  model?: string | null
-  model_year?: string | null
-  manufacture_year?: string | null
-  color?: string | null
-  vehicle_info_source?: VehicleInfoSource | null
-  authorities: BackendMonitoredPlateRegistrationAuthority[]
-}
-
 export type NotificationChannel = {
   id: string
   title: string
