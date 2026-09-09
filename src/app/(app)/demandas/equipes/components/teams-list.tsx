@@ -20,6 +20,7 @@ import type { TeamsController } from '../hooks/use-teams-controller'
 const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
   Administrativo: 'Administrativo',
+  Analista: 'Analista',
   Adjunto: 'Adjunto',
   'Auxiliar de Adjunto': 'Auxiliar de Adjunto',
   Assessor: 'Assessor',

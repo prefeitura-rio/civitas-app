@@ -48,6 +48,7 @@ const WORKFLOW_SCREEN_CODE = 'workflow'
 const ROLE_OPTIONS: WorkflowRoleEnum[] = [
   'Coordenador',
   'Administrativo',
+  'Analista',
   'Adjunto',
   'Auxiliar de Adjunto',
   'Líder de Ilha',

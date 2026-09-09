@@ -71,6 +71,7 @@ const SHIFT_CLOSING_TEAM_ROLES = [
   'Assessor',
   'Coordenador',
   'Administrativo',
+  'Analista',
 ] as const satisfies readonly UserRoleEnum[]
 
 function requiresShiftClosingTeamSelection(
