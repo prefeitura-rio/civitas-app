@@ -55,7 +55,7 @@ export function Sidebar({
 
   return (
     <div className="relative z-50 h-screen w-14 shrink-0">
-      <nav className="group absolute left-0 top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-x-hidden border-r-2 bg-background p-2 transition-all duration-300 ease-in hover:w-64">
+      <nav className="group fixed left-0 top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-x-hidden border-r-2 bg-background p-2 transition-all duration-300 ease-in hover:w-64">
         <div className="flex flex-col">
           <div className="relative h-20">
             {profile?.username ? (
