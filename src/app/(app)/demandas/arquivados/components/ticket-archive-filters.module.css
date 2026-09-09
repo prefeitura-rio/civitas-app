@@ -145,6 +145,18 @@
   gap: 18px;
 }
 
+.requesterFilter {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.teamSelectedChips {
+  max-height: 76px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .modalFooter {
   flex-shrink: 0;
   display: flex;

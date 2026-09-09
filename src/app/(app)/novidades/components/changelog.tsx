@@ -19,6 +19,43 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '03 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Filtros e resultados aprimorados em Demandas Arquivadas',
+        content: (
+          <>
+            <p>
+              A consulta de demandas arquivadas foi aprimorada para facilitar a
+              localização e a leitura das informações relacionadas a cada
+              demanda.
+            </p>
+            <ul>
+              <li>
+                Foi incluído o filtro por <code>Participante</code>, permitindo
+                localizar demandas pelas pessoas que participaram do
+                atendimento.
+              </li>
+              <li>
+                A coluna de equipes agora apresenta todas as equipes vinculadas
+                à demanda e permite consultar os participantes de cada equipe.
+              </li>
+              <li>
+                A exportação em <code>CSV</code> passou a incluir todas as
+                equipes relacionadas à demanda.
+              </li>
+              <li>
+                O painel de filtros foi reorganizado para melhorar a leitura e o
+                uso das opções selecionadas.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '2 de Setembro de 2026',
     subCards: [
       {
