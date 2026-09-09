@@ -18,6 +18,7 @@ import styles from '../perfis.module.css'
 const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
   Administrativo: 'Administrativo',
+  Analista: 'Analista',
   Adjunto: 'Adjunto',
   'Auxiliar de Adjunto': 'Auxiliar de Adjunto',
   Assessor: 'Assessor',
@@ -28,6 +29,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
 const roleBadgeStyleMap: Record<UserRoleEnum, string> = {
   Coordenador: styles.perfisBadgeCoordenador,
   Administrativo: styles.perfisBadgeAdministrativo,
+  Analista: styles.perfisBadgeAdministrativo,
   Adjunto: styles.perfisBadgeAdjunto,
   'Auxiliar de Adjunto': styles.perfisBadgeAuxiliarDeAdjunto,
   Assessor: styles.perfisBadgeAssessor,
