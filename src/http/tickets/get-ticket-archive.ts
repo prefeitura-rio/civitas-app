@@ -6,6 +6,7 @@ export type TicketArchiveServiceFilter = TicketDashboardServiceFilter
 
 export type TicketArchiveFilters = {
   search?: string
+  participant_id?: string[]
   page?: number
   page_size?: number
   operation_id?: string[]
@@ -26,6 +27,10 @@ export type TicketArchiveListItem = {
   completed_at?: string | null
   requester_operation: string
   team: string
+  teams?: Array<{
+    name: string
+    people: string[]
+  }>
   assignee: string
   services: string[]
   status: string
@@ -43,6 +48,7 @@ export type TicketArchivePageOut = {
 export async function getTicketArchive(filters: TicketArchiveFilters) {
   const response = await api.post<TicketArchivePageOut>('/tickets/archive', {
     search: filters.search?.trim() || undefined,
+    participant_id: filters.participant_id,
     page: filters.page ?? 1,
     page_size: filters.page_size ?? 20,
     operation_id: filters.operation_id,
