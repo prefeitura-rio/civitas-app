@@ -95,7 +95,7 @@ export function HistoryFilter() {
 
       <div className="flex flex-col space-y-1">
         <Label className="text-xs text-muted-foreground">
-          Data de exclusão
+          Data de desativação
         </Label>
         <div className="flex items-center space-x-2">
           <div className="flex flex-col">
