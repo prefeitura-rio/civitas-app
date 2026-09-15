@@ -142,6 +142,10 @@ export type BackendMonitoredPlate = {
 
 export type MonitoredPlateHistoryItem = {
   plate: string
+  monitored_plate_authority_id: string | null
+  reference_number: string | null
+  institution_authority_id: string | null
+  source: 'legacy_plate' | 'authority'
   notes: string | null
   created_timestamp: string | null
   created_by: {

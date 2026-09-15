@@ -45,6 +45,7 @@ interface DataTableProps<TData, TValue> {
   manualSorting?: boolean
   emptyMessage?: ReactNode
   tableClassName?: string
+  getRowId?: (originalRow: TData, index: number) => string
 }
 
 function SortIcon({ direction }: { direction: false | 'asc' | 'desc' }) {
@@ -65,6 +66,7 @@ export function DataTable<TData, TValue>({
   manualSorting = false,
   emptyMessage = 'Nenhum resultado.',
   tableClassName,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [internalSortingState, setInternalSortingState] =
     useState<SortingState>([])
@@ -73,6 +75,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    getRowId,
     state: sorting ? { sorting: currentSortingState } : undefined,
     onSortingChange: sorting
       ? (onSortingChange ?? setInternalSortingState)
