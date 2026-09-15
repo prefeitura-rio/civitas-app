@@ -19,6 +19,42 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '15 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Novo perfil Analista nas Demandas',
+        content: (
+          <>
+            <p>
+              O perfil <strong>Analista</strong> foi adicionado ao módulo de
+              Demandas para permitir que a equipe de contrainteligência trabalhe
+              com requisições restritas.
+            </p>
+            <ul>
+              <li>
+                Analistas podem visualizar e executar chamados classificados
+                como <strong>Requisição Restrita</strong>.
+              </li>
+              <li>
+                O perfil mantém as permissões do Administrativo para chamados
+                comuns.
+              </li>
+              <li>
+                Usuários com perfil Administrativo continuam sem acesso às
+                demandas restritas.
+              </li>
+              <li>
+                O perfil pode ser atribuído a vários usuários pelo cadastro de
+                perfis.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '9 de Setembro de 2026',
     subCards: [
       {
