@@ -14,6 +14,7 @@ import {
   getTicketAttachments,
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
+import { canPreviewAttachment } from '@/utils/can-preview-attachment'
 
 import styles from '../ticket-detail.module.css'
 
@@ -23,21 +24,6 @@ function formatBytes(bytes: number): string {
   if (kb < 1024) return `${kb.toFixed(1)} KB`
   const mb = kb / 1024
   return `${mb.toFixed(1)} MB`
-}
-
-const PREVIEWABLE_ATTACHMENT_EXTENSIONS = new Set([
-  '.pdf',
-  '.jpeg',
-  '.jpg',
-  '.png',
-  '.gif',
-  '.webp',
-])
-
-export function canPreviewAttachment(filename: string): boolean {
-  const dot = filename.lastIndexOf('.')
-  const extension = dot === -1 ? '' : filename.slice(dot).toLowerCase()
-  return PREVIEWABLE_ATTACHMENT_EXTENSIONS.has(extension)
 }
 
 type Props = {

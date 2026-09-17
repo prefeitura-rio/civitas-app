@@ -1,11 +1,14 @@
-import { canPreviewAttachment } from '@/app/(app)/demandas/[ticketId]/components/ticket-detail-tab-documentos'
+import { canPreviewAttachment } from '@/utils/can-preview-attachment'
 
 describe('Documentos recebidos - preview de anexos', () => {
-  it('não permite preview de arquivos Excel', () => {
+  it('não permite preview de arquivos não suportados', () => {
     expect(canPreviewAttachment('planilha.xls')).toBe(false)
     expect(canPreviewAttachment('PLANILHA.XLSX')).toBe(false)
     expect(canPreviewAttachment('video.mp4')).toBe(false)
     expect(canPreviewAttachment('VIDEO.MOV')).toBe(false)
+    expect(canPreviewAttachment('imagem.svg')).toBe(false)
+    expect(canPreviewAttachment('animacao.gif')).toBe(false)
+    expect(canPreviewAttachment('foto.webp')).toBe(false)
   })
 
   it('mantém preview para PDF e imagens', () => {
