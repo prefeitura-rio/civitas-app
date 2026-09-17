@@ -1,6 +1,7 @@
 'use client'
 import { type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
+import { useMemo } from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -30,70 +31,73 @@ export function HistoryTable() {
     refetch,
   } = useMonitoredPlatesHistory()
 
-  const columns: ColumnDef<MonitoredPlateHistoryItem>[] = [
-    {
-      accessorKey: 'source',
-      header: 'Origem',
-      enableSorting: true,
-      cell: ({ row }) =>
-        row.original.source === 'authority' ? 'Vínculo' : 'Legado',
-    },
-    {
-      accessorKey: 'plate',
-      header: 'Placa',
-      enableSorting: true,
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) =>
-        row.original.deleted_timestamp ? 'Desativada' : 'Ativa',
-    },
-    {
-      accessorKey: 'reference_number',
-      header: 'Número de referência',
-      enableSorting: true,
-      cell: ({ row }) => row.original.reference_number || '—',
-    },
-    {
-      accessorKey: 'notes',
-      header: 'Observações',
-      enableSorting: true,
-      cell: ({ row }) => row.original.notes || '—',
-    },
-    {
-      accessorKey: 'created_timestamp',
-      header: 'Data de criação',
-      enableSorting: true,
-      cell: ({ row }) =>
-        row.original.created_timestamp
-          ? formatDate(row.original.created_timestamp, 'dd/MM/yyyy HH:mm')
-          : '—',
-    },
-    {
-      id: 'created_by',
-      header: 'Criado por',
-      enableSorting: true,
-      accessorFn: (row) => row.created_by?.full_name,
-      cell: ({ row }) => row.original.created_by?.full_name || '—',
-    },
-    {
-      accessorKey: 'deleted_timestamp',
-      header: 'Data de desativação',
-      enableSorting: true,
-      cell: ({ row }) =>
-        row.original.deleted_timestamp
-          ? formatDate(row.original.deleted_timestamp, 'dd/MM/yyyy HH:mm')
-          : '—',
-    },
-    {
-      id: 'deleted_by',
-      header: 'Desativado por',
-      enableSorting: true,
-      accessorFn: (row) => row.deleted_by?.full_name,
-      cell: ({ row }) => row.original.deleted_by?.full_name || '—',
-    },
-  ]
+  const columns = useMemo<ColumnDef<MonitoredPlateHistoryItem>[]>(
+    () => [
+      {
+        accessorKey: 'source',
+        header: 'Origem',
+        enableSorting: true,
+        cell: ({ row }) =>
+          row.original.source === 'authority' ? 'Vínculo' : 'Legado',
+      },
+      {
+        accessorKey: 'plate',
+        header: 'Placa',
+        enableSorting: true,
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        cell: ({ row }) =>
+          row.original.deleted_timestamp ? 'Desativada' : 'Ativa',
+      },
+      {
+        accessorKey: 'reference_number',
+        header: 'Número de referência',
+        enableSorting: true,
+        cell: ({ row }) => row.original.reference_number || '—',
+      },
+      {
+        accessorKey: 'notes',
+        header: 'Observações',
+        enableSorting: true,
+        cell: ({ row }) => row.original.notes || '—',
+      },
+      {
+        accessorKey: 'created_timestamp',
+        header: 'Data de criação',
+        enableSorting: true,
+        cell: ({ row }) =>
+          row.original.created_timestamp
+            ? formatDate(row.original.created_timestamp, 'dd/MM/yyyy HH:mm')
+            : '—',
+      },
+      {
+        id: 'created_by',
+        header: 'Criado por',
+        enableSorting: true,
+        accessorFn: (row) => row.created_by?.full_name,
+        cell: ({ row }) => row.original.created_by?.full_name || '—',
+      },
+      {
+        accessorKey: 'deleted_timestamp',
+        header: 'Data de desativação',
+        enableSorting: true,
+        cell: ({ row }) =>
+          row.original.deleted_timestamp
+            ? formatDate(row.original.deleted_timestamp, 'dd/MM/yyyy HH:mm')
+            : '—',
+      },
+      {
+        id: 'deleted_by',
+        header: 'Desativado por',
+        enableSorting: true,
+        accessorFn: (row) => row.deleted_by?.full_name,
+        cell: ({ row }) => row.original.deleted_by?.full_name || '—',
+      },
+    ],
+    [],
+  )
 
   const items = data?.items || []
   const hasFilters = Boolean(

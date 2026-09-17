@@ -3,8 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronDown, X } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useRef, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -69,15 +69,6 @@ function parseDate(value: string | null | undefined) {
   return Number.isNaN(date.getTime()) ? undefined : date
 }
 
-function countAdvancedFilters(values: FilterForm) {
-  let count = 0
-  if (values.startTimeCreate) count += 1
-  if (values.endTimeCreate) count += 1
-  if (values.startTimeDelete) count += 1
-  if (values.endTimeDelete) count += 1
-  return count
-}
-
 export function HistoryFilter() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -95,7 +86,7 @@ export function HistoryFilter() {
     handleSubmit,
     setValue,
     reset,
-    watch,
+    control,
     formState: { errors },
   } = useForm<FilterForm>({
     resolver: zodResolver(filterFormSchema),
@@ -111,17 +102,23 @@ export function HistoryFilter() {
     },
   })
 
-  const status = watch('status')
-  const source = watch('source')
-  const formValues = watch()
-
-  const advancedFilterCount = useMemo(
-    () => countAdvancedFilters(formValues),
-    [formValues],
-  )
+  const plate = useWatch({ control, name: 'plate' })
+  const status = useWatch({ control, name: 'status' })
+  const source = useWatch({ control, name: 'source' })
+  const referenceNumber = useWatch({ control, name: 'referenceNumber' })
+  const startTimeCreate = useWatch({ control, name: 'startTimeCreate' })
+  const endTimeCreate = useWatch({ control, name: 'endTimeCreate' })
+  const startTimeDelete = useWatch({ control, name: 'startTimeDelete' })
+  const endTimeDelete = useWatch({ control, name: 'endTimeDelete' })
+  const advancedFilterCount = [
+    startTimeCreate,
+    endTimeCreate,
+    startTimeDelete,
+    endTimeDelete,
+  ].filter(Boolean).length
   const hasActiveFilters =
-    Boolean(formValues.plate?.trim()) ||
-    Boolean(formValues.referenceNumber?.trim()) ||
+    Boolean(plate?.trim()) ||
+    Boolean(referenceNumber?.trim()) ||
     status !== 'all' ||
     source !== 'all' ||
     advancedFilterCount > 0
