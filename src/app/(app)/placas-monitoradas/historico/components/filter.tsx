@@ -308,9 +308,6 @@ export function HistoryFilter() {
         </div>
 
         <div className="ml-auto flex shrink-0 flex-wrap items-end justify-end gap-2">
-          <Button size="sm" type="submit">
-            Aplicar filtros
-          </Button>
           <Popover open={advancedOpen} onOpenChange={setAdvancedOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -326,7 +323,7 @@ export function HistoryFilter() {
                     advancedOpen && 'rotate-180',
                   )}
                 />
-                <span>Mais filtros</span>
+                <span>Período e mais filtros</span>
                 {advancedFilterCount > 0 ? (
                   <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
                     {advancedFilterCount}
@@ -339,7 +336,7 @@ export function HistoryFilter() {
               className="w-[min(32rem,calc(100vw-2rem))] space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Mais filtros</h3>
+                <h3 className="text-sm font-medium">Período e mais filtros</h3>
               </div>
               <div className="flex flex-col space-y-1">
                 <Label className="text-xs text-muted-foreground">
@@ -448,7 +445,7 @@ export function HistoryFilter() {
                   Limpar
                 </Button>
                 <Button type="button" size="sm" onClick={handleApply}>
-                  Aplicar
+                  Aplicar filtros
                 </Button>
               </div>
             </PopoverContent>
@@ -463,6 +460,9 @@ export function HistoryFilter() {
           >
             <X className="h-4 w-4" />
             Limpar
+          </Button>
+          <Button size="sm" type="submit">
+            Aplicar filtros
           </Button>
         </div>
       </div>
