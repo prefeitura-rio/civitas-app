@@ -34,6 +34,8 @@ import type { VehicleType } from '@/models/monitored-plates'
 type AuthorityEntry = {
   institutionAuthority: EmbeddedInstitutionAuthority
   notificationChannels: NotificationChannel[]
+  referenceNumber: string
+  validUntil: string
 }
 
 const VEHICLE_TYPE_LABELS: Record<VehicleType, string> = {
@@ -113,6 +115,8 @@ function buildAuthorityEntries(
       map.set(id, {
         institutionAuthority: authority.institutionAuthority,
         notificationChannels: [...authority.notificationChannels],
+        referenceNumber: authority.referenceNumber,
+        validUntil: authority.validUntil,
       })
     } else {
       const existing = map.get(id)!
@@ -127,6 +131,20 @@ function buildAuthorityEntries(
   return Array.from(map.values())
 }
 
+function filterAuthoritiesByValidUntil(
+  authorities: MonitoredPlateAuthoritySummary[],
+  validUntilTo?: string,
+) {
+  if (!validUntilTo) return authorities
+
+  const endOfDay = new Date(`${validUntilTo}T23:59:59.999`).getTime()
+  if (Number.isNaN(endOfDay)) return authorities
+
+  return authorities.filter(
+    (authority) => new Date(authority.validUntil).getTime() <= endOfDay,
+  )
+}
+
 export function MonitoredPlatesTable() {
   const { formattedSearchParams, queryKey, handlePaginate } =
     useMonitoredPlatesSearchParams()
@@ -139,6 +157,12 @@ export function MonitoredPlatesTable() {
   const [selectedEntry, setSelectedEntry] = useState<AuthorityEntry | null>(
     null,
   )
+  const [selectedEntries, setSelectedEntries] = useState<
+    AuthorityEntry[] | null
+  >(null)
+  const [selectedEntriesPlate, setSelectedEntriesPlate] = useState<
+    string | null
+  >(null)
   const [sortingState, setSortingState] = useState<SortingState>([])
 
   const sortBy = getSortBy(sortingState)
@@ -160,10 +184,12 @@ export function MonitoredPlatesTable() {
         getMonitoredPlates({
           active: formattedSearchParams.active,
           plateContains: formattedSearchParams.plateContains,
+          referenceNumberContains:
+            formattedSearchParams.referenceNumberContains,
+          requestingInstitutionId:
+            formattedSearchParams.requestingInstitutionId,
           institutionAuthorityId: formattedSearchParams.institutionAuthorityId,
-          notificationChannelId: formattedSearchParams.notificationChannelId,
-          startTimeCreate: formattedSearchParams.startTimeCreate,
-          endTimeCreate: formattedSearchParams.endTimeCreate,
+          validUntilTo: formattedSearchParams.validUntilTo,
           page: formattedSearchParams.page,
           size: formattedSearchParams.size,
           sortBy,
@@ -246,7 +272,12 @@ export function MonitoredPlatesTable() {
       header: 'Requisitantes',
       enableSorting: false,
       cell: ({ row }) => {
-        const entries = buildAuthorityEntries(row.original.authorities)
+        const entries = buildAuthorityEntries(
+          filterAuthoritiesByValidUntil(
+            row.original.authorities,
+            formattedSearchParams.validUntilTo,
+          ),
+        )
 
         if (entries.length === 0) {
           return <span className="text-sm text-muted-foreground">Nenhum</span>
@@ -263,10 +294,16 @@ export function MonitoredPlatesTable() {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs"
+                className="h-auto min-h-7 px-2 py-1 text-xs"
                 onClick={() => setSelectedEntry(entry)}
               >
-                {entry.institutionAuthority.name}
+                <span className="flex flex-col items-start">
+                  <span>{entry.institutionAuthority.name}</span>
+                  <span className="text-[11px] font-normal text-muted-foreground">
+                    Ref. {entry.referenceNumber} · Até{' '}
+                    {formatDate(new Date(entry.validUntil), 'dd/MM/yyyy')}
+                  </span>
+                </span>
               </Button>
             ))}
             {hiddenCount > 0 ? (
@@ -275,7 +312,10 @@ export function MonitoredPlatesTable() {
                 variant="outline"
                 size="sm"
                 className="h-7 bg-muted px-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => openEditDialog(row.original.plate)}
+                onClick={() => {
+                  setSelectedEntries(entries)
+                  setSelectedEntriesPlate(row.original.plate)
+                }}
               >
                 +{hiddenCount}
               </Button>
@@ -283,15 +323,6 @@ export function MonitoredPlatesTable() {
           </div>
         )
       },
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Data de criação',
-      enableSorting: true,
-      cell: ({ row }) =>
-        row.original.createdAt
-          ? formatDate(new Date(row.original.createdAt), 'dd/MM/yyyy HH:mm')
-          : ' - ',
     },
     {
       accessorKey: 'updatedAt',
@@ -365,6 +396,66 @@ export function MonitoredPlatesTable() {
           onPageChange={handlePaginate}
         />
       </div>
+
+      <Dialog
+        open={Boolean(selectedEntries)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedEntries(null)
+            setSelectedEntriesPlate(null)
+          }
+        }}
+      >
+        <DialogContent className="overflow-hidden p-0 sm:max-w-xl">
+          <DialogHeader className="border-b bg-muted/20 px-6 py-5">
+            <DialogTitle>Requisitantes vinculados</DialogTitle>
+            <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span>Placa</span>
+              <span className="rounded-md border bg-background px-2 py-0.5 font-mono text-xs font-medium text-foreground">
+                {selectedEntriesPlate ?? ' - '}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>
+                {selectedEntries?.length ?? 0} vínculo
+                {(selectedEntries?.length ?? 0) === 1 ? '' : 's'} ativo
+                {(selectedEntries?.length ?? 0) === 1 ? '' : 's'}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex max-h-[min(32rem,65vh)] flex-col gap-2 overflow-y-auto px-6 py-5">
+            {selectedEntries?.map((entry) => (
+              <Button
+                key={entry.institutionAuthority.id}
+                type="button"
+                variant="ghost"
+                className="group h-auto w-full justify-start whitespace-normal rounded-lg border bg-background p-3 text-left hover:bg-muted/40"
+                onClick={() => {
+                  setSelectedEntries(null)
+                  setSelectedEntriesPlate(null)
+                  setSelectedEntry(entry)
+                }}
+              >
+                <span className="flex min-w-0 flex-col items-start gap-1">
+                  <span className="w-full break-words font-medium text-foreground">
+                    {entry.institutionAuthority.name}
+                  </span>
+                  <span className="w-full break-words text-xs font-normal text-muted-foreground">
+                    {entry.institutionAuthority.requestingInstitution.name}
+                  </span>
+                  <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-normal text-muted-foreground">
+                    <span>Ref. {entry.referenceNumber}</span>
+                    <span>
+                      Válido até{' '}
+                      {formatDate(new Date(entry.validUntil), 'dd/MM/yyyy')}
+                    </span>
+                  </span>
+                </span>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={Boolean(selectedEntry)}

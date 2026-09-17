@@ -266,7 +266,7 @@ export function MonitoredPlateAuthorityLinkDraftEditDialog({
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="draft-edit-ref">Nº de referência</Label>
+              <Label htmlFor="draft-edit-ref">Número de referência</Label>
               <InputError message={fieldErrors.reference} />
             </div>
             <Input
