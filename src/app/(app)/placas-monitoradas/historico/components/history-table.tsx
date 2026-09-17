@@ -41,12 +41,13 @@ export function HistoryTable() {
       accessorKey: 'reference_number',
       header: 'Nº referência',
       enableSorting: true,
-      cell: ({ row }) => row.original.reference_number ?? null,
+      cell: ({ row }) => row.original.reference_number || '—',
     },
     {
       accessorKey: 'notes',
       header: 'Observações',
       enableSorting: true,
+      cell: ({ row }) => row.original.notes || '—',
     },
     {
       accessorKey: 'created_timestamp',
@@ -55,14 +56,14 @@ export function HistoryTable() {
       cell: ({ row }) =>
         row.original.created_timestamp
           ? formatDate(row.original.created_timestamp, 'dd/MM/yyyy HH:mm')
-          : null,
+          : '—',
     },
     {
       id: 'created_by',
       header: 'Criado por',
       enableSorting: true,
       accessorFn: (row) => row.created_by?.full_name,
-      cell: ({ row }) => row.original.created_by?.full_name,
+      cell: ({ row }) => row.original.created_by?.full_name || '—',
     },
     {
       accessorKey: 'deleted_timestamp',
@@ -71,14 +72,14 @@ export function HistoryTable() {
       cell: ({ row }) =>
         row.original.deleted_timestamp
           ? formatDate(row.original.deleted_timestamp, 'dd/MM/yyyy HH:mm')
-          : null,
+          : '—',
     },
     {
       id: 'deleted_by',
       header: 'Desativado por',
       enableSorting: true,
       accessorFn: (row) => row.deleted_by?.full_name,
-      cell: ({ row }) => row.original.deleted_by?.full_name,
+      cell: ({ row }) => row.original.deleted_by?.full_name || '—',
     },
   ]
 
