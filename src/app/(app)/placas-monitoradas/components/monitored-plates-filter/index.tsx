@@ -93,13 +93,13 @@ export function MonitoredPlatesFilter() {
   const skipNextUrlSync = useRef(false)
 
   const [plateContains, setPlateContains] = useState(
-    () => searchParams.get('plateContains') ?? '',
+    () => searchParams.get('plateContains') ?? ''
   )
   const [referenceNumberContains, setReferenceNumberContains] = useState(
-    () => searchParams.get('referenceNumberContains') ?? '',
+    () => searchParams.get('referenceNumberContains') ?? ''
   )
   const [requestingInstitutionId, setRequestingInstitutionId] = useState(
-    () => searchParams.get('requestingInstitutionId') ?? 'all',
+    () => searchParams.get('requestingInstitutionId') ?? 'all'
   )
   const [requestingInstitutionName, setRequestingInstitutionName] = useState('')
   const [requestingInstitutionSearch, setRequestingInstitutionSearch] =
@@ -107,7 +107,7 @@ export function MonitoredPlatesFilter() {
   const [isRequestingInstitutionOpen, setIsRequestingInstitutionOpen] =
     useState(false)
   const [institutionAuthorityId, setInstitutionAuthorityId] = useState(
-    () => searchParams.get('institutionAuthorityId') ?? 'all',
+    () => searchParams.get('institutionAuthorityId') ?? 'all'
   )
   const [institutionAuthorityName, setInstitutionAuthorityName] = useState('')
   const [institutionAuthoritySearch, setInstitutionAuthoritySearch] =
@@ -115,20 +115,20 @@ export function MonitoredPlatesFilter() {
   const [isAuthorityOpen, setIsAuthorityOpen] = useState(false)
 
   const [active, setActive] = useState<ActiveFilter>(() =>
-    readActiveParam(searchParams.get('active')),
+    readActiveParam(searchParams.get('active'))
   )
   const [endValidUntil, setEndValidUntil] = useState<Date | undefined>(() =>
-    parseDateOnly(readValidUntilToParam(searchParams)),
+    parseDateOnly(readValidUntilToParam(searchParams))
   )
 
   const debouncedPlateContains = useDebounce(plateContains, 350)
   const debouncedReferenceNumberContains = useDebounce(
     referenceNumberContains,
-    350,
+    350
   )
   const debouncedRequestingInstitutionSearch = useDebounce(
     requestingInstitutionSearch,
-    350,
+    350
   )
   const debouncedAuthoritySearch = useDebounce(institutionAuthoritySearch, 350)
 
@@ -190,7 +190,7 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     if (requestingInstitutionId === 'all' || requestingInstitutionName) return
     const match = requestingInstitutionOptions.find(
-      (item) => item.id === requestingInstitutionId,
+      (item) => item.id === requestingInstitutionId
     )
     if (match) setRequestingInstitutionName(match.label)
   }, [
@@ -202,7 +202,7 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     if (institutionAuthorityId === 'all' || institutionAuthorityName) return
     const match = authorityOptions.find(
-      (item) => item.id === institutionAuthorityId,
+      (item) => item.id === institutionAuthorityId
     )
     if (match) setInstitutionAuthorityName(match.label)
   }, [authorityOptions, institutionAuthorityId, institutionAuthorityName])
@@ -215,13 +215,13 @@ export function MonitoredPlatesFilter() {
 
     setPlateContains(searchParams.get('plateContains') ?? '')
     setReferenceNumberContains(
-      searchParams.get('referenceNumberContains') ?? '',
+      searchParams.get('referenceNumberContains') ?? ''
     )
     setRequestingInstitutionId(
-      searchParams.get('requestingInstitutionId') ?? 'all',
+      searchParams.get('requestingInstitutionId') ?? 'all'
     )
     setInstitutionAuthorityId(
-      searchParams.get('institutionAuthorityId') ?? 'all',
+      searchParams.get('institutionAuthorityId') ?? 'all'
     )
     setActive(readActiveParam(searchParams.get('active')))
     setEndValidUntil(parseDateOnly(readValidUntilToParam(searchParams)))
@@ -295,7 +295,7 @@ export function MonitoredPlatesFilter() {
   }
 
   return (
-    <div className="grid gap-3 rounded-md border bg-background/40 p-3 md:grid-cols-[minmax(9rem,0.9fr)_minmax(11rem,1fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(11rem,1fr)_auto] md:items-end">
+    <div className="grid gap-3 rounded-md border bg-background/40 p-3 sm:grid-cols-2 lg:grid-cols-3 lg:items-end xl:grid-cols-[minmax(9rem,0.9fr)_minmax(11rem,1fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(11rem,1fr)_auto]">
       <div className="space-y-1.5">
         <Label htmlFor="monitored-plates-plate">Placa</Label>
         <div className="relative">
@@ -307,7 +307,7 @@ export function MonitoredPlatesFilter() {
               setPlateContains(event.target.value.toUpperCase())
             }
             placeholder="ABC1D23"
-            className="pl-9 uppercase"
+            className="h-11 pl-9 uppercase"
             autoComplete="off"
           />
         </div>
@@ -322,6 +322,7 @@ export function MonitoredPlatesFilter() {
           value={referenceNumberContains}
           onChange={(event) => setReferenceNumberContains(event.target.value)}
           placeholder="Número de referência"
+          className="h-11"
           autoComplete="off"
         />
       </div>
@@ -390,7 +391,7 @@ export function MonitoredPlatesFilter() {
           onChange={(date) => {
             setEndValidUntil(date instanceof Date ? date : undefined)
           }}
-          className="h-9 w-full"
+          className="h-11 w-full"
         />
       </div>
 
@@ -400,7 +401,7 @@ export function MonitoredPlatesFilter() {
           value={active}
           onValueChange={(value: ActiveFilter) => setActive(value)}
         >
-          <SelectTrigger id="monitored-plates-active">
+          <SelectTrigger id="monitored-plates-active" className="h-11">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -416,7 +417,7 @@ export function MonitoredPlatesFilter() {
         variant="outline"
         onClick={clearFilters}
         disabled={!hasActiveFilters}
-        className="gap-2"
+        className="h-11 gap-2"
       >
         <X className="h-4 w-4" />
         Limpar

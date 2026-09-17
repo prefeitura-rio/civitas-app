@@ -70,8 +70,8 @@ export function MonitoredPlatesFilterCombobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'w-full justify-between',
-            isAll && 'text-muted-foreground',
+            'h-11 w-full justify-between',
+            isAll && 'text-muted-foreground'
           )}
         >
           <span className="truncate">{isAll ? allLabel : valueLabel}</span>
@@ -107,7 +107,7 @@ export function MonitoredPlatesFilterCombobox({
                 <Check
                   className={cn(
                     'ml-auto h-4 w-4',
-                    isAll ? 'opacity-100' : 'opacity-0',
+                    isAll ? 'opacity-100' : 'opacity-0'
                   )}
                 />
               </CommandItem>
@@ -124,7 +124,7 @@ export function MonitoredPlatesFilterCombobox({
                   <Check
                     className={cn(
                       'ml-auto h-4 w-4',
-                      valueId === item.id ? 'opacity-100' : 'opacity-0',
+                      valueId === item.id ? 'opacity-100' : 'opacity-0'
                     )}
                   />
                 </CommandItem>

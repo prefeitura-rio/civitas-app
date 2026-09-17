@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { PencilLine, Trash } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import {
@@ -87,7 +88,7 @@ const sortableColumns = {
 } as const satisfies Record<string, MonitoredPlatesSortBy>
 
 function getSortBy(
-  sortingState: SortingState,
+  sortingState: SortingState
 ): MonitoredPlatesSortBy | undefined {
   const columnId = sortingState[0]?.id
   if (!columnId) return undefined
@@ -95,7 +96,7 @@ function getSortBy(
 }
 
 function getSortDirection(
-  sortingState: SortingState,
+  sortingState: SortingState
 ): SortDirection | undefined {
   const sort = sortingState[0]
   if (!sort) return undefined
@@ -103,7 +104,7 @@ function getSortDirection(
 }
 
 function buildAuthorityEntries(
-  authorities: MonitoredPlateAuthoritySummary[],
+  authorities: MonitoredPlateAuthoritySummary[]
 ): AuthorityEntry[] {
   const map = new Map<string, AuthorityEntry>()
 
@@ -133,7 +134,7 @@ function buildAuthorityEntries(
 
 function filterAuthoritiesByValidUntil(
   authorities: MonitoredPlateAuthoritySummary[],
-  validUntilTo?: string,
+  validUntilTo?: string
 ) {
   if (!validUntilTo) return authorities
 
@@ -141,7 +142,7 @@ function filterAuthoritiesByValidUntil(
   if (Number.isNaN(endOfDay)) return authorities
 
   return authorities.filter(
-    (authority) => new Date(authority.validUntil).getTime() <= endOfDay,
+    (authority) => new Date(authority.validUntil).getTime() <= endOfDay
   )
 }
 
@@ -155,7 +156,7 @@ export function MonitoredPlatesTable() {
     deleteAlertDisclosure,
   } = useMonitoredPlates()
   const [selectedEntry, setSelectedEntry] = useState<AuthorityEntry | null>(
-    null,
+    null
   )
   const [selectedEntries, setSelectedEntries] = useState<
     AuthorityEntry[] | null
@@ -169,51 +170,60 @@ export function MonitoredPlatesTable() {
   const sortDirection = getSortDirection(sortingState)
 
   const handleSortingChange = (
-    updater: SortingState | ((prev: SortingState) => SortingState),
+    updater: SortingState | ((prev: SortingState) => SortingState)
   ) => {
     setSortingState((current) =>
-      typeof updater === 'function' ? updater(current) : updater,
+      typeof updater === 'function' ? updater(current) : updater
     )
     handlePaginate(1)
   }
 
-  const { data: monitoredPlatesResponse, isLoading: isMonitoredPlatesLoading } =
-    useQuery({
-      queryKey: [...queryKey, sortBy, sortDirection],
-      queryFn: () =>
-        getMonitoredPlates({
-          active: formattedSearchParams.active,
-          plateContains: formattedSearchParams.plateContains,
-          referenceNumberContains:
-            formattedSearchParams.referenceNumberContains,
-          requestingInstitutionId:
-            formattedSearchParams.requestingInstitutionId,
-          institutionAuthorityId: formattedSearchParams.institutionAuthorityId,
-          validUntilTo: formattedSearchParams.validUntilTo,
-          page: formattedSearchParams.page,
-          size: formattedSearchParams.size,
-          sortBy,
-          sortDirection,
-        }),
-    })
+  const {
+    data: monitoredPlatesResponse,
+    isError: isMonitoredPlatesError,
+    isLoading: isMonitoredPlatesLoading,
+    refetch: refetchMonitoredPlates,
+  } = useQuery({
+    queryKey: [...queryKey, sortBy, sortDirection],
+    queryFn: () =>
+      getMonitoredPlates({
+        active: formattedSearchParams.active,
+        plateContains: formattedSearchParams.plateContains,
+        referenceNumberContains: formattedSearchParams.referenceNumberContains,
+        requestingInstitutionId: formattedSearchParams.requestingInstitutionId,
+        institutionAuthorityId: formattedSearchParams.institutionAuthorityId,
+        validUntilTo: formattedSearchParams.validUntilTo,
+        page: formattedSearchParams.page,
+        size: formattedSearchParams.size,
+        sortBy,
+        sortDirection,
+      }),
+  })
 
   const data = monitoredPlatesResponse?.data
 
-  const openEditDialog = (plate: MonitoredPlateReadModel['plate']) => {
-    setDialogInitialData({ plate })
-    formDialogDisclosure.onOpen()
-  }
+  const openEditDialog = useCallback(
+    (plate: MonitoredPlateReadModel['plate']) => {
+      setDialogInitialData({ plate })
+      formDialogDisclosure.onOpen()
+    },
+    [formDialogDisclosure, setDialogInitialData]
+  )
 
-  const { data: authorityDetail, isLoading: isAuthorityDetailLoading } =
-    useQuery({
-      queryKey: [
-        'institution-authorities',
-        selectedEntry?.institutionAuthority.id,
-      ],
-      queryFn: () =>
-        getInstitutionAuthority({ id: selectedEntry!.institutionAuthority.id }),
-      enabled: Boolean(selectedEntry?.institutionAuthority.id),
-    })
+  const {
+    data: authorityDetail,
+    isError: isAuthorityDetailError,
+    isLoading: isAuthorityDetailLoading,
+    refetch: refetchAuthorityDetail,
+  } = useQuery({
+    queryKey: [
+      'institution-authorities',
+      selectedEntry?.institutionAuthority.id,
+    ],
+    queryFn: () =>
+      getInstitutionAuthority({ id: selectedEntry!.institutionAuthority.id }),
+    enabled: Boolean(selectedEntry?.institutionAuthority.id),
+  })
 
   const displayedAuthority =
     authorityDetail ?? selectedEntry?.institutionAuthority
@@ -222,173 +232,214 @@ export function MonitoredPlatesTable() {
   const pageSize = formattedSearchParams.size ?? 10
   const paginatedItems = data?.items ?? []
   const total = data?.total ?? 0
-
-  const columns: ColumnDef<MonitoredPlateReadModel>[] = [
-    {
-      accessorKey: 'plate',
-      header: 'Placa',
-      enableSorting: true,
-    },
-    {
-      accessorKey: 'active',
-      header: 'Status',
-      enableSorting: true,
-      cell: ({ row }) => (row.original.active ? 'Ativa' : 'Inativa'),
-    },
-    {
-      accessorKey: 'notes',
-      header: 'Observações',
-      enableSorting: false,
-      cell: ({ row }) => row.original.notes || ' - ',
-    },
-    // TODO: remove after monitored plate authority is fully implemented
-    {
-      accessorKey: 'contactInfo',
-      header: 'Informações de contato [LEGADO]',
-      enableSorting: false,
-      cell: ({ row }) => row.original.contactInfo || ' - ',
-    },
-    {
-      id: 'vehicle',
-      header: 'Veículo',
-      enableSorting: false,
-      cell: ({ row }) => {
-        const { line1, line2 } = formatVehicleSummary(row.original)
-        if (!line1 && !line2) {
-          return <span className="text-sm text-muted-foreground"> - </span>
-        }
-        return (
-          <div className="flex flex-col gap-0.5 text-sm">
-            {line1 ? <span>{line1}</span> : null}
-            {line2 ? (
-              <span className="text-muted-foreground">{line2}</span>
-            ) : null}
-          </div>
-        )
-      },
-    },
-    {
-      id: 'authorities',
-      header: 'Requisitantes',
-      enableSorting: false,
-      cell: ({ row }) => {
-        const entries = buildAuthorityEntries(
-          filterAuthoritiesByValidUntil(
-            row.original.authorities,
-            formattedSearchParams.validUntilTo,
+  const authorityEntriesByPlate = useMemo(
+    () =>
+      new Map(
+        paginatedItems.map((plate) => [
+          plate.plate,
+          buildAuthorityEntries(
+            filterAuthoritiesByValidUntil(
+              plate.authorities,
+              formattedSearchParams.validUntilTo
+            )
           ),
-        )
+        ])
+      ),
+    [formattedSearchParams.validUntilTo, paginatedItems]
+  )
 
-        if (entries.length === 0) {
-          return <span className="text-sm text-muted-foreground">Nenhum</span>
-        }
-
-        const visibleEntries = entries.slice(0, 2)
-        const hiddenCount = entries.length - visibleEntries.length
-
-        return (
-          <div className="flex flex-wrap gap-1">
-            {visibleEntries.map((entry) => (
-              <Button
-                key={entry.institutionAuthority.id}
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-auto min-h-7 px-2 py-1 text-xs"
-                onClick={() => setSelectedEntry(entry)}
-              >
-                <span className="flex flex-col items-start">
-                  <span>{entry.institutionAuthority.name}</span>
-                  <span className="text-[11px] font-normal text-muted-foreground">
-                    Ref. {entry.referenceNumber} · Até{' '}
-                    {formatDate(new Date(entry.validUntil), 'dd/MM/yyyy')}
-                  </span>
-                </span>
-              </Button>
-            ))}
-            {hiddenCount > 0 ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 bg-muted px-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setSelectedEntries(entries)
-                  setSelectedEntriesPlate(row.original.plate)
-                }}
-              >
-                +{hiddenCount}
-              </Button>
-            ) : null}
-          </div>
-        )
+  const columns = useMemo<ColumnDef<MonitoredPlateReadModel>[]>(
+    () => [
+      {
+        accessorKey: 'plate',
+        header: 'Placa',
+        enableSorting: true,
       },
-    },
-    {
-      accessorKey: 'updatedAt',
-      header: 'Última atualização',
-      enableSorting: true,
-      cell: ({ row }) =>
-        row.original.updatedAt
-          ? formatDate(new Date(row.original.updatedAt), 'dd/MM/yyyy HH:mm')
-          : ' - ',
-    },
-    {
-      id: 'actions',
-      header: () => (
-        <div className="flex justify-end">
-          <p className="w-[4.5rem] text-center">Ações</p>
-        </div>
-      ),
-      enableSorting: false,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <div className="flex items-center gap-2">
-            <Tooltip text="Editar" asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                type="button"
-                onClick={() => openEditDialog(row.original.plate)}
-              >
-                <span className="sr-only">Editar linha</span>
-                <PencilLine className="h-4 w-4" />
-              </Button>
-            </Tooltip>
-            <Tooltip text="Desativar vínculos" asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                type="button"
-                onClick={() => {
-                  setOnDeleteMonitoredPlateProps({
-                    plate: row.original.plate,
-                  })
-                  deleteAlertDisclosure.onOpen()
-                }}
-              >
-                <span className="sr-only">Desativar vínculos da linha</span>
-                <Trash className="h-4 w-4" />
-              </Button>
-            </Tooltip>
+      {
+        accessorKey: 'active',
+        header: 'Status',
+        enableSorting: true,
+        cell: ({ row }) => (row.original.active ? 'Ativa' : 'Inativa'),
+      },
+      {
+        accessorKey: 'notes',
+        header: 'Observações',
+        enableSorting: false,
+        cell: ({ row }) => row.original.notes || ' - ',
+      },
+      // TODO: remove after monitored plate authority is fully implemented
+      {
+        accessorKey: 'contactInfo',
+        header: 'Informações de contato [LEGADO]',
+        enableSorting: false,
+        cell: ({ row }) => row.original.contactInfo || ' - ',
+      },
+      {
+        id: 'vehicle',
+        header: 'Veículo',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const { line1, line2 } = formatVehicleSummary(row.original)
+          if (!line1 && !line2) {
+            return <span className="text-sm text-muted-foreground"> - </span>
+          }
+          return (
+            <div className="flex flex-col gap-0.5 text-sm">
+              {line1 ? <span>{line1}</span> : null}
+              {line2 ? (
+                <span className="text-muted-foreground">{line2}</span>
+              ) : null}
+            </div>
+          )
+        },
+      },
+      {
+        id: 'authorities',
+        header: 'Requisitantes',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const entries = authorityEntriesByPlate.get(row.original.plate) ?? []
+
+          if (entries.length === 0) {
+            return <span className="text-sm text-muted-foreground">Nenhum</span>
+          }
+
+          const visibleEntries = entries.slice(0, 2)
+          const hiddenCount = entries.length - visibleEntries.length
+
+          return (
+            <div className="flex flex-wrap gap-1">
+              {visibleEntries.map((entry) => (
+                <Button
+                  key={entry.institutionAuthority.id}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-auto min-h-11 px-2 py-1 text-xs"
+                  onClick={() => setSelectedEntry(entry)}
+                >
+                  <span className="flex flex-col items-start">
+                    <span>{entry.institutionAuthority.name}</span>
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      Ref. {entry.referenceNumber} · Até{' '}
+                      {formatDate(new Date(entry.validUntil), 'dd/MM/yyyy')}
+                    </span>
+                  </span>
+                </Button>
+              ))}
+              {hiddenCount > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-11 min-w-11 bg-muted px-2 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSelectedEntries(entries)
+                    setSelectedEntriesPlate(row.original.plate)
+                  }}
+                >
+                  +{hiddenCount}
+                </Button>
+              ) : null}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'updatedAt',
+        header: 'Última atualização',
+        enableSorting: true,
+        cell: ({ row }) =>
+          row.original.updatedAt
+            ? formatDate(new Date(row.original.updatedAt), 'dd/MM/yyyy HH:mm')
+            : ' - ',
+      },
+      {
+        id: 'actions',
+        header: () => (
+          <div className="flex justify-end">
+            <p className="w-[4.5rem] text-center">Ações</p>
           </div>
-        </div>
-      ),
-    },
-  ]
+        ),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <div className="flex items-center gap-2">
+              <Tooltip text="Editar" asChild>
+                <Button
+                  variant="ghost"
+                  className="h-11 w-11 p-0"
+                  type="button"
+                  onClick={() => openEditDialog(row.original.plate)}
+                >
+                  <span className="sr-only">Editar linha</span>
+                  <PencilLine className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+              <Tooltip text="Desativar vínculos" asChild>
+                <Button
+                  variant="ghost"
+                  className="h-11 w-11 p-0"
+                  type="button"
+                  onClick={() => {
+                    setOnDeleteMonitoredPlateProps({
+                      plate: row.original.plate,
+                    })
+                    deleteAlertDisclosure.onOpen()
+                  }}
+                >
+                  <span className="sr-only">Desativar vínculos da linha</span>
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
+        ),
+      },
+    ],
+    [
+      authorityEntriesByPlate,
+      deleteAlertDisclosure,
+      formDialogDisclosure,
+      openEditDialog,
+      setDialogInitialData,
+      setOnDeleteMonitoredPlateProps,
+    ]
+  )
 
   return (
     <>
       <div className="flex flex-col gap-8">
-        <DataTable
-          columns={columns}
-          data={paginatedItems}
-          isLoading={isMonitoredPlatesLoading}
-          sorting
-          sortingState={sortingState}
-          onSortingChange={handleSortingChange}
-          manualSorting
-        />
+        {isMonitoredPlatesError ? (
+          <Alert variant="destructive">
+            <AlertTitle>
+              Não foi possível carregar as placas monitoradas.
+            </AlertTitle>
+            <AlertDescription className="flex flex-wrap items-center gap-3">
+              Tente novamente. Se o problema continuar, verifique sua conexão.
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => refetchMonitoredPlates()}
+              >
+                Tentar novamente
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={paginatedItems}
+            isLoading={isMonitoredPlatesLoading}
+            sorting
+            sortingState={sortingState}
+            onSortingChange={handleSortingChange}
+            manualSorting
+            tableClassName="min-w-[72rem]"
+            emptyMessage="Nenhuma placa monitorada encontrada para os filtros atuais."
+          />
+        )}
         <Pagination
           page={currentPage}
           total={total}
@@ -477,6 +528,21 @@ export function MonitoredPlatesTable() {
             <div className="flex items-center justify-center py-6">
               <Spinner className="size-5" />
             </div>
+          ) : isAuthorityDetailError ? (
+            <Alert variant="destructive" className="m-6">
+              <AlertTitle>Não foi possível carregar os dados.</AlertTitle>
+              <AlertDescription className="flex flex-wrap items-center gap-3">
+                Tente novamente para consultar o requisitante.
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => refetchAuthorityDetail()}
+                >
+                  Tentar novamente
+                </Button>
+              </AlertDescription>
+            </Alert>
           ) : displayedAuthority ? (
             <div className="flex flex-col gap-3 text-sm">
               <div>
@@ -498,7 +564,7 @@ export function MonitoredPlatesTable() {
                   .filter(
                     (value): value is string =>
                       Boolean(value) &&
-                      value !== displayedAuthority.primaryContact?.phone?.phone,
+                      value !== displayedAuthority.primaryContact?.phone?.phone
                   )
                   .join(', ') || ' - '}
               </div>
@@ -509,7 +575,7 @@ export function MonitoredPlatesTable() {
                   .filter(
                     (value): value is string =>
                       Boolean(value) &&
-                      value !== displayedAuthority.primaryContact?.email?.email,
+                      value !== displayedAuthority.primaryContact?.email?.email
                   )
                   .join(', ') || ' - '}
               </div>

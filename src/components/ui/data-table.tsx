@@ -12,6 +12,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
+import type { ReactNode } from 'react'
 // import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 
@@ -42,6 +43,8 @@ interface DataTableProps<TData, TValue> {
   sortingState?: SortingState
   onSortingChange?: OnChangeFn<SortingState>
   manualSorting?: boolean
+  emptyMessage?: ReactNode
+  tableClassName?: string
 }
 
 function SortIcon({ direction }: { direction: false | 'asc' | 'desc' }) {
@@ -60,6 +63,8 @@ export function DataTable<TData, TValue>({
   sortingState,
   onSortingChange,
   manualSorting = false,
+  emptyMessage = 'Nenhum resultado.',
+  tableClassName,
 }: DataTableProps<TData, TValue>) {
   const [internalSortingState, setInternalSortingState] =
     useState<SortingState>([])
@@ -84,7 +89,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="w-full">
       <div className="rounded-md border">
-        <Table>
+        <Table className={tableClassName}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -98,20 +103,20 @@ export function DataTable<TData, TValue>({
                           type="button"
                           className={cn(
                             'flex items-center gap-2 text-left font-medium',
-                            'cursor-pointer select-none hover:text-foreground',
+                            'cursor-pointer select-none hover:text-foreground'
                           )}
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                           <SortIcon direction={header.column.getIsSorted()} />
                         </button>
                       ) : (
                         flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )
                       )}
                     </TableHead>
@@ -131,7 +136,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext(),
+                        cell.getContext()
                       )}
                     </TableCell>
                   ))}
@@ -151,7 +156,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Nenhum resultado.
+                  {emptyMessage}
                 </TableCell>
               </TableRow>
             )}
