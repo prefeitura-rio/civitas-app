@@ -303,7 +303,7 @@ export function HistoryFilter() {
             htmlFor="referenceNumber"
             className="text-xs text-muted-foreground"
           >
-            Nº de referência
+            Número de referência
           </Label>
           <Input
             className="h-10 w-full sm:h-9 sm:w-48"
