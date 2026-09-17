@@ -1,7 +1,11 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
-import type { GetMonitoredPlatesHistoryProps } from '@/http/cars/monitored/get-monitored-plates-history'
+import type {
+  GetMonitoredPlatesHistoryProps,
+  MonitoredPlateHistorySortBy,
+  MonitoredPlateHistorySortDirection,
+} from '@/http/cars/monitored/get-monitored-plates-history'
 
 type MonitoredPlatesQueryKey = [
   'cars',
@@ -15,6 +19,10 @@ interface UseMonitoredPlatesSearchParamsReturn {
   formattedSearchParams: GetMonitoredPlatesHistoryProps
   queryKey: MonitoredPlatesQueryKey
   handlePaginate: (index: number) => void
+  handleSorting: (
+    sortBy?: MonitoredPlateHistorySortBy,
+    sortDirection?: MonitoredPlateHistorySortDirection,
+  ) => void
 }
 
 export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearchParamsReturn {
@@ -30,6 +38,12 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
+  const sortBy = (searchParams.get('sortBy') || undefined) as
+    | MonitoredPlateHistorySortBy
+    | undefined
+  const sortDirection = (searchParams.get('sortDirection') || undefined) as
+    | MonitoredPlateHistorySortDirection
+    | undefined
 
   const formattedSearchParams: GetMonitoredPlatesHistoryProps = {
     plate,
@@ -39,6 +53,8 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     endTimeDelete,
     page,
     size,
+    sortBy,
+    sortDirection,
   }
 
   function handlePaginate(index: number) {
@@ -55,9 +71,28 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     router.push(`${pathName}?${params.toString()}`)
   }
 
+  function handleSorting(
+    nextSortBy?: MonitoredPlateHistorySortBy,
+    nextSortDirection?: MonitoredPlateHistorySortDirection,
+  ) {
+    const params = new URLSearchParams(searchParams.toString())
+
+    if (nextSortBy && nextSortDirection) {
+      params.set('sortBy', nextSortBy)
+      params.set('sortDirection', nextSortDirection)
+    } else {
+      params.delete('sortBy')
+      params.delete('sortDirection')
+    }
+
+    params.set('page', '1')
+    router.push(`${pathName}?${params.toString()}`)
+  }
+
   return {
     searchParams,
     handlePaginate,
+    handleSorting,
     formattedSearchParams,
     queryKey: ['cars', 'monitored', 'history', formattedSearchParams],
   }

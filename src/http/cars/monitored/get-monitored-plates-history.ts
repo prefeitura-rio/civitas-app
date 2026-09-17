@@ -2,6 +2,19 @@ import { api } from '@/lib/api'
 import type { MonitoredPlateHistoryItem } from '@/models/entities'
 import type { PaginationResponse } from '@/models/pagination'
 
+export type MonitoredPlateHistorySortBy =
+  | 'activity_timestamp'
+  | 'source'
+  | 'plate'
+  | 'reference_number'
+  | 'notes'
+  | 'created_timestamp'
+  | 'created_by'
+  | 'deleted_timestamp'
+  | 'deleted_by'
+
+export type MonitoredPlateHistorySortDirection = 'asc' | 'desc'
+
 export interface GetMonitoredPlatesHistoryProps {
   plate?: string
   startTimeCreate?: string
@@ -10,6 +23,8 @@ export interface GetMonitoredPlatesHistoryProps {
   endTimeDelete?: string
   page?: number
   size?: number
+  sortBy?: MonitoredPlateHistorySortBy
+  sortDirection?: MonitoredPlateHistorySortDirection
 }
 
 interface GetMonitoredPlatesHistoryResponse extends PaginationResponse {
@@ -30,6 +45,8 @@ export async function getMonitoredPlatesHistory(
         end_time_delete: props.endTimeDelete,
         page: props.page,
         size: props.size,
+        sort_by: props.sortBy,
+        sort_direction: props.sortDirection,
       },
     },
   )
