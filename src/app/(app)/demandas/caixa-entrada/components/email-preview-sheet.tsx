@@ -32,6 +32,7 @@ import {
 import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsSpam } from '@/http/emails/mark-email-spam'
 import { cn } from '@/lib/utils'
+import { canPreviewAttachment } from '@/utils/can-preview-attachment'
 
 import styles from './email-preview-sheet.module.css'
 
@@ -55,27 +56,6 @@ function formatBytes(bytes: number): string {
   if (kb < 1024) return `${kb.toFixed(1)} KB`
   const mb = kb / 1024
   return `${mb.toFixed(1)} MB`
-}
-
-const PREVIEWABLE_ATTACHMENT_EXTENSIONS = new Set([
-  '.pdf',
-  '.jpeg',
-  '.jpg',
-  '.png',
-  '.gif',
-  '.webp',
-])
-
-function canPreviewAttachment(attachment: AttachmentOut) {
-  const mimeType = attachment.mime_type.toLowerCase()
-  if (mimeType === 'application/pdf' || mimeType.startsWith('image/')) {
-    return true
-  }
-
-  const dot = attachment.filename.lastIndexOf('.')
-  const extension =
-    dot === -1 ? '' : attachment.filename.slice(dot).toLowerCase()
-  return PREVIEWABLE_ATTACHMENT_EXTENSIONS.has(extension)
 }
 
 export interface EmailPreviewSheetProps {
@@ -314,7 +294,7 @@ export function EmailPreviewSheet({
                           </div>
                         </div>
                         <div className={styles.attachmentActions}>
-                          {canPreviewAttachment(att) ? (
+                          {canPreviewAttachment(att.filename) ? (
                             <button
                               type="button"
                               className={styles.downloadBtn}

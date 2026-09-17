@@ -17,9 +17,9 @@ export interface Card {
   subCards: SubCard[]
 }
 
-export const changelog: Card[] = [ 
+export const changelog: Card[] = [
   {
-    title: '18 de Setembro de 2026',
+    title: '17 de Setembro de 2026',
     subCards: [
       {
         tag: 'Alterado',
@@ -32,9 +32,9 @@ export const changelog: Card[] = [
             </p>
             <ul>
               <li>
-                Além de <code>PDF</code>, <code>DOC</code>, <code>DOCX</code>, agora podem ser anexados documentos
-                <code>XLS</code>,
-                <code>XLSX</code>, <code>JPEG</code>,
+                Além de <code>PDF</code>, <code>DOC</code>, <code>DOCX</code>,
+                agora podem ser anexados documentos
+                <code>XLS</code>,<code>XLSX</code>, <code>JPEG</code>,
                 <code>JPG</code> e <code>PNG</code>.
               </li>
               <li>
