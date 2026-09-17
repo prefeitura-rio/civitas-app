@@ -7,7 +7,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
@@ -83,8 +82,6 @@ export function HistoryFilter() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathName = usePathname()
-  const skipPlateSync = useRef(false)
-  const skipReferenceSync = useRef(true)
   const advancedOpenInitialized = useRef(false)
 
   const [startCreateDate, setStartCreateDate] = useState<Date | undefined>()
@@ -111,22 +108,14 @@ export function HistoryFilter() {
   const status = watch('status')
   const source = watch('source')
   const formValues = watch()
-  const debouncedPlate = useDebounce(
-    formValues.plate?.trim().toUpperCase() ?? '',
-    350,
-  )
-  const debouncedReferenceNumber = useDebounce(
-    formValues.referenceNumber?.trim() ?? '',
-    350,
-  )
 
   const advancedFilterCount = useMemo(
     () => countAdvancedFilters(formValues),
     [formValues],
   )
   const hasActiveFilters =
-    Boolean(debouncedPlate) ||
-    Boolean(debouncedReferenceNumber) ||
+    Boolean(formValues.plate?.trim()) ||
+    Boolean(formValues.referenceNumber?.trim()) ||
     status !== 'all' ||
     source !== 'all' ||
     advancedFilterCount > 0
@@ -178,54 +167,13 @@ export function HistoryFilter() {
     }
   }, [reset, searchParams])
 
-  useEffect(() => {
-    if (skipReferenceSync.current) {
-      skipReferenceSync.current = false
-      return
-    }
-
-    const currentReferenceNumber = searchParams.get('referenceNumber') ?? ''
-    if (currentReferenceNumber === debouncedReferenceNumber) return
-
-    const params = new URLSearchParams(searchParams.toString())
-    if (debouncedReferenceNumber) {
-      params.set('referenceNumber', debouncedReferenceNumber)
-    } else {
-      params.delete('referenceNumber')
-    }
-    params.set('page', '1')
-    router.replace(`${pathName}?${params.toString()}`)
-  }, [debouncedReferenceNumber, pathName, router, searchParams])
-
   function handleSelectFilterChange(name: 'status' | 'source', value: string) {
-    setValue(name, value as FilterForm[typeof name])
-
-    const params = new URLSearchParams(searchParams.toString())
-    if (value === 'all') params.delete(name)
-    else params.set(name, value)
-    params.set('page', '1')
-    router.replace(`${pathName}?${params.toString()}`)
+    setValue(name, value as FilterForm[typeof name], {
+      shouldDirty: true,
+    })
   }
 
-  useEffect(() => {
-    if (skipPlateSync.current) {
-      skipPlateSync.current = false
-      return
-    }
-
-    const currentPlate = searchParams.get('plate') ?? ''
-    if (currentPlate === debouncedPlate) return
-
-    const params = new URLSearchParams(searchParams.toString())
-    if (debouncedPlate) params.set('plate', debouncedPlate)
-    else params.delete('plate')
-    params.set('page', '1')
-    router.replace(`${pathName}?${params.toString()}`)
-  }, [debouncedPlate, pathName, router, searchParams])
-
   function handleClearFilters() {
-    skipPlateSync.current = true
-    skipReferenceSync.current = true
     setAdvancedOpen(false)
     reset({
       plate: '',
@@ -307,12 +255,14 @@ export function HistoryFilter() {
         </div>
 
         <div className="shrink-0">
-          <Label className="text-xs text-muted-foreground">Status</Label>
+          <Label htmlFor="status" className="text-xs text-muted-foreground">
+            Status
+          </Label>
           <Select
             value={status}
             onValueChange={(value) => handleSelectFilterChange('status', value)}
           >
-            <SelectTrigger className="h-9 w-36">
+            <SelectTrigger id="status" className="h-9 w-36">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
@@ -324,12 +274,14 @@ export function HistoryFilter() {
         </div>
 
         <div className="shrink-0">
-          <Label className="text-xs text-muted-foreground">Origem</Label>
+          <Label htmlFor="source" className="text-xs text-muted-foreground">
+            Origem
+          </Label>
           <Select
             value={source}
             onValueChange={(value) => handleSelectFilterChange('source', value)}
           >
-            <SelectTrigger className="h-9 w-36">
+            <SelectTrigger id="source" className="h-9 w-36">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
@@ -356,6 +308,9 @@ export function HistoryFilter() {
         </div>
 
         <div className="ml-auto flex shrink-0 flex-wrap items-end justify-end gap-2">
+          <Button size="sm" type="submit">
+            Aplicar filtros
+          </Button>
           <Popover open={advancedOpen} onOpenChange={setAdvancedOpen}>
             <PopoverTrigger asChild>
               <Button

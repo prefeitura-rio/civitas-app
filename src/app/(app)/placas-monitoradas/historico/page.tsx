@@ -6,7 +6,7 @@ export default function RequestsHistory() {
   return (
     <div className="page-content space-y-4 overflow-y-scroll">
       <Breadcrumbs />
-      <h2>Placas Monitoradas</h2>
+      <h2>Histórico de placas monitoradas</h2>
       <HistoryFilter />
       <HistoryTable />
     </div>

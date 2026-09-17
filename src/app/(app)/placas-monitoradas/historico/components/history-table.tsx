@@ -38,8 +38,14 @@ export function HistoryTable() {
       enableSorting: true,
     },
     {
+      id: 'status',
+      header: 'Status',
+      cell: ({ row }) =>
+        row.original.deleted_timestamp ? 'Desativada' : 'Ativa',
+    },
+    {
       accessorKey: 'reference_number',
-      header: 'Nº referência',
+      header: 'Número de referência',
       enableSorting: true,
       cell: ({ row }) => row.original.reference_number || '—',
     },
