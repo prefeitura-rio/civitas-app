@@ -52,6 +52,7 @@ import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoL
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
+import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
@@ -83,16 +84,6 @@ const ATTACHMENT_EXTENSIONS_WITHOUT_PREVIEW = new Set([
   '.xls',
   '.xlsx',
 ])
-
-const ATTACHMENT_EXTENSIONS_BLOCKED = new Set(['.mp4', '.mov'])
-
-function isBlockedEmailAttachment(filename?: string) {
-  if (!filename) return false
-  const dot = filename.lastIndexOf('.')
-  return ATTACHMENT_EXTENSIONS_BLOCKED.has(
-    dot === -1 ? '' : filename.slice(dot).toLowerCase(),
-  )
-}
 
 function isAttachmentWithoutPreview(filename?: string) {
   if (!filename) return false
@@ -368,9 +359,7 @@ export function EmailToTicketView() {
   }, [email, vm.setValue])
 
   const attachments = email?.attachments ?? []
-  const selectableAttachments = attachments.filter(
-    (attachment) => !isBlockedEmailAttachment(attachment.filename),
-  )
+  const selectableAttachments = filterSelectableEmailAttachments(attachments)
 
   useEffect(() => {
     setCurrentAttachment(0)
