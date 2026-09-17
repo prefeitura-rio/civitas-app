@@ -90,20 +90,26 @@ export function HistoryFilter() {
   const [endDeleteDate, setEndDeleteDate] = useState<Date | undefined>()
   const [advancedOpen, setAdvancedOpen] = useState(false)
 
-  const { register, handleSubmit, setValue, reset, watch } =
-    useForm<FilterForm>({
-      resolver: zodResolver(filterFormSchema),
-      defaultValues: {
-        plate: '',
-        status: 'all',
-        source: 'all',
-        referenceNumber: '',
-        startTimeCreate: undefined,
-        endTimeCreate: undefined,
-        startTimeDelete: undefined,
-        endTimeDelete: undefined,
-      },
-    })
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<FilterForm>({
+    resolver: zodResolver(filterFormSchema),
+    defaultValues: {
+      plate: '',
+      status: 'all',
+      source: 'all',
+      referenceNumber: '',
+      startTimeCreate: undefined,
+      endTimeCreate: undefined,
+      startTimeDelete: undefined,
+      endTimeDelete: undefined,
+    },
+  })
 
   const status = watch('status')
   const source = watch('source')
@@ -385,6 +391,11 @@ export function HistoryFilter() {
                     />
                   </div>
                 </div>
+                {errors.endTimeCreate?.message ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    {errors.endTimeCreate.message}
+                  </p>
+                ) : null}
               </div>
 
               <div className="flex flex-col space-y-1">
@@ -434,6 +445,11 @@ export function HistoryFilter() {
                     />
                   </div>
                 </div>
+                {errors.endTimeDelete?.message ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    {errors.endTimeDelete.message}
+                  </p>
+                ) : null}
               </div>
               <div className="flex justify-end gap-2 border-t pt-3">
                 <Button

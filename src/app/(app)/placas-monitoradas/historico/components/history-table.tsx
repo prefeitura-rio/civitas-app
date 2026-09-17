@@ -2,6 +2,8 @@
 import { type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Pagination } from '@/components/ui/pagination'
 import { useMonitoredPlatesHistorySearchParams } from '@/hooks/useParams/useMonitoredPlatesHistorySearchParams'
@@ -21,8 +23,12 @@ function historyRowId(item: MonitoredPlateHistoryItem) {
 export function HistoryTable() {
   const { formattedSearchParams, handlePaginate, handleSorting } =
     useMonitoredPlatesHistorySearchParams()
-  const { data, isLoading: isMonitoredPlatesLoading } =
-    useMonitoredPlatesHistory()
+  const {
+    data,
+    isError,
+    isLoading: isMonitoredPlatesLoading,
+    refetch,
+  } = useMonitoredPlatesHistory()
 
   const columns: ColumnDef<MonitoredPlateHistoryItem>[] = [
     {
@@ -90,6 +96,16 @@ export function HistoryTable() {
   ]
 
   const items = data?.items || []
+  const hasFilters = Boolean(
+    formattedSearchParams.plate ||
+      formattedSearchParams.status ||
+      formattedSearchParams.source ||
+      formattedSearchParams.referenceNumber ||
+      formattedSearchParams.startTimeCreate ||
+      formattedSearchParams.endTimeCreate ||
+      formattedSearchParams.startTimeDelete ||
+      formattedSearchParams.endTimeDelete,
+  )
   const sortingState: SortingState = formattedSearchParams.sortBy
     ? [
         {
@@ -114,16 +130,38 @@ export function HistoryTable() {
 
   return (
     <div className="flex flex-col gap-8">
-      <DataTable
-        columns={columns}
-        data={items}
-        isLoading={isMonitoredPlatesLoading}
-        getRowId={(row) => historyRowId(row)}
-        sorting
-        sortingState={sortingState}
-        onSortingChange={handleSortingChange}
-        manualSorting
-      />
+      {isError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Não foi possível carregar o histórico.</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center gap-3">
+            Tente novamente. Se o problema continuar, verifique sua conexão.
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => refetch()}
+            >
+              Tentar novamente
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={items}
+          isLoading={isMonitoredPlatesLoading}
+          getRowId={(row) => historyRowId(row)}
+          sorting
+          sortingState={sortingState}
+          onSortingChange={handleSortingChange}
+          manualSorting
+          emptyMessage={
+            hasFilters
+              ? 'Nenhum histórico corresponde aos filtros atuais. Use “Limpar” para ver todos os registros.'
+              : 'Nenhum histórico de placas monitoradas encontrado.'
+          }
+        />
+      )}
       {data && (
         <Pagination
           page={data.page}
