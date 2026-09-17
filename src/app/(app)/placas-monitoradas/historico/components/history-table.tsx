@@ -155,6 +155,7 @@ export function HistoryTable() {
           sortingState={sortingState}
           onSortingChange={handleSortingChange}
           manualSorting
+          tableClassName="min-w-[72rem]"
           emptyMessage={
             hasFilters
               ? 'Nenhum histórico corresponde aos filtros atuais. Use “Limpar” para ver todos os registros.'

@@ -246,13 +246,13 @@ export function HistoryFilter() {
 
   return (
     <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-      <div className="flex w-full flex-wrap items-end gap-2">
-        <div className="shrink-0">
+      <div className="flex w-full flex-wrap items-end gap-3">
+        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
           <Label htmlFor="plate" className="text-xs text-muted-foreground">
             Placa
           </Label>
           <Input
-            className="h-9 w-40"
+            className="h-10 w-full sm:h-9 sm:w-40"
             id="plate"
             type="text"
             {...register('plate')}
@@ -260,7 +260,7 @@ export function HistoryFilter() {
           />
         </div>
 
-        <div className="shrink-0">
+        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
           <Label htmlFor="status" className="text-xs text-muted-foreground">
             Status
           </Label>
@@ -268,7 +268,7 @@ export function HistoryFilter() {
             value={status}
             onValueChange={(value) => handleSelectFilterChange('status', value)}
           >
-            <SelectTrigger id="status" className="h-9 w-36">
+            <SelectTrigger id="status" className="h-10 w-full sm:h-9 sm:w-36">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
@@ -279,7 +279,7 @@ export function HistoryFilter() {
           </Select>
         </div>
 
-        <div className="shrink-0">
+        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
           <Label htmlFor="source" className="text-xs text-muted-foreground">
             Origem
           </Label>
@@ -287,7 +287,7 @@ export function HistoryFilter() {
             value={source}
             onValueChange={(value) => handleSelectFilterChange('source', value)}
           >
-            <SelectTrigger id="source" className="h-9 w-36">
+            <SelectTrigger id="source" className="h-10 w-full sm:h-9 sm:w-36">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
@@ -298,7 +298,7 @@ export function HistoryFilter() {
           </Select>
         </div>
 
-        <div className="shrink-0">
+        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
           <Label
             htmlFor="referenceNumber"
             className="text-xs text-muted-foreground"
@@ -306,21 +306,21 @@ export function HistoryFilter() {
             Nº de referência
           </Label>
           <Input
-            className="h-9 w-48"
+            className="h-10 w-full sm:h-9 sm:w-48"
             id="referenceNumber"
             type="text"
             {...register('referenceNumber')}
           />
         </div>
 
-        <div className="ml-auto flex shrink-0 flex-wrap items-end justify-end gap-2">
+        <div className="grid w-full gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
           <Popover open={advancedOpen} onOpenChange={setAdvancedOpen}>
             <PopoverTrigger asChild>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="space-x-1"
+                className="h-10 w-full space-x-1 sm:h-9 sm:w-auto"
                 aria-expanded={advancedOpen}
               >
                 <ChevronDown
@@ -339,7 +339,7 @@ export function HistoryFilter() {
             </PopoverTrigger>
             <PopoverContent
               align="end"
-              className="w-[min(32rem,calc(100vw-2rem))] space-y-4"
+              className="w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] space-y-4"
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium">Período e mais filtros</h3>
@@ -366,7 +366,7 @@ export function HistoryFilter() {
                         )
                       }}
                       type="datetime-local"
-                      className="h-9 w-full"
+                      className="h-10 w-full sm:h-9"
                     />
                   </div>
                   <div className="flex min-w-0 flex-col">
@@ -386,7 +386,7 @@ export function HistoryFilter() {
                         )
                       }}
                       type="datetime-local"
-                      className="h-9 w-full"
+                      className="h-10 w-full sm:h-9"
                       fromDate={startCreateDate}
                     />
                   </div>
@@ -420,7 +420,7 @@ export function HistoryFilter() {
                         )
                       }}
                       type="datetime-local"
-                      className="h-9 w-full"
+                      className="h-10 w-full sm:h-9"
                     />
                   </div>
                   <div className="flex min-w-0 flex-col">
@@ -440,7 +440,7 @@ export function HistoryFilter() {
                         )
                       }}
                       type="datetime-local"
-                      className="h-9 w-full"
+                      className="h-10 w-full sm:h-9"
                       fromDate={startDeleteDate}
                     />
                   </div>
@@ -456,11 +456,17 @@ export function HistoryFilter() {
                   type="button"
                   variant="ghost"
                   size="sm"
+                  className="h-10 sm:h-9"
                   onClick={handleClearFilters}
                 >
                   Limpar
                 </Button>
-                <Button type="button" size="sm" onClick={handleApply}>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-10 sm:h-9"
+                  onClick={handleApply}
+                >
                   Aplicar filtros
                 </Button>
               </div>
@@ -470,14 +476,14 @@ export function HistoryFilter() {
             size="sm"
             variant="outline"
             type="button"
-            className="gap-2"
+            className="h-10 w-full gap-2 sm:h-9 sm:w-auto"
             onClick={handleClearFilters}
             disabled={!hasActiveFilters}
           >
             <X className="h-4 w-4" />
             Limpar
           </Button>
-          <Button size="sm" type="submit">
+          <Button size="sm" type="submit" className="h-10 sm:h-9">
             Aplicar filtros
           </Button>
         </div>

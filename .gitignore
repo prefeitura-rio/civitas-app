@@ -55,3 +55,6 @@ public/env-config.js
 # cursor
 .cursor/
 .cursor/mcp.json
+
+# impeccable
+.impeccable/
