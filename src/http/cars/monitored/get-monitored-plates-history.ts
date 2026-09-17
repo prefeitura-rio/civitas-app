@@ -15,12 +15,19 @@ export type MonitoredPlateHistorySortBy =
 
 export type MonitoredPlateHistorySortDirection = 'asc' | 'desc'
 
+export type MonitoredPlateHistorySourceFilter = 'legacy' | 'authority'
+
+export type MonitoredPlateHistoryStatusFilter = 'active' | 'deactivated'
+
 export interface GetMonitoredPlatesHistoryProps {
   plate?: string
   startTimeCreate?: string
   endTimeCreate?: string
   startTimeDelete?: string
   endTimeDelete?: string
+  source?: MonitoredPlateHistorySourceFilter
+  status?: MonitoredPlateHistoryStatusFilter
+  referenceNumber?: string
   page?: number
   size?: number
   sortBy?: MonitoredPlateHistorySortBy
@@ -43,6 +50,9 @@ export async function getMonitoredPlatesHistory(
         end_time_create: props.endTimeCreate,
         start_time_delete: props.startTimeDelete,
         end_time_delete: props.endTimeDelete,
+        source: props.source,
+        status: props.status,
+        reference_number: props.referenceNumber,
         page: props.page,
         size: props.size,
         sort_by: props.sortBy,
