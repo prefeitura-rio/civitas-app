@@ -505,7 +505,11 @@ export function MonitoredPlatesTable() {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="min-h-11 w-full sm:w-auto"
+                className={`min-h-11 w-full sm:w-auto ${
+                  nearestValidUntilSort
+                    ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
+                    : ''
+                }`}
                 onClick={handleNearestValidUntilSort}
                 aria-pressed={Boolean(nearestValidUntilSort)}
               >
