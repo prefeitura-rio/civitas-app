@@ -69,4 +69,27 @@ describe('useMonitoredPlatesSearchParams', () => {
       '/placas-monitoradas?plateContains=ABC1D23&referenceNumberContains=REF-123&requestingInstitutionId=institution-1&active=true&page=2&validUntilTo=2026-08-31',
     )
   })
+
+  it('restores and persists sorting parameters', () => {
+    const searchParams = new URLSearchParams({
+      sortBy: 'nearest_valid_until',
+      sortDirection: 'asc',
+    })
+    mockUseSearchParams.mockReturnValue(searchParams as any)
+
+    const { result } = renderHook(() => useMonitoredPlatesSearchParams())
+
+    expect(result.current.formattedSearchParams).toEqual(
+      expect.objectContaining({
+        sortBy: 'nearest_valid_until',
+        sortDirection: 'asc',
+      }),
+    )
+
+    result.current.handleSort('nearest_valid_until', 'desc')
+
+    expect(push).toHaveBeenCalledWith(
+      '/placas-monitoradas?active=true&page=1&sortBy=nearest_valid_until&sortDirection=desc',
+    )
+  })
 })

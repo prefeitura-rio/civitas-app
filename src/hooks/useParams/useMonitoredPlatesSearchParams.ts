@@ -1,6 +1,19 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
+import type {
+  MonitoredPlatesSortBy,
+  SortDirection,
+} from '@/http/monitored-plates'
+
+const SORT_FIELDS: MonitoredPlatesSortBy[] = [
+  'plate',
+  'active',
+  'created_at',
+  'updated_at',
+  'nearest_valid_until',
+]
+
 type MonitoredPlatesQueryKey = [
   'monitored-plates',
   plateContains?: string,
@@ -11,6 +24,8 @@ type MonitoredPlatesQueryKey = [
   page?: number,
   size?: number,
   validUntilTo?: string,
+  sortBy?: MonitoredPlatesSortBy,
+  sortDirection?: SortDirection,
 ]
 
 export interface FormattedSearchParams {
@@ -22,6 +37,8 @@ export interface FormattedSearchParams {
   page?: number
   size?: number
   validUntilTo?: string
+  sortBy?: MonitoredPlatesSortBy
+  sortDirection?: SortDirection
 }
 
 interface UseMonitoredPlatesSearchParamsReturn {
@@ -29,6 +46,10 @@ interface UseMonitoredPlatesSearchParamsReturn {
   formattedSearchParams: FormattedSearchParams
   queryKey: MonitoredPlatesQueryKey
   handlePaginate: (index: number) => void
+  handleSort: (
+    sortBy?: MonitoredPlatesSortBy,
+    sortDirection?: SortDirection,
+  ) => void
 }
 
 export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParamsReturn {
@@ -57,8 +78,21 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
 
   const validUntilTo = searchParams.get('validUntilTo') || undefined
+  const sortByParam = searchParams.get('sortBy')
+  const sortBy = SORT_FIELDS.includes(sortByParam as MonitoredPlatesSortBy)
+    ? (sortByParam as MonitoredPlatesSortBy)
+    : undefined
+  const sortDirectionParam = searchParams.get('sortDirection')
+  const sortDirection: SortDirection | undefined =
+    sortDirectionParam === 'asc' || sortDirectionParam === 'desc'
+      ? sortDirectionParam
+      : undefined
 
-  function buildParams(nextPage?: number) {
+  function buildParams(
+    nextPage?: number,
+    nextSortBy = sortBy,
+    nextSortDirection = sortDirection,
+  ) {
     const params = new URLSearchParams()
     if (plateContains) params.set('plateContains', plateContains)
     if (referenceNumberContains)
@@ -72,6 +106,10 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     if (nextPage) params.set('page', nextPage.toString())
     if (size && size !== 10) params.set('size', size.toString())
     if (validUntilTo) params.set('validUntilTo', validUntilTo)
+    if (nextSortBy && nextSortDirection) {
+      params.set('sortBy', nextSortBy)
+      params.set('sortDirection', nextSortDirection)
+    }
     return params
   }
 
@@ -80,9 +118,18 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
     router.push(`${pathName}?${params.toString()}`)
   }
 
+  function handleSort(
+    nextSortBy?: MonitoredPlatesSortBy,
+    nextSortDirection?: SortDirection,
+  ) {
+    const params = buildParams(1, nextSortBy, nextSortDirection)
+    router.push(`${pathName}?${params.toString()}`)
+  }
+
   return {
     searchParams,
     handlePaginate,
+    handleSort,
     formattedSearchParams: {
       plateContains,
       referenceNumberContains,
@@ -92,6 +139,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       page,
       size,
       validUntilTo,
+      sortBy,
+      sortDirection,
     },
     queryKey: [
       'monitored-plates',
@@ -103,6 +152,8 @@ export function useMonitoredPlatesSearchParams(): UseMonitoredPlatesSearchParams
       page,
       size,
       validUntilTo,
+      sortBy,
+      sortDirection,
     ],
   }
 }

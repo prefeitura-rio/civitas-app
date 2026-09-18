@@ -9,7 +9,7 @@ import {
   PencilLine,
   Trash,
 } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
@@ -110,6 +110,19 @@ function getSortDirection(
   return sort.desc ? 'desc' : 'asc'
 }
 
+function getSortingState(
+  sortBy?: MonitoredPlatesSortBy,
+  sortDirection?: SortDirection,
+): SortingState {
+  if (!sortBy || !sortDirection) return []
+
+  const columnId = Object.entries(sortableColumns).find(
+    ([, value]) => value === sortBy,
+  )?.[0]
+
+  return columnId ? [{ id: columnId, desc: sortDirection === 'desc' }] : []
+}
+
 function buildAuthorityEntries(
   authorities: MonitoredPlateAuthoritySummary[],
 ): AuthorityEntry[] {
@@ -166,7 +179,7 @@ function getValidUntilClassName(validUntil: string) {
 }
 
 export function MonitoredPlatesTable() {
-  const { formattedSearchParams, queryKey, handlePaginate } =
+  const { formattedSearchParams, queryKey, handlePaginate, handleSort } =
     useMonitoredPlatesSearchParams()
   const {
     formDialogDisclosure,
@@ -183,18 +196,29 @@ export function MonitoredPlatesTable() {
   const [selectedEntriesPlate, setSelectedEntriesPlate] = useState<
     string | null
   >(null)
-  const [sortingState, setSortingState] = useState<SortingState>([])
+  const [sortingState, setSortingState] = useState<SortingState>(() =>
+    getSortingState(
+      formattedSearchParams.sortBy,
+      formattedSearchParams.sortDirection,
+    ),
+  )
 
-  const sortBy = getSortBy(sortingState)
-  const sortDirection = getSortDirection(sortingState)
+  useEffect(() => {
+    setSortingState(
+      getSortingState(
+        formattedSearchParams.sortBy,
+        formattedSearchParams.sortDirection,
+      ),
+    )
+  }, [formattedSearchParams.sortBy, formattedSearchParams.sortDirection])
 
   const handleSortingChange = (
     updater: SortingState | ((prev: SortingState) => SortingState),
   ) => {
-    setSortingState((current) =>
-      typeof updater === 'function' ? updater(current) : updater,
-    )
-    handlePaginate(1)
+    const nextSortingState =
+      typeof updater === 'function' ? updater(sortingState) : updater
+    setSortingState(nextSortingState)
+    handleSort(getSortBy(nextSortingState), getSortDirection(nextSortingState))
   }
 
   const nearestValidUntilSort =
@@ -207,7 +231,14 @@ export function MonitoredPlatesTable() {
         desc: nearestValidUntilSort ? !nearestValidUntilSort.desc : false,
       },
     ])
-    handlePaginate(1)
+    handleSort(
+      'nearest_valid_until',
+      nearestValidUntilSort
+        ? nearestValidUntilSort.desc
+          ? 'asc'
+          : 'desc'
+        : 'asc',
+    )
   }
 
   const {
@@ -216,7 +247,7 @@ export function MonitoredPlatesTable() {
     isLoading: isMonitoredPlatesLoading,
     refetch: refetchMonitoredPlates,
   } = useQuery({
-    queryKey: [...queryKey, sortBy, sortDirection],
+    queryKey,
     queryFn: () =>
       getMonitoredPlates({
         active: formattedSearchParams.active,
@@ -227,8 +258,8 @@ export function MonitoredPlatesTable() {
         validUntilTo: formattedSearchParams.validUntilTo,
         page: formattedSearchParams.page,
         size: formattedSearchParams.size,
-        sortBy,
-        sortDirection,
+        sortBy: formattedSearchParams.sortBy,
+        sortDirection: formattedSearchParams.sortDirection,
       }),
   })
 
