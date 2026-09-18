@@ -27,6 +27,7 @@ import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketById } from '@/http/tickets/get-ticket-by-id'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
 import { getApiErrorMessage } from '@/utils/error-handlers'
+import { isAllowedTicketAttachment } from '@/utils/ticket-attachment-validation'
 
 import type {
   OpenServiceKey,
@@ -44,19 +45,12 @@ import {
 
 const OPERATION_SEARCH_PAGE_SIZE = 20
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
-const ALLOWED_ATTACHMENT_EXT = new Set(['.pdf', '.doc', '.docx'])
 
 const TICKET_TYPE_RESTRITA_LABEL = 'requisição restrita'
 const TEAM_COORDENADORES_LABEL = 'coordenadores'
 
 function normalizeCatalogLabel(value: string) {
   return value.trim().toLowerCase()
-}
-
-function attachmentExtension(name: string): string {
-  const dot = name.lastIndexOf('.')
-  if (dot === -1) return ''
-  return name.slice(dot).toLowerCase()
 }
 
 function associarChamadoIdOrNull(value?: string | null): string | null {
@@ -445,8 +439,7 @@ export function useTicketCreateController() {
     const invalidSize: string[] = []
 
     for (const file of Array.from(inputFiles)) {
-      const ext = attachmentExtension(file.name)
-      if (!ALLOWED_ATTACHMENT_EXT.has(ext)) {
+      if (!isAllowedTicketAttachment(file.name)) {
         invalidType.push(file.name)
         continue
       }
@@ -460,7 +453,7 @@ export function useTicketCreateController() {
     if (invalidType.length > 0) {
       toast.error('Formato de arquivo não permitido.', {
         description:
-          'Anexe apenas PDF, DOC ou DOCX. ' +
+          'Anexe apenas PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG ou PNG. ' +
           (invalidType.length <= 3
             ? invalidType.join(', ')
             : `${invalidType.slice(0, 3).join(', ')} e mais ${invalidType.length - 3}`),
