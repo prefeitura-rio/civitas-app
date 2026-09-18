@@ -19,6 +19,51 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '18 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Filtros, vínculos e ordenação em Placas Monitoradas',
+        content: (
+          <>
+            <p>
+              A tela de <code>Placas Monitoradas</code> foi aprimorada para
+              facilitar a localização e o acompanhamento dos vínculos ativos com
+              requisitantes.
+            </p>
+            <ul>
+              <li>
+                O filtro de <strong>Demandante</strong> passou a controlar as
+                opções disponíveis no filtro de <strong>Requisitante</strong>.
+              </li>
+              <li>
+                Foram adicionados filtros por{' '}
+                <strong>Número de referência</strong> e por data de validade,
+                com a opção <code>Vence até</code>.
+              </li>
+              <li>
+                A coluna de requisitantes passou a exibir o número de referência
+                e a validade de cada vínculo ativo.
+              </li>
+              <li>
+                O botão <code>+N</code> agora abre a lista completa de vínculos
+                ativos com seus detalhes, sem exigir a abertura da edição.
+              </li>
+              <li>
+                A tabela pode ser ordenada pelo vencimento mais próximo,
+                preservando a ordenação na URL e entre as páginas.
+              </li>
+              <li>
+                Vínculos vencidos ou próximos do vencimento recebem destaque
+                visual para facilitar a priorização.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '9 de Setembro de 2026',
     subCards: [
       {
