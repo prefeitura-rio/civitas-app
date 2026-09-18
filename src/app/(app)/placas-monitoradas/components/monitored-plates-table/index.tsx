@@ -1,8 +1,8 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type SortingState } from '@tanstack/react-table'
-import { formatDate } from 'date-fns'
-import { PencilLine, Trash } from 'lucide-react'
+import { differenceInCalendarDays, formatDate } from 'date-fns'
+import { ArrowDown, ArrowUp, PencilLine, Trash } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
@@ -85,10 +85,11 @@ const sortableColumns = {
   active: 'active',
   createdAt: 'created_at',
   updatedAt: 'updated_at',
+  nearestValidUntil: 'nearest_valid_until',
 } as const satisfies Record<string, MonitoredPlatesSortBy>
 
 function getSortBy(
-  sortingState: SortingState
+  sortingState: SortingState,
 ): MonitoredPlatesSortBy | undefined {
   const columnId = sortingState[0]?.id
   if (!columnId) return undefined
@@ -96,7 +97,7 @@ function getSortBy(
 }
 
 function getSortDirection(
-  sortingState: SortingState
+  sortingState: SortingState,
 ): SortDirection | undefined {
   const sort = sortingState[0]
   if (!sort) return undefined
@@ -104,7 +105,7 @@ function getSortDirection(
 }
 
 function buildAuthorityEntries(
-  authorities: MonitoredPlateAuthoritySummary[]
+  authorities: MonitoredPlateAuthoritySummary[],
 ): AuthorityEntry[] {
   const map = new Map<string, AuthorityEntry>()
 
@@ -134,7 +135,7 @@ function buildAuthorityEntries(
 
 function filterAuthoritiesByValidUntil(
   authorities: MonitoredPlateAuthoritySummary[],
-  validUntilTo?: string
+  validUntilTo?: string,
 ) {
   if (!validUntilTo) return authorities
 
@@ -142,8 +143,20 @@ function filterAuthoritiesByValidUntil(
   if (Number.isNaN(endOfDay)) return authorities
 
   return authorities.filter(
-    (authority) => new Date(authority.validUntil).getTime() <= endOfDay
+    (authority) => new Date(authority.validUntil).getTime() <= endOfDay,
   )
+}
+
+function getValidUntilClassName(validUntil: string) {
+  const daysUntilExpiration = differenceInCalendarDays(
+    new Date(validUntil),
+    new Date(),
+  )
+
+  if (daysUntilExpiration <= 1) return 'font-medium text-destructive'
+  if (daysUntilExpiration <= 7)
+    return 'font-medium text-amber-600 dark:text-amber-400'
+  return 'text-muted-foreground'
 }
 
 export function MonitoredPlatesTable() {
@@ -156,7 +169,7 @@ export function MonitoredPlatesTable() {
     deleteAlertDisclosure,
   } = useMonitoredPlates()
   const [selectedEntry, setSelectedEntry] = useState<AuthorityEntry | null>(
-    null
+    null,
   )
   const [selectedEntries, setSelectedEntries] = useState<
     AuthorityEntry[] | null
@@ -170,11 +183,24 @@ export function MonitoredPlatesTable() {
   const sortDirection = getSortDirection(sortingState)
 
   const handleSortingChange = (
-    updater: SortingState | ((prev: SortingState) => SortingState)
+    updater: SortingState | ((prev: SortingState) => SortingState),
   ) => {
     setSortingState((current) =>
-      typeof updater === 'function' ? updater(current) : updater
+      typeof updater === 'function' ? updater(current) : updater,
     )
+    handlePaginate(1)
+  }
+
+  const nearestValidUntilSort =
+    sortingState[0]?.id === 'nearestValidUntil' ? sortingState[0] : undefined
+
+  const handleNearestValidUntilSort = () => {
+    setSortingState([
+      {
+        id: 'nearestValidUntil',
+        desc: nearestValidUntilSort ? !nearestValidUntilSort.desc : false,
+      },
+    ])
     handlePaginate(1)
   }
 
@@ -207,7 +233,7 @@ export function MonitoredPlatesTable() {
       setDialogInitialData({ plate })
       formDialogDisclosure.onOpen()
     },
-    [formDialogDisclosure, setDialogInitialData]
+    [formDialogDisclosure, setDialogInitialData],
   )
 
   const {
@@ -240,12 +266,12 @@ export function MonitoredPlatesTable() {
           buildAuthorityEntries(
             filterAuthoritiesByValidUntil(
               plate.authorities,
-              formattedSearchParams.validUntilTo
-            )
+              formattedSearchParams.validUntilTo,
+            ),
           ),
-        ])
+        ]),
       ),
-    [formattedSearchParams.validUntilTo, paginatedItems]
+    [formattedSearchParams.validUntilTo, paginatedItems],
   )
 
   const columns = useMemo<ColumnDef<MonitoredPlateReadModel>[]>(
@@ -320,7 +346,9 @@ export function MonitoredPlatesTable() {
                 >
                   <span className="flex flex-col items-start">
                     <span>{entry.institutionAuthority.name}</span>
-                    <span className="text-[11px] font-normal text-muted-foreground">
+                    <span
+                      className={`text-[11px] font-normal ${getValidUntilClassName(entry.validUntil)}`}
+                    >
                       Ref. {entry.referenceNumber} · Até{' '}
                       {formatDate(new Date(entry.validUntil), 'dd/MM/yyyy')}
                     </span>
@@ -404,7 +432,7 @@ export function MonitoredPlatesTable() {
       openEditDialog,
       setDialogInitialData,
       setOnDeleteMonitoredPlateProps,
-    ]
+    ],
   )
 
   return (
@@ -428,17 +456,35 @@ export function MonitoredPlatesTable() {
             </AlertDescription>
           </Alert>
         ) : (
-          <DataTable
-            columns={columns}
-            data={paginatedItems}
-            isLoading={isMonitoredPlatesLoading}
-            sorting
-            sortingState={sortingState}
-            onSortingChange={handleSortingChange}
-            manualSorting
-            tableClassName="min-w-[72rem]"
-            emptyMessage="Nenhuma placa monitorada encontrada para os filtros atuais."
-          />
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleNearestValidUntilSort}
+                aria-pressed={Boolean(nearestValidUntilSort)}
+              >
+                {nearestValidUntilSort?.desc ? (
+                  <ArrowDown className="mr-2 h-4 w-4" />
+                ) : (
+                  <ArrowUp className="mr-2 h-4 w-4" />
+                )}
+                Vencimento mais próximo
+              </Button>
+            </div>
+            <DataTable
+              columns={columns}
+              data={paginatedItems}
+              isLoading={isMonitoredPlatesLoading}
+              sorting
+              sortingState={sortingState}
+              onSortingChange={handleSortingChange}
+              manualSorting
+              tableClassName="min-w-[72rem]"
+              emptyMessage="Nenhuma placa monitorada encontrada para os filtros atuais."
+            />
+          </div>
         )}
         <Pagination
           page={currentPage}
@@ -496,7 +542,7 @@ export function MonitoredPlatesTable() {
                   </span>
                   <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-normal text-muted-foreground">
                     <span>Ref. {entry.referenceNumber}</span>
-                    <span>
+                    <span className={getValidUntilClassName(entry.validUntil)}>
                       Válido até{' '}
                       {formatDate(new Date(entry.validUntil), 'dd/MM/yyyy')}
                     </span>
@@ -564,7 +610,7 @@ export function MonitoredPlatesTable() {
                   .filter(
                     (value): value is string =>
                       Boolean(value) &&
-                      value !== displayedAuthority.primaryContact?.phone?.phone
+                      value !== displayedAuthority.primaryContact?.phone?.phone,
                   )
                   .join(', ') || ' - '}
               </div>
@@ -575,7 +621,7 @@ export function MonitoredPlatesTable() {
                   .filter(
                     (value): value is string =>
                       Boolean(value) &&
-                      value !== displayedAuthority.primaryContact?.email?.email
+                      value !== displayedAuthority.primaryContact?.email?.email,
                   )
                   .join(', ') || ' - '}
               </div>
