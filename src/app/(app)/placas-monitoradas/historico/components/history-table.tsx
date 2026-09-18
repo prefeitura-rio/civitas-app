@@ -41,21 +41,33 @@ export function HistoryTable() {
           row.original.source === 'authority' ? 'Vínculo' : 'Legado',
       },
       {
+        accessorKey: 'reference_number',
+        header: 'Número de referência',
+        enableSorting: true,
+        cell: ({ row }) => row.original.reference_number || '—',
+      },
+      {
         accessorKey: 'plate',
         header: 'Placa',
         enableSorting: true,
+      },
+      {
+        id: 'demandante',
+        header: 'Demandante',
+        cell: ({ row }) =>
+          row.original.institution_authority?.requesting_institution?.name ||
+          '—',
+      },
+      {
+        id: 'requisitante',
+        header: 'Requisitante',
+        cell: ({ row }) => row.original.institution_authority?.name || '—',
       },
       {
         id: 'status',
         header: 'Status',
         cell: ({ row }) =>
           row.original.deleted_timestamp ? 'Desativada' : 'Ativa',
-      },
-      {
-        accessorKey: 'reference_number',
-        header: 'Número de referência',
-        enableSorting: true,
-        cell: ({ row }) => row.original.reference_number || '—',
       },
       {
         accessorKey: 'notes',

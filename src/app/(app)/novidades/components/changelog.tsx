@@ -115,6 +115,10 @@ export const changelog: Card[] = [
                 <code>Legado</code> e <code>Vínculo</code>.
               </li>
               <li>
+                A tabela passou a exibir o <strong>Requisitante</strong> e o{' '}
+                <strong>Demandante</strong> de cada vínculo.
+              </li>
+              <li>
                 Filtros por <strong>Status</strong> (ativas ou desativadas),{' '}
                 <strong>Origem</strong> e <strong>Número de referência</strong>.
               </li>

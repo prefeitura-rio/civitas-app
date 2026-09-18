@@ -145,6 +145,11 @@ export type MonitoredPlateHistoryItem = {
   monitored_plate_authority_id: string | null
   reference_number: string | null
   institution_authority_id: string | null
+  institution_authority?: {
+    id: string
+    name: string
+    requesting_institution: { id: string; name: string }
+  } | null
   source: 'legacy_plate' | 'authority'
   notes: string | null
   created_timestamp: string | null
