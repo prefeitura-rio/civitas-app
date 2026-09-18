@@ -463,11 +463,18 @@ export function MonitoredPlatesTable() {
           </Alert>
         ) : (
           <div className="flex flex-col gap-3">
-            <div className="flex justify-end">
+            <div className="flex flex-col gap-2 rounded-md border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium">Ordenação da tabela</p>
+                <p className="text-xs text-muted-foreground">
+                  Priorize os vínculos mais próximos do vencimento.
+                </p>
+              </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
+                className="min-h-11 w-full sm:w-auto"
                 onClick={handleNearestValidUntilSort}
                 aria-pressed={Boolean(nearestValidUntilSort)}
               >
