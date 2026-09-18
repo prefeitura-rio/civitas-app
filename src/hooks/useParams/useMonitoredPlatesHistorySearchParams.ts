@@ -1,7 +1,13 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 
-import type { GetMonitoredPlatesHistoryProps } from '@/http/cars/monitored/get-monitored-plates-history'
+import type {
+  GetMonitoredPlatesHistoryProps,
+  MonitoredPlateHistorySortBy,
+  MonitoredPlateHistorySortDirection,
+  MonitoredPlateHistorySourceFilter,
+  MonitoredPlateHistoryStatusFilter,
+} from '@/http/cars/monitored/get-monitored-plates-history'
 
 type MonitoredPlatesQueryKey = [
   'cars',
@@ -10,11 +16,43 @@ type MonitoredPlatesQueryKey = [
   params: GetMonitoredPlatesHistoryProps,
 ]
 
+const SOURCE_OPTIONS = ['legacy', 'authority'] as const
+const STATUS_OPTIONS = ['active', 'deactivated'] as const
+
+function parseSource(
+  value: string | null,
+): MonitoredPlateHistorySourceFilter | undefined {
+  if (value === 'legacy_plate') return 'legacy'
+  if (
+    value &&
+    SOURCE_OPTIONS.includes(value as MonitoredPlateHistorySourceFilter)
+  ) {
+    return value as MonitoredPlateHistorySourceFilter
+  }
+  return undefined
+}
+
+function parseStatus(
+  value: string | null,
+): MonitoredPlateHistoryStatusFilter | undefined {
+  if (
+    value &&
+    STATUS_OPTIONS.includes(value as MonitoredPlateHistoryStatusFilter)
+  ) {
+    return value as MonitoredPlateHistoryStatusFilter
+  }
+  return undefined
+}
+
 interface UseMonitoredPlatesSearchParamsReturn {
   searchParams: URLSearchParams
   formattedSearchParams: GetMonitoredPlatesHistoryProps
   queryKey: MonitoredPlatesQueryKey
   handlePaginate: (index: number) => void
+  handleSorting: (
+    sortBy?: MonitoredPlateHistorySortBy,
+    sortDirection?: MonitoredPlateHistorySortDirection,
+  ) => void
 }
 
 export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearchParamsReturn {
@@ -27,9 +65,18 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
   const endTimeCreate = searchParams.get('endTimeCreate') || undefined
   const startTimeDelete = searchParams.get('startTimeDelete') || undefined
   const endTimeDelete = searchParams.get('endTimeDelete') || undefined
+  const source = parseSource(searchParams.get('source'))
+  const status = parseStatus(searchParams.get('status'))
+  const referenceNumber = searchParams.get('referenceNumber') || undefined
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
+  const sortBy = (searchParams.get('sortBy') || undefined) as
+    | MonitoredPlateHistorySortBy
+    | undefined
+  const sortDirection = (searchParams.get('sortDirection') || undefined) as
+    | MonitoredPlateHistorySortDirection
+    | undefined
 
   const formattedSearchParams: GetMonitoredPlatesHistoryProps = {
     plate,
@@ -37,27 +84,48 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     endTimeCreate,
     startTimeDelete,
     endTimeDelete,
+    source,
+    status,
+    referenceNumber,
     page,
     size,
+    sortBy,
+    sortDirection,
+  }
+
+  function withCurrentParams() {
+    return new URLSearchParams(searchParams.toString())
   }
 
   function handlePaginate(index: number) {
-    const params = new URLSearchParams(searchParams.toString())
-    if (plate) params.set('plate', plate)
-    if (startTimeCreate) params.set('startTimeCreate', startTimeCreate)
-    if (endTimeCreate) params.set('endTimeCreate', endTimeCreate)
-    if (startTimeDelete) params.set('startTimeDelete', startTimeDelete)
-    if (endTimeDelete) params.set('endTimeDelete', endTimeDelete)
-
-    if (page) params.set('page', index.toString())
+    const params = withCurrentParams()
+    params.set('page', index.toString())
     if (size) params.set('size', size.toString())
+    router.push(`${pathName}?${params.toString()}`)
+  }
 
+  function handleSorting(
+    nextSortBy?: MonitoredPlateHistorySortBy,
+    nextSortDirection?: MonitoredPlateHistorySortDirection,
+  ) {
+    const params = withCurrentParams()
+
+    if (nextSortBy && nextSortDirection) {
+      params.set('sortBy', nextSortBy)
+      params.set('sortDirection', nextSortDirection)
+    } else {
+      params.delete('sortBy')
+      params.delete('sortDirection')
+    }
+
+    params.set('page', '1')
     router.push(`${pathName}?${params.toString()}`)
   }
 
   return {
     searchParams,
     handlePaginate,
+    handleSorting,
     formattedSearchParams,
     queryKey: ['cars', 'monitored', 'history', formattedSearchParams],
   }

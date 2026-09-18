@@ -45,6 +45,7 @@ interface DataTableProps<TData, TValue> {
   manualSorting?: boolean
   emptyMessage?: ReactNode
   tableClassName?: string
+  getRowId?: (originalRow: TData, index: number) => string
 }
 
 function SortIcon({ direction }: { direction: false | 'asc' | 'desc' }) {
@@ -65,6 +66,7 @@ export function DataTable<TData, TValue>({
   manualSorting = false,
   emptyMessage = 'Nenhum resultado.',
   tableClassName,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [internalSortingState, setInternalSortingState] =
     useState<SortingState>([])
@@ -73,6 +75,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    getRowId,
     state: sorting ? { sorting: currentSortingState } : undefined,
     onSortingChange: sorting
       ? (onSortingChange ?? setInternalSortingState)
@@ -95,12 +98,27 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   const canSort = sorting && header.column.getCanSort()
+                  const sortDirection = header.column.getIsSorted()
+                  const headerLabel =
+                    typeof header.column.columnDef.header === 'string'
+                      ? header.column.columnDef.header
+                      : header.id
 
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      aria-sort={
+                        sortDirection === 'asc'
+                          ? 'ascending'
+                          : sortDirection === 'desc'
+                            ? 'descending'
+                            : 'none'
+                      }
+                    >
                       {header.isPlaceholder ? null : canSort ? (
                         <button
                           type="button"
+                          aria-label={`Ordenar por ${headerLabel}`}
                           className={cn(
                             'flex items-center gap-2 text-left font-medium',
                             'cursor-pointer select-none hover:text-foreground',

@@ -51,3 +51,10 @@ claude.md
 
 # Generated at dev startup and container startup — never commit real values
 public/env-config.js
+
+# cursor
+.cursor/
+.cursor/mcp.json
+
+# impeccable
+.impeccable/
