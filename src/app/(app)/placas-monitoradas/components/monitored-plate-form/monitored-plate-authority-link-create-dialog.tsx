@@ -406,7 +406,7 @@ export function MonitoredPlateAuthorityLinkCreateDialog({
 
           <div className="flex flex-col gap-1">
             <div className="flex gap-2">
-              <Label htmlFor="create-link-ref">Nº de referência</Label>
+              <Label htmlFor="create-link-ref">Número de referência</Label>
               <InputError message={fieldErrors.reference} />
             </div>
             <Input

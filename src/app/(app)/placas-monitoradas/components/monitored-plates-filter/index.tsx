@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getInstitutionAuthorities } from '@/http/institution-authorities'
-import { getNotificationChannels } from '@/http/notification-channels/get-notification-channels'
+import { getRequestingInstitutions } from '@/http/requesting-institutions'
 
 import {
   type FilterComboboxOption,
@@ -46,46 +46,41 @@ function readActiveParam(value: string | null): ActiveFilter {
   return 'true'
 }
 
-function readStartDateParam(searchParams: URLSearchParams) {
-  return (
-    searchParams.get('startTimeCreate') || searchParams.get('createdAtFrom')
-  )
-}
-
-function readEndDateParam(searchParams: URLSearchParams) {
-  return searchParams.get('endTimeCreate') || searchParams.get('createdAtTo')
+function readValidUntilToParam(searchParams: URLSearchParams) {
+  return searchParams.get('validUntilTo')
 }
 
 type FilterSnapshot = {
   plateContains: string
+  referenceNumberContains: string
+  requestingInstitutionId: string
   institutionAuthorityId: string
-  notificationChannelId: string
   active: ActiveFilter
-  startTimeCreate?: string
-  endTimeCreate?: string
+  validUntilTo?: string
   size?: string | null
 }
 
 function buildFilterParams({
   plateContains,
+  referenceNumberContains,
+  requestingInstitutionId,
   institutionAuthorityId,
-  notificationChannelId,
   active,
-  startTimeCreate,
-  endTimeCreate,
+  validUntilTo,
   size,
 }: FilterSnapshot) {
   const params = new URLSearchParams()
   const plate = plateContains.trim().toUpperCase()
 
   if (plate) params.set('plateContains', plate)
+  if (referenceNumberContains.trim())
+    params.set('referenceNumberContains', referenceNumberContains.trim())
+  if (requestingInstitutionId !== 'all')
+    params.set('requestingInstitutionId', requestingInstitutionId)
   if (institutionAuthorityId !== 'all')
     params.set('institutionAuthorityId', institutionAuthorityId)
-  if (notificationChannelId !== 'all')
-    params.set('notificationChannelId', notificationChannelId)
   params.set('active', active)
-  if (startTimeCreate) params.set('startTimeCreate', startTimeCreate)
-  if (endTimeCreate) params.set('endTimeCreate', endTimeCreate)
+  if (validUntilTo) params.set('validUntilTo', validUntilTo)
   if (size && size !== '10') params.set('size', size)
 
   return params
@@ -100,6 +95,17 @@ export function MonitoredPlatesFilter() {
   const [plateContains, setPlateContains] = useState(
     () => searchParams.get('plateContains') ?? '',
   )
+  const [referenceNumberContains, setReferenceNumberContains] = useState(
+    () => searchParams.get('referenceNumberContains') ?? '',
+  )
+  const [requestingInstitutionId, setRequestingInstitutionId] = useState(
+    () => searchParams.get('requestingInstitutionId') ?? 'all',
+  )
+  const [requestingInstitutionName, setRequestingInstitutionName] = useState('')
+  const [requestingInstitutionSearch, setRequestingInstitutionSearch] =
+    useState('')
+  const [isRequestingInstitutionOpen, setIsRequestingInstitutionOpen] =
+    useState(false)
   const [institutionAuthorityId, setInstitutionAuthorityId] = useState(
     () => searchParams.get('institutionAuthorityId') ?? 'all',
   )
@@ -108,69 +114,90 @@ export function MonitoredPlatesFilter() {
     useState('')
   const [isAuthorityOpen, setIsAuthorityOpen] = useState(false)
 
-  const [notificationChannelId, setNotificationChannelId] = useState(
-    () => searchParams.get('notificationChannelId') ?? 'all',
-  )
-  const [notificationChannelTitle, setNotificationChannelTitle] = useState('')
-  const [notificationChannelSearch, setNotificationChannelSearch] = useState('')
-  const [isChannelOpen, setIsChannelOpen] = useState(false)
-
   const [active, setActive] = useState<ActiveFilter>(() =>
     readActiveParam(searchParams.get('active')),
   )
-  const [startTimeCreate, setStartTimeCreate] = useState<Date | undefined>(() =>
-    parseDateOnly(readStartDateParam(searchParams)),
-  )
-  const [endTimeCreate, setEndTimeCreate] = useState<Date | undefined>(() =>
-    parseDateOnly(readEndDateParam(searchParams)),
+  const [endValidUntil, setEndValidUntil] = useState<Date | undefined>(() =>
+    parseDateOnly(readValidUntilToParam(searchParams)),
   )
 
   const debouncedPlateContains = useDebounce(plateContains, 350)
+  const debouncedReferenceNumberContains = useDebounce(
+    referenceNumberContains,
+    350,
+  )
+  const debouncedRequestingInstitutionSearch = useDebounce(
+    requestingInstitutionSearch,
+    350,
+  )
   const debouncedAuthoritySearch = useDebounce(institutionAuthoritySearch, 350)
-  const debouncedChannelSearch = useDebounce(notificationChannelSearch, 350)
 
   const hasActiveFilters =
     plateContains.trim().length > 0 ||
+    referenceNumberContains.trim().length > 0 ||
+    requestingInstitutionId !== 'all' ||
     institutionAuthorityId !== 'all' ||
-    notificationChannelId !== 'all' ||
     active !== 'true' ||
-    startTimeCreate != null ||
-    endTimeCreate != null
+    endValidUntil != null
 
   const { data: authoritiesResponse, isLoading: isLoadingAuthorities } =
     useQuery({
-      queryKey: ['institution-authorities', 'filter', debouncedAuthoritySearch],
+      queryKey: [
+        'institution-authorities',
+        'filter',
+        debouncedAuthoritySearch,
+        requestingInstitutionId,
+      ],
       queryFn: () =>
         getInstitutionAuthorities({
           page: 1,
           size: 20,
           search: debouncedAuthoritySearch,
+          requestingInstitutionId:
+            requestingInstitutionId === 'all'
+              ? undefined
+              : requestingInstitutionId,
         }),
       enabled: isAuthorityOpen || institutionAuthorityId !== 'all',
     })
 
-  const { data: channelsResponse, isLoading: isLoadingChannels } = useQuery({
-    queryKey: ['notification-channels', 'filter', 100],
-    queryFn: () => getNotificationChannels({ page: 1, size: 100 }),
-    enabled: isChannelOpen || notificationChannelId !== 'all',
+  const {
+    data: requestingInstitutionsResponse,
+    isLoading: isLoadingRequestingInstitutions,
+  } = useQuery({
+    queryKey: [
+      'requesting-institutions',
+      'filter',
+      debouncedRequestingInstitutionSearch,
+    ],
+    queryFn: () =>
+      getRequestingInstitutions({
+        page: 1,
+        size: 100,
+        search: debouncedRequestingInstitutionSearch,
+      }),
+    enabled: isRequestingInstitutionOpen || requestingInstitutionId !== 'all',
   })
+
+  const requestingInstitutionOptions: FilterComboboxOption[] = (
+    requestingInstitutionsResponse?.data.items ?? []
+  ).map((item) => ({ id: item.id, label: item.name }))
 
   const authorityOptions: FilterComboboxOption[] = (
     authoritiesResponse?.data.items ?? []
   ).map((item) => ({ id: item.id, label: item.name }))
 
-  const channelOptions: FilterComboboxOption[] = (
-    channelsResponse?.data.items ?? []
-  )
-    .filter((item) => {
-      const query = debouncedChannelSearch.trim().toLowerCase()
-      if (!query) return true
-      return (item.title || item.id).toLowerCase().includes(query)
-    })
-    .map((item) => ({
-      id: item.id,
-      label: item.title || item.id,
-    }))
+  useEffect(() => {
+    if (requestingInstitutionId === 'all' || requestingInstitutionName) return
+    const match = requestingInstitutionOptions.find(
+      (item) => item.id === requestingInstitutionId,
+    )
+    if (match) setRequestingInstitutionName(match.label)
+  }, [
+    requestingInstitutionId,
+    requestingInstitutionName,
+    requestingInstitutionOptions,
+  ])
 
   useEffect(() => {
     if (institutionAuthorityId === 'all' || institutionAuthorityName) return
@@ -181,49 +208,47 @@ export function MonitoredPlatesFilter() {
   }, [authorityOptions, institutionAuthorityId, institutionAuthorityName])
 
   useEffect(() => {
-    if (notificationChannelId === 'all' || notificationChannelTitle) return
-    const match = channelOptions.find(
-      (item) => item.id === notificationChannelId,
-    )
-    if (match) setNotificationChannelTitle(match.label)
-  }, [channelOptions, notificationChannelId, notificationChannelTitle])
-
-  useEffect(() => {
     if (skipNextUrlSync.current) {
       skipNextUrlSync.current = false
       return
     }
 
     setPlateContains(searchParams.get('plateContains') ?? '')
+    setReferenceNumberContains(
+      searchParams.get('referenceNumberContains') ?? '',
+    )
+    setRequestingInstitutionId(
+      searchParams.get('requestingInstitutionId') ?? 'all',
+    )
     setInstitutionAuthorityId(
       searchParams.get('institutionAuthorityId') ?? 'all',
     )
-    setNotificationChannelId(searchParams.get('notificationChannelId') ?? 'all')
     setActive(readActiveParam(searchParams.get('active')))
-    setStartTimeCreate(parseDateOnly(readStartDateParam(searchParams)))
-    setEndTimeCreate(parseDateOnly(readEndDateParam(searchParams)))
+    setEndValidUntil(parseDateOnly(readValidUntilToParam(searchParams)))
   }, [searchParams])
 
   useEffect(() => {
     const nextParams = buildFilterParams({
       plateContains: debouncedPlateContains,
+      referenceNumberContains: debouncedReferenceNumberContains,
+      requestingInstitutionId,
       institutionAuthorityId,
-      notificationChannelId,
       active,
-      startTimeCreate: formatDateOnly(startTimeCreate),
-      endTimeCreate: formatDateOnly(endTimeCreate),
+      validUntilTo: formatDateOnly(endValidUntil),
       size: searchParams.get('size'),
     })
     const nextQuery = nextParams.toString()
 
     const currentComparable = buildFilterParams({
       plateContains: searchParams.get('plateContains') ?? '',
+      referenceNumberContains:
+        searchParams.get('referenceNumberContains') ?? '',
+      requestingInstitutionId:
+        searchParams.get('requestingInstitutionId') ?? 'all',
       institutionAuthorityId:
         searchParams.get('institutionAuthorityId') ?? 'all',
-      notificationChannelId: searchParams.get('notificationChannelId') ?? 'all',
       active: readActiveParam(searchParams.get('active')),
-      startTimeCreate: readStartDateParam(searchParams) ?? undefined,
-      endTimeCreate: readEndDateParam(searchParams) ?? undefined,
+      validUntilTo: readValidUntilToParam(searchParams) ?? undefined,
       size: searchParams.get('size'),
     }).toString()
 
@@ -234,32 +259,34 @@ export function MonitoredPlatesFilter() {
   }, [
     active,
     debouncedPlateContains,
-    endTimeCreate,
+    debouncedReferenceNumberContains,
     institutionAuthorityId,
-    notificationChannelId,
     pathName,
+    requestingInstitutionId,
     router,
     searchParams,
-    startTimeCreate,
+    endValidUntil,
   ])
 
   function clearFilters() {
     setPlateContains('')
+    setReferenceNumberContains('')
+    setRequestingInstitutionId('all')
+    setRequestingInstitutionName('')
+    setRequestingInstitutionSearch('')
     setInstitutionAuthorityId('all')
     setInstitutionAuthorityName('')
     setInstitutionAuthoritySearch('')
-    setNotificationChannelId('all')
-    setNotificationChannelTitle('')
-    setNotificationChannelSearch('')
     setActive('true')
-    setStartTimeCreate(undefined)
-    setEndTimeCreate(undefined)
+    setEndValidUntil(undefined)
 
     const params = buildFilterParams({
       plateContains: '',
+      referenceNumberContains: '',
+      requestingInstitutionId: 'all',
       institutionAuthorityId: 'all',
-      notificationChannelId: 'all',
       active: 'true',
+      validUntilTo: undefined,
       size: searchParams.get('size'),
     })
 
@@ -268,7 +295,7 @@ export function MonitoredPlatesFilter() {
   }
 
   return (
-    <div className="grid gap-3 rounded-md border bg-background/40 p-3 md:grid-cols-[minmax(9rem,0.9fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(11rem,1fr)_minmax(11rem,1fr)_minmax(12rem,1.1fr)_auto] md:items-end">
+    <div className="grid gap-3 rounded-md border bg-background/40 p-3 sm:grid-cols-2 lg:grid-cols-3 lg:items-end xl:grid-cols-[minmax(9rem,0.9fr)_minmax(11rem,1fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(12rem,1.1fr)_minmax(11rem,1fr)_auto]">
       <div className="space-y-1.5">
         <Label htmlFor="monitored-plates-plate">Placa</Label>
         <div className="relative">
@@ -280,10 +307,55 @@ export function MonitoredPlatesFilter() {
               setPlateContains(event.target.value.toUpperCase())
             }
             placeholder="ABC1D23"
-            className="pl-9 uppercase"
+            className="h-11 pl-9 uppercase"
             autoComplete="off"
           />
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="monitored-plates-reference-number">
+          Número de referência
+        </Label>
+        <Input
+          id="monitored-plates-reference-number"
+          value={referenceNumberContains}
+          onChange={(event) => setReferenceNumberContains(event.target.value)}
+          placeholder="Número de referência"
+          className="h-11"
+          autoComplete="off"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="monitored-plates-requesting-institution">
+          Demandante
+        </Label>
+        <MonitoredPlatesFilterCombobox
+          id="monitored-plates-requesting-institution"
+          valueId={requestingInstitutionId}
+          valueLabel={requestingInstitutionName}
+          allLabel="Todos"
+          searchPlaceholder="Nome do demandante"
+          options={requestingInstitutionOptions}
+          isLoading={isLoadingRequestingInstitutions}
+          search={requestingInstitutionSearch}
+          onSearchChange={setRequestingInstitutionSearch}
+          onOpenChange={setIsRequestingInstitutionOpen}
+          onSelect={(option) => {
+            setInstitutionAuthorityId('all')
+            setInstitutionAuthorityName('')
+            setInstitutionAuthoritySearch('')
+            if (!option) {
+              setRequestingInstitutionId('all')
+              setRequestingInstitutionName('')
+              setRequestingInstitutionSearch('')
+              return
+            }
+            setRequestingInstitutionId(option.id)
+            setRequestingInstitutionName(option.label)
+          }}
+        />
       </div>
 
       <div className="space-y-1.5">
@@ -313,51 +385,13 @@ export function MonitoredPlatesFilter() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="monitored-plates-channel">Canal</Label>
-        <MonitoredPlatesFilterCombobox
-          id="monitored-plates-channel"
-          valueId={notificationChannelId}
-          valueLabel={notificationChannelTitle}
-          allLabel="Todos"
-          searchPlaceholder="Nome do canal"
-          options={channelOptions}
-          isLoading={isLoadingChannels}
-          search={notificationChannelSearch}
-          onSearchChange={setNotificationChannelSearch}
-          onOpenChange={setIsChannelOpen}
-          onSelect={(option) => {
-            if (!option) {
-              setNotificationChannelId('all')
-              setNotificationChannelTitle('')
-              setNotificationChannelSearch('')
-              return
-            }
-            setNotificationChannelId(option.id)
-            setNotificationChannelTitle(option.label)
-          }}
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Data de criação de</Label>
+        <Label>Vence até</Label>
         <DatePicker
-          value={startTimeCreate}
+          value={endValidUntil}
           onChange={(date) => {
-            setStartTimeCreate(date instanceof Date ? date : undefined)
+            setEndValidUntil(date instanceof Date ? date : undefined)
           }}
-          className="h-9 w-full"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Até</Label>
-        <DatePicker
-          value={endTimeCreate}
-          onChange={(date) => {
-            setEndTimeCreate(date instanceof Date ? date : undefined)
-          }}
-          className="h-9 w-full"
-          fromDate={startTimeCreate}
+          className="h-11 w-full"
         />
       </div>
 
@@ -367,7 +401,7 @@ export function MonitoredPlatesFilter() {
           value={active}
           onValueChange={(value: ActiveFilter) => setActive(value)}
         >
-          <SelectTrigger id="monitored-plates-active">
+          <SelectTrigger id="monitored-plates-active" className="h-11">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -383,7 +417,7 @@ export function MonitoredPlatesFilter() {
         variant="outline"
         onClick={clearFilters}
         disabled={!hasActiveFilters}
-        className="gap-2"
+        className="h-11 gap-2"
       >
         <X className="h-4 w-4" />
         Limpar
