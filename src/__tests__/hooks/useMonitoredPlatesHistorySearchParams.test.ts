@@ -99,6 +99,25 @@ describe('useMonitoredPlatesHistorySearchParams', () => {
     )
   })
 
+  it('does not add default size when paginating without it in the URL', () => {
+    mockUseSearchParams.mockReturnValue(
+      createMockSearchParams({
+        plate: 'ABC1D23',
+        page: '1',
+      }),
+    )
+
+    const { result } = renderHook(() => useMonitoredPlatesHistorySearchParams())
+
+    act(() => {
+      result.current.handlePaginate(2)
+    })
+
+    expect(push).toHaveBeenCalledWith(
+      '/placas-monitoradas/historico?plate=ABC1D23&page=2',
+    )
+  })
+
   it('resets to page 1 when sorting changes', () => {
     mockUseSearchParams.mockReturnValue(
       createMockSearchParams({

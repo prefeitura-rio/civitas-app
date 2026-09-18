@@ -100,7 +100,6 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
   function handlePaginate(index: number) {
     const params = withCurrentParams()
     params.set('page', index.toString())
-    if (size) params.set('size', size.toString())
     router.push(`${pathName}?${params.toString()}`)
   }
 
