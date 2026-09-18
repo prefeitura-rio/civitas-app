@@ -135,10 +135,15 @@ export function HistoryTable() {
   return (
     <div className="flex flex-col gap-8">
       {isError ? (
-        <Alert variant="destructive">
+        <Alert
+          variant="destructive"
+          className="flex flex-col items-center justify-center gap-3 py-8 text-center [&>svg]:static [&>svg]:mb-0 [&>svg~*]:pl-0"
+        >
           <AlertTitle>Não foi possível carregar o histórico.</AlertTitle>
-          <AlertDescription className="flex flex-wrap items-center gap-3">
-            Tente novamente. Se o problema continuar, verifique sua conexão.
+          <AlertDescription className="flex flex-col items-center gap-3 text-center">
+            <p>
+              Tente novamente. Se o problema continuar, verifique sua conexão.
+            </p>
             <Button
               type="button"
               size="sm"
@@ -150,30 +155,32 @@ export function HistoryTable() {
           </AlertDescription>
         </Alert>
       ) : (
-        <DataTable
-          columns={columns}
-          data={items}
-          isLoading={isMonitoredPlatesLoading}
-          getRowId={(row) => historyRowId(row)}
-          sorting
-          sortingState={sortingState}
-          onSortingChange={handleSortingChange}
-          manualSorting
-          tableClassName="min-w-[72rem]"
-          emptyMessage={
-            hasFilters
-              ? 'Nenhum histórico corresponde aos filtros atuais. Use “Limpar” para ver todos os registros.'
-              : 'Nenhum histórico de placas monitoradas encontrado.'
-          }
-        />
-      )}
-      {data && (
-        <Pagination
-          page={data.page}
-          total={data.total}
-          size={data.size}
-          onPageChange={handlePaginate}
-        />
+        <>
+          <DataTable
+            columns={columns}
+            data={items}
+            isLoading={isMonitoredPlatesLoading}
+            getRowId={(row) => historyRowId(row)}
+            sorting
+            sortingState={sortingState}
+            onSortingChange={handleSortingChange}
+            manualSorting
+            tableClassName="min-w-[72rem]"
+            emptyMessage={
+              hasFilters
+                ? 'Nenhum histórico corresponde aos filtros atuais. Use “Limpar” para ver todos os registros.'
+                : 'Nenhum histórico de placas monitoradas encontrado.'
+            }
+          />
+          {data && (
+            <Pagination
+              page={data.page}
+              total={data.total}
+              size={data.size}
+              onPageChange={handlePaginate}
+            />
+          )}
+        </>
       )}
     </div>
   )
