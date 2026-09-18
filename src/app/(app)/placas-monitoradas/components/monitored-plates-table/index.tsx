@@ -149,7 +149,11 @@ function buildAuthorityEntries(
     }
   }
 
-  return Array.from(map.values())
+  return Array.from(map.values()).sort(
+    (first, second) =>
+      new Date(first.validUntil).getTime() -
+      new Date(second.validUntil).getTime(),
+  )
 }
 
 function filterAuthoritiesByValidUntil(
