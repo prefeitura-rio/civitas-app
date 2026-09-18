@@ -2,7 +2,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { differenceInCalendarDays, formatDate } from 'date-fns'
-import { ArrowDown, ArrowUp, PencilLine, Trash } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowDownUp,
+  ArrowUp,
+  PencilLine,
+  Trash,
+} from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
 import { Spinner } from '@/components/custom/spinner'
@@ -465,12 +471,18 @@ export function MonitoredPlatesTable() {
                 onClick={handleNearestValidUntilSort}
                 aria-pressed={Boolean(nearestValidUntilSort)}
               >
-                {nearestValidUntilSort?.desc ? (
+                {!nearestValidUntilSort ? (
+                  <ArrowDownUp className="mr-2 h-4 w-4" />
+                ) : nearestValidUntilSort.desc ? (
                   <ArrowDown className="mr-2 h-4 w-4" />
                 ) : (
                   <ArrowUp className="mr-2 h-4 w-4" />
                 )}
-                Vencimento mais próximo
+                {!nearestValidUntilSort
+                  ? 'Ordenar por vencimento'
+                  : nearestValidUntilSort.desc
+                    ? 'Vencimento: mais distante'
+                    : 'Vencimento: mais próximo'}
               </Button>
             </div>
             <DataTable
