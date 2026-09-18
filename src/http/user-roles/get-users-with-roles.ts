@@ -3,6 +3,7 @@ import { api } from '@/lib/api'
 export type UserRoleEnum =
   | 'Coordenador'
   | 'Administrativo'
+  | 'Analista'
   | 'Adjunto'
   | 'Auxiliar de Adjunto'
   | 'Assessor'
