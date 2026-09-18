@@ -126,34 +126,19 @@ function getSortingState(
 function buildAuthorityEntries(
   authorities: MonitoredPlateAuthoritySummary[],
 ): AuthorityEntry[] {
-  const map = new Map<string, AuthorityEntry>()
-
-  for (const authority of authorities) {
-    if (!authority.active) continue
-
-    const id = authority.institutionAuthority.id
-    if (!map.has(id)) {
-      map.set(id, {
-        institutionAuthority: authority.institutionAuthority,
-        notificationChannels: [...authority.notificationChannels],
-        referenceNumber: authority.referenceNumber,
-        validUntil: authority.validUntil,
-      })
-    } else {
-      const existing = map.get(id)!
-      for (const ch of authority.notificationChannels) {
-        if (!existing.notificationChannels.some((ec) => ec.id === ch.id)) {
-          existing.notificationChannels.push(ch)
-        }
-      }
-    }
-  }
-
-  return Array.from(map.values()).sort(
-    (first, second) =>
-      new Date(first.validUntil).getTime() -
-      new Date(second.validUntil).getTime(),
-  )
+  return authorities
+    .filter((authority) => authority.active)
+    .map((authority) => ({
+      institutionAuthority: authority.institutionAuthority,
+      notificationChannels: [...authority.notificationChannels],
+      referenceNumber: authority.referenceNumber,
+      validUntil: authority.validUntil,
+    }))
+    .sort(
+      (first, second) =>
+        new Date(first.validUntil).getTime() -
+        new Date(second.validUntil).getTime(),
+    )
 }
 
 function filterAuthoritiesByValidUntil(
@@ -542,14 +527,16 @@ export function MonitoredPlatesTable() {
               tableClassName="min-w-[72rem]"
               emptyMessage="Nenhuma placa monitorada encontrada para os filtros atuais."
             />
+            {data ? (
+              <Pagination
+                page={currentPage}
+                total={total}
+                size={pageSize}
+                onPageChange={handlePaginate}
+              />
+            ) : null}
           </div>
         )}
-        <Pagination
-          page={currentPage}
-          total={total}
-          size={pageSize}
-          onPageChange={handlePaginate}
-        />
       </div>
 
       <Dialog

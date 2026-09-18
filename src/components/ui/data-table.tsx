@@ -103,20 +103,20 @@ export function DataTable<TData, TValue>({
                           type="button"
                           className={cn(
                             'flex items-center gap-2 text-left font-medium',
-                            'cursor-pointer select-none hover:text-foreground'
+                            'cursor-pointer select-none hover:text-foreground',
                           )}
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                           <SortIcon direction={header.column.getIsSorted()} />
                         </button>
                       ) : (
                         flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )
                       )}
                     </TableHead>
@@ -136,7 +136,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

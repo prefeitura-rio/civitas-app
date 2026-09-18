@@ -93,13 +93,13 @@ export function MonitoredPlatesFilter() {
   const skipNextUrlSync = useRef(false)
 
   const [plateContains, setPlateContains] = useState(
-    () => searchParams.get('plateContains') ?? ''
+    () => searchParams.get('plateContains') ?? '',
   )
   const [referenceNumberContains, setReferenceNumberContains] = useState(
-    () => searchParams.get('referenceNumberContains') ?? ''
+    () => searchParams.get('referenceNumberContains') ?? '',
   )
   const [requestingInstitutionId, setRequestingInstitutionId] = useState(
-    () => searchParams.get('requestingInstitutionId') ?? 'all'
+    () => searchParams.get('requestingInstitutionId') ?? 'all',
   )
   const [requestingInstitutionName, setRequestingInstitutionName] = useState('')
   const [requestingInstitutionSearch, setRequestingInstitutionSearch] =
@@ -107,7 +107,7 @@ export function MonitoredPlatesFilter() {
   const [isRequestingInstitutionOpen, setIsRequestingInstitutionOpen] =
     useState(false)
   const [institutionAuthorityId, setInstitutionAuthorityId] = useState(
-    () => searchParams.get('institutionAuthorityId') ?? 'all'
+    () => searchParams.get('institutionAuthorityId') ?? 'all',
   )
   const [institutionAuthorityName, setInstitutionAuthorityName] = useState('')
   const [institutionAuthoritySearch, setInstitutionAuthoritySearch] =
@@ -115,20 +115,20 @@ export function MonitoredPlatesFilter() {
   const [isAuthorityOpen, setIsAuthorityOpen] = useState(false)
 
   const [active, setActive] = useState<ActiveFilter>(() =>
-    readActiveParam(searchParams.get('active'))
+    readActiveParam(searchParams.get('active')),
   )
   const [endValidUntil, setEndValidUntil] = useState<Date | undefined>(() =>
-    parseDateOnly(readValidUntilToParam(searchParams))
+    parseDateOnly(readValidUntilToParam(searchParams)),
   )
 
   const debouncedPlateContains = useDebounce(plateContains, 350)
   const debouncedReferenceNumberContains = useDebounce(
     referenceNumberContains,
-    350
+    350,
   )
   const debouncedRequestingInstitutionSearch = useDebounce(
     requestingInstitutionSearch,
-    350
+    350,
   )
   const debouncedAuthoritySearch = useDebounce(institutionAuthoritySearch, 350)
 
@@ -190,7 +190,7 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     if (requestingInstitutionId === 'all' || requestingInstitutionName) return
     const match = requestingInstitutionOptions.find(
-      (item) => item.id === requestingInstitutionId
+      (item) => item.id === requestingInstitutionId,
     )
     if (match) setRequestingInstitutionName(match.label)
   }, [
@@ -202,7 +202,7 @@ export function MonitoredPlatesFilter() {
   useEffect(() => {
     if (institutionAuthorityId === 'all' || institutionAuthorityName) return
     const match = authorityOptions.find(
-      (item) => item.id === institutionAuthorityId
+      (item) => item.id === institutionAuthorityId,
     )
     if (match) setInstitutionAuthorityName(match.label)
   }, [authorityOptions, institutionAuthorityId, institutionAuthorityName])
@@ -215,13 +215,13 @@ export function MonitoredPlatesFilter() {
 
     setPlateContains(searchParams.get('plateContains') ?? '')
     setReferenceNumberContains(
-      searchParams.get('referenceNumberContains') ?? ''
+      searchParams.get('referenceNumberContains') ?? '',
     )
     setRequestingInstitutionId(
-      searchParams.get('requestingInstitutionId') ?? 'all'
+      searchParams.get('requestingInstitutionId') ?? 'all',
     )
     setInstitutionAuthorityId(
-      searchParams.get('institutionAuthorityId') ?? 'all'
+      searchParams.get('institutionAuthorityId') ?? 'all',
     )
     setActive(readActiveParam(searchParams.get('active')))
     setEndValidUntil(parseDateOnly(readValidUntilToParam(searchParams)))
