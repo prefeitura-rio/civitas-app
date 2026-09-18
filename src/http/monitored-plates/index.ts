@@ -116,6 +116,7 @@ export type MonitoredPlatesSortBy =
   | 'active'
   | 'created_at'
   | 'updated_at'
+  | 'nearest_valid_until'
 
 export type SortDirection = 'asc' | 'desc'
 

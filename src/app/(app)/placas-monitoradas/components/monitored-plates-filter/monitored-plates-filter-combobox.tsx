@@ -70,7 +70,7 @@ export function MonitoredPlatesFilterCombobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'w-full justify-between',
+            'h-11 w-full justify-between',
             isAll && 'text-muted-foreground',
           )}
         >
