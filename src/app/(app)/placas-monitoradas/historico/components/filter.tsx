@@ -258,6 +258,21 @@ export function HistoryFilter() {
         </div>
 
         <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
+          <Label
+            htmlFor="referenceNumber"
+            className="text-xs text-muted-foreground"
+          >
+            Número de referência
+          </Label>
+          <Input
+            className="h-10 w-full sm:h-9 sm:w-48"
+            id="referenceNumber"
+            type="text"
+            {...register('referenceNumber')}
+          />
+        </div>
+
+        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
           <Label htmlFor="status" className="text-xs text-muted-foreground">
             Status
           </Label>
@@ -293,21 +308,6 @@ export function HistoryFilter() {
               <SelectItem value="authority">Vínculo</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
-          <Label
-            htmlFor="referenceNumber"
-            className="text-xs text-muted-foreground"
-          >
-            Número de referência
-          </Label>
-          <Input
-            className="h-10 w-full sm:h-9 sm:w-48"
-            id="referenceNumber"
-            type="text"
-            {...register('referenceNumber')}
-          />
         </div>
 
         <div className="grid w-full gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
