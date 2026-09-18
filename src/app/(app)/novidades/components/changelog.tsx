@@ -61,6 +61,41 @@ export const changelog: Card[] = [
           </>
         ),
       },
+      {
+        tag: 'Alterado',
+        title: 'Histórico de placas monitoradas com origem, status e ordenação',
+        content: (
+          <>
+            <p>
+              A tela de <code>Histórico de placas monitoradas</code> passou a
+              reunir registros legados e vínculos com requisitantes, com filtros
+              e ordenação para localizar ativações e desativações.
+            </p>
+            <ul>
+              <li>
+                A coluna <strong>Origem</strong> distingue registros{' '}
+                <code>Legado</code> e <code>Vínculo</code>.
+              </li>
+              <li>
+                Filtros por <strong>Status</strong> (ativas ou desativadas),{' '}
+                <strong>Origem</strong> e <strong>Número de referência</strong>.
+              </li>
+              <li>
+                Datas de criação e de desativação ficam em{' '}
+                <code>Período e mais filtros</code>.
+              </li>
+              <li>
+                A tabela pode ser ordenada pelas colunas principais, com a
+                ordenação preservada na URL e entre as páginas.
+              </li>
+              <li>
+                Estados vazios e de erro passam a orientar a próxima ação,
+                incluindo a opção de tentar carregar novamente.
+              </li>
+            </ul>
+          </>
+        ),
+      },
     ],
   },
   {
