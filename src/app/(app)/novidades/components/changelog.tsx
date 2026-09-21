@@ -19,7 +19,7 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
-    title: '17 de Setembro de 2026',
+    title: '23 de Setembro de 2026',
     subCards: [
       {
         tag: 'Alterado',
