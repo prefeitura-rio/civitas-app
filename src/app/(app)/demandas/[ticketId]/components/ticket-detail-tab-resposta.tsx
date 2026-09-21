@@ -1,8 +1,16 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bold, Italic, Link2, Paperclip, Underline, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { X } from 'lucide-react'
+import {
+  type ChangeEvent,
+  type ClipboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 
 import tcStyles from '@/app/(app)/demandas/criar/ticket-create/ticket-create-form.module.css'
@@ -34,9 +42,21 @@ import {
 } from '@/http/tickets/ticket-resposta'
 import { cn } from '@/lib/utils'
 import { getApiErrorMessage } from '@/utils/error-handlers'
+import {
+  toBrowserTicketReportHtml,
+  toStoredTicketReportHtml,
+} from '@/utils/ticket-report-images'
 
 import responderStyles from '../../caixa-entrada/responder/[emailId]/components/responder-email-view.module.css'
 import detailStyles from '../ticket-detail.module.css'
+import {
+  insertNodeAtCaret,
+  isHtmlEffectivelyEmpty,
+  RichToolbar,
+  sanitizeTicketHtml,
+  TICKET_REPORT_IMAGE_ACCEPT,
+  TICKET_REPORT_IMAGE_MAX_BYTES,
+} from './ticket-detail-rich-text'
 import { usesGcsSignedUrlAttachment } from './ticket-gcs-upload'
 
 const EMPTY_POP_VALUE = '__civitas_pop_empty__'
@@ -109,8 +129,11 @@ const RESPOSTA_QUERY_KEY = (ticketId: string) =>
 
 export function TicketDetailTabResposta({ ticketId }: Props) {
   const queryClient = useQueryClient()
+  const editorRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const pendingImagesByBlobUrl = useRef<Map<string, File>>(new Map())
   const [selectedPopId, setSelectedPopId] = useState<string | null>(null)
-  const [replyBody, setReplyBody] = useState('')
+  const [replyIsEmpty, setReplyIsEmpty] = useState(true)
   const [dirty, setDirty] = useState(false)
   const [selectedServiceValue, setSelectedServiceValue] =
     useState(EMPTY_SERVICE_VALUE)
@@ -127,12 +150,38 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
   })
 
   const saveMutation = useMutation({
-    mutationFn: () =>
-      putTicketResposta(ticketId, {
-        html_content: replyBody,
-        service_attachment_ids: attachmentsResposta.map((a) => a.id),
-      }),
+    mutationFn: () => {
+      const editor = editorRef.current
+      if (!editor) throw new Error('Editor indisponível.')
+
+      const clone = editor.cloneNode(true) as HTMLElement
+      const files: File[] = []
+      let index = 0
+      for (const image of clone.querySelectorAll('img')) {
+        const source = image.getAttribute('src') || ''
+        const file = pendingImagesByBlobUrl.current.get(source)
+        if (!file) continue
+        image.setAttribute('src', `__RESPONSE_IMG_${index}__`)
+        files.push(file)
+        index += 1
+      }
+
+      return putTicketResposta(
+        ticketId,
+        {
+          html_content: toStoredTicketReportHtml(
+            sanitizeTicketHtml(clone.innerHTML),
+          ),
+          service_attachment_ids: attachmentsResposta.map((a) => a.id),
+        },
+        files,
+      )
+    },
     onSuccess: (data) => {
+      pendingImagesByBlobUrl.current.forEach((_, blobUrl) =>
+        URL.revokeObjectURL(blobUrl),
+      )
+      pendingImagesByBlobUrl.current.clear()
       queryClient.setQueryData(RESPOSTA_QUERY_KEY(ticketId), data)
       queryClient
         .invalidateQueries({ queryKey: ['ticket', ticketId] })
@@ -143,6 +192,12 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
         })
         .catch(() => {})
       queryClient.invalidateQueries({ queryKey: ['tickets'] }).catch(() => {})
+      if (editorRef.current) {
+        editorRef.current.innerHTML = toBrowserTicketReportHtml(
+          sanitizeTicketHtml(data.html_content),
+        )
+        setReplyIsEmpty(isHtmlEffectivelyEmpty(editorRef.current.innerHTML))
+      }
       setDirty(false)
       toast.success('Resposta gravada.')
     },
@@ -319,7 +374,12 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
   useEffect(() => {
     if (respostaQuery.isLoading || respostaQuery.isError || dirty) return
     const initialBody = respostaQuery.data?.html_content ?? ''
-    setReplyBody(initialBody)
+    if (editorRef.current) {
+      editorRef.current.innerHTML = toBrowserTicketReportHtml(
+        sanitizeTicketHtml(initialBody),
+      )
+      setReplyIsEmpty(isHtmlEffectivelyEmpty(editorRef.current.innerHTML))
+    }
   }, [
     respostaQuery.isLoading,
     respostaQuery.isError,
@@ -367,17 +427,113 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
     }
     if (popDetailRes?.body != null) {
       // Regra: selecionar POP preenche automaticamente o editor.
-      setReplyBody(popDetailRes.body)
+      const html = sanitizeTicketHtml(popDetailRes.body)
+      if (editorRef.current) {
+        editorRef.current.innerHTML = toBrowserTicketReportHtml(html)
+        setReplyIsEmpty(isHtmlEffectivelyEmpty(editorRef.current.innerHTML))
+      }
       setDirty(true)
     }
   }, [selectedPopId, popDetailRes?.body])
 
-  const canSave = replyBody.trim().length > 0 && !saveMutation.isPending
+  useEffect(
+    () => () => {
+      pendingImagesByBlobUrl.current.forEach((_, blobUrl) =>
+        URL.revokeObjectURL(blobUrl),
+      )
+      pendingImagesByBlobUrl.current.clear()
+    },
+    [ticketId],
+  )
+
+  const syncEditor = useCallback(() => {
+    const editor = editorRef.current
+    if (!editor) return
+    setReplyIsEmpty(isHtmlEffectivelyEmpty(editor.innerHTML))
+  }, [])
+
+  const revokeOrphanPendingImages = useCallback(() => {
+    const editor = editorRef.current
+    if (!editor) return
+    const used = new Set(
+      Array.from(editor.querySelectorAll('img')).map(
+        (image) => image.getAttribute('src') || '',
+      ),
+    )
+    for (const blobUrl of pendingImagesByBlobUrl.current.keys()) {
+      if (!used.has(blobUrl)) {
+        URL.revokeObjectURL(blobUrl)
+        pendingImagesByBlobUrl.current.delete(blobUrl)
+      }
+    }
+  }, [])
+
+  const runCommand = useCallback(
+    (command: string, value?: string) => {
+      editorRef.current?.focus()
+      document.execCommand(command, false, value)
+      syncEditor()
+      setDirty(true)
+    },
+    [syncEditor],
+  )
+
+  const openImagePicker = useCallback(() => fileInputRef.current?.click(), [])
+
+  const insertImageFile = useCallback(
+    (file: File) => {
+      if (!TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(file.type)) {
+        toast.error('Use JPEG, PNG, GIF ou WebP.')
+        return
+      }
+      if (file.size > TICKET_REPORT_IMAGE_MAX_BYTES) {
+        toast.error('Cada imagem pode ter no máximo 10 MB.')
+        return
+      }
+      const editor = editorRef.current
+      if (!editor) return
+
+      const blobUrl = URL.createObjectURL(file)
+      pendingImagesByBlobUrl.current.set(blobUrl, file)
+      const image = document.createElement('img')
+      image.alt = ''
+      image.src = blobUrl
+      insertNodeAtCaret(editor, image)
+      syncEditor()
+      setDirty(true)
+      revokeOrphanPendingImages()
+    },
+    [revokeOrphanPendingImages, syncEditor],
+  )
+
+  const handleImageFile = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      event.target.value = ''
+      if (file) insertImageFile(file)
+    },
+    [insertImageFile],
+  )
+
+  const handlePaste = useCallback(
+    (event: ClipboardEvent<HTMLDivElement>) => {
+      const imageItem = Array.from(event.clipboardData.items).find((item) =>
+        TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(item.type),
+      )
+      const file = imageItem?.getAsFile()
+      if (!file) return
+      event.preventDefault()
+      insertImageFile(file)
+    },
+    [insertImageFile],
+  )
+
+  const canSave = !replyIsEmpty && !saveMutation.isPending
 
   const handleSave = useCallback(() => {
-    if (!replyBody.trim()) return
+    if (replyIsEmpty) return
     saveMutation.mutate()
-  }, [replyBody, saveMutation])
+  }, [replyIsEmpty, saveMutation])
 
   if (respostaQuery.isLoading) {
     return <p className={detailStyles.loading}>Carregando resposta…</p>
@@ -642,64 +798,45 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
             )}
           </div>
 
-          <div className={responderStyles.editorWrap}>
-            <div className={responderStyles.toolbar} aria-hidden>
-              <button
-                type="button"
-                className={responderStyles.toolbarBtn}
-                disabled
-              >
-                <Bold size={16} />
-              </button>
-              <button
-                type="button"
-                className={responderStyles.toolbarBtn}
-                disabled
-              >
-                <Italic size={16} />
-              </button>
-              <button
-                type="button"
-                className={responderStyles.toolbarBtn}
-                disabled
-              >
-                <Underline size={16} />
-              </button>
-              <span className={responderStyles.toolbarDivider} />
-              <button
-                type="button"
-                className={responderStyles.toolbarBtn}
-                disabled
-              >
-                <Link2 size={16} />
-              </button>
-              <span className={detailStyles.respostaToolbarSpacer} />
-              <button
-                type="button"
-                className={responderStyles.toolbarBtn}
-                disabled
-              >
-                <Paperclip size={16} />
-              </button>
-            </div>
-            <textarea
-              className={responderStyles.textarea}
-              value={replyBody}
-              onChange={(e) => {
-                setReplyBody(e.target.value)
-                setDirty(true)
-              }}
-              placeholder={
-                popDetailLoading && selectedPopId
-                  ? 'Carregando texto do POP…'
-                  : 'Digite sua resposta ou selecione um POP acima'
-              }
-              disabled={
-                saveMutation.isPending ||
-                (popDetailLoading && Boolean(selectedPopId))
-              }
-              spellCheck
+          <div className={detailStyles.parecerEditorShell}>
+            <RichToolbar
+              editorRef={editorRef}
+              onCommand={runCommand}
+              attachmentDisabled={saveMutation.isPending}
+              onInsertImage={openImagePicker}
             />
+            <div className={detailStyles.parecerEditorArea}>
+              {replyIsEmpty ? (
+                <span className={detailStyles.parecerPlaceholder} aria-hidden>
+                  {popDetailLoading && selectedPopId
+                    ? 'Carregando texto do POP…'
+                    : 'Digite sua resposta ou selecione um POP acima'}
+                </span>
+              ) : null}
+              <div
+                ref={editorRef}
+                role="textbox"
+                aria-multiline
+                aria-label="Relatório de resposta"
+                contentEditable={
+                  !saveMutation.isPending &&
+                  !(popDetailLoading && Boolean(selectedPopId))
+                }
+                className={detailStyles.parecerEditor}
+                onInput={() => {
+                  syncEditor()
+                  setDirty(true)
+                  revokeOrphanPendingImages()
+                }}
+                onBlur={() => {
+                  syncEditor()
+                  revokeOrphanPendingImages()
+                }}
+                onPaste={handlePaste}
+                suppressContentEditableWarning
+                spellCheck
+              />
+            </div>
           </div>
         </div>
 
@@ -709,7 +846,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
             className={responderStyles.btnSend}
             disabled={!canSave}
             title={
-              !replyBody.trim()
+              replyIsEmpty
                 ? 'Digite ou carregue o texto da resposta'
                 : undefined
             }
@@ -719,6 +856,15 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
           </button>
         </div>
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={TICKET_REPORT_IMAGE_ACCEPT}
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        onChange={handleImageFile}
+      />
     </div>
   )
 }
