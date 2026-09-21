@@ -5,6 +5,36 @@ import { type MouseEvent, type RefObject, useEffect, useState } from 'react'
 
 import styles from '../ticket-detail.module.css'
 
+export const TICKET_REPORT_IMAGE_ACCEPT =
+  'image/jpeg,image/png,image/gif,image/webp'
+export const TICKET_REPORT_IMAGE_MAX_BYTES = 10 * 1024 * 1024
+
+export function insertNodeAtCaret(editor: HTMLElement, node: Node) {
+  editor.focus()
+  const selection = window.getSelection()
+  if (
+    selection?.rangeCount &&
+    selection.anchorNode &&
+    editor.contains(selection.anchorNode)
+  ) {
+    const range = selection.getRangeAt(0)
+    range.deleteContents()
+    range.insertNode(node)
+    range.setStartAfter(node)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    return
+  }
+
+  editor.appendChild(node)
+  const range = document.createRange()
+  range.selectNodeContents(editor)
+  range.collapse(false)
+  selection?.removeAllRanges()
+  selection?.addRange(range)
+}
+
 function nodeInsideEditorLink(node: Node, editor: HTMLElement): boolean {
   let el: Node | null =
     node.nodeType === Node.TEXT_NODE ? node.parentElement : node
@@ -27,17 +57,55 @@ function selectionTouchesLinkInEditor(editor: HTMLElement): boolean {
   )
 }
 
+function isIgnorableUrlCharacter(character: string): boolean {
+  const codePoint = character.codePointAt(0)
+  if (codePoint === undefined) return false
+  return (
+    codePoint <= 0x20 ||
+    (codePoint >= 0x7f && codePoint <= 0x9f) ||
+    (codePoint >= 0x200b && codePoint <= 0x200f) ||
+    (codePoint >= 0x202a && codePoint <= 0x202e) ||
+    (codePoint >= 0x2060 && codePoint <= 0x206f) ||
+    codePoint === 0xfeff
+  )
+}
+
 export function sanitizeTicketHtml(html: string): string {
   if (typeof window === 'undefined') return html
   const doc = new DOMParser().parseFromString(html, 'text/html')
-  doc.querySelectorAll('script, iframe, object, embed').forEach((el) => {
-    el.remove()
-  })
+  doc
+    .querySelectorAll(
+      'script, style, iframe, object, embed, svg, math, form, base, link, meta, template',
+    )
+    .forEach((el) => {
+      el.remove()
+    })
   doc.querySelectorAll('*').forEach((el) => {
     for (const attr of Array.from(el.attributes)) {
-      if (attr.name.toLowerCase().startsWith('on')) {
+      const name = attr.name.toLowerCase()
+      if (name.startsWith('on')) {
         el.removeAttribute(attr.name)
+        continue
       }
+
+      if (name === 'href' || name === 'src') {
+        const normalized = Array.from(attr.value)
+          .filter((character) => !isIgnorableUrlCharacter(character))
+          .join('')
+          .toLowerCase()
+        const activeScheme =
+          normalized.startsWith('javascript:') ||
+          normalized.startsWith('vbscript:')
+        const executableLink =
+          el.tagName === 'A' && normalized.startsWith('data:')
+        if (activeScheme || executableLink) {
+          el.removeAttribute(attr.name)
+        }
+      }
+    }
+
+    if (el.tagName === 'A' && el.getAttribute('target') === '_blank') {
+      el.setAttribute('rel', 'noopener noreferrer')
     }
   })
   return doc.body.innerHTML

@@ -19,17 +19,21 @@ import {
   putTicketRelatorioDemanda,
 } from '@/http/tickets/ticket-relatorio-demanda'
 import { isApiError } from '@/lib/api'
+import {
+  toBrowserTicketReportHtml,
+  toStoredTicketReportHtml,
+} from '@/utils/ticket-report-images'
 
 import styles from '../ticket-detail.module.css'
 import {
+  insertNodeAtCaret,
   isHtmlEffectivelyEmpty,
   RichToolbar,
   sanitizeTicketHtml,
+  TICKET_REPORT_IMAGE_ACCEPT,
+  TICKET_REPORT_IMAGE_MAX_BYTES,
 } from './ticket-detail-rich-text'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
-
-const IMAGE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp'
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 const REPORT_QUERY_KEY = (ticketId: string) =>
   ['ticket', ticketId, 'relatorio-demanda'] as const
@@ -39,32 +43,6 @@ const RELATORIO_PASTE_TOOLTIP =
 
 type Props = {
   ticketId: string
-}
-
-function insertNodeAtCaret(editor: HTMLElement, node: Node) {
-  editor.focus()
-  const sel = window.getSelection()
-  if (
-    sel &&
-    sel.rangeCount > 0 &&
-    sel.anchorNode &&
-    editor.contains(sel.anchorNode)
-  ) {
-    const range = sel.getRangeAt(0)
-    range.deleteContents()
-    range.insertNode(node)
-    range.setStartAfter(node)
-    range.collapse(true)
-    sel.removeAllRanges()
-    sel.addRange(range)
-  } else {
-    editor.appendChild(node)
-    const range = document.createRange()
-    range.selectNodeContents(editor)
-    range.collapse(false)
-    sel?.removeAllRanges()
-    sel?.addRange(range)
-  }
 }
 
 export const TicketDetailTabRelatorioDemanda = forwardRef<
@@ -121,7 +99,9 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
         ? reportDataRef.current.html_content
         : ''
     if (editorRef.current) {
-      editorRef.current.innerHTML = sanitizeTicketHtml(html)
+      editorRef.current.innerHTML = toBrowserTicketReportHtml(
+        sanitizeTicketHtml(html),
+      )
       syncEmpty()
     }
     setDirty(false)
@@ -136,7 +116,9 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       reportQuery.data?.html_content != null
         ? reportQuery.data.html_content
         : ''
-    editorRef.current.innerHTML = sanitizeTicketHtml(html)
+    editorRef.current.innerHTML = toBrowserTicketReportHtml(
+      sanitizeTicketHtml(html),
+    )
     syncEmpty()
   }, [
     reportQuery.isLoading,
@@ -186,7 +168,9 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       }
     }
 
-    const conteudoHtml = sanitizeTicketHtml(clone.innerHTML)
+    const conteudoHtml = toStoredTicketReportHtml(
+      sanitizeTicketHtml(clone.innerHTML),
+    )
     return { html_content: conteudoHtml, files }
   }, [])
 
@@ -205,8 +189,8 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       pendingByBlobRef.current.clear()
       queryClient.setQueryData(REPORT_QUERY_KEY(ticketId), data)
       if (editorRef.current) {
-        editorRef.current.innerHTML = sanitizeTicketHtml(
-          data.html_content || '',
+        editorRef.current.innerHTML = toBrowserTicketReportHtml(
+          sanitizeTicketHtml(data.html_content || ''),
         )
         syncEmpty()
       }
@@ -258,11 +242,11 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       e.target.value = ''
       if (!file) return
 
-      if (!IMAGE_ACCEPT.split(',').includes(file.type)) {
+      if (!TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(file.type)) {
         toast.error('Use JPEG, PNG, GIF ou WebP.')
         return
       }
-      if (file.size > MAX_IMAGE_BYTES) {
+      if (file.size > TICKET_REPORT_IMAGE_MAX_BYTES) {
         toast.error('Cada imagem pode ter no máximo 10 MB.')
         return
       }
@@ -363,7 +347,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       <input
         ref={fileInputRef}
         type="file"
-        accept={IMAGE_ACCEPT}
+        accept={TICKET_REPORT_IMAGE_ACCEPT}
         className="sr-only"
         tabIndex={-1}
         aria-hidden
