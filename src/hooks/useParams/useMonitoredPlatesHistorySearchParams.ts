@@ -5,6 +5,7 @@ import type {
   GetMonitoredPlatesHistoryProps,
   MonitoredPlateHistorySortBy,
   MonitoredPlateHistorySortDirection,
+  MonitoredPlateHistoryEndReasonFilter,
   MonitoredPlateHistoryStatusFilter,
 } from '@/http/cars/monitored/get-monitored-plates-history'
 
@@ -16,6 +17,7 @@ type MonitoredPlatesQueryKey = [
 ]
 
 const STATUS_OPTIONS = ['active', 'deactivated'] as const
+const END_REASON_OPTIONS = ['expired', 'manual'] as const
 
 function parseStatus(
   value: string | null,
@@ -25,6 +27,18 @@ function parseStatus(
     STATUS_OPTIONS.includes(value as MonitoredPlateHistoryStatusFilter)
   ) {
     return value as MonitoredPlateHistoryStatusFilter
+  }
+  return undefined
+}
+
+function parseEndReason(
+  value: string | null,
+): MonitoredPlateHistoryEndReasonFilter | undefined {
+  if (
+    value &&
+    END_REASON_OPTIONS.includes(value as MonitoredPlateHistoryEndReasonFilter)
+  ) {
+    return value as MonitoredPlateHistoryEndReasonFilter
   }
   return undefined
 }
@@ -56,6 +70,7 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     searchParams.get('requestingInstitutionId') || undefined
   const institutionAuthorityId =
     searchParams.get('institutionAuthorityId') || undefined
+  const endReason = parseEndReason(searchParams.get('endReason'))
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
@@ -76,6 +91,7 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     referenceNumber,
     requestingInstitutionId,
     institutionAuthorityId,
+    endReason,
     page,
     size,
     sortBy,

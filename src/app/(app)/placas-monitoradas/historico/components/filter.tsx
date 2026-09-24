@@ -40,6 +40,7 @@ const filterFormSchema = z
     status: z.enum(['all', 'active', 'deactivated']).default('all'),
     requestingInstitutionId: z.string().default('all'),
     institutionAuthorityId: z.string().default('all'),
+    endReason: z.enum(['all', 'expired', 'manual']).default('all'),
     referenceNumber: z.string().optional(),
     startTimeCreate: z.string().optional(),
     endTimeCreate: z.string().optional(),
@@ -105,6 +106,7 @@ export function HistoryFilter() {
       status: 'all',
       requestingInstitutionId: 'all',
       institutionAuthorityId: 'all',
+      endReason: 'all',
       referenceNumber: '',
       startTimeCreate: undefined,
       endTimeCreate: undefined,
@@ -133,6 +135,7 @@ export function HistoryFilter() {
     control,
     name: 'institutionAuthorityId',
   })
+  const endReason = useWatch({ control, name: 'endReason' })
   const referenceNumber = useWatch({ control, name: 'referenceNumber' })
   const debouncedRequestingInstitutionSearch = useDebounce(
     requestingInstitutionSearch,
@@ -155,6 +158,7 @@ export function HistoryFilter() {
     status !== 'all' ||
     requestingInstitutionId !== 'all' ||
     institutionAuthorityId !== 'all' ||
+    endReason !== 'all' ||
     advancedFilterCount > 0
 
   const pPlate = searchParams.get('plate') ?? ''
@@ -163,6 +167,7 @@ export function HistoryFilter() {
     searchParams.get('requestingInstitutionId') ?? 'all'
   const pInstitutionAuthorityId =
     searchParams.get('institutionAuthorityId') ?? 'all'
+  const pEndReason = searchParams.get('endReason')
   const pReferenceNumber = searchParams.get('referenceNumber') ?? ''
   const pStartTimeCreate = searchParams.get('startTimeCreate')
   const pEndTimeCreate = searchParams.get('endTimeCreate')
@@ -176,6 +181,10 @@ export function HistoryFilter() {
         pStatus === 'active' || pStatus === 'deactivated' ? pStatus : 'all',
       requestingInstitutionId: pRequestingInstitutionId || 'all',
       institutionAuthorityId: pInstitutionAuthorityId || 'all',
+      endReason:
+        pEndReason === 'expired' || pEndReason === 'manual'
+          ? pEndReason
+          : 'all',
       referenceNumber: pReferenceNumber,
       startTimeCreate: pStartTimeCreate ?? undefined,
       endTimeCreate: pEndTimeCreate ?? undefined,
@@ -205,6 +214,7 @@ export function HistoryFilter() {
     pStatus,
     pRequestingInstitutionId,
     pInstitutionAuthorityId,
+    pEndReason,
     pReferenceNumber,
     pStartTimeCreate,
     pEndTimeCreate,
@@ -285,6 +295,15 @@ export function HistoryFilter() {
     setValue('status', value as FilterForm['status'], {
       shouldDirty: true,
     })
+    if (value === 'active') {
+      setValue('endReason', 'all', { shouldDirty: true })
+    }
+  }
+
+  function handleEndReasonChange(value: string) {
+    setValue('endReason', value as FilterForm['endReason'], {
+      shouldDirty: true,
+    })
   }
 
   function handleClearFilters() {
@@ -294,6 +313,7 @@ export function HistoryFilter() {
       status: 'all',
       requestingInstitutionId: 'all',
       institutionAuthorityId: 'all',
+      endReason: 'all',
       referenceNumber: '',
       startTimeCreate: undefined,
       endTimeCreate: undefined,
@@ -340,6 +360,9 @@ export function HistoryFilter() {
       props.institutionAuthorityId !== 'all'
     ) {
       params.set('institutionAuthorityId', props.institutionAuthorityId)
+    }
+    if (props.endReason && props.endReason !== 'all') {
+      params.set('endReason', props.endReason)
     }
     if (props.referenceNumber?.trim()) {
       params.set('referenceNumber', props.referenceNumber.trim())
@@ -484,12 +507,35 @@ export function HistoryFilter() {
           </Label>
           <Select value={status} onValueChange={handleStatusChange}>
             <SelectTrigger id="status" className="h-10 w-full sm:h-9 sm:w-36">
-              <SelectValue placeholder="Todas" />
+              <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="active">Ativas</SelectItem>
-              <SelectItem value="deactivated">Desativadas</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="deactivated">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:shrink-0">
+          <Label htmlFor="endReason" className="text-xs text-muted-foreground">
+            Tipo desativação
+          </Label>
+          <Select
+            value={endReason}
+            onValueChange={handleEndReasonChange}
+            disabled={status === 'active'}
+          >
+            <SelectTrigger
+              id="endReason"
+              className="h-10 w-full sm:h-9 sm:w-40"
+            >
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="expired">Validade</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
             </SelectContent>
           </Select>
         </div>

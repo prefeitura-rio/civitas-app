@@ -16,6 +16,8 @@ export type MonitoredPlateHistorySortDirection = 'asc' | 'desc'
 
 export type MonitoredPlateHistoryStatusFilter = 'active' | 'deactivated'
 
+export type MonitoredPlateHistoryEndReasonFilter = 'expired' | 'manual'
+
 export interface GetMonitoredPlatesHistoryProps {
   plate?: string
   startTimeCreate?: string
@@ -26,6 +28,7 @@ export interface GetMonitoredPlatesHistoryProps {
   referenceNumber?: string
   requestingInstitutionId?: string
   institutionAuthorityId?: string
+  endReason?: MonitoredPlateHistoryEndReasonFilter
   page?: number
   size?: number
   sortBy?: MonitoredPlateHistorySortBy
@@ -52,6 +55,7 @@ export async function getMonitoredPlatesHistory(
         reference_number: props.referenceNumber,
         requesting_institution_id: props.requestingInstitutionId,
         institution_authority_id: props.institutionAuthorityId,
+        end_reason: props.endReason,
         page: props.page,
         size: props.size,
         sort_by: props.sortBy,

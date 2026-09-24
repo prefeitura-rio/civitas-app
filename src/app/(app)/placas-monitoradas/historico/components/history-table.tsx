@@ -59,17 +59,15 @@ export function HistoryTable() {
       {
         id: 'status',
         header: 'Status',
+        cell: ({ row }) =>
+          row.original.deleted_timestamp ? 'Inativo' : 'Ativo',
+      },
+      {
+        id: 'end_reason',
+        header: 'Tipo desativação',
         cell: ({ row }) => {
-          switch (row.original.end_reason) {
-            case 'deactivated':
-              return 'Desativada'
-            case 'deleted':
-              return 'Removida'
-            case 'expired':
-              return 'Expirada'
-            default:
-              return 'Ativa'
-          }
+          if (!row.original.deleted_timestamp) return '—'
+          return row.original.end_reason === 'expired' ? 'Validade' : 'Manual'
         },
       },
       {
@@ -109,7 +107,7 @@ export function HistoryTable() {
         enableSorting: true,
         accessorFn: (row) => row.deleted_by?.full_name,
         cell: ({ row }) => {
-          if (row.original.end_reason === 'expired') return 'Validade'
+          if (row.original.end_reason === 'expired') return 'Sistema'
           return row.original.deleted_by?.full_name || '—'
         },
       },
@@ -124,6 +122,7 @@ export function HistoryTable() {
       formattedSearchParams.referenceNumber ||
       formattedSearchParams.requestingInstitutionId ||
       formattedSearchParams.institutionAuthorityId ||
+      formattedSearchParams.endReason ||
       formattedSearchParams.startTimeCreate ||
       formattedSearchParams.endTimeCreate ||
       formattedSearchParams.startTimeDelete ||

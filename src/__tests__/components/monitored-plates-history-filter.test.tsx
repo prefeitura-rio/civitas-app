@@ -24,6 +24,55 @@ jest.mock('@/http/requesting-institutions', () => ({
   getRequestingInstitutions: jest.fn(),
 }))
 
+jest.mock('@/components/ui/select', () => {
+  const React = require('react') as typeof import('react')
+
+  return {
+    Select: ({
+      value,
+      onValueChange,
+      children,
+      disabled,
+    }: {
+      value?: string
+      onValueChange?: (value: string) => void
+      children: React.ReactNode
+      disabled?: boolean
+    }) => {
+      const trigger = React.Children.toArray(children).find((child) => {
+        return React.isValidElement(child) && child.props.id
+      }) as React.ReactElement<{ id?: string }> | undefined
+
+      return (
+        <select
+          aria-label={trigger?.props.id}
+          value={value}
+          disabled={disabled}
+          onChange={(event) => onValueChange?.(event.target.value)}
+        >
+          {children}
+        </select>
+      )
+    },
+    SelectTrigger: ({
+      id,
+      children,
+    }: {
+      id?: string
+      children: React.ReactNode
+    }) => <span id={id}>{children}</span>,
+    SelectValue: () => null,
+    SelectContent: ({ children }: { children: React.ReactNode }) => children,
+    SelectItem: ({
+      value,
+      children,
+    }: {
+      value: string
+      children: React.ReactNode
+    }) => <option value={value}>{children}</option>,
+  }
+})
+
 jest.mock(
   '@/app/(app)/placas-monitoradas/components/monitored-plates-filter/monitored-plates-filter-combobox',
   () => ({
@@ -146,6 +195,26 @@ describe('HistoryFilter', () => {
     await waitFor(() => {
       expect(replace).toHaveBeenCalledWith(
         '/placas-monitoradas/historico?requestingInstitutionId=institution-1&institutionAuthorityId=authority-1&page=1',
+      )
+    })
+  })
+
+  it('applies tipo de desativação to the URL', async () => {
+    const replace = jest.fn()
+    mockUseRouter.mockReturnValue({ replace } as any)
+
+    renderFilter()
+
+    fireEvent.change(screen.getByLabelText('endReason'), {
+      target: { value: 'expired' },
+    })
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Aplicar filtros' }).at(-1)!,
+    )
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith(
+        '/placas-monitoradas/historico?endReason=expired&page=1',
       )
     })
   })
