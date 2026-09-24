@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 import type { AttachmentOut } from '@/http/emails/get-email'
 import { api } from '@/lib/api'
+import { isPreviewableContentType } from '@/utils/can-preview-attachment'
 
 export function useAttachmentPreviewUrl(
   attachment: AttachmentOut | undefined,
@@ -11,6 +12,7 @@ export function useAttachmentPreviewUrl(
 ) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [unavailable, setUnavailable] = useState(false)
 
   useEffect(() => {
     if (!attachment || !emailId) {
@@ -31,17 +33,20 @@ export function useAttachmentPreviewUrl(
     let cancelled = false
     let objectUrl: string | null = null
     setLoading(true)
+    setUnavailable(false)
 
     api
-      .get(`/emails/${emailId}/attachments/${attachment.id}/download`, {
+      .get<Blob>(`/emails/${emailId}/attachments/${attachment.id}/download`, {
         responseType: 'blob',
       })
       .then((res) => {
-        const u = URL.createObjectURL(res.data)
-        if (cancelled) {
-          URL.revokeObjectURL(u)
+        if (cancelled) return
+        if (!isPreviewableContentType(res.data.type)) {
+          setUrl(null)
+          setUnavailable(true)
           return
         }
+        const u = URL.createObjectURL(res.data)
         objectUrl = u
         setUrl(u)
       })
@@ -60,5 +65,5 @@ export function useAttachmentPreviewUrl(
     }
   }, [attachment?.id, attachment?.file_path, emailId])
 
-  return { url, loading }
+  return { url, loading, unavailable }
 }
