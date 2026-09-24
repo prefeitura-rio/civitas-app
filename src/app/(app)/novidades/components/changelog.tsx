@@ -19,7 +19,7 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
-    title: '23 de Setembro de 2026',
+    title: '24 de Setembro de 2026',
     subCards: [
       {
         tag: 'Alterado',
@@ -34,7 +34,7 @@ export const changelog: Card[] = [
               <li>
                 Além de <code>PDF</code>, <code>DOC</code>, <code>DOCX</code>,
                 agora podem ser anexados documentos
-                <code>XLS</code>,<code>XLSX</code>, <code>JPEG</code>,
+                <code>XLS</code>, <code>XLSX</code>, <code>JPEG</code>,
                 <code>JPG</code> e <code>PNG</code>.
               </li>
               <li>
