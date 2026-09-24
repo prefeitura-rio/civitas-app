@@ -1,4 +1,7 @@
-import { canPreviewAttachment } from '@/utils/can-preview-attachment'
+import {
+  canPreviewAttachment,
+  isPreviewableContentType,
+} from '@/utils/can-preview-attachment'
 
 describe('Documentos recebidos - preview de anexos', () => {
   it('não permite preview de arquivos não suportados', () => {
@@ -15,5 +18,13 @@ describe('Documentos recebidos - preview de anexos', () => {
     expect(canPreviewAttachment('documento.pdf')).toBe(true)
     expect(canPreviewAttachment('foto.png')).toBe(true)
     expect(canPreviewAttachment('foto.jpeg')).toBe(true)
+  })
+
+  it('só mostra o tipo que a API confirmou', () => {
+    expect(isPreviewableContentType('image/jpeg')).toBe(true)
+    expect(isPreviewableContentType('image/png')).toBe(true)
+    expect(isPreviewableContentType('application/pdf')).toBe(true)
+    expect(isPreviewableContentType('application/octet-stream')).toBe(false)
+    expect(isPreviewableContentType('text/html')).toBe(false)
   })
 })

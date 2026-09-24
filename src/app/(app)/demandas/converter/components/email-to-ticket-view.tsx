@@ -368,11 +368,14 @@ export function EmailToTicketView() {
   const currentAttachmentHasNoPreview = !canPreviewAttachment(
     currentAttachmentItem?.filename ?? '',
   )
-  const { url: attachmentPreviewUrl, loading: attachmentPreviewLoading } =
-    useAttachmentPreviewUrl(
-      currentAttachmentHasNoPreview ? undefined : currentAttachmentItem,
-      emailId,
-    )
+  const {
+    url: attachmentPreviewUrl,
+    loading: attachmentPreviewLoading,
+    unavailable: attachmentPreviewUnavailable,
+  } = useAttachmentPreviewUrl(
+    currentAttachmentHasNoPreview ? undefined : currentAttachmentItem,
+    emailId,
+  )
 
   const emailDisplay = useMemo(() => {
     if (!email) return null
@@ -623,7 +626,7 @@ export function EmailToTicketView() {
           <div className={styles.pdfViewer}>
             {emailId &&
             currentAttachmentItem &&
-            currentAttachmentHasNoPreview ? (
+            (currentAttachmentHasNoPreview || attachmentPreviewUnavailable) ? (
               <div className={styles.pdfPlaceholder}>
                 <FileText className="h-16 w-16 opacity-30" />
                 <span>
