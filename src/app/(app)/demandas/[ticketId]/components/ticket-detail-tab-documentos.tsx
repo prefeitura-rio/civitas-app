@@ -14,6 +14,10 @@ import {
   getTicketAttachments,
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
+import {
+  canPreviewAttachment,
+  isPreviewableContentType,
+} from '@/utils/can-preview-attachment'
 
 import styles from '../ticket-detail.module.css'
 
@@ -84,6 +88,10 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
           ticketId,
           a.id,
         )
+        if (!isPreviewableContentType(contentType)) {
+          toast.error('Não foi possível visualizar o anexo.')
+          return
+        }
         const previewBlob = new Blob([blob], { type: contentType })
         const previewUrl = URL.createObjectURL(previewBlob)
         const newTab = window.open(previewUrl, '_blank', 'noopener,noreferrer')
@@ -173,16 +181,18 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
                   </div>
                 </div>
                 <div className={styles.docCardActions}>
-                  <button
-                    type="button"
-                    className={styles.docIconBtn}
-                    aria-label={`Visualizar ${att.filename}`}
-                    title="Visualizar anexo"
-                    onClick={() => handleView(att)}
-                    disabled={deletingId === att.id || viewingId === att.id}
-                  >
-                    <Eye size={18} />
-                  </button>
+                  {canPreviewAttachment(att.filename) ? (
+                    <button
+                      type="button"
+                      className={styles.docIconBtn}
+                      aria-label={`Visualizar ${att.filename}`}
+                      title="Visualizar anexo"
+                      onClick={() => handleView(att)}
+                      disabled={deletingId === att.id || viewingId === att.id}
+                    >
+                      <Eye size={18} />
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={styles.docIconBtn}

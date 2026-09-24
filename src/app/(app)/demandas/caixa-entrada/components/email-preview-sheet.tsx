@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Download, FileText, Square, User, X } from 'lucide-react'
+import { Download, Eye, FileText, Square, User, X } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
@@ -25,10 +25,17 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
-import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
+import {
+  downloadEmailAttachmentFile,
+  fetchEmailAttachmentBlob,
+} from '@/http/emails/download-email-attachment'
 import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsSpam } from '@/http/emails/mark-email-spam'
 import { cn } from '@/lib/utils'
+import {
+  canPreviewAttachment,
+  isPreviewableContentType,
+} from '@/utils/can-preview-attachment'
 
 import styles from './email-preview-sheet.module.css'
 
@@ -111,6 +118,36 @@ export function EmailPreviewSheet({
         await downloadEmailAttachmentFile(a, emailId)
       } catch {
         toast.error('Não foi possível baixar o anexo.')
+      }
+    },
+    [emailId],
+  )
+
+  const handlePreview = useCallback(
+    async (attachment: AttachmentOut) => {
+      if (!emailId) return
+      try {
+        const { blob, contentType } = await fetchEmailAttachmentBlob(
+          attachment,
+          emailId,
+        )
+        const mediaType = blob.type || contentType
+        if (!isPreviewableContentType(mediaType)) {
+          toast.error('Não foi possível abrir a visualização do anexo.')
+          return
+        }
+        const previewUrl = URL.createObjectURL(
+          new Blob([blob], { type: mediaType }),
+        )
+        const newTab = window.open(previewUrl, '_blank', 'noopener,noreferrer')
+        if (!newTab) {
+          URL.revokeObjectURL(previewUrl)
+          toast.error('Não foi possível abrir a visualização do anexo.')
+          return
+        }
+        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
+      } catch {
+        toast.error('Não foi possível abrir a visualização do anexo.')
       }
     },
     [emailId],
@@ -269,14 +306,28 @@ export function EmailPreviewSheet({
                             </p>
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          className={styles.downloadBtn}
-                          aria-label={`Baixar ${att.filename}`}
-                          onClick={() => handleDownload(att)}
-                        >
-                          <Download size={16} />
-                        </button>
+                        <div className={styles.attachmentActions}>
+                          {canPreviewAttachment(att.filename) ? (
+                            <button
+                              type="button"
+                              className={styles.downloadBtn}
+                              aria-label={`Visualizar ${att.filename}`}
+                              title="Visualizar anexo"
+                              onClick={() => handlePreview(att)}
+                            >
+                              <Eye size={16} />
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className={styles.downloadBtn}
+                            aria-label={`Baixar ${att.filename}`}
+                            title="Baixar anexo"
+                            onClick={() => handleDownload(att)}
+                          >
+                            <Download size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
