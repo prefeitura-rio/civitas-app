@@ -5,7 +5,6 @@ import type {
   GetMonitoredPlatesHistoryProps,
   MonitoredPlateHistorySortBy,
   MonitoredPlateHistorySortDirection,
-  MonitoredPlateHistorySourceFilter,
   MonitoredPlateHistoryStatusFilter,
 } from '@/http/cars/monitored/get-monitored-plates-history'
 
@@ -16,21 +15,7 @@ type MonitoredPlatesQueryKey = [
   params: GetMonitoredPlatesHistoryProps,
 ]
 
-const SOURCE_OPTIONS = ['legacy', 'authority'] as const
 const STATUS_OPTIONS = ['active', 'deactivated'] as const
-
-function parseSource(
-  value: string | null,
-): MonitoredPlateHistorySourceFilter | undefined {
-  if (value === 'legacy_plate') return 'legacy'
-  if (
-    value &&
-    SOURCE_OPTIONS.includes(value as MonitoredPlateHistorySourceFilter)
-  ) {
-    return value as MonitoredPlateHistorySourceFilter
-  }
-  return undefined
-}
 
 function parseStatus(
   value: string | null,
@@ -65,7 +50,6 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
   const endTimeCreate = searchParams.get('endTimeCreate') || undefined
   const startTimeDelete = searchParams.get('startTimeDelete') || undefined
   const endTimeDelete = searchParams.get('endTimeDelete') || undefined
-  const source = parseSource(searchParams.get('source'))
   const status = parseStatus(searchParams.get('status'))
   const referenceNumber = searchParams.get('referenceNumber') || undefined
 
@@ -84,7 +68,6 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     endTimeCreate,
     startTimeDelete,
     endTimeDelete,
-    source,
     status,
     referenceNumber,
     page,

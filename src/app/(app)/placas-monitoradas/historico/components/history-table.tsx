@@ -34,13 +34,6 @@ export function HistoryTable() {
   const columns = useMemo<ColumnDef<MonitoredPlateHistoryItem>[]>(
     () => [
       {
-        accessorKey: 'source',
-        header: 'Origem',
-        enableSorting: true,
-        cell: ({ row }) =>
-          row.original.source === 'authority' ? 'Vínculo' : 'Legado',
-      },
-      {
         accessorKey: 'reference_number',
         header: 'Número de referência',
         enableSorting: true,
@@ -128,7 +121,6 @@ export function HistoryTable() {
   const hasFilters = Boolean(
     formattedSearchParams.plate ||
       formattedSearchParams.status ||
-      formattedSearchParams.source ||
       formattedSearchParams.referenceNumber ||
       formattedSearchParams.startTimeCreate ||
       formattedSearchParams.endTimeCreate ||

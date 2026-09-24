@@ -29,7 +29,6 @@ const filterFormSchema = z
   .object({
     plate: z.string().toUpperCase().optional(),
     status: z.enum(['all', 'active', 'deactivated']).default('all'),
-    source: z.enum(['all', 'legacy', 'authority']).default('all'),
     referenceNumber: z.string().optional(),
     startTimeCreate: z.string().optional(),
     endTimeCreate: z.string().optional(),
@@ -93,7 +92,6 @@ export function HistoryFilter() {
     defaultValues: {
       plate: '',
       status: 'all',
-      source: 'all',
       referenceNumber: '',
       startTimeCreate: undefined,
       endTimeCreate: undefined,
@@ -104,7 +102,6 @@ export function HistoryFilter() {
 
   const plate = useWatch({ control, name: 'plate' })
   const status = useWatch({ control, name: 'status' })
-  const source = useWatch({ control, name: 'source' })
   const referenceNumber = useWatch({ control, name: 'referenceNumber' })
   const startTimeCreate = useWatch({ control, name: 'startTimeCreate' })
   const endTimeCreate = useWatch({ control, name: 'endTimeCreate' })
@@ -120,12 +117,10 @@ export function HistoryFilter() {
     Boolean(plate?.trim()) ||
     Boolean(referenceNumber?.trim()) ||
     status !== 'all' ||
-    source !== 'all' ||
     advancedFilterCount > 0
 
   const pPlate = searchParams.get('plate') ?? ''
   const pStatus = searchParams.get('status')
-  const pSource = searchParams.get('source')
   const pReferenceNumber = searchParams.get('referenceNumber') ?? ''
   const pStartTimeCreate = searchParams.get('startTimeCreate')
   const pEndTimeCreate = searchParams.get('endTimeCreate')
@@ -137,14 +132,6 @@ export function HistoryFilter() {
       plate: pPlate,
       status:
         pStatus === 'active' || pStatus === 'deactivated' ? pStatus : 'all',
-      source:
-        pSource === 'legacy' ||
-        pSource === 'legacy_plate' ||
-        pSource === 'authority'
-          ? pSource === 'legacy_plate'
-            ? 'legacy'
-            : pSource
-          : 'all',
       referenceNumber: pReferenceNumber,
       startTimeCreate: pStartTimeCreate ?? undefined,
       endTimeCreate: pEndTimeCreate ?? undefined,
@@ -172,7 +159,6 @@ export function HistoryFilter() {
     reset,
     pPlate,
     pStatus,
-    pSource,
     pReferenceNumber,
     pStartTimeCreate,
     pEndTimeCreate,
@@ -180,8 +166,8 @@ export function HistoryFilter() {
     pEndTimeDelete,
   ])
 
-  function handleSelectFilterChange(name: 'status' | 'source', value: string) {
-    setValue(name, value as FilterForm[typeof name], {
+  function handleStatusChange(value: string) {
+    setValue('status', value as FilterForm['status'], {
       shouldDirty: true,
     })
   }
@@ -191,7 +177,6 @@ export function HistoryFilter() {
     reset({
       plate: '',
       status: 'all',
-      source: 'all',
       referenceNumber: '',
       startTimeCreate: undefined,
       endTimeCreate: undefined,
@@ -223,8 +208,6 @@ export function HistoryFilter() {
       params.set('plate', props.plate.trim().toUpperCase())
     if (props.status && props.status !== 'all')
       params.set('status', props.status)
-    if (props.source && props.source !== 'all')
-      params.set('source', props.source)
     if (props.referenceNumber?.trim()) {
       params.set('referenceNumber', props.referenceNumber.trim())
     }
@@ -295,7 +278,7 @@ export function HistoryFilter() {
           </Label>
           <Select
             value={status}
-            onValueChange={(value) => handleSelectFilterChange('status', value)}
+            onValueChange={handleStatusChange}
           >
             <SelectTrigger id="status" className="h-10 w-full sm:h-9 sm:w-36">
               <SelectValue placeholder="Todas" />
@@ -304,25 +287,6 @@ export function HistoryFilter() {
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="active">Ativas</SelectItem>
               <SelectItem value="deactivated">Desativadas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
-          <Label htmlFor="source" className="text-xs text-muted-foreground">
-            Origem
-          </Label>
-          <Select
-            value={source}
-            onValueChange={(value) => handleSelectFilterChange('source', value)}
-          >
-            <SelectTrigger id="source" className="h-10 w-full sm:h-9 sm:w-36">
-              <SelectValue placeholder="Todas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="legacy">Legado</SelectItem>
-              <SelectItem value="authority">Vínculo</SelectItem>
             </SelectContent>
           </Select>
         </div>

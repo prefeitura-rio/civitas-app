@@ -101,7 +101,7 @@ export const changelog: Card[] = [
       },
       {
         tag: 'Alterado',
-        title: 'Histórico de placas monitoradas com origem, status e ordenação',
+        title: 'Histórico de placas monitoradas com status e ordenação',
         content: (
           <>
             <p>
@@ -111,16 +111,12 @@ export const changelog: Card[] = [
             </p>
             <ul>
               <li>
-                A coluna <strong>Origem</strong> distingue registros{' '}
-                <code>Legado</code> e <code>Vínculo</code>.
-              </li>
-              <li>
                 A tabela passou a exibir o <strong>Requisitante</strong> e o{' '}
                 <strong>Demandante</strong> de cada vínculo.
               </li>
               <li>
-                Filtros por <strong>Status</strong> (ativas ou desativadas),{' '}
-                <strong>Origem</strong> e <strong>Número de referência</strong>.
+                Filtros por <strong>Status</strong> (ativas ou desativadas) e{' '}
+                <strong>Número de referência</strong>.
               </li>
               <li>
                 Datas de criação e de desativação ficam em{' '}
