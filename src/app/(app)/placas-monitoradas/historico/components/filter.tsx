@@ -123,16 +123,16 @@ export function HistoryFilter() {
     source !== 'all' ||
     advancedFilterCount > 0
 
-  useEffect(() => {
-    const pPlate = searchParams.get('plate') ?? ''
-    const pStatus = searchParams.get('status')
-    const pSource = searchParams.get('source')
-    const pReferenceNumber = searchParams.get('referenceNumber') ?? ''
-    const pStartTimeCreate = searchParams.get('startTimeCreate')
-    const pEndTimeCreate = searchParams.get('endTimeCreate')
-    const pStartTimeDelete = searchParams.get('startTimeDelete')
-    const pEndTimeDelete = searchParams.get('endTimeDelete')
+  const pPlate = searchParams.get('plate') ?? ''
+  const pStatus = searchParams.get('status')
+  const pSource = searchParams.get('source')
+  const pReferenceNumber = searchParams.get('referenceNumber') ?? ''
+  const pStartTimeCreate = searchParams.get('startTimeCreate')
+  const pEndTimeCreate = searchParams.get('endTimeCreate')
+  const pStartTimeDelete = searchParams.get('startTimeDelete')
+  const pEndTimeDelete = searchParams.get('endTimeDelete')
 
+  useEffect(() => {
     reset({
       plate: pPlate,
       status:
@@ -168,7 +168,17 @@ export function HistoryFilter() {
         setAdvancedOpen(true)
       }
     }
-  }, [reset, searchParams])
+  }, [
+    reset,
+    pPlate,
+    pStatus,
+    pSource,
+    pReferenceNumber,
+    pStartTimeCreate,
+    pEndTimeCreate,
+    pStartTimeDelete,
+    pEndTimeDelete,
+  ])
 
   function handleSelectFilterChange(name: 'status' | 'source', value: string) {
     setValue(name, value as FilterForm[typeof name], {
@@ -236,13 +246,20 @@ export function HistoryFilter() {
     router.replace(`${pathName}?${params.toString()}`)
   }
 
-  const handleApply = handleSubmit(async (values) => {
-    await onSubmit(values)
-    setAdvancedOpen(false)
-  })
+  const applyFilters = handleSubmit(
+    async (values) => {
+      await onSubmit(values)
+      setAdvancedOpen(false)
+    },
+    (formErrors) => {
+      if (formErrors.endTimeCreate || formErrors.endTimeDelete) {
+        setAdvancedOpen(true)
+      }
+    },
+  )
 
   return (
-    <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-3" onSubmit={applyFilters}>
       <div className="flex w-full flex-wrap items-end gap-3">
         <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
           <Label htmlFor="plate" className="text-xs text-muted-foreground">
@@ -462,7 +479,7 @@ export function HistoryFilter() {
                   type="button"
                   size="sm"
                   className="h-10 sm:h-9"
-                  onClick={handleApply}
+                  onClick={applyFilters}
                 >
                   Aplicar filtros
                 </Button>

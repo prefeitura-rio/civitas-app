@@ -66,8 +66,18 @@ export function HistoryTable() {
       {
         id: 'status',
         header: 'Status',
-        cell: ({ row }) =>
-          row.original.deleted_timestamp ? 'Desativada' : 'Ativa',
+        cell: ({ row }) => {
+          switch (row.original.end_reason) {
+            case 'deactivated':
+              return 'Desativada'
+            case 'deleted':
+              return 'Removida'
+            case 'expired':
+              return 'Expirada'
+            default:
+              return 'Ativa'
+          }
+        },
       },
       {
         accessorKey: 'notes',
@@ -93,7 +103,7 @@ export function HistoryTable() {
       },
       {
         accessorKey: 'deleted_timestamp',
-        header: 'Data de desativação',
+        header: 'Data de encerramento',
         enableSorting: true,
         cell: ({ row }) =>
           row.original.deleted_timestamp
@@ -105,7 +115,10 @@ export function HistoryTable() {
         header: 'Desativado por',
         enableSorting: true,
         accessorFn: (row) => row.deleted_by?.full_name,
-        cell: ({ row }) => row.original.deleted_by?.full_name || '—',
+        cell: ({ row }) => {
+          if (row.original.end_reason === 'expired') return 'Validade'
+          return row.original.deleted_by?.full_name || '—'
+        },
       },
     ],
     [],

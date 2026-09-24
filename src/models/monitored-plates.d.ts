@@ -164,6 +164,7 @@ export type MonitoredPlateHistoryItem = {
     email: string
   } | null
   deleted_timestamp: string | null
+  end_reason: 'deactivated' | 'deleted' | 'expired' | null
   deleted_by: {
     id: string
     username: string
