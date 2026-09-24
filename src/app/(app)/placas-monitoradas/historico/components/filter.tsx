@@ -1,12 +1,14 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, X } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 
+import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
@@ -23,12 +25,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { getInstitutionAuthorities } from '@/http/institution-authorities'
+import { getRequestingInstitutions } from '@/http/requesting-institutions'
 import { cn } from '@/lib/utils'
+
+import {
+  type FilterComboboxOption,
+  MonitoredPlatesFilterCombobox,
+} from '../../components/monitored-plates-filter/monitored-plates-filter-combobox'
 
 const filterFormSchema = z
   .object({
     plate: z.string().toUpperCase().optional(),
     status: z.enum(['all', 'active', 'deactivated']).default('all'),
+    requestingInstitutionId: z.string().default('all'),
+    institutionAuthorityId: z.string().default('all'),
     referenceNumber: z.string().optional(),
     startTimeCreate: z.string().optional(),
     endTimeCreate: z.string().optional(),
@@ -92,6 +103,8 @@ export function HistoryFilter() {
     defaultValues: {
       plate: '',
       status: 'all',
+      requestingInstitutionId: 'all',
+      institutionAuthorityId: 'all',
       referenceNumber: '',
       startTimeCreate: undefined,
       endTimeCreate: undefined,
@@ -100,9 +113,32 @@ export function HistoryFilter() {
     },
   })
 
+  const [requestingInstitutionName, setRequestingInstitutionName] = useState('')
+  const [requestingInstitutionSearch, setRequestingInstitutionSearch] =
+    useState('')
+  const [isRequestingInstitutionOpen, setIsRequestingInstitutionOpen] =
+    useState(false)
+  const [institutionAuthorityName, setInstitutionAuthorityName] = useState('')
+  const [institutionAuthoritySearch, setInstitutionAuthoritySearch] =
+    useState('')
+  const [isAuthorityOpen, setIsAuthorityOpen] = useState(false)
+
   const plate = useWatch({ control, name: 'plate' })
   const status = useWatch({ control, name: 'status' })
+  const requestingInstitutionId = useWatch({
+    control,
+    name: 'requestingInstitutionId',
+  })
+  const institutionAuthorityId = useWatch({
+    control,
+    name: 'institutionAuthorityId',
+  })
   const referenceNumber = useWatch({ control, name: 'referenceNumber' })
+  const debouncedRequestingInstitutionSearch = useDebounce(
+    requestingInstitutionSearch,
+    350,
+  )
+  const debouncedAuthoritySearch = useDebounce(institutionAuthoritySearch, 350)
   const startTimeCreate = useWatch({ control, name: 'startTimeCreate' })
   const endTimeCreate = useWatch({ control, name: 'endTimeCreate' })
   const startTimeDelete = useWatch({ control, name: 'startTimeDelete' })
@@ -117,10 +153,16 @@ export function HistoryFilter() {
     Boolean(plate?.trim()) ||
     Boolean(referenceNumber?.trim()) ||
     status !== 'all' ||
+    requestingInstitutionId !== 'all' ||
+    institutionAuthorityId !== 'all' ||
     advancedFilterCount > 0
 
   const pPlate = searchParams.get('plate') ?? ''
   const pStatus = searchParams.get('status')
+  const pRequestingInstitutionId =
+    searchParams.get('requestingInstitutionId') ?? 'all'
+  const pInstitutionAuthorityId =
+    searchParams.get('institutionAuthorityId') ?? 'all'
   const pReferenceNumber = searchParams.get('referenceNumber') ?? ''
   const pStartTimeCreate = searchParams.get('startTimeCreate')
   const pEndTimeCreate = searchParams.get('endTimeCreate')
@@ -132,6 +174,8 @@ export function HistoryFilter() {
       plate: pPlate,
       status:
         pStatus === 'active' || pStatus === 'deactivated' ? pStatus : 'all',
+      requestingInstitutionId: pRequestingInstitutionId || 'all',
+      institutionAuthorityId: pInstitutionAuthorityId || 'all',
       referenceNumber: pReferenceNumber,
       startTimeCreate: pStartTimeCreate ?? undefined,
       endTimeCreate: pEndTimeCreate ?? undefined,
@@ -159,12 +203,83 @@ export function HistoryFilter() {
     reset,
     pPlate,
     pStatus,
+    pRequestingInstitutionId,
+    pInstitutionAuthorityId,
     pReferenceNumber,
     pStartTimeCreate,
     pEndTimeCreate,
     pStartTimeDelete,
     pEndTimeDelete,
   ])
+
+  const {
+    data: requestingInstitutionsResponse,
+    isLoading: isLoadingRequestingInstitutions,
+  } = useQuery({
+    queryKey: [
+      'requesting-institutions',
+      'history-filter',
+      debouncedRequestingInstitutionSearch,
+    ],
+    queryFn: () =>
+      getRequestingInstitutions({
+        page: 1,
+        size: 100,
+        search: debouncedRequestingInstitutionSearch,
+      }),
+    enabled: isRequestingInstitutionOpen || requestingInstitutionId !== 'all',
+  })
+
+  const { data: authoritiesResponse, isLoading: isLoadingAuthorities } =
+    useQuery({
+      queryKey: [
+        'institution-authorities',
+        'history-filter',
+        debouncedAuthoritySearch,
+        requestingInstitutionId,
+      ],
+      queryFn: () =>
+        getInstitutionAuthorities({
+          page: 1,
+          size: 20,
+          search: debouncedAuthoritySearch,
+          requestingInstitutionId:
+            requestingInstitutionId === 'all'
+              ? undefined
+              : requestingInstitutionId,
+        }),
+      enabled: isAuthorityOpen || institutionAuthorityId !== 'all',
+    })
+
+  const requestingInstitutionOptions: FilterComboboxOption[] = (
+    requestingInstitutionsResponse?.data.items ?? []
+  ).map((item) => ({ id: item.id, label: item.name }))
+
+  const authorityOptions: FilterComboboxOption[] = (
+    authoritiesResponse?.data.items ?? []
+  ).map((item) => ({ id: item.id, label: item.name }))
+
+  useEffect(() => {
+    if (requestingInstitutionId === 'all') {
+      setRequestingInstitutionName('')
+      return
+    }
+    const match = requestingInstitutionOptions.find(
+      (item) => item.id === requestingInstitutionId,
+    )
+    if (match) setRequestingInstitutionName(match.label)
+  }, [requestingInstitutionId, requestingInstitutionOptions])
+
+  useEffect(() => {
+    if (institutionAuthorityId === 'all') {
+      setInstitutionAuthorityName('')
+      return
+    }
+    const match = authorityOptions.find(
+      (item) => item.id === institutionAuthorityId,
+    )
+    if (match) setInstitutionAuthorityName(match.label)
+  }, [authorityOptions, institutionAuthorityId])
 
   function handleStatusChange(value: string) {
     setValue('status', value as FilterForm['status'], {
@@ -177,12 +292,18 @@ export function HistoryFilter() {
     reset({
       plate: '',
       status: 'all',
+      requestingInstitutionId: 'all',
+      institutionAuthorityId: 'all',
       referenceNumber: '',
       startTimeCreate: undefined,
       endTimeCreate: undefined,
       startTimeDelete: undefined,
       endTimeDelete: undefined,
     })
+    setRequestingInstitutionName('')
+    setRequestingInstitutionSearch('')
+    setInstitutionAuthorityName('')
+    setInstitutionAuthoritySearch('')
     setStartCreateDate(undefined)
     setEndCreateDate(undefined)
     setStartDeleteDate(undefined)
@@ -208,6 +329,18 @@ export function HistoryFilter() {
       params.set('plate', props.plate.trim().toUpperCase())
     if (props.status && props.status !== 'all')
       params.set('status', props.status)
+    if (
+      props.requestingInstitutionId &&
+      props.requestingInstitutionId !== 'all'
+    ) {
+      params.set('requestingInstitutionId', props.requestingInstitutionId)
+    }
+    if (
+      props.institutionAuthorityId &&
+      props.institutionAuthorityId !== 'all'
+    ) {
+      params.set('institutionAuthorityId', props.institutionAuthorityId)
+    }
     if (props.referenceNumber?.trim()) {
       params.set('referenceNumber', props.referenceNumber.trim())
     }
@@ -244,7 +377,7 @@ export function HistoryFilter() {
   return (
     <form className="space-y-3" onSubmit={applyFilters}>
       <div className="flex w-full flex-wrap items-end gap-3">
-        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
+        <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:shrink-0">
           <Label htmlFor="plate" className="text-xs text-muted-foreground">
             Placa
           </Label>
@@ -257,7 +390,7 @@ export function HistoryFilter() {
           />
         </div>
 
-        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
+        <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:shrink-0">
           <Label
             htmlFor="referenceNumber"
             className="text-xs text-muted-foreground"
@@ -272,14 +405,84 @@ export function HistoryFilter() {
           />
         </div>
 
-        <div className="w-full min-w-0 sm:w-auto sm:shrink-0">
+        <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:shrink-0">
+          <Label
+            htmlFor="history-requesting-institution"
+            className="text-xs text-muted-foreground"
+          >
+            Demandante
+          </Label>
+          <MonitoredPlatesFilterCombobox
+            id="history-requesting-institution"
+            valueId={requestingInstitutionId ?? 'all'}
+            valueLabel={requestingInstitutionName}
+            allLabel="Todos"
+            searchPlaceholder="Nome do demandante"
+            options={requestingInstitutionOptions}
+            isLoading={isLoadingRequestingInstitutions}
+            search={requestingInstitutionSearch}
+            onSearchChange={setRequestingInstitutionSearch}
+            onOpenChange={setIsRequestingInstitutionOpen}
+            triggerClassName="h-10 w-full sm:h-9 sm:w-52"
+            onSelect={(option) => {
+              setValue('institutionAuthorityId', 'all', { shouldDirty: true })
+              setInstitutionAuthorityName('')
+              setInstitutionAuthoritySearch('')
+              if (!option) {
+                setValue('requestingInstitutionId', 'all', {
+                  shouldDirty: true,
+                })
+                setRequestingInstitutionName('')
+                setRequestingInstitutionSearch('')
+                return
+              }
+              setValue('requestingInstitutionId', option.id, {
+                shouldDirty: true,
+              })
+              setRequestingInstitutionName(option.label)
+            }}
+          />
+        </div>
+
+        <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:shrink-0">
+          <Label
+            htmlFor="history-authority"
+            className="text-xs text-muted-foreground"
+          >
+            Requisitante
+          </Label>
+          <MonitoredPlatesFilterCombobox
+            id="history-authority"
+            valueId={institutionAuthorityId ?? 'all'}
+            valueLabel={institutionAuthorityName}
+            allLabel="Todos"
+            searchPlaceholder="Nome do requisitante"
+            options={authorityOptions}
+            isLoading={isLoadingAuthorities}
+            search={institutionAuthoritySearch}
+            onSearchChange={setInstitutionAuthoritySearch}
+            onOpenChange={setIsAuthorityOpen}
+            triggerClassName="h-10 w-full sm:h-9 sm:w-52"
+            onSelect={(option) => {
+              if (!option) {
+                setValue('institutionAuthorityId', 'all', { shouldDirty: true })
+                setInstitutionAuthorityName('')
+                setInstitutionAuthoritySearch('')
+                return
+              }
+              setValue('institutionAuthorityId', option.id, {
+                shouldDirty: true,
+              })
+              setInstitutionAuthorityName(option.label)
+            }}
+          />
+        </div>
+
+        <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:shrink-0">
           <Label htmlFor="status" className="text-xs text-muted-foreground">
             Status
           </Label>
-          <Select
-            value={status}
-            onValueChange={handleStatusChange}
-          >
+          <Select value={status} onValueChange={handleStatusChange}>
             <SelectTrigger id="status" className="h-10 w-full sm:h-9 sm:w-36">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>

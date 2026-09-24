@@ -52,6 +52,10 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
   const endTimeDelete = searchParams.get('endTimeDelete') || undefined
   const status = parseStatus(searchParams.get('status'))
   const referenceNumber = searchParams.get('referenceNumber') || undefined
+  const requestingInstitutionId =
+    searchParams.get('requestingInstitutionId') || undefined
+  const institutionAuthorityId =
+    searchParams.get('institutionAuthorityId') || undefined
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
@@ -70,6 +74,8 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     endTimeDelete,
     status,
     referenceNumber,
+    requestingInstitutionId,
+    institutionAuthorityId,
     page,
     size,
     sortBy,

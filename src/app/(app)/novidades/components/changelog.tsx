@@ -115,8 +115,10 @@ export const changelog: Card[] = [
                 <strong>Demandante</strong> de cada vínculo.
               </li>
               <li>
-                Filtros por <strong>Status</strong> (ativas ou desativadas) e{' '}
-                <strong>Número de referência</strong>.
+                Filtros por <strong>Status</strong> (ativas ou desativadas),{' '}
+                <strong>Número de referência</strong>,{' '}
+                <strong>Demandante</strong> e <strong>Requisitante</strong>, com
+                o demandante controlando as opções do requisitante.
               </li>
               <li>
                 Datas de criação e de desativação ficam em{' '}

@@ -122,6 +122,8 @@ export function HistoryTable() {
     formattedSearchParams.plate ||
       formattedSearchParams.status ||
       formattedSearchParams.referenceNumber ||
+      formattedSearchParams.requestingInstitutionId ||
+      formattedSearchParams.institutionAuthorityId ||
       formattedSearchParams.startTimeCreate ||
       formattedSearchParams.endTimeCreate ||
       formattedSearchParams.startTimeDelete ||

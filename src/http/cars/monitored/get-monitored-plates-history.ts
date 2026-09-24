@@ -24,6 +24,8 @@ export interface GetMonitoredPlatesHistoryProps {
   endTimeDelete?: string
   status?: MonitoredPlateHistoryStatusFilter
   referenceNumber?: string
+  requestingInstitutionId?: string
+  institutionAuthorityId?: string
   page?: number
   size?: number
   sortBy?: MonitoredPlateHistorySortBy
@@ -48,6 +50,8 @@ export async function getMonitoredPlatesHistory(
         end_time_delete: props.endTimeDelete,
         status: props.status,
         reference_number: props.referenceNumber,
+        requesting_institution_id: props.requestingInstitutionId,
+        institution_authority_id: props.institutionAuthorityId,
         page: props.page,
         size: props.size,
         sort_by: props.sortBy,

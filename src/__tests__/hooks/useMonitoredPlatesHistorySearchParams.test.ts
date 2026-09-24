@@ -34,6 +34,8 @@ describe('useMonitoredPlatesHistorySearchParams', () => {
       createMockSearchParams({
         plate: 'ABC1D23',
         status: 'active',
+        requestingInstitutionId: 'institution-1',
+        institutionAuthorityId: 'authority-1',
         referenceNumber: 'REQ-1',
         startTimeCreate: '2026-01-01T00:00:00.000Z',
         endTimeDelete: '2026-02-01T00:00:00.000Z',
@@ -49,6 +51,8 @@ describe('useMonitoredPlatesHistorySearchParams', () => {
     expect(result.current.formattedSearchParams).toEqual({
       plate: 'ABC1D23',
       status: 'active',
+      requestingInstitutionId: 'institution-1',
+      institutionAuthorityId: 'authority-1',
       referenceNumber: 'REQ-1',
       startTimeCreate: '2026-01-01T00:00:00.000Z',
       endTimeCreate: undefined,
@@ -66,6 +70,8 @@ describe('useMonitoredPlatesHistorySearchParams', () => {
       createMockSearchParams({
         plate: 'ABC1D23',
         status: 'deactivated',
+        requestingInstitutionId: 'institution-1',
+        institutionAuthorityId: 'authority-1',
         sortBy: 'created_timestamp',
         sortDirection: 'desc',
         page: '1',
@@ -80,7 +86,7 @@ describe('useMonitoredPlatesHistorySearchParams', () => {
     })
 
     expect(push).toHaveBeenCalledWith(
-      '/placas-monitoradas/historico?plate=ABC1D23&status=deactivated&sortBy=created_timestamp&sortDirection=desc&page=3&size=10',
+      '/placas-monitoradas/historico?plate=ABC1D23&status=deactivated&requestingInstitutionId=institution-1&institutionAuthorityId=authority-1&sortBy=created_timestamp&sortDirection=desc&page=3&size=10',
     )
   })
 
