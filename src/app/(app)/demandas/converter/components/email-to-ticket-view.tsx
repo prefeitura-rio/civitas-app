@@ -52,6 +52,7 @@ import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoL
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
+import { canPreviewAttachment } from '@/utils/can-preview-attachment'
 import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
@@ -76,21 +77,6 @@ import styles from './email-to-ticket-view.module.css'
 
 function fileSelectionKey(file: File) {
   return `${file.name}|${file.size}|${file.lastModified}`
-}
-
-const ATTACHMENT_EXTENSIONS_WITHOUT_PREVIEW = new Set([
-  '.doc',
-  '.docx',
-  '.xls',
-  '.xlsx',
-])
-
-function isAttachmentWithoutPreview(filename?: string) {
-  if (!filename) return false
-  const dot = filename.lastIndexOf('.')
-  return ATTACHMENT_EXTENSIONS_WITHOUT_PREVIEW.has(
-    dot === -1 ? '' : filename.slice(dot).toLowerCase(),
-  )
 }
 
 function resolveEmailDate(email: EmailOut): Date | null {
@@ -379,8 +365,8 @@ export function EmailToTicketView() {
   }, [selectableAttachments.length])
 
   const currentAttachmentItem = selectableAttachments[currentAttachment]
-  const currentAttachmentHasNoPreview = isAttachmentWithoutPreview(
-    currentAttachmentItem?.filename,
+  const currentAttachmentHasNoPreview = !canPreviewAttachment(
+    currentAttachmentItem?.filename ?? '',
   )
   const { url: attachmentPreviewUrl, loading: attachmentPreviewLoading } =
     useAttachmentPreviewUrl(
