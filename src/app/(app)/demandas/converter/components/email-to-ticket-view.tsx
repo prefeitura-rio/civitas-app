@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import { canPreviewAttachment } from '@/app/(app)/demandas/utils/attachment-preview'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -52,7 +53,6 @@ import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoL
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import { type EmailOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
-import { canPreviewAttachment } from '@/utils/can-preview-attachment'
 import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {

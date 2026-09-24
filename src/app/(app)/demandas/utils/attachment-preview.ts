@@ -23,3 +23,19 @@ export function canPreviewAttachment(filename: string): boolean {
   const extension = dot === -1 ? '' : filename.slice(dot).toLowerCase()
   return PREVIEWABLE_ATTACHMENT_EXTENSIONS.has(extension)
 }
+
+/** Abre o blob numa aba nova quando o tipo foi confirmado. */
+export function openPreviewBlob(blob: Blob, contentType: string): boolean {
+  const mediaType = blob.type || contentType
+  if (!isPreviewableContentType(mediaType)) return false
+
+  const previewUrl = URL.createObjectURL(new Blob([blob], { type: mediaType }))
+  const newTab = window.open(previewUrl, '_blank')
+  if (!newTab) {
+    URL.revokeObjectURL(previewUrl)
+    return false
+  }
+  newTab.opener = null
+  window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
+  return true
+}

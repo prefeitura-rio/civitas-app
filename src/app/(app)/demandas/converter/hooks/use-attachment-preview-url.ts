@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 
+import { isPreviewableContentType } from '@/app/(app)/demandas/utils/attachment-preview'
 import type { AttachmentOut } from '@/http/emails/get-email'
 import { api } from '@/lib/api'
-import { isPreviewableContentType } from '@/utils/can-preview-attachment'
 
 export function useAttachmentPreviewUrl(
   attachment: AttachmentOut | undefined,

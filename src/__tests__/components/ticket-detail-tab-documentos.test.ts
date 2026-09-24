@@ -1,7 +1,7 @@
 import {
   canPreviewAttachment,
   isPreviewableContentType,
-} from '@/utils/can-preview-attachment'
+} from '@/app/(app)/demandas/utils/attachment-preview'
 
 describe('Documentos recebidos - preview de anexos', () => {
   it('não permite preview de arquivos não suportados', () => {

@@ -6,6 +6,10 @@ import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
 import {
+  canPreviewAttachment,
+  openPreviewBlob,
+} from '@/app/(app)/demandas/utils/attachment-preview'
+import {
   downloadTicketAttachmentFile,
   fetchTicketAttachmentBlob,
 } from '@/http/tickets/download-ticket-attachment'
@@ -14,10 +18,6 @@ import {
   getTicketAttachments,
 } from '@/http/tickets/ticket-attachments'
 import { isApiError } from '@/lib/api'
-import {
-  canPreviewAttachment,
-  isPreviewableContentType,
-} from '@/utils/can-preview-attachment'
 
 import styles from '../ticket-detail.module.css'
 
@@ -88,22 +88,9 @@ export function TicketDetailTabDocumentos({ ticketId }: Props) {
           ticketId,
           a.id,
         )
-        if (!isPreviewableContentType(contentType)) {
+        if (!openPreviewBlob(blob, contentType)) {
           toast.error('Não foi possível visualizar o anexo.')
-          return
         }
-        const previewBlob = new Blob([blob], { type: contentType })
-        const previewUrl = URL.createObjectURL(previewBlob)
-        const newTab = window.open(previewUrl, '_blank', 'noopener,noreferrer')
-
-        if (!newTab) {
-          URL.revokeObjectURL(previewUrl)
-          toast.error('Não foi possível abrir a visualização do anexo.')
-          return
-        }
-
-        // Mantém a URL válida tempo suficiente para o navegador carregar o arquivo.
-        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
       } catch {
         toast.error('Não foi possível visualizar o anexo.')
       } finally {

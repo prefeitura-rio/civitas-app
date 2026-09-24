@@ -9,6 +9,10 @@ import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
 import {
+  canPreviewAttachment,
+  openPreviewBlob,
+} from '@/app/(app)/demandas/utils/attachment-preview'
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -32,10 +36,6 @@ import {
 import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsSpam } from '@/http/emails/mark-email-spam'
 import { cn } from '@/lib/utils'
-import {
-  canPreviewAttachment,
-  isPreviewableContentType,
-} from '@/utils/can-preview-attachment'
 
 import styles from './email-preview-sheet.module.css'
 
@@ -131,21 +131,9 @@ export function EmailPreviewSheet({
           attachment,
           emailId,
         )
-        const mediaType = blob.type || contentType
-        if (!isPreviewableContentType(mediaType)) {
+        if (!openPreviewBlob(blob, contentType)) {
           toast.error('Não foi possível abrir a visualização do anexo.')
-          return
         }
-        const previewUrl = URL.createObjectURL(
-          new Blob([blob], { type: mediaType }),
-        )
-        const newTab = window.open(previewUrl, '_blank', 'noopener,noreferrer')
-        if (!newTab) {
-          URL.revokeObjectURL(previewUrl)
-          toast.error('Não foi possível abrir a visualização do anexo.')
-          return
-        }
-        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000)
       } catch {
         toast.error('Não foi possível abrir a visualização do anexo.')
       }
