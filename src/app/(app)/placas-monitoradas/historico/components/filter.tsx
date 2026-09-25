@@ -97,6 +97,7 @@ export function HistoryFilter() {
   const [startDeleteDate, setStartDeleteDate] = useState<Date | undefined>()
   const [endDeleteDate, setEndDeleteDate] = useState<Date | undefined>()
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const {
     register,
@@ -386,10 +387,11 @@ export function HistoryFilter() {
     params.delete('endTimeDelete')
     params.set('page', '1')
     const query = params.toString()
-    router.replace(query ? `${pathName}?${query}` : pathName)
+    replaceQuery(query)
   }
 
   function handleClearFilters() {
+    setSubmitError(null)
     setAdvancedOpen(false)
     reset({
       plate: '',
@@ -422,7 +424,12 @@ export function HistoryFilter() {
     if (size && size !== '10') params.set('size', size)
 
     const query = params.toString()
-    router.replace(query ? `${pathName}?${query}` : pathName)
+    replaceQuery(query)
+  }
+
+  function replaceQuery(query: string) {
+    const href = query ? `${pathName}?${query}` : pathName
+    router.replace(href)
   }
 
   async function onSubmit(props: FilterForm) {
@@ -469,15 +476,21 @@ export function HistoryFilter() {
     if (size && size !== '10') params.set('size', size)
     params.set('page', '1')
 
-    router.replace(`${pathName}?${params.toString()}`)
+    replaceQuery(params.toString())
   }
 
   const applyFilters = handleSubmit(
     async (values) => {
+      setSubmitError(null)
       await onSubmit(values)
       setAdvancedOpen(false)
     },
     (formErrors) => {
+      const message =
+        formErrors.endTimeCreate?.message ||
+        formErrors.endTimeDelete?.message ||
+        'Não foi possível aplicar os filtros.'
+      setSubmitError(message)
       if (formErrors.endTimeCreate || formErrors.endTimeDelete) {
         setAdvancedOpen(true)
       }
@@ -802,6 +815,11 @@ export function HistoryFilter() {
           </Button>
         </div>
       </div>
+      {submitError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {submitError}
+        </p>
+      ) : null}
     </form>
   )
 }
