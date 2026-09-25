@@ -27,6 +27,8 @@ const SORT_BY_OPTIONS = [
   'created_by',
   'deleted_timestamp',
   'deleted_by',
+  'requesting_institution_name',
+  'institution_authority_name',
 ] as const satisfies readonly MonitoredPlateHistorySortBy[]
 const SORT_DIRECTION_OPTIONS = ['asc', 'desc'] as const
 

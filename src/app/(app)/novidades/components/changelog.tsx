@@ -50,9 +50,10 @@ export const changelog: Card[] = [
               </li>
               <li>
                 A tabela pode ser ordenada por número de referência, placa,
-                observações, data de criação, criado por, data de encerramento e
-                desativado por. A ordenação fica na URL, vale entre as páginas e
-                volta para a primeira página ao mudar.
+                demandante, requisitante, observações, data de criação, criado
+                por, data de encerramento e desativado por. A ordenação fica na
+                URL, vale entre as páginas e volta para a primeira página ao
+                mudar.
               </li>
               <li>
                 A lista vazia avisa quando há filtros aplicados. Se o

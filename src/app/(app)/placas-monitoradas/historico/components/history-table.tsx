@@ -45,15 +45,20 @@ export function HistoryTable() {
         enableSorting: true,
       },
       {
-        id: 'demandante',
+        id: 'requesting_institution_name',
         header: 'Demandante',
+        enableSorting: true,
+        accessorFn: (row) =>
+          row.institution_authority?.requesting_institution?.name,
         cell: ({ row }) =>
           row.original.institution_authority?.requesting_institution?.name ||
           '—',
       },
       {
-        id: 'requisitante',
+        id: 'institution_authority_name',
         header: 'Requisitante',
+        enableSorting: true,
+        accessorFn: (row) => row.institution_authority?.name,
         cell: ({ row }) => row.original.institution_authority?.name || '—',
       },
       {

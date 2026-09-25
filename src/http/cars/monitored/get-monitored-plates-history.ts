@@ -11,6 +11,8 @@ export type MonitoredPlateHistorySortBy =
   | 'created_by'
   | 'deleted_timestamp'
   | 'deleted_by'
+  | 'requesting_institution_name'
+  | 'institution_authority_name'
 
 export type MonitoredPlateHistorySortDirection = 'asc' | 'desc'
 
