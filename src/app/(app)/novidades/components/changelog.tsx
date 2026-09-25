@@ -19,6 +19,108 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '25 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title:
+          'Histórico de placas monitoradas com vínculos, filtros e ordenação',
+        content: (
+          <>
+            <p>
+              A tela de <code>Histórico de placas monitoradas</code> passou a
+              reunir registros legados e vínculos com requisitantes.
+            </p>
+            <ul>
+              <li>
+                Novas colunas: <strong>Número de referência</strong>,{' '}
+                <strong>Demandante</strong>, <strong>Requisitante</strong>,{' '}
+                <strong>Status</strong> (ativo ou inativo) e{' '}
+                <strong>Tipo desativação</strong> (validade ou manual).
+              </li>
+              <li>
+                Desativação por validade mostra <strong>Sistema</strong> em{' '}
+                <strong>Desativado por</strong>.
+              </li>
+              <li>
+                Filtros por número de referência, demandante, requisitante,
+                status e tipo de desativação. O demandante controla as opções do
+                requisitante. Com status <strong>Ativo</strong>, o tipo de
+                desativação fica desabilitado e não entra na consulta.
+              </li>
+              <li>
+                A tabela pode ser ordenada por número de referência, placa,
+                observações, data de criação, criado por, data de encerramento e
+                desativado por. A ordenação fica na URL, vale entre as páginas e
+                volta para a primeira página ao mudar.
+              </li>
+              <li>
+                A lista vazia avisa quando há filtros aplicados. Se o
+                carregamento falhar, a tela oferece tentar de novo.
+              </li>
+              <li>
+                Demandante e requisitante abertos por link direto mostram o nome
+                mesmo fora da primeira página da lista.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Período, rótulos e ordem padrão do histórico',
+        content: (
+          <>
+            <p>
+              O que já existia no histórico foi reorganizado para a nova
+              consulta.
+            </p>
+            <ul>
+              <li>
+                O título da página passou a ser{' '}
+                <code>Histórico de placas monitoradas</code>.
+              </li>
+              <li>
+                <strong>Data de exclusão</strong> passou a se chamar{' '}
+                <strong>Data de encerramento</strong>, e{' '}
+                <strong>Excluído por</strong> passou a se chamar{' '}
+                <strong>Desativado por</strong>.
+              </li>
+              <li>
+                As datas de criação e de desativação foram para{' '}
+                <code>Período e mais filtros</code>. Ao escolher o dia em{' '}
+                <strong>De</strong>, o calendário fecha e o de{' '}
+                <strong>Até</strong> abre. Escolher o dia em{' '}
+                <strong>Até</strong> apenas fecha o calendário.
+              </li>
+              <li>
+                <code>Limpar</code> remove os filtros e mantém a ordenação.{' '}
+                <code>Limpar</code> dentro de{' '}
+                <code>Período e mais filtros</code> remove só as datas.
+              </li>
+              <li>
+                Sem ordenação escolhida, a lista segue a atividade mais recente
+                (criação ou encerramento) e, no empate, a placa.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Busca de placa sem histórico',
+        content: (
+          <>
+            <p>
+              Buscar uma placa que nunca esteve no cerco deixava de carregar a
+              tela e exibia erro. Agora a consulta retorna que não há dados.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '24 de Setembro de 2026',
     subCards: [
       {

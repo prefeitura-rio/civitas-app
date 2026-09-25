@@ -37,6 +37,7 @@ type MonitoredPlatesFilterComboboxProps = {
   onSearchChange: (value: string) => void
   onSelect: (option: FilterComboboxOption | null) => void
   onOpenChange?: (open: boolean) => void
+  triggerClassName?: string
 }
 
 export function MonitoredPlatesFilterCombobox({
@@ -51,6 +52,7 @@ export function MonitoredPlatesFilterCombobox({
   onSearchChange,
   onSelect,
   onOpenChange,
+  triggerClassName,
 }: MonitoredPlatesFilterComboboxProps) {
   const [open, setOpen] = useState(false)
   const isAll = valueId === 'all'
@@ -72,6 +74,7 @@ export function MonitoredPlatesFilterCombobox({
           className={cn(
             'h-11 w-full justify-between',
             isAll && 'text-muted-foreground',
+            triggerClassName,
           )}
         >
           <span className="truncate">{isAll ? allLabel : valueLabel}</span>

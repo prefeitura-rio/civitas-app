@@ -2,14 +2,37 @@ import { api } from '@/lib/api'
 import type { MonitoredPlateHistoryItem } from '@/models/entities'
 import type { PaginationResponse } from '@/models/pagination'
 
+export type MonitoredPlateHistorySortBy =
+  | 'activity_timestamp'
+  | 'plate'
+  | 'reference_number'
+  | 'notes'
+  | 'created_timestamp'
+  | 'created_by'
+  | 'deleted_timestamp'
+  | 'deleted_by'
+
+export type MonitoredPlateHistorySortDirection = 'asc' | 'desc'
+
+export type MonitoredPlateHistoryStatusFilter = 'active' | 'deactivated'
+
+export type MonitoredPlateHistoryEndReasonFilter = 'expired' | 'manual'
+
 export interface GetMonitoredPlatesHistoryProps {
   plate?: string
   startTimeCreate?: string
   endTimeCreate?: string
   startTimeDelete?: string
   endTimeDelete?: string
+  status?: MonitoredPlateHistoryStatusFilter
+  referenceNumber?: string
+  requestingInstitutionId?: string
+  institutionAuthorityId?: string
+  endReason?: MonitoredPlateHistoryEndReasonFilter
   page?: number
   size?: number
+  sortBy?: MonitoredPlateHistorySortBy
+  sortDirection?: MonitoredPlateHistorySortDirection
 }
 
 interface GetMonitoredPlatesHistoryResponse extends PaginationResponse {
@@ -28,8 +51,15 @@ export async function getMonitoredPlatesHistory(
         end_time_create: props.endTimeCreate,
         start_time_delete: props.startTimeDelete,
         end_time_delete: props.endTimeDelete,
+        status: props.status,
+        reference_number: props.referenceNumber,
+        requesting_institution_id: props.requestingInstitutionId,
+        institution_authority_id: props.institutionAuthorityId,
+        end_reason: props.endReason,
         page: props.page,
         size: props.size,
+        sort_by: props.sortBy,
+        sort_direction: props.sortDirection,
       },
     },
   )
