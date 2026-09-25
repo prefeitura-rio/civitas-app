@@ -171,11 +171,25 @@ describe('DatePicker Component', () => {
     render(<DatePicker value={initialDate} onChange={mockOnChange} />)
 
     // Simular seleção de uma nova data
-    const calendar = screen.getByTestId('calendar')
+    const day = screen.getByTestId('day-1')
+    day.click()
 
-    expect(calendar).toBeInTheDocument()
-    expect(screen.getByTestId('day-1')).toBeInTheDocument()
-    expect(screen.getByTestId('day-15')).toBeInTheDocument()
+    expect(mockOnChange).toHaveBeenCalled()
+  })
+
+  it('calls onDaySelect when a day is chosen', () => {
+    const onDaySelect = jest.fn()
+    render(
+      <DatePicker
+        value={undefined}
+        onChange={mockOnChange}
+        onDaySelect={onDaySelect}
+      />,
+    )
+
+    screen.getByTestId('day-15').click()
+
+    expect(onDaySelect).toHaveBeenCalledWith(expect.any(Date))
   })
 
   it('should handle button click to open popover', async () => {

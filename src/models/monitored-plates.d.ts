@@ -142,6 +142,15 @@ export type BackendMonitoredPlate = {
 
 export type MonitoredPlateHistoryItem = {
   plate: string
+  monitored_plate_authority_id: string | null
+  reference_number: string | null
+  institution_authority_id: string | null
+  institution_authority?: {
+    id: string
+    name: string
+    requesting_institution: { id: string; name: string }
+  } | null
+  source: 'legacy_plate' | 'authority'
   notes: string | null
   created_timestamp: string | null
   created_by: {
@@ -155,6 +164,7 @@ export type MonitoredPlateHistoryItem = {
     email: string
   } | null
   deleted_timestamp: string | null
+  end_reason: 'deactivated' | 'deleted' | 'expired' | null
   deleted_by: {
     id: string
     username: string
