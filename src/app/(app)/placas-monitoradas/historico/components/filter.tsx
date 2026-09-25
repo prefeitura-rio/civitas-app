@@ -25,8 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getInstitutionAuthorities } from '@/http/institution-authorities'
-import { getRequestingInstitutions } from '@/http/requesting-institutions'
+import {
+  getInstitutionAuthorities,
+  getInstitutionAuthority,
+} from '@/http/institution-authorities'
+import {
+  getRequestingInstitution,
+  getRequestingInstitutions,
+} from '@/http/requesting-institutions'
 import { cn } from '@/lib/utils'
 
 import {
@@ -182,9 +188,11 @@ export function HistoryFilter() {
       requestingInstitutionId: pRequestingInstitutionId || 'all',
       institutionAuthorityId: pInstitutionAuthorityId || 'all',
       endReason:
-        pEndReason === 'expired' || pEndReason === 'manual'
-          ? pEndReason
-          : 'all',
+        pStatus === 'active'
+          ? 'all'
+          : pEndReason === 'expired' || pEndReason === 'manual'
+            ? pEndReason
+            : 'all',
       referenceNumber: pReferenceNumber,
       startTimeCreate: pStartTimeCreate ?? undefined,
       endTimeCreate: pEndTimeCreate ?? undefined,
@@ -269,27 +277,74 @@ export function HistoryFilter() {
     authoritiesResponse?.data.items ?? []
   ).map((item) => ({ id: item.id, label: item.name }))
 
+  const selectedInstitutionMissing =
+    requestingInstitutionId !== 'all' &&
+    !isLoadingRequestingInstitutions &&
+    !!requestingInstitutionsResponse &&
+    !requestingInstitutionOptions.some(
+      (item) => item.id === requestingInstitutionId,
+    )
+  const selectedAuthorityMissing =
+    institutionAuthorityId !== 'all' &&
+    !isLoadingAuthorities &&
+    !!authoritiesResponse &&
+    !authorityOptions.some((item) => item.id === institutionAuthorityId)
+
+  const { data: selectedInstitution } = useQuery({
+    queryKey: [
+      'requesting-institutions',
+      'history-filter',
+      'by-id',
+      requestingInstitutionId,
+    ],
+    queryFn: () =>
+      getRequestingInstitution({ id: requestingInstitutionId ?? '' }),
+    enabled: selectedInstitutionMissing,
+  })
+
+  const { data: selectedAuthority } = useQuery({
+    queryKey: [
+      'institution-authorities',
+      'history-filter',
+      'by-id',
+      institutionAuthorityId,
+    ],
+    queryFn: () =>
+      getInstitutionAuthority({ id: institutionAuthorityId ?? '' }),
+    enabled: selectedAuthorityMissing,
+  })
+
   useEffect(() => {
     if (requestingInstitutionId === 'all') {
       setRequestingInstitutionName('')
       return
     }
-    const match = requestingInstitutionOptions.find(
-      (item) => item.id === requestingInstitutionId,
-    )
+    const match =
+      requestingInstitutionOptions.find(
+        (item) => item.id === requestingInstitutionId,
+      ) ??
+      (selectedInstitution?.id === requestingInstitutionId
+        ? { label: selectedInstitution.name }
+        : undefined)
     if (match) setRequestingInstitutionName(match.label)
-  }, [requestingInstitutionId, requestingInstitutionOptions])
+  }, [
+    requestingInstitutionId,
+    requestingInstitutionOptions,
+    selectedInstitution,
+  ])
 
   useEffect(() => {
     if (institutionAuthorityId === 'all') {
       setInstitutionAuthorityName('')
       return
     }
-    const match = authorityOptions.find(
-      (item) => item.id === institutionAuthorityId,
-    )
+    const match =
+      authorityOptions.find((item) => item.id === institutionAuthorityId) ??
+      (selectedAuthority?.id === institutionAuthorityId
+        ? { label: selectedAuthority.name }
+        : undefined)
     if (match) setInstitutionAuthorityName(match.label)
-  }, [authorityOptions, institutionAuthorityId])
+  }, [authorityOptions, institutionAuthorityId, selectedAuthority])
 
   function handleStatusChange(value: string) {
     setValue('status', value as FilterForm['status'], {
@@ -304,6 +359,34 @@ export function HistoryFilter() {
     setValue('endReason', value as FilterForm['endReason'], {
       shouldDirty: true,
     })
+  }
+
+  function handleClearPeriod() {
+    setStartCreateDate(undefined)
+    setEndCreateDate(undefined)
+    setStartDeleteDate(undefined)
+    setEndDeleteDate(undefined)
+    setValue('startTimeCreate', undefined, { shouldDirty: true })
+    setValue('endTimeCreate', undefined, { shouldDirty: true })
+    setValue('startTimeDelete', undefined, { shouldDirty: true })
+    setValue('endTimeDelete', undefined, { shouldDirty: true })
+
+    const params = new URLSearchParams(searchParams.toString())
+    const hadDates = [
+      'startTimeCreate',
+      'endTimeCreate',
+      'startTimeDelete',
+      'endTimeDelete',
+    ].some((key) => params.has(key))
+    if (!hadDates) return
+
+    params.delete('startTimeCreate')
+    params.delete('endTimeCreate')
+    params.delete('startTimeDelete')
+    params.delete('endTimeDelete')
+    params.set('page', '1')
+    const query = params.toString()
+    router.replace(query ? `${pathName}?${query}` : pathName)
   }
 
   function handleClearFilters() {
@@ -361,7 +444,11 @@ export function HistoryFilter() {
     ) {
       params.set('institutionAuthorityId', props.institutionAuthorityId)
     }
-    if (props.endReason && props.endReason !== 'all') {
+    if (
+      props.status !== 'active' &&
+      props.endReason &&
+      props.endReason !== 'all'
+    ) {
       params.set('endReason', props.endReason)
     }
     if (props.referenceNumber?.trim()) {
@@ -684,7 +771,7 @@ export function HistoryFilter() {
                   variant="ghost"
                   size="sm"
                   className="h-10 sm:h-9"
-                  onClick={handleClearFilters}
+                  onClick={handleClearPeriod}
                 >
                   Limpar
                 </Button>

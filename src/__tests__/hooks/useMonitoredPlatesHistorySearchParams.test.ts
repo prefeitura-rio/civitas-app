@@ -54,7 +54,7 @@ describe('useMonitoredPlatesHistorySearchParams', () => {
       status: 'active',
       requestingInstitutionId: 'institution-1',
       institutionAuthorityId: 'authority-1',
-      endReason: 'expired',
+      endReason: undefined,
       referenceNumber: 'REQ-1',
       startTimeCreate: '2026-01-01T00:00:00.000Z',
       endTimeCreate: undefined,
@@ -110,6 +110,23 @@ describe('useMonitoredPlatesHistorySearchParams', () => {
     expect(push).toHaveBeenCalledWith(
       '/placas-monitoradas/historico?plate=ABC1D23&page=2',
     )
+  })
+
+  it('drops invalid sort params and end reason when status is active', () => {
+    mockUseSearchParams.mockReturnValue(
+      createMockSearchParams({
+        status: 'active',
+        endReason: 'expired',
+        sortBy: 'not-a-column',
+        sortDirection: 'sideways',
+      }),
+    )
+
+    const { result } = renderHook(() => useMonitoredPlatesHistorySearchParams())
+
+    expect(result.current.formattedSearchParams.endReason).toBeUndefined()
+    expect(result.current.formattedSearchParams.sortBy).toBeUndefined()
+    expect(result.current.formattedSearchParams.sortDirection).toBeUndefined()
   })
 
   it('resets to page 1 when sorting changes', () => {

@@ -3,9 +3,9 @@ import { z } from 'zod'
 
 import type {
   GetMonitoredPlatesHistoryProps,
+  MonitoredPlateHistoryEndReasonFilter,
   MonitoredPlateHistorySortBy,
   MonitoredPlateHistorySortDirection,
-  MonitoredPlateHistoryEndReasonFilter,
   MonitoredPlateHistoryStatusFilter,
 } from '@/http/cars/monitored/get-monitored-plates-history'
 
@@ -18,6 +18,17 @@ type MonitoredPlatesQueryKey = [
 
 const STATUS_OPTIONS = ['active', 'deactivated'] as const
 const END_REASON_OPTIONS = ['expired', 'manual'] as const
+const SORT_BY_OPTIONS = [
+  'activity_timestamp',
+  'plate',
+  'reference_number',
+  'notes',
+  'created_timestamp',
+  'created_by',
+  'deleted_timestamp',
+  'deleted_by',
+] as const satisfies readonly MonitoredPlateHistorySortBy[]
+const SORT_DIRECTION_OPTIONS = ['asc', 'desc'] as const
 
 function parseStatus(
   value: string | null,
@@ -41,6 +52,21 @@ function parseEndReason(
     return value as MonitoredPlateHistoryEndReasonFilter
   }
   return undefined
+}
+
+function parseSort(
+  sortByValue: string | null,
+  sortDirectionValue: string | null,
+): {
+  sortBy?: MonitoredPlateHistorySortBy
+  sortDirection?: MonitoredPlateHistorySortDirection
+} {
+  const sortBy = SORT_BY_OPTIONS.find((option) => option === sortByValue)
+  const sortDirection = SORT_DIRECTION_OPTIONS.find(
+    (option) => option === sortDirectionValue,
+  )
+  if (!sortBy || !sortDirection) return {}
+  return { sortBy, sortDirection }
 }
 
 interface UseMonitoredPlatesSearchParamsReturn {
@@ -70,16 +96,17 @@ export function useMonitoredPlatesHistorySearchParams(): UseMonitoredPlatesSearc
     searchParams.get('requestingInstitutionId') || undefined
   const institutionAuthorityId =
     searchParams.get('institutionAuthorityId') || undefined
-  const endReason = parseEndReason(searchParams.get('endReason'))
+  const endReason =
+    status === 'active'
+      ? undefined
+      : parseEndReason(searchParams.get('endReason'))
 
   const page = z.coerce.number().parse(searchParams.get('page') ?? '1')
   const size = z.coerce.number().parse(searchParams.get('size') ?? '10')
-  const sortBy = (searchParams.get('sortBy') || undefined) as
-    | MonitoredPlateHistorySortBy
-    | undefined
-  const sortDirection = (searchParams.get('sortDirection') || undefined) as
-    | MonitoredPlateHistorySortDirection
-    | undefined
+  const { sortBy, sortDirection } = parseSort(
+    searchParams.get('sortBy'),
+    searchParams.get('sortDirection'),
+  )
 
   const formattedSearchParams: GetMonitoredPlatesHistoryProps = {
     plate,

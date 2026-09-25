@@ -108,11 +108,13 @@ export function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       aria-sort={
-                        sortDirection === 'asc'
-                          ? 'ascending'
-                          : sortDirection === 'desc'
-                            ? 'descending'
-                            : 'none'
+                        canSort
+                          ? sortDirection === 'asc'
+                            ? 'ascending'
+                            : sortDirection === 'desc'
+                              ? 'descending'
+                              : 'none'
+                          : undefined
                       }
                     >
                       {header.isPlaceholder ? null : canSort ? (
