@@ -98,6 +98,10 @@ export function HistoryFilter() {
   const [endDeleteDate, setEndDeleteDate] = useState<Date | undefined>()
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [createFromOpen, setCreateFromOpen] = useState(false)
+  const [createToOpen, setCreateToOpen] = useState(false)
+  const [deleteFromOpen, setDeleteFromOpen] = useState(false)
+  const [deleteToOpen, setDeleteToOpen] = useState(false)
 
   const {
     register,
@@ -427,6 +431,14 @@ export function HistoryFilter() {
     replaceQuery(query)
   }
 
+  function openEndAfterStart(
+    setStartOpen: (open: boolean) => void,
+    setEndOpen: (open: boolean) => void,
+  ) {
+    setStartOpen(false)
+    window.setTimeout(() => setEndOpen(true), 0)
+  }
+
   function replaceQuery(query: string) {
     const href = query ? `${pathName}?${query}` : pathName
     router.replace(href)
@@ -680,6 +692,11 @@ export function HistoryFilter() {
                     <Label className="text-xs text-muted-foreground">De</Label>
                     <DatePicker
                       value={startCreateDate}
+                      open={createFromOpen}
+                      onOpenChange={setCreateFromOpen}
+                      onDaySelect={() =>
+                        openEndAfterStart(setCreateFromOpen, setCreateToOpen)
+                      }
                       onChange={(date) => {
                         setStartCreateDate(date)
                         setValue(
@@ -700,6 +717,9 @@ export function HistoryFilter() {
                     <Label className="text-xs text-muted-foreground">Até</Label>
                     <DatePicker
                       value={endCreateDate}
+                      open={createToOpen}
+                      onOpenChange={setCreateToOpen}
+                      onDaySelect={() => setCreateToOpen(false)}
                       onChange={(date) => {
                         setEndCreateDate(date)
                         setValue(
@@ -734,6 +754,11 @@ export function HistoryFilter() {
                     <Label className="text-xs text-muted-foreground">De</Label>
                     <DatePicker
                       value={startDeleteDate}
+                      open={deleteFromOpen}
+                      onOpenChange={setDeleteFromOpen}
+                      onDaySelect={() =>
+                        openEndAfterStart(setDeleteFromOpen, setDeleteToOpen)
+                      }
                       onChange={(date) => {
                         setStartDeleteDate(date)
                         setValue(
@@ -754,6 +779,9 @@ export function HistoryFilter() {
                     <Label className="text-xs text-muted-foreground">Até</Label>
                     <DatePicker
                       value={endDeleteDate}
+                      open={deleteToOpen}
+                      onOpenChange={setDeleteToOpen}
+                      onDaySelect={() => setDeleteToOpen(false)}
                       onChange={(date) => {
                         setEndDeleteDate(date)
                         setValue(

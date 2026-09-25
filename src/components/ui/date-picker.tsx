@@ -30,6 +30,9 @@ interface DatePickerProps {
   placeholder?: string
   popoverContentClassName?: string
   timePickerContentClassName?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  onDaySelect?: (date: Date) => void
 }
 
 export function DatePicker({
@@ -44,12 +47,46 @@ export function DatePicker({
   placeholder = 'Escolha uma data', // Default placeholder
   popoverContentClassName,
   timePickerContentClassName,
+  open,
+  onOpenChange,
+  onDaySelect,
 }: DatePickerProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const isOpen = open ?? uncontrolledOpen
   const displayFormat =
     type === 'datetime-local' ? 'dd MMM, y HH:mm' : 'dd MMM, y'
 
+  function handleOpenChange(next: boolean) {
+    if (open === undefined) setUncontrolledOpen(next)
+    onOpenChange?.(next)
+  }
+
+  function selectDay(newDate: Date | undefined) {
+    if (newDate && value) {
+      const newValue = new Date(newDate)
+      newValue.setHours(value.getHours())
+      newValue.setMinutes(value.getMinutes())
+      newValue.setSeconds(value.getSeconds())
+      newValue.setMilliseconds(value.getMilliseconds())
+      onChange(newValue)
+      onDaySelect?.(newValue)
+      return
+    }
+    if (newDate) {
+      const newValue = new Date(newDate)
+      newValue.setHours(dateConfig.defaultTime.hours)
+      newValue.setMinutes(dateConfig.defaultTime.minutes)
+      newValue.setSeconds(dateConfig.defaultTime.seconds)
+      newValue.setMilliseconds(dateConfig.defaultTime.milliseconds)
+      onChange(newValue)
+      onDaySelect?.(newValue)
+      return
+    }
+    onChange(newDate)
+  }
+
   return (
-    <Popover modal={false}>
+    <Popover modal={false} open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -76,27 +113,7 @@ export function DatePicker({
           fromDate={fromDate}
           toDate={toDate}
           locale={dateConfig.locale}
-          onSelect={(newDate) => {
-            if (newDate && value) {
-              // Create new date preserving the time from the original value
-              const newValue = new Date(newDate)
-              newValue.setHours(value.getHours())
-              newValue.setMinutes(value.getMinutes())
-              newValue.setSeconds(value.getSeconds())
-              newValue.setMilliseconds(value.getMilliseconds())
-              onChange(newValue)
-            } else if (newDate) {
-              // Create new date with default time (00:00)
-              const newValue = new Date(newDate)
-              newValue.setHours(dateConfig.defaultTime.hours)
-              newValue.setMinutes(dateConfig.defaultTime.minutes)
-              newValue.setSeconds(dateConfig.defaultTime.seconds)
-              newValue.setMilliseconds(dateConfig.defaultTime.milliseconds)
-              onChange(newValue)
-            } else {
-              onChange(newDate)
-            }
-          }}
+          onSelect={selectDay}
           initialFocus
           disabled={disabled}
         />
