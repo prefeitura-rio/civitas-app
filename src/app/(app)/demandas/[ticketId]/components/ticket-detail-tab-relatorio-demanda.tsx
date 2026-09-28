@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import {
   type ChangeEvent,
+  type ClipboardEvent,
   forwardRef,
   useCallback,
   useEffect,
@@ -236,12 +237,8 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     fileInputRef.current?.click()
   }, [])
 
-  const onImageFile = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      e.target.value = ''
-      if (!file) return
-
+  const insertImageFile = useCallback(
+    (file: File) => {
       if (!TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(file.type)) {
         toast.error('Use JPEG, PNG, GIF ou WebP.')
         return
@@ -267,6 +264,28 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       revokeOrphanBlobs()
     },
     [revokeOrphanBlobs, syncEmpty],
+  )
+
+  const onImageFile = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      e.target.value = ''
+      if (file) insertImageFile(file)
+    },
+    [insertImageFile],
+  )
+
+  const onPaste = useCallback(
+    (event: ClipboardEvent<HTMLDivElement>) => {
+      const imageItem = Array.from(event.clipboardData.items).find((item) =>
+        TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(item.type),
+      )
+      const file = imageItem?.getAsFile()
+      if (!file) return
+      event.preventDefault()
+      insertImageFile(file)
+    },
+    [insertImageFile],
   )
 
   const handleSave = () => {
@@ -327,6 +346,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
                 syncEmpty()
                 revokeOrphanBlobs()
               }}
+              onPaste={onPaste}
               suppressContentEditableWarning
             />
           </div>
