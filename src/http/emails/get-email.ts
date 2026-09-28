@@ -1,5 +1,14 @@
 import { api } from '@/lib/api'
 
+export const EMAIL_STATUS = {
+  NAO_LIDO: 'Não Lido',
+  AGUARDANDO_RESPOSTA: 'Aguardando Resposta',
+  RESPONDIDO: 'Respondido',
+  SPAM: 'Spam',
+} as const
+
+export type EmailStatus = (typeof EMAIL_STATUS)[keyof typeof EMAIL_STATUS]
+
 export interface AttachmentOut {
   id: number
   filename: string
@@ -20,7 +29,7 @@ export interface EmailOut {
   date?: string | null
   internal_date?: number | null
   has_attachments: boolean
-  is_read: boolean
+  status: EmailStatus
   label_ids?: string | null
   created_at: string
   updated_at: string
@@ -29,4 +38,8 @@ export interface EmailOut {
 
 export function getEmailById(id: string) {
   return api.get<EmailOut>(`/emails/${encodeURIComponent(id)}`)
+}
+
+export function shouldMarkAsAguardandoOnConverterOpen(status: EmailStatus) {
+  return status === EMAIL_STATUS.NAO_LIDO
 }

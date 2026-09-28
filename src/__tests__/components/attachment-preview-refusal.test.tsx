@@ -72,7 +72,7 @@ describe('foto.jpg que a API não confirma como foto', () => {
         from_address: 'n@example.com',
         snippet: 'corpo',
         has_attachments: true,
-        is_read: false,
+        status: 'Não Lido',
         created_at: '2026-09-24T00:00:00Z',
         updated_at: '2026-09-24T00:00:00Z',
         attachments: [fakeJpg],

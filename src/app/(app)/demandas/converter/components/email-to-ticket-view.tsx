@@ -51,7 +51,11 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
-import { type EmailOut, getEmailById } from '@/http/emails/get-email'
+import {
+  type EmailOut,
+  getEmailById,
+  shouldMarkAsAguardandoOnConverterOpen,
+} from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
@@ -294,7 +298,9 @@ export function EmailToTicketView() {
   const email = emailResponse?.data
 
   useEffect(() => {
-    if (!emailId) return
+    // Wait for GET detail; only lift Não Lido → Aguardando.
+    if (!emailId || !email) return
+    if (!shouldMarkAsAguardandoOnConverterOpen(email.status)) return
 
     let cancelled = false
 
@@ -320,7 +326,7 @@ export function EmailToTicketView() {
     return () => {
       cancelled = true
     }
-  }, [emailId, queryClient])
+  }, [emailId, email, email?.status, queryClient])
 
   useEffect(() => {
     if (!vm.isLoading) setActiveSubmit(null)
