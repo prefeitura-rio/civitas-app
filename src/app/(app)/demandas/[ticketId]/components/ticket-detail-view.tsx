@@ -177,6 +177,7 @@ type TicketWorkflowConfirmableAction =
 const RESPONSE_LINK_RESEND_MAX_AGE_DAYS = 180
 const RESPONSE_LINK_RESEND_EXPIRATION_MESSAGE =
   'O reenvio de links só é permitido até 180 dias após a abertura da demanda.'
+const ARCHIVE_RETURN_STORAGE_KEY = 'ticket-archive-return'
 
 function hasResponseLinkResendExpired(createdAt?: string | null) {
   const openedAt = Date.parse(createdAt ?? '')
@@ -188,8 +189,29 @@ function hasResponseLinkResendExpired(createdAt?: string | null) {
   )
 }
 
+function consumeArchiveReturn(ticketId: string) {
+  if (typeof window === 'undefined') return null
+
+  try {
+    const storedReturn = window.sessionStorage.getItem(
+      ARCHIVE_RETURN_STORAGE_KEY,
+    )
+    if (!storedReturn) return null
+
+    const { ticketId: storedTicketId } = JSON.parse(storedReturn) as {
+      ticketId?: unknown
+    }
+    window.sessionStorage.removeItem(ARCHIVE_RETURN_STORAGE_KEY)
+    return storedTicketId === ticketId ? '/demandas/arquivados' : null
+  } catch {
+    return null
+  }
+}
+
 export function TicketDetailView({ ticketId }: Props) {
   const router = useRouter()
+  const [archiveReturnHref] = useState(() => consumeArchiveReturn(ticketId))
+  const backHref = archiveReturnHref ?? '/demandas'
   const [activeTab, setActiveTab] = useState<TicketDetailTabId>('solicitante')
   const [oficioOpen, setOficioOpen] = useState(false)
   const [oficioAttachmentIndex, setOficioAttachmentIndex] = useState(0)
@@ -688,11 +710,7 @@ export function TicketDetailView({ ticketId }: Props) {
           <p className={styles.error}>
             Não foi possível carregar esta demanda. Tente novamente mais tarde.
           </p>
-          <Link
-            href="/demandas"
-            className={styles.backLink}
-            aria-label="Voltar"
-          >
+          <Link href={backHref} className={styles.backLink} aria-label="Voltar">
             <ChevronLeft size={18} />
           </Link>
         </div>
@@ -710,7 +728,7 @@ export function TicketDetailView({ ticketId }: Props) {
                 type="button"
                 className={styles.backLink}
                 aria-label="Voltar para lista de demandas"
-                onClick={() => requestRouteNavigation('/demandas')}
+                onClick={() => requestRouteNavigation(backHref)}
               >
                 <ChevronLeft size={18} />
               </button>

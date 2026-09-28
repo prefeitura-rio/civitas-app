@@ -8,8 +8,10 @@ import { getTicketCabecalho } from '@/http/tickets/get-ticket-cabecalho'
 import { getTicketNotificationEmails } from '@/http/tickets/get-ticket-notification-emails'
 import { resendTicketResponseLinks } from '@/http/tickets/resend-ticket-response-links'
 
+const mockPush = jest.fn()
+
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ back: jest.fn(), push: jest.fn() }),
+  useRouter: () => ({ back: jest.fn(), push: mockPush }),
 }))
 
 jest.mock('next/link', () => ({ children, ...props }: any) => (
@@ -102,6 +104,7 @@ function renderView() {
 describe('TicketDetailView - reenviar links', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    window.sessionStorage.clear()
     mockedGetTicketCabecalho.mockResolvedValue({
       internal_number: '0005550',
       status: 'FINALIZADO',
@@ -182,5 +185,21 @@ describe('TicketDetailView - reenviar links', () => {
       ),
     ).not.toBeInTheDocument()
     expect(mockedResendTicketResponseLinks).not.toHaveBeenCalled()
+  })
+
+  it('returns to the archived list with its filters when opened from it', async () => {
+    window.sessionStorage.setItem(
+      'ticket-archive-return',
+      JSON.stringify({ ticketId: 'ticket-1' }),
+    )
+    renderView()
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Voltar para lista de demandas',
+      }),
+    )
+
+    expect(mockPush).toHaveBeenCalledWith('/demandas/arquivados')
   })
 })
