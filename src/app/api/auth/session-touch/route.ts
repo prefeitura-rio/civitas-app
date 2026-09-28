@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   const sessionValue = request.cookies.get(getSessionCookieName())?.value
 
-  const result = await validateAndRefreshSession(sessionValue, true, false)
+  const result = await validateAndRefreshSession(sessionValue, true, true)
 
   if (!result.session) {
     const response = NextResponse.json(
