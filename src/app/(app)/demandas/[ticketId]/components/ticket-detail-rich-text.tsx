@@ -8,6 +8,82 @@ import styles from '../ticket-detail.module.css'
 export const TICKET_REPORT_IMAGE_ACCEPT =
   'image/jpeg,image/png,image/gif,image/webp'
 export const TICKET_REPORT_IMAGE_MAX_BYTES = 10 * 1024 * 1024
+export const TICKET_REPORT_IMAGE_MAX_SIZE_ERROR =
+  'A imagem não pode ter mais de 10 MB.'
+
+type ClipboardItemWithFile = Pick<DataTransferItem, 'type' | 'getAsFile'>
+
+export function getTicketReportClipboardImages(
+  items: ArrayLike<ClipboardItemWithFile>,
+): File[] {
+  const acceptedTypes = new Set(TICKET_REPORT_IMAGE_ACCEPT.split(','))
+
+  return Array.from(items).flatMap((item) => {
+    if (!acceptedTypes.has(item.type)) return []
+    const file = item.getAsFile()
+    return file ? [file] : []
+  })
+}
+
+export function getTicketReportImageValidationError(file: File): string | null {
+  if (!TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(file.type)) {
+    return 'Use imagens JPEG, PNG, GIF ou WebP.'
+  }
+  if (file.size > TICKET_REPORT_IMAGE_MAX_BYTES) {
+    return TICKET_REPORT_IMAGE_MAX_SIZE_ERROR
+  }
+  return null
+}
+
+export function removeTicketReportImageLoaderState(root: ParentNode): void {
+  for (const image of root.querySelectorAll('img')) {
+    image.classList.remove(styles.ticketReportImageLoading)
+    image.removeAttribute('aria-busy')
+    if (!image.getAttribute('class')) image.removeAttribute('class')
+  }
+}
+
+export function useTicketReportImageLoaders(
+  editorRef: RefObject<HTMLElement>,
+  editorMounted: boolean,
+): void {
+  useEffect(() => {
+    if (!editorMounted) return
+    const editor = editorRef.current
+    if (!editor) return
+
+    const syncImageLoaders = () => {
+      for (const image of editor.querySelectorAll('img')) {
+        const isPending = !image.complete
+        image.classList.toggle(styles.ticketReportImageLoading, isPending)
+        if (isPending) image.setAttribute('aria-busy', 'true')
+        else image.removeAttribute('aria-busy')
+      }
+    }
+    const finishImageLoading = (event: Event) => {
+      if (!(event.target instanceof HTMLImageElement)) return
+      event.target.classList.remove(styles.ticketReportImageLoading)
+      event.target.removeAttribute('aria-busy')
+    }
+
+    const observer = new MutationObserver(syncImageLoaders)
+    observer.observe(editor, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src'],
+    })
+    editor.addEventListener('load', finishImageLoading, true)
+    editor.addEventListener('error', finishImageLoading, true)
+    syncImageLoaders()
+
+    return () => {
+      observer.disconnect()
+      editor.removeEventListener('load', finishImageLoading, true)
+      editor.removeEventListener('error', finishImageLoading, true)
+    }
+  }, [editorMounted, editorRef])
+}
 
 export function insertNodeAtCaret(editor: HTMLElement, node: Node) {
   editor.focus()

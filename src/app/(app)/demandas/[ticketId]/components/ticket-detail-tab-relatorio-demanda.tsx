@@ -27,12 +27,15 @@ import {
 
 import styles from '../ticket-detail.module.css'
 import {
+  getTicketReportClipboardImages,
+  getTicketReportImageValidationError,
   insertNodeAtCaret,
   isHtmlEffectivelyEmpty,
+  removeTicketReportImageLoaderState,
   RichToolbar,
   sanitizeTicketHtml,
   TICKET_REPORT_IMAGE_ACCEPT,
-  TICKET_REPORT_IMAGE_MAX_BYTES,
+  useTicketReportImageLoaders,
 } from './ticket-detail-rich-text'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
@@ -67,6 +70,10 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     queryKey: REPORT_QUERY_KEY(ticketId),
     queryFn: () => getTicketRelatorioDemanda(ticketId),
   })
+  useTicketReportImageLoaders(
+    editorRef,
+    !reportQuery.isLoading && !reportQuery.isError,
+  )
 
   reportDataRef.current = reportQuery.data
 
@@ -157,6 +164,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     if (!el) return null
 
     const clone = el.cloneNode(true) as HTMLElement
+    removeTicketReportImageLoaderState(clone)
     const files: File[] = []
     let i = 0
     for (const img of clone.querySelectorAll('img')) {
@@ -239,12 +247,9 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
 
   const insertImageFile = useCallback(
     (file: File) => {
-      if (!TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(file.type)) {
-        toast.error('Use JPEG, PNG, GIF ou WebP.')
-        return
-      }
-      if (file.size > TICKET_REPORT_IMAGE_MAX_BYTES) {
-        toast.error('Cada imagem pode ter no máximo 10 MB.')
+      const validationError = getTicketReportImageValidationError(file)
+      if (validationError) {
+        toast.error(validationError)
         return
       }
 
@@ -277,13 +282,10 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
 
   const onPaste = useCallback(
     (event: ClipboardEvent<HTMLDivElement>) => {
-      const imageItem = Array.from(event.clipboardData.items).find((item) =>
-        TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(item.type),
-      )
-      const file = imageItem?.getAsFile()
-      if (!file) return
+      const files = getTicketReportClipboardImages(event.clipboardData.items)
+      if (files.length === 0) return
       event.preventDefault()
-      insertImageFile(file)
+      files.forEach(insertImageFile)
     },
     [insertImageFile],
   )

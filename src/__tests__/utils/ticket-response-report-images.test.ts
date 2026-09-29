@@ -5,6 +5,7 @@ import {
 
 const ticketId = '11111111-1111-1111-1111-111111111111'
 const imageId = '22222222-2222-2222-2222-222222222222'
+const commentId = '33333333-3333-3333-3333-333333333333'
 describe.each(['demand', 'response'])(
   'ticket %s report image paths',
   (report) => {
@@ -29,3 +30,13 @@ describe.each(['demand', 'response'])(
     })
   },
 )
+
+describe('ticket comment image paths', () => {
+  const apiPath = `/tickets/${ticketId}/comments/${commentId}/images/${imageId}`
+
+  it('usa o BFF autenticado e restaura a rota canônica', () => {
+    const browserHtml = toBrowserTicketReportHtml(`<img src="${apiPath}">`)
+    expect(browserHtml).toBe(`<img src="/api/bff${apiPath}">`)
+    expect(toStoredTicketReportHtml(browserHtml)).toBe(`<img src="${apiPath}">`)
+  })
+})

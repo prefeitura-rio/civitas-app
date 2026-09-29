@@ -50,12 +50,15 @@ import {
 import responderStyles from '../../caixa-entrada/responder/[emailId]/components/responder-email-view.module.css'
 import detailStyles from '../ticket-detail.module.css'
 import {
+  getTicketReportClipboardImages,
+  getTicketReportImageValidationError,
   insertNodeAtCaret,
   isHtmlEffectivelyEmpty,
+  removeTicketReportImageLoaderState,
   RichToolbar,
   sanitizeTicketHtml,
   TICKET_REPORT_IMAGE_ACCEPT,
-  TICKET_REPORT_IMAGE_MAX_BYTES,
+  useTicketReportImageLoaders,
 } from './ticket-detail-rich-text'
 import { usesGcsSignedUrlAttachment } from './ticket-gcs-upload'
 
@@ -148,6 +151,10 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
     queryKey: RESPOSTA_QUERY_KEY(ticketId),
     queryFn: () => getTicketResposta(ticketId),
   })
+  useTicketReportImageLoaders(
+    editorRef,
+    !respostaQuery.isLoading && !respostaQuery.isError,
+  )
 
   const saveMutation = useMutation({
     mutationFn: () => {
@@ -155,6 +162,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
       if (!editor) throw new Error('Editor indisponível.')
 
       const clone = editor.cloneNode(true) as HTMLElement
+      removeTicketReportImageLoaderState(clone)
       const files: File[] = []
       let index = 0
       for (const image of clone.querySelectorAll('img')) {
@@ -482,12 +490,9 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
 
   const insertImageFile = useCallback(
     (file: File) => {
-      if (!TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(file.type)) {
-        toast.error('Use JPEG, PNG, GIF ou WebP.')
-        return
-      }
-      if (file.size > TICKET_REPORT_IMAGE_MAX_BYTES) {
-        toast.error('Cada imagem pode ter no máximo 10 MB.')
+      const validationError = getTicketReportImageValidationError(file)
+      if (validationError) {
+        toast.error(validationError)
         return
       }
       const editor = editorRef.current
@@ -517,13 +522,10 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
 
   const handlePaste = useCallback(
     (event: ClipboardEvent<HTMLDivElement>) => {
-      const imageItem = Array.from(event.clipboardData.items).find((item) =>
-        TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(item.type),
-      )
-      const file = imageItem?.getAsFile()
-      if (!file) return
+      const files = getTicketReportClipboardImages(event.clipboardData.items)
+      if (files.length === 0) return
       event.preventDefault()
-      insertImageFile(file)
+      files.forEach(insertImageFile)
     },
     [insertImageFile],
   )
