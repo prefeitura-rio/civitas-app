@@ -19,7 +19,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -51,7 +51,12 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
-import { type EmailOut, getEmailById } from '@/http/emails/get-email'
+import {
+  EMAIL_STATUS,
+  type EmailOut,
+  getEmailById,
+  shouldMarkAsAguardandoOnConverterOpen,
+} from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
@@ -280,6 +285,7 @@ export function EmailToTicketView() {
   const [manualFileSelected, setManualFileSelected] = useState<
     Record<string, boolean>
   >({})
+  const prefilledEmailIdRef = useRef<string | null>(null)
 
   const {
     data: emailResponse,
@@ -294,13 +300,28 @@ export function EmailToTicketView() {
   const email = emailResponse?.data
 
   useEffect(() => {
-    if (!emailId) return
+    // Wait for GET detail; only lift Não Lido → Aguardando.
+    if (!emailId || !email) return
+    if (!shouldMarkAsAguardandoOnConverterOpen(email.status)) return
 
     let cancelled = false
 
     markEmailAsAguardandoResposta(emailId)
       .then(() => {
         if (cancelled) return
+        queryClient.setQueryData(
+          ['email-detail', emailId],
+          (current: Awaited<ReturnType<typeof getEmailById>> | undefined) => {
+            if (!current?.data) return current
+            return {
+              ...current,
+              data: {
+                ...current.data,
+                status: EMAIL_STATUS.AGUARDANDO_RESPOSTA,
+              },
+            }
+          },
+        )
         queryClient.invalidateQueries({ queryKey: ['emails-inbox-nao-lidos'] })
         queryClient.invalidateQueries({
           queryKey: EMAIL_NAO_LIDOS_COUNT_QUERY_KEY,
@@ -320,7 +341,7 @@ export function EmailToTicketView() {
     return () => {
       cancelled = true
     }
-  }, [emailId, queryClient])
+  }, [emailId, email?.status, queryClient])
 
   useEffect(() => {
     if (!vm.isLoading) setActiveSubmit(null)
@@ -335,14 +356,22 @@ export function EmailToTicketView() {
     (!isAssociarConvertMode && vm.isLoading)
 
   useEffect(() => {
+    if (!emailId) {
+      prefilledEmailIdRef.current = null
+      return
+    }
     if (!email) return
+    // Once per emailId — setQueryData/invalidate must not wipe user edits.
+    if (prefilledEmailIdRef.current === emailId) return
+    prefilledEmailIdRef.current = emailId
+
     const nome = email.from_name?.trim() || email.from_address?.trim() || ''
     vm.setValue('requester.name', nome)
     vm.setValue('requester.email', email.from_address?.trim() || '')
     const subj = email.subject?.trim() || ''
     const body = (email.body_preview || email.snippet || '').trim()
     vm.setValue('initial_comment', subj ? `${subj}\n\n${body}` : body)
-  }, [email, vm.setValue])
+  }, [email, emailId, vm.setValue])
 
   const attachments = email?.attachments ?? []
   const selectableAttachments = filterSelectableEmailAttachments(attachments)
