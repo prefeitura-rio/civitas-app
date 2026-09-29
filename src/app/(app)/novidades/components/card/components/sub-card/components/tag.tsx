@@ -22,12 +22,12 @@ export function Tag({ tag }: TagProps) {
       break
 
     case 'Corrigido':
-      backgroundColor = 'bg-red-700'
+      backgroundColor = 'bg-blue-700'
       textColor = 'text-white'
       break
 
     case 'Removido':
-      backgroundColor = 'bg-neutral-500'
+      backgroundColor = 'bg-red-700'
       textColor = 'text-white'
       break
 

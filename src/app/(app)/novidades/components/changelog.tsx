@@ -19,6 +19,58 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '29 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Corrigido',
+        title: 'Erros ao sincronizar e enviar e-mails',
+        content: (
+          <>
+            <p>
+              Quando a senha do e-mail que recebe os chamados era alterada, o
+              sistema passava a falhar ao sincronizar a caixa de entrada e ao
+              enviar e-mails. A conexão com essa caixa foi ajustada e não
+              depende mais dessa senha. Sincronizar e enviar e-mails volta a
+              funcionar mesmo depois da troca.
+            </p>
+          </>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'E-mails que voltavam para a caixa de entrada',
+        content: (
+          <>
+            <p>
+              E-mails que já tinham sido lidos, respondidos ou marcados como
+              spam voltavam para a caixa de entrada, em{' '}
+              <strong>Aguardando resposta</strong>. Agora eles permanecem no
+              lugar em que já estavam.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    title: '28 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Corrigido',
+        title: 'Opção “Manter logado”',
+        content: (
+          <>
+            <p>
+              A opção <strong>Manter logado</strong> não estava funcionando. A
+              sessão encerrava depois de cerca de 1 hora, mesmo com ela marcada.
+              Agora, quem escolhe ficar conectado permanece logado.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '25 de Setembro de 2026',
     subCards: [
       {
@@ -1336,7 +1388,7 @@ export const changelog: Card[] = [
                 <Tag tag="Removido" />: Para funcionalidades removidas.
               </li>
               <li>
-                <Tag tag="Corrigido" />: Para erros corigidos.
+                <Tag tag="Corrigido" />: Para erros corrigidos.
               </li>
             </ul>
           </>
