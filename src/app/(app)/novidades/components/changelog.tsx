@@ -19,6 +19,25 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '30 de Setembro de 2026',
+    subCards: [
+      {
+        tag: 'Corrigido',
+        title: 'Filtros de Demandas Arquivadas ao abrir um chamado',
+        content: (
+          <>
+            <p>
+              Ao abrir uma demanda em <strong>Demandas &gt; Arquivados</strong>{' '}
+              e voltar pela seta, os filtros, a busca e a página aplicados na
+              lista eram perdidos. Agora o contexto da consulta é restaurado, e
+              um aviso informa quando há filtros ativos de novo.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '29 de Setembro de 2026',
     subCards: [
       {
