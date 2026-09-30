@@ -1,6 +1,9 @@
 import {
   getTicketReportClipboardImages,
   getTicketReportImageValidationError,
+  insertNodeAtCaret,
+  insertTicketReportClipboardHtml,
+  prepareTicketReportClipboardHtml,
   removeTicketReportImageLoaderState,
   sanitizeTicketHtml,
   TICKET_REPORT_IMAGE_MAX_BYTES,
@@ -80,5 +83,146 @@ describe('removeTicketReportImageLoaderState', () => {
     expect(root.innerHTML).not.toContain('aria-busy')
     expect(root.innerHTML).not.toContain('ticketReportImageLoading')
     expect(root.innerHTML).toContain('outra-classe')
+  })
+})
+
+describe('prepareTicketReportClipboardHtml', () => {
+  it('converte imagens do HTML em arquivos mantendo texto, formatação e ordem', async () => {
+    const prepared = prepareTicketReportClipboardHtml(
+      '<p><strong>Antes</strong></p><img alt="mapa" src="data:image/png;base64,aGVsbG8=">' +
+        '<p>Entre</p><img src="data:image/jpeg;base64,d29ybGQ="><p>Depois</p>',
+    )!
+
+    expect(prepared.content.textContent).toBe('AntesEntreDepois')
+    expect(prepared.content.querySelector('strong')?.textContent).toBe('Antes')
+    expect(prepared.images.map(({ file }) => file.type)).toEqual([
+      'image/png',
+      'image/jpeg',
+    ])
+    expect(prepared.images.map(({ file }) => file.size)).toEqual([5, 5])
+    const readFile = (file: File) =>
+      new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.readAsText(file)
+      })
+    expect(
+      await Promise.all(prepared.images.map(({ file }) => readFile(file))),
+    ).toEqual(['hello', 'world'])
+    prepared.images.forEach(({ element }, index) => {
+      element.src = `blob:imagem-${index}`
+    })
+    expect(prepared.content.innerHTML).not.toContain('base64')
+    expect(prepared.content.querySelectorAll('img')[0].alt).toBe('mapa')
+    expect(
+      Array.from(prepared.content.children).map((el) => el.tagName),
+    ).toEqual(['P', 'IMG', 'P', 'IMG', 'P'])
+  })
+
+  it('mantém o fluxo normal para texto e HTML sem imagens embutidas', () => {
+    expect(prepareTicketReportClipboardHtml('')).toBeNull()
+    expect(prepareTicketReportClipboardHtml('<p>Texto</p>')).toBeNull()
+    expect(
+      prepareTicketReportClipboardHtml('<img src="/tickets/imagem">'),
+    ).toBeNull()
+  })
+
+  it.each([
+    ['data:image/png;base64,%%%!', 'base64 inválido'],
+    ['data:image/svg+xml;base64,PHN2Zz4=', 'JPEG, PNG, GIF ou WebP'],
+  ])('recusa %s antes de inserir o conteúdo', (source, message) => {
+    expect(() =>
+      prepareTicketReportClipboardHtml(`<img src="${source}">`),
+    ).toThrow(message)
+  })
+
+  it('recusa imagens acima de 10 MB antes de decodificá-las', () => {
+    const encoded = 'A'.repeat(
+      Math.ceil(TICKET_REPORT_IMAGE_MAX_BYTES / 3) * 4 + 4,
+    )
+    expect(() =>
+      prepareTicketReportClipboardHtml(
+        `<img src="data:image/png;base64,${encoded}">`,
+      ),
+    ).toThrow(TICKET_REPORT_IMAGE_MAX_SIZE_ERROR)
+  })
+
+  it('sanitiza o HTML colado antes da inserção no editor', () => {
+    const prepared = prepareTicketReportClipboardHtml(
+      '<script>alert(1)</script><img onerror="alert(1)" src="data:image/png;base64,aGVsbG8=">',
+    )!
+    expect(prepared.content.innerHTML).not.toContain('script')
+    expect(prepared.content.innerHTML).not.toContain('onerror')
+  })
+})
+
+describe('insertNodeAtCaret', () => {
+  it('insere um fragmento com texto e imagem na seleção e posiciona o cursor depois', () => {
+    const editor = document.createElement('div')
+    editor.contentEditable = 'true'
+    editor.innerHTML = '<p>AntesDepois</p>'
+    document.body.appendChild(editor)
+    try {
+      const range = document.createRange()
+      range.setStart(editor.firstChild!.firstChild!, 5)
+      range.collapse(true)
+      window.getSelection()!.removeAllRanges()
+      window.getSelection()!.addRange(range)
+      const fragment = document.createDocumentFragment()
+      fragment.append(
+        document.createTextNode('Texto colado'),
+        document.createElement('img'),
+      )
+      insertNodeAtCaret(editor, fragment)
+      expect(editor.innerHTML).toBe('<p>AntesTexto colado<img>Depois</p>')
+      const selection = window.getSelection()!.getRangeAt(0)
+      expect(selection.collapsed).toBe(true)
+      expect(selection.startContainer).toBe(editor.firstChild)
+      expect(selection.startOffset).toBe(3)
+    } finally {
+      editor.remove()
+      window.getSelection()!.removeAllRanges()
+    }
+  })
+})
+
+describe('insertTicketReportClipboardHtml', () => {
+  it('registra os arquivos para upload e insere texto e URLs locais no editor', () => {
+    const originalCreateObjectURL = URL.createObjectURL
+    URL.createObjectURL = jest.fn(() => 'blob:imagem-colada')
+    const editor = document.createElement('div')
+    const pending = new Map<string, File>()
+    try {
+      expect(
+        insertTicketReportClipboardHtml(
+          '<p>Resultado</p><img src="data:image/png;base64,aGVsbG8=">',
+          editor,
+          pending,
+        ),
+      ).toBe(true)
+      expect(editor.innerHTML).toBe(
+        '<p>Resultado</p><img src="blob:imagem-colada">',
+      )
+      expect(pending.get('blob:imagem-colada')).toBeInstanceOf(File)
+      expect(pending.get('blob:imagem-colada')?.type).toBe('image/png')
+      expect(pending.get('blob:imagem-colada')?.size).toBe(5)
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL
+    }
+  })
+
+  it('preserva o editor e os uploads quando alguma imagem da colagem é inválida', () => {
+    const editor = document.createElement('div')
+    editor.innerHTML = '<p>Conteúdo existente</p>'
+    const pending = new Map<string, File>()
+    expect(() =>
+      insertTicketReportClipboardHtml(
+        '<img src="data:image/png;base64,aGVsbG8="><img src="data:image/png;base64,%%%">',
+        editor,
+        pending,
+      ),
+    ).toThrow('base64 inválido')
+    expect(editor.innerHTML).toBe('<p>Conteúdo existente</p>')
+    expect(pending.size).toBe(0)
   })
 })

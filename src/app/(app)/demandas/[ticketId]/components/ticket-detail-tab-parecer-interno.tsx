@@ -31,6 +31,7 @@ import {
   getTicketReportClipboardImages,
   getTicketReportImageValidationError,
   insertNodeAtCaret,
+  insertTicketReportClipboardHtml,
   isHtmlEffectivelyEmpty,
   removeTicketReportImageLoaderState,
   RichToolbar,
@@ -259,12 +260,36 @@ export const TicketDetailTabParecerInterno = forwardRef<
 
   const handlePaste = useCallback(
     (event: ClipboardEvent<HTMLDivElement>) => {
+      const editor = editorRef.current
+      if (!editor) return
+      try {
+        if (
+          insertTicketReportClipboardHtml(
+            event.clipboardData.getData('text/html'),
+            editor,
+            pendingImagesByBlobUrl.current,
+          )
+        ) {
+          event.preventDefault()
+          syncEmpty()
+          revokeOrphanPendingImages()
+          return
+        }
+      } catch (error) {
+        event.preventDefault()
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível colar a imagem.',
+        )
+        return
+      }
       const files = getTicketReportClipboardImages(event.clipboardData.items)
       if (files.length === 0) return
       event.preventDefault()
       files.forEach(insertImageFile)
     },
-    [insertImageFile],
+    [insertImageFile, revokeOrphanPendingImages, syncEmpty],
   )
 
   useEffect(

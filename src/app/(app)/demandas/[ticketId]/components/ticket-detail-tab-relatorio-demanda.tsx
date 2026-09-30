@@ -30,6 +30,7 @@ import {
   getTicketReportClipboardImages,
   getTicketReportImageValidationError,
   insertNodeAtCaret,
+  insertTicketReportClipboardHtml,
   isHtmlEffectivelyEmpty,
   removeTicketReportImageLoaderState,
   RichToolbar,
@@ -282,12 +283,37 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
 
   const onPaste = useCallback(
     (event: ClipboardEvent<HTMLDivElement>) => {
+      const editor = editorRef.current
+      if (!editor) return
+      try {
+        if (
+          insertTicketReportClipboardHtml(
+            event.clipboardData.getData('text/html'),
+            editor,
+            pendingByBlobRef.current,
+          )
+        ) {
+          event.preventDefault()
+          syncEmpty()
+          setDirty(true)
+          revokeOrphanBlobs()
+          return
+        }
+      } catch (error) {
+        event.preventDefault()
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível colar a imagem.',
+        )
+        return
+      }
       const files = getTicketReportClipboardImages(event.clipboardData.items)
       if (files.length === 0) return
       event.preventDefault()
       files.forEach(insertImageFile)
     },
-    [insertImageFile],
+    [insertImageFile, revokeOrphanBlobs, syncEmpty],
   )
 
   const handleSave = () => {

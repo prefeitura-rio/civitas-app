@@ -35,6 +35,72 @@ export function getTicketReportImageValidationError(file: File): string | null {
   return null
 }
 
+/** Prepara imagens embutidas no HTML do clipboard para o upload multipart. */
+export function prepareTicketReportClipboardHtml(html: string): {
+  content: HTMLDivElement
+  images: { element: HTMLImageElement; file: File }[]
+} | null {
+  const content = document.createElement('div')
+  content.innerHTML = sanitizeTicketHtml(html)
+  const embeddedImages = Array.from(content.querySelectorAll('img')).filter(
+    (image) => /^data:/i.test((image.getAttribute('src') || '').trim()),
+  )
+  if (embeddedImages.length === 0) return null
+
+  const images = embeddedImages.map((element, index) => {
+    const source = (element.getAttribute('src') || '').trim()
+    const match =
+      /^data:(image\/(?:jpeg|png|gif|webp));base64,([\s\S]+)$/i.exec(source)
+    if (!match) {
+      throw new Error(
+        'Use imagens JPEG, PNG, GIF ou WebP em base64 ao colar HTML.',
+      )
+    }
+    const encoded = match[2].replace(/\s/g, '')
+    if (encoded.length > Math.ceil(TICKET_REPORT_IMAGE_MAX_BYTES / 3) * 4) {
+      throw new Error(TICKET_REPORT_IMAGE_MAX_SIZE_ERROR)
+    }
+    let decoded: string
+    try {
+      decoded = atob(encoded)
+    } catch {
+      throw new Error('A imagem colada contém base64 inválido.')
+    }
+    if (!decoded.length) throw new Error('A imagem colada está vazia.')
+    const bytes = Uint8Array.from(decoded, (character) =>
+      character.charCodeAt(0),
+    )
+    const type = match[1].toLowerCase()
+    const extension = type === 'image/jpeg' ? 'jpg' : type.split('/')[1]
+    const file = new File([bytes], `imagem-colada-${index + 1}.${extension}`, {
+      type,
+    })
+    const error = getTicketReportImageValidationError(file)
+    if (error) throw new Error(error)
+    return { element, file }
+  })
+
+  return { content, images }
+}
+
+export function insertTicketReportClipboardHtml(
+  html: string,
+  editor: HTMLElement,
+  pendingImages: Map<string, File>,
+): boolean {
+  const prepared = prepareTicketReportClipboardHtml(html)
+  if (!prepared) return false
+  for (const { element, file } of prepared.images) {
+    const blobUrl = URL.createObjectURL(file)
+    pendingImages.set(blobUrl, file)
+    element.setAttribute('src', blobUrl)
+  }
+  const fragment = document.createDocumentFragment()
+  fragment.append(...Array.from(prepared.content.childNodes))
+  insertNodeAtCaret(editor, fragment)
+  return true
+}
+
 export function removeTicketReportImageLoaderState(root: ParentNode): void {
   for (const image of root.querySelectorAll('img')) {
     image.classList.remove(styles.ticketReportImageLoading)
@@ -86,6 +152,8 @@ export function useTicketReportImageLoaders(
 }
 
 export function insertNodeAtCaret(editor: HTMLElement, node: Node) {
+  const lastNode = node instanceof DocumentFragment ? node.lastChild : node
+  if (!lastNode) return
   editor.focus()
   const selection = window.getSelection()
   if (
@@ -96,7 +164,7 @@ export function insertNodeAtCaret(editor: HTMLElement, node: Node) {
     const range = selection.getRangeAt(0)
     range.deleteContents()
     range.insertNode(node)
-    range.setStartAfter(node)
+    range.setStartAfter(lastNode)
     range.collapse(true)
     selection.removeAllRanges()
     selection.addRange(range)
