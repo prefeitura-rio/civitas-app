@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Download, FileText, Filter, Tag } from 'lucide-react'
 import Link from 'next/link'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
@@ -125,6 +125,67 @@ function normalizeArchiveItem(item: unknown): TicketArchiveListItem {
 }
 
 const ARCHIVE_EXPORT_PAGE_SIZE = 200
+const ARCHIVE_LIST_STATE_STORAGE_KEY = 'ticket-archive-list-state'
+const ARCHIVE_RETURN_STORAGE_KEY = 'ticket-archive-return'
+
+function hasArchiveFilters(filters: TicketArchiveFilterState) {
+  return Object.values(filters).some((value) =>
+    Array.isArray(value) ? value.length > 0 : Boolean(value),
+  )
+}
+
+type ArchiveListState = {
+  filters: TicketArchiveFilterState
+  search: string
+  page: number
+}
+
+function readArchiveListState(): ArchiveListState {
+  const emptyState = { filters: emptyArchiveFilters(), search: '', page: 1 }
+  if (typeof window === 'undefined') return emptyState
+
+  try {
+    const storedState = window.sessionStorage.getItem(
+      ARCHIVE_LIST_STATE_STORAGE_KEY,
+    )
+    if (storedState) {
+      window.sessionStorage.removeItem(ARCHIVE_LIST_STATE_STORAGE_KEY)
+      const state = JSON.parse(storedState) as Partial<ArchiveListState>
+      return {
+        filters: { ...emptyState.filters, ...state.filters },
+        search: state.search ?? '',
+        page: state.page ?? 1,
+      }
+    }
+  } catch {
+    // O retorno para a lista continua disponível sem os filtros salvos.
+  }
+
+  return emptyState
+}
+
+function saveArchiveListState(state: ArchiveListState) {
+  try {
+    window.sessionStorage.setItem(
+      ARCHIVE_LIST_STATE_STORAGE_KEY,
+      JSON.stringify(state),
+    )
+  } catch {
+    // A navegação continua funcionando mesmo se o armazenamento estiver indisponível.
+  }
+}
+
+function saveArchiveReturn(ticketId: string, state: ArchiveListState) {
+  saveArchiveListState(state)
+  try {
+    window.sessionStorage.setItem(
+      ARCHIVE_RETURN_STORAGE_KEY,
+      JSON.stringify({ ticketId }),
+    )
+  } catch {
+    // A demanda ainda pode ser aberta normalmente.
+  }
+}
 
 type TicketArchiveQueryFilters = Omit<
   TicketArchiveFilters,
@@ -207,14 +268,31 @@ function triggerCsvDownload(csv: string, filename: string) {
 }
 
 export function TicketArchiveList() {
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
+  const initialStateRef = useRef<ArchiveListState | null>(null)
+  if (!initialStateRef.current) {
+    initialStateRef.current = readArchiveListState()
+  }
+  const initialState = initialStateRef.current
+  const [search, setSearch] = useState(initialState.search)
+  const [page, setPage] = useState(initialState.page)
   const [pageSize] = useState(20)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [appliedFilters, setAppliedFilters] =
-    useState<TicketArchiveFilterState>(emptyArchiveFilters())
+    useState<TicketArchiveFilterState>(initialState.filters)
+  const hasRestoredFiltersRef = useRef(hasArchiveFilters(initialState.filters))
+  const hasShownRestoredFiltersNoticeRef = useRef(false)
   const debouncedSearch = useDebounce(search, 350)
+
+  useEffect(() => {
+    if (
+      hasRestoredFiltersRef.current &&
+      !hasShownRestoredFiltersNoticeRef.current
+    ) {
+      toast.message('Filtros ativos foram restaurados.')
+      hasShownRestoredFiltersNoticeRef.current = true
+    }
+  }, [])
 
   const archiveQueryFilters = useMemo<TicketArchiveQueryFilters>(
     () => ({
@@ -407,6 +485,14 @@ export function TicketArchiveList() {
                                 : '#'
                             }
                             className={styles.chamadoLink}
+                            onClick={() => {
+                              if (!item.id) return
+                              saveArchiveReturn(item.id, {
+                                filters: appliedFilters,
+                                search,
+                                page,
+                              })
+                            }}
                           >
                             {item.ticket}
                           </Link>
