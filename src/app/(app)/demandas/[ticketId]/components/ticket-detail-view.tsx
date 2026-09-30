@@ -1060,7 +1060,10 @@ export function TicketDetailView({ ticketId }: Props) {
             }
           }}
         >
-          <DialogContent className={styles.reassignDialogContent}>
+          <DialogContent
+            className={styles.reassignDialogContent}
+            aria-describedby={undefined}
+          >
             <div
               className={cn(
                 styles.reassignDialogInner,

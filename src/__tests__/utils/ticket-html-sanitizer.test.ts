@@ -1,9 +1,11 @@
 import {
+  buildTicketReportUpload,
   getTicketReportClipboardImages,
   getTicketReportImageValidationError,
   insertNodeAtCaret,
   insertTicketReportClipboardHtml,
   prepareTicketReportClipboardHtml,
+  releaseTicketReportImages,
   removeTicketReportImageLoaderState,
   sanitizeTicketHtml,
   TICKET_REPORT_IMAGE_MAX_BYTES,
@@ -224,5 +226,69 @@ describe('insertTicketReportClipboardHtml', () => {
     ).toThrow('base64 inválido')
     expect(editor.innerHTML).toBe('<p>Conteúdo existente</p>')
     expect(pending.size).toBe(0)
+  })
+})
+
+describe('buildTicketReportUpload', () => {
+  it.each([
+    ['demand', '__DEMAND_IMG_'],
+    ['response', '__RESPONSE_IMG_'],
+    ['comment', '__COMMENT_IMG_'],
+  ] as const)(
+    'preserva o contrato de upload de %s sem alterar o editor',
+    (kind, prefix) => {
+      const editor = document.createElement('div')
+      const path =
+        '/tickets/11111111-1111-1111-1111-111111111111/response-report/images/22222222-2222-2222-2222-222222222222'
+      editor.innerHTML = `<p>Texto</p><img src="/api/bff${path}"><img src="blob:new" aria-busy="true" class="ticketReportImageLoading"><img src="blob:new"><img src="data:image/png;base64,aGVsbG8=">`
+      const original = editor.innerHTML
+      const file = new File(['image'], 'image.png', { type: 'image/png' })
+      const removed = new File(['removed'], 'removed.png', {
+        type: 'image/png',
+      })
+      const pending = new Map([
+        ['blob:new', file],
+        ['blob:removed', removed],
+      ])
+
+      const result = buildTicketReportUpload(editor, pending, kind)
+
+      expect(result.files).toEqual([file, file])
+      expect(result.html_content).toContain(`src="${prefix}0__"`)
+      expect(result.html_content).toContain(`src="${prefix}1__"`)
+      expect(result.html_content).toContain(`src="${path}"`)
+      expect(result.html_content).toContain('data:image/png;base64,aGVsbG8=')
+      expect(result.html_content).not.toMatch(
+        /blob:|aria-busy|ticketReportImageLoading/,
+      )
+      expect(editor.innerHTML).toBe(original)
+      expect(pending.size).toBe(2)
+    },
+  )
+})
+
+describe('releaseTicketReportImages', () => {
+  it('libera apenas órfãs durante a edição e todas após salvar ou descartar', () => {
+    const originalRevokeObjectURL = URL.revokeObjectURL
+    URL.revokeObjectURL = jest.fn()
+    const editor = document.createElement('div')
+    editor.innerHTML = '<img src="blob:used">'
+    const file = new File(['image'], 'image.png', { type: 'image/png' })
+    const pending = new Map([
+      ['blob:used', file],
+      ['blob:removed', file],
+    ])
+    try {
+      releaseTicketReportImages(pending, editor)
+      expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:removed')
+      expect([...pending.keys()]).toEqual(['blob:used'])
+      releaseTicketReportImages(pending)
+      expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2)
+      expect(URL.revokeObjectURL).toHaveBeenLastCalledWith('blob:used')
+      expect(pending.size).toBe(0)
+    } finally {
+      URL.revokeObjectURL = originalRevokeObjectURL
+    }
   })
 })

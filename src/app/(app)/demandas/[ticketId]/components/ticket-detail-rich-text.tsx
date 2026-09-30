@@ -3,10 +3,24 @@
 import { Bold, Italic, Link2, Paperclip, Underline } from 'lucide-react'
 import { type MouseEvent, type RefObject, useEffect, useState } from 'react'
 
+import { toStoredTicketReportHtml } from '@/utils/ticket-report-images'
+
 import styles from '../ticket-detail.module.css'
 
-export const TICKET_REPORT_IMAGE_ACCEPT =
-  'image/jpeg,image/png,image/gif,image/webp'
+const TICKET_REPORT_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+])
+export const TICKET_REPORT_IMAGE_ACCEPT = [...TICKET_REPORT_IMAGE_TYPES].join(
+  ',',
+)
+const TICKET_REPORT_IMAGE_MARKERS = {
+  demand: '__DEMAND_IMG_',
+  response: '__RESPONSE_IMG_',
+  comment: '__COMMENT_IMG_',
+} as const
 export const TICKET_REPORT_IMAGE_MAX_BYTES = 10 * 1024 * 1024
 export const TICKET_REPORT_IMAGE_MAX_SIZE_ERROR =
   'A imagem não pode ter mais de 10 MB.'
@@ -16,17 +30,15 @@ type ClipboardItemWithFile = Pick<DataTransferItem, 'type' | 'getAsFile'>
 export function getTicketReportClipboardImages(
   items: ArrayLike<ClipboardItemWithFile>,
 ): File[] {
-  const acceptedTypes = new Set(TICKET_REPORT_IMAGE_ACCEPT.split(','))
-
   return Array.from(items).flatMap((item) => {
-    if (!acceptedTypes.has(item.type)) return []
+    if (!TICKET_REPORT_IMAGE_TYPES.has(item.type)) return []
     const file = item.getAsFile()
     return file ? [file] : []
   })
 }
 
 export function getTicketReportImageValidationError(file: File): string | null {
-  if (!TICKET_REPORT_IMAGE_ACCEPT.split(',').includes(file.type)) {
+  if (!TICKET_REPORT_IMAGE_TYPES.has(file.type)) {
     return 'Use imagens JPEG, PNG, GIF ou WebP.'
   }
   if (file.size > TICKET_REPORT_IMAGE_MAX_BYTES) {
@@ -106,6 +118,47 @@ export function removeTicketReportImageLoaderState(root: ParentNode): void {
     image.classList.remove(styles.ticketReportImageLoading)
     image.removeAttribute('aria-busy')
     if (!image.getAttribute('class')) image.removeAttribute('class')
+  }
+}
+
+/** Serializa uma cópia do editor, preservando as URLs locais na tela. */
+export function buildTicketReportUpload(
+  editor: HTMLElement,
+  pendingImages: ReadonlyMap<string, File>,
+  report: keyof typeof TICKET_REPORT_IMAGE_MARKERS,
+): { html_content: string; files: File[] } {
+  const clone = editor.cloneNode(true) as HTMLElement
+  removeTicketReportImageLoaderState(clone)
+  const files: File[] = []
+  for (const image of clone.querySelectorAll('img')) {
+    const file = pendingImages.get(image.getAttribute('src') || '')
+    if (!file) continue
+    image.setAttribute(
+      'src',
+      `${TICKET_REPORT_IMAGE_MARKERS[report]}${files.length}__`,
+    )
+    files.push(file)
+  }
+  return {
+    html_content: toStoredTicketReportHtml(sanitizeTicketHtml(clone.innerHTML)),
+    files,
+  }
+}
+
+/** Sem editor, libera todas as URLs; com editor, libera apenas as removidas. */
+export function releaseTicketReportImages(
+  pendingImages: Map<string, File>,
+  editor?: HTMLElement,
+): void {
+  const used = new Set(
+    Array.from(editor?.querySelectorAll('img') ?? []).map(
+      (image) => image.getAttribute('src') || '',
+    ),
+  )
+  for (const url of pendingImages.keys()) {
+    if (used.has(url)) continue
+    URL.revokeObjectURL(url)
+    pendingImages.delete(url)
   }
 }
 

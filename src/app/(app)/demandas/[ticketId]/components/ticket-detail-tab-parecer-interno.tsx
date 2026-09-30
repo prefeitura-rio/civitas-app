@@ -21,19 +21,17 @@ import {
   type TicketCommentListItem,
 } from '@/http/tickets/ticket-comentarios'
 import { isApiError } from '@/lib/api'
-import {
-  toBrowserTicketReportHtml,
-  toStoredTicketReportHtml,
-} from '@/utils/ticket-report-images'
+import { toBrowserTicketReportHtml } from '@/utils/ticket-report-images'
 
 import styles from '../ticket-detail.module.css'
 import {
+  buildTicketReportUpload,
   getTicketReportClipboardImages,
   getTicketReportImageValidationError,
   insertNodeAtCaret,
   insertTicketReportClipboardHtml,
   isHtmlEffectivelyEmpty,
-  removeTicketReportImageLoaderState,
+  releaseTicketReportImages,
   RichToolbar,
   sanitizeTicketHtml,
   TICKET_REPORT_IMAGE_ACCEPT,
@@ -140,10 +138,7 @@ export const TicketDetailTabParecerInterno = forwardRef<
       })
       await queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
       toast.success('Comentário adicionado.')
-      pendingImagesByBlobUrl.current.forEach((_, blobUrl) =>
-        URL.revokeObjectURL(blobUrl),
-      )
-      pendingImagesByBlobUrl.current.clear()
+      releaseTicketReportImages(pendingImagesByBlobUrl.current)
       if (editorRef.current) {
         editorRef.current.innerHTML = ''
         setEmpty(true)
@@ -160,10 +155,7 @@ export const TicketDetailTabParecerInterno = forwardRef<
   })
 
   const discardComposer = useCallback(() => {
-    pendingImagesByBlobUrl.current.forEach((_, blobUrl) =>
-      URL.revokeObjectURL(blobUrl),
-    )
-    pendingImagesByBlobUrl.current.clear()
+    releaseTicketReportImages(pendingImagesByBlobUrl.current)
     if (editorRef.current) {
       editorRef.current.innerHTML = ''
       setEmpty(true)
@@ -173,19 +165,11 @@ export const TicketDetailTabParecerInterno = forwardRef<
   const saveComposer = useCallback(async (): Promise<boolean> => {
     const el = editorRef.current
     if (!el) return false
-    const clone = el.cloneNode(true) as HTMLElement
-    removeTicketReportImageLoaderState(clone)
-    const files: File[] = []
-    let index = 0
-    for (const image of clone.querySelectorAll('img')) {
-      const source = image.getAttribute('src') || ''
-      const file = pendingImagesByBlobUrl.current.get(source)
-      if (!file) continue
-      image.setAttribute('src', `__COMMENT_IMG_${index}__`)
-      files.push(file)
-      index += 1
-    }
-    const html = toStoredTicketReportHtml(sanitizeTicketHtml(clone.innerHTML))
+    const { html_content: html, files } = buildTicketReportUpload(
+      el,
+      pendingImagesByBlobUrl.current,
+      'comment',
+    )
     if (isHtmlEffectivelyEmpty(html)) {
       toast.error('Escreva um comentário antes de enviar.')
       return false
@@ -214,18 +198,8 @@ export const TicketDetailTabParecerInterno = forwardRef<
 
   const revokeOrphanPendingImages = useCallback(() => {
     const editor = editorRef.current
-    if (!editor) return
-    const used = new Set(
-      Array.from(editor.querySelectorAll('img')).map(
-        (image) => image.getAttribute('src') || '',
-      ),
-    )
-    for (const blobUrl of pendingImagesByBlobUrl.current.keys()) {
-      if (!used.has(blobUrl)) {
-        URL.revokeObjectURL(blobUrl)
-        pendingImagesByBlobUrl.current.delete(blobUrl)
-      }
-    }
+    if (editor)
+      releaseTicketReportImages(pendingImagesByBlobUrl.current, editor)
   }, [])
 
   const insertImageFile = useCallback(
@@ -294,10 +268,7 @@ export const TicketDetailTabParecerInterno = forwardRef<
 
   useEffect(
     () => () => {
-      pendingImagesByBlobUrl.current.forEach((_, blobUrl) =>
-        URL.revokeObjectURL(blobUrl),
-      )
-      pendingImagesByBlobUrl.current.clear()
+      releaseTicketReportImages(pendingImagesByBlobUrl.current)
     },
     [],
   )

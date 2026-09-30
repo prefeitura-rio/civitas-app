@@ -42,20 +42,18 @@ import {
 } from '@/http/tickets/ticket-resposta'
 import { cn } from '@/lib/utils'
 import { getApiErrorMessage } from '@/utils/error-handlers'
-import {
-  toBrowserTicketReportHtml,
-  toStoredTicketReportHtml,
-} from '@/utils/ticket-report-images'
+import { toBrowserTicketReportHtml } from '@/utils/ticket-report-images'
 
 import responderStyles from '../../caixa-entrada/responder/[emailId]/components/responder-email-view.module.css'
 import detailStyles from '../ticket-detail.module.css'
 import {
+  buildTicketReportUpload,
   getTicketReportClipboardImages,
   getTicketReportImageValidationError,
   insertNodeAtCaret,
   insertTicketReportClipboardHtml,
   isHtmlEffectivelyEmpty,
-  removeTicketReportImageLoaderState,
+  releaseTicketReportImages,
   RichToolbar,
   sanitizeTicketHtml,
   TICKET_REPORT_IMAGE_ACCEPT,
@@ -162,35 +160,23 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
       const editor = editorRef.current
       if (!editor) throw new Error('Editor indisponível.')
 
-      const clone = editor.cloneNode(true) as HTMLElement
-      removeTicketReportImageLoaderState(clone)
-      const files: File[] = []
-      let index = 0
-      for (const image of clone.querySelectorAll('img')) {
-        const source = image.getAttribute('src') || ''
-        const file = pendingImagesByBlobUrl.current.get(source)
-        if (!file) continue
-        image.setAttribute('src', `__RESPONSE_IMG_${index}__`)
-        files.push(file)
-        index += 1
-      }
+      const { html_content: htmlContent, files } = buildTicketReportUpload(
+        editor,
+        pendingImagesByBlobUrl.current,
+        'response',
+      )
 
       return putTicketResposta(
         ticketId,
         {
-          html_content: toStoredTicketReportHtml(
-            sanitizeTicketHtml(clone.innerHTML),
-          ),
+          html_content: htmlContent,
           service_attachment_ids: attachmentsResposta.map((a) => a.id),
         },
         files,
       )
     },
     onSuccess: (data) => {
-      pendingImagesByBlobUrl.current.forEach((_, blobUrl) =>
-        URL.revokeObjectURL(blobUrl),
-      )
-      pendingImagesByBlobUrl.current.clear()
+      releaseTicketReportImages(pendingImagesByBlobUrl.current)
       queryClient.setQueryData(RESPOSTA_QUERY_KEY(ticketId), data)
       queryClient
         .invalidateQueries({ queryKey: ['ticket', ticketId] })
@@ -447,10 +433,7 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
 
   useEffect(
     () => () => {
-      pendingImagesByBlobUrl.current.forEach((_, blobUrl) =>
-        URL.revokeObjectURL(blobUrl),
-      )
-      pendingImagesByBlobUrl.current.clear()
+      releaseTicketReportImages(pendingImagesByBlobUrl.current)
     },
     [ticketId],
   )
@@ -463,18 +446,8 @@ export function TicketDetailTabResposta({ ticketId }: Props) {
 
   const revokeOrphanPendingImages = useCallback(() => {
     const editor = editorRef.current
-    if (!editor) return
-    const used = new Set(
-      Array.from(editor.querySelectorAll('img')).map(
-        (image) => image.getAttribute('src') || '',
-      ),
-    )
-    for (const blobUrl of pendingImagesByBlobUrl.current.keys()) {
-      if (!used.has(blobUrl)) {
-        URL.revokeObjectURL(blobUrl)
-        pendingImagesByBlobUrl.current.delete(blobUrl)
-      }
-    }
+    if (editor)
+      releaseTicketReportImages(pendingImagesByBlobUrl.current, editor)
   }, [])
 
   const runCommand = useCallback(

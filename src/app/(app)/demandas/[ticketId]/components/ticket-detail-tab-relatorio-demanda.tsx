@@ -20,19 +20,17 @@ import {
   putTicketRelatorioDemanda,
 } from '@/http/tickets/ticket-relatorio-demanda'
 import { isApiError } from '@/lib/api'
-import {
-  toBrowserTicketReportHtml,
-  toStoredTicketReportHtml,
-} from '@/utils/ticket-report-images'
+import { toBrowserTicketReportHtml } from '@/utils/ticket-report-images'
 
 import styles from '../ticket-detail.module.css'
 import {
+  buildTicketReportUpload,
   getTicketReportClipboardImages,
   getTicketReportImageValidationError,
   insertNodeAtCaret,
   insertTicketReportClipboardHtml,
   isHtmlEffectivelyEmpty,
-  removeTicketReportImageLoaderState,
+  releaseTicketReportImages,
   RichToolbar,
   sanitizeTicketHtml,
   TICKET_REPORT_IMAGE_ACCEPT,
@@ -85,24 +83,12 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
   }, [])
 
   const revokeOrphanBlobs = useCallback(() => {
-    const el = editorRef.current
-    if (!el) return
-    const used = new Set(
-      Array.from(el.querySelectorAll('img')).map(
-        (img) => img.getAttribute('src') || '',
-      ),
-    )
-    for (const url of [...pendingByBlobRef.current.keys()]) {
-      if (!used.has(url)) {
-        URL.revokeObjectURL(url)
-        pendingByBlobRef.current.delete(url)
-      }
-    }
+    const editor = editorRef.current
+    if (editor) releaseTicketReportImages(pendingByBlobRef.current, editor)
   }, [])
 
   const resetEditorFromServer = useCallback(() => {
-    pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
-    pendingByBlobRef.current.clear()
+    releaseTicketReportImages(pendingByBlobRef.current)
     const html =
       reportDataRef.current?.html_content != null
         ? reportDataRef.current.html_content
@@ -141,8 +127,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
   useEffect(() => {
     setDirty(false)
     return () => {
-      pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
-      pendingByBlobRef.current.clear()
+      releaseTicketReportImages(pendingByBlobRef.current)
     }
   }, [ticketId])
 
@@ -164,24 +149,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     const el = editorRef.current
     if (!el) return null
 
-    const clone = el.cloneNode(true) as HTMLElement
-    removeTicketReportImageLoaderState(clone)
-    const files: File[] = []
-    let i = 0
-    for (const img of clone.querySelectorAll('img')) {
-      const src = img.getAttribute('src') || ''
-      const file = pendingByBlobRef.current.get(src)
-      if (file) {
-        img.setAttribute('src', `__DEMAND_IMG_${i}__`)
-        files.push(file)
-        i += 1
-      }
-    }
-
-    const conteudoHtml = toStoredTicketReportHtml(
-      sanitizeTicketHtml(clone.innerHTML),
-    )
-    return { html_content: conteudoHtml, files }
+    return buildTicketReportUpload(el, pendingByBlobRef.current, 'demand')
   }, [])
 
   const saveMutation = useMutation({
@@ -195,8 +163,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       )
     },
     onSuccess: (data) => {
-      pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
-      pendingByBlobRef.current.clear()
+      releaseTicketReportImages(pendingByBlobRef.current)
       queryClient.setQueryData(REPORT_QUERY_KEY(ticketId), data)
       if (editorRef.current) {
         editorRef.current.innerHTML = toBrowserTicketReportHtml(
