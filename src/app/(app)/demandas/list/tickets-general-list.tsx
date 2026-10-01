@@ -98,6 +98,7 @@ const periodOptions: PeriodOption[] = [
   { label: 'Últimos 30 Dias', value: 30 },
   { label: 'Últimos 60 Dias', value: 60 },
   { label: 'Últimos 90 Dias', value: 90 },
+  { label: 'Últimos 180 Dias', value: 180 },
 ]
 
 const sections: SectionConfig[] = [
