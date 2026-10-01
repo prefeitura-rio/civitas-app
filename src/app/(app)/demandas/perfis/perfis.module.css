@@ -229,6 +229,11 @@
   color: #d2642a;
 }
 
+.perfisBadgeAnalista {
+  background: rgba(78, 159, 255, 0.1);
+  color: #4e9fff;
+}
+
 .perfisBadgeAdjunto {
   background: rgba(91, 77, 178, 0.1);
   color: #5b4db2;

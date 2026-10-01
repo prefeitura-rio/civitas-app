@@ -29,7 +29,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
 const roleBadgeStyleMap: Record<UserRoleEnum, string> = {
   Coordenador: styles.perfisBadgeCoordenador,
   Administrativo: styles.perfisBadgeAdministrativo,
-  Analista: styles.perfisBadgeAdministrativo,
+  Analista: styles.perfisBadgeAnalista,
   Adjunto: styles.perfisBadgeAdjunto,
   'Auxiliar de Adjunto': styles.perfisBadgeAuxiliarDeAdjunto,
   Assessor: styles.perfisBadgeAssessor,
