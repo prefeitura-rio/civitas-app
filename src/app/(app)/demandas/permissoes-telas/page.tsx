@@ -36,6 +36,7 @@ const SCREEN_PERMISSIONS_SCREEN_CODE = 'screen_permissions'
 const ROLE_OPTIONS: UserRoleEnum[] = [
   'Coordenador',
   'Administrativo',
+  'Analista',
   'Adjunto',
   'Auxiliar de Adjunto',
   'Líder de Ilha',
