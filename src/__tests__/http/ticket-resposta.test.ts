@@ -10,7 +10,7 @@ jest.mock('@/lib/api', () => ({
 describe('putTicketResposta', () => {
   beforeEach(() => jest.clearAllMocks())
 
-  it('sends the HTML and new inline images as multipart form data', async () => {
+  it('sends the response report as JSON', async () => {
     ;(api.put as jest.Mock).mockResolvedValue({
       data: {
         id: 'report-1',
@@ -23,29 +23,16 @@ describe('putTicketResposta', () => {
         service_attachments: [],
       },
     })
-    const image = new File(['image-bytes'], 'foto.png', { type: 'image/png' })
+    await putTicketResposta('ticket/1', {
+      html_content: '<p>Resposta</p>',
+      service_attachment_ids: ['attachment-1'],
+    })
 
-    await putTicketResposta(
-      'ticket/1',
-      {
-        html_content: '<img src="__RESPONSE_IMG_0__">',
-        service_attachment_ids: ['attachment-1'],
-      },
-      [image],
-    )
-
-    const [path, form, options] = (api.put as jest.Mock).mock.calls[0]
+    const [path, payload] = (api.put as jest.Mock).mock.calls[0]
     expect(path).toBe('/tickets/ticket%2F1/response-report')
-    expect(form).toBeInstanceOf(FormData)
-    expect(form.get('payload')).toBe(
-      JSON.stringify({
-        html_content: '<img src="__RESPONSE_IMG_0__">',
-        service_attachment_ids: ['attachment-1'],
-      }),
-    )
-    expect(form.getAll('files')).toEqual([image])
-    expect(options).toEqual({
-      headers: { 'Content-Type': 'multipart/form-data' },
+    expect(payload).toEqual({
+      html_content: '<p>Resposta</p>',
+      service_attachment_ids: ['attachment-1'],
     })
   })
 })

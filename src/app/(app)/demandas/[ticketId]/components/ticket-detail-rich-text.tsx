@@ -18,7 +18,6 @@ export const TICKET_REPORT_IMAGE_ACCEPT = [...TICKET_REPORT_IMAGE_TYPES].join(
 )
 const TICKET_REPORT_IMAGE_MARKERS = {
   demand: '__DEMAND_IMG_',
-  response: '__RESPONSE_IMG_',
   comment: '__COMMENT_IMG_',
 } as const
 export const TICKET_REPORT_IMAGE_MAX_BYTES = 10 * 1024 * 1024

@@ -76,19 +76,11 @@ export async function putTicketResposta(
   ticketId: string,
 
   payload: TicketResponseReportUpdateIn,
-  files: File[] = [],
 ) {
-  const form = new FormData()
-  form.append('payload', JSON.stringify(payload))
-  for (const file of files) {
-    form.append('files', file)
-  }
-
   const { data } = await api.put<TicketResponseReportOut>(
     `/tickets/${encodeURIComponent(ticketId)}/response-report`,
 
-    form,
-    { headers: { 'Content-Type': 'multipart/form-data' } },
+    payload,
   )
 
   return normalizeTicketResponseReportOut(data)

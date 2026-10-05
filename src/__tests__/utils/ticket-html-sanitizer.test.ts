@@ -232,14 +232,13 @@ describe('insertTicketReportClipboardHtml', () => {
 describe('buildTicketReportUpload', () => {
   it.each([
     ['demand', '__DEMAND_IMG_'],
-    ['response', '__RESPONSE_IMG_'],
     ['comment', '__COMMENT_IMG_'],
   ] as const)(
     'preserva o contrato de upload de %s sem alterar o editor',
     (kind, prefix) => {
       const editor = document.createElement('div')
       const path =
-        '/tickets/11111111-1111-1111-1111-111111111111/response-report/images/22222222-2222-2222-2222-222222222222'
+        '/tickets/11111111-1111-1111-1111-111111111111/demand-report/images/22222222-2222-2222-2222-222222222222'
       editor.innerHTML = `<p>Texto</p><img src="/api/bff${path}"><img src="blob:new" aria-busy="true" class="ticketReportImageLoading"><img src="blob:new"><img src="data:image/png;base64,aGVsbG8=">`
       const original = editor.innerHTML
       const file = new File(['image'], 'image.png', { type: 'image/png' })
