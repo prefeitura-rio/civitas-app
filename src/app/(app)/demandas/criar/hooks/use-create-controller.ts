@@ -26,6 +26,7 @@ import { convertTicketToConventional } from '@/http/tickets/convert-ticket-to-co
 import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketById } from '@/http/tickets/get-ticket-by-id'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
+import type { TicketAttachmentOut } from '@/http/tickets/ticket-attachments'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 import { isAllowedTicketAttachment } from '@/utils/ticket-attachment-validation'
 
@@ -67,6 +68,9 @@ export function useTicketCreateController() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
+  const [existingAttachments, setExistingAttachments] = useState<
+    TicketAttachmentOut[]
+  >([])
   const [serviceModalOpen, setServiceModalOpen] = useState<OpenServiceKey>(null)
   const [serviceModalEditIndex, setServiceModalEditIndex] = useState<
     number | null
@@ -225,6 +229,7 @@ export function useTicketCreateController() {
         setSelectedTicketLabel('')
         setSelectedAssociatedTicketTypeName(null)
         setTicketSearch('')
+        setExistingAttachments([])
         return
       }
       const values = mapTicketOutToCreateForm(ticket, {
@@ -236,6 +241,7 @@ export function useTicketCreateController() {
       setOperationSearch('')
       setOperationPopoverOpen(false)
       setFiles([])
+      setExistingAttachments(ticket.attachments ?? [])
       closeServiceModal()
     },
     onError: (error) => {
@@ -244,6 +250,7 @@ export function useTicketCreateController() {
       setSelectedTicketLabel('')
       setSelectedAssociatedTicketTypeName(null)
       setTicketSearch('')
+      setExistingAttachments([])
     },
   })
 
@@ -558,6 +565,7 @@ export function useTicketCreateController() {
   function resetFormToDefaults() {
     reset(defaultValues)
     setFiles([])
+    setExistingAttachments([])
     setSelectedTicketLabel('')
     setSelectedAssociatedTicketTypeName(null)
     setTicketSearch('')
@@ -601,6 +609,7 @@ export function useTicketCreateController() {
     tickets,
     teams,
     files,
+    existingAttachments,
     openSections,
     serviceModalOpen,
     serviceModalEditIndex,

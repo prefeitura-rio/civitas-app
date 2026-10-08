@@ -2,6 +2,7 @@
 
 import {
   ChevronDown,
+  Download,
   Mail,
   Phone,
   Plus,
@@ -37,6 +38,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { downloadTicketAttachmentFile } from '@/http/tickets/download-ticket-attachment'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
@@ -1169,10 +1171,42 @@ export function TicketCreateForm() {
         >
           <div className={styles.attachmentsLayout}>
             <div className={styles.attachmentsDocumentList}>
-              {vm.files.length === 0 ? (
+              {vm.files.length === 0 && vm.existingAttachments.length === 0 ? (
                 <p className={styles.uploadBoxHint}>Nenhum arquivo anexado.</p>
               ) : (
                 <div className={styles.fileList}>
+                  {vm.existingAttachments.map((attachment) => (
+                    <div key={attachment.id} className={styles.fileRow}>
+                      <SquareCheck
+                        className={`${styles.fileRowCheckIcon} shrink-0`}
+                        aria-hidden
+                      />
+                      <p
+                        className={styles.fileRowFileName}
+                        title={attachment.filename}
+                      >
+                        {attachment.filename}
+                      </p>
+                      <span className={styles.uploadBoxHint}>Já anexado</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0 p-0"
+                        title="Baixar anexo"
+                        onClick={() => {
+                          if (!associarChamadoId) return
+                          downloadTicketAttachmentFile(
+                            attachment,
+                            associarChamadoId,
+                          ).catch(() =>
+                            toast.error('Não foi possível baixar o anexo.'),
+                          )
+                        }}
+                      >
+                        <Download className="h-4 w-4" aria-hidden />
+                      </Button>
+                    </div>
+                  ))}
                   {vm.files.map((f, idx) => (
                     <div key={`${f.name}-${idx}`} className={styles.fileRow}>
                       <SquareCheck
