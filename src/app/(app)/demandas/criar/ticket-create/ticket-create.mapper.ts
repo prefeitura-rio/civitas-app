@@ -244,7 +244,7 @@ export function mapTicketOutToCreateForm(
     image_search: (ticket.image_search ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
-      addresses: (s.addresses ?? []).map((a) => a.address),
+      addresses: (s.addresses ?? []).map((a) => a.address_text),
       description: s.description ?? null,
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
@@ -268,14 +268,14 @@ export function mapTicketOutToCreateForm(
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
-      addresses: (s.addresses ?? []).map((a) => a.address),
+      addresses: (s.addresses ?? []).map((a) => a.address_text),
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
     image_analysis: (ticket.image_analysis ?? []).map((s) => ({
       period_start: isoToDatetimeLocal(s.period_start),
       period_end: isoToDatetimeLocal(s.period_end),
       orientation: s.orientation ?? null,
-      addresses: (s.addresses ?? []).map((a) => a.address),
+      addresses: (s.addresses ?? []).map((a) => a.address_text),
       cameras: (s.cameras ?? []).map((c) => c.camera_code),
     })),
     other: (ticket.other ?? []).map((s) => ({

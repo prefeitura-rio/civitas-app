@@ -59,7 +59,6 @@ import {
 } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
 import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
-import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
   maskPhoneBR,
@@ -70,12 +69,17 @@ import { TicketNatureSelectWithCreate } from '../../components/ticket-nature-sel
 import { CorrelataListForm } from '../../criar/components/services/correlata-list-form'
 import { ServiceModal } from '../../criar/components/services/service-modal'
 import { DataBaseDatePicker } from '../../criar/components/shared/data-base-date-picker'
+import { ExistingTicketAttachments } from '../../criar/components/shared/existing-ticket-attachments'
 import { useTicketCreateController } from '../../criar/hooks/use-create-controller'
 import type { OpenServiceKey } from '../../criar/ticket-create/ticket-create.constant'
 import {
   SERVICE_CONFIG,
   TICKET_CREATE_STRING_LIMITS as L,
 } from '../../criar/ticket-create/ticket-create.constant'
+import {
+  getTicketCreateFormErrorMessage,
+  getTicketCreateServiceItemError,
+} from '../../criar/ticket-create/ticket-create-form-errors'
 import { useAttachmentPreviewUrl } from '../hooks/use-attachment-preview-url'
 import { downloadEmailAttachmentAsFile } from '../utils/download-email-attachment-file'
 import styles from './email-to-ticket-view.module.css'
@@ -181,6 +185,7 @@ function CompactServiceList<T extends { id: string }>({
   renderRow,
   disabled = false,
   openModalDisabled,
+  errorAtIndex,
 }: {
   label: string
   fields: T[]
@@ -189,6 +194,7 @@ function CompactServiceList<T extends { id: string }>({
   renderRow: (index: number) => React.ReactNode
   disabled?: boolean
   openModalDisabled?: boolean
+  errorAtIndex?: (index: number) => string | undefined
 }) {
   if (fields.length === 0) return null
 
@@ -205,63 +211,72 @@ function CompactServiceList<T extends { id: string }>({
       </div>
 
       <div className={styles.serviceItemList}>
-        {fields.map((f, idx) => (
-          <div
-            key={f.id}
-            className={
-              isCompact
-                ? styles.serviceItemBadgeCard
-                : styles.serviceItemFormCard
-            }
-          >
-            {isCompact ? (
-              <>
-                <button
-                  type="button"
-                  className={styles.serviceItemBadgeButton}
-                  onClick={() => onEdit?.(idx)}
-                  disabled={compactOpenDisabled}
-                  title="Abrir para editar"
-                >
-                  <span className={styles.serviceItemBadge}>
-                    {label} · Item {idx + 1}
-                  </span>
-                  <Pencil className={styles.serviceItemBadgeIcon} />
-                </button>
+        {fields.map((f, idx) => {
+          const error = errorAtIndex?.(idx)
+          return (
+            <div
+              key={f.id}
+              data-invalid={Boolean(error)}
+              className={`${
+                isCompact
+                  ? styles.serviceItemBadgeCard
+                  : styles.serviceItemFormCard
+              } ${error ? styles.serviceItemError : ''}`}
+            >
+              {isCompact ? (
+                <>
+                  <button
+                    type="button"
+                    className={styles.serviceItemBadgeButton}
+                    onClick={() => onEdit?.(idx)}
+                    disabled={compactOpenDisabled}
+                    title="Abrir para editar"
+                  >
+                    <span className={styles.serviceItemBadge}>
+                      {label} · Item {idx + 1}
+                    </span>
+                    <Pencil className={styles.serviceItemBadgeIcon} />
+                  </button>
 
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className={styles.serviceItemDeleteBtn}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onRemove(idx)
-                  }}
-                  disabled={disabled}
-                  title="Remover"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="mb-2 flex justify-end">
                   <Button
                     type="button"
                     variant="ghost"
-                    className="h-8 w-8 p-0"
-                    onClick={() => onRemove(idx)}
+                    className={styles.serviceItemDeleteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onRemove(idx)
+                    }}
                     disabled={disabled}
                     title="Remover"
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
-                </div>
-                {renderRow(idx)}
-              </>
-            )}
-          </div>
-        ))}
+                </>
+              ) : (
+                <>
+                  <div className="mb-2 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onRemove(idx)}
+                      disabled={disabled}
+                      title="Remover"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {renderRow(idx)}
+                </>
+              )}
+              {error && (
+                <p className={styles.serviceItemErrorMessage} role="alert">
+                  {error}
+                </p>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -741,7 +756,7 @@ export function EmailToTicketView() {
                 (errors) => {
                   setActiveSubmit(null)
                   toast.error(
-                    getFirstFormErrorMessage(errors) ??
+                    getTicketCreateFormErrorMessage(errors) ??
                       'Existem campos com pendências. Verifique os avisos abaixo de cada campo.',
                   )
                 },
@@ -1543,6 +1558,13 @@ export function EmailToTicketView() {
                   <div className="mt-3 space-y-3">
                     <CompactServiceList
                       label="Busca por placa"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'plate_search',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.buscaPorPlaca.fields}
                       onRemove={vm.buscaPorPlaca.remove}
                       onEdit={(idx) =>
@@ -1555,6 +1577,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Busca por radar"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'radar_search',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.buscaPorRadar.fields}
                       onRemove={vm.buscaPorRadar.remove}
                       onEdit={(idx) =>
@@ -1567,6 +1596,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Cerco eletrônico"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'electronic_fence',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.cercoEletronico.fields}
                       onRemove={vm.cercoEletronico.remove}
                       onEdit={(idx) =>
@@ -1579,6 +1615,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Busca por imagem"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'image_search',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.buscaPorImagem.fields}
                       onRemove={vm.buscaPorImagem.remove}
                       onEdit={(idx) =>
@@ -1591,6 +1634,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Placas correlatas"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'correlated_plates',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.placasCorrelatas.fields}
                       onRemove={vm.placasCorrelatas.remove}
                       onEdit={(idx) =>
@@ -1611,6 +1661,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Placas conjuntas"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'joint_plates',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.placasConjuntas.fields}
                       onRemove={vm.placasConjuntas.remove}
                       onEdit={(idx) =>
@@ -1631,6 +1688,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Reserva de imagem"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'image_reservation',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.reservaDeImagem.fields}
                       onRemove={vm.reservaDeImagem.remove}
                       onEdit={(idx) =>
@@ -1643,6 +1707,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Análise de imagem"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'image_analysis',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.analiseDeImagem.fields}
                       onRemove={vm.analiseDeImagem.remove}
                       onEdit={(idx) =>
@@ -1655,6 +1726,10 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Outros"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(vm.errors, 'other', idx)
+                          ?.label
+                      }
                       fields={vm.other.fields}
                       onRemove={vm.other.remove}
                       onEdit={(idx) => vm.openServiceModalForEdit('other', idx)}
@@ -1665,6 +1740,13 @@ export function EmailToTicketView() {
 
                     <CompactServiceList
                       label="Atlas Civitas"
+                      errorAtIndex={(idx) =>
+                        getTicketCreateServiceItemError(
+                          vm.errors,
+                          'atlas_civitas',
+                          idx,
+                        )?.label
+                      }
                       fields={vm.atlasCivitas.fields}
                       onRemove={vm.atlasCivitas.remove}
                       onEdit={(idx) =>
@@ -1823,12 +1905,23 @@ export function EmailToTicketView() {
                   <div className={styles.attachmentsLayout}>
                     <div className={styles.attachmentsDocumentList}>
                       {selectableAttachments.length === 0 &&
-                      vm.files.length === 0 ? (
+                      vm.files.length === 0 &&
+                      vm.existingAttachments.length === 0 ? (
                         <p className={styles.uploadBoxHint}>
                           Nenhum arquivo anexado.
                         </p>
                       ) : (
                         <div className={styles.fileList}>
+                          <ExistingTicketAttachments
+                            ticketId={associarChamadoId}
+                            attachments={vm.existingAttachments}
+                            classNames={{
+                              row: styles.fileRow,
+                              checkIcon: styles.fileRowCheckIcon,
+                              fileName: styles.fileRowFileName,
+                              badge: styles.fileRowSourceBadge,
+                            }}
+                          />
                           {emailId
                             ? selectableAttachments.map((att) => {
                                 const selected = emailAttachmentSelectedIds.has(
@@ -2019,6 +2112,15 @@ export function EmailToTicketView() {
         readOnly={false}
         serviceModalOpen={vm.serviceModalOpen}
         editIndex={vm.serviceModalEditIndex}
+        validationError={
+          vm.serviceModalOpen && vm.serviceModalEditIndex !== null
+            ? getTicketCreateServiceItemError(
+                vm.errors,
+                vm.serviceModalOpen,
+                vm.serviceModalEditIndex,
+              )
+            : undefined
+        }
         closeServiceModal={vm.closeServiceModal}
         initialBuscaPorPlaca={initialBuscaPorPlaca}
         initialBuscaPorRadar={initialBuscaPorRadar}
