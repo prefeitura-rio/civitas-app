@@ -19,6 +19,31 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '9 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Busca textual passa a incluir o Relatório de Demanda',
+        content: (
+          <>
+            <p>
+              A busca por texto nos chamados abertos e arquivados agora também
+              considera o conteúdo registrado na aba{' '}
+              <strong>Relatório de Demanda</strong>. Antes, essa aba ficava fora
+              da busca; agora ela é consultada junto com as demais.
+            </p>
+            <p>
+              Com isso, é possível encontrar um chamado pesquisando por qualquer
+              informação que esteja no relatório — como uma placa de veículo, um
+              endereço, o nome de uma pessoa ou qualquer outro texto registrado
+              nessa aba.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '1 de Outubro de 2026',
     subCards: [
       {
