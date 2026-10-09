@@ -17,7 +17,7 @@ export type TicketServicesUpsertIn = {
     completed?: boolean
     period_start?: string | null
     period_end?: string | null
-    plates: string[]
+    equipments: string[]
     radar_address?: string | null
     orientation?: string | null
   }>

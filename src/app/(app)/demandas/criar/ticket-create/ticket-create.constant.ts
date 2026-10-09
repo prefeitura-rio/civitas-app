@@ -30,7 +30,7 @@ export type BuscaPorPlacaDraft = {
 export type BuscaPorRadarDraft = {
   period_start: string
   period_end: string
-  plates: string[]
+  equipments: string[]
   orientation: string
 }
 
@@ -159,7 +159,7 @@ export function emptyBuscaPorRadarDraft(): BuscaPorRadarDraft {
   return {
     period_start: '',
     period_end: '',
-    plates: [],
+    equipments: [],
     orientation: '',
   }
 }
@@ -168,27 +168,27 @@ export function normalizeBuscaPorRadarForForm(
   initialValue?: {
     period_start?: string | null
     period_end?: string | null
-    plates?: string[]
+    equipments?: string[]
     orientation?: string | null
   } | null,
 ): {
   period_start: string | null
   period_end: string | null
-  plates: string[]
+  equipments: string[]
   orientation: string | null
 } {
   if (!initialValue) {
     return {
       period_start: null,
       period_end: null,
-      plates: [],
+      equipments: [],
       orientation: null,
     }
   }
 
-  const plates =
-    initialValue.plates != null && initialValue.plates.length > 0
-      ? [...initialValue.plates]
+  const equipments =
+    initialValue.equipments != null && initialValue.equipments.length > 0
+      ? [...initialValue.equipments]
       : []
 
   const orientationRaw = initialValue.orientation
@@ -200,7 +200,7 @@ export function normalizeBuscaPorRadarForForm(
   return {
     period_start: initialValue.period_start ?? null,
     period_end: initialValue.period_end ?? null,
-    plates,
+    equipments,
     orientation,
   }
 }

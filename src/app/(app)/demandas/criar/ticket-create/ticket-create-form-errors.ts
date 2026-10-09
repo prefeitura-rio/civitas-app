@@ -17,6 +17,7 @@ const fieldLabels: Record<string, string> = {
   addresses: 'Endereço',
   cameras: 'Câmera',
   plates: 'Placa',
+  equipments: 'Radar',
   period_start: 'Início do período',
   period_end: 'Fim do período',
   orientation: 'Orientação',
