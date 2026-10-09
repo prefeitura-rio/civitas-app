@@ -1360,9 +1360,9 @@ export function TicketCreateForm() {
         }}
         onSaveBuscaPorRadar={(value, editIndex) => {
           const normalized = {
-            plates: (value.plates ?? [])
-              .map((p) => p.trim())
-              .filter((p) => p.length > 0),
+            equipments: (value.equipments ?? [])
+              .map((radar) => radar.trim())
+              .filter(Boolean),
             period_start: nullIfEmpty(value.period_start),
             period_end: nullIfEmpty(value.period_end),
             orientation: nullIfEmpty(value.orientation),

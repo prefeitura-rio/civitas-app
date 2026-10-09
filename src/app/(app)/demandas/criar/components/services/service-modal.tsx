@@ -330,15 +330,6 @@ function normalizePlatesMaskedForBusca(
   }
 }
 
-function normalizePlatesMaskedForRadar(
-  initial: ReturnType<typeof normalizeBuscaPorRadarForForm>,
-) {
-  return {
-    ...initial,
-    plates: initial.plates.map((p) => maskPlateBR(p)),
-  }
-}
-
 function normalizePlatesMaskedForCerco(
   initial: ReturnType<typeof normalizeCercoForForm>,
 ) {
@@ -501,33 +492,27 @@ function BuscaPorRadarForm({
 }: SimpleFormProps<TicketCreateForm['radar_search'][number]>) {
   const form = useForm<TicketCreateForm['radar_search'][number]>({
     resolver: zodResolver(serviceBuscaPorRadarSchema),
-    defaultValues: normalizePlatesMaskedForRadar(
-      normalizeBuscaPorRadarForForm(initialValue),
-    ),
+    defaultValues: normalizeBuscaPorRadarForForm(initialValue),
   })
 
   useEffect(() => {
-    form.reset(
-      normalizePlatesMaskedForRadar(
-        normalizeBuscaPorRadarForForm(initialValue),
-      ),
-    )
+    form.reset(normalizeBuscaPorRadarForForm(initialValue))
   }, [initialValue, form])
 
   const {
     formState: { errors },
   } = form
 
-  const plates = form.watch('plates') ?? []
+  const equipments = form.watch('equipments') ?? []
 
-  const addPlate = () => {
-    form.setValue('plates', [...plates, ''], { shouldValidate: true })
+  const addEquipment = () => {
+    form.setValue('equipments', [...equipments, ''], { shouldValidate: true })
   }
 
-  const removePlate = (index: number) => {
+  const removeEquipment = (index: number) => {
     form.setValue(
-      'plates',
-      plates.filter((_, i) => i !== index),
+      'equipments',
+      equipments.filter((_, i) => i !== index),
       { shouldValidate: true },
     )
   }
@@ -578,19 +563,19 @@ function BuscaPorRadarForm({
             </div>
 
             <div className="space-y-2">
-              <Label className={styles.fieldLabel}>Placas do veículo</Label>
-              {plates.map((_, index) => (
+              <Label className={styles.fieldLabel}>Equipamentos</Label>
+              {equipments.map((_, index) => (
                 <div key={index} className="flex gap-2">
                   <Controller
                     control={form.control}
-                    name={`plates.${index}`}
+                    name={`equipments.${index}`}
                     render={({ field }) => (
                       <Input
                         className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
+                        placeholder="Número do equipamento"
+                        maxLength={20}
                         value={field.value ?? ''}
-                        onChange={(e) =>
-                          field.onChange(maskPlateBR(e.target.value))
-                        }
+                        onChange={field.onChange}
                         onBlur={field.onBlur}
                         name={field.name}
                         ref={field.ref}
@@ -601,26 +586,26 @@ function BuscaPorRadarForm({
                     type="button"
                     variant="ghost"
                     className="h-11 w-11 shrink-0 p-0"
-                    onClick={() => removePlate(index)}
-                    title="Remover placa"
+                    onClick={() => removeEquipment(index)}
+                    title="Remover equipamento"
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-              {errors.plates?.message && (
+              {errors.equipments?.message && (
                 <p className="text-xs text-destructive">
-                  {errors.plates.message}
+                  {errors.equipments.message}
                 </p>
               )}
               <div className="flex flex-col items-end">
                 <button
                   type="button"
-                  onClick={addPlate}
+                  onClick={addEquipment}
                   className={styles.addPointFocalButton}
                 >
                   <Plus className="h-5 w-5 shrink-0" aria-hidden />
-                  Adicionar placa
+                  Adicionar equipamento
                 </button>
               </div>
             </div>

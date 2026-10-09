@@ -33,10 +33,10 @@ export type ServicePlateSearchOut = {
   attachments?: TicketAttachmentOut[]
 }
 
-export type ServiceRadarSearchPlateOut = {
+export type ServiceRadarSearchEquipmentOut = {
   id: string
   created_at: string
-  plate: string
+  equipment_number: string
 }
 
 export type ServiceRadarSearchOut = {
@@ -45,7 +45,7 @@ export type ServiceRadarSearchOut = {
   completed?: boolean
   period_start?: string | null
   period_end?: string | null
-  plates: ServiceRadarSearchPlateOut[]
+  equipments: ServiceRadarSearchEquipmentOut[]
   radar_address?: string | null
   orientation?: string | null
   attachments?: TicketAttachmentOut[]

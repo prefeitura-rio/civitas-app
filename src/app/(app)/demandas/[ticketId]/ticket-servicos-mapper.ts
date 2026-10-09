@@ -139,8 +139,8 @@ export function ticketServicosToReplacePayload(
       completed: Boolean(x.completed),
       period_start: strOrNull(x.period_start as string | null | undefined),
       period_end: strOrNull(x.period_end as string | null | undefined),
-      plates: (x.plates ?? [])
-        .map((p) => (p.plate ?? '').trim())
+      equipments: (x.equipments ?? [])
+        .map((r) => (r.equipment_number ?? '').trim())
         .filter(Boolean),
       radar_address: strOrNull(x.radar_address),
       orientation: strOrNull(x.orientation),
@@ -338,7 +338,7 @@ export function appendEmptyService(
           completed: false,
           period_start: null,
           period_end: null,
-          plates: [],
+          equipments: [],
           radar_address: null,
           orientation: null,
         },

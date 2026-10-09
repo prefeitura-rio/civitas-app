@@ -97,9 +97,10 @@ export function completionErrorsForServiceRow(
       if (!filledText(item.radar_address)) {
         out.radar_address = SERVICO_CAMPO_OBRIGATORIO
       }
-      ;(item.plates ?? []).forEach((p, i) => {
-        const msg = plateCompletionMessage(p.plate)
-        if (msg) out[`plates.${i}.plate`] = msg
+      ;(item.equipments ?? []).forEach((r, i) => {
+        if (!filledText(r.equipment_number)) {
+          out[`equipments.${i}.equipment_number`] = SERVICO_CAMPO_OBRIGATORIO
+        }
       })
       return out
     }
