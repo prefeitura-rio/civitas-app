@@ -628,7 +628,7 @@ export function ServicosExpandedForm({
                     <Input
                       className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
                       placeholder="Endereço"
-                      value={addr.address}
+                      value={addr.address_text}
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
@@ -636,7 +636,7 @@ export function ServicosExpandedForm({
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
-                            address: e.target.value,
+                            address_text: e.target.value,
                           }
                           n.image_search[index] = {
                             ...n.image_search[index],
@@ -680,7 +680,7 @@ export function ServicosExpandedForm({
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
-                                  address: '',
+                                  address_text: '',
                                 },
                               ],
                             }
@@ -709,7 +709,7 @@ export function ServicosExpandedForm({
                           {
                             id: newNestedEntityId(),
                             created_at: nowIso(),
-                            address: '',
+                            address_text: '',
                           },
                         ],
                       }
@@ -932,7 +932,7 @@ export function ServicosExpandedForm({
                     <Input
                       className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
                       placeholder="Endereço"
-                      value={addr.address}
+                      value={addr.address_text}
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
@@ -940,7 +940,7 @@ export function ServicosExpandedForm({
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
-                            address: e.target.value,
+                            address_text: e.target.value,
                           }
                           n.image_reservation[index] = {
                             ...n.image_reservation[index],
@@ -984,7 +984,7 @@ export function ServicosExpandedForm({
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
-                                  address: '',
+                                  address_text: '',
                                 },
                               ],
                             }
@@ -1013,7 +1013,7 @@ export function ServicosExpandedForm({
                           {
                             id: newNestedEntityId(),
                             created_at: nowIso(),
-                            address: '',
+                            address_text: '',
                           },
                         ],
                       }
@@ -1192,7 +1192,7 @@ export function ServicosExpandedForm({
                     <Input
                       className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
                       placeholder="Endereço"
-                      value={addr.address}
+                      value={addr.address_text}
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
@@ -1200,7 +1200,7 @@ export function ServicosExpandedForm({
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
-                            address: e.target.value,
+                            address_text: e.target.value,
                           }
                           n.image_analysis[index] = {
                             ...n.image_analysis[index],
@@ -1244,7 +1244,7 @@ export function ServicosExpandedForm({
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
-                                  address: '',
+                                  address_text: '',
                                 },
                               ],
                             }
@@ -1273,7 +1273,7 @@ export function ServicosExpandedForm({
                           {
                             id: newNestedEntityId(),
                             created_at: nowIso(),
-                            address: '',
+                            address_text: '',
                           },
                         ],
                       }
