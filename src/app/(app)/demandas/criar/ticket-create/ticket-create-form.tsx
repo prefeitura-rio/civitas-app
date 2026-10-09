@@ -2,7 +2,6 @@
 
 import {
   ChevronDown,
-  Download,
   Mail,
   Phone,
   Plus,
@@ -38,8 +37,6 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { downloadTicketAttachmentFile } from '@/http/tickets/download-ticket-attachment'
-import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
   maskPhoneBR,
@@ -52,11 +49,16 @@ import { ServiceAddCard } from '../components/services/service-add-card'
 import { ServiceList } from '../components/services/service-list'
 import { ServiceModal } from '../components/services/service-modal'
 import { DataBaseDatePicker } from '../components/shared/data-base-date-picker'
+import { ExistingTicketAttachments } from '../components/shared/existing-ticket-attachments'
 import { PriorityButton } from '../components/shared/priority-button'
 import { Section } from '../components/shared/section'
 import { useTicketCreateController } from '../hooks/use-create-controller'
 import { TICKET_CREATE_STRING_LIMITS as L } from './ticket-create.constant'
 import styles from './ticket-create-form.module.css'
+import {
+  getTicketCreateFormErrorMessage,
+  getTicketCreateServiceItemError,
+} from './ticket-create-form-errors'
 
 function FieldStringError({
   value,
@@ -166,7 +168,7 @@ export function TicketCreateForm() {
         className="w-full space-y-8"
         onSubmit={vm.handleSubmit(vm.onSubmit, (errors) => {
           toast.error(
-            getFirstFormErrorMessage(errors) ??
+            getTicketCreateFormErrorMessage(errors) ??
               'Existem campos com pendências. Verifique os avisos abaixo de cada campo.',
           )
         })}
@@ -940,6 +942,10 @@ export function TicketCreateForm() {
           <div className="mt-4 space-y-4">
             <ServiceList
               label="Busca por placa"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(vm.errors, 'plate_search', idx)
+                  ?.label
+              }
               fields={vm.buscaPorPlaca.fields}
               onRemove={vm.buscaPorPlaca.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('plate_search', idx)}
@@ -950,6 +956,10 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Busca por radar"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(vm.errors, 'radar_search', idx)
+                  ?.label
+              }
               fields={vm.buscaPorRadar.fields}
               onRemove={vm.buscaPorRadar.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('radar_search', idx)}
@@ -960,6 +970,13 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Cerco eletrônico"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(
+                  vm.errors,
+                  'electronic_fence',
+                  idx,
+                )?.label
+              }
               fields={vm.cercoEletronico.fields}
               onRemove={vm.cercoEletronico.remove}
               onEdit={(idx) =>
@@ -972,6 +989,10 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Busca por imagem"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(vm.errors, 'image_search', idx)
+                  ?.label
+              }
               fields={vm.buscaPorImagem.fields}
               onRemove={vm.buscaPorImagem.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('image_search', idx)}
@@ -982,6 +1003,13 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Placas correlatas"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(
+                  vm.errors,
+                  'correlated_plates',
+                  idx,
+                )?.label
+              }
               fields={vm.placasCorrelatas.fields}
               onRemove={vm.placasCorrelatas.remove}
               onEdit={(idx) =>
@@ -1002,6 +1030,10 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Placas conjuntas"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(vm.errors, 'joint_plates', idx)
+                  ?.label
+              }
               fields={vm.placasConjuntas.fields}
               onRemove={vm.placasConjuntas.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('joint_plates', idx)}
@@ -1020,6 +1052,13 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Reserva de imagem"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(
+                  vm.errors,
+                  'image_reservation',
+                  idx,
+                )?.label
+              }
               fields={vm.reservaDeImagem.fields}
               onRemove={vm.reservaDeImagem.remove}
               onEdit={(idx) =>
@@ -1032,6 +1071,13 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Análise de imagem"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(
+                  vm.errors,
+                  'image_analysis',
+                  idx,
+                )?.label
+              }
               fields={vm.analiseDeImagem.fields}
               onRemove={vm.analiseDeImagem.remove}
               onEdit={(idx) =>
@@ -1044,6 +1090,9 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Outros"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(vm.errors, 'other', idx)?.label
+              }
               fields={vm.other.fields}
               onRemove={vm.other.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('other', idx)}
@@ -1054,6 +1103,10 @@ export function TicketCreateForm() {
 
             <ServiceList
               label="Atlas Civitas"
+              errorAtIndex={(idx) =>
+                getTicketCreateServiceItemError(vm.errors, 'atlas_civitas', idx)
+                  ?.label
+              }
               fields={vm.atlasCivitas.fields}
               onRemove={vm.atlasCivitas.remove}
               onEdit={(idx) => vm.openServiceModalForEdit('atlas_civitas', idx)}
@@ -1175,38 +1228,16 @@ export function TicketCreateForm() {
                 <p className={styles.uploadBoxHint}>Nenhum arquivo anexado.</p>
               ) : (
                 <div className={styles.fileList}>
-                  {vm.existingAttachments.map((attachment) => (
-                    <div key={attachment.id} className={styles.fileRow}>
-                      <SquareCheck
-                        className={`${styles.fileRowCheckIcon} shrink-0`}
-                        aria-hidden
-                      />
-                      <p
-                        className={styles.fileRowFileName}
-                        title={attachment.filename}
-                      >
-                        {attachment.filename}
-                      </p>
-                      <span className={styles.uploadBoxHint}>Já anexado</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="h-8 w-8 shrink-0 p-0"
-                        title="Baixar anexo"
-                        onClick={() => {
-                          if (!associarChamadoId) return
-                          downloadTicketAttachmentFile(
-                            attachment,
-                            associarChamadoId,
-                          ).catch(() =>
-                            toast.error('Não foi possível baixar o anexo.'),
-                          )
-                        }}
-                      >
-                        <Download className="h-4 w-4" aria-hidden />
-                      </Button>
-                    </div>
-                  ))}
+                  <ExistingTicketAttachments
+                    ticketId={associarChamadoId}
+                    attachments={vm.existingAttachments}
+                    classNames={{
+                      row: styles.fileRow,
+                      checkIcon: styles.fileRowCheckIcon,
+                      fileName: styles.fileRowFileName,
+                      badge: styles.uploadBoxHint,
+                    }}
+                  />
                   {vm.files.map((f, idx) => (
                     <div key={`${f.name}-${idx}`} className={styles.fileRow}>
                       <SquareCheck
@@ -1289,6 +1320,15 @@ export function TicketCreateForm() {
       <ServiceModal
         serviceModalOpen={vm.serviceModalOpen}
         editIndex={vm.serviceModalEditIndex}
+        validationError={
+          vm.serviceModalOpen && vm.serviceModalEditIndex !== null
+            ? getTicketCreateServiceItemError(
+                vm.errors,
+                vm.serviceModalOpen,
+                vm.serviceModalEditIndex,
+              )
+            : undefined
+        }
         closeServiceModal={vm.closeServiceModal}
         readOnly={false}
         initialBuscaPorPlaca={initialBuscaPorPlaca}

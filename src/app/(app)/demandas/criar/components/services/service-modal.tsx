@@ -56,6 +56,7 @@ type Props = {
   serviceModalOpen: OpenServiceKey
   editIndex: number | null
   closeServiceModal: () => void
+  validationError?: { path: string[]; message: string }
 
   initialBuscaPorPlaca?: TicketCreateForm['plate_search'][number]
   initialBuscaPorRadar?: TicketCreateForm['radar_search'][number]
@@ -160,6 +161,7 @@ export function ServiceModal(props: Props) {
 
       {serviceModalOpen === 'image_search' && (
         <BuscaPorImagemForm
+          validationError={props.validationError}
           initialValue={props.initialBuscaPorImagem}
           editIndex={editIndex}
           onCancel={closeServiceModal}
@@ -190,6 +192,7 @@ export function ServiceModal(props: Props) {
 
       {serviceModalOpen === 'image_reservation' && (
         <ReservaImagemForm
+          validationError={props.validationError}
           initialValue={props.initialReservaImagem}
           editIndex={editIndex}
           onCancel={closeServiceModal}
@@ -200,6 +203,7 @@ export function ServiceModal(props: Props) {
 
       {serviceModalOpen === 'image_analysis' && (
         <AnaliseImagemForm
+          validationError={props.validationError}
           initialValue={props.initialAnaliseImagem}
           editIndex={editIndex}
           onCancel={closeServiceModal}
@@ -299,6 +303,22 @@ type SimpleFormProps<T> = {
   onCancel: () => void
   onSave: (value: T, editIndex: number | null) => void
   readOnly?: boolean
+  validationError?: { path: string[]; message: string }
+}
+
+function externalAddressError(
+  error: SimpleFormProps<unknown>['validationError'],
+  index: number,
+  isDirty: boolean | undefined,
+): string | undefined {
+  if (
+    isDirty ||
+    error?.path[0] !== 'addresses' ||
+    error.path[1] !== String(index)
+  ) {
+    return undefined
+  }
+  return /^required$/i.test(error.message) ? 'Campo obrigatório' : error.message
 }
 
 function normalizePlatesMaskedForBusca(
@@ -743,6 +763,7 @@ function BuscaPorImagemForm({
   onCancel,
   onSave,
   readOnly = false,
+  validationError,
 }: SimpleFormProps<TicketCreateForm['image_search'][number]>) {
   const form = useForm<TicketCreateForm['image_search'][number]>({
     resolver: zodResolver(serviceBuscaPorImagemSchema),
@@ -824,17 +845,37 @@ function BuscaPorImagemForm({
                   <Controller
                     control={form.control}
                     name={`addresses.${index}`}
-                    render={({ field }) => (
-                      <Input
-                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
-                        placeholder="Endereço"
-                        value={field.value ?? ''}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                    )}
+                    render={({ field }) => {
+                      const error =
+                        errors.addresses?.[index]?.message ??
+                        externalAddressError(
+                          validationError,
+                          index,
+                          form.formState.dirtyFields.addresses?.[index],
+                        )
+                      return (
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <Input
+                            className={`h-11 w-full ${styles.inputBg} ${error ? 'border-destructive' : ''}`}
+                            aria-invalid={Boolean(error)}
+                            placeholder="Endereço"
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                          {error && (
+                            <p
+                              className="text-xs text-destructive"
+                              role="alert"
+                            >
+                              {error}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    }}
                   />
                   <Button
                     type="button"
@@ -1133,6 +1174,7 @@ function ReservaImagemForm({
   onCancel,
   onSave,
   readOnly = false,
+  validationError,
 }: SimpleFormProps<TicketCreateForm['image_reservation'][number]>) {
   const form = useForm<TicketCreateForm['image_reservation'][number]>({
     resolver: zodResolver(serviceReservaDeImagemSchema),
@@ -1239,17 +1281,37 @@ function ReservaImagemForm({
                   <Controller
                     control={form.control}
                     name={`addresses.${index}`}
-                    render={({ field }) => (
-                      <Input
-                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
-                        placeholder="Endereço"
-                        value={field.value ?? ''}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                    )}
+                    render={({ field }) => {
+                      const error =
+                        errors.addresses?.[index]?.message ??
+                        externalAddressError(
+                          validationError,
+                          index,
+                          form.formState.dirtyFields.addresses?.[index],
+                        )
+                      return (
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <Input
+                            className={`h-11 w-full ${styles.inputBg} ${error ? 'border-destructive' : ''}`}
+                            aria-invalid={Boolean(error)}
+                            placeholder="Endereço"
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                          {error && (
+                            <p
+                              className="text-xs text-destructive"
+                              role="alert"
+                            >
+                              {error}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    }}
                   />
                   <Button
                     type="button"
@@ -1330,6 +1392,7 @@ function AnaliseImagemForm({
   onCancel,
   onSave,
   readOnly = false,
+  validationError,
 }: SimpleFormProps<TicketCreateForm['image_analysis'][number]>) {
   const form = useForm<TicketCreateForm['image_analysis'][number]>({
     resolver: zodResolver(serviceAnaliseDeImagemSchema),
@@ -1436,17 +1499,37 @@ function AnaliseImagemForm({
                   <Controller
                     control={form.control}
                     name={`addresses.${index}`}
-                    render={({ field }) => (
-                      <Input
-                        className={`h-11 min-w-0 flex-1 ${styles.inputBg}`}
-                        placeholder="Endereço"
-                        value={field.value ?? ''}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                    )}
+                    render={({ field }) => {
+                      const error =
+                        errors.addresses?.[index]?.message ??
+                        externalAddressError(
+                          validationError,
+                          index,
+                          form.formState.dirtyFields.addresses?.[index],
+                        )
+                      return (
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <Input
+                            className={`h-11 w-full ${styles.inputBg} ${error ? 'border-destructive' : ''}`}
+                            aria-invalid={Boolean(error)}
+                            placeholder="Endereço"
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                          {error && (
+                            <p
+                              className="text-xs text-destructive"
+                              role="alert"
+                            >
+                              {error}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    }}
                   />
                   <Button
                     type="button"
