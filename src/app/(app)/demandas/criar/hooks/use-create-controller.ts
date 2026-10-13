@@ -26,7 +26,10 @@ import { convertTicketToConventional } from '@/http/tickets/convert-ticket-to-co
 import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketById } from '@/http/tickets/get-ticket-by-id'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
-import type { TicketAttachmentOut } from '@/http/tickets/ticket-attachments'
+import {
+  getTicketAttachments,
+  type TicketAttachmentOut,
+} from '@/http/tickets/ticket-attachments'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 import { isAllowedTicketAttachment } from '@/utils/ticket-attachment-validation'
 
@@ -211,10 +214,13 @@ export function useTicketCreateController() {
 
   const applyAssociatedTicketMutation = useMutation({
     mutationFn: async ({ ticketId }: { ticketId: string }) => {
-      const ticket = await getTicketById(ticketId)
-      return { ticket, ticketId }
+      const [ticket, attachments] = await Promise.all([
+        getTicketById(ticketId),
+        getTicketAttachments(ticketId),
+      ])
+      return { ticket, ticketId, attachments }
     },
-    onSuccess: ({ ticket, ticketId }) => {
+    onSuccess: ({ ticket, ticketId, attachments }) => {
       const cached = queryClient.getQueryData<AxiosResponse<TicketType[]>>([
         'ticket-types',
         'select',
@@ -241,7 +247,7 @@ export function useTicketCreateController() {
       setOperationSearch('')
       setOperationPopoverOpen(false)
       setFiles([])
-      setExistingAttachments(ticket.attachments ?? [])
+      setExistingAttachments(attachments)
       closeServiceModal()
     },
     onError: (error) => {
