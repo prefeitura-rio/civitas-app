@@ -26,6 +26,10 @@ import { convertTicketToConventional } from '@/http/tickets/convert-ticket-to-co
 import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketById } from '@/http/tickets/get-ticket-by-id'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
+import {
+  getTicketAttachments,
+  type TicketAttachmentOut,
+} from '@/http/tickets/ticket-attachments'
 import { getApiErrorMessage } from '@/utils/error-handlers'
 import { isAllowedTicketAttachment } from '@/utils/ticket-attachment-validation'
 
@@ -67,6 +71,9 @@ export function useTicketCreateController() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
+  const [existingAttachments, setExistingAttachments] = useState<
+    TicketAttachmentOut[]
+  >([])
   const [serviceModalOpen, setServiceModalOpen] = useState<OpenServiceKey>(null)
   const [serviceModalEditIndex, setServiceModalEditIndex] = useState<
     number | null
@@ -207,10 +214,13 @@ export function useTicketCreateController() {
 
   const applyAssociatedTicketMutation = useMutation({
     mutationFn: async ({ ticketId }: { ticketId: string }) => {
-      const ticket = await getTicketById(ticketId)
-      return { ticket, ticketId }
+      const [ticket, attachments] = await Promise.all([
+        getTicketById(ticketId),
+        getTicketAttachments(ticketId),
+      ])
+      return { ticket, ticketId, attachments }
     },
-    onSuccess: ({ ticket, ticketId }) => {
+    onSuccess: ({ ticket, ticketId, attachments }) => {
       const cached = queryClient.getQueryData<AxiosResponse<TicketType[]>>([
         'ticket-types',
         'select',
@@ -225,6 +235,7 @@ export function useTicketCreateController() {
         setSelectedTicketLabel('')
         setSelectedAssociatedTicketTypeName(null)
         setTicketSearch('')
+        setExistingAttachments([])
         return
       }
       const values = mapTicketOutToCreateForm(ticket, {
@@ -236,6 +247,7 @@ export function useTicketCreateController() {
       setOperationSearch('')
       setOperationPopoverOpen(false)
       setFiles([])
+      setExistingAttachments(attachments)
       closeServiceModal()
     },
     onError: (error) => {
@@ -244,6 +256,7 @@ export function useTicketCreateController() {
       setSelectedTicketLabel('')
       setSelectedAssociatedTicketTypeName(null)
       setTicketSearch('')
+      setExistingAttachments([])
     },
   })
 
@@ -558,6 +571,7 @@ export function useTicketCreateController() {
   function resetFormToDefaults() {
     reset(defaultValues)
     setFiles([])
+    setExistingAttachments([])
     setSelectedTicketLabel('')
     setSelectedAssociatedTicketTypeName(null)
     setTicketSearch('')
@@ -601,6 +615,7 @@ export function useTicketCreateController() {
     tickets,
     teams,
     files,
+    existingAttachments,
     openSections,
     serviceModalOpen,
     serviceModalEditIndex,

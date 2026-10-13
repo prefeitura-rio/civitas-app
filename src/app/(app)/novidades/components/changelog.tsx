@@ -19,6 +19,78 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '14 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Corrigido',
+        title: 'Anexos existentes nas demandas',
+        content: (
+          <p>
+            Os arquivos já anexados a uma demanda agora aparecem ao editar ou
+            converter o chamado. Isso inclui os anexos recebidos por e-mail, que
+            antes não eram exibidos nessas etapas.
+          </p>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Endereços dos serviços ao reabrir uma demanda',
+        content: (
+          <p>
+            Os endereços cadastrados nos serviços voltam a aparecer nos campos
+            correspondentes ao reabrir uma demanda para edição.
+          </p>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Números dos equipamentos na busca por radar',
+        content: (
+          <p>
+            A busca por radar agora mostra os números dos equipamentos
+            cadastrados. Antes, essa informação era apresentada como placa de
+            veículo.
+          </p>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Indicação de erros nos serviços da demanda',
+        content: (
+          <p>
+            Serviços com campos pendentes agora são destacados na lista. Ao
+            abrir o serviço, o campo que precisa de correção também é indicado.
+          </p>
+        ),
+      },
+    ],
+  },
+  {
+    title: '9 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Busca textual passa a incluir o Relatório de Demanda',
+        content: (
+          <>
+            <p>
+              A busca por texto nos chamados abertos e arquivados agora também
+              considera o conteúdo registrado na aba{' '}
+              <strong>Relatório de Demanda</strong>. Antes, essa aba ficava fora
+              da busca; agora ela é consultada junto com as demais.
+            </p>
+            <p>
+              Com isso, é possível encontrar um chamado pesquisando por qualquer
+              informação que esteja no relatório — como uma placa de veículo, um
+              endereço, o nome de uma pessoa ou qualquer outro texto registrado
+              nessa aba.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '1 de Outubro de 2026',
     subCards: [
       {
