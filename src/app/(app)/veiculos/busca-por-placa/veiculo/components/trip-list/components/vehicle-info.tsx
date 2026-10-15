@@ -1,4 +1,4 @@
-import { getErrorMessage } from '@/app/(app)/pessoas/components/get-error-message'
+import { Spinner } from '@/components/custom/spinner'
 import {
   Collapsible,
   CollapsibleContent,
@@ -6,16 +6,78 @@ import {
 } from '@/components/ui/collapsible'
 import { Label } from '@/components/ui/label'
 import { useVehicle } from '@/hooks/useQueries/useVehicle'
+import { useVehiclePrf } from '@/hooks/useQueries/useVehiclePrf'
+import { isApiError } from '@/lib/api'
 
 interface VehicleInfoProps {
   plate: string
 }
 export function VehicleInfo({ plate }: VehicleInfoProps) {
-  const { data, error } = useVehicle(plate)
+  const { data, error, isPending } = useVehicle(plate)
+  const accessBlocked =
+    isApiError(error) && [401, 403, 451].includes(error.response?.status ?? 0)
+  const useFallback = !isPending && !data && !accessBlocked
+  const {
+    data: vehiclePrf,
+    error: vehiclePrfError,
+    isPending: isPendingVehiclePrf,
+  } = useVehiclePrf(plate, useFallback)
 
-  // If there is an error or no data, return null to render nothing
-  if (error || !data) {
-    return null
+  if (isPending || (useFallback && isPendingVehiclePrf)) {
+    return (
+      <div>
+        <h4 className="my-4 mb-2">Informações do Veículo</h4>
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-3 flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground"
+        >
+          <Spinner className="size-4 shrink-0" />
+          <span>Procurando informações do veículo...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data) {
+    if (!useFallback) return null
+
+    const summary = [
+      ['Marca/Modelo', vehiclePrf?.marca_modelo_prf],
+      ['Cor', vehiclePrf?.cor_veiculo_prf],
+      ['Ano do Modelo', vehiclePrf?.ano_modelo_prf],
+    ].filter(([, value]) => value != null && String(value).trim())
+
+    if (summary.length === 0) {
+      return (
+        <div>
+          <h4 className="my-4 mb-2">Informações do Veículo</h4>
+          <div
+            role="status"
+            className="mb-3 rounded-md border border-border/50 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground"
+          >
+            {vehiclePrfError
+              ? 'Não foi possível carregar as informações do veículo.'
+              : 'Nenhuma informação do veículo encontrada.'}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div>
+        <h4 className="my-4 mb-2">Informações do Veículo</h4>
+        <div className="mb-3 flex flex-col gap-0.5 text-sm">
+          {summary.map(([label, value]) => (
+            <div key={label}>
+              <span className="text-sm font-medium">{label}: </span>
+              <span className="text-sm text-muted-foreground">{value}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">Fonte: PRF</p>
+      </div>
+    )
   }
 
   const mainInfo = {
@@ -99,13 +161,6 @@ export function VehicleInfo({ plate }: VehicleInfoProps) {
                 <span className="text-sm text-muted-foreground">{value}</span>
               </div>
             ))}
-          </div>
-        )}
-        {error && (
-          <div className="flex justify-center rounded-lg border-l-2 border-rose-500 bg-secondary px-3 py-2">
-            <span className="pl-6 -indent-6 text-sm text-muted-foreground">
-              {`⚠️ Não foi possível retornar informações a respeito desse veículo. ${getErrorMessage(error)}`}
-            </span>
           </div>
         )}
       </div>

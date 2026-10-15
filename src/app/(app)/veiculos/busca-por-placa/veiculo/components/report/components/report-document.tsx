@@ -5,7 +5,8 @@ import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { GetCirculationIndicatorsResponse } from '@/http/cars/circulation-indicators/get-circulation-indicators'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
-import type { Trip, Vehicle } from '@/models/entities'
+import type { Trip } from '@/models/entities'
+import type { VehiclePrf } from '@/utils/vehicle-prf'
 
 import { ReportCover } from './components/report-cover'
 import { ReportTrip } from './components/report-trip'
@@ -26,7 +27,7 @@ interface ReportProps {
   circulationIndicators?: GetCirculationIndicatorsResponse
   trips: Trip[]
   searchParams: GetCarPathRequest
-  vehicle?: Vehicle
+  vehicle?: VehiclePrf | null
 }
 
 export function ReportDocument({

@@ -9,6 +9,7 @@ import { useNCarsBeforeAfter } from '@/hooks/useQueries/cars/useNBeforeAfter'
 import { generatePDFReport } from '@/http/cars/n-before-after/get-n-cars-before-after'
 import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
+import { formatVehiclePrf, type VehiclePrf } from '@/utils/vehicle-prf'
 
 enum FileType {
   'PDF' = 'PDF',
@@ -21,6 +22,7 @@ interface DownloadReportsByDetectionPointButtonProps {
   nMinutes: number
   nPlates: number
   fileType: FileType
+  vehicle?: VehiclePrf | null
 }
 
 export default function JointPlatesReportDownloadProgressAlert({
@@ -29,13 +31,13 @@ export default function JointPlatesReportDownloadProgressAlert({
   nMinutes,
   nPlates,
   fileType,
+  vehicle,
 }: DownloadReportsByDetectionPointButtonProps) {
   const { formattedSearchParams } = useCarPathsSearchParams()
   const [initialized, setInitialized] = useState(false)
   const [initialized2, setInitialized2] = useState(false)
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
-
   const { data, isPending } = useNCarsBeforeAfter({
     plate: formattedSearchParams.plate,
     startTime: formattedSearchParams.from,
@@ -48,6 +50,7 @@ export default function JointPlatesReportDownloadProgressAlert({
   const { data: doc, isPending: isGeneratingDocument } = useQuery({
     queryKey: [
       'cars-before-after',
+      'vehicle-prf-bigquery-v1',
       formattedSearchParams.plate,
       formattedSearchParams.from,
       formattedSearchParams.to,
@@ -96,10 +99,12 @@ export default function JointPlatesReportDownloadProgressAlert({
         new Date(new Date(formattedSearchParams.from).getTime() + diff / 2),
         'dd/MM/yyyy HH:mm:ss',
       )
+      const vehicleInfo = formatVehiclePrf(vehicle)
 
       const metadataLines = [
         `Gerado em: ${formatDate(new Date(), 'dd/MM/yyyy HH:mm:ss')}`,
         `Placa pesquisada: ${formattedSearchParams.plate}`,
+        `Veículo: ${vehicleInfo}`,
         `Período da busca: De ${formatDate(
           new Date(formattedSearchParams.from),
           'dd/MM/yyyy HH:mm:ss',
@@ -252,7 +257,7 @@ export default function JointPlatesReportDownloadProgressAlert({
 
       setOpen(false)
     }
-  }, [isPending, data, open, isGeneratingDocument, doc])
+  }, [isPending, vehicle, data, open, isGeneratingDocument, doc])
 
   return (
     <div>

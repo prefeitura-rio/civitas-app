@@ -20,7 +20,9 @@ import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
+import { useVehiclePrf } from '@/hooks/useQueries/useVehiclePrf'
 import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
+import { formatVehiclePrf } from '@/utils/vehicle-prf'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
@@ -50,6 +52,10 @@ export function DownloadReportDialog() {
   const [showViagens, setShowViagens] = useState(false)
   const [showPlacasConjuntas, setShowPlacasConjuntas] = useState(false)
   const [fileType, setFileType] = useState<FileType>(FileType.PDF)
+  const { data: vehicle, isPending: isPendingVehicle } = useVehiclePrf(
+    formattedSearchParams.plate,
+    open && fileType === FileType.CSV,
+  )
 
   useEffect(() => {
     setFormType('viagens')
@@ -185,12 +191,14 @@ export function DownloadReportDialog() {
             <DialogFooter className="gap-2">
               <DialogClose>Cancelar</DialogClose>
               <Button
+                disabled={fileType === FileType.CSV && isPendingVehicle}
                 onClick={() => {
                   if (formType === 'viagens') {
                     if (fileType === FileType.PDF) {
                       setShowViagens(true)
                     }
                     if (fileType === FileType.CSV && trips) {
+                      const vehicleInfo = formatVehiclePrf(vehicle)
                       const metadataCell = [
                         'Nome do relatório: Relatório de Pontos de Detecção (viagens)',
                         `Gerado em: ${formatDate(
@@ -198,6 +206,7 @@ export function DownloadReportDialog() {
                           'dd/MM/yyyy HH:mm:ss',
                         )}`,
                         `Placa pesquisada: ${formattedSearchParams.plate}`,
+                        `Veículo: ${vehicleInfo}`,
                         `Período da busca: De ${formatDate(
                           new Date(formattedSearchParams.from),
                           'dd/MM/yyyy HH:mm:ss',
@@ -321,6 +330,7 @@ export function DownloadReportDialog() {
         nMinutes={nMinutes}
         nPlates={nPlates}
         fileType={fileType}
+        vehicle={vehicle}
       />
     </>
   )
