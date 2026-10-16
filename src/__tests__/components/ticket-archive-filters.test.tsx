@@ -69,4 +69,19 @@ describe('TicketArchiveFiltersModal', () => {
       }),
     )
   })
+
+  it('applies the press alias filter when the switch is on', () => {
+    const { onApply } = renderModal()
+
+    fireEvent.click(
+      screen.getByRole('switch', {
+        name: 'Filtrar chamados com apelido de imprensa',
+      }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar' }))
+
+    expect(onApply).toHaveBeenCalledWith(
+      expect.objectContaining({ has_press_alias: true }),
+    )
+  })
 })

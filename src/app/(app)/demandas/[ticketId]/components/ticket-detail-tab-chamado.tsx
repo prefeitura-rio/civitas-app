@@ -262,6 +262,19 @@ export const TicketDetailTabChamado = forwardRef<TicketDetailTabHandle, Props>(
           .catch(() => {})
       },
       onError: (error: unknown) => {
+        const detail = isApiError(error) ? error.response?.data?.detail : null
+        if (
+          isApiError(error) &&
+          error.response?.status === 422 &&
+          Array.isArray(detail) &&
+          detail.some(
+            (item) =>
+              Array.isArray(item?.loc) && item.loc.includes('article_link'),
+          )
+        ) {
+          toast.error('Informe um link válido (URL) para a matéria.')
+          return
+        }
         toast.error(getApiErrorMessage(error))
       },
     })

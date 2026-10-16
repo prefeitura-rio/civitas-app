@@ -19,6 +19,7 @@ export type TicketArchiveFilters = {
   priority?: string[]
   team?: string[]
   services?: TicketArchiveServiceFilter[]
+  has_press_alias?: boolean
 }
 
 export type TicketArchiveListItem = {
@@ -61,6 +62,7 @@ export async function getTicketArchive(filters: TicketArchiveFilters) {
     priority: filters.priority,
     team: filters.team,
     services: filters.services,
+    has_press_alias: filters.has_press_alias,
   })
 
   return response.data

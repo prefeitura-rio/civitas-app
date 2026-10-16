@@ -26,6 +26,7 @@ export type TicketDashboardFilters = {
   team?: string[]
   /** Valores da API, ex.: plate_search_services */
   services?: string[]
+  has_press_alias?: boolean
 }
 
 export async function getTicketsDashboard(filters: TicketDashboardFilters) {
@@ -54,6 +55,7 @@ export async function getTicketsDashboard(filters: TicketDashboardFilters) {
     priority: filters.priority,
     team: filters.team,
     services: filters.services,
+    has_press_alias: filters.has_press_alias,
   })
 
   return response.data

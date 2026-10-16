@@ -5,6 +5,7 @@ import { ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { FilterDateRangeField } from '@/app/(app)/demandas/components/filter-date-range-field'
+import { PressAliasFilterField } from '@/app/(app)/demandas/components/press-alias-filter-field'
 import { Button } from '@/components/ui/button'
 import { getTeamsList } from '@/http/teams/get-teams'
 import {
@@ -37,6 +38,7 @@ export type FilterFormState = {
   priority: SearchOption[]
   team: SearchOption[]
   services: SearchOption[]
+  has_press_alias: boolean
 }
 
 const priorityOptions = ['URGENTE', 'ALTA', 'ROTINA', 'SEM PRIORIDADE']
@@ -62,6 +64,7 @@ export function emptyFilters(): FilterFormState {
     priority: [],
     team: [],
     services: [],
+    has_press_alias: false,
   }
 }
 
@@ -417,6 +420,16 @@ export function TicketsDashboardFilterModal({
                 }
               />
             </div>
+
+            <PressAliasFilterField
+              value={draftFilters.has_press_alias}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  has_press_alias: value,
+                }))
+              }
+            />
           </div>
         </div>
 
