@@ -429,6 +429,7 @@ export function TicketsGeneralList() {
       services: appliedFilters.services.length
         ? appliedFilters.services.map((item) => item.value)
         : undefined,
+      has_press_alias: appliedFilters.has_press_alias || undefined,
     }
   }, [appliedFilters, periodDays, debouncedSearch])
 
@@ -471,6 +472,7 @@ export function TicketsGeneralList() {
       appliedFilters.priority.length,
       appliedFilters.team.length,
       appliedFilters.services.length,
+      appliedFilters.has_press_alias ? 1 : 0,
       appliedFilters.base_date_start ? 1 : 0,
       appliedFilters.base_date_end ? 1 : 0,
       appliedFilters.entry_date_start ? 1 : 0,

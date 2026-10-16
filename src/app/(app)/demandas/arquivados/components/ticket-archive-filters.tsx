@@ -5,6 +5,7 @@ import { ChevronDown, Filter, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { FilterDateRangeField } from '@/app/(app)/demandas/components/filter-date-range-field'
+import { PressAliasFilterField } from '@/app/(app)/demandas/components/press-alias-filter-field'
 import filterModalStyles from '@/app/(app)/demandas/list/components/filter/tickets-general-list-filters.module.css'
 import { Button } from '@/components/ui/button'
 import { getTeamsList } from '@/http/teams/get-teams'
@@ -30,6 +31,7 @@ export type TicketArchiveFilterState = {
   priority: SearchOption[]
   team: SearchOption[]
   services: SearchOption[]
+  has_press_alias: boolean
 }
 
 type SearchMultiSelectProps = {
@@ -98,6 +100,7 @@ export function emptyArchiveFilters(): TicketArchiveFilterState {
     priority: [],
     team: [],
     services: [],
+    has_press_alias: false,
   }
 }
 
@@ -438,6 +441,16 @@ export function TicketArchiveFiltersModal({
                 }
               />
             </div>
+
+            <PressAliasFilterField
+              value={draftFilters.has_press_alias}
+              onChange={(value) =>
+                setDraftFilters((current) => ({
+                  ...current,
+                  has_press_alias: value,
+                }))
+              }
+            />
           </div>
         </div>
 
