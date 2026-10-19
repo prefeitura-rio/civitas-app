@@ -86,11 +86,7 @@ describe.each([
     async function applySwitch() {
       fireEvent.click(screen.getByRole('button', { name: /^Filtrar/ }))
       const callsBeforeToggle = jest.mocked(api.post).mock.calls.length
-      fireEvent.click(
-        screen.getByRole('switch', {
-          name: 'Filtrar chamados com apelido de imprensa',
-        }),
-      )
+      fireEvent.click(screen.getByRole('switch'))
       expect(api.post).toHaveBeenCalledTimes(callsBeforeToggle)
       fireEvent.click(screen.getByRole('button', { name: applyLabel }))
     }
