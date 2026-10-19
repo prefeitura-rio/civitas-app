@@ -19,6 +19,26 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '19 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Filtro de demandas relevantes para imprensa',
+        content: (
+          <>
+            <p>
+              As listas de <strong>Demandas</strong> e{' '}
+              <strong>Demandas &gt; Arquivados</strong> passaram a ter o filtro{' '}
+              <strong>"Relevante para imprensa?"</strong>. Com ele ligado, a
+              consulta mostra só chamados com apelido de imprensa. Desligar ou
+              limpar os filtros volta a listar todos.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '30 de Setembro de 2026',
     subCards: [
       {
