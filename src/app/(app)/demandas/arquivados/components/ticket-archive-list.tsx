@@ -316,6 +316,7 @@ export function TicketArchiveList() {
       services: appliedFilters.services.map(
         (item) => item.value,
       ) as TicketArchiveFilters['services'],
+      has_press_alias: appliedFilters.has_press_alias || undefined,
     }),
     [appliedFilters, debouncedSearch],
   )
@@ -351,6 +352,7 @@ export function TicketArchiveList() {
         appliedFilters.priority.length,
         appliedFilters.team.length,
         appliedFilters.services.length,
+        appliedFilters.has_press_alias ? 1 : 0,
         appliedFilters.base_date_start ? 1 : 0,
         appliedFilters.base_date_end ? 1 : 0,
         appliedFilters.entry_date_start ? 1 : 0,
