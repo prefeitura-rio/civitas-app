@@ -81,6 +81,7 @@ function userDisplayName(
 const roleLabelMap: Record<UserRoleEnum, string> = {
   Coordenador: 'Coordenador',
   Administrativo: 'Administrativo',
+  Analista: 'Analista',
   Adjunto: 'Adjunto',
   'Auxiliar de Adjunto': 'Auxiliar de Adjunto',
   Assessor: 'Assessor',

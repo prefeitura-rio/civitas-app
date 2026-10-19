@@ -3,7 +3,233 @@
 import { Bold, Italic, Link2, Paperclip, Underline } from 'lucide-react'
 import { type MouseEvent, type RefObject, useEffect, useState } from 'react'
 
+import { toStoredTicketReportHtml } from '@/utils/ticket-report-images'
+
 import styles from '../ticket-detail.module.css'
+
+const TICKET_REPORT_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+])
+export const TICKET_REPORT_IMAGE_ACCEPT = [...TICKET_REPORT_IMAGE_TYPES].join(
+  ',',
+)
+const TICKET_REPORT_IMAGE_MARKERS = {
+  demand: '__DEMAND_IMG_',
+  comment: '__COMMENT_IMG_',
+} as const
+export const TICKET_REPORT_IMAGE_MAX_BYTES = 10 * 1024 * 1024
+export const TICKET_REPORT_IMAGE_MAX_SIZE_ERROR =
+  'A imagem não pode ter mais de 10 MB.'
+
+type ClipboardItemWithFile = Pick<DataTransferItem, 'type' | 'getAsFile'>
+
+export function getTicketReportClipboardImages(
+  items: ArrayLike<ClipboardItemWithFile>,
+): File[] {
+  return Array.from(items).flatMap((item) => {
+    if (!TICKET_REPORT_IMAGE_TYPES.has(item.type)) return []
+    const file = item.getAsFile()
+    return file ? [file] : []
+  })
+}
+
+export function getTicketReportImageValidationError(file: File): string | null {
+  if (!TICKET_REPORT_IMAGE_TYPES.has(file.type)) {
+    return 'Use imagens JPEG, PNG, GIF ou WebP.'
+  }
+  if (file.size > TICKET_REPORT_IMAGE_MAX_BYTES) {
+    return TICKET_REPORT_IMAGE_MAX_SIZE_ERROR
+  }
+  return null
+}
+
+/** Prepara imagens embutidas no HTML do clipboard para o upload multipart. */
+export function prepareTicketReportClipboardHtml(html: string): {
+  content: HTMLDivElement
+  images: { element: HTMLImageElement; file: File }[]
+} | null {
+  const content = document.createElement('div')
+  content.innerHTML = sanitizeTicketHtml(html)
+  const embeddedImages = Array.from(content.querySelectorAll('img')).filter(
+    (image) => /^data:/i.test((image.getAttribute('src') || '').trim()),
+  )
+  if (embeddedImages.length === 0) return null
+
+  const images = embeddedImages.map((element, index) => {
+    const source = (element.getAttribute('src') || '').trim()
+    const match =
+      /^data:(image\/(?:jpeg|png|gif|webp));base64,([\s\S]+)$/i.exec(source)
+    if (!match) {
+      throw new Error(
+        'Use imagens JPEG, PNG, GIF ou WebP em base64 ao colar HTML.',
+      )
+    }
+    const encoded = match[2].replace(/\s/g, '')
+    if (encoded.length > Math.ceil(TICKET_REPORT_IMAGE_MAX_BYTES / 3) * 4) {
+      throw new Error(TICKET_REPORT_IMAGE_MAX_SIZE_ERROR)
+    }
+    let decoded: string
+    try {
+      decoded = atob(encoded)
+    } catch {
+      throw new Error('A imagem colada contém base64 inválido.')
+    }
+    if (!decoded.length) throw new Error('A imagem colada está vazia.')
+    const bytes = Uint8Array.from(decoded, (character) =>
+      character.charCodeAt(0),
+    )
+    const type = match[1].toLowerCase()
+    const extension = type === 'image/jpeg' ? 'jpg' : type.split('/')[1]
+    const file = new File([bytes], `imagem-colada-${index + 1}.${extension}`, {
+      type,
+    })
+    const error = getTicketReportImageValidationError(file)
+    if (error) throw new Error(error)
+    return { element, file }
+  })
+
+  return { content, images }
+}
+
+export function insertTicketReportClipboardHtml(
+  html: string,
+  editor: HTMLElement,
+  pendingImages: Map<string, File>,
+): boolean {
+  const prepared = prepareTicketReportClipboardHtml(html)
+  if (!prepared) return false
+  for (const { element, file } of prepared.images) {
+    const blobUrl = URL.createObjectURL(file)
+    pendingImages.set(blobUrl, file)
+    element.setAttribute('src', blobUrl)
+  }
+  const fragment = document.createDocumentFragment()
+  fragment.append(...Array.from(prepared.content.childNodes))
+  insertNodeAtCaret(editor, fragment)
+  return true
+}
+
+export function removeTicketReportImageLoaderState(root: ParentNode): void {
+  for (const image of root.querySelectorAll('img')) {
+    image.classList.remove(styles.ticketReportImageLoading)
+    image.removeAttribute('aria-busy')
+    if (!image.getAttribute('class')) image.removeAttribute('class')
+  }
+}
+
+/** Serializa uma cópia do editor, preservando as URLs locais na tela. */
+export function buildTicketReportUpload(
+  editor: HTMLElement,
+  pendingImages: ReadonlyMap<string, File>,
+  report: keyof typeof TICKET_REPORT_IMAGE_MARKERS,
+): { html_content: string; files: File[] } {
+  const clone = editor.cloneNode(true) as HTMLElement
+  removeTicketReportImageLoaderState(clone)
+  const files: File[] = []
+  for (const image of clone.querySelectorAll('img')) {
+    const file = pendingImages.get(image.getAttribute('src') || '')
+    if (!file) continue
+    image.setAttribute(
+      'src',
+      `${TICKET_REPORT_IMAGE_MARKERS[report]}${files.length}__`,
+    )
+    files.push(file)
+  }
+  return {
+    html_content: toStoredTicketReportHtml(sanitizeTicketHtml(clone.innerHTML)),
+    files,
+  }
+}
+
+/** Sem editor, libera todas as URLs; com editor, libera apenas as removidas. */
+export function releaseTicketReportImages(
+  pendingImages: Map<string, File>,
+  editor?: HTMLElement,
+): void {
+  const used = new Set(
+    Array.from(editor?.querySelectorAll('img') ?? []).map(
+      (image) => image.getAttribute('src') || '',
+    ),
+  )
+  for (const url of pendingImages.keys()) {
+    if (used.has(url)) continue
+    URL.revokeObjectURL(url)
+    pendingImages.delete(url)
+  }
+}
+
+export function useTicketReportImageLoaders(
+  editorRef: RefObject<HTMLElement>,
+  editorMounted: boolean,
+): void {
+  useEffect(() => {
+    if (!editorMounted) return
+    const editor = editorRef.current
+    if (!editor) return
+
+    const syncImageLoaders = () => {
+      for (const image of editor.querySelectorAll('img')) {
+        const isPending = !image.complete
+        image.classList.toggle(styles.ticketReportImageLoading, isPending)
+        if (isPending) image.setAttribute('aria-busy', 'true')
+        else image.removeAttribute('aria-busy')
+      }
+    }
+    const finishImageLoading = (event: Event) => {
+      if (!(event.target instanceof HTMLImageElement)) return
+      event.target.classList.remove(styles.ticketReportImageLoading)
+      event.target.removeAttribute('aria-busy')
+    }
+
+    const observer = new MutationObserver(syncImageLoaders)
+    observer.observe(editor, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src'],
+    })
+    editor.addEventListener('load', finishImageLoading, true)
+    editor.addEventListener('error', finishImageLoading, true)
+    syncImageLoaders()
+
+    return () => {
+      observer.disconnect()
+      editor.removeEventListener('load', finishImageLoading, true)
+      editor.removeEventListener('error', finishImageLoading, true)
+    }
+  }, [editorMounted, editorRef])
+}
+
+export function insertNodeAtCaret(editor: HTMLElement, node: Node) {
+  const lastNode = node instanceof DocumentFragment ? node.lastChild : node
+  if (!lastNode) return
+  editor.focus()
+  const selection = window.getSelection()
+  if (
+    selection?.rangeCount &&
+    selection.anchorNode &&
+    editor.contains(selection.anchorNode)
+  ) {
+    const range = selection.getRangeAt(0)
+    range.deleteContents()
+    range.insertNode(node)
+    range.setStartAfter(lastNode)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    return
+  }
+
+  editor.appendChild(node)
+  const range = document.createRange()
+  range.selectNodeContents(editor)
+  range.collapse(false)
+  selection?.removeAllRanges()
+  selection?.addRange(range)
+}
 
 function nodeInsideEditorLink(node: Node, editor: HTMLElement): boolean {
   let el: Node | null =
@@ -27,17 +253,55 @@ function selectionTouchesLinkInEditor(editor: HTMLElement): boolean {
   )
 }
 
+function isIgnorableUrlCharacter(character: string): boolean {
+  const codePoint = character.codePointAt(0)
+  if (codePoint === undefined) return false
+  return (
+    codePoint <= 0x20 ||
+    (codePoint >= 0x7f && codePoint <= 0x9f) ||
+    (codePoint >= 0x200b && codePoint <= 0x200f) ||
+    (codePoint >= 0x202a && codePoint <= 0x202e) ||
+    (codePoint >= 0x2060 && codePoint <= 0x206f) ||
+    codePoint === 0xfeff
+  )
+}
+
 export function sanitizeTicketHtml(html: string): string {
   if (typeof window === 'undefined') return html
   const doc = new DOMParser().parseFromString(html, 'text/html')
-  doc.querySelectorAll('script, iframe, object, embed').forEach((el) => {
-    el.remove()
-  })
+  doc
+    .querySelectorAll(
+      'script, style, iframe, object, embed, svg, math, form, base, link, meta, template',
+    )
+    .forEach((el) => {
+      el.remove()
+    })
   doc.querySelectorAll('*').forEach((el) => {
     for (const attr of Array.from(el.attributes)) {
-      if (attr.name.toLowerCase().startsWith('on')) {
+      const name = attr.name.toLowerCase()
+      if (name.startsWith('on')) {
         el.removeAttribute(attr.name)
+        continue
       }
+
+      if (name === 'href' || name === 'src') {
+        const normalized = Array.from(attr.value)
+          .filter((character) => !isIgnorableUrlCharacter(character))
+          .join('')
+          .toLowerCase()
+        const activeScheme =
+          normalized.startsWith('javascript:') ||
+          normalized.startsWith('vbscript:')
+        const executableLink =
+          el.tagName === 'A' && normalized.startsWith('data:')
+        if (activeScheme || executableLink) {
+          el.removeAttribute(attr.name)
+        }
+      }
+    }
+
+    if (el.tagName === 'A' && el.getAttribute('target') === '_blank') {
+      el.setAttribute('rel', 'noopener noreferrer')
     }
   })
   return doc.body.innerHTML

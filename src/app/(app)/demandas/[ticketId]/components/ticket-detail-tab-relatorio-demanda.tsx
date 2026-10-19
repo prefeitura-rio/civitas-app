@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import {
   type ChangeEvent,
+  type ClipboardEvent,
   forwardRef,
   useCallback,
   useEffect,
@@ -19,17 +20,23 @@ import {
   putTicketRelatorioDemanda,
 } from '@/http/tickets/ticket-relatorio-demanda'
 import { isApiError } from '@/lib/api'
+import { toBrowserTicketReportHtml } from '@/utils/ticket-report-images'
 
 import styles from '../ticket-detail.module.css'
 import {
+  buildTicketReportUpload,
+  getTicketReportClipboardImages,
+  getTicketReportImageValidationError,
+  insertNodeAtCaret,
+  insertTicketReportClipboardHtml,
   isHtmlEffectivelyEmpty,
+  releaseTicketReportImages,
   RichToolbar,
   sanitizeTicketHtml,
+  TICKET_REPORT_IMAGE_ACCEPT,
+  useTicketReportImageLoaders,
 } from './ticket-detail-rich-text'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
-
-const IMAGE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp'
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 const REPORT_QUERY_KEY = (ticketId: string) =>
   ['ticket', ticketId, 'relatorio-demanda'] as const
@@ -39,32 +46,6 @@ const RELATORIO_PASTE_TOOLTIP =
 
 type Props = {
   ticketId: string
-}
-
-function insertNodeAtCaret(editor: HTMLElement, node: Node) {
-  editor.focus()
-  const sel = window.getSelection()
-  if (
-    sel &&
-    sel.rangeCount > 0 &&
-    sel.anchorNode &&
-    editor.contains(sel.anchorNode)
-  ) {
-    const range = sel.getRangeAt(0)
-    range.deleteContents()
-    range.insertNode(node)
-    range.setStartAfter(node)
-    range.collapse(true)
-    sel.removeAllRanges()
-    sel.addRange(range)
-  } else {
-    editor.appendChild(node)
-    const range = document.createRange()
-    range.selectNodeContents(editor)
-    range.collapse(false)
-    sel?.removeAllRanges()
-    sel?.addRange(range)
-  }
 }
 
 export const TicketDetailTabRelatorioDemanda = forwardRef<
@@ -88,6 +69,10 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     queryKey: REPORT_QUERY_KEY(ticketId),
     queryFn: () => getTicketRelatorioDemanda(ticketId),
   })
+  useTicketReportImageLoaders(
+    editorRef,
+    !reportQuery.isLoading && !reportQuery.isError,
+  )
 
   reportDataRef.current = reportQuery.data
 
@@ -98,30 +83,20 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
   }, [])
 
   const revokeOrphanBlobs = useCallback(() => {
-    const el = editorRef.current
-    if (!el) return
-    const used = new Set(
-      Array.from(el.querySelectorAll('img')).map(
-        (img) => img.getAttribute('src') || '',
-      ),
-    )
-    for (const url of [...pendingByBlobRef.current.keys()]) {
-      if (!used.has(url)) {
-        URL.revokeObjectURL(url)
-        pendingByBlobRef.current.delete(url)
-      }
-    }
+    const editor = editorRef.current
+    if (editor) releaseTicketReportImages(pendingByBlobRef.current, editor)
   }, [])
 
   const resetEditorFromServer = useCallback(() => {
-    pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
-    pendingByBlobRef.current.clear()
+    releaseTicketReportImages(pendingByBlobRef.current)
     const html =
       reportDataRef.current?.html_content != null
         ? reportDataRef.current.html_content
         : ''
     if (editorRef.current) {
-      editorRef.current.innerHTML = sanitizeTicketHtml(html)
+      editorRef.current.innerHTML = toBrowserTicketReportHtml(
+        sanitizeTicketHtml(html),
+      )
       syncEmpty()
     }
     setDirty(false)
@@ -136,7 +111,9 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       reportQuery.data?.html_content != null
         ? reportQuery.data.html_content
         : ''
-    editorRef.current.innerHTML = sanitizeTicketHtml(html)
+    editorRef.current.innerHTML = toBrowserTicketReportHtml(
+      sanitizeTicketHtml(html),
+    )
     syncEmpty()
   }, [
     reportQuery.isLoading,
@@ -150,8 +127,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
   useEffect(() => {
     setDirty(false)
     return () => {
-      pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
-      pendingByBlobRef.current.clear()
+      releaseTicketReportImages(pendingByBlobRef.current)
     }
   }, [ticketId])
 
@@ -173,21 +149,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     const el = editorRef.current
     if (!el) return null
 
-    const clone = el.cloneNode(true) as HTMLElement
-    const files: File[] = []
-    let i = 0
-    for (const img of clone.querySelectorAll('img')) {
-      const src = img.getAttribute('src') || ''
-      const file = pendingByBlobRef.current.get(src)
-      if (file) {
-        img.setAttribute('src', `__DEMAND_IMG_${i}__`)
-        files.push(file)
-        i += 1
-      }
-    }
-
-    const conteudoHtml = sanitizeTicketHtml(clone.innerHTML)
-    return { html_content: conteudoHtml, files }
+    return buildTicketReportUpload(el, pendingByBlobRef.current, 'demand')
   }, [])
 
   const saveMutation = useMutation({
@@ -201,12 +163,11 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       )
     },
     onSuccess: (data) => {
-      pendingByBlobRef.current.forEach((_, url) => URL.revokeObjectURL(url))
-      pendingByBlobRef.current.clear()
+      releaseTicketReportImages(pendingByBlobRef.current)
       queryClient.setQueryData(REPORT_QUERY_KEY(ticketId), data)
       if (editorRef.current) {
-        editorRef.current.innerHTML = sanitizeTicketHtml(
-          data.html_content || '',
+        editorRef.current.innerHTML = toBrowserTicketReportHtml(
+          sanitizeTicketHtml(data.html_content || ''),
         )
         syncEmpty()
       }
@@ -252,18 +213,11 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
     fileInputRef.current?.click()
   }, [])
 
-  const onImageFile = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      e.target.value = ''
-      if (!file) return
-
-      if (!IMAGE_ACCEPT.split(',').includes(file.type)) {
-        toast.error('Use JPEG, PNG, GIF ou WebP.')
-        return
-      }
-      if (file.size > MAX_IMAGE_BYTES) {
-        toast.error('Cada imagem pode ter no máximo 10 MB.')
+  const insertImageFile = useCallback(
+    (file: File) => {
+      const validationError = getTicketReportImageValidationError(file)
+      if (validationError) {
+        toast.error(validationError)
         return
       }
 
@@ -283,6 +237,50 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       revokeOrphanBlobs()
     },
     [revokeOrphanBlobs, syncEmpty],
+  )
+
+  const onImageFile = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      e.target.value = ''
+      if (file) insertImageFile(file)
+    },
+    [insertImageFile],
+  )
+
+  const onPaste = useCallback(
+    (event: ClipboardEvent<HTMLDivElement>) => {
+      const editor = editorRef.current
+      if (!editor) return
+      try {
+        if (
+          insertTicketReportClipboardHtml(
+            event.clipboardData.getData('text/html'),
+            editor,
+            pendingByBlobRef.current,
+          )
+        ) {
+          event.preventDefault()
+          syncEmpty()
+          setDirty(true)
+          revokeOrphanBlobs()
+          return
+        }
+      } catch (error) {
+        event.preventDefault()
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível colar a imagem.',
+        )
+        return
+      }
+      const files = getTicketReportClipboardImages(event.clipboardData.items)
+      if (files.length === 0) return
+      event.preventDefault()
+      files.forEach(insertImageFile)
+    },
+    [insertImageFile, revokeOrphanBlobs, syncEmpty],
   )
 
   const handleSave = () => {
@@ -343,6 +341,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
                 syncEmpty()
                 revokeOrphanBlobs()
               }}
+              onPaste={onPaste}
               suppressContentEditableWarning
             />
           </div>
@@ -363,7 +362,7 @@ export const TicketDetailTabRelatorioDemanda = forwardRef<
       <input
         ref={fileInputRef}
         type="file"
-        accept={IMAGE_ACCEPT}
+        accept={TICKET_REPORT_IMAGE_ACCEPT}
         className="sr-only"
         tabIndex={-1}
         aria-hidden

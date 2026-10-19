@@ -39,6 +39,67 @@ export const changelog: Card[] = [
     ],
   },
   {
+    title: '9 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Busca textual passa a incluir o Relatório de Demanda',
+        content: (
+          <>
+            <p>
+              A busca por texto nos chamados abertos e arquivados agora também
+              considera o conteúdo registrado na aba{' '}
+              <strong>Relatório de Demanda</strong>. Antes, essa aba ficava fora
+              da busca; agora ela é consultada junto com as demais.
+            </p>
+            <p>
+              Com isso, é possível encontrar um chamado pesquisando por qualquer
+              informação que esteja no relatório — como uma placa de veículo, um
+              endereço, o nome de uma pessoa ou qualquer outro texto registrado
+              nessa aba.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    title: '1 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Novo perfil Analista nas Demandas',
+        content: (
+          <>
+            <p>
+              O perfil <strong>Analista</strong> foi adicionado ao módulo de
+              Demandas para permitir que a equipe de contrainteligência trabalhe
+              com requisições restritas.
+            </p>
+            <ul>
+              <li>
+                Analistas podem visualizar e executar chamados classificados
+                como <strong>Requisição Restrita</strong>.
+              </li>
+              <li>
+                O perfil mantém as permissões do Administrativo para chamados
+                comuns.
+              </li>
+              <li>
+                Usuários com perfil Administrativo continuam sem acesso às
+                demandas restritas.
+              </li>
+              <li>
+                O perfil pode ser atribuído a vários usuários pelo cadastro de
+                perfis.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '30 de Setembro de 2026',
     subCards: [
       {
