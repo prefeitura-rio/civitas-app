@@ -19,26 +19,6 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
-    title: '19 de Outubro de 2026',
-    subCards: [
-      {
-        tag: 'Adicionado',
-        title: 'Filtro de demandas relevantes para imprensa',
-        content: (
-          <>
-            <p>
-              As listas de <strong>Demandas</strong> e{' '}
-              <strong>Demandas &gt; Arquivados</strong> passaram a ter o filtro{' '}
-              <strong>"Relevante para imprensa?"</strong>. Com ele ligado, a
-              consulta mostra só chamados com apelido de imprensa. Desligar ou
-              limpar os filtros volta a listar todos.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
-  {
     title: '20 de Outubro de 2026',
     subCards: [
       {
@@ -81,6 +61,26 @@ export const changelog: Card[] = [
             Serviços com campos pendentes agora são destacados na lista. Ao
             abrir o serviço, o campo que precisa de correção também é indicado.
           </p>
+        ),
+      },
+    ],
+  },
+  {
+    title: '19 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Filtro de demandas relevantes para imprensa',
+        content: (
+          <>
+            <p>
+              As listas de <strong>Demandas</strong> e{' '}
+              <strong>Demandas &gt; Arquivados</strong> passaram a ter o filtro{' '}
+              <strong>"Relevante para imprensa?"</strong>. Com ele ligado, a
+              consulta mostra só chamados com apelido de imprensa. Desligar ou
+              limpar os filtros volta a listar todos.
+            </p>
+          </>
         ),
       },
     ],
