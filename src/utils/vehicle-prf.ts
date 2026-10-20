@@ -1,3 +1,5 @@
+import type { Vehicle } from '@/models/entities'
+
 export type VehiclePrf = {
   placa: string
   tipo_veiculo_prf: string | null
@@ -7,23 +9,30 @@ export type VehiclePrf = {
   ano_fabricacao_prf: number | null
 }
 
-export function formatVehiclePrf(
-  vehicle: VehiclePrf | null | undefined,
+export type ReportVehicle = Vehicle | VehiclePrf
+
+export function formatReportVehicle(
+  vehicle: ReportVehicle | null | undefined,
 ): string {
   if (!vehicle) return 'Nenhuma informação do veículo encontrada.'
-
-  const year = [vehicle.ano_fabricacao_prf, vehicle.ano_modelo_prf]
-    .map((value) => value?.toString().trim())
+  const isPrf = 'marca_modelo_prf' in vehicle
+  const fields = isPrf
+    ? [
+        vehicle.tipo_veiculo_prf,
+        vehicle.marca_modelo_prf,
+        vehicle.cor_veiculo_prf,
+      ]
+    : [vehicle.tipoVeiculo, vehicle.marcaModelo, vehicle.cor]
+  const years = isPrf
+    ? [vehicle.ano_fabricacao_prf, vehicle.ano_modelo_prf]
+    : [vehicle.anoFabricacao, vehicle.anoModelo]
+  const year = years
+    .map((value) => (value == null ? '' : String(value).trim()))
     .filter(Boolean)
     .join('/')
 
   return (
-    [
-      vehicle.tipo_veiculo_prf,
-      vehicle.marca_modelo_prf,
-      vehicle.cor_veiculo_prf,
-      year,
-    ]
+    [...fields, year]
       .map((value) => value?.trim())
       .filter(Boolean)
       .join(' - ') || 'Nenhuma informação do veículo encontrada.'

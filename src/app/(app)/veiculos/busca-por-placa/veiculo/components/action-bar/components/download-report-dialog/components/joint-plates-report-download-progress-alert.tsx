@@ -9,7 +9,7 @@ import { useNCarsBeforeAfter } from '@/hooks/useQueries/cars/useNBeforeAfter'
 import { generatePDFReport } from '@/http/cars/n-before-after/get-n-cars-before-after'
 import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
-import { formatVehiclePrf, type VehiclePrf } from '@/utils/vehicle-prf'
+import { formatReportVehicle, type ReportVehicle } from '@/utils/vehicle-prf'
 
 enum FileType {
   'PDF' = 'PDF',
@@ -22,7 +22,7 @@ interface DownloadReportsByDetectionPointButtonProps {
   nMinutes: number
   nPlates: number
   fileType: FileType
-  vehicle?: VehiclePrf | null
+  vehicle?: ReportVehicle | null
 }
 
 export default function JointPlatesReportDownloadProgressAlert({
@@ -99,7 +99,7 @@ export default function JointPlatesReportDownloadProgressAlert({
         new Date(new Date(formattedSearchParams.from).getTime() + diff / 2),
         'dd/MM/yyyy HH:mm:ss',
       )
-      const vehicleInfo = formatVehiclePrf(vehicle)
+      const vehicleInfo = formatReportVehicle(vehicle)
 
       const metadataLines = [
         `Gerado em: ${formatDate(new Date(), 'dd/MM/yyyy HH:mm:ss')}`,

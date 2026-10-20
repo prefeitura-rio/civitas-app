@@ -4,14 +4,14 @@ import { formatDate } from 'date-fns'
 import type { GetCirculationIndicatorsResponse } from '@/http/cars/circulation-indicators/get-circulation-indicators'
 import { periodsLabels } from '@/http/cars/circulation-indicators/get-circulation-indicators'
 import type { GetCarPathRequest } from '@/http/cars/path/get-car-path'
-import { formatVehiclePrf, type VehiclePrf } from '@/utils/vehicle-prf'
+import { formatReportVehicle, type ReportVehicle } from '@/utils/vehicle-prf'
 
 interface ReportCoverProps {
   circulationIndicators?: GetCirculationIndicatorsResponse
   searchParams: GetCarPathRequest
   totalPoints: number
   cloneAlert: boolean
-  vehicle?: VehiclePrf | null
+  vehicle?: ReportVehicle | null
 }
 
 const methodologySteps = [
@@ -477,7 +477,7 @@ export function ReportCover({
 
         <View style={{ flexDirection: 'column', marginTop: 0 }}>
           {renderTableRow('Placa monitorada:', searchParams.plate)}
-          {renderTableRow('Veículo:', formatVehiclePrf(vehicle))}
+          {renderTableRow('Veículo:', formatReportVehicle(vehicle))}
 
           {renderTableRow('Período analisado:', `De ${from} até ${to}`)}
           {renderTableRow('Total de pontos detectados:', totalPoints)}

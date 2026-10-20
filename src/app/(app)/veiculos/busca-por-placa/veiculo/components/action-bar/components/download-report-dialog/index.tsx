@@ -20,9 +20,9 @@ import { Slider } from '@/components/ui/slider'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
-import { useVehiclePrf } from '@/hooks/useQueries/useVehiclePrf'
+import { useReportVehicle } from '@/hooks/useQueries/useReportVehicle'
 import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
-import { formatVehiclePrf } from '@/utils/vehicle-prf'
+import { formatReportVehicle } from '@/utils/vehicle-prf'
 
 import JointPlatesReportDownloadProgressAlert from './components/joint-plates-report-download-progress-alert'
 import { TripsReportDialogContent } from './components/trips-report-dialog-content'
@@ -52,7 +52,7 @@ export function DownloadReportDialog() {
   const [showViagens, setShowViagens] = useState(false)
   const [showPlacasConjuntas, setShowPlacasConjuntas] = useState(false)
   const [fileType, setFileType] = useState<FileType>(FileType.PDF)
-  const { data: vehicle, isPending: isPendingVehicle } = useVehiclePrf(
+  const { vehicle, isPending: isPendingVehicle } = useReportVehicle(
     formattedSearchParams.plate,
     open && fileType === FileType.CSV,
   )
@@ -198,7 +198,7 @@ export function DownloadReportDialog() {
                       setShowViagens(true)
                     }
                     if (fileType === FileType.CSV && trips) {
-                      const vehicleInfo = formatVehiclePrf(vehicle)
+                      const vehicleInfo = formatReportVehicle(vehicle)
                       const metadataCell = [
                         'Nome do relatório: Relatório de Pontos de Detecção (viagens)',
                         `Gerado em: ${formatDate(

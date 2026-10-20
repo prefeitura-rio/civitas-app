@@ -5,7 +5,7 @@ import { DialogContent } from '@/components/ui/dialog'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCirculationIndicators } from '@/hooks/useQueries/useCirculationIndicators'
-import { useVehiclePrf } from '@/hooks/useQueries/useVehiclePrf'
+import { useReportVehicle } from '@/hooks/useQueries/useReportVehicle'
 
 import { ReportDocument } from '../../../../report/components/report-document'
 
@@ -18,7 +18,7 @@ export function TripsReportDialogContent() {
   const { formattedSearchParams } = useCarPathsSearchParams()
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
-  const { data: vehicle, isPending: isPendingVehicle } = useVehiclePrf(
+  const { vehicle, isPending: isPendingVehicle } = useReportVehicle(
     formattedSearchParams.plate,
   )
 

@@ -1,4 +1,4 @@
-import { formatVehiclePrf, type VehiclePrf } from '@/utils/vehicle-prf'
+import { formatReportVehicle, type VehiclePrf } from '@/utils/vehicle-prf'
 
 const vehicle: VehiclePrf = {
   placa: 'IFX4382',
@@ -9,16 +9,16 @@ const vehicle: VehiclePrf = {
   ano_modelo_prf: 2021,
 }
 
-describe('formatVehiclePrf', () => {
+describe('formatReportVehicle with PRF data', () => {
   it('formats vehicle data in the requested field order', () => {
-    expect(formatVehiclePrf(vehicle)).toBe(
+    expect(formatReportVehicle(vehicle)).toBe(
       'Carro - Volkswagen Gol - Prata - 2020/2021',
     )
   })
 
   it('omits unavailable fields without dangling separators', () => {
     expect(
-      formatVehiclePrf({
+      formatReportVehicle({
         ...vehicle,
         tipo_veiculo_prf: null,
         cor_veiculo_prf: ' ',
@@ -28,11 +28,11 @@ describe('formatVehiclePrf', () => {
   })
 
   it('uses a fallback when all vehicle fields are unavailable', () => {
-    expect(formatVehiclePrf(null)).toBe(
+    expect(formatReportVehicle(null)).toBe(
       'Nenhuma informação do veículo encontrada.',
     )
     expect(
-      formatVehiclePrf({
+      formatReportVehicle({
         placa: 'IFX4382',
         tipo_veiculo_prf: null,
         cor_veiculo_prf: null,
