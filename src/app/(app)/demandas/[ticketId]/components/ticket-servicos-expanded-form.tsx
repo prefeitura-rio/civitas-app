@@ -341,26 +341,28 @@ export function ServicosExpandedForm({
             ) : null}
           </div>
           <div className={styles.servicosFieldBlock}>
-            <span className={styles.servicosFieldLabel}>Placas do veículo</span>
+            <span className={styles.servicosFieldLabel}>Equipamentos</span>
             <div className={styles.servicosStack}>
-              {(item.plates ?? []).map((p, pi) => (
-                <Fragment key={p.id}>
+              {(item.equipments ?? []).map((equipment, equipmentIndex) => (
+                <Fragment key={equipment.id}>
                   <div className={styles.servicosPlateRow}>
                     <Input
                       className={`${styles.servicosInput} ${styles.servicosPlateInput}`}
-                      value={p.plate ?? ''}
+                      placeholder="Número do equipamento"
+                      maxLength={20}
+                      value={equipment.equipment_number ?? ''}
                       onChange={(e) =>
                         patch((n) => {
-                          const plates = [
-                            ...(n.radar_search[index].plates ?? []),
+                          const equipments = [
+                            ...(n.radar_search[index].equipments ?? []),
                           ]
-                          plates[pi] = {
-                            ...plates[pi],
-                            plate: maskPlateBR(e.target.value),
+                          equipments[equipmentIndex] = {
+                            ...equipments[equipmentIndex],
+                            equipment_number: e.target.value,
                           }
                           n.radar_search[index] = {
                             ...n.radar_search[index],
-                            plates,
+                            equipments,
                           }
                         })
                       }
@@ -372,19 +374,19 @@ export function ServicosExpandedForm({
                       className={styles.servicosIconBtn}
                       onClick={() =>
                         patch((n) => {
-                          const plates = (
-                            n.radar_search[index].plates ?? []
-                          ).filter((_, i) => i !== pi)
+                          const equipments = (
+                            n.radar_search[index].equipments ?? []
+                          ).filter((_, i) => i !== equipmentIndex)
                           n.radar_search[index] = {
                             ...n.radar_search[index],
-                            plates,
+                            equipments,
                           }
                         })
                       }
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
-                    {pi === (item.plates ?? []).length - 1 ? (
+                    {equipmentIndex === (item.equipments ?? []).length - 1 ? (
                       <Button
                         type="button"
                         variant="ghost"
@@ -394,32 +396,38 @@ export function ServicosExpandedForm({
                           patch((n) => {
                             n.radar_search[index] = {
                               ...n.radar_search[index],
-                              plates: [
-                                ...(n.radar_search[index].plates ?? []),
+                              equipments: [
+                                ...(n.radar_search[index].equipments ?? []),
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
-                                  plate: '',
+                                  equipment_number: '',
                                 },
                               ],
                             }
                           })
                         }
-                        aria-label="Adicionar placa"
-                        title="Adicionar placa"
+                        aria-label="Adicionar equipamento"
+                        title="Adicionar equipamento"
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
                     ) : null}
                   </div>
-                  {fieldErrors?.[`plates.${pi}.plate`] ? (
+                  {fieldErrors?.[
+                    `equipments.${equipmentIndex}.equipment_number`
+                  ] ? (
                     <p className="text-xs text-destructive">
-                      {fieldErrors[`plates.${pi}.plate`]}
+                      {
+                        fieldErrors[
+                          `equipments.${equipmentIndex}.equipment_number`
+                        ]
+                      }
                     </p>
                   ) : null}
                 </Fragment>
               ))}
-              {(item.plates ?? []).length === 0 ? (
+              {(item.equipments ?? []).length === 0 ? (
                 <Button
                   type="button"
                   variant="ghost"
@@ -429,18 +437,18 @@ export function ServicosExpandedForm({
                     patch((n) => {
                       n.radar_search[index] = {
                         ...n.radar_search[index],
-                        plates: [
+                        equipments: [
                           {
                             id: newNestedEntityId(),
                             created_at: nowIso(),
-                            plate: '',
+                            equipment_number: '',
                           },
                         ],
                       }
                     })
                   }
-                  aria-label="Adicionar placa"
-                  title="Adicionar placa"
+                  aria-label="Adicionar equipamento"
+                  title="Adicionar equipamento"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -628,7 +636,7 @@ export function ServicosExpandedForm({
                     <Input
                       className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
                       placeholder="Endereço"
-                      value={addr.address}
+                      value={addr.address_text}
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
@@ -636,7 +644,7 @@ export function ServicosExpandedForm({
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
-                            address: e.target.value,
+                            address_text: e.target.value,
                           }
                           n.image_search[index] = {
                             ...n.image_search[index],
@@ -680,7 +688,7 @@ export function ServicosExpandedForm({
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
-                                  address: '',
+                                  address_text: '',
                                 },
                               ],
                             }
@@ -709,7 +717,7 @@ export function ServicosExpandedForm({
                           {
                             id: newNestedEntityId(),
                             created_at: nowIso(),
-                            address: '',
+                            address_text: '',
                           },
                         ],
                       }
@@ -932,7 +940,7 @@ export function ServicosExpandedForm({
                     <Input
                       className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
                       placeholder="Endereço"
-                      value={addr.address}
+                      value={addr.address_text}
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
@@ -940,7 +948,7 @@ export function ServicosExpandedForm({
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
-                            address: e.target.value,
+                            address_text: e.target.value,
                           }
                           n.image_reservation[index] = {
                             ...n.image_reservation[index],
@@ -984,7 +992,7 @@ export function ServicosExpandedForm({
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
-                                  address: '',
+                                  address_text: '',
                                 },
                               ],
                             }
@@ -1013,7 +1021,7 @@ export function ServicosExpandedForm({
                           {
                             id: newNestedEntityId(),
                             created_at: nowIso(),
-                            address: '',
+                            address_text: '',
                           },
                         ],
                       }
@@ -1192,7 +1200,7 @@ export function ServicosExpandedForm({
                     <Input
                       className={`${styles.servicosInput} ${styles.servicosAddressInput}`}
                       placeholder="Endereço"
-                      value={addr.address}
+                      value={addr.address_text}
                       onChange={(e) =>
                         patch((n) => {
                           const addresses = [
@@ -1200,7 +1208,7 @@ export function ServicosExpandedForm({
                           ]
                           addresses[ai] = {
                             ...addresses[ai],
-                            address: e.target.value,
+                            address_text: e.target.value,
                           }
                           n.image_analysis[index] = {
                             ...n.image_analysis[index],
@@ -1244,7 +1252,7 @@ export function ServicosExpandedForm({
                                 {
                                   id: newNestedEntityId(),
                                   created_at: nowIso(),
-                                  address: '',
+                                  address_text: '',
                                 },
                               ],
                             }
@@ -1273,7 +1281,7 @@ export function ServicosExpandedForm({
                           {
                             id: newNestedEntityId(),
                             created_at: nowIso(),
-                            address: '',
+                            address_text: '',
                           },
                         ],
                       }

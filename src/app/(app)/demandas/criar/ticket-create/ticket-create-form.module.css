@@ -625,6 +625,18 @@
   min-height: 44px;
 }
 
+.serviceItemError {
+  border-color: hsl(var(--destructive));
+  flex-wrap: wrap;
+}
+
+.serviceItemErrorMessage {
+  flex-basis: 100%;
+  margin: 0;
+  color: hsl(var(--destructive));
+  font-size: 12px;
+}
+
 .serviceItemBadgeButton {
   display: inline-flex;
   align-items: center;
@@ -1025,4 +1037,3 @@
   min-height: 0;
   overflow: hidden;
 }
-

@@ -59,7 +59,9 @@ export const servicePlateSearchSchema = z.object({
 export const serviceRadarSearchSchema = z.object({
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
-  plates: z.array(z.string()).default([]),
+  equipments: z
+    .array(z.string().max(20, 'Máximo de 20 caracteres'))
+    .default([]),
   orientation: z
     .string()
     .max(50_000, 'Máximo de 50000 caracteres')
