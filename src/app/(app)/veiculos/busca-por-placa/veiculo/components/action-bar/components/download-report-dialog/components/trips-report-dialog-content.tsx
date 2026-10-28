@@ -5,7 +5,7 @@ import { DialogContent } from '@/components/ui/dialog'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
 import { useCirculationIndicators } from '@/hooks/useQueries/useCirculationIndicators'
-import { useVehicle } from '@/hooks/useQueries/useVehicle'
+import { useReportVehicle } from '@/hooks/useQueries/useReportVehicle'
 
 import { ReportDocument } from '../../../../report/components/report-document'
 
@@ -18,10 +18,10 @@ export function TripsReportDialogContent() {
   const { formattedSearchParams } = useCarPathsSearchParams()
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
-
-  const { data: vehicle, isPending: isPendingVehicle } = useVehicle(
+  const { vehicle, isPending: isPendingVehicle } = useReportVehicle(
     formattedSearchParams.plate,
   )
+
   const {
     data: circulationIndicators,
     isPending: isPendingCirculationIndicators,
@@ -31,7 +31,7 @@ export function TripsReportDialogContent() {
     endTime: formattedSearchParams.to,
   })
 
-  if (isPendingVehicle || isPendingCirculationIndicators) {
+  if (isPendingCirculationIndicators || isPendingVehicle) {
     return (
       <DialogContent className="h-[80%] max-w-7xl">
         <div className="flex h-full flex-col items-center justify-center gap-3">

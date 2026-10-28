@@ -19,6 +19,38 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '20 de Outubro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Dados do veículo na busca por placa',
+        content: (
+          <>
+            <p>
+              Na busca por placa, informações básicas da PRF podem aparecer como
+              alternativa quando a consulta ao Cortex não traz dados. Nesse
+              caso, a tela mostra marca e modelo, cor e ano do modelo, com a
+              fonte identificada.
+            </p>
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Informações do veículo nos relatórios',
+        content: (
+          <>
+            <p>
+              Os relatórios de viagens e de placas conjuntas em PDF e CSV agora
+              incluem as informações disponíveis sobre o veículo: tipo, marca e
+              modelo, cor e anos de fabricação e do modelo.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '19 de Outubro de 2026',
     subCards: [
       {
