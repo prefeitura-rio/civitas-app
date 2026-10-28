@@ -3,6 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
 import {
+  type ChangeEvent,
+  type ClipboardEvent,
   forwardRef,
   useCallback,
   useEffect,
@@ -19,12 +21,21 @@ import {
   type TicketCommentListItem,
 } from '@/http/tickets/ticket-comentarios'
 import { isApiError } from '@/lib/api'
+import { toBrowserTicketReportHtml } from '@/utils/ticket-report-images'
 
 import styles from '../ticket-detail.module.css'
 import {
+  buildTicketReportUpload,
+  getTicketReportClipboardImages,
+  getTicketReportImageValidationError,
+  insertNodeAtCaret,
+  insertTicketReportClipboardHtml,
   isHtmlEffectivelyEmpty,
+  releaseTicketReportImages,
   RichToolbar,
   sanitizeTicketHtml,
+  TICKET_REPORT_IMAGE_ACCEPT,
+  useTicketReportImageLoaders,
 } from './ticket-detail-rich-text'
 import type { TicketDetailTabHandle } from './ticket-detail-tab-handle'
 
@@ -50,14 +61,14 @@ function badgeClassForPapel(papel: string): string {
 }
 
 function CommentBody({ body }: { body: string }) {
-  const html = useMemo(() => sanitizeTicketHtml(body), [body])
-  const plain = useMemo(() => {
-    if (typeof window === 'undefined') return body
-    const doc = new DOMParser().parseFromString(html, 'text/html')
-    return (doc.body.textContent || '').trim()
-  }, [html])
+  const bodyRef = useRef<HTMLDivElement>(null)
+  useTicketReportImageLoaders(bodyRef, true)
+  const html = useMemo(
+    () => toBrowserTicketReportHtml(sanitizeTicketHtml(body)),
+    [body],
+  )
 
-  if (!plain) {
+  if (isHtmlEffectivelyEmpty(html)) {
     return (
       <p className={`${styles.parecerBodyText} ${styles.parecerBodyMuted}`}>
         —
@@ -67,6 +78,7 @@ function CommentBody({ body }: { body: string }) {
 
   return (
     <div
+      ref={bodyRef}
       className={styles.parecerBody}
       dangerouslySetInnerHTML={{ __html: html }}
     />
@@ -79,7 +91,10 @@ export const TicketDetailTabParecerInterno = forwardRef<
 >(function TicketDetailTabParecerInterno({ ticketId }, ref) {
   const queryClient = useQueryClient()
   const editorRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const pendingImagesByBlobUrl = useRef<Map<string, File>>(new Map())
   const [empty, setEmpty] = useState(true)
+  useTicketReportImageLoaders(editorRef, true)
   const emptyRef = useRef(empty)
 
   emptyRef.current = empty
@@ -115,14 +130,15 @@ export const TicketDetailTabParecerInterno = forwardRef<
   )
 
   const mutation = useMutation({
-    mutationFn: (body: string) =>
-      postTicketComment(ticketId, { body: body.trim() }),
+    mutationFn: ({ body, files }: { body: string; files: File[] }) =>
+      postTicketComment(ticketId, { body: body.trim() }, files),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['ticket-comentarios', ticketId],
       })
       await queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
       toast.success('Comentário adicionado.')
+      releaseTicketReportImages(pendingImagesByBlobUrl.current)
       if (editorRef.current) {
         editorRef.current.innerHTML = ''
         setEmpty(true)
@@ -139,6 +155,7 @@ export const TicketDetailTabParecerInterno = forwardRef<
   })
 
   const discardComposer = useCallback(() => {
+    releaseTicketReportImages(pendingImagesByBlobUrl.current)
     if (editorRef.current) {
       editorRef.current.innerHTML = ''
       setEmpty(true)
@@ -148,13 +165,17 @@ export const TicketDetailTabParecerInterno = forwardRef<
   const saveComposer = useCallback(async (): Promise<boolean> => {
     const el = editorRef.current
     if (!el) return false
-    const html = el.innerHTML
+    const { html_content: html, files } = buildTicketReportUpload(
+      el,
+      pendingImagesByBlobUrl.current,
+      'comment',
+    )
     if (isHtmlEffectivelyEmpty(html)) {
       toast.error('Escreva um comentário antes de enviar.')
       return false
     }
     try {
-      await mutation.mutateAsync(html.trim())
+      await mutation.mutateAsync({ body: html.trim(), files })
       return true
     } catch {
       return false
@@ -174,6 +195,83 @@ export const TicketDetailTabParecerInterno = forwardRef<
   const handleSubmit = () => {
     saveComposer().catch(() => {})
   }
+
+  const revokeOrphanPendingImages = useCallback(() => {
+    const editor = editorRef.current
+    if (editor)
+      releaseTicketReportImages(pendingImagesByBlobUrl.current, editor)
+  }, [])
+
+  const insertImageFile = useCallback(
+    (file: File) => {
+      const validationError = getTicketReportImageValidationError(file)
+      if (validationError) {
+        toast.error(validationError)
+        return
+      }
+      const editor = editorRef.current
+      if (!editor) return
+      const blobUrl = URL.createObjectURL(file)
+      pendingImagesByBlobUrl.current.set(blobUrl, file)
+      const image = document.createElement('img')
+      image.alt = ''
+      image.src = blobUrl
+      insertNodeAtCaret(editor, image)
+      syncEmpty()
+      revokeOrphanPendingImages()
+    },
+    [revokeOrphanPendingImages, syncEmpty],
+  )
+
+  const handleImageFile = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      event.target.value = ''
+      if (file) insertImageFile(file)
+    },
+    [insertImageFile],
+  )
+
+  const handlePaste = useCallback(
+    (event: ClipboardEvent<HTMLDivElement>) => {
+      const editor = editorRef.current
+      if (!editor) return
+      try {
+        if (
+          insertTicketReportClipboardHtml(
+            event.clipboardData.getData('text/html'),
+            editor,
+            pendingImagesByBlobUrl.current,
+          )
+        ) {
+          event.preventDefault()
+          syncEmpty()
+          revokeOrphanPendingImages()
+          return
+        }
+      } catch (error) {
+        event.preventDefault()
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível colar a imagem.',
+        )
+        return
+      }
+      const files = getTicketReportClipboardImages(event.clipboardData.items)
+      if (files.length === 0) return
+      event.preventDefault()
+      files.forEach(insertImageFile)
+    },
+    [insertImageFile, revokeOrphanPendingImages, syncEmpty],
+  )
+
+  useEffect(
+    () => () => {
+      releaseTicketReportImages(pendingImagesByBlobUrl.current)
+    },
+    [],
+  )
 
   const items: TicketCommentListItem[] = commentsQuery.data ?? []
 
@@ -214,7 +312,12 @@ export const TicketDetailTabParecerInterno = forwardRef<
 
       <div className={styles.parecerComposer}>
         <div className={styles.parecerEditorShell}>
-          <RichToolbar editorRef={editorRef} onCommand={runCommand} />
+          <RichToolbar
+            editorRef={editorRef}
+            onCommand={runCommand}
+            attachmentDisabled={mutation.isPending}
+            onInsertImage={() => fileInputRef.current?.click()}
+          />
           <div className={styles.parecerEditorArea}>
             {empty ? (
               <span className={styles.parecerPlaceholder} aria-hidden>
@@ -228,8 +331,15 @@ export const TicketDetailTabParecerInterno = forwardRef<
               aria-label="Comentário interno"
               contentEditable={!mutation.isPending}
               className={styles.parecerEditor}
-              onInput={syncEmpty}
-              onBlur={syncEmpty}
+              onInput={() => {
+                syncEmpty()
+                revokeOrphanPendingImages()
+              }}
+              onBlur={() => {
+                syncEmpty()
+                revokeOrphanPendingImages()
+              }}
+              onPaste={handlePaste}
               suppressContentEditableWarning
             />
           </div>
@@ -243,6 +353,15 @@ export const TicketDetailTabParecerInterno = forwardRef<
           {mutation.isPending ? 'Enviando…' : 'Adicionar Comentário'}
         </button>
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={TICKET_REPORT_IMAGE_ACCEPT}
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        onChange={handleImageFile}
+      />
     </div>
   )
 })

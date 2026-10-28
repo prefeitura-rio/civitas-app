@@ -24,10 +24,16 @@ export async function getTicketComments(ticketId: string) {
 export async function postTicketComment(
   ticketId: string,
   payload: TicketCommentCreateIn,
+  files: File[] = [],
 ) {
+  const form = new FormData()
+  form.append('payload', JSON.stringify(payload))
+  for (const file of files) form.append('files', file)
+
   const { data } = await api.post<boolean>(
     `/tickets/${encodeURIComponent(ticketId)}/comments`,
-    payload,
+    form,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
   )
   return data
 }

@@ -30,6 +30,7 @@ import styles from '../perfis.module.css'
 const roleOptions = [
   { value: 'Coordenador', label: 'Coordenador' },
   { value: 'Administrativo', label: 'Administrativo' },
+  { value: 'Analista', label: 'Analista' },
   { value: 'Adjunto', label: 'Adjunto' },
   { value: 'Auxiliar de Adjunto', label: 'Auxiliar de Adjunto' },
   { value: 'Assessor', label: 'Assessor' },
@@ -42,6 +43,7 @@ const profileAccessFormSchema = z.object({
     .enum([
       'Coordenador',
       'Administrativo',
+      'Analista',
       'Adjunto',
       'Auxiliar de Adjunto',
       'Assessor',
