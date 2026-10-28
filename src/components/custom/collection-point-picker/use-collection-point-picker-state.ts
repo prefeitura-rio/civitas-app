@@ -18,11 +18,15 @@ import {
 } from 'react'
 import type { MapRef } from 'react-map-gl'
 
-import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Option } from '@/components/custom/multiselect-with-search'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import { getPlaces } from '@/http/mapbox/get-places'
 import type { CollectionPoint } from '@/models/entities'
+import {
+  getCollectionPointIcon,
+  RADAR_ICON_MAPPING,
+  radarIconAtlas,
+} from '@/utils/collection-point-icons'
 import { haversineDistance } from '@/utils/haversine-distance'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -50,29 +54,6 @@ const AREA_POLYGON_LAYER_ID = 'collection-point-picker-area-polygon-layer'
 
 type AreaSelectionMode = 'polygon' | null
 type LngLatTuple = [number, number]
-
-const iconMapping = {
-  default: { x: 0, y: 0, width: 48, height: 48, mask: false },
-  disabled: { x: 0, y: 48, width: 48, height: 48, mask: false },
-  highlighted: { x: 48, y: 0, width: 48, height: 48, mask: false },
-  'disabled-highlighted': {
-    x: 48,
-    y: 48,
-    width: 48,
-    height: 48,
-    mask: false,
-  },
-  'sentry-default': { x: 0, y: 96, width: 48, height: 48, mask: false },
-  'sentry-highlighted': { x: 48, y: 96, width: 48, height: 48, mask: false },
-  'sentry-disabled': { x: 0, y: 144, width: 48, height: 48, mask: false },
-  'sentry-disabled-highlighted': {
-    x: 48,
-    y: 144,
-    width: 48,
-    height: 48,
-    mask: false,
-  },
-} as const
 
 export interface RadarPopupState {
   point: CollectionPoint
@@ -942,8 +923,7 @@ export function useCollectionPointPickerState({
           typeof radarIconAtlas === 'string'
             ? radarIconAtlas
             : radarIconAtlas.src,
-        iconMapping,
-        // mask:false icons are modulated by getColor; white preserves atlas.
+        iconMapping: RADAR_ICON_MAPPING,
         getColor: [255, 255, 255] as [number, number, number],
         getSize: 1,
         getPosition: (point) => [point.longitude, point.latitude],
@@ -953,15 +933,7 @@ export function useCollectionPointPickerState({
           )
           const isFocused =
             focusedPointId === getCollectionPointSelectionId(point)
-          const isActive = point.activeInLast24Hours
-          const prefix =
-            point.company?.toUpperCase() === 'CIVITAS' ? 'sentry-' : ''
-
-          if (isSelected || isFocused) {
-            return `${prefix}${isActive ? 'highlighted' : 'disabled-highlighted'}`
-          }
-
-          return `${prefix}${isActive ? 'default' : 'disabled'}`
+          return getCollectionPointIcon(point, isSelected || isFocused)
         },
         updateTriggers: {
           getIcon: [draftValue, focusedPointId],
