@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { useCarPathsSearchParams } from '@/hooks/useParams/useCarPathsSearchParams'
-import { useVehicle } from '@/hooks/useQueries/useVehicle'
+import { useReportVehicle } from '@/hooks/useQueries/useReportVehicle'
 
 import { ReportDocument } from '../../report/components/report-document'
 
@@ -20,14 +20,23 @@ export default function DownloadReportButton() {
   const { formattedSearchParams } = useCarPathsSearchParams()
   if (!formattedSearchParams)
     throw new Error('formattedSearchParams is required')
-
-  const { data: vehicle } = useVehicle(formattedSearchParams?.plate || '')
+  const { vehicle, isPending: isPendingVehicle } = useReportVehicle(
+    formattedSearchParams.plate,
+  )
 
   return (
     <Dialog>
-      <Tooltip asChild text="Relatório de viagens" disabled={isLoading}>
+      <Tooltip
+        asChild
+        text="Relatório de viagens"
+        disabled={isLoading || isPendingVehicle}
+      >
         <DialogTrigger asChild>
-          <Button variant="secondary" size="icon" disabled={isLoading}>
+          <Button
+            variant="secondary"
+            size="icon"
+            disabled={isLoading || isPendingVehicle}
+          >
             <Printer className="size-4 shrink-0" />
           </Button>
         </DialogTrigger>
