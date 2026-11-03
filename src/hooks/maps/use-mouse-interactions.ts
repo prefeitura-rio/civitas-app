@@ -5,6 +5,10 @@ import { type MouseEvent, useCallback, useRef } from 'react'
 
 import type { Camera, CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
+import {
+  isPointClusterLayerId,
+  isPointLayerInGroup,
+} from '@/utils/point-layer-config'
 
 interface UseMouseInteractionsProps {
   deckRef: React.RefObject<Deck | null>
@@ -39,16 +43,13 @@ export function useMouseInteractions({
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
       const ZOOM_SIZE = 18
 
-      if (info?.layer?.id.startsWith('point-clusters-')) {
+      if (isPointClusterLayerId(info?.layer?.id ?? '')) {
         setContextMenuPickingInfo(null)
         setOpenContextMenu(false)
         return
       }
 
-      const RADAR_LAYER_IDS = ['radars', 'radars-sentry']
-      const CAMERA_LAYER_IDS = ['cameras', 'cameras-dc3']
-
-      if (RADAR_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
+      if (isPointLayerInGroup(info?.layer?.id ?? '', 'lpr') && info?.object) {
         const radar = info.object as CollectionPoint
         const setRadarInfoMode = useMapStore.getState().setRadarInfoMode
         setRadarInfoMode(radar)
@@ -57,7 +58,10 @@ export function useMouseInteractions({
         return
       }
 
-      if (CAMERA_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
+      if (
+        isPointLayerInGroup(info?.layer?.id ?? '', 'cameras') &&
+        info?.object
+      ) {
         const camera = info.object as Camera
         selectCamera(camera, () => {
           setSelectedRadar(null)
@@ -117,8 +121,7 @@ export function useMouseInteractions({
       const x = e.clientX - 56
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
-      const RADAR_LAYER_IDS = ['radars', 'radars-sentry']
-      if (RADAR_LAYER_IDS.includes(info?.layer?.id ?? '') && info?.object) {
+      if (isPointLayerInGroup(info?.layer?.id ?? '', 'lpr') && info?.object) {
         const radar = info.object as CollectionPoint
         multiSelectRadar(radar)
       }

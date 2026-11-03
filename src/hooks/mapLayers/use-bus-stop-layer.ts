@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import busFront from '@/assets/bus-front.svg'
 import type { BusStop, RawBusStop } from '@/models/entities'
+import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
 export interface UseBusStopLayer {
   data: BusStop[]
@@ -40,7 +41,7 @@ export function useBusStopLayer(): UseBusStopLayer {
   const baseLayer = useMemo(
     () =>
       new IconLayer<BusStop>({
-        id: 'BusStops',
+        id: POINT_LAYER_IDS.busStops,
         data,
         getSize: 24,
         visible: isVisible,

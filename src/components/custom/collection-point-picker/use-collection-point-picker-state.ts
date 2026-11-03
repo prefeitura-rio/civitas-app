@@ -27,6 +27,7 @@ import {
   collectionPointIconAtlas,
   getCollectionPointIcon,
 } from '@/utils/collection-point-icons'
+import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
 import { haversineDistance } from '@/utils/haversine-distance'
 import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
 import {
@@ -259,7 +260,7 @@ export function useCollectionPointPickerState({
         mapPoints.map((point) => ({
           id: getCollectionPointSelectionId(point),
           coordinates: [point.longitude, point.latitude],
-          origin: point.company || 'Origem não informada',
+          origin: getCollectionPointOrigin(point.company),
           point,
         })),
       ),

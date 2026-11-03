@@ -40,6 +40,7 @@ export function Map() {
   const mapSize = useMapSize()
   const clusteredMap = useClusteredMapLayers(
     mapLayers.mapLayers,
+    mapLayers.pointSources,
     mapState.viewport,
     mapSize,
     mapState.setViewport,

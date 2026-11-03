@@ -1,6 +1,8 @@
 import collectionPointIconAtlas from '@/assets/collection-point-icon-atlas.svg'
 import type { CollectionPoint } from '@/models/entities'
 
+import { getCollectionPointOrigin } from './collection-point-origin'
+
 export { collectionPointIconAtlas }
 
 const ICON_SIZE = 48
@@ -93,11 +95,16 @@ export const COLLECTION_POINT_ICON_MAPPING = {
 
 type IconKey = keyof typeof COLLECTION_POINT_ICON_MAPPING
 
+/**
+ * Selects the atlas variant for canonical origin, recent activity and highlight.
+ * Known origin aliases share normalization with cluster counts; unknown origins
+ * retain the existing CET-Rio icon fallback. Atlas colors are preserved.
+ */
 export function getCollectionPointIcon(
   point: Pick<CollectionPoint, 'company' | 'activeInLast24Hours'>,
   highlighted = false,
 ): IconKey {
-  const company = point.company?.toUpperCase()
+  const company = getCollectionPointOrigin(point.company)
   const source =
     company === 'CIVITAS'
       ? 'civitas'

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import school from '@/assets/school.svg'
 import type { School } from '@/models/entities'
+import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
 export interface UseSchoolLayer {
   data: School[]
@@ -38,7 +39,7 @@ export function useSchoolLayer(): UseSchoolLayer {
   const baseLayer = useMemo(
     () =>
       new IconLayer<School>({
-        id: 'schools',
+        id: POINT_LAYER_IDS.schools,
         data,
         pickable: true,
         getSize: 24,

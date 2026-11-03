@@ -1,82 +1,64 @@
 'use client'
 
-import type { Layer, LayersList, MapViewState } from '@deck.gl/core'
+import type { Color, Layer, LayersList, MapViewState } from '@deck.gl/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
 import {
-  type ClusterablePoint,
   type ClusterFeature,
+  type ClusterQueryFeature,
   createClusterLayers,
   createPointClusterIndex,
   getClusterOriginCounts,
   getMapBounds,
   isClusterFeature,
   isIndexedPointFeature,
+  type PointClusterIndex,
 } from '@/utils/point-clustering'
+import {
+  getPointClusterLayerPrefix,
+  POINT_CLUSTER_GROUPS,
+  type PointClusterGroupId,
+} from '@/utils/point-layer-config'
+import type {
+  PreparedPointSource,
+  VisiblePointSource,
+} from '@/utils/point-layer-sources'
 
 // Fallback dimensions in pixels when the map size is unavailable.
 const FALLBACK_MAP_SIZE_PX = { width: 720, height: 620 }
 
-type GenericPoint = {
-  id?: string | number
-  code?: string | number
-  cetRioCode?: string
-  latitude?: number
-  longitude?: number
-  from?: [number, number]
-  company?: string | null
-  sistemaOrigem?: string
-  origem_equipamento?: string
-  index?: number
+interface CachedIndex {
+  sourcePoints: PreparedPointSource['points'][]
+  index: PointClusterIndex
 }
 
-function getCoordinates(point: GenericPoint): [number, number] | null {
-  if (point.from && point.from.length >= 2) return point.from
-  if (Number.isFinite(point.longitude) && Number.isFinite(point.latitude)) {
-    return [point.longitude as number, point.latitude as number]
-  }
-  return null
-}
-
-function pointId(point: GenericPoint, index: number) {
-  return String(
-    point.id ?? point.code ?? point.cetRioCode ?? point.index ?? index,
-  )
-}
-
-function getLayerPoints(layer: Layer): GenericPoint[] {
-  return Array.isArray(layer.props.data)
-    ? (layer.props.data as GenericPoint[])
-    : []
-}
-
-function getOrigin(point: GenericPoint, fallback: string) {
-  return (
-    point.company?.trim() ||
-    point.sistemaOrigem?.trim() ||
-    point.origem_equipamento?.trim() ||
-    fallback
-  )
+interface QueriedGroup {
+  id: PointClusterGroupId
+  color: Color
+  index: PointClusterIndex | null
+  features: ClusterQueryFeature[]
 }
 
 /**
- * Applies proximity clustering to the supported point layers, grouped by category.
+ * Clusters explicitly adapted point sources, independently of layer presentation.
  *
  * @remarks
- * Other layers, including trip detections, retain their original rendering.
- * Index reuse depends on stable source data references in the supplied layers.
- * Cluster clicks request camera expansion; viewport changes clear cluster hover.
+ * Only visible, non-empty sources participate. A bounded cache retains the last
+ * index for each registered category, including while the whole category is hidden.
+ * Stable prepared points prevent hover, selection or camera updates from rebuilding
+ * indexes. Other layers, including trip detections, retain their original rendering.
  *
- * @param baseLayers - Base Deck.gl layers, including nested layer lists.
- * @param viewport - Current map camera used for the spatial query.
- * @param size - Measured map dimensions in CSS pixels; zero dimensions use the
- * named fallback until a size is available.
- * @param setViewport - Updates the camera when the user expands a cluster.
- * @returns Renderable layers and cluster hover state with counts by origin.
+ * @param baseLayers - Rendered Deck.gl layers; their data is not used as spatial input.
+ * @param sources - Typed domain data prepared before rendering. Keep points arrays
+ * stable until data changes; visibility determines each source's participation.
+ * @param viewport - Current camera used for spatial queries and cluster expansion.
+ * @param size - Measured dimensions in CSS pixels; zero values use the named fallback.
+ * @param setViewport - Updates the camera when a cluster is expanded.
+ * @returns Renderable layers and cluster hover state with aggregated origin counts.
  */
 export function useClusteredMapLayers(
   baseLayers: LayersList,
+  sources: readonly VisiblePointSource[],
   viewport: MapViewState,
   size: { width: number; height: number },
   setViewport: (viewport: MapViewState) => void,
@@ -86,16 +68,8 @@ export function useClusteredMapLayers(
   )
   useEffect(() => {
     setHoveredCluster(null)
-  }, [viewport])
-  const indexCache = useRef(
-    new Map<
-      string,
-      {
-        sourceData: unknown[][]
-        index: ReturnType<typeof createPointClusterIndex<GenericPoint>>
-      }
-    >(),
-  )
+  }, [viewport, sources])
+  const indexCache = useRef(new Map<PointClusterGroupId, CachedIndex>())
   const bounds = useMemo(
     () =>
       getMapBounds(
@@ -106,165 +80,120 @@ export function useClusteredMapLayers(
     [size.height, size.width, viewport],
   )
   const zoom = Math.max(0, Math.floor(viewport.zoom ?? 0))
+  const sourceById = useMemo(
+    () =>
+      new Map<string, VisiblePointSource>(
+        sources.map((source) => [source.layerId, source]),
+      ),
+    [sources],
+  )
+  const groups = useMemo<QueriedGroup[]>(
+    () =>
+      POINT_CLUSTER_GROUPS.map((config) => {
+        const activeSources = config.layerIds
+          .map((id) => sourceById.get(id))
+          .filter((source): source is VisiblePointSource =>
+            Boolean(source?.visible && source.points.length),
+          )
+        if (!activeSources.length)
+          return { ...config, index: null, features: [] }
+
+        const sourcePoints = activeSources.map((source) => source.points)
+        const previous = indexCache.current.get(config.id)
+        const unchanged =
+          previous &&
+          previous.sourcePoints.length === sourcePoints.length &&
+          previous.sourcePoints.every(
+            (points, index) => points === sourcePoints[index],
+          )
+        let index = unchanged ? previous.index : null
+        if (!index) {
+          // Adaptation and point concatenation happen only when spatial input changes.
+          index = createPointClusterIndex(
+            activeSources.flatMap((source) => source.points),
+          )
+          indexCache.current.set(config.id, { sourcePoints, index })
+        }
+        return { ...config, index, features: index.getClusters(bounds, zoom) }
+      }),
+    [bounds, sourceById, zoom],
+  )
   const flatLayers = useMemo(() => {
     const flatten = (layers: LayersList): Layer[] =>
       layers.flatMap((layer) => {
         if (!layer) return []
-        if (Array.isArray(layer)) return flatten(layer as LayersList)
-        return [layer as Layer]
+        return Array.isArray(layer) ? flatten(layer) : [layer]
       })
-
     return flatten(baseLayers)
   }, [baseLayers])
 
-  const groups = useMemo(() => {
-    const pointLayerIds = new Set([
-      'radars',
-      'radars-sentry',
-      'cameras',
-      'cameras-dc3',
-      'fogocruzado-incidents',
-      'schools',
-      'BusStops',
-    ])
-    const pointLayers = flatLayers.filter((layer) =>
-      pointLayerIds.has(layer.id),
+  const pointDataByLayer = useMemo(() => {
+    const leafIds = new Set(
+      groups.flatMap((group) =>
+        group.features
+          .filter(isIndexedPointFeature)
+          .map((feature) => feature.id),
+      ),
     )
-    const byId = new Map(pointLayers.map((layer) => [layer.id, layer]))
-    const groupConfigs = [
-      {
-        id: 'lpr',
-        ids: ['radars', 'radars-sentry'],
-        origin: 'LPR',
-        clusterColor: POINT_CLUSTER_COLORS.lpr,
-      },
-      {
-        id: 'cameras',
-        ids: ['cameras', 'cameras-dc3'],
-        origin: 'Câmeras',
-        clusterColor: POINT_CLUSTER_COLORS.cameras,
-      },
-      {
-        id: 'incidents',
-        ids: ['fogocruzado-incidents'],
-        origin: 'Fogo Cruzado',
-        clusterColor: POINT_CLUSTER_COLORS.incidents,
-      },
-      {
-        id: 'schools',
-        ids: ['schools'],
-        origin: 'Escolas',
-        clusterColor: POINT_CLUSTER_COLORS.schools,
-      },
-      {
-        id: 'bus-stops',
-        ids: ['BusStops'],
-        origin: 'Pontos de ônibus',
-        clusterColor: POINT_CLUSTER_COLORS.busStops,
-      },
-    ]
-
-    return groupConfigs.map((config) => {
-      const layers = config.ids
-        .map((id) => byId.get(id))
-        .filter((layer): layer is Layer => Boolean(layer))
-      const points: ClusterablePoint<GenericPoint>[] = layers.flatMap((layer) =>
-        getLayerPoints(layer).flatMap((point, index) => {
-          const coordinates = getCoordinates(point)
-          if (!coordinates) return []
-          return [
-            {
-              id: `${config.id}:${pointId(point, index)}`,
-              coordinates,
-              origin: getOrigin(point, config.origin),
-              point,
-            },
-          ]
-        }),
-      )
-
-      return { ...config, layers, points }
-    })
-  }, [flatLayers])
-
-  const indexes = useMemo(
+    return new Map<string, unknown[]>(
+      sources.map((source) => [
+        source.layerId,
+        source.visible
+          ? source.points
+              .filter((point) => leafIds.has(point.id))
+              .map((point) => point.point)
+          : [],
+      ]),
+    )
+  }, [groups, sources])
+  const individualLayers = useMemo(
     () =>
-      groups.map((group) => {
-        const sourceData = group.layers.map(
-          (layer) => layer.props.data as unknown[],
-        )
-        const previous = indexCache.current.get(group.id)
-        if (
-          previous &&
-          previous.sourceData.length === sourceData.length &&
-          previous.sourceData.every((data, index) => data === sourceData[index])
-        ) {
-          return previous.index
-        }
-
-        const index = createPointClusterIndex(group.points)
-        indexCache.current.set(group.id, { sourceData, index })
-        return index
+      flatLayers.map((layer) => {
+        const source = sourceById.get(layer.id)
+        return source
+          ? layer.clone({
+              data: pointDataByLayer.get(layer.id),
+              visible: source.visible,
+            })
+          : layer
       }),
-    [groups],
+    [flatLayers, pointDataByLayer, sourceById],
+  )
+  const clusterLayers = useMemo(() => {
+    const clusterLayers: LayersList = []
+    groups.forEach((group) => {
+      const index = group.index
+      if (!index || !group.features.some(isClusterFeature)) return
+      const [circles, labels] = createClusterLayers(
+        getPointClusterLayerPrefix(group.id),
+        group.features,
+        (feature) => {
+          setHoveredCluster(null)
+          setViewport({
+            ...viewport,
+            longitude: feature.geometry.coordinates[0],
+            latitude: feature.geometry.coordinates[1],
+            zoom: Math.max(
+              viewport.zoom ?? 0,
+              index.getClusterExpansionZoom(feature.properties.cluster_id),
+            ),
+            transitionDuration: 350,
+          })
+        },
+        setHoveredCluster,
+        group.color,
+      )
+      clusterLayers.push(circles, labels)
+    })
+    return clusterLayers
+  }, [groups, setViewport, viewport])
+  const layers = useMemo(
+    () => [...individualLayers, ...clusterLayers],
+    [individualLayers, clusterLayers],
   )
 
-  const clustered = useMemo(() => {
-    const clusterLayers: LayersList = []
-    const replacements = new Map<string, Layer>()
-
-    groups.forEach((group, groupIndex) => {
-      if (!group.layers.length) return
-      const index = indexes[groupIndex]
-      const features = index.getClusters(bounds, zoom)
-      const leaves = features
-        .filter(isIndexedPointFeature)
-        .map((feature) => feature.properties.point)
-      const leafSet = new Set(leaves)
-
-      group.layers.forEach((layer) => {
-        const visiblePoints = getLayerPoints(layer).filter((point) =>
-          leafSet.has(point),
-        )
-        replacements.set(layer.id, layer.clone({ data: visiblePoints }))
-      })
-
-      if (!features.some(isClusterFeature)) return
-
-      const visible = group.layers.some(
-        (layer) => layer.props.visible !== false,
-      )
-      const onClick = (feature: ClusterFeature) => {
-        setHoveredCluster(null)
-        const expansionZoom = index.getClusterExpansionZoom(
-          feature.properties.cluster_id,
-        )
-        setViewport({
-          ...viewport,
-          longitude: feature.geometry.coordinates[0],
-          latitude: feature.geometry.coordinates[1],
-          zoom: Math.max(viewport.zoom ?? 0, expansionZoom),
-          transitionDuration: 350,
-        })
-      }
-      const [circles, labels] = createClusterLayers(
-        `point-clusters-${group.id}`,
-        features,
-        onClick,
-        (feature) => setHoveredCluster(feature),
-        group.clusterColor,
-      )
-      clusterLayers.push(circles.clone({ visible }), labels.clone({ visible }))
-    })
-
-    return {
-      layers: flatLayers.map((layer) => replacements.get(layer.id) ?? layer),
-      clusterLayers,
-    }
-  }, [bounds, flatLayers, groups, indexes, setViewport, viewport, zoom])
-
   return {
-    layers: [...clustered.layers, ...clustered.clusterLayers],
+    layers,
     hoveredCluster,
     clearHoveredCluster: () => setHoveredCluster(null),
     hoveredOriginCounts: hoveredCluster

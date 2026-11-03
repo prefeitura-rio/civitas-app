@@ -11,7 +11,11 @@ import {
 
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import { getCamera } from '@/http/cameras-cor/get-cameras-cor'
-import { Camera } from '@/models/entities'
+import type { Camera } from '@/models/entities'
+import { getCameraOrigin } from '@/utils/collection-point-origin'
+import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
+
+const EMPTY_CAMERAS: Camera[] = []
 
 export interface UseCamera {
   data: Camera[]
@@ -28,6 +32,10 @@ export interface UseCamera {
   handleSelectObject: (camera: Camera | null, clearRadar?: () => void) => void
 }
 
+/**
+ * Renders camera-system variants with stable query-data partitions.
+ * Hover and selection invalidate icon attributes without rebuilding geographic data.
+ */
 export function useCamera(): UseCamera {
   const [hoveredObject, setHoveredObject] =
     useState<PickingInfo<Camera> | null>(null)
@@ -40,6 +48,17 @@ export function useCamera(): UseCamera {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   })
+
+  const regularPoints = useMemo(
+    () =>
+      data?.filter((point) => getCameraOrigin(point.sistemaOrigem) !== 'DC3'),
+    [data],
+  )
+  const dc3Points = useMemo(
+    () =>
+      data?.filter((point) => getCameraOrigin(point.sistemaOrigem) === 'DC3'),
+    [data],
+  )
 
   const handleSelectObject = useCallback(
     (camera: Camera | null, clearRadar?: () => void) => {
@@ -68,6 +87,9 @@ export function useCamera(): UseCamera {
     visible: isVisible,
     iconAtlas: cameraIconAtlas.src,
     iconMapping,
+    updateTriggers: {
+      getIcon: [selectedObject?.code, hoveredObject?.object?.code],
+    },
     getPosition: (d: Camera) => [d.longitude, d.latitude] as [number, number],
     onHover: (info: PickingInfo<Camera>) => {
       setHoveredObject(info.object ? info : null)
@@ -79,8 +101,8 @@ export function useCamera(): UseCamera {
     () =>
       new IconLayer<Camera>({
         ...sharedProps,
-        id: 'cameras',
-        data: data?.filter((d) => d.sistemaOrigem?.toUpperCase() !== 'DC3'),
+        id: POINT_LAYER_IDS.cameras,
+        data: regularPoints,
         getIcon: (d) => {
           const isActive =
             selectedObject?.code === d.code ||
@@ -96,8 +118,8 @@ export function useCamera(): UseCamera {
     () =>
       new IconLayer<Camera>({
         ...sharedProps,
-        id: 'cameras-dc3',
-        data: data?.filter((d) => d.sistemaOrigem?.toUpperCase() === 'DC3'),
+        id: POINT_LAYER_IDS.camerasDc3,
+        data: dc3Points,
         getIcon: (d) => {
           const isActive =
             selectedObject?.code === d.code ||
@@ -109,7 +131,7 @@ export function useCamera(): UseCamera {
   )
 
   return {
-    data: data || [],
+    data: data ?? EMPTY_CAMERAS,
     failed: !data && !isLoading,
     layer,
     dc3Layer,

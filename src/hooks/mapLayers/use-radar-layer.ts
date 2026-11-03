@@ -9,6 +9,8 @@ import {
   collectionPointIconAtlas,
   getCollectionPointIcon,
 } from '@/utils/collection-point-icons'
+import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
+import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
 import { useCollectionPoints } from '../useQueries/useCollectionPoints'
 
@@ -33,6 +35,11 @@ export interface UseRadarLayer {
   multipleSelectedRadars?: string[]
 }
 
+/**
+ * Renders LPR variants while retaining geographic data references through visual changes.
+ * Query-data updates replace the source partitions; hover and selection only update icons.
+ * @param multipleSelectedRadars - Selected collection-point codes from the map store.
+ */
 export function useRadarLayer(
   multipleSelectedRadars: string[] = [],
 ): UseRadarLayer {
@@ -44,6 +51,20 @@ export function useRadarLayer(
   const [isVisible, setIsVisible] = useState(true)
 
   const { data } = useCollectionPoints()
+  const regularPoints = useMemo(
+    () =>
+      data?.filter(
+        (point) => getCollectionPointOrigin(point.company) !== 'CIVITAS',
+      ),
+    [data],
+  )
+  const sentryPoints = useMemo(
+    () =>
+      data?.filter(
+        (point) => getCollectionPointOrigin(point.company) === 'CIVITAS',
+      ),
+    [data],
+  )
 
   const setMultipleSelectedRadars = useMapStore(
     (state) => state.setMultipleSelectedRadars,
@@ -146,8 +167,8 @@ export function useRadarLayer(
     () =>
       new IconLayer<CollectionPoint>({
         ...sharedProps,
-        id: 'radars',
-        data: data?.filter((d) => d.company?.toUpperCase() !== 'CIVITAS'),
+        id: POINT_LAYER_IDS.radars,
+        data: regularPoints,
         getIcon: getRadarIcon,
       }),
     [...deps],
@@ -158,8 +179,8 @@ export function useRadarLayer(
     () =>
       new IconLayer<CollectionPoint>({
         ...sharedProps,
-        id: 'radars-sentry',
-        data: data?.filter((d) => d.company?.toUpperCase() === 'CIVITAS'),
+        id: POINT_LAYER_IDS.radarsSentry,
+        data: sentryPoints,
         getIcon: getRadarIcon,
       }),
     [...deps],

@@ -17,8 +17,10 @@ describe('collection point icons', () => {
     ['CET-Rio', 'cetrio'],
     ['CIVITAS', 'civitas'],
     ['civitas', 'civitas'],
+    [' CiViTaS ', 'civitas'],
     ['GABRIEL', 'gabriel'],
     ['gabriel', 'gabriel'],
+    [' gabriel ', 'gabriel'],
     [null, 'cetrio'],
     ['OTHER', 'cetrio'],
   ])('uses the atlas row for source %s', (company, source) => {
