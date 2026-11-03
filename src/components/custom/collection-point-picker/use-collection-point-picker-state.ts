@@ -35,6 +35,7 @@ import {
   createClusterLayers,
   createPointClusterIndex,
   getClusterOriginCounts,
+  getExpandedClusterViewState,
   getMapBounds,
   isIndexedPointFeature,
 } from '@/utils/point-clustering'
@@ -1004,18 +1005,11 @@ export function useCollectionPointPickerState({
       `${POINT_LAYER_ID}-clusters`,
       pointClusterFeatures,
       (feature) => {
-        const expansionZoom = pointClusterIndex.getClusterExpansionZoom(
-          feature.properties.cluster_id,
-        )
         setPopupState(null)
         setHoveredPointCluster(null)
-        setViewState((previous) => ({
-          ...previous,
-          longitude: feature.geometry.coordinates[0],
-          latitude: feature.geometry.coordinates[1],
-          zoom: Math.max(previous.zoom ?? 0, expansionZoom),
-          transitionDuration: 350,
-        }))
+        setViewState((previous) =>
+          getExpandedClusterViewState(previous, pointClusterIndex, feature),
+        )
       },
       setHoveredPointCluster,
       POINT_CLUSTER_COLORS.lpr,

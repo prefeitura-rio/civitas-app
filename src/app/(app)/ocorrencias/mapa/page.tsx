@@ -38,16 +38,7 @@ export default function Map() {
         controller
         layers={[
           reports.layers.heatmap,
-          ...reports.layers.clusteredIcons(
-            bounds,
-            zoom,
-            (cluster, expansionZoom) =>
-              setViewport({
-                longitude: cluster.geometry.coordinates[0],
-                latitude: cluster.geometry.coordinates[1],
-                zoom: expansionZoom,
-              }),
-          ),
+          ...reports.layers.clusteredIcons(bounds, zoom, setViewport),
           addressMarker.layer,
         ]}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}

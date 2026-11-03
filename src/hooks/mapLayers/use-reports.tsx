@@ -12,9 +12,11 @@ import {
 import type { Report } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
 import {
+  type ClusterExpansionTarget,
   type ClusterFeature,
   createClusterLayers,
   createPointClusterIndex,
+  getClusterExpansionTarget,
   isIndexedPointFeature,
 } from '@/utils/point-clustering'
 
@@ -34,7 +36,7 @@ export interface UseReports {
     clusteredIcons: (
       bounds: number[],
       zoom: number,
-      onClusterClick?: (cluster: ClusterFeature, expansionZoom: number) => void,
+      onClusterClick?: (target: ClusterExpansionTarget) => void,
     ) => [
       IconLayer<ClusterIcon, object>,
       ScatterplotLayer<ClusterFeature, object>,
@@ -99,14 +101,14 @@ export function useReports(): UseReports {
    *
    * @param bounds - Query bounds in [west, south, east, north] order, in degrees.
    * @param zoom - Camera zoom, floored to an integer for the spatial query.
-   * @param onClusterClick - Receives only an aggregate and its expansion zoom;
-   * the caller owns the camera update.
+   * @param onClusterClick - Receives the aggregate center and native expansion zoom;
+   * the caller owns the camera update and its existing animation policy.
    * @returns Layers ordered as [individual icons, cluster circles, cluster labels].
    */
   function clusteredIcons(
     bounds: number[],
     zoom: number,
-    onClusterClick?: (cluster: ClusterFeature, expansionZoom: number) => void,
+    onClusterClick?: (target: ClusterExpansionTarget) => void,
   ) {
     const clusters = clusterIndex.getClusters(
       [bounds[0], bounds[1], bounds[2], bounds[3]],
@@ -146,10 +148,7 @@ export function useReports(): UseReports {
       'clustered-report-icons',
       clusters,
       (feature) => {
-        onClusterClick?.(
-          feature,
-          clusterIndex.getClusterExpansionZoom(feature.properties.cluster_id),
-        )
+        onClusterClick?.(getClusterExpansionTarget(clusterIndex, feature))
       },
     )
 

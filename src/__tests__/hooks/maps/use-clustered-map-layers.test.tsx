@@ -286,4 +286,96 @@ describe('useClusteredMapLayers with explicit sources', () => {
     expect(result.current.hoveredCluster).toBeNull()
     expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
   })
+
+  it('expands a clicked cluster with the native zoom and clears hover without rebuilding', () => {
+    const prepared = source()
+    const sources = [prepared]
+    const camera = { ...viewport, pitch: 40, bearing: 65 }
+    const { result } = renderHook(() =>
+      useClusteredMapLayers(
+        [layer(prepared.layerId)],
+        sources,
+        camera,
+        size,
+        setViewport,
+      ),
+    )
+    const circles = findLayer(
+      result.current.layers,
+      `${getPointClusterLayerPrefix('lpr')}-circles`,
+    )
+    const [cluster] = Array.from(circles.props.data as Iterable<ClusterFeature>)
+    const index = jest.mocked(createPointClusterIndex).mock.results[0].value
+    const nativeZoom = index.getClusterExpansionZoom(
+      cluster.properties.cluster_id,
+    )
+    type Event = Parameters<NonNullable<typeof circles.props.onClick>>[1]
+    act(() =>
+      circles.props.onHover?.({ object: cluster } as PickingInfo, {} as Event),
+    )
+    expect(result.current.hoveredCluster).toBe(cluster)
+
+    act(() =>
+      circles.props.onClick?.({ object: cluster } as PickingInfo, {} as Event),
+    )
+
+    expect(setViewport).toHaveBeenCalledWith({
+      ...camera,
+      longitude: cluster.geometry.coordinates[0],
+      latitude: cluster.geometry.coordinates[1],
+      zoom: nativeZoom,
+      transitionDuration: 350,
+    })
+    expect(result.current.hoveredCluster).toBeNull()
+    expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps a continuous representation across the final fractional cluster zoom', () => {
+    const prepared = source()
+    const sources = [prepared]
+    const baseLayers = [layer(prepared.layerId)]
+    const { result, rerender } = renderHook(
+      ({ zoom }) =>
+        useClusteredMapLayers(
+          baseLayers,
+          sources,
+          { ...viewport, zoom },
+          size,
+          setViewport,
+        ),
+      { initialProps: { zoom: 16 } },
+    )
+    const clusterId = `${getPointClusterLayerPrefix('lpr')}-circles`
+    expect(
+      Array.from(
+        findLayer(result.current.layers, clusterId).props
+          .data as Iterable<ClusterFeature>,
+      )[0].properties.point_count,
+    ).toBe(2)
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual([])
+
+    rerender({ zoom: 16.99 })
+    expect(
+      Array.from(
+        findLayer(result.current.layers, clusterId).props
+          .data as Iterable<ClusterFeature>,
+      )[0].properties.point_count,
+    ).toBe(2)
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual([])
+
+    rerender({ zoom: 17 })
+    expect(
+      result.current.layers.some(
+        (item) => item && !Array.isArray(item) && item.id === clusterId,
+      ),
+    ).toBe(false)
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual(records)
+    expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
+  })
 })

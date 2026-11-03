@@ -258,4 +258,30 @@ describe('Supercluster feature contracts', () => {
       ).toBe('3')
     }
   })
+
+  it.each([
+    [2, 11],
+    [4, 13],
+    [1024, 29],
+    [2 ** 20, 36],
+  ])(
+    'preserves the logarithmic radius and cap for a count of %s',
+    (count, expectedRadius) => {
+      const cluster = queryFeatures().filter(isClusterFeature)[0]
+      const feature = {
+        ...cluster,
+        properties: { ...cluster.properties, point_count: count },
+      }
+      const [circles] = createClusterLayers('test-radius', [feature])
+      const getRadius = circles.props.getRadius
+      if (typeof getRadius !== 'function')
+        throw new Error('Missing radius accessor')
+
+      expect(
+        getRadius(feature, { index: 0, data: [feature], target: [] }),
+      ).toBe(expectedRadius)
+      expect(circles.props.radiusMinPixels).toBe(9)
+      expect(circles.props.radiusMaxPixels).toBe(36)
+    },
+  )
 })

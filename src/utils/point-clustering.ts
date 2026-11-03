@@ -6,6 +6,12 @@ import {
 import { ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import Supercluster from 'supercluster'
 
+import {
+  POINT_CLUSTER_APPEARANCE,
+  POINT_CLUSTER_EXPANSION_DURATION_MS,
+  POINT_CLUSTER_INDEX_OPTIONS,
+} from './point-cluster-config'
+
 // Include nearby offscreen points so icons/clusters do not pop at the screen edge.
 const CLUSTER_QUERY_MARGIN_PX = 64
 
@@ -87,9 +93,7 @@ export function createPointClusterIndex<T>(
     IndexedPointProperties<T>,
     ClusterOriginProperties
   >({
-    radius: 50,
-    maxZoom: 16,
-    minZoom: 0,
+    ...POINT_CLUSTER_INDEX_OPTIONS,
     map: ({ origin }) => ({ originCounts: { [origin || 'Outra origem']: 1 } }),
     reduce: (aggregate, properties) => {
       // Supercluster shallow-copies cluster properties between zoom levels.
@@ -117,6 +121,54 @@ export function createPointClusterIndex<T>(
   )
 
   return index
+}
+
+/** Geographic center in degrees and the native zoom where an aggregate splits. */
+export type ClusterExpansionTarget = Pick<
+  MapViewState,
+  'longitude' | 'latitude' | 'zoom'
+>
+
+/**
+ * Adapts Supercluster's native expansion result to a camera target.
+ *
+ * @param index - The same index that produced the clicked cluster; IDs belong to that index.
+ * @param cluster - Aggregate to expand. Its center is already in longitude/latitude order.
+ * @returns Center and first split zoom, without animation or camera side effects.
+ * Callers retain ownership of their camera setter and hover/popup cleanup.
+ */
+export function getClusterExpansionTarget<T>(
+  index: Pick<PointClusterIndex<T>, 'getClusterExpansionZoom'>,
+  cluster: ClusterFeature,
+): ClusterExpansionTarget {
+  return {
+    longitude: cluster.geometry.coordinates[0],
+    latitude: cluster.geometry.coordinates[1],
+    zoom: index.getClusterExpansionZoom(cluster.properties.cluster_id),
+  }
+}
+
+/**
+ * Prepares the animated Deck.gl camera update used by vehicles and the LPR picker.
+ *
+ * @param viewport - Latest camera state; orientation, constraints and other fields are preserved.
+ * @param index - Index that produced the clicked aggregate.
+ * @param cluster - Aggregate to expand using the native first split zoom.
+ * @returns A new view state with the shared transition duration in milliseconds.
+ * Never zooms out if the camera has already advanced beyond the picked cluster.
+ */
+export function getExpandedClusterViewState<T>(
+  viewport: MapViewState,
+  index: Pick<PointClusterIndex<T>, 'getClusterExpansionZoom'>,
+  cluster: ClusterFeature,
+): MapViewState {
+  const target = getClusterExpansionTarget(index, cluster)
+  return {
+    ...viewport,
+    ...target,
+    zoom: Math.max(viewport.zoom ?? 0, target.zoom),
+    transitionDuration: POINT_CLUSTER_EXPANSION_DURATION_MS,
+  }
 }
 
 /**
@@ -185,7 +237,7 @@ export function createClusterLayers<T>(
   clusters: ClusterQueryFeature<T>[],
   onClick?: (feature: ClusterFeature) => void,
   onHover?: (feature: ClusterFeature | null) => void,
-  fillColor: Color = [0, 0, 0, 216],
+  fillColor: Color = POINT_CLUSTER_APPEARANCE.defaultFillColor,
 ) {
   const clusterFeatures = clusters.filter(isClusterFeature)
 
@@ -196,15 +248,14 @@ export function createClusterLayers<T>(
     autoHighlight: true,
     radiusUnits: 'pixels',
     getPosition: (feature) => feature.geometry.coordinates as [number, number],
-    getRadius: (feature) =>
-      Math.min(36, 9 + Math.log2(feature.properties.point_count) * 2),
-    radiusMinPixels: 9,
-    radiusMaxPixels: 36,
+    getRadius: (feature) => getClusterRadiusPx(feature.properties.point_count),
+    radiusMinPixels: POINT_CLUSTER_APPEARANCE.minRadiusPx,
+    radiusMaxPixels: POINT_CLUSTER_APPEARANCE.maxRadiusPx,
     stroked: true,
     filled: true,
     getFillColor: fillColor,
-    getLineColor: [255, 255, 255, 245],
-    lineWidthMinPixels: 2,
+    getLineColor: POINT_CLUSTER_APPEARANCE.borderColor,
+    lineWidthMinPixels: POINT_CLUSTER_APPEARANCE.borderWidthPx,
     onClick: (info) => {
       const feature = info.object
       if (feature) onClick?.(feature)
@@ -221,14 +272,24 @@ export function createClusterLayers<T>(
     pickable: false,
     getPosition: (feature) => feature.geometry.coordinates as [number, number],
     getText: (feature) => String(feature.properties.point_count),
-    getColor: [255, 255, 255, 255],
-    getSize: 13,
-    fontWeight: 700,
+    getColor: POINT_CLUSTER_APPEARANCE.labelColor,
+    getSize: POINT_CLUSTER_APPEARANCE.labelSizePx,
+    fontWeight: POINT_CLUSTER_APPEARANCE.labelFontWeight,
     getTextAnchor: 'middle',
     getAlignmentBaseline: 'center',
   })
 
   return [circles, labels] as const
+}
+
+/** Logarithmic radius in CSS pixels: count doublings add equal size, capped to keep labels readable. */
+function getClusterRadiusPx(pointCount: number): number {
+  return Math.min(
+    POINT_CLUSTER_APPEARANCE.maxRadiusPx,
+    POINT_CLUSTER_APPEARANCE.minRadiusPx +
+      Math.log2(pointCount) *
+        POINT_CLUSTER_APPEARANCE.radiusGrowthPxPerDoubling,
+  )
 }
 
 /**

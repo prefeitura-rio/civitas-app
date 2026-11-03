@@ -9,6 +9,7 @@ import {
   createClusterLayers,
   createPointClusterIndex,
   getClusterOriginCounts,
+  getExpandedClusterViewState,
   getMapBounds,
   isClusterFeature,
   isIndexedPointFeature,
@@ -169,16 +170,7 @@ export function useClusteredMapLayers(
         group.features,
         (feature) => {
           setHoveredCluster(null)
-          setViewport({
-            ...viewport,
-            longitude: feature.geometry.coordinates[0],
-            latitude: feature.geometry.coordinates[1],
-            zoom: Math.max(
-              viewport.zoom ?? 0,
-              index.getClusterExpansionZoom(feature.properties.cluster_id),
-            ),
-            transitionDuration: 350,
-          })
+          setViewport(getExpandedClusterViewState(viewport, index, feature))
         },
         setHoveredCluster,
         group.color,
