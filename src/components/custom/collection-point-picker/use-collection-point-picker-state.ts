@@ -23,11 +23,18 @@ import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import { getPlaces } from '@/http/mapbox/get-places'
 import type { CollectionPoint } from '@/models/entities'
 import {
+  COLLECTION_POINT_ICON_MAPPING,
+  collectionPointIconAtlas,
   getCollectionPointIcon,
-  RADAR_ICON_MAPPING,
-  radarIconAtlas,
 } from '@/utils/collection-point-icons'
 import { haversineDistance } from '@/utils/haversine-distance'
+import {
+  type ClusterFeature,
+  createClusterLayers,
+  createPointClusterIndex,
+  getClusterOriginCounts,
+  getMapBounds,
+} from '@/utils/point-clustering'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 import {
@@ -142,6 +149,8 @@ export function useCollectionPointPickerState({
   const [showSelectedOnlyInMap, setShowSelectedOnlyInMap] = useState(false)
   const [showSelectedSection, setShowSelectedSection] = useState(true)
   const [popupState, setPopupState] = useState<RadarPopupState | null>(null)
+  const [hoveredPointCluster, setHoveredPointCluster] =
+    useState<ClusterFeature<CollectionPoint> | null>(null)
   const [pendingScrollOptionId, setPendingScrollOptionId] = useState<
     string | null
   >(null)
@@ -158,8 +167,6 @@ export function useCollectionPointPickerState({
   const mapResizeTimeoutRef = useRef<number | null>(null)
   // Bumped on each open so DeckGL+Mapbox remount cleanly inside the dialog.
   const [mapSurfaceGeneration, setMapSurfaceGeneration] = useState(0)
-  // Bumped after map.resize() so IconLayer reloads atlas into a fresh texture.
-  const [iconAtlasGeneration, setIconAtlasGeneration] = useState(0)
   const [listScrollTop, setListScrollTop] = useState(0)
   const [loadedListResultsCount, setLoadedListResultsCount] =
     useState(RADAR_LIST_PAGE_SIZE)
@@ -235,6 +242,44 @@ export function useCollectionPointPickerState({
   const areaPolygonFeature = useMemo(
     () => buildPolygonFeature(areaDraftPoints),
     [areaDraftPoints],
+  )
+
+  const pointClusterIndex = useMemo(
+    () =>
+      createPointClusterIndex(
+        mapPoints.map((point) => ({
+          id: getCollectionPointSelectionId(point),
+          coordinates: [point.longitude, point.latitude],
+          origin: point.company || 'Origem não informada',
+          point,
+        })),
+      ),
+    [mapPoints],
+  )
+
+  const pointClusterFeatures = useMemo(
+    () =>
+      pointClusterIndex.getClusters(
+        getMapBounds(viewState, mapWidth, mapHeight),
+        Math.max(0, Math.floor(viewState.zoom ?? 0)),
+      ) as ClusterFeature<CollectionPoint>[],
+    [mapHeight, mapWidth, pointClusterIndex, viewState],
+  )
+
+  const visibleClusterLeaves = useMemo(
+    () =>
+      new Set(
+        pointClusterFeatures
+          .filter(
+            (feature) =>
+              feature.properties && !('cluster' in feature.properties),
+          )
+          .map(
+            (feature) =>
+              (feature.properties as { point: CollectionPoint }).point,
+          ),
+      ),
+    [pointClusterFeatures],
   )
 
   const listBuckets = useMemo(() => {
@@ -706,7 +751,7 @@ export function useCollectionPointPickerState({
       x,
       y,
       radius: 8,
-      layerIds: [`${POINT_LAYER_ID}-${iconAtlasGeneration}`],
+      layerIds: [POINT_LAYER_ID],
     }) as PickingInfo<CollectionPoint>
 
     if (!picked?.object) {
@@ -879,6 +924,7 @@ export function useCollectionPointPickerState({
 
   function handleViewStateChange(nextViewState: MapViewState) {
     setPopupState(null)
+    setHoveredPointCluster(null)
     setViewState(nextViewState)
   }
 
@@ -891,15 +937,12 @@ export function useCollectionPointPickerState({
   }
 
   function handleMapLoad() {
-    // Wait for dialog layout/animation, resize Mapbox once, then remount the
-    // IconLayer so the atlas texture is created after resize (resize can
-    // destroy textures on the shared WebGL context).
+    // Wait for the dialog layout/animation before resizing the map.
     if (mapResizeTimeoutRef.current !== null) {
       window.clearTimeout(mapResizeTimeoutRef.current)
     }
     mapResizeTimeoutRef.current = window.setTimeout(() => {
       resizePickerMap()
-      setIconAtlasGeneration((generation) => generation + 1)
       mapResizeTimeoutRef.current = null
     }, 250)
   }
@@ -915,16 +958,12 @@ export function useCollectionPointPickerState({
   const pointLayer = useMemo(
     () =>
       new IconLayer<CollectionPoint>({
-        id: `${POINT_LAYER_ID}-${iconAtlasGeneration}`,
-        data: mapPoints,
+        id: POINT_LAYER_ID,
+        data: mapPoints.filter((point) => visibleClusterLeaves.has(point)),
         pickable: true,
         sizeScale: 24,
-        iconAtlas:
-          typeof radarIconAtlas === 'string'
-            ? radarIconAtlas
-            : radarIconAtlas.src,
-        iconMapping: RADAR_ICON_MAPPING,
-        getColor: [255, 255, 255] as [number, number, number],
+        iconAtlas: collectionPointIconAtlas.src,
+        iconMapping: COLLECTION_POINT_ICON_MAPPING,
         getSize: 1,
         getPosition: (point) => [point.longitude, point.latitude],
         getIcon: (point) => {
@@ -951,10 +990,35 @@ export function useCollectionPointPickerState({
       areaSelectionMode,
       draftValue,
       focusedPointId,
-      iconAtlasGeneration,
       mapPoints,
+      visibleClusterLeaves,
     ],
   )
+
+  const pointClusterLayers = useMemo(() => {
+    const [circles, labels] = createClusterLayers(
+      `${POINT_LAYER_ID}-clusters`,
+      pointClusterFeatures,
+      (feature) => {
+        if (!feature.properties || !('cluster_id' in feature.properties)) return
+        const expansionZoom = pointClusterIndex.getClusterExpansionZoom(
+          feature.properties.cluster_id,
+        )
+        setPopupState(null)
+        setHoveredPointCluster(null)
+        setViewState((previous) => ({
+          ...previous,
+          longitude: feature.geometry.coordinates[0],
+          latitude: feature.geometry.coordinates[1],
+          zoom: Math.max(previous.zoom ?? 0, expansionZoom),
+          transitionDuration: 350,
+        }))
+      },
+      setHoveredPointCluster,
+    )
+
+    return [circles, labels]
+  }, [pointClusterFeatures, pointClusterIndex])
 
   const areaLineLayer = useMemo(() => {
     if (areaDraftPoints.length < 2) return null
@@ -1021,10 +1085,20 @@ export function useCollectionPointPickerState({
 
   const mapLayers = useMemo(
     () =>
-      [areaPolygonLayer, areaLineLayer, areaVertexLayer, pointLayer].filter(
-        Boolean,
-      ),
-    [areaLineLayer, areaPolygonLayer, areaVertexLayer, pointLayer],
+      [
+        areaPolygonLayer,
+        areaLineLayer,
+        areaVertexLayer,
+        pointLayer,
+        ...pointClusterLayers,
+      ].filter(Boolean),
+    [
+      areaLineLayer,
+      areaPolygonLayer,
+      areaVertexLayer,
+      pointLayer,
+      pointClusterLayers,
+    ],
   )
 
   return {
@@ -1070,6 +1144,10 @@ export function useCollectionPointPickerState({
     listViewportRef,
     mapContainerRef,
     mapLayers,
+    hoveredPointCluster,
+    hoveredPointClusterOriginCounts: hoveredPointCluster
+      ? getClusterOriginCounts(hoveredPointCluster)
+      : {},
     mapPoints,
     mapRef,
     mapSearch,

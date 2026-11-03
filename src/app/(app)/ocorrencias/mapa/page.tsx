@@ -18,7 +18,9 @@ export default function Map() {
     layers: { reports, addressMarker },
   } = useReportsMap()
 
-  const bounds = mapRef.current?.getBounds()?.toArray()?.flat() ?? [0, 0, 0, 0]
+  const bounds = mapRef.current?.getBounds()?.toArray()?.flat() ?? [
+    -180, -85, 180, 85,
+  ]
   const zoom = viewport.zoom
 
   return (
@@ -36,7 +38,16 @@ export default function Map() {
         controller
         layers={[
           reports.layers.heatmap,
-          ...reports.layers.clusteredIcons(bounds, zoom),
+          ...reports.layers.clusteredIcons(
+            bounds,
+            zoom,
+            (cluster, expansionZoom) =>
+              setViewport({
+                longitude: cluster.geometry.coordinates[0],
+                latitude: cluster.geometry.coordinates[1],
+                zoom: expansionZoom,
+              }),
+          ),
           addressMarker.layer,
         ]}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}

@@ -1,11 +1,9 @@
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'
 import type { PickingInfo } from '@deck.gl/core'
-import { IconLayer, TextLayer } from '@deck.gl/layers'
+import { IconLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
-import { type Dispatch, type SetStateAction, useState } from 'react'
-import Supercluster from 'supercluster'
+import { type Dispatch, type SetStateAction, useMemo, useState } from 'react'
 
-import circle from '@/assets/circle.svg'
 import messageCircleWarning from '@/assets/message-circle-warning.svg'
 import {
   getHeatmapReports,
@@ -13,10 +11,15 @@ import {
 } from '@/http/reports/dashboard/get-heatmap'
 import type { Report } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
+import {
+  type ClusterFeature,
+  createClusterLayers,
+  createPointClusterIndex,
+} from '@/utils/point-clustering'
 
 import { useReportsSearchParams } from '../useParams/useReportsSearchParams'
 
-interface ClusterIcon extends Report {
+interface ClusterIcon extends HeatmapCoordinates {
   position: Coordinates
   icon: string
   size: number
@@ -30,7 +33,15 @@ export interface UseReports {
     clusteredIcons: (
       bounds: number[],
       zoom: number,
-    ) => [IconLayer<ClusterIcon, object>, TextLayer<ClusterIcon, object>]
+      onClusterClick?: (
+        cluster: ClusterFeature<HeatmapCoordinates>,
+        expansionZoom: number,
+      ) => void,
+    ) => [
+      IconLayer<ClusterIcon, object>,
+      ScatterplotLayer<ClusterFeature<HeatmapCoordinates>, object>,
+      TextLayer<ClusterFeature<HeatmapCoordinates>, object>,
+    ]
   }
   layerStates: {
     isLoading: boolean
@@ -56,9 +67,24 @@ export function useReports(): UseReports {
     queryFn: () => getHeatmapReports(formattedSearchParams),
   })
 
-  const filtered = data
-    ? data.filter((item) => !!item.longitude && !!item.latitude)
-    : []
+  const filtered = useMemo(
+    () =>
+      data ? data.filter((item) => !!item.longitude && !!item.latitude) : [],
+    [data],
+  )
+
+  const clusterIndex = useMemo(
+    () =>
+      createPointClusterIndex(
+        filtered.map((report) => ({
+          id: report.reportId,
+          coordinates: [report.longitude || 0, report.latitude || 0],
+          origin: 'Ocorrências',
+          point: report,
+        })),
+      ),
+    [filtered],
+  )
 
   const heatmap = new HeatmapLayer<Report>({
     id: 'reports-heatmap',
@@ -70,49 +96,33 @@ export function useReports(): UseReports {
     visible: isHeatmapLayerVisible,
   })
 
-  function clusteredIcons(bounds: number[], zoom: number) {
-    // Adjust the cluster radius based on zoom and cluster size
-    const adjustedRadius = Math.max(40, zoom * 5) // Scale radius with zoom level
-
-    const index = new Supercluster({
-      radius: adjustedRadius, // Cluster radius in pixels
-      maxZoom: 16, // Max zoom level for clustering
-      minZoom: 0, // Min zoom level for clustering
-      extent: 512, // Tile extent (512 by default)
-      nodeSize: 64, // Size of the tile index node
-    })
-
-    index.load(
-      filtered.map((item) => ({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [item.longitude || 0, item.latitude || 0],
-        },
-        properties: item,
-      })),
-    )
-
-    const clusters = index.getClusters(
+  function clusteredIcons(
+    bounds: number[],
+    zoom: number,
+    onClusterClick?: (
+      cluster: ClusterFeature<HeatmapCoordinates>,
+      expansionZoom: number,
+    ) => void,
+  ) {
+    const clusters = clusterIndex.getClusters(
       [bounds[0], bounds[1], bounds[2], bounds[3]],
-      zoom,
-    )
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedData = clusters.map((item: any) => {
-      const isCluster = item.properties.cluster
-
-      return {
-        ...item.properties,
-        position: [item.geometry.coordinates[0], item.geometry.coordinates[1]],
-        icon: isCluster ? circle.src : messageCircleWarning.src, // Use different icons for clusters vs points
-        size: item.properties.cluster
-          ? // ? 35 + 1 * item.properties.point_count
-            25 * Math.log(0.005 * item.properties.point_count - 0.04 + 1) + 35
-          : 30, // Scale icon size based on whether it's a cluster or point
-        point_count: item.properties.point_count || 1, // For displaying number of points in a cluster
-      }
-    })
+      Math.max(0, Math.floor(zoom)),
+    ) as ClusterFeature<HeatmapCoordinates>[]
+    const leaves = clusters
+      .filter(
+        (feature) => feature.properties && !('cluster' in feature.properties),
+      )
+      .map(
+        (feature) =>
+          (feature.properties as { point: HeatmapCoordinates }).point,
+      )
+    const formattedData = leaves.map((report) => ({
+      ...report,
+      position: [report.longitude || 0, report.latitude || 0] as Coordinates,
+      icon: messageCircleWarning.src,
+      size: 30,
+      point_count: 1,
+    }))
 
     const iconLayer = new IconLayer<ClusterIcon>({
       id: 'clustered-report-icons',
@@ -129,36 +139,30 @@ export function useReports(): UseReports {
       highlightColor: [249, 115, 22, 255], // orange-500
       autoHighlight: true,
       onHover: (info) => {
-        if (!info.object?.cluster) {
-          setHoverInfo(info)
-        }
+        setHoverInfo(info.object ? info : ({} as PickingInfo<Report>))
       },
       visible: isIconsLayerVisible,
-      // visible: false,
     })
+    const [clusterCircles, clusterLabels] = createClusterLayers(
+      'clustered-report-icons',
+      clusters,
+      (feature) => {
+        if (!feature.properties || !('cluster_id' in feature.properties)) return
+        onClusterClick?.(
+          feature,
+          clusterIndex.getClusterExpansionZoom(feature.properties.cluster_id),
+        )
+      },
+    )
 
-    const textLayer = new TextLayer<ClusterIcon>({
-      id: 'clustered-report-icons-text',
-      data: formattedData.filter((item) => item?.cluster),
-      getPosition: (info) => info.position,
-      getColor: [0, 0, 0],
-      getSize: (info) =>
-        info.point_count <= 99
-          ? info.size * 0.5
-          : info.point_count <= 999
-            ? info.size * 0.4
-            : info.size * 0.3,
-      getTextAnchor: 'middle',
-      getText: (info) => String(info.point_count),
-      fontWeight: 10,
-      pickable: false,
-      visible: isIconsLayerVisible,
-      // visible: false,
-    })
-
-    return [iconLayer, textLayer] as [
+    return [
+      iconLayer,
+      clusterCircles.clone({ visible: isIconsLayerVisible }),
+      clusterLabels.clone({ visible: isIconsLayerVisible }),
+    ] as [
       IconLayer<ClusterIcon, object>,
-      TextLayer<ClusterIcon, object>,
+      ScatterplotLayer<ClusterFeature<HeatmapCoordinates>, object>,
+      TextLayer<ClusterFeature<HeatmapCoordinates>, object>,
     ]
   }
   return {

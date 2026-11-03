@@ -308,6 +308,25 @@ export function CollectionPointPickerDialog({
                         }}
                       />
 
+                      {picker.hoveredPointCluster ? (
+                        <div className="absolute left-3 top-3 z-10 min-w-40 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
+                          <p className="font-semibold text-foreground">
+                            {picker.hoveredPointCluster.properties &&
+                            'point_count' in
+                              picker.hoveredPointCluster.properties
+                              ? `${picker.hoveredPointCluster.properties.point_count} pontos LPR`
+                              : 'Pontos LPR agrupados'}
+                          </p>
+                          {Object.entries(
+                            picker.hoveredPointClusterOriginCounts,
+                          ).map(([origin, count]) => (
+                            <p key={origin} className="text-muted-foreground">
+                              {origin}: {count}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
+
                       {picker.popupState ? (
                         <div
                           className="absolute z-10 w-72 rounded-md border bg-background p-3 shadow-lg"

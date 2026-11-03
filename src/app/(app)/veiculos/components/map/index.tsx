@@ -7,11 +7,13 @@ import { useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { MapSizeMonitor } from '@/components/custom/map-size-monitor'
+import { useClusteredMapLayers } from '@/hooks/maps/use-clustered-map-layers'
 import { useMapLayers } from '@/hooks/maps/use-map-layers'
 import { useMapSearch } from '@/hooks/maps/use-map-search'
 import { useMapState } from '@/hooks/maps/use-map-state'
 import { useMouseInteractions } from '@/hooks/maps/use-mouse-interactions'
 import { useSelectionManagement } from '@/hooks/maps/use-selection-management'
+import { useMapSize } from '@/hooks/use-map-size'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
@@ -35,6 +37,13 @@ export function Map() {
 
   const mapState = useMapState({ mapRef, deckRef })
   const mapLayers = useMapLayers()
+  const mapSize = useMapSize()
+  const clusteredMap = useClusteredMapLayers(
+    mapLayers.mapLayers,
+    mapState.viewport,
+    mapSize,
+    mapState.setViewport,
+  )
   const mapSearch = useMapSearch({
     radars: mapLayers.radars,
     cameras: mapLayers.cameras,
@@ -74,7 +83,7 @@ export function Map() {
         initialViewState={mapState.viewport}
         controller
         onResize={() => mapRef.current?.resize()}
-        layers={mapLayers.mapLayers}
+        layers={clusteredMap.layers}
         onViewStateChange={mapState.handleViewStateChange}
         getCursor={mapState.getCursor}
       >
@@ -98,6 +107,24 @@ export function Map() {
       <SelectionCards />
       <HoverCards />
       <MapLayerControl />
+
+      {clusteredMap.hoveredCluster ? (
+        <div className="absolute right-3 top-14 z-40 min-w-48 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
+          <p className="font-semibold text-foreground">
+            {clusteredMap.hoveredCluster.properties &&
+            'point_count' in clusteredMap.hoveredCluster.properties
+              ? `${clusteredMap.hoveredCluster.properties.point_count} pontos`
+              : 'Pontos agrupados'}
+          </p>
+          {Object.entries(clusteredMap.hoveredOriginCounts).map(
+            ([origin, count]) => (
+              <p key={origin} className="text-muted-foreground">
+                {origin}: {count}
+              </p>
+            ),
+          )}
+        </div>
+      ) : null}
 
       <ContextMenu
         open={openContextMenu}

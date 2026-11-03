@@ -5,9 +5,9 @@ import { useCallback, useMemo, useState } from 'react'
 import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
 import {
+  COLLECTION_POINT_ICON_MAPPING,
+  collectionPointIconAtlas,
   getCollectionPointIcon,
-  RADAR_ICON_MAPPING,
-  radarIconAtlas,
 } from '@/utils/collection-point-icons'
 
 import { useCollectionPoints } from '../useQueries/useCollectionPoints'
@@ -104,9 +104,9 @@ export function useRadarLayer(
   const sharedProps = {
     pickable: true,
     sizeScale: 24,
-    iconAtlas: radarIconAtlas.src,
-    iconMapping: RADAR_ICON_MAPPING,
-    getColor: (): [number, number, number] => [240, 140, 10],
+    iconAtlas: collectionPointIconAtlas.src,
+    iconMapping: COLLECTION_POINT_ICON_MAPPING,
+    getIcon: getRadarIcon,
     getPosition: (d: CollectionPoint) =>
       [d.longitude, d.latitude] as [number, number],
     visible: isVisible,
@@ -122,7 +122,7 @@ export function useRadarLayer(
     },
   }
 
-  const getRadarIcon = (d: CollectionPoint) => {
+  function getRadarIcon(d: CollectionPoint) {
     const isSelected = selectedObject?.cetRioCode === d.cetRioCode
     const isMultiSelected = selectedObjects.some(
       (item) => item.cetRioCode === d.cetRioCode,

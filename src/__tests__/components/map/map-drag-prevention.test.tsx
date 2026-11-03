@@ -8,6 +8,15 @@ jest.mock('@/hooks/useContexts/use-map-context', () => ({
   useMap: jest.fn(),
 }))
 
+jest.mock('@/hooks/maps/use-clustered-map-layers', () => ({
+  useClusteredMapLayers: () => ({
+    layers: [],
+    hoveredCluster: null,
+    clearHoveredCluster: jest.fn(),
+    hoveredOriginCounts: {},
+  }),
+}))
+
 jest.mock('deck.gl', () => ({
   DeckGL: ({ children, ...props }: any) => (
     <div data-testid="deck-gl" {...props}>

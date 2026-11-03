@@ -39,6 +39,12 @@ export function useMouseInteractions({
       const info = deckRef.current?.pickObject({ x, y, radius: 0 })
       const ZOOM_SIZE = 18
 
+      if (info?.layer?.id.startsWith('point-clusters-')) {
+        setContextMenuPickingInfo(null)
+        setOpenContextMenu(false)
+        return
+      }
+
       const RADAR_LAYER_IDS = ['radars', 'radars-sentry']
       const CAMERA_LAYER_IDS = ['cameras', 'cameras-dc3']
 

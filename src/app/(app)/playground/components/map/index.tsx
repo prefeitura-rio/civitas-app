@@ -30,6 +30,123 @@ export function PlaygroundMap() {
     y: 0,
   })
 
+  const syncPointClusterSource = () => {
+    const draw = drawRef.current
+    const source = map.current?.getSource('playground-point-clusters') as
+      | mapboxgl.GeoJSONSource
+      | undefined
+    if (!draw || !source) return
+
+    const pointFeatures = draw
+      .getAll()
+      .features.filter((feature) => feature.geometry.type === 'Point')
+    source.setData({ type: 'FeatureCollection', features: pointFeatures })
+  }
+
+  const setupPointClusters = () => {
+    const activeMap = map.current
+    if (!activeMap || activeMap.getSource('playground-point-clusters')) return
+
+    activeMap.addSource('playground-point-clusters', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+      cluster: true,
+      clusterRadius: 48,
+      clusterMaxZoom: 16,
+    })
+    activeMap.addLayer({
+      id: 'playground-point-clusters-circle',
+      type: 'circle',
+      source: 'playground-point-clusters',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': '#184a7a',
+        'circle-radius': [
+          'step',
+          ['get', 'point_count'],
+          18,
+          25,
+          22,
+          100,
+          27,
+          500,
+          32,
+        ],
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff',
+      },
+    })
+    activeMap.addLayer({
+      id: 'playground-point-clusters-count',
+      type: 'symbol',
+      source: 'playground-point-clusters',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': ['get', 'point_count_abbreviated'],
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 13,
+      },
+      paint: { 'text-color': '#ffffff' },
+    })
+    activeMap.addLayer({
+      id: 'playground-point-clusters-leaves',
+      type: 'circle',
+      source: 'playground-point-clusters',
+      filter: ['!', ['has', 'point_count']],
+      maxzoom: 16,
+      paint: {
+        'circle-radius': 7,
+        'circle-color': ['coalesce', ['get', 'color'], '#3bb2d0'],
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1.5,
+      },
+    })
+    ;[
+      'gl-draw-point-inactive.cold',
+      'gl-draw-point-inactive.hot',
+      'gl-draw-point-active.cold',
+      'gl-draw-point-active.hot',
+    ].forEach((layerId) => {
+      if (!activeMap.getLayer(layerId)) return
+      const existingFilter = activeMap.getFilter(layerId)
+      activeMap.setFilter(layerId, [
+        'all',
+        existingFilter ?? ['==', ['get', 'meta'], 'feature'],
+        ['>', ['zoom'], 16],
+      ])
+    })
+
+    activeMap.on('draw.create', syncPointClusterSource)
+    activeMap.on('draw.update', syncPointClusterSource)
+    activeMap.on('draw.delete', syncPointClusterSource)
+    activeMap.on('click', 'playground-point-clusters-leaves', (event) => {
+      const feature = event.features?.[0]
+      if (feature?.id === undefined) return
+      drawRef.current?.changeMode('simple_select', {
+        featureIds: [String(feature.id)],
+      })
+    })
+    activeMap.on('click', 'playground-point-clusters-circle', (event) => {
+      const feature = event.features?.[0]
+      const clusterId = feature?.properties?.cluster_id
+      if (clusterId === undefined || !feature?.geometry) return
+      const coordinates = (feature.geometry as GeoJSON.Point).coordinates as [
+        number,
+        number,
+      ]
+
+      const source = activeMap.getSource(
+        'playground-point-clusters',
+      ) as mapboxgl.GeoJSONSource
+      source.getClusterExpansionZoom(Number(clusterId), (error, zoom) => {
+        if (error || zoom == null) return
+        activeMap.easeTo({ center: coordinates, zoom })
+      })
+    })
+
+    syncPointClusterSource()
+  }
+
   useEffect(() => {
     if (map.current) return // initialize map only once
     map.current = new mapboxgl.Map({
@@ -54,6 +171,7 @@ export function PlaygroundMap() {
       })
       if (map.current) {
         map.current.addControl(drawRef.current)
+        setupPointClusters()
         map.current.on('draw.selectionchange', handleSelectionChange)
         map.current.on('draw.delete', () => setPopoverOpen(false))
         map.current.on('click', (e) =>
@@ -91,6 +209,7 @@ export function PlaygroundMap() {
       }
       feature.properties.color = color
       drawRef.current.add(feature)
+      syncPointClusterSource()
       updateDrawColors()
     }
   }

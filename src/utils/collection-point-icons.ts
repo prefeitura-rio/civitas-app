@@ -1,55 +1,111 @@
-import radarIconAtlas from '@/assets/radar-icon-atlas.png'
+import collectionPointIconAtlas from '@/assets/collection-point-icon-atlas.svg'
 import type { CollectionPoint } from '@/models/entities'
 
-export { radarIconAtlas }
+export { collectionPointIconAtlas }
 
-export const RADAR_ICON_MAPPING = {
-  default: { x: 0, y: 0, width: 48, height: 48, mask: false },
-  highlighted: { x: 48, y: 0, width: 48, height: 48, mask: false },
-  disabled: { x: 0, y: 48, width: 48, height: 48, mask: false },
-  'disabled-highlighted': {
-    x: 48,
-    y: 48,
-    width: 48,
-    height: 48,
+const ICON_SIZE = 48
+export const COLLECTION_POINT_ICON_MAPPING = {
+  'cetrio-active-normal': {
+    x: 0,
+    y: 0,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
     mask: false,
   },
-  'sentry-default': { x: 0, y: 96, width: 48, height: 48, mask: false },
-  'sentry-highlighted': { x: 48, y: 96, width: 48, height: 48, mask: false },
-  'sentry-disabled': { x: 0, y: 144, width: 48, height: 48, mask: false },
-  'sentry-disabled-highlighted': {
-    x: 48,
-    y: 144,
-    width: 48,
-    height: 48,
+  'cetrio-active-highlighted': {
+    x: ICON_SIZE,
+    y: 0,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
     mask: false,
   },
-  'gabriel-default': { x: 0, y: 192, width: 48, height: 48, mask: false },
-  'gabriel-highlighted': { x: 48, y: 192, width: 48, height: 48, mask: false },
-  'gabriel-disabled': { x: 0, y: 240, width: 48, height: 48, mask: false },
-  'gabriel-disabled-highlighted': {
-    x: 48,
-    y: 240,
-    width: 48,
-    height: 48,
+  'cetrio-inactive-normal': {
+    x: ICON_SIZE * 2,
+    y: 0,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'cetrio-inactive-highlighted': {
+    x: ICON_SIZE * 3,
+    y: 0,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'civitas-active-normal': {
+    x: 0,
+    y: ICON_SIZE,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'civitas-active-highlighted': {
+    x: ICON_SIZE,
+    y: ICON_SIZE,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'civitas-inactive-normal': {
+    x: ICON_SIZE * 2,
+    y: ICON_SIZE,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'civitas-inactive-highlighted': {
+    x: ICON_SIZE * 3,
+    y: ICON_SIZE,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'gabriel-active-normal': {
+    x: 0,
+    y: ICON_SIZE * 2,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'gabriel-active-highlighted': {
+    x: ICON_SIZE,
+    y: ICON_SIZE * 2,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'gabriel-inactive-normal': {
+    x: ICON_SIZE * 2,
+    y: ICON_SIZE * 2,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    mask: false,
+  },
+  'gabriel-inactive-highlighted': {
+    x: ICON_SIZE * 3,
+    y: ICON_SIZE * 2,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
     mask: false,
   },
 } as const
 
+type IconKey = keyof typeof COLLECTION_POINT_ICON_MAPPING
+
 export function getCollectionPointIcon(
   point: Pick<CollectionPoint, 'company' | 'activeInLast24Hours'>,
   highlighted = false,
-): keyof typeof RADAR_ICON_MAPPING {
+): IconKey {
   const company = point.company?.toUpperCase()
-  const prefix =
-    company === 'CIVITAS' ? 'sentry-' : company === 'GABRIEL' ? 'gabriel-' : ''
-  const state = point.activeInLast24Hours
-    ? highlighted
-      ? 'highlighted'
-      : 'default'
-    : highlighted
-      ? 'disabled-highlighted'
-      : 'disabled'
+  const source =
+    company === 'CIVITAS'
+      ? 'civitas'
+      : company === 'GABRIEL'
+        ? 'gabriel'
+        : 'cetrio'
+  const state = point.activeInLast24Hours ? 'active' : 'inactive'
+  const focus = highlighted ? 'highlighted' : 'normal'
 
-  return `${prefix}${state}`
+  return `${source}-${state}-${focus}` as IconKey
 }
