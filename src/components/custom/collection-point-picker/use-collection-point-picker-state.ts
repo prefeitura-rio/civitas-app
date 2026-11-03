@@ -1,4 +1,4 @@
-import { type MapViewState, WebMercatorViewport } from '@deck.gl/core'
+import type { MapViewState } from '@deck.gl/core'
 import {
   Deck,
   IconLayer,
@@ -128,6 +128,17 @@ function buildPolygonFeature(points: LngLatTuple[]) {
   }
 }
 
+/**
+ * Coordinates LPR selection, list navigation and map interactions for the picker.
+ *
+ * @remarks
+ * Cluster queries include an offscreen margin; list visibility and focus checks
+ * use viewport bounds without that margin. Selection remains per collection point.
+ * Selection actions notify `onChange`; applying also emits the current draft.
+ * `defaultSelectAll` only initializes the draft and waits for explicit application.
+ *
+ * @returns Picker state, map layers, element refs and list/map action handlers.
+ */
 export function useCollectionPointPickerState({
   value,
   onChange,
@@ -225,17 +236,13 @@ export function useCollectionPointPickerState({
   const mapHeight = mapContainerRef.current?.clientHeight ?? PICKER_MAP_HEIGHT
 
   const mapViewportBounds = useMemo(() => {
-    const viewport = new WebMercatorViewport({
-      width: mapWidth,
-      height: mapHeight,
-      longitude: viewState.longitude,
-      latitude: viewState.latitude,
-      zoom: viewState.zoom,
-      pitch: viewState.pitch ?? 0,
-      bearing: viewState.bearing ?? 0,
-    })
-    const [west, south] = viewport.unproject([0, mapHeight])
-    const [east, north] = viewport.unproject([mapWidth, 0])
+    // List visibility uses the screen bounds, without the cluster query margin.
+    const [west, south, east, north] = getMapBounds(
+      viewState,
+      mapWidth,
+      mapHeight,
+      0,
+    )
 
     return { west, south, east, north }
   }, [mapHeight, mapWidth, viewState])

@@ -13,6 +13,9 @@ import {
   getMapBounds,
 } from '@/utils/point-clustering'
 
+// Fallback dimensions in pixels when the map size is unavailable.
+const FALLBACK_MAP_SIZE_PX = { width: 720, height: 620 }
+
 type GenericPoint = {
   id?: string | number
   code?: string | number
@@ -55,6 +58,21 @@ function getOrigin(point: GenericPoint, fallback: string) {
   )
 }
 
+/**
+ * Applies proximity clustering to the supported point layers, grouped by category.
+ *
+ * @remarks
+ * Other layers, including trip detections, retain their original rendering.
+ * Index reuse depends on stable source data references in the supplied layers.
+ * Cluster clicks request camera expansion; viewport changes clear cluster hover.
+ *
+ * @param baseLayers - Base Deck.gl layers, including nested layer lists.
+ * @param viewport - Current map camera used for the spatial query.
+ * @param size - Measured map dimensions in CSS pixels; zero dimensions use the
+ * named fallback until a size is available.
+ * @param setViewport - Updates the camera when the user expands a cluster.
+ * @returns Renderable layers and cluster hover state with counts by origin.
+ */
 export function useClusteredMapLayers(
   baseLayers: LayersList,
   viewport: MapViewState,
@@ -76,7 +94,12 @@ export function useClusteredMapLayers(
     >(),
   )
   const bounds = useMemo(
-    () => getMapBounds(viewport, size.width || 720, size.height || 620),
+    () =>
+      getMapBounds(
+        viewport,
+        size.width || FALLBACK_MAP_SIZE_PX.width,
+        size.height || FALLBACK_MAP_SIZE_PX.height,
+      ),
     [size.height, size.width, viewport],
   )
   const zoom = Math.max(0, Math.floor(viewport.zoom ?? 0))
