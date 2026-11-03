@@ -28,6 +28,7 @@ import {
   getCollectionPointIcon,
 } from '@/utils/collection-point-icons'
 import { haversineDistance } from '@/utils/haversine-distance'
+import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
 import {
   type ClusterFeature,
   createClusterLayers,
@@ -1015,6 +1016,7 @@ export function useCollectionPointPickerState({
         }))
       },
       setHoveredPointCluster,
+      POINT_CLUSTER_COLORS.lpr,
     )
 
     return [circles, labels]

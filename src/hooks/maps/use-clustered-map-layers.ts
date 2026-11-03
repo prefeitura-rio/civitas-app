@@ -3,6 +3,7 @@
 import type { Layer, LayersList, MapViewState } from '@deck.gl/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
 import {
   type ClusterablePoint,
   type ClusterFeature,
@@ -105,15 +106,36 @@ export function useClusteredMapLayers(
     )
     const byId = new Map(pointLayers.map((layer) => [layer.id, layer]))
     const groupConfigs = [
-      { id: 'lpr', ids: ['radars', 'radars-sentry'], origin: 'LPR' },
-      { id: 'cameras', ids: ['cameras', 'cameras-dc3'], origin: 'Câmeras' },
+      {
+        id: 'lpr',
+        ids: ['radars', 'radars-sentry'],
+        origin: 'LPR',
+        clusterColor: POINT_CLUSTER_COLORS.lpr,
+      },
+      {
+        id: 'cameras',
+        ids: ['cameras', 'cameras-dc3'],
+        origin: 'Câmeras',
+        clusterColor: POINT_CLUSTER_COLORS.cameras,
+      },
       {
         id: 'incidents',
         ids: ['fogocruzado-incidents'],
         origin: 'Fogo Cruzado',
+        clusterColor: POINT_CLUSTER_COLORS.incidents,
       },
-      { id: 'schools', ids: ['schools'], origin: 'Escolas' },
-      { id: 'bus-stops', ids: ['BusStops'], origin: 'Pontos de ônibus' },
+      {
+        id: 'schools',
+        ids: ['schools'],
+        origin: 'Escolas',
+        clusterColor: POINT_CLUSTER_COLORS.schools,
+      },
+      {
+        id: 'bus-stops',
+        ids: ['BusStops'],
+        origin: 'Pontos de ônibus',
+        clusterColor: POINT_CLUSTER_COLORS.busStops,
+      },
     ]
 
     return groupConfigs.map((config) => {
@@ -216,6 +238,7 @@ export function useClusteredMapLayers(
         features,
         onClick,
         (feature) => setHoveredCluster(feature),
+        group.clusterColor,
       )
       clusterLayers.push(circles.clone({ visible }), labels.clone({ visible }))
     })

@@ -1,4 +1,8 @@
-import { type MapViewState, WebMercatorViewport } from '@deck.gl/core'
+import {
+  type Color,
+  type MapViewState,
+  WebMercatorViewport,
+} from '@deck.gl/core'
 import { ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import type { Feature, Point } from 'geojson'
 import Supercluster from 'supercluster'
@@ -46,8 +50,8 @@ export function createPointClusterIndex<T>(
       'cluster' | 'cluster_id' | 'point_count' | 'point_count_abbreviated'
     >
   >({
-    radius: 100,
-    maxZoom: 12,
+    radius: 50,
+    maxZoom: 16,
     minZoom: 0,
     map: ({ origin }) => ({ originCounts: { [origin || 'Outra origem']: 1 } }),
     reduce: (aggregate, properties) => {
@@ -105,6 +109,7 @@ export function createClusterLayers<T>(
   clusters: ClusterFeature<T>[],
   onClick?: (feature: ClusterFeature<T>) => void,
   onHover?: (feature: ClusterFeature<T> | null) => void,
+  fillColor: Color = [0, 0, 0, 216],
 ) {
   const clusterFeatures = clusters.filter((feature) =>
     Boolean(feature.properties && 'cluster' in feature.properties),
@@ -122,13 +127,13 @@ export function createClusterLayers<T>(
         feature.properties && 'point_count' in feature.properties
           ? feature.properties.point_count
           : 2
-      return Math.min(34, 18 + Math.log2(count) * 2)
+      return Math.min(36, 9 + Math.log2(count) * 2)
     },
-    radiusMinPixels: 18,
-    radiusMaxPixels: 34,
+    radiusMinPixels: 9,
+    radiusMaxPixels: 36,
     stroked: true,
     filled: true,
-    getFillColor: [0, 0, 0, 216],
+    getFillColor: fillColor,
     getLineColor: [255, 255, 255, 245],
     lineWidthMinPixels: 2,
     onClick: (info) => {

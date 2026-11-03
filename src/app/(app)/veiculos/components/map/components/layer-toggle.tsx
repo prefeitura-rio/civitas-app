@@ -12,7 +12,7 @@ import {
   Shield,
   Video,
 } from 'lucide-react'
-import { useState } from 'react'
+import { type CSSProperties, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -24,12 +24,36 @@ import {
 import { Toggle } from '@/components/ui/toggle'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { MapStyle } from '@/utils/get-map-style'
+import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
 
 type Layer = {
   name: string
   icon: React.ReactNode
   isVisible: boolean
   setIsVisible: (isVisible: boolean) => void
+  clusterColor?: [number, number, number, number]
+}
+
+function getLayerButtonStyle(layer: Layer): CSSProperties | undefined {
+  if (!layer.clusterColor || !layer.isVisible) return undefined
+
+  const [red, green, blue] = layer.clusterColor
+  const backgroundColor = `rgb(${red}, ${green}, ${blue})`
+  const relativeLuminance = [red, green, blue]
+    .map((channel) => {
+      const normalized = channel / 255
+      return normalized <= 0.04045
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4
+    })
+    .reduce((sum, channel, index) => {
+      return sum + channel * [0.2126, 0.7152, 0.0722][index]
+    }, 0)
+
+  return {
+    backgroundColor,
+    color: relativeLuminance > 0.179 ? '#111827' : '#ffffff',
+  }
 }
 
 export function MapLayerControl() {
@@ -64,18 +88,21 @@ export function MapLayerControl() {
       icon: <Cctv />,
       isVisible: isRadarVisible,
       setIsVisible: setIsRadarVisible,
+      clusterColor: POINT_CLUSTER_COLORS.lpr,
     },
     {
       name: 'Câmeras',
       icon: <Video />,
       isVisible: isCameraVisible,
       setIsVisible: setIsCameraVisible,
+      clusterColor: POINT_CLUSTER_COLORS.cameras,
     },
     {
       name: 'Fogo Cruzado',
       icon: <FlameKindling />,
       isVisible: isFogoCruzadoVisible,
       setIsVisible: setIsFogoCruzadoVisible,
+      clusterColor: POINT_CLUSTER_COLORS.incidents,
     },
     {
       name: 'Satélite',
@@ -108,12 +135,14 @@ export function MapLayerControl() {
       icon: <School />,
       isVisible: isSchoolsVisible,
       setIsVisible: setIsSchoolsVisible,
+      clusterColor: POINT_CLUSTER_COLORS.schools,
     },
     {
       name: 'Paradas de Ônibus',
       icon: <BusFront />,
       isVisible: isBusStopsVisible,
       setIsVisible: setIsBusStopsVisible,
+      clusterColor: POINT_CLUSTER_COLORS.busStops,
     },
   ]
 
@@ -164,7 +193,12 @@ export function MapLayerControl() {
                           key={index}
                           pressed={layer.isVisible}
                           onPressedChange={layer.setIsVisible}
-                          className="flex size-20 shrink-0 flex-col items-center justify-center data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                          style={getLayerButtonStyle(layer)}
+                          className={`flex size-20 shrink-0 flex-col items-center justify-center ${
+                            layer.clusterColor
+                              ? ''
+                              : 'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
+                          }`}
                           aria-label={`Toggle ${layer.name} layer`}
                         >
                           {layer.icon}
