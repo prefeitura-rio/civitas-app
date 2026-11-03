@@ -111,10 +111,7 @@ export function Map() {
       {clusteredMap.hoveredCluster ? (
         <div className="absolute right-3 top-14 z-40 min-w-48 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
           <p className="font-semibold text-foreground">
-            {clusteredMap.hoveredCluster.properties &&
-            'point_count' in clusteredMap.hoveredCluster.properties
-              ? `${clusteredMap.hoveredCluster.properties.point_count} pontos`
-              : 'Pontos agrupados'}
+            {`${clusteredMap.hoveredCluster.properties.point_count} pontos`}
           </p>
           {Object.entries(clusteredMap.hoveredOriginCounts).map(
             ([origin, count]) => (

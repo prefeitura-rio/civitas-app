@@ -1,7 +1,17 @@
 /** @jest-environment node */
 import { type MapViewState, WebMercatorViewport } from '@deck.gl/core'
+import type Supercluster from 'supercluster'
 
-import { createPointClusterIndex, getMapBounds } from '@/utils/point-clustering'
+import {
+  type ClusterablePoint,
+  createClusterLayers,
+  createPointClusterIndex,
+  getClusterOriginCounts,
+  getMapBounds,
+  type IndexedPointProperties,
+  isClusterFeature,
+  isIndexedPointFeature,
+} from '@/utils/point-clustering'
 
 // Exercise real projection and spatial queries instead of the global Deck.gl mocks.
 jest.mock('@deck.gl/core', () =>
@@ -9,6 +19,9 @@ jest.mock('@deck.gl/core', () =>
 )
 jest.mock('supercluster', () =>
   jest.requireActual('../../../node_modules/supercluster/dist/supercluster.js'),
+)
+jest.mock('@deck.gl/layers', () =>
+  jest.requireActual('../../../node_modules/@deck.gl/layers/dist/index.cjs'),
 )
 
 const width = 1000
@@ -153,5 +166,96 @@ describe('getMapBounds', () => {
     expect(bounds.every(Number.isFinite)).toBe(true)
     expect(bounds[0]).toBeLessThan(bounds[2])
     expect(bounds[1]).toBeLessThan(bounds[3])
+  })
+})
+
+describe('Supercluster feature contracts', () => {
+  const payloads = [{ code: 'A' }, { code: 'B' }, { code: 'C' }, { code: 'D' }]
+  const points: ClusterablePoint<(typeof payloads)[number]>[] = payloads.map(
+    (point, index) => ({
+      id: point.code,
+      coordinates: index === 3 ? [-44.5, -22.9] : [-43.2, -22.9],
+      origin: index === 1 ? 'GABRIEL' : 'CIVITAS',
+      point,
+    }),
+  )
+
+  function queryFeatures() {
+    return createPointClusterIndex(points).getClusters([-45, -24, -42, -21], 12)
+  }
+
+  it('narrows native query results into clusters and points without array casts', () => {
+    const features = queryFeatures()
+    const clusters = features.filter(isClusterFeature)
+    const leaves = features.filter(isIndexedPointFeature)
+
+    // These assignments also verify compatibility with the installed native types.
+    const cluster: Supercluster.ClusterFeature<{
+      originCounts: Record<string, number>
+    }> = clusters[0]
+    const leaf: Supercluster.PointFeature<
+      IndexedPointProperties<(typeof payloads)[number]>
+    > = leaves[0]
+
+    expect(clusters).toHaveLength(1)
+    expect(leaves).toHaveLength(1)
+    expect(cluster.properties.point_count).toBe(3)
+    expect(leaf.properties.point).toBe(payloads[3])
+    expect(leaf.id).toBe('D')
+    // @ts-expect-error Aggregates have no individual point payload.
+    expect(clusters[0].properties.point).toBeUndefined()
+    // @ts-expect-error Individual points have no cluster identifier.
+    expect(leaves[0].properties.cluster_id).toBeUndefined()
+  })
+
+  it('preserves origin aggregation when using native cluster properties', () => {
+    const cluster = queryFeatures().filter(isClusterFeature)[0]
+
+    expect(getClusterOriginCounts(cluster)).toEqual({ CIVITAS: 2, GABRIEL: 1 })
+  })
+
+  it('uses the true cluster flag rather than the mere presence of a property', () => {
+    const point = queryFeatures().filter(isIndexedPointFeature)[0]
+    const flaggedPoint = {
+      ...point,
+      properties: { ...point.properties, cluster: false },
+    }
+
+    expect(isClusterFeature(flaggedPoint)).toBe(false)
+    expect(isIndexedPointFeature(flaggedPoint)).toBe(true)
+  })
+
+  it('does not confuse a cluster flag inside the original point with a cluster', () => {
+    const [feature] = createPointClusterIndex([
+      {
+        id: 'A',
+        coordinates: [-43.2, -22.9],
+        origin: 'CIVITAS',
+        point: { cluster: true, code: 'A' },
+      },
+    ]).getClusters([-45, -24, -42, -21], 12)
+
+    expect(isIndexedPointFeature(feature)).toBe(true)
+    expect(isClusterFeature(feature)).toBe(false)
+    expect(getClusterOriginCounts(feature)).toEqual({})
+  })
+
+  it('gives cluster layers only clustered features and their native count', () => {
+    const features = queryFeatures()
+    const [circles, labels] = createClusterLayers('test-clusters', features)
+    const cluster = features.filter(isClusterFeature)[0]
+
+    expect(circles.props.data).toEqual([cluster])
+    expect(labels.props.data).toEqual([cluster])
+    expect(typeof labels.props.getText).toBe('function')
+    if (typeof labels.props.getText === 'function') {
+      expect(
+        labels.props.getText(cluster, {
+          index: 0,
+          data: [cluster],
+          target: [],
+        }),
+      ).toBe('3')
+    }
   })
 })

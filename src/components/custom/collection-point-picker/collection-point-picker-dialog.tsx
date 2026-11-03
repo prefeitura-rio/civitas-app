@@ -311,11 +311,7 @@ export function CollectionPointPickerDialog({
                       {picker.hoveredPointCluster ? (
                         <div className="absolute left-3 top-3 z-10 min-w-40 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
                           <p className="font-semibold text-foreground">
-                            {picker.hoveredPointCluster.properties &&
-                            'point_count' in
-                              picker.hoveredPointCluster.properties
-                              ? `${picker.hoveredPointCluster.properties.point_count} pontos LPR`
-                              : 'Pontos LPR agrupados'}
+                            {`${picker.hoveredPointCluster.properties.point_count} pontos LPR`}
                           </p>
                           {Object.entries(
                             picker.hoveredPointClusterOriginCounts,

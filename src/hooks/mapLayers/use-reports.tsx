@@ -15,6 +15,7 @@ import {
   type ClusterFeature,
   createClusterLayers,
   createPointClusterIndex,
+  isIndexedPointFeature,
 } from '@/utils/point-clustering'
 
 import { useReportsSearchParams } from '../useParams/useReportsSearchParams'
@@ -33,14 +34,11 @@ export interface UseReports {
     clusteredIcons: (
       bounds: number[],
       zoom: number,
-      onClusterClick?: (
-        cluster: ClusterFeature<HeatmapCoordinates>,
-        expansionZoom: number,
-      ) => void,
+      onClusterClick?: (cluster: ClusterFeature, expansionZoom: number) => void,
     ) => [
       IconLayer<ClusterIcon, object>,
-      ScatterplotLayer<ClusterFeature<HeatmapCoordinates>, object>,
-      TextLayer<ClusterFeature<HeatmapCoordinates>, object>,
+      ScatterplotLayer<ClusterFeature, object>,
+      TextLayer<ClusterFeature, object>,
     ]
   }
   layerStates: {
@@ -96,26 +94,27 @@ export function useReports(): UseReports {
     visible: isHeatmapLayerVisible,
   })
 
+  /**
+   * Builds individual occurrence icons and aggregate circles/count labels.
+   *
+   * @param bounds - Query bounds in [west, south, east, north] order, in degrees.
+   * @param zoom - Camera zoom, floored to an integer for the spatial query.
+   * @param onClusterClick - Receives only an aggregate and its expansion zoom;
+   * the caller owns the camera update.
+   * @returns Layers ordered as [individual icons, cluster circles, cluster labels].
+   */
   function clusteredIcons(
     bounds: number[],
     zoom: number,
-    onClusterClick?: (
-      cluster: ClusterFeature<HeatmapCoordinates>,
-      expansionZoom: number,
-    ) => void,
+    onClusterClick?: (cluster: ClusterFeature, expansionZoom: number) => void,
   ) {
     const clusters = clusterIndex.getClusters(
       [bounds[0], bounds[1], bounds[2], bounds[3]],
       Math.max(0, Math.floor(zoom)),
-    ) as ClusterFeature<HeatmapCoordinates>[]
+    )
     const leaves = clusters
-      .filter(
-        (feature) => feature.properties && !('cluster' in feature.properties),
-      )
-      .map(
-        (feature) =>
-          (feature.properties as { point: HeatmapCoordinates }).point,
-      )
+      .filter(isIndexedPointFeature)
+      .map((feature) => feature.properties.point)
     const formattedData = leaves.map((report) => ({
       ...report,
       position: [report.longitude || 0, report.latitude || 0] as Coordinates,
@@ -147,7 +146,6 @@ export function useReports(): UseReports {
       'clustered-report-icons',
       clusters,
       (feature) => {
-        if (!feature.properties || !('cluster_id' in feature.properties)) return
         onClusterClick?.(
           feature,
           clusterIndex.getClusterExpansionZoom(feature.properties.cluster_id),
@@ -159,11 +157,7 @@ export function useReports(): UseReports {
       iconLayer,
       clusterCircles.clone({ visible: isIconsLayerVisible }),
       clusterLabels.clone({ visible: isIconsLayerVisible }),
-    ] as [
-      IconLayer<ClusterIcon, object>,
-      ScatterplotLayer<ClusterFeature<HeatmapCoordinates>, object>,
-      TextLayer<ClusterFeature<HeatmapCoordinates>, object>,
-    ]
+    ] satisfies ReturnType<UseReports['layers']['clusteredIcons']>
   }
   return {
     data,

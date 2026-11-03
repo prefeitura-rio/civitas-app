@@ -35,6 +35,7 @@ import {
   createPointClusterIndex,
   getClusterOriginCounts,
   getMapBounds,
+  isIndexedPointFeature,
 } from '@/utils/point-clustering'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
@@ -162,7 +163,7 @@ export function useCollectionPointPickerState({
   const [showSelectedSection, setShowSelectedSection] = useState(true)
   const [popupState, setPopupState] = useState<RadarPopupState | null>(null)
   const [hoveredPointCluster, setHoveredPointCluster] =
-    useState<ClusterFeature<CollectionPoint> | null>(null)
+    useState<ClusterFeature | null>(null)
   const [pendingScrollOptionId, setPendingScrollOptionId] = useState<
     string | null
   >(null)
@@ -270,7 +271,7 @@ export function useCollectionPointPickerState({
       pointClusterIndex.getClusters(
         getMapBounds(viewState, mapWidth, mapHeight),
         Math.max(0, Math.floor(viewState.zoom ?? 0)),
-      ) as ClusterFeature<CollectionPoint>[],
+      ),
     [mapHeight, mapWidth, pointClusterIndex, viewState],
   )
 
@@ -278,14 +279,8 @@ export function useCollectionPointPickerState({
     () =>
       new Set(
         pointClusterFeatures
-          .filter(
-            (feature) =>
-              feature.properties && !('cluster' in feature.properties),
-          )
-          .map(
-            (feature) =>
-              (feature.properties as { point: CollectionPoint }).point,
-          ),
+          .filter(isIndexedPointFeature)
+          .map((feature) => feature.properties.point),
       ),
     [pointClusterFeatures],
   )
@@ -1008,7 +1003,6 @@ export function useCollectionPointPickerState({
       `${POINT_LAYER_ID}-clusters`,
       pointClusterFeatures,
       (feature) => {
-        if (!feature.properties || !('cluster_id' in feature.properties)) return
         const expansionZoom = pointClusterIndex.getClusterExpansionZoom(
           feature.properties.cluster_id,
         )

@@ -11,6 +11,8 @@ import {
   createPointClusterIndex,
   getClusterOriginCounts,
   getMapBounds,
+  isClusterFeature,
+  isIndexedPointFeature,
 } from '@/utils/point-clustering'
 
 // Fallback dimensions in pixels when the map size is unavailable.
@@ -79,8 +81,9 @@ export function useClusteredMapLayers(
   size: { width: number; height: number },
   setViewport: (viewport: MapViewState) => void,
 ) {
-  const [hoveredCluster, setHoveredCluster] =
-    useState<ClusterFeature<GenericPoint> | null>(null)
+  const [hoveredCluster, setHoveredCluster] = useState<ClusterFeature | null>(
+    null,
+  )
   useEffect(() => {
     setHoveredCluster(null)
   }, [viewport])
@@ -213,15 +216,10 @@ export function useClusteredMapLayers(
     groups.forEach((group, groupIndex) => {
       if (!group.layers.length) return
       const index = indexes[groupIndex]
-      const features = index.getClusters(
-        bounds,
-        zoom,
-      ) as ClusterFeature<GenericPoint>[]
+      const features = index.getClusters(bounds, zoom)
       const leaves = features
-        .filter(
-          (feature) => feature.properties && !('cluster' in feature.properties),
-        )
-        .map((feature) => (feature.properties as { point: GenericPoint }).point)
+        .filter(isIndexedPointFeature)
+        .map((feature) => feature.properties.point)
       const leafSet = new Set(leaves)
 
       group.layers.forEach((layer) => {
@@ -231,19 +229,12 @@ export function useClusteredMapLayers(
         replacements.set(layer.id, layer.clone({ data: visiblePoints }))
       })
 
-      if (
-        !features.some(
-          (feature) => feature.properties && 'cluster' in feature.properties,
-        )
-      ) {
-        return
-      }
+      if (!features.some(isClusterFeature)) return
 
       const visible = group.layers.some(
         (layer) => layer.props.visible !== false,
       )
-      const onClick = (feature: ClusterFeature<GenericPoint>) => {
-        if (!feature.properties || !('cluster_id' in feature.properties)) return
+      const onClick = (feature: ClusterFeature) => {
         setHoveredCluster(null)
         const expansionZoom = index.getClusterExpansionZoom(
           feature.properties.cluster_id,
