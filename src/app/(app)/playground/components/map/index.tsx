@@ -4,8 +4,9 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import type { Feature } from 'geojson'
 import mapboxgl from 'mapbox-gl'
-import React, { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,151 +14,55 @@ import { Label } from '@/components/ui/label'
 import { config } from '@/config'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
-// You need to replace this with your actual Mapbox access token
-mapboxgl.accessToken = config.mapboxAccessToken
+import {
+  createPlaygroundDrawStyles,
+  PLAYGROUND_DRAW_APPEARANCE,
+} from './playground-map-config'
+import {
+  connectPlaygroundPointClusters,
+  setPlaygroundFeatureColor,
+} from './playground-point-clusters'
 
+/** Hosts the native Draw editor and clustered point mirror; owns their map lifecycle. */
 export function PlaygroundMap() {
   const mapContainer = useRef<HTMLDivElement | null>(null)
-  const map = useRef<mapboxgl.Map | null>(null)
   const drawRef = useRef<MapboxDraw | null>(null)
+  const clustersRef = useRef<ReturnType<
+    typeof connectPlaygroundPointClusters
+  > | null>(null)
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
     null,
   )
-  const [selectedColor, setSelectedColor] = useState('#3bb2d0')
+  const [selectedColor, setSelectedColor] = useState<string>(
+    PLAYGROUND_DRAW_APPEARANCE.defaultColor,
+  )
   const [popoverOpen, setPopoverOpen] = useState(false)
-  const [popoverCoordinates, setPopoverCoordinates] = useState({
-    x: 0,
-    y: 0,
-  })
+  const [popoverCoordinates, setPopoverCoordinates] = useState({ x: 0, y: 0 })
 
-  const syncPointClusterSource = () => {
-    const draw = drawRef.current
-    const source = map.current?.getSource('playground-point-clusters') as
-      | mapboxgl.GeoJSONSource
-      | undefined
-    if (!draw || !source) return
-
-    const pointFeatures = draw
-      .getAll()
-      .features.filter((feature) => feature.geometry.type === 'Point')
-    source.setData({ type: 'FeatureCollection', features: pointFeatures })
-  }
-
-  const setupPointClusters = () => {
-    const activeMap = map.current
-    if (!activeMap || activeMap.getSource('playground-point-clusters')) return
-
-    activeMap.addSource('playground-point-clusters', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: [] },
-      cluster: true,
-      clusterRadius: 48,
-      clusterMaxZoom: 16,
-    })
-    activeMap.addLayer({
-      id: 'playground-point-clusters-circle',
-      type: 'circle',
-      source: 'playground-point-clusters',
-      filter: ['has', 'point_count'],
-      paint: {
-        'circle-color': '#184a7a',
-        'circle-radius': [
-          'step',
-          ['get', 'point_count'],
-          18,
-          25,
-          22,
-          100,
-          27,
-          500,
-          32,
-        ],
-        'circle-stroke-width': 2,
-        'circle-stroke-color': '#ffffff',
-      },
-    })
-    activeMap.addLayer({
-      id: 'playground-point-clusters-count',
-      type: 'symbol',
-      source: 'playground-point-clusters',
-      filter: ['has', 'point_count'],
-      layout: {
-        'text-field': ['get', 'point_count_abbreviated'],
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 13,
-      },
-      paint: { 'text-color': '#ffffff' },
-    })
-    activeMap.addLayer({
-      id: 'playground-point-clusters-leaves',
-      type: 'circle',
-      source: 'playground-point-clusters',
-      filter: ['!', ['has', 'point_count']],
-      maxzoom: 16,
-      paint: {
-        'circle-radius': 7,
-        'circle-color': ['coalesce', ['get', 'color'], '#3bb2d0'],
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 1.5,
-      },
-    })
-    ;[
-      'gl-draw-point-inactive.cold',
-      'gl-draw-point-inactive.hot',
-      'gl-draw-point-active.cold',
-      'gl-draw-point-active.hot',
-    ].forEach((layerId) => {
-      if (!activeMap.getLayer(layerId)) return
-      const existingFilter = activeMap.getFilter(layerId)
-      activeMap.setFilter(layerId, [
-        'all',
-        existingFilter ?? ['==', ['get', 'meta'], 'feature'],
-        ['>', ['zoom'], 16],
-      ])
-    })
-
-    activeMap.on('draw.create', syncPointClusterSource)
-    activeMap.on('draw.update', syncPointClusterSource)
-    activeMap.on('draw.delete', syncPointClusterSource)
-    activeMap.on('click', 'playground-point-clusters-leaves', (event) => {
-      const feature = event.features?.[0]
-      if (feature?.id === undefined) return
-      drawRef.current?.changeMode('simple_select', {
-        featureIds: [String(feature.id)],
-      })
-    })
-    activeMap.on('click', 'playground-point-clusters-circle', (event) => {
-      const feature = event.features?.[0]
-      const clusterId = feature?.properties?.cluster_id
-      if (clusterId === undefined || !feature?.geometry) return
-      const coordinates = (feature.geometry as GeoJSON.Point).coordinates as [
-        number,
-        number,
-      ]
-
-      const source = activeMap.getSource(
-        'playground-point-clusters',
-      ) as mapboxgl.GeoJSONSource
-      source.getClusterExpansionZoom(Number(clusterId), (error, zoom) => {
-        if (error || zoom == null) return
-        activeMap.easeTo({ center: coordinates, zoom })
-      })
-    })
-
-    syncPointClusterSource()
-  }
+  const handleSelectionChange = useCallback((feature: Feature | null) => {
+    setSelectedFeatureId(feature?.id === undefined ? null : String(feature.id))
+    setSelectedColor(
+      typeof feature?.properties?.color === 'string'
+        ? feature.properties.color
+        : PLAYGROUND_DRAW_APPEARANCE.defaultColor,
+    )
+    setPopoverOpen(feature !== null)
+  }, [])
 
   useEffect(() => {
-    if (map.current) return // initialize map only once
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current as HTMLElement,
+    const container = mapContainer.current
+    if (!container) return
+    const activeMap = new mapboxgl.Map({
+      container,
+      accessToken: config.mapboxAccessToken,
       style: 'mapbox://styles/mapbox/streets-v11',
       center: [INITIAL_VIEW_PORT.longitude, INITIAL_VIEW_PORT.latitude],
       zoom: INITIAL_VIEW_PORT.zoom,
     })
-
-    map.current.on('load', () => {
-      drawRef.current = new MapboxDraw({
+    let disposed = false
+    const handleLoad = () => {
+      if (disposed) return
+      const draw = new MapboxDraw({
         displayControlsDefault: false,
         controls: {
           point: true,
@@ -168,103 +73,39 @@ export function PlaygroundMap() {
           uncombine_features: true,
         },
         userProperties: true,
+        styles: createPlaygroundDrawStyles(),
       })
-      if (map.current) {
-        map.current.addControl(drawRef.current)
-        setupPointClusters()
-        map.current.on('draw.selectionchange', handleSelectionChange)
-        map.current.on('draw.delete', () => setPopoverOpen(false))
-        map.current.on('click', (e) =>
-          setPopoverCoordinates({
-            x: e.point.x,
-            y: e.point.y,
-          }),
-        )
-      }
-    })
-  }, [])
-
-  const handleSelectionChange = (e: {
-    features: mapboxgl.MapboxGeoJSONFeature[]
-  }) => {
-    if (e.features.length > 0) {
-      const feature = e.features[0]
-      setSelectedFeatureId(feature.id?.toString() || null)
-      setSelectedColor(feature.properties?.color || '#3bb2d0')
-      setPopoverOpen(true)
-    } else {
-      setSelectedFeatureId(null)
-      setSelectedColor('#3bb2d0')
-      setPopoverOpen(false)
+      activeMap.addControl(draw)
+      drawRef.current = draw
+      clustersRef.current = connectPlaygroundPointClusters(
+        activeMap,
+        draw,
+        handleSelectionChange,
+      )
     }
-  }
-
-  const updateFeatureColor = (color: string) => {
-    if (!drawRef.current || !selectedFeatureId) return
-
-    const feature = drawRef.current.get(selectedFeatureId)
-    if (feature) {
-      if (!feature.properties) {
-        feature.properties = {}
-      }
-      feature.properties.color = color
-      drawRef.current.add(feature)
-      syncPointClusterSource()
-      updateDrawColors()
+    const handleClick = (event: mapboxgl.MapMouseEvent) => {
+      setPopoverCoordinates({ x: event.point.x, y: event.point.y })
     }
-  }
+    activeMap.on('load', handleLoad)
+    activeMap.on('click', handleClick)
+    return () => {
+      disposed = true
+      activeMap.off('load', handleLoad)
+      activeMap.off('click', handleClick)
+      clustersRef.current?.dispose()
+      clustersRef.current = null
+      drawRef.current = null
+      activeMap.remove()
+    }
+  }, [handleSelectionChange])
 
-  const updateDrawColors = () => {
-    if (!drawRef.current || !map.current) return
-
-    const features = drawRef.current.getAll().features
-    const filters = features.flatMap((feature) => {
-      const featureId = feature.id as string
-      const color = feature?.properties?.color || '#3bb2d0'
-      return [['==', ['get', 'id'], featureId], color]
-    })
-
-    // Update colors for each feature type
-    ;[
-      'gl-draw-polygon-stroke',
-      'gl-draw-polygon-fill',
-      'gl-draw-line',
-      'gl-draw-point',
-    ].forEach((prefix) => {
-      ;['cold', 'hot'].forEach((state) => {
-        const layerId = `${prefix}-inactive.${state}`
-        if (map.current?.getLayer(layerId)) {
-          map.current.setPaintProperty(
-            layerId,
-            `${prefix === 'gl-draw-point' ? 'circle' : prefix === 'gl-draw-line' || prefix === 'gl-draw-polygon-stroke' ? 'line' : 'fill'}-color`,
-            [
-              'case',
-              ...filters,
-              '#3bb2d0', // default color
-            ],
-          )
-
-          // // Additional styling for point size and outline
-          // if (prefix === 'gl-draw-point') {
-          //   map.current.setPaintProperty(
-          //     layerId,
-          //     'circle-radius',
-          //     4, // Increase the size of points
-          //   )
-          //   map.current.setPaintProperty(
-          //     layerId,
-          //     'circle-stroke-width',
-          //     3, // Add an outline to the points
-          //   )
-          //   map.current.setPaintProperty(
-          //     layerId,
-          //     'circle-stroke-color',
-          //     '#FFF', // Outline color
-          //   )
-          // }
-        }
-      })
-    })
+  /** Updates the Draw property and its clustered mirror without changing feature identity. */
+  function updateFeatureColor(color: string) {
+    const draw = drawRef.current
+    if (!draw || selectedFeatureId === null) return
+    if (setPlaygroundFeatureColor(draw, selectedFeatureId, color)) {
+      clustersRef.current?.sync()
+    }
   }
 
   return (
@@ -284,10 +125,9 @@ export function PlaygroundMap() {
             id="color-picker"
             type="color"
             value={selectedColor}
-            onChange={(e) => {
-              const newColor = e.target.value
-              setSelectedColor(newColor)
-              updateFeatureColor(newColor)
+            onChange={(event) => {
+              setSelectedColor(event.target.value)
+              updateFeatureColor(event.target.value)
             }}
             className="h-8 w-full"
           />
