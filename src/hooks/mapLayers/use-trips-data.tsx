@@ -41,18 +41,28 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
     setLastSearchParams(null)
   }
 
+  /**
+   * Selects a trip by index or object; passing null or the selected index clears it.
+   * Invalid or unavailable indexes also clear selection instead of storing undefined.
+   */
   function setSelectedTrip(trip: number | Trip | null) {
-    if (typeof trip === 'number' && trips) {
-      if (selectedTrip && trip === selectedTrip.index) {
-        setSelectedTrip(null)
-      } else {
-        setSelectedTripState(trips[trip])
-      }
-    } else if (typeof trip === 'object' && trips) {
-      setSelectedTripState(trip)
-    } else {
-      setSelectedTrip(null)
+    if (trip === null) {
+      setSelectedTripState(null)
+      return
     }
+
+    if (typeof trip === 'number') {
+      const indexedTrip =
+        Number.isInteger(trip) && trip >= 0 ? trips?.[trip] : undefined
+      if (!indexedTrip || selectedTrip?.index === trip) {
+        setSelectedTripState(null)
+        return
+      }
+      setSelectedTripState(indexedTrip)
+      return
+    }
+
+    setSelectedTripState(trip)
   }
 
   const {
