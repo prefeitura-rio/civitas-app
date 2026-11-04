@@ -12,8 +12,12 @@ const mockUseMap = jest.mocked(useMap)
 jest.mock(
   '@/app/(app)/veiculos/components/map/components/select-cards/camera-select-card',
   () => ({
-    CameraSelectCard: ({ selectedObject, setSelectedObject }: any) => (
-      <div data-testid="camera-select-card">
+    CameraSelectCard: ({
+      selectedObject,
+      setSelectedObject,
+      className,
+    }: any) => (
+      <div data-testid="camera-select-card" className={className}>
         Camera: {selectedObject ? 'selected' : 'not selected'}
         <button onClick={() => setSelectedObject(null)}>Close Camera</button>
       </div>
@@ -48,6 +52,13 @@ jest.mock(
 )
 
 describe('SelectionCards', () => {
+  it('positions cards from the width supplied by their map', () => {
+    const { rerender } = render(<SelectionCards mapWidth={700} />)
+    expect(screen.getByTestId('camera-select-card')).toHaveClass('mt-12')
+    rerender(<SelectionCards mapWidth={1200} />)
+    expect(screen.getByTestId('camera-select-card')).not.toHaveClass('mt-12')
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     mockUseMap.mockReturnValue({

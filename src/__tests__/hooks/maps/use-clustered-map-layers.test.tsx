@@ -1,4 +1,9 @@
-import { type Layer, type LayersList, type PickingInfo } from '@deck.gl/core'
+import {
+  type Layer,
+  type LayersList,
+  type PickingInfo,
+  WebMercatorViewport,
+} from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
 import { act, renderHook } from '@testing-library/react'
 
@@ -88,6 +93,67 @@ describe('useClusteredMapLayers with explicit sources', () => {
     expect(
       findLayer(result.current.layers, POINT_LAYER_IDS.radars).props.visible,
     ).toBe(false)
+  })
+
+  it('waits for measured dimensions and reuses the index when only the map size changes', () => {
+    const camera = { ...viewport, zoom: 17 }
+    const [longitude, latitude] = new WebMercatorViewport({
+      ...camera,
+      width: 1200,
+      height: 600,
+    }).unproject([1100, 300])
+    const edge = {
+      uid: 'EDGE',
+      coords: [longitude, latitude] as [number, number],
+      provider: 'CIVITAS',
+    }
+    const prepared = {
+      ...preparePointSource(
+        POINT_LAYER_IDS.radars,
+        [...records, edge],
+        adapter,
+      ),
+      visible: true,
+    }
+    const sources = [prepared]
+    const baseLayers = [layer(prepared.layerId)]
+    const { result, rerender } = renderHook(
+      ({
+        dimensions,
+      }: {
+        dimensions: { width: number; height: number } | null
+      }) =>
+        useClusteredMapLayers(
+          baseLayers,
+          sources,
+          camera,
+          dimensions,
+          setViewport,
+        ),
+      {
+        initialProps: { dimensions: null } as {
+          dimensions: { width: number; height: number } | null
+        },
+      },
+    )
+    expect(createPointClusterIndex).not.toHaveBeenCalled()
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual([])
+
+    rerender({ dimensions: { width: 400, height: 600 } })
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual(records)
+    rerender({ dimensions: { width: 1200, height: 600 } })
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual([...records, edge])
+    expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
+    rerender({ dimensions: null })
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual([])
   })
 
   it('reuses an index after hiding and showing unchanged source data', () => {

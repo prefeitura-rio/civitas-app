@@ -58,7 +58,10 @@ describe('collection point picker viewport bounds', () => {
       const { result } = renderHook(() =>
         useCollectionPointPickerState(pickerProps),
       )
-      act(() => result.current.handleViewStateChange({ ...viewport, bearing }))
+      act(() => {
+        result.current.handleMapResize({ width: 720, height: 620 })
+        result.current.handleViewStateChange({ ...viewport, bearing })
+      })
 
       expect(result.current.listBuckets.visibleIds.has('CENTER')).toBe(true)
 
@@ -73,7 +76,10 @@ describe('collection point picker viewport bounds', () => {
     const { result } = renderHook(() =>
       useCollectionPointPickerState(pickerProps),
     )
-    act(() => result.current.handleViewStateChange(viewport))
+    act(() => {
+      result.current.handleMapResize({ width: 720, height: 620 })
+      result.current.handleViewStateChange(viewport)
+    })
 
     expect(result.current.listBuckets.visibleIds.has('CENTER')).toBe(true)
     expect(result.current.listBuckets.visibleIds.has('OUTSIDE')).toBe(false)

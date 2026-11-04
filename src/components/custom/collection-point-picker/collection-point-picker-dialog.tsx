@@ -453,10 +453,14 @@ export function CollectionPointPickerDialog({
                   variant="outline"
                   size="sm"
                   className="h-8 text-xs"
-                  disabled={picker.isPending || picker.options.length === 0}
-                  onClick={picker.selectAllCollectionPointIds}
+                  disabled={
+                    picker.isPending ||
+                    picker.visibleCollectionPointIds.length === 0
+                  }
+                  onClick={picker.selectVisibleCollectionPointIds}
                 >
-                  Selecionar todos
+                  Selecionar visíveis ({picker.visibleCollectionPointIds.length}
+                  )
                 </Button>
                 <Button
                   type="button"
@@ -466,7 +470,7 @@ export function CollectionPointPickerDialog({
                   disabled={picker.draftValue.length === 0}
                   onClick={picker.clearDraftSelection}
                 >
-                  Limpar seleção
+                  Limpar toda a seleção
                 </Button>
               </div>
 
@@ -477,19 +481,10 @@ export function CollectionPointPickerDialog({
                 </Badge>
               ) : null}
 
-              {picker.hasMoreListResults ? (
-                <p className="text-xs text-muted-foreground">
-                  Mostrando{' '}
-                  {picker.showSelectedOnlyInList
-                    ? picker.displayedSelectedCount
-                    : picker.filteredOptions.length}{' '}
-                  de{' '}
-                  {picker.showSelectedOnlyInList
-                    ? picker.listBuckets.selectedCount
-                    : picker.filteredOptions.length}{' '}
-                  radares.
-                </p>
-              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Mostrando {picker.filteredOptions.length} de{' '}
+                {picker.totalListResults} radares.
+              </p>
 
               <div
                 ref={picker.listViewportRef}

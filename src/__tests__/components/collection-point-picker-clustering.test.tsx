@@ -48,7 +48,10 @@ const viewport = {
 describe('collection point picker cluster interactions', () => {
   it('expands the clicked cluster, clears hover and keeps selection and camera orientation', () => {
     const { result } = renderHook(() => useCollectionPointPickerState(props))
-    act(() => result.current.handleViewStateChange(viewport))
+    act(() => {
+      result.current.handleMapResize({ width: 720, height: 620 })
+      result.current.handleViewStateChange(viewport)
+    })
     const circles = result.current.mapLayers.find((layer) =>
       layer?.id.endsWith('-clusters-circles'),
     )
@@ -97,9 +100,10 @@ describe('collection point picker cluster interactions', () => {
 
   it('retains aggregates up to fractional zoom 16.99 and restores individual points at 17', () => {
     const { result } = renderHook(() => useCollectionPointPickerState(props))
-    act(() =>
-      result.current.handleViewStateChange({ ...viewport, zoom: 16.99 }),
-    )
+    act(() => {
+      result.current.handleMapResize({ width: 720, height: 620 })
+      result.current.handleViewStateChange({ ...viewport, zoom: 16.99 })
+    })
     const circles = result.current.mapLayers.find((layer) =>
       layer?.id.endsWith('-clusters-circles'),
     )

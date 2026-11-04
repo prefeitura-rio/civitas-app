@@ -1,4 +1,4 @@
-import type { MapViewState } from '@deck.gl/core'
+import { type MapViewState, WebMercatorViewport } from '@deck.gl/core'
 import {
   Deck,
   IconLayer,
@@ -19,6 +19,7 @@ import {
 import type { MapRef } from 'react-map-gl'
 
 import type { Option } from '@/components/custom/multiselect-with-search'
+import { type MapSize, useMapSize } from '@/hooks/use-map-size'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import { getPlaces } from '@/http/mapbox/get-places'
 import type { CollectionPoint } from '@/models/entities'
@@ -52,8 +53,6 @@ import {
   sortCollectionPoints,
 } from './collection-point-picker-utils'
 
-const PICKER_MAP_WIDTH = 720
-const PICKER_MAP_HEIGHT = 620
 const RADAR_LIST_HEIGHT = 430
 const RADAR_LIST_ITEM_HEIGHT = 92
 const RADAR_LIST_OVERSCAN = 6
@@ -136,11 +135,15 @@ function buildPolygonFeature(points: LngLatTuple[]) {
  *
  * @remarks
  * Cluster queries include an offscreen margin; list visibility and focus checks
- * use viewport bounds without that margin. Selection remains per collection point.
+ * use viewport bounds without that margin. Both wait for renderer-reported size,
+ * as does the opening camera fit. Selection remains per collection point.
  * Selection actions notify `onChange`; applying also emits the current draft.
+ * Bulk selection adds eligible viewport points, including cluster members, while
+ * preserving earlier selections. Text and map visibility filters still apply.
  * `defaultSelectAll` only initializes the draft and waits for explicit application.
  *
  * @returns Picker state, map layers, element refs and list/map action handlers.
+ * `totalListResults` counts eligible entries before pagination for the active tab/search.
  */
 export function useCollectionPointPickerState({
   value,
@@ -177,9 +180,9 @@ export function useCollectionPointPickerState({
   const deckRef = useRef<Deck | null>(null)
   const mapRef = useRef<MapRef | null>(null)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const { mapSize, handleResize, resetMapSize } = useMapSize()
   const listViewportRef = useRef<HTMLDivElement | null>(null)
   const suppressMapClickUntilRef = useRef(0)
-  const mapResizeTimeoutRef = useRef<number | null>(null)
   // Bumped on each open so DeckGL+Mapbox remount cleanly inside the dialog.
   const [mapSurfaceGeneration, setMapSurfaceGeneration] = useState(0)
   const [listScrollTop, setListScrollTop] = useState(0)
@@ -235,10 +238,11 @@ export function useCollectionPointPickerState({
     [collectionPoints, selectedPoints, showSelectedOnlyInMap],
   )
 
-  const mapWidth = mapContainerRef.current?.clientWidth ?? PICKER_MAP_WIDTH
-  const mapHeight = mapContainerRef.current?.clientHeight ?? PICKER_MAP_HEIGHT
+  const mapWidth = mapSize?.width ?? 0
+  const mapHeight = mapSize?.height ?? 0
 
   const mapViewportBounds = useMemo(() => {
+    if (!mapWidth || !mapHeight) return null
     // List visibility uses the screen bounds, without the cluster query margin.
     const [west, south, east, north] = getMapBounds(
       viewState,
@@ -270,10 +274,12 @@ export function useCollectionPointPickerState({
 
   const pointClusterFeatures = useMemo(
     () =>
-      pointClusterIndex.getClusters(
-        getMapBounds(viewState, mapWidth, mapHeight),
-        Math.max(0, Math.floor(viewState.zoom ?? 0)),
-      ),
+      mapWidth && mapHeight
+        ? pointClusterIndex.getClusters(
+            getMapBounds(viewState, mapWidth, mapHeight),
+            Math.max(0, Math.floor(viewState.zoom ?? 0)),
+          )
+        : [],
     [mapHeight, mapWidth, pointClusterIndex, viewState],
   )
 
@@ -340,7 +346,11 @@ export function useCollectionPointPickerState({
         selectedEntries.push(option)
       }
 
-      if (point && isPointVisibleInViewport(point, mapViewportBounds)) {
+      if (
+        point &&
+        mapViewportBounds &&
+        isPointVisibleInViewport(point, mapViewportBounds)
+      ) {
         visibleEntries.push(option)
         return
       }
@@ -376,6 +386,31 @@ export function useCollectionPointPickerState({
     viewState.longitude,
   ])
 
+  const visibleCollectionPointIds = useMemo(() => {
+    if (!mapWidth || !mapHeight) return []
+    const viewport = new WebMercatorViewport({
+      ...viewState,
+      width: mapWidth,
+      height: mapHeight,
+    })
+    return Array.from(
+      new Set(
+        mapPoints
+          .filter((point) => {
+            if (
+              !listBuckets.visibleIds.has(getCollectionPointSelectionId(point))
+            )
+              return false
+            // Geographic bounds overestimate a rotated/pitched screen. Project candidates
+            // with Deck.gl before selecting, without including the offscreen query margin.
+            const [x, y] = viewport.project([point.longitude, point.latitude])
+            return viewport.containsPixel({ x, y })
+          })
+          .map(getCollectionPointSelectionId),
+      ),
+    )
+  }, [listBuckets.visibleIds, mapHeight, mapPoints, mapWidth, viewState])
+
   const filteredOptions = useMemo(() => {
     if (showSelectedOnlyInList) {
       return listBuckets.selectedEntries.slice(0, loadedListResultsCount)
@@ -404,10 +439,6 @@ export function useCollectionPointPickerState({
     [collectionPointsById, draftValue],
   )
 
-  const displayedSelectedCount = Math.min(
-    listBuckets.selectedCount,
-    loadedListResultsCount,
-  )
   const displayedVisibleCount = Math.min(
     listBuckets.visibleCount,
     loadedListResultsCount,
@@ -418,10 +449,12 @@ export function useCollectionPointPickerState({
         Math.max(0, loadedListResultsCount - displayedVisibleCount),
       )
     : 0
-  const hasMoreListResults = showSelectedOnlyInList
-    ? displayedSelectedCount < listBuckets.selectedCount
-    : displayedVisibleCount < listBuckets.visibleCount ||
-      displayedOutsideCount < listBuckets.outsideCount
+  // Count eligible results before pagination, using the same inclusion rules as the list.
+  const totalListResults = showSelectedOnlyInList
+    ? listBuckets.selectedCount
+    : listBuckets.visibleCount +
+      (listBuckets.hasActiveSearch ? listBuckets.outsideCount : 0)
+  const hasMoreListResults = filteredOptions.length < totalListResults
 
   const allSelected = useMemo(
     () => isFullCollectionPointSelection(value, options),
@@ -492,10 +525,7 @@ export function useCollectionPointPickerState({
 
   useEffect(() => {
     if (!expanded) {
-      if (mapResizeTimeoutRef.current !== null) {
-        window.clearTimeout(mapResizeTimeoutRef.current)
-        mapResizeTimeoutRef.current = null
-      }
+      resetMapSize()
       setDraftValue(value)
       setSearch('')
       setMapSearch('')
@@ -513,19 +543,10 @@ export function useCollectionPointPickerState({
       resetListViewport()
       setViewState({ ...INITIAL_VIEW_PORT, pitch: 0, bearing: 0 })
     }
-  }, [expanded, value])
+  }, [expanded, resetMapSize, value])
 
   useEffect(() => {
-    return () => {
-      if (mapResizeTimeoutRef.current !== null) {
-        window.clearTimeout(mapResizeTimeoutRef.current)
-        mapResizeTimeoutRef.current = null
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!expanded || hasInitializedViewport) return
+    if (!expanded || hasInitializedViewport || !mapWidth || !mapHeight) return
 
     const sourcePoints = mapPoints.length > 0 ? mapPoints : selectedPoints
     if (sourcePoints.length === 0) return
@@ -639,7 +660,10 @@ export function useCollectionPointPickerState({
   }
 
   function centerPointOnMap(point: CollectionPoint) {
-    if (isPointVisibleInViewport(point, mapViewportBounds)) {
+    if (
+      mapViewportBounds &&
+      isPointVisibleInViewport(point, mapViewportBounds)
+    ) {
       return
     }
 
@@ -671,10 +695,12 @@ export function useCollectionPointPickerState({
   }
 
   function toggleExpanded() {
+    resetMapSize()
     setExpanded((prev) => !prev)
   }
 
   function openPickerWithSelectedList(optionId?: string) {
+    resetMapSize()
     setDraftValue(value)
     setShowSelectedOnlyInList(true)
     setShowSelectedOnlyInMap(true)
@@ -694,6 +720,7 @@ export function useCollectionPointPickerState({
   }
 
   function openPicker() {
+    resetMapSize()
     setDraftValue(value)
     setMapSurfaceGeneration((generation) => generation + 1)
     setExpanded(true)
@@ -716,8 +743,21 @@ export function useCollectionPointPickerState({
     setShowSelectedOnlyInMap((prev) => !prev)
   }
 
-  function selectAllCollectionPointIds() {
-    updateSelection(options.map((option) => option.value))
+  /**
+   * Adds all eligible viewport points to the current selection without duplicates.
+   *
+   * @remarks
+   * Includes members represented by clusters and rows beyond the loaded page.
+   * Respects the current text search and selected-only map filter. Offscreen query
+   * margins do not expand the selection; previously selected offscreen IDs remain.
+   * Emits `onChange` only when new IDs are added and leaves the camera unchanged.
+   */
+  function selectVisibleCollectionPointIds() {
+    const nextIds = new Set(draftValue)
+    const previousCount = nextIds.size
+    visibleCollectionPointIds.forEach((id) => nextIds.add(id))
+    if (nextIds.size === previousCount) return
+    updateSelection(Array.from(nextIds))
   }
 
   function clearDraftSelection() {
@@ -779,14 +819,14 @@ export function useCollectionPointPickerState({
   }
 
   function fitSelectedPoints() {
-    if (selectedPoints.length === 0) return
+    if (selectedPoints.length === 0 || !mapWidth || !mapHeight) return
     setFocusedPointId(null)
     setPopupState(null)
     setViewState(getMapViewport(selectedPoints, mapWidth, mapHeight))
   }
 
   function fitMapPoints() {
-    if (mapPoints.length === 0) return
+    if (mapPoints.length === 0 || !mapWidth || !mapHeight) return
     setFocusedPointId(null)
     setPopupState(null)
     setViewState(getMapViewport(mapPoints, mapWidth, mapHeight))
@@ -933,23 +973,17 @@ export function useCollectionPointPickerState({
     setViewState(nextViewState)
   }
 
-  function resizePickerMap() {
+  /** Synchronizes spatial queries and the embedded basemap with Deck.gl's measured CSS pixels. */
+  function handleMapResize(dimensions: MapSize) {
+    handleResize(dimensions)
+    setPopupState(null)
+    setHoveredPointCluster(null)
     mapRef.current?.resize()
   }
 
-  function handleMapResize() {
-    resizePickerMap()
-  }
-
+  /** Synchronizes Mapbox once loaded; Deck.gl reports layout changes without a fixed delay. */
   function handleMapLoad() {
-    // Wait for the dialog layout/animation before resizing the map.
-    if (mapResizeTimeoutRef.current !== null) {
-      window.clearTimeout(mapResizeTimeoutRef.current)
-    }
-    mapResizeTimeoutRef.current = window.setTimeout(() => {
-      resizePickerMap()
-      mapResizeTimeoutRef.current = null
-    }, 250)
+    mapRef.current?.resize()
   }
 
   function startAreaSelection() {
@@ -1114,7 +1148,6 @@ export function useCollectionPointPickerState({
     completeAreaSelection,
     deckRef,
     displayedOutsideCount,
-    displayedSelectedCount,
     draftSelectedOptions,
     draftValue,
     expanded,
@@ -1159,7 +1192,7 @@ export function useCollectionPointPickerState({
     popupState,
     previewPoint,
     search,
-    selectAllCollectionPointIds,
+    selectVisibleCollectionPointIds,
     selectedListRows,
     selectedOptions,
     selectedPoints,
@@ -1174,6 +1207,8 @@ export function useCollectionPointPickerState({
     togglePointFromMapOrList,
     toggleSelectedOnlyInList,
     toggleSelectedOnlyInMap,
+    totalListResults,
+    visibleCollectionPointIds,
     toggleSelectedSection,
     undoLastAreaPoint,
     value,

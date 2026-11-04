@@ -25,9 +25,6 @@ import type {
   VisiblePointSource,
 } from '@/utils/point-layer-sources'
 
-// Fallback dimensions in pixels when the map size is unavailable.
-const FALLBACK_MAP_SIZE_PX = { width: 720, height: 620 }
-
 interface CachedIndex {
   sourcePoints: PreparedPointSource['points'][]
   index: PointClusterIndex
@@ -53,7 +50,8 @@ interface QueriedGroup {
  * @param sources - Typed domain data prepared before rendering. Keep points arrays
  * stable until data changes; visibility determines each source's participation.
  * @param viewport - Current camera used for spatial queries and cluster expansion.
- * @param size - Measured dimensions in CSS pixels; zero values use the named fallback.
+ * @param size - Renderer-reported dimensions in CSS pixels, or null until measured.
+ * Spatial queries wait for a positive size instead of assuming fallback dimensions.
  * @param setViewport - Updates the camera when a cluster is expanded.
  * @returns Renderable layers and cluster hover state with aggregated origin counts.
  */
@@ -61,25 +59,23 @@ export function useClusteredMapLayers(
   baseLayers: LayersList,
   sources: readonly VisiblePointSource[],
   viewport: MapViewState,
-  size: { width: number; height: number },
+  size: { width: number; height: number } | null,
   setViewport: (viewport: MapViewState) => void,
 ) {
   const [hoveredCluster, setHoveredCluster] = useState<ClusterFeature | null>(
     null,
   )
-  useEffect(() => {
-    setHoveredCluster(null)
-  }, [viewport, sources])
   const indexCache = useRef(new Map<PointClusterGroupId, CachedIndex>())
+  const width = size?.width ?? 0
+  const height = size?.height ?? 0
   const bounds = useMemo(
     () =>
-      getMapBounds(
-        viewport,
-        size.width || FALLBACK_MAP_SIZE_PX.width,
-        size.height || FALLBACK_MAP_SIZE_PX.height,
-      ),
-    [size.height, size.width, viewport],
+      width > 0 && height > 0 ? getMapBounds(viewport, width, height) : null,
+    [height, viewport, width],
   )
+  useEffect(() => {
+    setHoveredCluster(null)
+  }, [bounds, sources])
   const zoom = Math.max(0, Math.floor(viewport.zoom ?? 0))
   const sourceById = useMemo(
     () =>
@@ -88,37 +84,35 @@ export function useClusteredMapLayers(
       ),
     [sources],
   )
-  const groups = useMemo<QueriedGroup[]>(
-    () =>
-      POINT_CLUSTER_GROUPS.map((config) => {
-        const activeSources = config.layerIds
-          .map((id) => sourceById.get(id))
-          .filter((source): source is VisiblePointSource =>
-            Boolean(source?.visible && source.points.length),
-          )
-        if (!activeSources.length)
-          return { ...config, index: null, features: [] }
+  const groups = useMemo<QueriedGroup[]>(() => {
+    if (!bounds) return []
+    return POINT_CLUSTER_GROUPS.map((config) => {
+      const activeSources = config.layerIds
+        .map((id) => sourceById.get(id))
+        .filter((source): source is VisiblePointSource =>
+          Boolean(source?.visible && source.points.length),
+        )
+      if (!activeSources.length) return { ...config, index: null, features: [] }
 
-        const sourcePoints = activeSources.map((source) => source.points)
-        const previous = indexCache.current.get(config.id)
-        const unchanged =
-          previous &&
-          previous.sourcePoints.length === sourcePoints.length &&
-          previous.sourcePoints.every(
-            (points, index) => points === sourcePoints[index],
-          )
-        let index = unchanged ? previous.index : null
-        if (!index) {
-          // Adaptation and point concatenation happen only when spatial input changes.
-          index = createPointClusterIndex(
-            activeSources.flatMap((source) => source.points),
-          )
-          indexCache.current.set(config.id, { sourcePoints, index })
-        }
-        return { ...config, index, features: index.getClusters(bounds, zoom) }
-      }),
-    [bounds, sourceById, zoom],
-  )
+      const sourcePoints = activeSources.map((source) => source.points)
+      const previous = indexCache.current.get(config.id)
+      const unchanged =
+        previous &&
+        previous.sourcePoints.length === sourcePoints.length &&
+        previous.sourcePoints.every(
+          (points, index) => points === sourcePoints[index],
+        )
+      let index = unchanged ? previous.index : null
+      if (!index) {
+        // Adaptation and point concatenation happen only when spatial input changes.
+        index = createPointClusterIndex(
+          activeSources.flatMap((source) => source.points),
+        )
+        indexCache.current.set(config.id, { sourcePoints, index })
+      }
+      return { ...config, index, features: index.getClusters(bounds, zoom) }
+    })
+  }, [bounds, sourceById, zoom])
   const flatLayers = useMemo(() => {
     const flatten = (layers: LayersList): Layer[] =>
       layers.flatMap((layer) => {

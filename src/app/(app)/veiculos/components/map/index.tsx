@@ -3,17 +3,16 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { type Deck, DeckGL } from 'deck.gl'
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
-import { MapSizeMonitor } from '@/components/custom/map-size-monitor'
 import { useClusteredMapLayers } from '@/hooks/maps/use-clustered-map-layers'
 import { useMapLayers } from '@/hooks/maps/use-map-layers'
 import { useMapSearch } from '@/hooks/maps/use-map-search'
 import { useMapState } from '@/hooks/maps/use-map-state'
 import { useMouseInteractions } from '@/hooks/maps/use-mouse-interactions'
 import { useSelectionManagement } from '@/hooks/maps/use-selection-management'
-import { useMapSize } from '@/hooks/use-map-size'
+import { type MapSize, useMapSize } from '@/hooks/use-map-size'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
@@ -37,7 +36,14 @@ export function Map() {
 
   const mapState = useMapState({ mapRef, deckRef })
   const mapLayers = useMapLayers()
-  const mapSize = useMapSize()
+  const { mapSize, handleResize } = useMapSize()
+  const handleMapResize = useCallback(
+    (dimensions: MapSize) => {
+      handleResize(dimensions)
+      mapRef.current?.resize()
+    },
+    [handleResize],
+  )
   const clusteredMap = useClusteredMapLayers(
     mapLayers.mapLayers,
     mapLayers.pointSources,
@@ -77,13 +83,11 @@ export function Map() {
       onMouseUp={mouseInteractions.handleMouseUp}
       onClick={mouseInteractions.handleLeftClick}
     >
-      <MapSizeMonitor />
-
       <DeckGL
         ref={deckRef}
         initialViewState={mapState.viewport}
         controller
-        onResize={() => mapRef.current?.resize()}
+        onResize={handleMapResize}
         layers={clusteredMap.layers}
         onViewStateChange={mapState.handleViewStateChange}
         getCursor={mapState.getCursor}
@@ -105,7 +109,7 @@ export function Map() {
         />
       </div>
 
-      <SelectionCards />
+      <SelectionCards mapWidth={mapSize?.width} />
       <HoverCards />
       <MapLayerControl />
 
