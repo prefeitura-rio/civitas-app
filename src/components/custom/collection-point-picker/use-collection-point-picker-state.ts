@@ -645,7 +645,6 @@ export function useCollectionPointPickerState({
 
   function updateSelection(nextIds: string[]) {
     setDraftValue(nextIds)
-    onChange(nextIds)
   }
 
   function toggleDraftId(id: string) {
@@ -654,7 +653,6 @@ export function useCollectionPointPickerState({
         ? prev.filter((item) => item !== id)
         : [...prev, id]
 
-      onChange(nextIds)
       return nextIds
     })
   }
@@ -750,7 +748,7 @@ export function useCollectionPointPickerState({
    * Includes members represented by clusters and rows beyond the loaded page.
    * Respects the current text search and selected-only map filter. Offscreen query
    * margins do not expand the selection; previously selected offscreen IDs remain.
-   * Emits `onChange` only when new IDs are added and leaves the camera unchanged.
+   * Updates the draft only; changes are applied on confirmation. Leaves the camera unchanged.
    */
   function selectVisibleCollectionPointIds() {
     const nextIds = new Set(draftValue)
@@ -957,7 +955,6 @@ export function useCollectionPointPickerState({
     setDraftValue((prev) => {
       const selectedIds = Array.from(new Set([...prev, ...nextIds]))
 
-      onChange(selectedIds)
       return selectedIds
     })
     setAreaSelectionMode(null)

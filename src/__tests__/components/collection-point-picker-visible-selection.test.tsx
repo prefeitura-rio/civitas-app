@@ -91,7 +91,7 @@ describe('visible collection point selection', () => {
       'VISIBLE-3',
       'VISIBLE-4',
     ])
-    expect(onChange).toHaveBeenLastCalledWith(result.current.draftValue)
+    expect(onChange).not.toHaveBeenCalled()
     expect(result.current.draftValue).not.toContain('MARGIN')
   })
 
@@ -101,7 +101,7 @@ describe('visible collection point selection', () => {
     act(() => result.current.selectVisibleCollectionPointIds())
 
     expect(result.current.draftValue).toHaveLength(5)
-    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   it('preserves the selection when panning and zooming to a different visible set', () => {
@@ -120,7 +120,7 @@ describe('visible collection point selection', () => {
     expect(result.current.draftValue).toBe(selected)
     act(() => result.current.handleViewStateChange({ ...viewport, zoom: 17 }))
     expect(result.current.draftValue).toBe(selected)
-    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   it('does nothing before measurement or when there are no eligible visible points', () => {
@@ -155,6 +155,21 @@ describe('visible collection point selection', () => {
       'VISIBLE-1',
       'VISIBLE-2',
     ])
+  })
+
+  it('discards changes on close and applies them only on confirmation', () => {
+    const { result } = measuredPicker()
+    act(() => result.current.openPicker())
+    act(() => result.current.togglePointFromMapOrList(visiblePoints[1]))
+    expect(onChange).not.toHaveBeenCalled()
+    act(() => result.current.closePicker())
+    expect(result.current.draftValue).toEqual(props.value)
+    expect(onChange).not.toHaveBeenCalled()
+    act(() => result.current.openPicker())
+    act(() => result.current.togglePointFromMapOrList(visiblePoints[1]))
+    act(() => result.current.handleApply())
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).toHaveBeenCalledWith(['OUTSIDE', 'VISIBLE-1', 'VISIBLE-2'])
   })
 
   it('excludes points hidden by the selected-only map filter', () => {

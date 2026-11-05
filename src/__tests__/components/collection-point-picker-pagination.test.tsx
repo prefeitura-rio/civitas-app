@@ -135,16 +135,15 @@ describe('collection point picker pagination summary', () => {
       screen.getByRole('button', { name: 'Selecionar visíveis (45)' }),
     )
 
-    expect(onChange).toHaveBeenLastCalledWith([
-      outsidePoints[0].cetRioCode,
-      ...visiblePoints.map((point) => point.cetRioCode),
-    ])
+    expect(onChange).not.toHaveBeenCalled()
     expect(
       screen.getByRole('button', { name: 'Selecionados (46)' }),
     ).toBeInTheDocument()
     fireEvent.click(
       screen.getByRole('button', { name: 'Limpar toda a seleção' }),
     )
+    expect(onChange).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar seleção' }))
     expect(onChange).toHaveBeenLastCalledWith([])
   })
 

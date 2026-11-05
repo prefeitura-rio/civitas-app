@@ -95,6 +95,8 @@ describe('collection point picker cluster interactions', () => {
       ),
     )
     expect(result.current.draftValue).toEqual(['A'])
+    expect(props.onChange).not.toHaveBeenCalled()
+    act(() => result.current.handleApply())
     expect(props.onChange).toHaveBeenCalledWith(['A'])
   })
 
