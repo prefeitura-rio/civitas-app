@@ -13,15 +13,12 @@ import {
   User,
   Users,
 } from 'lucide-react'
-import mapboxgl from 'mapbox-gl'
-import { useEffect, useRef } from 'react'
 
+import { GeocodedAddressMap } from '@/components/custom/geocoded-address-map'
 import { Spinner } from '@/components/custom/spinner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { config } from '@/config'
 import { useCompany } from '@/hooks/useQueries/useCompany'
 import { useCortexRemainingCredits } from '@/hooks/useQueries/useCortexRemainingCredits'
-import { searchAddress } from '@/http/mapbox/search-address'
 
 import { getErrorMessage } from '../../components/get-error-message'
 
@@ -58,9 +55,6 @@ const ListItem = ({ items }: { items: Record<string, string | number>[] }) => (
 )
 
 export default function Pessoa({ params: { cnpj } }: PessoaProps) {
-  const mapRef = useRef<mapboxgl.Map | null>(null)
-  const mapContainerRef = useRef<HTMLDivElement>(null)
-
   const {
     data: cortexRemainingCredits,
     isLoading: isCortexRemainingCreditsLoading,
@@ -70,37 +64,6 @@ export default function Pessoa({ params: { cnpj } }: PessoaProps) {
   const isLoading = isPeopleLoading || isCortexRemainingCreditsLoading
   const remainingCredits = cortexRemainingCredits?.remaining_credit
   const timeUntilReset = cortexRemainingCredits?.time_until_reset
-
-  useEffect(() => {
-    async function initializeMap() {
-      if (!mapContainerRef.current || !data) return
-
-      const address = await searchAddress(
-        `${data.logradouro} ${data.numeroLogradouro} ${data.bairro}`,
-      )
-
-      mapRef.current = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: address.features.at(0)?.geometry.coordinates,
-        zoom: 12,
-      })
-
-      mapRef.current.addControl(new mapboxgl.NavigationControl())
-
-      if (!address.features.at(0)) return
-
-      new mapboxgl.Marker()
-        .setLngLat(address.features[0].geometry.coordinates)
-        .addTo(mapRef.current)
-    }
-
-    if (!mapContainerRef.current) return
-
-    mapboxgl.accessToken = config.mapboxAccessToken
-
-    initializeMap()
-  }, [mapContainerRef.current, data])
 
   return (
     <div className="page-content mx-auto space-y-6 overflow-y-scroll p-4">
@@ -211,10 +174,7 @@ export default function Pessoa({ params: { cnpj } }: PessoaProps) {
               <InfoItem label="UF" value={data.uf} />
               <InfoItem label="CEP" value={data.cep} />
               <InfoItem label="País" value={data.nomePais} />
-              <div
-                className="relative mt-6 aspect-video w-full rounded-lg"
-                ref={mapContainerRef}
-              ></div>
+              <GeocodedAddressMap address={data} />
             </CardContent>
           </Card>
 
