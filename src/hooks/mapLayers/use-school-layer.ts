@@ -2,39 +2,35 @@
 
 import type { LayersList } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
-import type { FeatureCollection, Point } from 'geojson'
-import { useEffect, useMemo, useState } from 'react'
+import type { Point } from 'geojson'
+import { useMemo, useState } from 'react'
 
 import school from '@/assets/school.svg'
 import type { School } from '@/models/entities'
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
+import { useReferenceGeoJson } from './use-reference-geojson'
+
 export interface UseSchoolLayer {
   data: School[]
   layers: LayersList
   isVisible: boolean
+  isLoading: boolean
+  isError: boolean
   setIsVisible: (isVisible: boolean) => void
 }
+/** Loads municipal schools on activation and reuses cached results when available. */
 export function useSchoolLayer(): UseSchoolLayer {
-  const [data, setData] = useState<School[]>([])
   const [isVisible, setIsVisible] = useState(false)
 
-  useEffect(() => {
-    const fetchCameras = async () => {
-      const data: School[] = await fetch(
-        'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/Escolas_Municipais.geojson',
-      ).then((data) =>
-        data
-          .json()
-          .then((data: FeatureCollection<Point, School>) =>
-            data.features.map((feature) => feature.properties),
-          ),
-      )
-
-      setData(data)
-    }
-    fetchCameras()
-  }, [])
+  const query = useReferenceGeoJson<Point, School>(
+    'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/Escolas_Municipais.geojson',
+    isVisible,
+  )
+  const data = useMemo(
+    () => query.data?.features.map((feature) => feature.properties) ?? [],
+    [query.data],
+  )
 
   const baseLayer = useMemo(
     () =>
@@ -61,6 +57,8 @@ export function useSchoolLayer(): UseSchoolLayer {
   return {
     data,
     isVisible,
+    isLoading: query.isLoading,
+    isError: isVisible && query.isError,
     setIsVisible,
     layers: [baseLayer],
   }

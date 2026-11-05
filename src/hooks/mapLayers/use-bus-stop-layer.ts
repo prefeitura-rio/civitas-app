@@ -2,41 +2,40 @@
 
 import type { LayersList } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
-import type { FeatureCollection, Point } from 'geojson'
-import { useEffect, useMemo, useState } from 'react'
+import type { Point } from 'geojson'
+import { useMemo, useState } from 'react'
 
 import busFront from '@/assets/bus-front.svg'
 import type { BusStop, RawBusStop } from '@/models/entities'
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
+import { useReferenceGeoJson } from './use-reference-geojson'
+
 export interface UseBusStopLayer {
   data: BusStop[]
   layers: LayersList
   isVisible: boolean
+  isLoading: boolean
+  isError: boolean
   setIsVisible: (isVisible: boolean) => void
 }
+/** Loads bus stops on activation, converting GeoJSON coordinates to longitude/latitude fields. */
 export function useBusStopLayer(): UseBusStopLayer {
-  const [data, setData] = useState<BusStop[]>([])
   const [isVisible, setIsVisible] = useState(false)
 
-  useEffect(() => {
-    const fetchCameras = async () => {
-      const data: BusStop[] = await fetch(
-        'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/paradas_onibus.geojson',
-      ).then((data) =>
-        data.json().then((data: FeatureCollection<Point, RawBusStop>) =>
-          data.features.map((feature) => ({
-            ...feature.properties,
-            latitude: feature.geometry.coordinates[1],
-            longitude: feature.geometry.coordinates[0],
-          })),
-        ),
-      )
-
-      setData(data)
-    }
-    fetchCameras()
-  }, [])
+  const query = useReferenceGeoJson<Point, RawBusStop>(
+    'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/paradas_onibus.geojson',
+    isVisible,
+  )
+  const data = useMemo(
+    () =>
+      query.data?.features.map((feature) => ({
+        ...feature.properties,
+        latitude: feature.geometry.coordinates[1],
+        longitude: feature.geometry.coordinates[0],
+      })) ?? [],
+    [query.data],
+  )
 
   const baseLayer = useMemo(
     () =>
@@ -60,6 +59,8 @@ export function useBusStopLayer(): UseBusStopLayer {
   return {
     data,
     isVisible,
+    isLoading: query.isLoading,
+    isError: isVisible && query.isError,
     setIsVisible,
     layers: [baseLayer],
   }

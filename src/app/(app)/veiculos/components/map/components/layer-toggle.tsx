@@ -7,9 +7,11 @@ import {
   ChevronUp,
   FlameKindling,
   Layers,
+  LoaderCircle,
   Satellite,
   School,
   Shield,
+  TriangleAlert,
   Video,
 } from 'lucide-react'
 import { type CSSProperties, useState } from 'react'
@@ -32,6 +34,8 @@ type Layer = {
   isVisible: boolean
   setIsVisible: (isVisible: boolean) => void
   clusterColor?: [number, number, number, number]
+  isLoading?: boolean
+  isError?: boolean
 }
 
 function getLayerButtonStyle(layer: Layer): CSSProperties | undefined {
@@ -65,15 +69,29 @@ export function MapLayerControl() {
         isVisible: isFogoCruzadoVisible,
         setIsVisible: setIsFogoCruzadoVisible,
       },
-      AISP: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
-      CISP: { isVisible: isCISPVisible, setIsVisible: setIsCISPVisible },
+      AISP: {
+        isVisible: isAISPVisible,
+        setIsVisible: setIsAISPVisible,
+        isLoading: isAISPLoading,
+        isError: isAISPError,
+      },
+      CISP: {
+        isVisible: isCISPVisible,
+        setIsVisible: setIsCISPVisible,
+        isLoading: isCISPLoading,
+        isError: isCISPError,
+      },
       schools: {
         isVisible: isSchoolsVisible,
         setIsVisible: setIsSchoolsVisible,
+        isLoading: isSchoolsLoading,
+        isError: isSchoolsError,
       },
       busStops: {
         isVisible: isBusStopsVisible,
         setIsVisible: setIsBusStopsVisible,
+        isLoading: isBusStopsLoading,
+        isError: isBusStopsError,
       },
     },
     mapStyle,
@@ -116,6 +134,8 @@ export function MapLayerControl() {
       name: 'AISP',
       icon: <Shield />,
       isVisible: isAISPVisible,
+      isLoading: isAISPLoading,
+      isError: isAISPError,
       setIsVisible: (isVisible) => {
         setIsAISPVisible(isVisible)
         if (isVisible) setIsCISPVisible(false)
@@ -125,6 +145,8 @@ export function MapLayerControl() {
       name: 'CISP',
       icon: <Shield />,
       isVisible: isCISPVisible,
+      isLoading: isCISPLoading,
+      isError: isCISPError,
       setIsVisible: (isVisible) => {
         setIsCISPVisible(isVisible)
         if (isVisible) setIsAISPVisible(false)
@@ -134,6 +156,8 @@ export function MapLayerControl() {
       name: 'Escolas Municipais',
       icon: <School />,
       isVisible: isSchoolsVisible,
+      isLoading: isSchoolsLoading,
+      isError: isSchoolsError,
       setIsVisible: setIsSchoolsVisible,
       clusterColor: POINT_CLUSTER_COLORS.schools,
     },
@@ -141,6 +165,8 @@ export function MapLayerControl() {
       name: 'Paradas de Ônibus',
       icon: <BusFront />,
       isVisible: isBusStopsVisible,
+      isLoading: isBusStopsLoading,
+      isError: isBusStopsError,
       setIsVisible: setIsBusStopsVisible,
       clusterColor: POINT_CLUSTER_COLORS.busStops,
     },
@@ -200,9 +226,32 @@ export function MapLayerControl() {
                               : 'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
                           }`}
                           aria-label={`Toggle ${layer.name} layer`}
+                          aria-busy={layer.isLoading || undefined}
+                          aria-description={
+                            layer.isError
+                              ? 'Erro ao carregar. Desative e ative para tentar novamente.'
+                              : undefined
+                          }
+                          title={
+                            layer.isError
+                              ? 'Erro ao carregar. Desative e ative para tentar novamente.'
+                              : undefined
+                          }
                         >
-                          {layer.icon}
+                          {layer.isLoading ? (
+                            <LoaderCircle
+                              className="animate-spin"
+                              aria-label="Carregando"
+                            />
+                          ) : layer.isError ? (
+                            <TriangleAlert aria-label="Erro ao carregar" />
+                          ) : (
+                            layer.icon
+                          )}
                           <span className="mt-1 text-xs">{layer.name}</span>
+                          {layer.isError && (
+                            <span className="text-xs">Erro ao carregar</span>
+                          )}
                         </Toggle>
                       ))}
                     </div>

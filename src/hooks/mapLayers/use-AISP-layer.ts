@@ -3,9 +3,11 @@
 import type { LayersList, PickingInfo } from '@deck.gl/core'
 import { GeoJsonLayer } from '@deck.gl/layers'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { AISP } from '@/models/entities'
+
+import { useReferenceGeoJson } from './use-reference-geojson'
 
 export interface UseAISPLayer {
   features: FeatureCollection<Geometry, AISP>
@@ -13,28 +15,25 @@ export interface UseAISPLayer {
   setHoverInfo: (info: PickingInfo<Feature<Geometry, AISP>> | null) => void
   layers: LayersList
   isVisible: boolean
+  isLoading: boolean
+  isError: boolean
   setIsVisible: (isVisible: boolean) => void
 }
+/** Loads AISP boundaries on activation and reuses cached results when available. */
 export function useAISPLayer(): UseAISPLayer {
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<
     Feature<Geometry, AISP>
   > | null>(null)
-  const [features, setFeatures] = useState<FeatureCollection<Geometry, AISP>>({
-    type: 'FeatureCollection',
-    features: [],
-  })
   const [isVisible, setIsVisible] = useState(false)
 
-  useEffect(() => {
-    const fetchCameras = async () => {
-      const data: FeatureCollection<Geometry, AISP> = await fetch(
-        'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/AISP.geojson',
-      ).then((data) => data.json())
-
-      setFeatures(data)
-    }
-    fetchCameras()
-  }, [])
+  const query = useReferenceGeoJson<Geometry, AISP>(
+    'https://raw.githubusercontent.com/prefeitura-rio/storage/master/layers/AISP.geojson',
+    isVisible,
+  )
+  const features = useMemo<FeatureCollection<Geometry, AISP>>(
+    () => query.data ?? { type: 'FeatureCollection', features: [] },
+    [query.data],
+  )
 
   const baseLayer = useMemo(
     () =>
@@ -104,6 +103,8 @@ export function useAISPLayer(): UseAISPLayer {
     hoverInfo,
     setHoverInfo,
     isVisible,
+    isLoading: query.isLoading,
+    isError: isVisible && query.isError,
     setIsVisible,
     layers: [baseLayer],
   }
