@@ -11,6 +11,7 @@ import {
 } from '@/http/reports/dashboard/get-heatmap'
 import type { Report } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
+import { isValidGeographicCoordinates } from '@/utils/geographic-coordinates'
 import {
   type ClusterExpansionTarget,
   type ClusterFeature,
@@ -32,7 +33,7 @@ export interface UseReports {
   data: HeatmapCoordinates[] | undefined
   failed: boolean
   layers: {
-    heatmap: HeatmapLayer<Report, object>
+    heatmap: HeatmapLayer<HeatmapCoordinates, object>
     clusteredIcons: (
       bounds: number[],
       zoom: number,
@@ -69,7 +70,11 @@ export function useReports(): UseReports {
 
   const filtered = useMemo(
     () =>
-      data ? data.filter((item) => !!item.longitude && !!item.latitude) : [],
+      data
+        ? data.filter((item) =>
+            isValidGeographicCoordinates([item.longitude, item.latitude]),
+          )
+        : [],
     [data],
   )
 
@@ -78,7 +83,7 @@ export function useReports(): UseReports {
       createPointClusterIndex(
         filtered.map((report) => ({
           id: report.reportId,
-          coordinates: [report.longitude || 0, report.latitude || 0],
+          coordinates: [report.longitude, report.latitude],
           origin: 'Ocorrências',
           point: report,
         })),
@@ -86,11 +91,11 @@ export function useReports(): UseReports {
     [filtered],
   )
 
-  const heatmap = new HeatmapLayer<Report>({
+  const heatmap = new HeatmapLayer<HeatmapCoordinates>({
     id: 'reports-heatmap',
     data: filtered,
     aggregation: 'SUM',
-    getPosition: (info) => [info.longitude || 0, info.latitude || 0],
+    getPosition: (info) => [info.longitude, info.latitude],
     getWeight: () => 1,
     radiusPixels: 25,
     visible: isHeatmapLayerVisible,
@@ -119,7 +124,7 @@ export function useReports(): UseReports {
       .map((feature) => feature.properties.point)
     const formattedData = leaves.map((report) => ({
       ...report,
-      position: [report.longitude || 0, report.latitude || 0] as Coordinates,
+      position: [report.longitude, report.latitude] as Coordinates,
       icon: messageCircleWarning.src,
       size: 30,
       point_count: 1,

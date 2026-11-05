@@ -32,6 +32,44 @@ const records = [
 const bounds = [-45, -24, -42, -21]
 
 describe('occurrence cluster interactions', () => {
+  it('plots zero coordinates and excludes missing, non-finite and out-of-range coordinates', () => {
+    const extra = [
+      { reportId: 'equator', longitude: 1, latitude: 0 },
+      { reportId: 'meridian', longitude: 0, latitude: 1 },
+      { reportId: 'origin', longitude: 0, latitude: 0 },
+      { reportId: 'missing', longitude: null, latitude: 1 },
+      { reportId: 'infinite', longitude: Infinity, latitude: 1 },
+      { reportId: 'bad-latitude', longitude: 1, latitude: 91 },
+      { reportId: 'bad-longitude', longitude: 181, latitude: 1 },
+    ]
+    records.push(...(extra as typeof records))
+    try {
+      const { result } = renderHook(() => useReports())
+      const heatmapPoints = Array.from(
+        result.current.layers.heatmap.props.data as Iterable<{
+          reportId: string
+        }>,
+      )
+      expect(heatmapPoints.map((point) => point.reportId)).toEqual([
+        'A',
+        'B',
+        'equator',
+        'meridian',
+        'origin',
+      ])
+      const [icons] = result.current.layers.clusteredIcons(
+        [-180, -85, 180, 85],
+        17,
+      )
+      expect(
+        Array.from(icons.props.data as Iterable<{ reportId: string }>).map(
+          (point) => point.reportId,
+        ),
+      ).toEqual(expect.arrayContaining(['equator', 'meridian', 'origin']))
+    } finally {
+      records.splice(2)
+    }
+  })
   it('passes a native expansion target to the caller without imposing a transition', () => {
     const onClusterClick = jest.fn()
     const { result } = renderHook(() => useReports())

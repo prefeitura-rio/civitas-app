@@ -1,3 +1,5 @@
+import { isValidGeographicCoordinates } from '@/utils/geographic-coordinates'
+
 /**
  * Detecta se o input contém coordenadas (latitude, longitude)
  * Aceita formatos como:
@@ -28,27 +30,13 @@ export function parseCoordinates(
       const longitude = parseFloat(match[2])
 
       // Valida se as coordenadas estão em ranges válidos
-      if (isValidLatitude(latitude) && isValidLongitude(longitude)) {
+      if (isValidGeographicCoordinates([longitude, latitude])) {
         return { latitude, longitude }
       }
     }
   }
 
   return null
-}
-
-/**
- * Valida se a latitude está em um range válido (-90 a 90)
- */
-function isValidLatitude(lat: number): boolean {
-  return !isNaN(lat) && lat >= -90 && lat <= 90
-}
-
-/**
- * Valida se a longitude está em um range válido (-180 a 180)
- */
-function isValidLongitude(lon: number): boolean {
-  return !isNaN(lon) && lon >= -180 && lon <= 180
 }
 
 /**

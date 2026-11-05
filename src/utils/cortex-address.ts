@@ -3,6 +3,7 @@ import type {
   AddressSearchInput,
   CortexAddress,
 } from '@/models/address'
+import { isValidGeographicCoordinates } from '@/utils/geographic-coordinates'
 
 function cleanAddressPart(value: string | null | undefined) {
   const cleaned = value?.trim()
@@ -50,15 +51,7 @@ export function isValidAddressCoordinates(
 ): coordinates is AddressCoordinates {
   const [longitude, latitude] = coordinates
   return (
-    coordinates.length === 2 &&
-    typeof longitude === 'number' &&
-    Number.isFinite(longitude) &&
-    typeof latitude === 'number' &&
-    Number.isFinite(latitude) &&
-    longitude >= -180 &&
-    longitude <= 180 &&
-    latitude >= -90 &&
-    latitude <= 90 &&
+    isValidGeographicCoordinates(coordinates) &&
     !(longitude === 0 && latitude === 0)
   )
 }
