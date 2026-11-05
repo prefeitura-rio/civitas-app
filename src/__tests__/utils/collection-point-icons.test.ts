@@ -14,6 +14,28 @@ describe('collection point icons', () => {
 
   it.each([
     ['CETRIO', 'cetrio'],
+    ['CIVITAS', 'civitas'],
+    ['GABRIEL', 'gabriel'],
+  ])(
+    'selects an existing atlas entry for every activity and highlight state of %s',
+    (company, source) => {
+      for (const activeInLast24Hours of [true, false]) {
+        for (const highlighted of [true, false]) {
+          const key = getCollectionPointIcon(
+            { company, activeInLast24Hours },
+            highlighted,
+          )
+          expect(key).toBe(
+            `${source}-${activeInLast24Hours ? 'active' : 'inactive'}-${highlighted ? 'highlighted' : 'normal'}`,
+          )
+          expect(COLLECTION_POINT_ICON_MAPPING[key]).toBeDefined()
+        }
+      }
+    },
+  )
+
+  it.each([
+    ['CETRIO', 'cetrio'],
     ['CET-Rio', 'cetrio'],
     ['CIVITAS', 'civitas'],
     ['civitas', 'civitas'],

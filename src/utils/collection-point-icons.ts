@@ -6,6 +6,11 @@ import { getCollectionPointOrigin } from './collection-point-origin'
 export { collectionPointIconAtlas }
 
 const ICON_SIZE = 48
+type IconSource = 'cetrio' | 'civitas' | 'gabriel'
+type IconActivity = 'active' | 'inactive'
+type IconEmphasis = 'normal' | 'highlighted'
+type IconKey = `${IconSource}-${IconActivity}-${IconEmphasis}`
+
 export const COLLECTION_POINT_ICON_MAPPING = {
   'cetrio-active-normal': {
     x: 0,
@@ -91,9 +96,10 @@ export const COLLECTION_POINT_ICON_MAPPING = {
     height: ICON_SIZE,
     mask: false,
   },
-} as const
-
-type IconKey = keyof typeof COLLECTION_POINT_ICON_MAPPING
+} as const satisfies Record<
+  IconKey,
+  { x: number; y: number; width: number; height: number; mask: boolean }
+>
 
 /**
  * Selects the atlas variant for canonical origin, recent activity and highlight.
@@ -114,5 +120,5 @@ export function getCollectionPointIcon(
   const state = point.activeInLast24Hours ? 'active' : 'inactive'
   const focus = highlighted ? 'highlighted' : 'normal'
 
-  return `${source}-${state}-${focus}` as IconKey
+  return `${source}-${state}-${focus}`
 }
