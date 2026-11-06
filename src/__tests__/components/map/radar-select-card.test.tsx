@@ -83,7 +83,7 @@ describe('RadarSelectCard', () => {
   it('should display company correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('CET-Rio')).toBeInTheDocument()
+    expect(screen.getByTitle('Empresa')).toHaveTextContent('CETRIO')
   })
 
   it('should display 24h active status as "Sim" when true', () => {
@@ -180,6 +180,6 @@ describe('RadarSelectCard', () => {
 
     expect(screen.getByText('Localização')).toBeInTheDocument()
     expect(screen.getByText('null - null, SENTIDO norte')).toBeInTheDocument()
-    expect(screen.getByText('Empresa')).toBeInTheDocument()
+    expect(screen.getByTitle('Empresa')).toBeInTheDocument()
   })
 })

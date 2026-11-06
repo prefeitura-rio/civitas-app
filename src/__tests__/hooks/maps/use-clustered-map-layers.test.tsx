@@ -190,51 +190,6 @@ describe('useClusteredMapLayers with explicit sources', () => {
     ).toBe(true)
   })
 
-  it('excludes hidden sublayers from counts within a mixed LPR group', () => {
-    const regular = {
-      ...preparePointSource(POINT_LAYER_IDS.radars, [records[1]], adapter),
-      visible: true,
-    }
-    const sentry = {
-      ...preparePointSource(
-        POINT_LAYER_IDS.radarsSentry,
-        [records[0]],
-        adapter,
-      ),
-      visible: false,
-    }
-    const { result, rerender } = renderHook(
-      ({ sentryVisible }) =>
-        useClusteredMapLayers(
-          [layer(regular.layerId), layer(sentry.layerId)],
-          [regular, { ...sentry, visible: sentryVisible }],
-          viewport,
-          size,
-          setViewport,
-        ),
-      { initialProps: { sentryVisible: false } },
-    )
-    expect(result.current.layers).toHaveLength(2)
-    expect(
-      findLayer(result.current.layers, regular.layerId).props.data,
-    ).toEqual([records[1]])
-    rerender({ sentryVisible: true })
-    const circles = findLayer(
-      result.current.layers,
-      `${getPointClusterLayerPrefix('lpr')}-circles`,
-    )
-    const [cluster] = Array.from(
-      circles.props.data as Iterable<{
-        properties: {
-          originCounts: Record<string, number>
-          point_count: number
-        }
-      }>,
-    )
-    expect(cluster.properties.originCounts).toEqual({ CIVITAS: 1, GABRIEL: 1 })
-    expect(cluster.properties.point_count).toBe(2)
-  })
-
   it('keeps categories separate even when all their points coincide', () => {
     const sources = POINT_CLUSTER_GROUPS.map((group) =>
       source(group.layerIds[0]),

@@ -200,7 +200,7 @@ describe('useRadarLayer', () => {
       point: CollectionPoint,
     ) => string
 
-    expect(getIcon(mockCollectionPoint)).toBe('cetrio-active-normal')
+    expect(getIcon(mockCollectionPoint)).toBe('active-normal')
   })
 
   it('deve criar layer com getPosition function', () => {
@@ -243,7 +243,7 @@ describe('useRadarLayer', () => {
     expect(result.current.setSelectedObject).toBe(firstRender.setSelectedObject)
   })
 
-  it('deve plotar GABRIEL na camada LPR e preservar as outras origens', () => {
+  it('deve plotar todas as origens numa única camada, com a mesma cor', () => {
     const gabriel = {
       ...mockCollectionPoint,
       cetRioCode: 'GAB123',
@@ -260,23 +260,34 @@ describe('useRadarLayer', () => {
     const getIcon = props.getIcon as unknown as (
       point: CollectionPoint,
     ) => string
-    const getSentryIcon = result.current.sentryLayer.props
-      .getIcon as unknown as (point: CollectionPoint) => string
 
     expect(props.data).toContainEqual(gabriel)
-    expect(props.data).not.toContainEqual(civitas)
-    expect(result.current.sentryLayer.props.data).toEqual([civitas])
-    expect(getIcon(mockCollectionPoint)).toBe('cetrio-active-normal')
-    expect(getIcon(gabriel)).toBe('gabriel-active-normal')
-    expect(getSentryIcon(civitas)).toBe('civitas-active-normal')
+    expect(props.data).toContainEqual(civitas)
+    expect(getIcon(gabriel)).toBe('active-normal')
+    expect(getIcon(civitas)).toBe('active-normal')
+  })
 
-    act(() => result.current.setIsVisible(false))
-    expect(result.current.layer.props.visible).toBe(false)
-    expect(result.current.sentryLayer.props.visible).toBe(false)
+  it('deve ocultar origens filtradas mantendo a contagem total', () => {
+    const civitas = {
+      ...mockCollectionPoint,
+      cetRioCode: 'CIV123',
+      company: 'CIVITAS',
+    }
+    mockAdditionalCollectionPoints.push(civitas)
+    const { result } = renderUseRadarLayer()
 
-    act(() => result.current.setIsVisible(true))
-    expect(result.current.layer.props.visible).toBe(true)
-    expect(result.current.sentryLayer.props.visible).toBe(true)
+    expect(result.current.originCounts).toEqual([
+      { origin: 'CETRIO', count: 2 },
+      { origin: 'CIVITAS', count: 1 },
+    ])
+
+    act(() => result.current.toggleOrigin('CETRIO'))
+    expect(result.current.layer.props.data).toEqual([civitas])
+    expect(result.current.visibleData).toEqual([civitas])
+    expect(result.current.originCounts).toHaveLength(2)
+
+    act(() => result.current.showAllOrigins())
+    expect(result.current.layer.props.data).toHaveLength(3)
   })
 
   it('deve destacar GABRIEL ao selecionar, passar o mouse e multisselecionar', () => {
@@ -298,12 +309,12 @@ describe('useRadarLayer', () => {
       )(point)
     const inactiveGabriel = { ...gabriel, activeInLast24Hours: false }
 
-    expect(getIcon(gabriel)).toBe('gabriel-active-normal')
-    expect(getIcon(inactiveGabriel)).toBe('gabriel-inactive-normal')
+    expect(getIcon(gabriel)).toBe('active-normal')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-normal')
 
     act(() => result.current.handleSelectObject(gabriel))
-    expect(getIcon(gabriel)).toBe('gabriel-active-highlighted')
-    expect(getIcon(inactiveGabriel)).toBe('gabriel-inactive-highlighted')
+    expect(getIcon(gabriel)).toBe('active-highlighted')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-highlighted')
     expect(result.current.layer.props.updateTriggers?.getIcon).toContain(
       gabriel.cetRioCode,
     )
@@ -314,14 +325,14 @@ describe('useRadarLayer', () => {
         object: gabriel,
       } as PickingInfo<CollectionPoint>)
     })
-    expect(getIcon(gabriel)).toBe('gabriel-active-highlighted')
-    expect(getIcon(inactiveGabriel)).toBe('gabriel-inactive-highlighted')
+    expect(getIcon(gabriel)).toBe('active-highlighted')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-highlighted')
 
     act(() => result.current.setHoveredObject(null))
-    expect(getIcon(gabriel)).toBe('gabriel-active-normal')
+    expect(getIcon(gabriel)).toBe('active-normal')
 
     rerender({ selected: [gabriel.cetRioCode] })
-    expect(getIcon(gabriel)).toBe('gabriel-active-highlighted')
-    expect(getIcon(inactiveGabriel)).toBe('gabriel-inactive-highlighted')
+    expect(getIcon(gabriel)).toBe('active-highlighted')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-highlighted')
   })
 })

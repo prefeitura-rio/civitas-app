@@ -34,19 +34,20 @@ const point: CollectionPoint = {
 }
 
 function makeContext() {
+  const radarData = [point]
   return {
     layers: {
       radars: {
-        data: [point],
+        data: radarData,
+        visibleData: radarData,
         isVisible: true,
         layer: { id: POINT_LAYER_IDS.radars },
-        sentryLayer: { id: POINT_LAYER_IDS.radarsSentry },
       },
       cameras: {
         data: [],
+        visibleData: [],
         isVisible: false,
         layer: { id: POINT_LAYER_IDS.cameras },
-        dc3Layer: { id: POINT_LAYER_IDS.camerasDc3 },
       },
       fogoCruzado: {
         data: [],
@@ -95,15 +96,15 @@ describe('useMapLayers spatial source preparation', () => {
   it('adapts changed domain data while retaining every unrelated source', () => {
     const { result, rerender } = renderHook(() => useMapLayers())
     const previous = result.current.pointSources
-    mockContext.layers.radars.data = [{ ...point, cetRioCode: 'B' }]
+    mockContext.layers.radars.visibleData = [{ ...point, cetRioCode: 'B' }]
     rerender()
 
-    expect(result.current.pointSources[1].points[0].id).toBe('radars-sentry:B')
-    expect(result.current.pointSources[1].points[0].point).toBe(
-      mockContext.layers.radars.data[0],
+    expect(result.current.pointSources[0].points[0].id).toBe('radars:B')
+    expect(result.current.pointSources[0].points[0].point).toBe(
+      mockContext.layers.radars.visibleData[0],
     )
-    result.current.pointSources.slice(2).forEach((source, index) => {
-      expect(source.points).toBe(previous[index + 2].points)
+    result.current.pointSources.slice(1).forEach((source, index) => {
+      expect(source.points).toBe(previous[index + 1].points)
     })
   })
 
@@ -119,7 +120,7 @@ describe('useMapLayers spatial source preparation', () => {
     expect(createCollectionPointSources).toHaveBeenCalledTimes(1)
 
     mockContext.layers.radars.isVisible = false
-    mockContext.layers.radars.data = [
+    mockContext.layers.radars.visibleData = [
       { ...point, cetRioCode: 'UPDATED-WHILE-HIDDEN' },
     ]
     rerender()

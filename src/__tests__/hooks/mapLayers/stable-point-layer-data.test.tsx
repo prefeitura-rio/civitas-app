@@ -78,12 +78,12 @@ function usePointLayers(selected: string[]) {
   const radars = useRadarLayer(selected)
   const cameras = useCamera()
   const radarSources = useMemo(
-    () => createCollectionPointSources(radars.data),
-    [radars.data],
+    () => createCollectionPointSources(radars.visibleData),
+    [radars.visibleData],
   )
   const cameraSources = useMemo(
-    () => createCameraSources(cameras.data),
-    [cameras.data],
+    () => createCameraSources(cameras.visibleData),
+    [cameras.visibleData],
   )
   const sources = useMemo(
     () => [
@@ -99,7 +99,7 @@ function usePointLayers(selected: string[]) {
     [radarSources, cameraSources, radars.isVisible, cameras.isVisible],
   )
   const clustered = useClusteredMapLayers(
-    [radars.layer, radars.sentryLayer, cameras.layer, cameras.dc3Layer],
+    [radars.layer, cameras.layer],
     sources,
     viewport,
     size,
@@ -115,10 +115,9 @@ describe('point source stability through visual interactions', () => {
     mockCameras = [camera, { ...camera, code: 'CAM-2', sistemaOrigem: 'DC3' }]
   })
 
-  it('keeps both LPR data partitions and spatial indexes through hover, selection and visibility changes', () => {
+  it('keeps LPR data and spatial indexes through hover, selection and visibility changes', () => {
     const { result } = renderHook(() => usePointLayers([]))
     const regularData = result.current.radars.layer.props.data
-    const sentryData = result.current.radars.sentryLayer.props.data
     const renderedRadarData = () => {
       const found = result.current.clustered.layers.find(
         (candidate) =>
@@ -135,7 +134,6 @@ describe('point source stability through visual interactions', () => {
 
     const assertStableSources = (checkRenderedData = true) => {
       expect(result.current.radars.layer.props.data).toBe(regularData)
-      expect(result.current.radars.sentryLayer.props.data).toBe(sentryData)
       if (checkRenderedData) expect(renderedRadarData()).toBe(renderedData)
       expect(createPointClusterIndex).not.toHaveBeenCalled()
     }
@@ -161,26 +159,22 @@ describe('point source stability through visual interactions', () => {
       { initialProps: { selected: [] as string[] } },
     )
     const regularData = result.current.radars.layer.props.data
-    const sentryData = result.current.radars.sentryLayer.props.data
     jest.mocked(createPointClusterIndex).mockClear()
 
     rerender({ selected: [radar.cetRioCode] })
 
     expect(result.current.radars.layer.props.data).toBe(regularData)
-    expect(result.current.radars.sentryLayer.props.data).toBe(sentryData)
     expect(result.current.radars.selectedObjects).toEqual([radar])
     expect(createPointClusterIndex).not.toHaveBeenCalled()
   })
 
-  it('keeps both camera partitions and spatial indexes through hover, selection and visibility changes', () => {
+  it('keeps camera data and spatial indexes through hover, selection and visibility changes', () => {
     const { result } = renderHook(() => usePointLayers([]))
     const regularData = result.current.cameras.layer.props.data
-    const dc3Data = result.current.cameras.dc3Layer.props.data
     jest.mocked(createPointClusterIndex).mockClear()
 
     const assertStableSources = () => {
       expect(result.current.cameras.layer.props.data).toBe(regularData)
-      expect(result.current.cameras.dc3Layer.props.data).toBe(dc3Data)
       expect(createPointClusterIndex).not.toHaveBeenCalled()
     }
 
@@ -209,20 +203,17 @@ describe('point source stability through visual interactions', () => {
     expect(
       result.current.cameras.layer.props.updateTriggers?.getIcon,
     ).toContain(camera.code)
-    expect(
-      result.current.cameras.dc3Layer.props.updateTriggers?.getIcon,
-    ).toContain(camera.code)
 
     act(() => {
       result.current.cameras.setHoveredObject(null)
       result.current.cameras.handleSelectObject(mockCameras[1])
     })
     expect(
-      result.current.cameras.dc3Layer.props.updateTriggers?.getIcon,
+      result.current.cameras.layer.props.updateTriggers?.getIcon,
     ).toContain('CAM-2')
   })
 
-  it('rebuilds the affected indexes and partitions when query data changes', () => {
+  it('rebuilds the affected indexes when query data changes', () => {
     const { result, rerender } = renderHook(() => usePointLayers([]))
     const previousRadarData = result.current.radars.layer.props.data
     const previousCameraData = result.current.cameras.layer.props.data
@@ -233,11 +224,23 @@ describe('point source stability through visual interactions', () => {
     rerender()
 
     expect(result.current.radars.layer.props.data).not.toBe(previousRadarData)
-    expect(result.current.radars.layer.props.data).toEqual([])
-    expect(result.current.radars.sentryLayer.props.data).toEqual(mockRadars)
+    expect(result.current.radars.layer.props.data).toEqual(mockRadars)
     expect(result.current.cameras.layer.props.data).not.toBe(previousCameraData)
-    expect(result.current.cameras.layer.props.data).toEqual([])
-    expect(result.current.cameras.dc3Layer.props.data).toEqual(mockCameras)
+    expect(result.current.cameras.layer.props.data).toEqual(mockCameras)
     expect(createPointClusterIndex).toHaveBeenCalledTimes(2)
+  })
+
+  it('filters origins out of both the icon layer and the cluster sources', () => {
+    const { result } = renderHook(() => usePointLayers([]))
+    jest.mocked(createPointClusterIndex).mockClear()
+
+    act(() => result.current.radars.toggleOrigin('CIVITAS'))
+
+    expect(result.current.radars.layer.props.data).toEqual([radar])
+    expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
+    expect(result.current.radars.originCounts).toEqual([
+      { origin: 'CIVITAS', count: 1 },
+      { origin: 'GABRIEL', count: 1 },
+    ])
   })
 })

@@ -15,5 +15,5 @@ export function getCameraOrigin(origin: string | null | undefined) {
   const label = origin?.trim()
   const normalized = label?.toUpperCase()
   if (normalized === 'DC3' || normalized === 'TIXI') return normalized
-  return label || 'Câmeras'
+  return label || 'Origem não informada'
 }

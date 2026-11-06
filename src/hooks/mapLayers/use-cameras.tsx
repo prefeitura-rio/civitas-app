@@ -15,13 +15,16 @@ import type { Camera } from '@/models/entities'
 import { getCameraOrigin } from '@/utils/collection-point-origin'
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
-const EMPTY_CAMERAS: Camera[] = []
+import { type OriginFilter, useOriginFilter } from './use-origin-filter'
 
-export interface UseCamera {
+const EMPTY_CAMERAS: Camera[] = []
+const getCameraPointOrigin = (point: Camera) =>
+  getCameraOrigin(point.sistemaOrigem)
+
+export interface UseCamera extends OriginFilter<Camera> {
   data: Camera[]
   failed: boolean
   layer: IconLayer<Camera, object>
-  dc3Layer: IconLayer<Camera, object>
   isLoading: boolean
   isVisible: boolean
   setIsVisible: Dispatch<SetStateAction<boolean>>
@@ -33,7 +36,7 @@ export interface UseCamera {
 }
 
 /**
- * Renders camera-system variants with stable query-data partitions.
+ * Renders cameras in one color, filtered by camera system.
  * Hover and selection invalidate icon attributes without rebuilding geographic data.
  */
 export function useCamera(): UseCamera {
@@ -49,16 +52,7 @@ export function useCamera(): UseCamera {
     refetchOnWindowFocus: false,
   })
 
-  const regularPoints = useMemo(
-    () =>
-      data?.filter((point) => getCameraOrigin(point.sistemaOrigem) !== 'DC3'),
-    [data],
-  )
-  const dc3Points = useMemo(
-    () =>
-      data?.filter((point) => getCameraOrigin(point.sistemaOrigem) === 'DC3'),
-    [data],
-  )
+  const originFilter = useOriginFilter(data, getCameraPointOrigin)
 
   const handleSelectObject = useCallback(
     (camera: Camera | null, clearRadar?: () => void) => {
@@ -77,32 +71,26 @@ export function useCamera(): UseCamera {
   const iconMapping = {
     default: { x: 0, y: 0, width: 48, height: 48, mask: false },
     highlighted: { x: 48, y: 0, width: 48, height: 48, mask: false },
-    'dc3-default': { x: 0, y: 48, width: 48, height: 48, mask: false },
-    'dc3-highlighted': { x: 48, y: 48, width: 48, height: 48, mask: false },
   }
 
-  const sharedProps = {
-    pickable: true,
-    getSize: 24,
-    visible: isVisible,
-    iconAtlas: cameraIconAtlas.src,
-    iconMapping,
-    updateTriggers: {
-      getIcon: [selectedObject?.code, hoveredObject?.object?.code],
-    },
-    getPosition: (d: Camera) => [d.longitude, d.latitude] as [number, number],
-    onHover: (info: PickingInfo<Camera>) => {
-      setHoveredObject(info.object ? info : null)
-    },
-  }
-
-  // Câmeras comuns (azul) — renderizadas primeiro (abaixo)
   const layer = useMemo(
     () =>
       new IconLayer<Camera>({
-        ...sharedProps,
         id: POINT_LAYER_IDS.cameras,
-        data: regularPoints,
+        data: originFilter.visibleData,
+        pickable: true,
+        getSize: 24,
+        visible: isVisible,
+        iconAtlas: cameraIconAtlas.src,
+        iconMapping,
+        updateTriggers: {
+          getIcon: [selectedObject?.code, hoveredObject?.object?.code],
+        },
+        getPosition: (d: Camera) =>
+          [d.longitude, d.latitude] as [number, number],
+        onHover: (info: PickingInfo<Camera>) => {
+          setHoveredObject(info.object ? info : null)
+        },
         getIcon: (d) => {
           const isActive =
             selectedObject?.code === d.code ||
@@ -110,31 +98,19 @@ export function useCamera(): UseCamera {
           return isActive ? 'highlighted' : 'default'
         },
       }),
-    [data, selectedObject?.code, hoveredObject?.object?.code, isVisible],
-  )
-
-  // Câmeras DC3 (verde) — renderizadas depois (por cima)
-  const dc3Layer = useMemo(
-    () =>
-      new IconLayer<Camera>({
-        ...sharedProps,
-        id: POINT_LAYER_IDS.camerasDc3,
-        data: dc3Points,
-        getIcon: (d) => {
-          const isActive =
-            selectedObject?.code === d.code ||
-            hoveredObject?.object?.code === d.code
-          return isActive ? 'dc3-highlighted' : 'dc3-default'
-        },
-      }),
-    [data, selectedObject?.code, hoveredObject?.object?.code, isVisible],
+    [
+      originFilter.visibleData,
+      selectedObject?.code,
+      hoveredObject?.object?.code,
+      isVisible,
+    ],
   )
 
   return {
+    ...originFilter,
     data: data ?? EMPTY_CAMERAS,
     failed: !data && !isLoading,
     layer,
-    dc3Layer,
     isLoading,
     isVisible,
     setIsVisible,

@@ -13,11 +13,14 @@ import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
 import { useCollectionPoints } from '../useQueries/useCollectionPoints'
+import { type OriginFilter, useOriginFilter } from './use-origin-filter'
 
-export interface UseRadarLayer {
+const getRadarOrigin = (point: CollectionPoint) =>
+  getCollectionPointOrigin(point.company)
+
+export interface UseRadarLayer extends OriginFilter<CollectionPoint> {
   data: CollectionPoint[] | undefined
   layer: IconLayer<CollectionPoint>
-  sentryLayer: IconLayer<CollectionPoint>
   hoveredObject: PickingInfo<CollectionPoint> | null
   setHoveredObject: (value: PickingInfo<CollectionPoint> | null) => void
   isVisible: boolean
@@ -36,8 +39,8 @@ export interface UseRadarLayer {
 }
 
 /**
- * Renders LPR variants while retaining geographic data references through visual changes.
- * Query-data updates replace the source partitions; hover and selection only update icons.
+ * Renders LPR points while retaining geographic data references through visual changes.
+ * Query-data and origin-filter updates replace the data; hover and selection only update icons.
  * @param multipleSelectedRadars - Selected collection-point codes from the map store.
  */
 export function useRadarLayer(
@@ -51,20 +54,7 @@ export function useRadarLayer(
   const [isVisible, setIsVisible] = useState(true)
 
   const { data } = useCollectionPoints()
-  const regularPoints = useMemo(
-    () =>
-      data?.filter(
-        (point) => getCollectionPointOrigin(point.company) !== 'CIVITAS',
-      ),
-    [data],
-  )
-  const sentryPoints = useMemo(
-    () =>
-      data?.filter(
-        (point) => getCollectionPointOrigin(point.company) === 'CIVITAS',
-      ),
-    [data],
-  )
+  const originFilter = useOriginFilter(data, getRadarOrigin)
 
   const setMultipleSelectedRadars = useMapStore(
     (state) => state.setMultipleSelectedRadars,
@@ -153,43 +143,27 @@ export function useRadarLayer(
     return getCollectionPointIcon(d, isSelected || isMultiSelected || isHovered)
   }
 
-  const deps = [
-    data,
-    selectedObject?.cetRioCode,
-    selectedObjects,
-    hoveredObject?.object?.cetRioCode,
-    isVisible,
-    multipleSelectedRadars,
-  ] as const
-
-  // CETRIO (laranja) e GABRIEL (verde) — renderizados primeiro (abaixo)
   const layer = useMemo(
     () =>
       new IconLayer<CollectionPoint>({
         ...sharedProps,
         id: POINT_LAYER_IDS.radars,
-        data: regularPoints,
-        getIcon: getRadarIcon,
+        data: originFilter.visibleData,
       }),
-    [...deps],
-  )
-
-  // Radares SENTRY (violeta) — renderizados depois (por cima)
-  const sentryLayer = useMemo(
-    () =>
-      new IconLayer<CollectionPoint>({
-        ...sharedProps,
-        id: POINT_LAYER_IDS.radarsSentry,
-        data: sentryPoints,
-        getIcon: getRadarIcon,
-      }),
-    [...deps],
+    [
+      originFilter.visibleData,
+      selectedObject?.cetRioCode,
+      selectedObjects,
+      hoveredObject?.object?.cetRioCode,
+      isVisible,
+      multipleSelectedRadars,
+    ],
   )
 
   return {
+    ...originFilter,
     data,
     layer,
-    sentryLayer,
     hoveredObject,
     setHoveredObject,
     isVisible,

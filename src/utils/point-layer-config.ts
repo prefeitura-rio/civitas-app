@@ -2,9 +2,7 @@ import { POINT_CLUSTER_COLORS } from './point-cluster-colors'
 
 export const POINT_LAYER_IDS = {
   radars: 'radars',
-  radarsSentry: 'radars-sentry',
   cameras: 'cameras',
-  camerasDc3: 'cameras-dc3',
   incidents: 'fogocruzado-incidents',
   schools: 'schools',
   busStops: 'BusStops',
@@ -16,12 +14,12 @@ export type PointLayerId =
 export const POINT_CLUSTER_GROUPS = [
   {
     id: 'lpr',
-    layerIds: [POINT_LAYER_IDS.radars, POINT_LAYER_IDS.radarsSentry],
+    layerIds: [POINT_LAYER_IDS.radars],
     color: POINT_CLUSTER_COLORS.lpr,
   },
   {
     id: 'cameras',
-    layerIds: [POINT_LAYER_IDS.cameras, POINT_LAYER_IDS.camerasDc3],
+    layerIds: [POINT_LAYER_IDS.cameras],
     color: POINT_CLUSTER_COLORS.cameras,
   },
   {

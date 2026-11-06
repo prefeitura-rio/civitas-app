@@ -1,103 +1,41 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-
 import {
   COLLECTION_POINT_ICON_MAPPING,
   getCollectionPointIcon,
 } from '@/utils/collection-point-icons'
 
 describe('collection point icons', () => {
-  const atlasSvg = readFileSync(
-    join(process.cwd(), 'src/assets/collection-point-icon-atlas.svg'),
-    'utf8',
-  )
-
-  it.each([
-    ['CETRIO', 'cetrio'],
-    ['CIVITAS', 'civitas'],
-    ['GABRIEL', 'gabriel'],
-  ])(
-    'selects an existing atlas entry for every activity and highlight state of %s',
-    (company, source) => {
-      for (const activeInLast24Hours of [true, false]) {
-        for (const highlighted of [true, false]) {
-          const key = getCollectionPointIcon(
-            { company, activeInLast24Hours },
-            highlighted,
-          )
-          expect(key).toBe(
-            `${source}-${activeInLast24Hours ? 'active' : 'inactive'}-${highlighted ? 'highlighted' : 'normal'}`,
-          )
-          expect(COLLECTION_POINT_ICON_MAPPING[key]).toBeDefined()
-        }
+  it('selects an existing atlas entry for every activity and highlight state', () => {
+    for (const activeInLast24Hours of [true, false]) {
+      for (const highlighted of [true, false]) {
+        const key = getCollectionPointIcon({ activeInLast24Hours }, highlighted)
+        expect(key).toBe(
+          `${activeInLast24Hours ? 'active' : 'inactive'}-${highlighted ? 'highlighted' : 'normal'}`,
+        )
+        expect(COLLECTION_POINT_ICON_MAPPING[key]).toBeDefined()
       }
-    },
-  )
-
-  it.each([
-    ['CETRIO', 'cetrio'],
-    ['CET-Rio', 'cetrio'],
-    ['CIVITAS', 'civitas'],
-    ['civitas', 'civitas'],
-    [' CiViTaS ', 'civitas'],
-    ['GABRIEL', 'gabriel'],
-    ['gabriel', 'gabriel'],
-    [' gabriel ', 'gabriel'],
-    [null, 'cetrio'],
-    ['OTHER', 'cetrio'],
-  ])('uses the atlas row for source %s', (company, source) => {
-    expect(getCollectionPointIcon({ company, activeInLast24Hours: true })).toBe(
-      `${source}-active-normal`,
-    )
+    }
   })
 
-  it('selects atlas entries for normal and highlighted states', () => {
-    const normal = getCollectionPointIcon({
-      company: 'GABRIEL',
-      activeInLast24Hours: true,
-    })
-    const highlighted = getCollectionPointIcon(
-      { company: 'GABRIEL', activeInLast24Hours: true },
-      true,
-    )
-
-    expect(normal).toBe('gabriel-active-normal')
-    expect(highlighted).toBe('gabriel-active-highlighted')
-    expect(COLLECTION_POINT_ICON_MAPPING[normal]).toEqual(
-      expect.objectContaining({ x: 0, y: 96 }),
-    )
-    expect(COLLECTION_POINT_ICON_MAPPING[highlighted]).toEqual(
-      expect.objectContaining({ x: 48, y: 96 }),
+  it('uses the same color row for every company', () => {
+    for (const company of ['CETRIO', 'CIVITAS', 'GABRIEL', 'OTHER', null]) {
+      const point = { company, activeInLast24Hours: true }
+      expect(getCollectionPointIcon(point)).toBe('active-normal')
+    }
+    Object.values(COLLECTION_POINT_ICON_MAPPING).forEach((entry) =>
+      expect(entry.y).toBe(0),
     )
   })
 
   it('selects slash variants for inactive collection points', () => {
-    const normal = getCollectionPointIcon({
-      company: 'GABRIEL',
-      activeInLast24Hours: false,
-    })
-    const highlighted = getCollectionPointIcon(
-      { company: 'GABRIEL', activeInLast24Hours: false },
-      true,
-    )
-
-    expect(normal).toBe('gabriel-inactive-normal')
-    expect(highlighted).toBe('gabriel-inactive-highlighted')
-    expect(COLLECTION_POINT_ICON_MAPPING[normal]).toEqual(
-      expect.objectContaining({ x: 96, y: 96 }),
-    )
-    expect(COLLECTION_POINT_ICON_MAPPING[highlighted]).toEqual(
-      expect.objectContaining({ x: 144, y: 96 }),
-    )
-  })
-
-  it('keeps the Lucide atlas colors, fills, and slash direction', () => {
-    expect(atlasSvg).toContain('color="#f97316" fill="#ffffff"')
-    expect(atlasSvg).toContain('color="#000000" fill="#f97316"')
-    expect(atlasSvg).toContain('color="#6115f9" fill="#ffffff"')
-    expect(atlasSvg).toContain('color="#000000" fill="#6115f9"')
-    expect(atlasSvg).toContain('color="#027516" fill="#ffffff"')
-    expect(atlasSvg).toContain('color="#000000" fill="#027516"')
-    expect(atlasSvg).toContain('d="M4 44 44 4"')
+    expect(
+      COLLECTION_POINT_ICON_MAPPING[
+        getCollectionPointIcon({ activeInLast24Hours: false })
+      ],
+    ).toEqual(expect.objectContaining({ x: 96, y: 0 }))
+    expect(
+      COLLECTION_POINT_ICON_MAPPING[
+        getCollectionPointIcon({ activeInLast24Hours: false }, true)
+      ],
+    ).toEqual(expect.objectContaining({ x: 144, y: 0 }))
   })
 })

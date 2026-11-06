@@ -35,12 +35,12 @@ describe('point source domain adapters', () => {
   it.each([
     [' dc3 ', 'DC3'],
     ['tixi', 'TIXI'],
-    ['', 'Câmeras'],
+    ['', 'Origem não informada'],
   ])('normalizes camera origin %s', (input, expected) => {
     expect(getCameraOrigin(input)).toBe(expected)
   })
 
-  it('partitions LPR sources and retains canonical origins and original objects', () => {
+  it('keeps every LPR origin in one source with canonical origins and original objects', () => {
     const point: CollectionPoint = {
       cetRioCode: 'A',
       company: ' cIvItAs ',
@@ -54,13 +54,14 @@ describe('point source domain adapters', () => {
       activeInLast24Hours: true,
     }
     const gabriel = { ...point, cetRioCode: 'B', company: ' gabriel ' }
-    const [regular, sentry] = createCollectionPointSources([point, gabriel])
+    const sources = createCollectionPointSources([point, gabriel])
 
-    expect(regular.points[0].point).toBe(gabriel)
-    expect(regular.points[0].origin).toBe('GABRIEL')
-    expect(sentry.points[0].point).toBe(point)
-    expect(sentry.points[0].origin).toBe('CIVITAS')
-    expect(regular.points[0].id).not.toBe(sentry.points[0].id)
+    expect(sources).toHaveLength(1)
+    const [civitasPoint, gabrielPoint] = sources[0].points
+    expect(civitasPoint.point).toBe(point)
+    expect(civitasPoint.origin).toBe('CIVITAS')
+    expect(gabrielPoint.point).toBe(gabriel)
+    expect(gabrielPoint.origin).toBe('GABRIEL')
   })
 
   it('uses domain IDs for schools and bus stops instead of positional fallbacks', () => {

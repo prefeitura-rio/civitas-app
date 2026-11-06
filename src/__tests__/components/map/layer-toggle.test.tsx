@@ -9,12 +9,21 @@ function rgb(color: [number, number, number, number]) {
   return `rgb(${color[0]}, ${color[1]}, ${color[2]})`
 }
 
+const mockToggleRadarOrigin = jest.fn()
+
 jest.mock('@/hooks/mapLayers/use-radar-layer', () => ({
   useRadarLayer: () => ({
     isVisible: true, // Radar deve estar visível por padrão
     setIsVisible: jest.fn(),
     data: [],
     layer: {},
+    originCounts: [
+      { origin: 'CETRIO', count: 1200 },
+      { origin: 'CIVITAS', count: 30 },
+    ],
+    hiddenOrigins: new Set(['CIVITAS']),
+    toggleOrigin: mockToggleRadarOrigin,
+    showAllOrigins: jest.fn(),
   }),
 }))
 
@@ -24,6 +33,10 @@ jest.mock('@/hooks/mapLayers/use-cameras', () => ({
     setIsVisible: jest.fn(),
     data: [],
     layer: {},
+    originCounts: [],
+    hiddenOrigins: new Set(),
+    toggleOrigin: jest.fn(),
+    showAllOrigins: jest.fn(),
   }),
 }))
 
@@ -312,6 +325,26 @@ describe('MapLayerControl', () => {
     const fogoCruzadoButton = screen.getByLabelText('Toggle Fogo Cruzado layer')
 
     expect(fogoCruzadoButton).toHaveAttribute('data-state', 'off')
+  })
+
+  it('lists origins with counts and toggles them from the layer filter', () => {
+    render(<MapLayerControl />, { wrapper: createWrapper })
+    fireEvent.click(screen.getByText('Camadas'))
+
+    expect(
+      screen.queryByLabelText('Filtrar Câmeras por origem'),
+    ).not.toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('Filtrar LPR por origem (1 oculta)'))
+
+    const cetrio = screen.getByRole('button', { name: /CETRIO/ })
+    const civitas = screen.getByRole('button', { name: /CIVITAS/ })
+    expect(cetrio).toHaveAttribute('aria-pressed', 'true')
+    expect(cetrio).toHaveTextContent('1.200')
+    expect(civitas).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('Mostrar todas')).toBeInTheDocument()
+
+    fireEvent.click(civitas)
+    expect(mockToggleRadarOrigin).toHaveBeenCalledWith('CIVITAS')
   })
 
   it('should ensure only radar and cameras are selected by default', () => {

@@ -78,8 +78,8 @@ export function useMapLayers() {
 
   const {
     data: radars,
+    visibleData: visibleRadars,
     layer: radarLayerObj,
-    sentryLayer: radarSentryLayerObj,
     handleMultiSelectObject: multiSelectRadar,
     setSelectedObject: setSelectedRadar,
     selectedObject: selectedRadar,
@@ -87,8 +87,8 @@ export function useMapLayers() {
 
   const {
     data: cameras,
+    visibleData: visibleCameras,
     layer: cameraLayerObj,
-    dc3Layer: cameraDC3LayerObj,
     handleSelectObject: selectCamera,
     setSelectedObject: setSelectedCamera,
     selectedObject: selectedCamera,
@@ -101,12 +101,12 @@ export function useMapLayers() {
   } = fogoCruzadoLayer
 
   const lprSources = usePreparedPointSources(
-    radars,
+    visibleRadars,
     radarLayer.isVisible,
     createCollectionPointSources,
   )
   const cameraSources = usePreparedPointSources(
-    cameras,
+    visibleCameras,
     cameraLayer.isVisible,
     createCameraSources,
   )
@@ -167,9 +167,7 @@ export function useMapLayers() {
       ...AISPLayer,
       ...CISPLayer,
       cameraLayerObj,
-      cameraDC3LayerObj,
       radarLayerObj,
-      radarSentryLayerObj,
       fogoCruzadoLayerObj,
       ...tripLayers,
       addressLayer,
@@ -180,9 +178,7 @@ export function useMapLayers() {
       AISPLayer,
       CISPLayer,
       cameraLayerObj,
-      cameraDC3LayerObj,
       radarLayerObj,
-      radarSentryLayerObj,
       fogoCruzadoLayerObj,
       tripLayers,
       addressLayer,

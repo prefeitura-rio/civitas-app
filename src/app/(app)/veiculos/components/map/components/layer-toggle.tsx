@@ -7,6 +7,7 @@ import {
   ChevronUp,
   FlameKindling,
   Layers,
+  ListFilter,
   LoaderCircle,
   Satellite,
   School,
@@ -23,10 +24,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Toggle } from '@/components/ui/toggle'
+import type { OriginFilter } from '@/hooks/mapLayers/use-origin-filter'
 import { useMap } from '@/hooks/useContexts/use-map-context'
+import { cn } from '@/lib/utils'
 import { MapStyle } from '@/utils/get-map-style'
 import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
+
+type OriginFilterControls = Omit<OriginFilter<unknown>, 'visibleData'>
 
 type Layer = {
   name: string
@@ -36,6 +46,77 @@ type Layer = {
   clusterColor?: [number, number, number, number]
   isLoading?: boolean
   isError?: boolean
+  originFilter?: OriginFilterControls
+}
+
+function OriginFilterPopover({
+  layerName,
+  filter,
+}: {
+  layerName: string
+  filter: OriginFilterControls
+}) {
+  const hiddenCount = filter.hiddenOrigins.size
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={
+            hiddenCount > 0
+              ? `Filtrar ${layerName} por origem (${hiddenCount} oculta${hiddenCount > 1 ? 's' : ''})`
+              : `Filtrar ${layerName} por origem`
+          }
+          title="Filtrar por origem"
+          className="absolute right-1 top-1 grid size-6 place-items-center rounded-md bg-background/80 text-foreground hover:bg-background"
+        >
+          <ListFilter className="size-3.5" />
+          {hiddenCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary" />
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="right" align="end" className="w-64 p-3">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">
+          Origem · {layerName}
+        </p>
+        <div className="flex flex-wrap gap-1">
+          {filter.originCounts.map(({ origin, count }) => {
+            const shown = !filter.hiddenOrigins.has(origin)
+            return (
+              <button
+                key={origin}
+                type="button"
+                aria-pressed={shown}
+                onClick={() => filter.toggleOrigin(origin)}
+                className={cn(
+                  'inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors',
+                  shown
+                    ? 'border-primary/50 bg-primary/15 text-foreground'
+                    : 'border-border text-muted-foreground line-through',
+                )}
+              >
+                <span className="truncate">{origin}</span>
+                <span className="tabular-nums text-muted-foreground">
+                  {count.toLocaleString('pt-BR')}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            onClick={filter.showAllOrigins}
+            className="mt-2 text-xs font-medium text-primary hover:underline"
+          >
+            Mostrar todas
+          </button>
+        )}
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 function getLayerButtonStyle(layer: Layer): CSSProperties | undefined {
@@ -63,8 +144,8 @@ function getLayerButtonStyle(layer: Layer): CSSProperties | undefined {
 export function MapLayerControl() {
   const {
     layers: {
-      radars: { isVisible: isRadarVisible, setIsVisible: setIsRadarVisible },
-      cameras: { isVisible: isCameraVisible, setIsVisible: setIsCameraVisible },
+      radars: radarLayer,
+      cameras: cameraLayer,
       fogoCruzado: {
         isVisible: isFogoCruzadoVisible,
         setIsVisible: setIsFogoCruzadoVisible,
@@ -104,16 +185,18 @@ export function MapLayerControl() {
     {
       name: 'LPR',
       icon: <Cctv />,
-      isVisible: isRadarVisible,
-      setIsVisible: setIsRadarVisible,
+      isVisible: radarLayer.isVisible,
+      setIsVisible: radarLayer.setIsVisible,
       clusterColor: POINT_CLUSTER_COLORS.lpr,
+      originFilter: radarLayer,
     },
     {
       name: 'Câmeras',
       icon: <Video />,
-      isVisible: isCameraVisible,
-      setIsVisible: setIsCameraVisible,
+      isVisible: cameraLayer.isVisible,
+      setIsVisible: cameraLayer.setIsVisible,
       clusterColor: POINT_CLUSTER_COLORS.cameras,
+      originFilter: cameraLayer,
     },
     {
       name: 'Fogo Cruzado',
@@ -215,44 +298,53 @@ export function MapLayerControl() {
                   <div className="p-2">
                     <div className="grid grid-cols-2 gap-2">
                       {layers.map((layer, index) => (
-                        <Toggle
-                          key={index}
-                          pressed={layer.isVisible}
-                          onPressedChange={layer.setIsVisible}
-                          style={getLayerButtonStyle(layer)}
-                          className={`flex size-20 shrink-0 flex-col items-center justify-center ${
-                            layer.clusterColor
-                              ? ''
-                              : 'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
-                          }`}
-                          aria-label={`Toggle ${layer.name} layer`}
-                          aria-busy={layer.isLoading || undefined}
-                          aria-description={
-                            layer.isError
-                              ? 'Erro ao carregar. Desative e ative para tentar novamente.'
-                              : undefined
-                          }
-                          title={
-                            layer.isError
-                              ? 'Erro ao carregar. Desative e ative para tentar novamente.'
-                              : undefined
-                          }
-                        >
-                          {layer.isLoading ? (
-                            <LoaderCircle
-                              className="animate-spin"
-                              aria-label="Carregando"
-                            />
-                          ) : layer.isError ? (
-                            <TriangleAlert aria-label="Erro ao carregar" />
-                          ) : (
-                            layer.icon
-                          )}
-                          <span className="mt-1 text-xs">{layer.name}</span>
-                          {layer.isError && (
-                            <span className="text-xs">Erro ao carregar</span>
-                          )}
-                        </Toggle>
+                        <div key={index} className="relative">
+                          <Toggle
+                            pressed={layer.isVisible}
+                            onPressedChange={layer.setIsVisible}
+                            style={getLayerButtonStyle(layer)}
+                            className={`flex size-20 shrink-0 flex-col items-center justify-center ${
+                              layer.clusterColor
+                                ? ''
+                                : 'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
+                            }`}
+                            aria-label={`Toggle ${layer.name} layer`}
+                            aria-busy={layer.isLoading || undefined}
+                            aria-description={
+                              layer.isError
+                                ? 'Erro ao carregar. Desative e ative para tentar novamente.'
+                                : undefined
+                            }
+                            title={
+                              layer.isError
+                                ? 'Erro ao carregar. Desative e ative para tentar novamente.'
+                                : undefined
+                            }
+                          >
+                            {layer.isLoading ? (
+                              <LoaderCircle
+                                className="animate-spin"
+                                aria-label="Carregando"
+                              />
+                            ) : layer.isError ? (
+                              <TriangleAlert aria-label="Erro ao carregar" />
+                            ) : (
+                              layer.icon
+                            )}
+                            <span className="mt-1 text-xs">{layer.name}</span>
+                            {layer.isError && (
+                              <span className="text-xs">Erro ao carregar</span>
+                            )}
+                          </Toggle>
+                          {layer.isVisible &&
+                            layer.originFilter &&
+                            layer.originFilter.originCounts.length > 0 && (
+                              <OriginFilterPopover
+                                layerName={layer.name}
+                                filter={layer.originFilter}
+                              />
+                            )}
+                        </div>
                       ))}
                     </div>
                   </div>

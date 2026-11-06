@@ -83,40 +83,16 @@ export const busStopAdapter: PointSourceAdapter<BusStop> = {
   getOrigin: () => 'Pontos de ônibus',
 }
 
-/** Prepares LPR origins as one category while retaining their individual rendering order. */
+/** Prepares LPR points; origins are kept per point for cluster counts. */
 export function createCollectionPointSources(
-  data: readonly CollectionPoint[] = [],
+  data: readonly CollectionPoint[] | undefined,
 ) {
   return [
-    preparePointSource(
-      POINT_LAYER_IDS.radars,
-      data.filter(
-        (point) => getCollectionPointOrigin(point.company) !== 'CIVITAS',
-      ),
-      collectionPointAdapter,
-    ),
-    preparePointSource(
-      POINT_LAYER_IDS.radarsSentry,
-      data.filter(
-        (point) => getCollectionPointOrigin(point.company) === 'CIVITAS',
-      ),
-      collectionPointAdapter,
-    ),
+    preparePointSource(POINT_LAYER_IDS.radars, data, collectionPointAdapter),
   ]
 }
 
-/** Prepares camera systems using the same canonical DC3 split as their icon layers. */
-export function createCameraSources(data: readonly Camera[] = []) {
-  return [
-    preparePointSource(
-      POINT_LAYER_IDS.cameras,
-      data.filter((point) => getCameraOrigin(point.sistemaOrigem) !== 'DC3'),
-      cameraAdapter,
-    ),
-    preparePointSource(
-      POINT_LAYER_IDS.camerasDc3,
-      data.filter((point) => getCameraOrigin(point.sistemaOrigem) === 'DC3'),
-      cameraAdapter,
-    ),
-  ]
+/** Prepares cameras; camera systems are kept per point for cluster counts. */
+export function createCameraSources(data: readonly Camera[] | undefined) {
+  return [preparePointSource(POINT_LAYER_IDS.cameras, data, cameraAdapter)]
 }
