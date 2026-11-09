@@ -22,6 +22,7 @@ const mockCollectionPoint: CollectionPoint = {
 }
 
 const mockAdditionalCollectionPoints: CollectionPoint[] = []
+let mockLoadingCollectionPoints = false
 
 jest.mock('deck.gl', () => ({
   IconLayer: jest.fn().mockImplementation((props) => ({
@@ -38,37 +39,39 @@ jest.mock('@/stores/use-map-store', () => ({
 
 jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
   useCollectionPoints: () => ({
-    data: [
-      {
-        cetRioCode: 'RDR123',
-        location: 'avenida brasil',
-        district: 'centro',
-        latitude: -22.9068,
-        longitude: -43.1729,
-        company: 'CET-Rio',
-        activeInLast24Hours: true,
-        lastDetectionTime: '2024-01-15T10:30:00Z',
-        statusAtivo: 'ativo',
-        totalDetections: 100,
-        direction: 'norte',
-        lane: 'direita',
-      },
-      {
-        cetRioCode: 'RDR456',
-        location: 'copacabana',
-        district: 'zona sul',
-        latitude: -22.9707,
-        longitude: -43.1824,
-        company: 'CET-Rio',
-        activeInLast24Hours: false,
-        lastDetectionTime: null,
-        statusAtivo: 'inativo',
-        totalDetections: 0,
-        direction: 'sul',
-        lane: 'esquerda',
-      },
-      ...mockAdditionalCollectionPoints,
-    ],
+    data: mockLoadingCollectionPoints
+      ? undefined
+      : [
+          {
+            cetRioCode: 'RDR123',
+            location: 'avenida brasil',
+            district: 'centro',
+            latitude: -22.9068,
+            longitude: -43.1729,
+            company: 'CET-Rio',
+            activeInLast24Hours: true,
+            lastDetectionTime: '2024-01-15T10:30:00Z',
+            statusAtivo: 'ativo',
+            totalDetections: 100,
+            direction: 'norte',
+            lane: 'direita',
+          },
+          {
+            cetRioCode: 'RDR456',
+            location: 'copacabana',
+            district: 'zona sul',
+            latitude: -22.9707,
+            longitude: -43.1824,
+            company: 'CET-Rio',
+            activeInLast24Hours: false,
+            lastDetectionTime: null,
+            statusAtivo: 'inativo',
+            totalDetections: 0,
+            direction: 'sul',
+            lane: 'esquerda',
+          },
+          ...mockAdditionalCollectionPoints,
+        ],
   }),
 }))
 
@@ -221,6 +224,17 @@ describe('useRadarLayer', () => {
     expect(result.current.data).toHaveLength(2)
     expect(result.current.data?.[0]?.cetRioCode).toBe('RDR123')
     expect(result.current.data?.[1]?.cetRioCode).toBe('RDR456')
+  })
+
+  it('renders while collection points are still loading', () => {
+    mockLoadingCollectionPoints = true
+    try {
+      const { result } = renderUseRadarLayer()
+      expect(result.current.data).toBeUndefined()
+      expect(result.current.layer).toBeDefined()
+    } finally {
+      mockLoadingCollectionPoints = false
+    }
   })
 
   it('deve manter referência estável das funções entre renders', () => {

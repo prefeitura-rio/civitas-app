@@ -23,6 +23,7 @@ import { type MapSize, useMapSize } from '@/hooks/use-map-size'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import { getPlaces } from '@/http/mapbox/get-places'
 import type { CollectionPoint } from '@/models/entities'
+import { getCoincidentPointOffsets } from '@/utils/coincident-point-offsets'
 import {
   COLLECTION_POINT_ICON_MAPPING,
   collectionPointIconAtlas,
@@ -236,6 +237,14 @@ export function useCollectionPointPickerState({
   const mapPoints = useMemo(
     () => (showSelectedOnlyInMap ? selectedPoints : (collectionPoints ?? [])),
     [collectionPoints, selectedPoints, showSelectedOnlyInMap],
+  )
+  const pointOffsets = useMemo(
+    () =>
+      getCoincidentPointOffsets(collectionPoints ?? [], (point) => [
+        point.longitude,
+        point.latitude,
+      ]),
+    [collectionPoints],
   )
 
   const mapWidth = mapSize?.width ?? 0
@@ -1001,7 +1010,8 @@ export function useCollectionPointPickerState({
         iconAtlas: collectionPointIconAtlas.src,
         iconMapping: COLLECTION_POINT_ICON_MAPPING,
         getSize: 1,
-        getPosition: (point) => [point.longitude, point.latitude],
+        getPosition: (point) =>
+          pointOffsets.get(point) ?? [point.longitude, point.latitude],
         getIcon: (point) => {
           const isSelected = draftValue.includes(
             getCollectionPointSelectionId(point),
@@ -1012,6 +1022,7 @@ export function useCollectionPointPickerState({
         },
         updateTriggers: {
           getIcon: [draftValue, focusedPointId],
+          getPosition: pointOffsets,
         },
         onClick: (info: PickingInfo<CollectionPoint>) => {
           if (!info.object) return
@@ -1027,6 +1038,7 @@ export function useCollectionPointPickerState({
       draftValue,
       focusedPointId,
       mapPoints,
+      pointOffsets,
       visibleClusterLeaves,
     ],
   )

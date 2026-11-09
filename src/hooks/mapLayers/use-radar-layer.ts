@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
+import { getCoincidentPointOffsets } from '@/utils/coincident-point-offsets'
 import {
   COLLECTION_POINT_ICON_MAPPING,
   collectionPointIconAtlas,
@@ -55,6 +56,14 @@ export function useRadarLayer(
 
   const { data } = useCollectionPoints()
   const originFilter = useOriginFilter(data, getRadarOrigin)
+  const offsets = useMemo(
+    () =>
+      getCoincidentPointOffsets(data ?? [], (point) => [
+        point.longitude,
+        point.latitude,
+      ]),
+    [data],
+  )
 
   const setMultipleSelectedRadars = useMapStore(
     (state) => state.setMultipleSelectedRadars,
@@ -119,9 +128,10 @@ export function useRadarLayer(
     iconMapping: COLLECTION_POINT_ICON_MAPPING,
     getIcon: getRadarIcon,
     getPosition: (d: CollectionPoint) =>
-      [d.longitude, d.latitude] as [number, number],
+      offsets.get(d) ?? ([d.longitude, d.latitude] as [number, number]),
     visible: isVisible,
     updateTriggers: {
+      getPosition: offsets,
       getIcon: [
         selectedObject?.cetRioCode,
         selectedObjects,
@@ -152,6 +162,7 @@ export function useRadarLayer(
       }),
     [
       originFilter.visibleData,
+      offsets,
       selectedObject?.cetRioCode,
       selectedObjects,
       hoveredObject?.object?.cetRioCode,
