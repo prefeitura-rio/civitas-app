@@ -1,4 +1,5 @@
 'use client'
+import type { ScatterplotLayer } from '@deck.gl/layers'
 import { IconLayer, type PickingInfo } from 'deck.gl'
 import { useCallback, useMemo, useState } from 'react'
 
@@ -11,7 +12,10 @@ import {
   getCollectionPointIcon,
 } from '@/utils/collection-point-icons'
 import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
-import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
+import {
+  createRightClickRingLayer,
+  POINT_LAYER_IDS,
+} from '@/utils/point-layer-config'
 
 import { useCollectionPoints } from '../useQueries/useCollectionPoints'
 import { type OriginFilter, useOriginFilter } from './use-origin-filter'
@@ -22,6 +26,7 @@ const getRadarOrigin = (point: CollectionPoint) =>
 export interface UseRadarLayer extends OriginFilter<CollectionPoint> {
   data: CollectionPoint[] | undefined
   layer: IconLayer<CollectionPoint>
+  highlightLayer: ScatterplotLayer<[number, number]> | null
   hoveredObject: PickingInfo<CollectionPoint> | null
   setHoveredObject: (value: PickingInfo<CollectionPoint> | null) => void
   isVisible: boolean
@@ -68,6 +73,7 @@ export function useRadarLayer(
   const setMultipleSelectedRadars = useMapStore(
     (state) => state.setMultipleSelectedRadars,
   )
+  const radarInfoMode = useMapStore((state) => state.radarInfoMode)
 
   const selectedObjects = useMemo(() => {
     if (!data || !multipleSelectedRadars.length) return []
@@ -171,10 +177,30 @@ export function useRadarLayer(
     ],
   )
 
+  const infoPosition = useMemo<[number, number] | null>(() => {
+    if (!radarInfoMode) return null
+    const matching = data?.find(
+      (item) => item.cetRioCode === radarInfoMode.cetRioCode,
+    )
+    const target = matching ?? radarInfoMode
+    return offsets.get(target) ?? [target.longitude, target.latitude]
+  }, [data, offsets, radarInfoMode])
+
+  const highlightLayer = useMemo(
+    () =>
+      createRightClickRingLayer(
+        `${POINT_LAYER_IDS.radars}-right-click-highlight`,
+        infoPosition,
+        isVisible,
+      ),
+    [infoPosition, isVisible],
+  )
+
   return {
     ...originFilter,
     data,
     layer,
+    highlightLayer,
     hoveredObject,
     setHoveredObject,
     isVisible,

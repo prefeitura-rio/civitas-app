@@ -211,8 +211,16 @@ describe('point source stability through visual interactions', () => {
     assertStableSources()
   })
 
-  it('invalidates camera icons for hover and selection while retaining source data', () => {
+  it('invalidates camera icons for hover and keeps default icon fill with a red ring on right-click selection', () => {
     const { result } = renderHook(() => usePointLayers([]))
+    const getCameraIcon = (point: Camera) =>
+      (
+        result.current.cameras.layer.props.getIcon as unknown as (
+          point: Camera,
+        ) => string
+      )(point)
+
+    expect(result.current.cameras.highlightLayer).toBeNull()
 
     act(() =>
       result.current.cameras.setHoveredObject({
@@ -222,6 +230,7 @@ describe('point source stability through visual interactions', () => {
     expect(
       result.current.cameras.layer.props.updateTriggers?.getIcon,
     ).toContain(camera.code)
+    expect(getCameraIcon(camera)).toBe('highlighted')
 
     act(() => {
       result.current.cameras.setHoveredObject(null)
@@ -230,6 +239,8 @@ describe('point source stability through visual interactions', () => {
     expect(
       result.current.cameras.layer.props.updateTriggers?.getIcon,
     ).toContain('CAM-2')
+    expect(getCameraIcon(mockCameras[1])).toBe('default')
+    expect(result.current.cameras.highlightLayer).not.toBeNull()
   })
 
   it('rebuilds the affected indexes when query data changes', () => {

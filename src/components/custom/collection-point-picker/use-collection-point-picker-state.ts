@@ -41,6 +41,7 @@ import {
   getMapBounds,
   isIndexedPointFeature,
 } from '@/utils/point-clustering'
+import { createRightClickRingLayer } from '@/utils/point-layer-config'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 import {
@@ -108,14 +109,25 @@ function getCollectionPointSelectionId(point: CollectionPoint) {
   return point.cetRioCode
 }
 
-function getPickingButton(info: PickingInfo<CollectionPoint>) {
-  const sourceEvent = (
-    info as PickingInfo<CollectionPoint> & {
-      srcEvent?: { button?: number }
-    }
-  ).srcEvent
+function getPickingButton(
+  info: PickingInfo<CollectionPoint>,
+  event?: { srcEvent?: { button?: number; which?: number } },
+) {
+  const sourceEvent =
+    event?.srcEvent ??
+    (
+      info as PickingInfo<CollectionPoint> & {
+        srcEvent?: { button?: number; which?: number }
+      }
+    ).srcEvent
 
-  return sourceEvent?.button ?? 0
+  if (typeof sourceEvent?.button === 'number') {
+    return sourceEvent.button
+  }
+  if (typeof sourceEvent?.which === 'number') {
+    return sourceEvent.which - 1
+  }
+  return 0
 }
 
 function buildPolygonFeature(points: LngLatTuple[]) {
@@ -817,7 +829,9 @@ export function useCollectionPointPickerState({
       container.clientWidth,
       container.clientHeight,
     )
-    previewPoint(picked.object)
+    const pointId = getCollectionPointSelectionId(picked.object)
+    setFocusedPointId(pointId)
+    scrollListToOption(pointId)
     setPopupState({
       point: picked.object,
       x: position.left,
@@ -933,7 +947,20 @@ export function useCollectionPointPickerState({
     }
   }
 
-  function handleMapBackgroundClick(info: PickingInfo) {
+  function handleMapMouseUp(event: MouseEvent<HTMLDivElement>) {
+    if (event.button === 2) {
+      suppressMapClickUntilRef.current = Date.now() + 250
+    }
+  }
+
+  function handleMapBackgroundClick(
+    info: PickingInfo,
+    event?: { srcEvent?: { button?: number; which?: number } },
+  ) {
+    if (Date.now() < suppressMapClickUntilRef.current) return
+    if (getPickingButton(info as PickingInfo<CollectionPoint>, event) !== 0)
+      return
+
     if (areaSelectionMode === 'polygon') {
       const coordinates = info.coordinate as LngLatTuple | undefined
       if (!coordinates) return
@@ -1016,19 +1043,20 @@ export function useCollectionPointPickerState({
           const isSelected = draftValue.includes(
             getCollectionPointSelectionId(point),
           )
-          const isFocused =
-            focusedPointId === getCollectionPointSelectionId(point)
-          return getCollectionPointIcon(point, isSelected || isFocused)
+          return getCollectionPointIcon(point, isSelected)
         },
         updateTriggers: {
-          getIcon: [draftValue, focusedPointId],
+          getIcon: [draftValue],
           getPosition: pointOffsets,
         },
-        onClick: (info: PickingInfo<CollectionPoint>) => {
+        onClick: (
+          info: PickingInfo<CollectionPoint>,
+          event?: { srcEvent?: { button?: number; which?: number } },
+        ) => {
           if (!info.object) return
           if (areaSelectionMode) return
           if (Date.now() < suppressMapClickUntilRef.current) return
-          if (getPickingButton(info) !== 0) return
+          if (getPickingButton(info, event) !== 0) return
 
           togglePointFromMapOrList(info.object)
         },
@@ -1124,12 +1152,32 @@ export function useCollectionPointPickerState({
     })
   }, [areaDraftPoints])
 
+  const popupHighlightLayer = useMemo(() => {
+    if (!popupState?.point) return null
+    const matching = (collectionPoints ?? []).find(
+      (item) =>
+        getCollectionPointSelectionId(item) ===
+        getCollectionPointSelectionId(popupState.point),
+    )
+    const target = matching ?? popupState.point
+    const position = pointOffsets.get(target) ?? [
+      target.longitude,
+      target.latitude,
+    ]
+    return createRightClickRingLayer(
+      `${POINT_LAYER_ID}-right-click-highlight`,
+      position,
+      true,
+    )
+  }, [collectionPoints, pointOffsets, popupState])
+
   const mapLayers = useMemo(
     () =>
       [
         areaPolygonLayer,
         areaLineLayer,
         areaVertexLayer,
+        popupHighlightLayer,
         pointLayer,
         ...pointClusterLayers,
       ].filter(Boolean),
@@ -1137,6 +1185,7 @@ export function useCollectionPointPickerState({
       areaLineLayer,
       areaPolygonLayer,
       areaVertexLayer,
+      popupHighlightLayer,
       pointLayer,
       pointClusterLayers,
     ],
@@ -1168,6 +1217,7 @@ export function useCollectionPointPickerState({
     handleListScroll,
     handleMapBackgroundClick,
     handleMapContextMenu,
+    handleMapMouseUp,
     handleMapLoad,
     handleMapResize,
     handleMapSearchChange,

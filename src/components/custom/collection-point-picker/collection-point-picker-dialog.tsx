@@ -166,6 +166,9 @@ export function CollectionPointPickerDialog({
                   ref={picker.mapContainerRef}
                   className="relative h-[360px] overflow-hidden rounded-md border sm:h-[420px] xl:h-[520px]"
                   onContextMenu={picker.handleMapContextMenu}
+                  onMouseDown={picker.handleMapMouseUp}
+                  onMouseUp={picker.handleMapMouseUp}
+                  onPointerUp={picker.handleMapMouseUp}
                 >
                   <div className="absolute inset-x-2 top-2 z-10 sm:left-auto sm:right-3 sm:top-3 sm:w-80">
                     <div className="rounded-md border bg-background/95 p-2 shadow-sm backdrop-blur">
