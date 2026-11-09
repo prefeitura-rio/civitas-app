@@ -82,7 +82,7 @@ export const SelectedRadarsList = memo(function SelectedRadarsList({
   return (
     <div className="space-y-4">
       <div className="flex space-x-2">
-        <Input ref={radarSearchInputRef} placeholder="Código CET-RIO" />
+        <Input ref={radarSearchInputRef} placeholder="Código do Equipamento" />
         <Button onClick={handleAddRadar}>Adicionar</Button>
       </div>
       <div className="space-y-2">{radarList}</div>

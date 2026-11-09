@@ -91,6 +91,7 @@ export type BackendRadar = {
 
 export type Radar = {
   cetRioCode: string
+  codigoPontoColeta?: string | null
   equipmentCodes?: string[]
   latitude: number
   longitude: number

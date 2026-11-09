@@ -16,6 +16,7 @@ export type LprCollectionPoint = {
 
 export type CollectionPoint = {
   cetRioCode: string
+  codigoPontoColeta?: string | null
   equipmentCodes?: string[]
   company: string | null
   latitude: number

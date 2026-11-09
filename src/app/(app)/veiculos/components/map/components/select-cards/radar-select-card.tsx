@@ -19,7 +19,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
-import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
+import {
+  formatCollectionPointOriginName,
+  getCollectionPointOrigin,
+} from '@/utils/collection-point-origin'
 
 interface RadarSelectCardProps {
   selectedObject: CollectionPoint | null
@@ -73,224 +76,179 @@ export function RadarSelectCard({
   const originLabel = radarData
     ? getCollectionPointOrigin(radarData.company)
     : ''
+  const originPointName = radarData
+    ? formatCollectionPointOriginName(radarData)
+    : null
 
   return (
-    <>
-      <Card
-        className={cn(
-          'absolute left-2 top-2 w-72 w-[400px] tracking-tighter',
-          !radarData ? 'hidden' : '',
-          className,
-        )}
-      >
-        <div className="relative">
-          <Button
-            variant="outline"
-            className="absolute right-1 top-1 h-5 w-5 p-0"
-            onClick={handleCloseCard}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <CardHeader className="border-b px-4 py-3 pr-9">
-            <CardTitle className="flex flex-wrap items-center gap-x-2 gap-y-1 text-left text-sm font-semibold tracking-tighter">
-              <span>Informações do Equipamento</span>
-              {radarData && (
-                <span
-                  className={badgeVariants({
-                    variant: 'default',
-                    className: 'shrink-0 leading-none',
-                  })}
-                  title="Empresa"
+    <Card
+      className={cn(
+        'absolute left-2 top-2 w-72 w-[400px] tracking-tighter',
+        !radarData ? 'hidden' : '',
+        className,
+      )}
+    >
+      <div className="relative">
+        <Button
+          variant="outline"
+          className="absolute right-1 top-1 h-5 w-5 p-0"
+          onClick={handleCloseCard}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+        <CardHeader className="border-b px-4 py-3 pr-9">
+          <CardTitle className="flex flex-wrap items-center gap-x-2 gap-y-1 text-left text-sm font-semibold tracking-tighter">
+            <span>Informações do Equipamento</span>
+            {radarData && (
+              <span
+                className={badgeVariants({
+                  variant: 'default',
+                  className: 'shrink-0 leading-none',
+                })}
+                title="Empresa"
+              >
+                {originLabel}
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 py-3">
+          <div className="space-y-3 text-sm">
+            <div className="flex flex-col space-y-1">
+              <span className="text-sm font-medium">Código do Equipamento</span>
+              <span className="break-all text-sm text-muted-foreground">
+                {radarData?.cetRioCode}
+              </span>
+            </div>
+
+            {equipmentList.length > 0 && (
+              <div className="flex flex-col space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Cctv className="size-4 shrink-0" />
+                  <span className="text-sm font-medium">
+                    {`Equipamentos na origem (${equipmentList.length})`}
+                  </span>
+                </div>
+
+                <div
+                  data-testid="radar-inline-equipments"
+                  className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-md bg-secondary/40 p-2"
                 >
-                  {originLabel}
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 py-3">
-            <div className="space-y-3 text-sm">
-              <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium">
-                  Código do Equipamento
-                </span>
-                <span className="break-all text-sm text-muted-foreground">
-                  {radarData?.cetRioCode}
-                </span>
-              </div>
-
-              <div className="flex flex-col space-y-1">
-                <div className="flex items-center gap-1">
-                  <MapPin className="size-4 shrink-0" />
-                  <span className="text-sm font-medium">Localização</span>
+                  {equipmentList.map((equipmentCode) => (
+                    <span
+                      key={equipmentCode}
+                      className={badgeVariants({
+                        variant: 'secondary',
+                        className:
+                          'max-w-full break-all font-mono text-xs font-normal leading-tight',
+                      })}
+                      title="Código do equipamento na origem"
+                    >
+                      {originPointName
+                        ? `${originPointName} | ${equipmentCode}`
+                        : equipmentCode}
+                    </span>
+                  ))}
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  {`${radarData?.location} - ${radarData?.district}${radarData?.direction ? `, SENTIDO ${radarData.direction}` : ''}`}
-                </span>
               </div>
+            )}
 
-              {radarData?.lastDetectionTime && (
-                <>
-                  <div className="flex flex-col space-y-1">
-                    <div className="flex items-center gap-1">
-                      <History className="size-4 shrink-0" />
-                      <span className="text-sm font-medium">
-                        Última detecção
-                      </span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate(
-                        radarData?.lastDetectionTime,
-                        "dd/MM/y 'às' HH:mm:ss",
-                      )}
-                    </span>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-1">
+                <MapPin className="size-4 shrink-0" />
+                <span className="text-sm font-medium">Localização</span>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {`${radarData?.location} - ${radarData?.district}${radarData?.direction ? `, SENTIDO ${radarData.direction}` : ''}`}
+              </span>
+            </div>
+
+            {radarData?.lastDetectionTime && (
+              <>
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center gap-1">
+                    <History className="size-4 shrink-0" />
+                    <span className="text-sm font-medium">Última detecção</span>
                   </div>
-
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-sm font-medium">
-                      Ativo nas últimas 24 horas
-                    </span>
-                    {radarData?.activeInLast24Hours === true ? (
-                      <span className="text-sm text-emerald-600">Sim</span>
-                    ) : (
-                      <span className="text-sm text-rose-600">Não</span>
+                  <span className="text-sm text-muted-foreground">
+                    {formatDate(
+                      radarData?.lastDetectionTime,
+                      "dd/MM/y 'às' HH:mm:ss",
                     )}
+                  </span>
+                </div>
+
+                <div className="flex flex-col space-y-1">
+                  <span className="text-sm font-medium">
+                    Ativo nas últimas 24 horas
+                  </span>
+                  {radarData?.activeInLast24Hours === true ? (
+                    <span className="text-sm text-emerald-600">Sim</span>
+                  ) : (
+                    <span className="text-sm text-rose-600">Não</span>
+                  )}
+                </div>
+              </>
+            )}
+
+            {radarData !== null &&
+              radarData !== undefined &&
+              !radarData.activeInLast24Hours && (
+                <div className="border-l-4 border-yellow-600 bg-secondary p-1.5">
+                  <div className="flex items-start">
+                    <AlertTriangle className="mr-1.5 mt-0.5 h-4 w-4 text-yellow-400" />
+                    <p className="text-xs text-gray-300">
+                      <span className="font-bold text-yellow-400">
+                        Atenção!
+                      </span>{' '}
+                      Equipamentos LPR são considerados inativos se não enviarem
+                      dados há mais de 24 horas. No entanto, essa informação não
+                      é atualizada em tempo real e pode seguir desatualizada por
+                      várias horas.
+                    </p>
                   </div>
-                </>
+                </div>
               )}
 
-              {radarData !== null &&
-                radarData !== undefined &&
-                !radarData.activeInLast24Hours && (
-                  <div className="border-l-4 border-yellow-600 bg-secondary p-1.5">
-                    <div className="flex items-start">
-                      <AlertTriangle className="mr-1.5 mt-0.5 h-4 w-4 text-yellow-400" />
-                      <p className="text-xs text-gray-300">
-                        <span className="font-bold text-yellow-400">
-                          Atenção!
-                        </span>{' '}
-                        Equipamentos LPR são considerados inativos se não
-                        enviarem dados há mais de 24 horas. No entanto, essa
-                        informação não é atualizada em tempo real e pode seguir
-                        desatualizada por várias horas.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col space-y-1">
-                  <span className="text-sm font-medium">Latitude</span>
-                  <span className="break-all text-sm text-muted-foreground">
-                    {radarData?.latitude}
-                  </span>
-                </div>
-                <div className="flex flex-col space-y-1">
-                  <span className="text-sm font-medium">Longitude</span>
-                  <span className="break-all text-sm text-muted-foreground">
-                    {radarData?.longitude}
-                  </span>
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Latitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {radarData?.latitude}
+                </span>
               </div>
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Longitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {radarData?.longitude}
+                </span>
+              </div>
+            </div>
 
-              <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={handleZoomToRadar}
+              >
+                <MapPin className="mr-2 h-4 w-4" />
+                Focar no Equipamento
+              </Button>
+              {previousViewport && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1"
-                  onClick={handleZoomToRadar}
+                  onClick={handleRestorePreviousViewport}
+                  title="Voltar ao zoom anterior"
                 >
-                  <MapPin className="mr-2 h-4 w-4" />
-                  Focar no Equipamento
+                  <RotateCcw className="h-4 w-4" />
                 </Button>
-                {previousViewport && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRestorePreviousViewport}
-                    title="Voltar ao zoom anterior"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
-          </CardContent>
-        </div>
-      </Card>
-
-      {radarData && equipmentList.length > 0 && (
-        <Card
-          data-testid="radar-grouped-equipments-card"
-          className={cn(
-            'absolute left-[410px] top-2 w-[380px] tracking-tighter',
-            className,
-          )}
-        >
-          <CardHeader className="space-y-2 border-b px-4 py-3">
-            <div className="space-y-0.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Mesmo ponto no mapa
-              </p>
-              <CardTitle className="text-left text-sm font-semibold tracking-tighter">
-                {`${equipmentList.length} ${equipmentList.length === 1 ? 'dispositivo neste local' : 'dispositivos neste local'}`}
-              </CardTitle>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span
-                className={badgeVariants({
-                  variant: 'secondary',
-                  className: 'leading-none',
-                })}
-              >
-                {`LPR: ${equipmentList.length}`}
-              </span>
-            </div>
-          </CardHeader>
-
-          <CardContent className="max-h-[420px] space-y-2.5 overflow-y-auto px-4 py-3">
-            {equipmentList.map((equipmentCode) => (
-              <div
-                key={equipmentCode}
-                className="overflow-hidden rounded-md border border-l-4 border-l-primary bg-secondary/30 p-3 text-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Cctv className="size-3.5 shrink-0 text-primary" />
-                    <span
-                      className={badgeVariants({
-                        variant: 'outline',
-                        className: 'px-2 py-0.5 text-[11px] leading-none',
-                      })}
-                    >
-                      LPR
-                    </span>
-                  </div>
-                  <span
-                    className={badgeVariants({
-                      variant: 'default',
-                      className:
-                        'max-w-full break-all font-mono text-[11px] leading-tight',
-                    })}
-                    title="Código do equipamento na origem"
-                  >
-                    {equipmentCode}
-                  </span>
-                </div>
-
-                <div className="mt-2 space-y-0.5">
-                  <p className="font-semibold leading-snug text-foreground">
-                    {radarData.location ?? 'Local não informado'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {`Responsável: ${originLabel}`}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-    </>
+          </div>
+        </CardContent>
+      </div>
+    </Card>
   )
 }
