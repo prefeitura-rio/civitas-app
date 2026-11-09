@@ -208,7 +208,9 @@ describe('RadarSelectCard', () => {
       .closest('div')?.parentElement?.parentElement
 
     expect(mainCard).toHaveClass('mt-12')
-    expect(screen.getByText('Equipamentos na origem (3)')).toBeInTheDocument()
+    expect(
+      screen.getByText('Equipamentos no sistema de origem (3)'),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('radar-inline-equipments')).toBeInTheDocument()
     expect(
       screen.getByText('0000003 - SENTIDO DUQUE DE CAXIAS | 1'),
@@ -235,7 +237,9 @@ describe('RadarSelectCard', () => {
 
     render(<RadarSelectCard {...defaultProps} selectedObject={cetrioPoint} />)
 
-    expect(screen.getByText('Equipamentos na origem (2)')).toBeInTheDocument()
+    expect(
+      screen.getByText('Equipamentos no sistema de origem (2)'),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('radar-inline-equipments')).toBeInTheDocument()
     expect(screen.getByText('0480001101')).toBeInTheDocument()
     expect(screen.getByText('0480001102')).toBeInTheDocument()

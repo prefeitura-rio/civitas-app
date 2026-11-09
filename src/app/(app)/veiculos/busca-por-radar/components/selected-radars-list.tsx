@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef } from 'react'
+import { type KeyboardEvent, memo, useCallback, useMemo, useRef } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,8 +30,15 @@ export const SelectedRadarsList = memo(function SelectedRadarsList({
   const radarSearchInputRef = useRef<HTMLInputElement | null>(null)
 
   const handleAddRadar = useCallback(() => {
+    const inputValue = radarSearchInputRef.current?.value.trim()
+    if (!inputValue) return
+
+    const trimmedInput = inputValue.replace(/^0+/, '')
     const radar = radars?.find(
-      (item) => item.cetRioCode === radarSearchInputRef.current?.value,
+      (item) =>
+        item.cetRioCode === inputValue ||
+        (trimmedInput.length > 0 &&
+          item.cetRioCode?.replace(/^0+/, '') === trimmedInput),
     )
     if (radar) {
       if (
@@ -47,6 +54,17 @@ export const SelectedRadarsList = memo(function SelectedRadarsList({
       })
     }
   }, [radars, selectedObjects, setSelectedObjects, setViewport])
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        event.stopPropagation()
+        handleAddRadar()
+      }
+    },
+    [handleAddRadar],
+  )
 
   const handleFocusRadar = useCallback(
     (radar: CollectionPoint) => {
@@ -82,8 +100,14 @@ export const SelectedRadarsList = memo(function SelectedRadarsList({
   return (
     <div className="space-y-4">
       <div className="flex space-x-2">
-        <Input ref={radarSearchInputRef} placeholder="Código do Equipamento" />
-        <Button onClick={handleAddRadar}>Adicionar</Button>
+        <Input
+          ref={radarSearchInputRef}
+          placeholder="Código do Equipamento"
+          onKeyDown={handleKeyDown}
+        />
+        <Button type="button" onClick={handleAddRadar}>
+          Adicionar
+        </Button>
       </div>
       <div className="space-y-2">{radarList}</div>
     </div>

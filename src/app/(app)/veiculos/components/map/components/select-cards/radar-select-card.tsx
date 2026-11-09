@@ -126,7 +126,7 @@ export function RadarSelectCard({
                 <div className="flex items-center gap-1.5">
                   <Cctv className="size-4 shrink-0" />
                   <span className="text-sm font-medium">
-                    {`Equipamentos na origem (${equipmentList.length})`}
+                    {`Equipamentos no sistema de origem (${equipmentList.length})`}
                   </span>
                 </div>
 
@@ -142,7 +142,7 @@ export function RadarSelectCard({
                         className:
                           'max-w-full break-all font-mono text-xs font-normal leading-tight',
                       })}
-                      title="Código do equipamento na origem"
+                      title="Código do equipamento no sistema de origem"
                     >
                       {originPointName
                         ? `${originPointName} | ${equipmentCode}`
