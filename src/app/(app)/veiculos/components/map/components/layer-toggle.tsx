@@ -289,7 +289,7 @@ export function MapLayerControl() {
       }}
     >
       <PopoverAnchor asChild>
-        <Card className="absolute bottom-4 left-4">
+        <Card className="absolute bottom-4 left-2">
           <Collapsible
             open={isOpen}
             onOpenChange={(open) => {
@@ -415,8 +415,7 @@ export function MapLayerControl() {
         <PopoverContent
           side="right"
           align="start"
-          sideOffset={16}
-          alignOffset={36}
+          sideOffset={8}
           className="p-4"
           onInteractOutside={(event) => {
             const target = event.target
