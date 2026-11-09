@@ -64,11 +64,11 @@ export const changelog: Card[] = [
               a identificação do equipamento.
             </p>
             <Image
-              src="https://storage.googleapis.com/rj-civitas-public/assets/placeholder-origem-equipamento.png"
+              src="https://storage.googleapis.com/rj-civitas-public/assets/pill_detalhe_origem_equip.png"
               alt="Cartão de equipamento com a origem em destaque ao lado do título"
-              width={800}
-              height={500}
-              className="h-auto w-full rounded-md"
+              width={400}
+              height={400}
+              className="h-auto w-auto rounded-md"
             />
           </>
         ),
@@ -77,22 +77,20 @@ export const changelog: Card[] = [
         tag: 'Alterado',
         title: 'Câmeras próximas no mapa',
         content: (
-          <p>
-            Câmeras localizadas no mesmo ponto ou muito próximas agora aparecem
-            ligeiramente afastadas no mapa, facilitando a visualização e a
-            seleção de cada equipamento.
-          </p>
-        ),
-      },
-      {
-        tag: 'Corrigido',
-        title: 'Localização de endereços de pessoas e empresas',
-        content: (
-          <p>
-            Os mapas de endereços nas consultas de CPF e CNPJ foram ajustados.
-            Quando não for possível confirmar o número do imóvel, a tela pode
-            indicar uma localização aproximada.
-          </p>
+          <>
+            <p>
+              Câmeras localizadas no mesmo ponto ou muito próximas agora
+              aparecem ligeiramente afastadas no mapa, facilitando a
+              visualização e a seleção de cada equipamento.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/cameras_offset.png"
+              alt="Cartão de equipamento com a origem em destaque ao lado do título"
+              width={400}
+              height={400}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
         ),
       },
     ],
