@@ -287,7 +287,7 @@ export function CollectionPointPickerDialog({
                       key={picker.mapSurfaceGeneration}
                       ref={picker.deckRef}
                       style={{ width: '100%', height: '100%' }}
-                      controller
+                      controller={{ dragRotate: false, touchRotate: false }}
                       viewState={picker.viewState}
                       layers={picker.mapLayers}
                       onResize={picker.handleMapResize}
@@ -305,6 +305,10 @@ export function CollectionPointPickerDialog({
                         ref={picker.mapRef}
                         mapStyle="mapbox://styles/mapbox/light-v11"
                         mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+                        dragRotate={false}
+                        pitchWithRotate={false}
+                        touchPitch={false}
+                        maxPitch={0}
                         onLoad={picker.handleMapLoad}
                         onMove={(event: ViewStateChangeEvent) => {
                           picker.handleViewStateChange(event.viewState)

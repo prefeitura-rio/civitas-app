@@ -86,7 +86,7 @@ export function Map() {
       <DeckGL
         ref={deckRef}
         initialViewState={mapState.viewport}
-        controller
+        controller={{ dragRotate: false, touchRotate: false }}
         onResize={handleMapResize}
         layers={clusteredMap.layers}
         onViewStateChange={mapState.handleViewStateChange}
@@ -98,7 +98,10 @@ export function Map() {
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
         />
       </DeckGL>
-
+      dragRotate={false}
+      pitchWithRotate={false}
+      touchPitch={false}
+      maxPitch={0}
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox
           isVisible={mapLayers.isAddressVisible}
@@ -108,11 +111,9 @@ export function Map() {
           onSubmit={mapSearch.handleSearchSubmit}
         />
       </div>
-
       <SelectionCards mapWidth={mapSize?.width} />
       <HoverCards />
       <MapLayerControl />
-
       {clusteredMap.hoveredCluster ? (
         <div className="absolute right-3 top-14 z-40 min-w-48 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
           <p className="font-semibold text-foreground">
@@ -127,7 +128,6 @@ export function Map() {
           )}
         </div>
       ) : null}
-
       <ContextMenu
         open={openContextMenu}
         onOpenChange={setOpenContextMenu}
