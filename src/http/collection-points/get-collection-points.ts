@@ -16,6 +16,7 @@ export async function getCollectionPoints() {
     return {
       cetRioCode: item.id_ponto_coleta,
       codigoPontoColeta: item.codigo_ponto_coleta,
+      equipmentCodes: item.codigos_equipamento ?? [],
       company: item.origem_equipamento || null,
       latitude: item.latitude,
       longitude: item.longitude,

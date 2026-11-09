@@ -30,7 +30,13 @@ export function useMapSearch({
 
       const radar = radars?.find((r) => {
         const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
-        return trimmedCetRioCode === trimmedAddress
+        if (trimmedCetRioCode === trimmedAddress) return true
+
+        return (
+          r.equipmentCodes?.some(
+            (eqCode) => eqCode.replace(/^0+/, '') === trimmedAddress,
+          ) ?? false
+        )
       })
 
       if (radar) {

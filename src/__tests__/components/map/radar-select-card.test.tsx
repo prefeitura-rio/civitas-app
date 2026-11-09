@@ -182,4 +182,76 @@ describe('RadarSelectCard', () => {
     expect(screen.getByText('null - null, SENTIDO norte')).toBeInTheDocument()
     expect(screen.getByTitle('Empresa')).toBeInTheDocument()
   })
+
+  it('should render the grouped equipments side card for CIVITAS with equipment IDs', () => {
+    const civitasPoint = {
+      ...mockRadar,
+      cetRioCode: '0007759',
+      equipmentCodes: ['1', '2', '3'],
+      company: 'CIVITAS',
+      location: 'AV. PRES. CASTELO BRANCO',
+      district: 'PRACA DA BANDEIRA',
+      direction: 'DUQUE DE CAXIAS',
+    }
+
+    render(<RadarSelectCard {...defaultProps} selectedObject={civitasPoint} />)
+
+    expect(
+      screen.getByTestId('radar-grouped-equipments-card'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('3 dispositivos neste local')).toBeInTheDocument()
+    expect(screen.getByText('LPR: 3')).toBeInTheDocument()
+    expect(screen.getAllByText('AV. PRES. CASTELO BRANCO')).toHaveLength(3)
+    expect(screen.getByText('1')).toBeInTheDocument()
+    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
+  })
+
+  it('should render the grouped equipments side card for GABRIEL and single-device points', () => {
+    const gabrielPoint = {
+      ...mockRadar,
+      cetRioCode: '0005432',
+      equipmentCodes: ['00SP021'],
+      company: 'GABRIEL',
+      location: 'LINHA VERMELHA',
+      district: 'CAJU',
+      direction: 'CENTRO',
+    }
+
+    render(
+      <RadarSelectCard
+        {...defaultProps}
+        selectedObject={gabrielPoint}
+        className="mt-12"
+      />,
+    )
+
+    const sideCard = screen.getByTestId('radar-grouped-equipments-card')
+    expect(sideCard).toBeInTheDocument()
+    expect(sideCard).toHaveClass('mt-12')
+    expect(screen.getByText('1 dispositivo neste local')).toBeInTheDocument()
+    expect(screen.getByText('00SP021')).toBeInTheDocument()
+    expect(screen.getByText('Responsável: GABRIEL')).toBeInTheDocument()
+  })
+
+  it('should render only CODCET equipment codes for CETRIO', () => {
+    const cetrioPoint = {
+      ...mockRadar,
+      cetRioCode: '0001550',
+      equipmentCodes: ['0480001101', '0480001102'],
+      company: 'CETRIO',
+      location: 'AVENIDA BRASIL',
+      district: 'RAMOS',
+      direction: 'SANTA CRUZ',
+    }
+
+    render(<RadarSelectCard {...defaultProps} selectedObject={cetrioPoint} />)
+
+    expect(
+      screen.getByTestId('radar-grouped-equipments-card'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('2 dispositivos neste local')).toBeInTheDocument()
+    expect(screen.getByText('0480001101')).toBeInTheDocument()
+    expect(screen.getByText('0480001102')).toBeInTheDocument()
+  })
 })

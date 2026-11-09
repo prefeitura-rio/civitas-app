@@ -52,11 +52,9 @@ jest.mock(
 )
 
 describe('SelectionCards', () => {
-  it('positions cards from the width supplied by their map', () => {
-    const { rerender } = render(<SelectionCards mapWidth={700} />)
+  it('positions all cards below the search bar line (mt-12)', () => {
+    render(<SelectionCards />)
     expect(screen.getByTestId('camera-select-card')).toHaveClass('mt-12')
-    rerender(<SelectionCards mapWidth={1200} />)
-    expect(screen.getByTestId('camera-select-card')).not.toHaveClass('mt-12')
   })
 
   beforeEach(() => {
