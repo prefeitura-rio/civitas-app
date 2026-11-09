@@ -12,6 +12,7 @@ import {
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import { getCamera } from '@/http/cameras-cor/get-cameras-cor'
 import type { Camera } from '@/models/entities'
+import { getCoincidentPointOffsets } from '@/utils/coincident-point-offsets'
 import { getCameraOrigin } from '@/utils/collection-point-origin'
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
@@ -53,6 +54,14 @@ export function useCamera(): UseCamera {
   })
 
   const originFilter = useOriginFilter(data, getCameraPointOrigin)
+  const offsets = useMemo(
+    () =>
+      getCoincidentPointOffsets(data ?? EMPTY_CAMERAS, (point) => [
+        point.longitude,
+        point.latitude,
+      ]),
+    [data],
+  )
 
   const handleSelectObject = useCallback(
     (camera: Camera | null, clearRadar?: () => void) => {
@@ -85,9 +94,10 @@ export function useCamera(): UseCamera {
         iconMapping,
         updateTriggers: {
           getIcon: [selectedObject?.code, hoveredObject?.object?.code],
+          getPosition: offsets,
         },
         getPosition: (d: Camera) =>
-          [d.longitude, d.latitude] as [number, number],
+          offsets.get(d) ?? ([d.longitude, d.latitude] as [number, number]),
         onHover: (info: PickingInfo<Camera>) => {
           setHoveredObject(info.object ? info : null)
         },
@@ -100,6 +110,7 @@ export function useCamera(): UseCamera {
       }),
     [
       originFilter.visibleData,
+      offsets,
       selectedObject?.code,
       hoveredObject?.object?.code,
       isVisible,

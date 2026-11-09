@@ -54,6 +54,37 @@ export const changelog: Card[] = [
         ),
       },
       {
+        tag: 'Alterado',
+        title: 'Origem em destaque nos cartões de equipamentos',
+        content: (
+          <>
+            <p>
+              Os cartões de câmeras e equipamentos LPR agora mostram a empresa
+              ou o sistema de origem em destaque ao lado do título, facilitando
+              a identificação do equipamento.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/placeholder-origem-equipamento.png"
+              alt="Cartão de equipamento com a origem em destaque ao lado do título"
+              width={800}
+              height={500}
+              className="h-auto w-full rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Câmeras próximas no mapa',
+        content: (
+          <p>
+            Câmeras localizadas no mesmo ponto ou muito próximas agora aparecem
+            ligeiramente afastadas no mapa, facilitando a visualização e a
+            seleção de cada equipamento.
+          </p>
+        ),
+      },
+      {
         tag: 'Corrigido',
         title: 'Localização de endereços de pessoas e empresas',
         content: (

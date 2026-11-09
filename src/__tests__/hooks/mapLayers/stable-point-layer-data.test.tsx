@@ -115,6 +115,25 @@ describe('point source stability through visual interactions', () => {
     mockCameras = [camera, { ...camera, code: 'CAM-2', sistemaOrigem: 'DC3' }]
   })
 
+  it('separates overlapping camera icons without changing their coordinates or selection', () => {
+    const { result } = renderHook(() => useCamera())
+    const position = result.current.layer.props.getPosition as unknown as (
+      point: Camera,
+    ) => number[]
+    expect(position(mockCameras[0])).toEqual([-43.2, -22.9])
+    expect(position(mockCameras[1])[0]).toBeCloseTo(-43.19999, 8)
+    expect(position(mockCameras[1])[1]).toBeCloseTo(-22.90001, 8)
+    expect(mockCameras[1].longitude).toBe(-43.2)
+    expect(mockCameras[1].latitude).toBe(-22.9)
+    act(() => result.current.handleSelectObject(mockCameras[1]))
+    expect(result.current.selectedObject).toBe(mockCameras[1])
+    act(() => result.current.toggleOrigin('TIXI'))
+    expect(result.current.visibleData).toEqual([mockCameras[1]])
+    const filteredPosition = result.current.layer.props
+      .getPosition as unknown as (point: Camera) => number[]
+    expect(filteredPosition(mockCameras[1])[0]).toBeCloseTo(-43.19999, 8)
+  })
+
   it('keeps LPR data and spatial indexes through hover, selection and visibility changes', () => {
     const { result } = renderHook(() => usePointLayers([]))
     const regularData = result.current.radars.layer.props.data
