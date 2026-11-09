@@ -18,12 +18,28 @@ import {
 } from 'react'
 import type { MapRef } from 'react-map-gl'
 
-import radarIconAtlas from '@/assets/radar-icon-atlas.png'
 import type { Option } from '@/components/custom/multiselect-with-search'
+import { type MapSize, useMapSize } from '@/hooks/use-map-size'
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import { getPlaces } from '@/http/mapbox/get-places'
 import type { CollectionPoint } from '@/models/entities'
+import {
+  COLLECTION_POINT_ICON_MAPPING,
+  collectionPointIconAtlas,
+  getCollectionPointIcon,
+} from '@/utils/collection-point-icons'
+import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
 import { haversineDistance } from '@/utils/haversine-distance'
+import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
+import {
+  type ClusterFeature,
+  createClusterLayers,
+  createPointClusterIndex,
+  getClusterOriginCounts,
+  getExpandedClusterViewState,
+  getMapBounds,
+  isIndexedPointFeature,
+} from '@/utils/point-clustering'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
 import {
@@ -37,8 +53,6 @@ import {
   sortCollectionPoints,
 } from './collection-point-picker-utils'
 
-const PICKER_MAP_WIDTH = 720
-const PICKER_MAP_HEIGHT = 620
 const RADAR_LIST_HEIGHT = 430
 const RADAR_LIST_ITEM_HEIGHT = 92
 const RADAR_LIST_OVERSCAN = 6
@@ -50,29 +64,6 @@ const AREA_POLYGON_LAYER_ID = 'collection-point-picker-area-polygon-layer'
 
 type AreaSelectionMode = 'polygon' | null
 type LngLatTuple = [number, number]
-
-const iconMapping = {
-  default: { x: 0, y: 0, width: 48, height: 48, mask: false },
-  disabled: { x: 0, y: 48, width: 48, height: 48, mask: false },
-  highlighted: { x: 48, y: 0, width: 48, height: 48, mask: false },
-  'disabled-highlighted': {
-    x: 48,
-    y: 48,
-    width: 48,
-    height: 48,
-    mask: false,
-  },
-  'sentry-default': { x: 0, y: 96, width: 48, height: 48, mask: false },
-  'sentry-highlighted': { x: 48, y: 96, width: 48, height: 48, mask: false },
-  'sentry-disabled': { x: 0, y: 144, width: 48, height: 48, mask: false },
-  'sentry-disabled-highlighted': {
-    x: 48,
-    y: 144,
-    width: 48,
-    height: 48,
-    mask: false,
-  },
-} as const
 
 export interface RadarPopupState {
   point: CollectionPoint
@@ -139,6 +130,21 @@ function buildPolygonFeature(points: LngLatTuple[]) {
   }
 }
 
+/**
+ * Coordinates LPR selection, list navigation and map interactions for the picker.
+ *
+ * @remarks
+ * Cluster queries include an offscreen margin; list visibility and focus checks
+ * use viewport bounds without that margin. Both wait for renderer-reported size,
+ * as does the opening camera fit. Selection remains per collection point.
+ * Selection actions notify `onChange`; applying also emits the current draft.
+ * Bulk selection adds eligible viewport points, including cluster members, while
+ * preserving earlier selections. Text and map visibility filters still apply.
+ * `defaultSelectAll` only initializes the draft and waits for explicit application.
+ *
+ * @returns Picker state, map layers, element refs and list/map action handlers.
+ * `totalListResults` counts eligible entries before pagination for the active tab/search.
+ */
 export function useCollectionPointPickerState({
   value,
   onChange,
@@ -161,6 +167,8 @@ export function useCollectionPointPickerState({
   const [showSelectedOnlyInMap, setShowSelectedOnlyInMap] = useState(false)
   const [showSelectedSection, setShowSelectedSection] = useState(true)
   const [popupState, setPopupState] = useState<RadarPopupState | null>(null)
+  const [hoveredPointCluster, setHoveredPointCluster] =
+    useState<ClusterFeature | null>(null)
   const [pendingScrollOptionId, setPendingScrollOptionId] = useState<
     string | null
   >(null)
@@ -172,13 +180,11 @@ export function useCollectionPointPickerState({
   const deckRef = useRef<Deck | null>(null)
   const mapRef = useRef<MapRef | null>(null)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const { mapSize, handleResize, resetMapSize } = useMapSize()
   const listViewportRef = useRef<HTMLDivElement | null>(null)
   const suppressMapClickUntilRef = useRef(0)
-  const mapResizeTimeoutRef = useRef<number | null>(null)
   // Bumped on each open so DeckGL+Mapbox remount cleanly inside the dialog.
   const [mapSurfaceGeneration, setMapSurfaceGeneration] = useState(0)
-  // Bumped after map.resize() so IconLayer reloads atlas into a fresh texture.
-  const [iconAtlasGeneration, setIconAtlasGeneration] = useState(0)
   const [listScrollTop, setListScrollTop] = useState(0)
   const [loadedListResultsCount, setLoadedListResultsCount] =
     useState(RADAR_LIST_PAGE_SIZE)
@@ -232,21 +238,18 @@ export function useCollectionPointPickerState({
     [collectionPoints, selectedPoints, showSelectedOnlyInMap],
   )
 
-  const mapWidth = mapContainerRef.current?.clientWidth ?? PICKER_MAP_WIDTH
-  const mapHeight = mapContainerRef.current?.clientHeight ?? PICKER_MAP_HEIGHT
+  const mapWidth = mapSize?.width ?? 0
+  const mapHeight = mapSize?.height ?? 0
 
   const mapViewportBounds = useMemo(() => {
-    const viewport = new WebMercatorViewport({
-      width: mapWidth,
-      height: mapHeight,
-      longitude: viewState.longitude,
-      latitude: viewState.latitude,
-      zoom: viewState.zoom,
-      pitch: viewState.pitch ?? 0,
-      bearing: viewState.bearing ?? 0,
-    })
-    const [west, south] = viewport.unproject([0, mapHeight])
-    const [east, north] = viewport.unproject([mapWidth, 0])
+    if (!mapWidth || !mapHeight) return null
+    // List visibility uses the screen bounds, without the cluster query margin.
+    const [west, south, east, north] = getMapBounds(
+      viewState,
+      mapWidth,
+      mapHeight,
+      0,
+    )
 
     return { west, south, east, north }
   }, [mapHeight, mapWidth, viewState])
@@ -254,6 +257,40 @@ export function useCollectionPointPickerState({
   const areaPolygonFeature = useMemo(
     () => buildPolygonFeature(areaDraftPoints),
     [areaDraftPoints],
+  )
+
+  const pointClusterIndex = useMemo(
+    () =>
+      createPointClusterIndex(
+        mapPoints.map((point) => ({
+          id: getCollectionPointSelectionId(point),
+          coordinates: [point.longitude, point.latitude],
+          origin: getCollectionPointOrigin(point.company),
+          point,
+        })),
+      ),
+    [mapPoints],
+  )
+
+  const pointClusterFeatures = useMemo(
+    () =>
+      mapWidth && mapHeight
+        ? pointClusterIndex.getClusters(
+            getMapBounds(viewState, mapWidth, mapHeight),
+            Math.max(0, Math.floor(viewState.zoom ?? 0)),
+          )
+        : [],
+    [mapHeight, mapWidth, pointClusterIndex, viewState],
+  )
+
+  const visibleClusterLeaves = useMemo(
+    () =>
+      new Set(
+        pointClusterFeatures
+          .filter(isIndexedPointFeature)
+          .map((feature) => feature.properties.point),
+      ),
+    [pointClusterFeatures],
   )
 
   const listBuckets = useMemo(() => {
@@ -309,7 +346,11 @@ export function useCollectionPointPickerState({
         selectedEntries.push(option)
       }
 
-      if (point && isPointVisibleInViewport(point, mapViewportBounds)) {
+      if (
+        point &&
+        mapViewportBounds &&
+        isPointVisibleInViewport(point, mapViewportBounds)
+      ) {
         visibleEntries.push(option)
         return
       }
@@ -345,6 +386,31 @@ export function useCollectionPointPickerState({
     viewState.longitude,
   ])
 
+  const visibleCollectionPointIds = useMemo(() => {
+    if (!mapWidth || !mapHeight) return []
+    const viewport = new WebMercatorViewport({
+      ...viewState,
+      width: mapWidth,
+      height: mapHeight,
+    })
+    return Array.from(
+      new Set(
+        mapPoints
+          .filter((point) => {
+            if (
+              !listBuckets.visibleIds.has(getCollectionPointSelectionId(point))
+            )
+              return false
+            // Geographic bounds overestimate a rotated/pitched screen. Project candidates
+            // with Deck.gl before selecting, without including the offscreen query margin.
+            const [x, y] = viewport.project([point.longitude, point.latitude])
+            return viewport.containsPixel({ x, y })
+          })
+          .map(getCollectionPointSelectionId),
+      ),
+    )
+  }, [listBuckets.visibleIds, mapHeight, mapPoints, mapWidth, viewState])
+
   const filteredOptions = useMemo(() => {
     if (showSelectedOnlyInList) {
       return listBuckets.selectedEntries.slice(0, loadedListResultsCount)
@@ -373,10 +439,6 @@ export function useCollectionPointPickerState({
     [collectionPointsById, draftValue],
   )
 
-  const displayedSelectedCount = Math.min(
-    listBuckets.selectedCount,
-    loadedListResultsCount,
-  )
   const displayedVisibleCount = Math.min(
     listBuckets.visibleCount,
     loadedListResultsCount,
@@ -387,10 +449,12 @@ export function useCollectionPointPickerState({
         Math.max(0, loadedListResultsCount - displayedVisibleCount),
       )
     : 0
-  const hasMoreListResults = showSelectedOnlyInList
-    ? displayedSelectedCount < listBuckets.selectedCount
-    : displayedVisibleCount < listBuckets.visibleCount ||
-      displayedOutsideCount < listBuckets.outsideCount
+  // Count eligible results before pagination, using the same inclusion rules as the list.
+  const totalListResults = showSelectedOnlyInList
+    ? listBuckets.selectedCount
+    : listBuckets.visibleCount +
+      (listBuckets.hasActiveSearch ? listBuckets.outsideCount : 0)
+  const hasMoreListResults = filteredOptions.length < totalListResults
 
   const allSelected = useMemo(
     () => isFullCollectionPointSelection(value, options),
@@ -461,10 +525,7 @@ export function useCollectionPointPickerState({
 
   useEffect(() => {
     if (!expanded) {
-      if (mapResizeTimeoutRef.current !== null) {
-        window.clearTimeout(mapResizeTimeoutRef.current)
-        mapResizeTimeoutRef.current = null
-      }
+      resetMapSize()
       setDraftValue(value)
       setSearch('')
       setMapSearch('')
@@ -482,19 +543,10 @@ export function useCollectionPointPickerState({
       resetListViewport()
       setViewState({ ...INITIAL_VIEW_PORT, pitch: 0, bearing: 0 })
     }
-  }, [expanded, value])
+  }, [expanded, resetMapSize, value])
 
   useEffect(() => {
-    return () => {
-      if (mapResizeTimeoutRef.current !== null) {
-        window.clearTimeout(mapResizeTimeoutRef.current)
-        mapResizeTimeoutRef.current = null
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!expanded || hasInitializedViewport) return
+    if (!expanded || hasInitializedViewport || !mapWidth || !mapHeight) return
 
     const sourcePoints = mapPoints.length > 0 ? mapPoints : selectedPoints
     if (sourcePoints.length === 0) return
@@ -593,7 +645,6 @@ export function useCollectionPointPickerState({
 
   function updateSelection(nextIds: string[]) {
     setDraftValue(nextIds)
-    onChange(nextIds)
   }
 
   function toggleDraftId(id: string) {
@@ -602,13 +653,15 @@ export function useCollectionPointPickerState({
         ? prev.filter((item) => item !== id)
         : [...prev, id]
 
-      onChange(nextIds)
       return nextIds
     })
   }
 
   function centerPointOnMap(point: CollectionPoint) {
-    if (isPointVisibleInViewport(point, mapViewportBounds)) {
+    if (
+      mapViewportBounds &&
+      isPointVisibleInViewport(point, mapViewportBounds)
+    ) {
       return
     }
 
@@ -640,10 +693,12 @@ export function useCollectionPointPickerState({
   }
 
   function toggleExpanded() {
+    resetMapSize()
     setExpanded((prev) => !prev)
   }
 
   function openPickerWithSelectedList(optionId?: string) {
+    resetMapSize()
     setDraftValue(value)
     setShowSelectedOnlyInList(true)
     setShowSelectedOnlyInMap(true)
@@ -663,6 +718,7 @@ export function useCollectionPointPickerState({
   }
 
   function openPicker() {
+    resetMapSize()
     setDraftValue(value)
     setMapSurfaceGeneration((generation) => generation + 1)
     setExpanded(true)
@@ -685,8 +741,21 @@ export function useCollectionPointPickerState({
     setShowSelectedOnlyInMap((prev) => !prev)
   }
 
-  function selectAllCollectionPointIds() {
-    updateSelection(options.map((option) => option.value))
+  /**
+   * Adds all eligible viewport points to the current selection without duplicates.
+   *
+   * @remarks
+   * Includes members represented by clusters and rows beyond the loaded page.
+   * Respects the current text search and selected-only map filter. Offscreen query
+   * margins do not expand the selection; previously selected offscreen IDs remain.
+   * Updates the draft only; changes are applied on confirmation. Leaves the camera unchanged.
+   */
+  function selectVisibleCollectionPointIds() {
+    const nextIds = new Set(draftValue)
+    const previousCount = nextIds.size
+    visibleCollectionPointIds.forEach((id) => nextIds.add(id))
+    if (nextIds.size === previousCount) return
+    updateSelection(Array.from(nextIds))
   }
 
   function clearDraftSelection() {
@@ -725,7 +794,7 @@ export function useCollectionPointPickerState({
       x,
       y,
       radius: 8,
-      layerIds: [`${POINT_LAYER_ID}-${iconAtlasGeneration}`],
+      layerIds: [POINT_LAYER_ID],
     }) as PickingInfo<CollectionPoint>
 
     if (!picked?.object) {
@@ -748,14 +817,14 @@ export function useCollectionPointPickerState({
   }
 
   function fitSelectedPoints() {
-    if (selectedPoints.length === 0) return
+    if (selectedPoints.length === 0 || !mapWidth || !mapHeight) return
     setFocusedPointId(null)
     setPopupState(null)
     setViewState(getMapViewport(selectedPoints, mapWidth, mapHeight))
   }
 
   function fitMapPoints() {
-    if (mapPoints.length === 0) return
+    if (mapPoints.length === 0 || !mapWidth || !mapHeight) return
     setFocusedPointId(null)
     setPopupState(null)
     setViewState(getMapViewport(mapPoints, mapWidth, mapHeight))
@@ -886,7 +955,6 @@ export function useCollectionPointPickerState({
     setDraftValue((prev) => {
       const selectedIds = Array.from(new Set([...prev, ...nextIds]))
 
-      onChange(selectedIds)
       return selectedIds
     })
     setAreaSelectionMode(null)
@@ -898,29 +966,21 @@ export function useCollectionPointPickerState({
 
   function handleViewStateChange(nextViewState: MapViewState) {
     setPopupState(null)
+    setHoveredPointCluster(null)
     setViewState(nextViewState)
   }
 
-  function resizePickerMap() {
+  /** Synchronizes spatial queries and the embedded basemap with Deck.gl's measured CSS pixels. */
+  function handleMapResize(dimensions: MapSize) {
+    handleResize(dimensions)
+    setPopupState(null)
+    setHoveredPointCluster(null)
     mapRef.current?.resize()
   }
 
-  function handleMapResize() {
-    resizePickerMap()
-  }
-
+  /** Synchronizes Mapbox once loaded; Deck.gl reports layout changes without a fixed delay. */
   function handleMapLoad() {
-    // Wait for dialog layout/animation, resize Mapbox once, then remount the
-    // IconLayer so the atlas texture is created after resize (resize can
-    // destroy textures on the shared WebGL context).
-    if (mapResizeTimeoutRef.current !== null) {
-      window.clearTimeout(mapResizeTimeoutRef.current)
-    }
-    mapResizeTimeoutRef.current = window.setTimeout(() => {
-      resizePickerMap()
-      setIconAtlasGeneration((generation) => generation + 1)
-      mapResizeTimeoutRef.current = null
-    }, 250)
+    mapRef.current?.resize()
   }
 
   function startAreaSelection() {
@@ -934,17 +994,12 @@ export function useCollectionPointPickerState({
   const pointLayer = useMemo(
     () =>
       new IconLayer<CollectionPoint>({
-        id: `${POINT_LAYER_ID}-${iconAtlasGeneration}`,
-        data: mapPoints,
+        id: POINT_LAYER_ID,
+        data: mapPoints.filter((point) => visibleClusterLeaves.has(point)),
         pickable: true,
         sizeScale: 24,
-        iconAtlas:
-          typeof radarIconAtlas === 'string'
-            ? radarIconAtlas
-            : radarIconAtlas.src,
-        iconMapping,
-        // mask:false icons are modulated by getColor; white preserves atlas.
-        getColor: [255, 255, 255] as [number, number, number],
+        iconAtlas: collectionPointIconAtlas.src,
+        iconMapping: COLLECTION_POINT_ICON_MAPPING,
         getSize: 1,
         getPosition: (point) => [point.longitude, point.latitude],
         getIcon: (point) => {
@@ -953,15 +1008,7 @@ export function useCollectionPointPickerState({
           )
           const isFocused =
             focusedPointId === getCollectionPointSelectionId(point)
-          const isActive = point.activeInLast24Hours
-          const prefix =
-            point.company?.toUpperCase() === 'CIVITAS' ? 'sentry-' : ''
-
-          if (isSelected || isFocused) {
-            return `${prefix}${isActive ? 'highlighted' : 'disabled-highlighted'}`
-          }
-
-          return `${prefix}${isActive ? 'default' : 'disabled'}`
+          return getCollectionPointIcon(point, isSelected || isFocused)
         },
         updateTriggers: {
           getIcon: [draftValue, focusedPointId],
@@ -979,10 +1026,28 @@ export function useCollectionPointPickerState({
       areaSelectionMode,
       draftValue,
       focusedPointId,
-      iconAtlasGeneration,
       mapPoints,
+      visibleClusterLeaves,
     ],
   )
+
+  const pointClusterLayers = useMemo(() => {
+    const [circles, labels] = createClusterLayers(
+      `${POINT_LAYER_ID}-clusters`,
+      pointClusterFeatures,
+      (feature) => {
+        setPopupState(null)
+        setHoveredPointCluster(null)
+        setViewState((previous) =>
+          getExpandedClusterViewState(previous, pointClusterIndex, feature),
+        )
+      },
+      setHoveredPointCluster,
+      POINT_CLUSTER_COLORS.lpr,
+    )
+
+    return [circles, labels]
+  }, [pointClusterFeatures, pointClusterIndex])
 
   const areaLineLayer = useMemo(() => {
     if (areaDraftPoints.length < 2) return null
@@ -1049,10 +1114,20 @@ export function useCollectionPointPickerState({
 
   const mapLayers = useMemo(
     () =>
-      [areaPolygonLayer, areaLineLayer, areaVertexLayer, pointLayer].filter(
-        Boolean,
-      ),
-    [areaLineLayer, areaPolygonLayer, areaVertexLayer, pointLayer],
+      [
+        areaPolygonLayer,
+        areaLineLayer,
+        areaVertexLayer,
+        pointLayer,
+        ...pointClusterLayers,
+      ].filter(Boolean),
+    [
+      areaLineLayer,
+      areaPolygonLayer,
+      areaVertexLayer,
+      pointLayer,
+      pointClusterLayers,
+    ],
   )
 
   return {
@@ -1070,7 +1145,6 @@ export function useCollectionPointPickerState({
     completeAreaSelection,
     deckRef,
     displayedOutsideCount,
-    displayedSelectedCount,
     draftSelectedOptions,
     draftValue,
     expanded,
@@ -1098,6 +1172,10 @@ export function useCollectionPointPickerState({
     listViewportRef,
     mapContainerRef,
     mapLayers,
+    hoveredPointCluster,
+    hoveredPointClusterOriginCounts: hoveredPointCluster
+      ? getClusterOriginCounts(hoveredPointCluster)
+      : {},
     mapPoints,
     mapRef,
     mapSearch,
@@ -1111,7 +1189,7 @@ export function useCollectionPointPickerState({
     popupState,
     previewPoint,
     search,
-    selectAllCollectionPointIds,
+    selectVisibleCollectionPointIds,
     selectedListRows,
     selectedOptions,
     selectedPoints,
@@ -1126,6 +1204,8 @@ export function useCollectionPointPickerState({
     togglePointFromMapOrList,
     toggleSelectedOnlyInList,
     toggleSelectedOnlyInMap,
+    totalListResults,
+    visibleCollectionPointIds,
     toggleSelectedSection,
     undoLastAreaPoint,
     value,

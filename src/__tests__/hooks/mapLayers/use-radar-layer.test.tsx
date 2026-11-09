@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook } from '@testing-library/react'
+import type { PickingInfo } from 'deck.gl'
 import type { ReactNode } from 'react'
 
 import { useRadarLayer } from '@/hooks/mapLayers/use-radar-layer'
@@ -20,10 +21,12 @@ const mockCollectionPoint: CollectionPoint = {
   lane: 'direita',
 }
 
+const mockAdditionalCollectionPoints: CollectionPoint[] = []
+
 jest.mock('deck.gl', () => ({
-  IconLayer: jest.fn().mockImplementation(() => ({
-    id: 'radars',
-    props: {},
+  IconLayer: jest.fn().mockImplementation((props) => ({
+    id: props.id,
+    props,
   })),
 }))
 
@@ -64,12 +67,9 @@ jest.mock('@/hooks/useQueries/useCollectionPoints', () => ({
         direction: 'sul',
         lane: 'esquerda',
       },
+      ...mockAdditionalCollectionPoints,
     ],
   }),
-}))
-
-jest.mock('@/assets/radar-icon-atlas.png', () => ({
-  src: '/mock-radar-icon-atlas.png',
 }))
 
 const createWrapper = () => {
@@ -94,6 +94,7 @@ const renderUseRadarLayer = () =>
 describe('useRadarLayer', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockAdditionalCollectionPoints.length = 0
   })
 
   it('deve retornar estrutura correta do hook', () => {
@@ -193,16 +194,13 @@ describe('useRadarLayer', () => {
     expect(result.current.data?.[1]?.cetRioCode).toBe('RDR456')
   })
 
-  it('deve criar layer com iconMapping correto', () => {
+  it('deve criar layer usando o mapeamento do atlas Lucide por origem', () => {
     const { result } = renderUseRadarLayer()
+    const getIcon = result.current.layer.props.getIcon as unknown as (
+      point: CollectionPoint,
+    ) => string
 
-    expect(result.current.layer).toBeDefined()
-  })
-
-  it('deve criar layer com getIcon function', () => {
-    const { result } = renderUseRadarLayer()
-
-    expect(result.current.layer).toBeDefined()
+    expect(getIcon(mockCollectionPoint)).toBe('active-normal')
   })
 
   it('deve criar layer com getPosition function', () => {
@@ -211,10 +209,10 @@ describe('useRadarLayer', () => {
     expect(result.current.layer).toBeDefined()
   })
 
-  it('deve criar layer com getColor function', () => {
+  it('deve criar layer com getIcon function', () => {
     const { result } = renderUseRadarLayer()
 
-    expect(result.current.layer).toBeDefined()
+    expect(result.current.layer.props.getIcon).toEqual(expect.any(Function))
   })
 
   it('deve retornar dados corretos do useCollectionPoints', () => {
@@ -243,5 +241,98 @@ describe('useRadarLayer', () => {
       firstRender.handleSelectObject,
     )
     expect(result.current.setSelectedObject).toBe(firstRender.setSelectedObject)
+  })
+
+  it('deve plotar todas as origens numa única camada, com a mesma cor', () => {
+    const gabriel = {
+      ...mockCollectionPoint,
+      cetRioCode: 'GAB123',
+      company: 'GABRIEL',
+    }
+    const civitas = {
+      ...mockCollectionPoint,
+      cetRioCode: 'CIV123',
+      company: 'CIVITAS',
+    }
+    mockAdditionalCollectionPoints.push(gabriel, civitas)
+    const { result } = renderUseRadarLayer()
+    const props = result.current.layer.props
+    const getIcon = props.getIcon as unknown as (
+      point: CollectionPoint,
+    ) => string
+
+    expect(props.data).toContainEqual(gabriel)
+    expect(props.data).toContainEqual(civitas)
+    expect(getIcon(gabriel)).toBe('active-normal')
+    expect(getIcon(civitas)).toBe('active-normal')
+  })
+
+  it('deve ocultar origens filtradas mantendo a contagem total', () => {
+    const civitas = {
+      ...mockCollectionPoint,
+      cetRioCode: 'CIV123',
+      company: 'CIVITAS',
+    }
+    mockAdditionalCollectionPoints.push(civitas)
+    const { result } = renderUseRadarLayer()
+
+    expect(result.current.originCounts).toEqual([
+      { origin: 'CETRIO', count: 2 },
+      { origin: 'CIVITAS', count: 1 },
+    ])
+
+    act(() => result.current.toggleOrigin('CETRIO'))
+    expect(result.current.layer.props.data).toEqual([civitas])
+    expect(result.current.visibleData).toEqual([civitas])
+    expect(result.current.originCounts).toHaveLength(2)
+
+    act(() => result.current.showAllOrigins())
+    expect(result.current.layer.props.data).toHaveLength(3)
+  })
+
+  it('deve destacar GABRIEL ao selecionar, passar o mouse e multisselecionar', () => {
+    const gabriel = {
+      ...mockCollectionPoint,
+      cetRioCode: 'GAB123',
+      company: 'GABRIEL',
+    }
+    mockAdditionalCollectionPoints.push(gabriel)
+    const { result, rerender } = renderHook(
+      ({ selected }: { selected: string[] }) => useRadarLayer(selected),
+      { initialProps: { selected: [] as string[] } },
+    )
+    const getIcon = (point: CollectionPoint) =>
+      (
+        result.current.layer.props.getIcon as unknown as (
+          point: CollectionPoint,
+        ) => string
+      )(point)
+    const inactiveGabriel = { ...gabriel, activeInLast24Hours: false }
+
+    expect(getIcon(gabriel)).toBe('active-normal')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-normal')
+
+    act(() => result.current.handleSelectObject(gabriel))
+    expect(getIcon(gabriel)).toBe('active-highlighted')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-highlighted')
+    expect(result.current.layer.props.updateTriggers?.getIcon).toContain(
+      gabriel.cetRioCode,
+    )
+
+    act(() => {
+      result.current.setSelectedObject(null)
+      result.current.setHoveredObject({
+        object: gabriel,
+      } as PickingInfo<CollectionPoint>)
+    })
+    expect(getIcon(gabriel)).toBe('active-highlighted')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-highlighted')
+
+    act(() => result.current.setHoveredObject(null))
+    expect(getIcon(gabriel)).toBe('active-normal')
+
+    rerender({ selected: [gabriel.cetRioCode] })
+    expect(getIcon(gabriel)).toBe('active-highlighted')
+    expect(getIcon(inactiveGabriel)).toBe('inactive-highlighted')
   })
 })

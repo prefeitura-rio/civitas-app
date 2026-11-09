@@ -3,6 +3,13 @@ import { fireEvent, render, screen } from '@testing-library/react'
 
 import { MapLayerControl } from '@/app/(app)/veiculos/components/map/components/layer-toggle'
 import { MapContextProvider } from '@/contexts/map-context'
+import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
+
+function rgb(color: [number, number, number, number]) {
+  return `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+}
+
+const mockToggleRadarOrigin = jest.fn()
 
 jest.mock('@/hooks/mapLayers/use-radar-layer', () => ({
   useRadarLayer: () => ({
@@ -10,6 +17,13 @@ jest.mock('@/hooks/mapLayers/use-radar-layer', () => ({
     setIsVisible: jest.fn(),
     data: [],
     layer: {},
+    originCounts: [
+      { origin: 'CETRIO', count: 1200 },
+      { origin: 'CIVITAS', count: 30 },
+    ],
+    hiddenOrigins: new Set(['CIVITAS']),
+    toggleOrigin: mockToggleRadarOrigin,
+    showAllOrigins: jest.fn(),
   }),
 }))
 
@@ -19,6 +33,10 @@ jest.mock('@/hooks/mapLayers/use-cameras', () => ({
     setIsVisible: jest.fn(),
     data: [],
     layer: {},
+    originCounts: [],
+    hiddenOrigins: new Set(),
+    toggleOrigin: jest.fn(),
+    showAllOrigins: jest.fn(),
   }),
 }))
 
@@ -104,6 +122,25 @@ describe('MapLayerControl', () => {
     render(<MapLayerControl />, { wrapper: createWrapper })
 
     expect(screen.getByText('Camadas')).toBeInTheDocument()
+  })
+
+  it('uses cluster colors only when selected and keeps hover styling neutral', () => {
+    render(<MapLayerControl />, { wrapper: createWrapper })
+    fireEvent.click(screen.getByText('Camadas'))
+
+    const lprButton = screen.getByLabelText('Toggle LPR layer')
+    expect(lprButton).toHaveStyle({
+      backgroundColor: rgb(POINT_CLUSTER_COLORS.lpr),
+      color: 'rgb(17, 24, 39)',
+    })
+
+    const busStopsButton = screen.getByLabelText(
+      'Toggle Paradas de Ônibus layer',
+    )
+    expect(busStopsButton.style.backgroundColor).toBe('')
+    expect(busStopsButton).toHaveClass('hover:bg-muted')
+    expect(busStopsButton).toHaveClass('hover:text-muted-foreground')
+    expect(busStopsButton).toHaveAttribute('data-state', 'off')
   })
 
   it('should show radar layer as selected by default', () => {
@@ -267,10 +304,14 @@ describe('MapLayerControl', () => {
     const radarButton = screen.getByLabelText('Toggle LPR layer')
     const camerasButton = screen.getByLabelText('Toggle Câmeras layer')
 
-    expect(radarButton).toHaveClass('data-[state=on]:bg-primary')
-    expect(radarButton).toHaveClass('data-[state=on]:text-primary-foreground')
-    expect(camerasButton).toHaveClass('data-[state=on]:bg-primary')
-    expect(camerasButton).toHaveClass('data-[state=on]:text-primary-foreground')
+    expect(radarButton).toHaveStyle({
+      backgroundColor: rgb(POINT_CLUSTER_COLORS.lpr),
+      color: 'rgb(17, 24, 39)',
+    })
+    expect(camerasButton).toHaveStyle({
+      backgroundColor: rgb(POINT_CLUSTER_COLORS.cameras),
+      color: 'rgb(255, 255, 255)',
+    })
   })
 
   it('should have correct styling for unselected layers', () => {
@@ -284,6 +325,26 @@ describe('MapLayerControl', () => {
     const fogoCruzadoButton = screen.getByLabelText('Toggle Fogo Cruzado layer')
 
     expect(fogoCruzadoButton).toHaveAttribute('data-state', 'off')
+  })
+
+  it('lists origins with counts and toggles them from the layer filter', () => {
+    render(<MapLayerControl />, { wrapper: createWrapper })
+    fireEvent.click(screen.getByText('Camadas'))
+
+    expect(
+      screen.queryByLabelText('Filtrar Câmeras por origem'),
+    ).not.toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('Filtrar LPR por origem (1 oculta)'))
+
+    const cetrio = screen.getByRole('button', { name: /CETRIO/ })
+    const civitas = screen.getByRole('button', { name: /CIVITAS/ })
+    expect(cetrio).toHaveAttribute('aria-pressed', 'true')
+    expect(cetrio).toHaveTextContent('1.200')
+    expect(civitas).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('Mostrar todas')).toBeInTheDocument()
+
+    fireEvent.click(civitas)
+    expect(mockToggleRadarOrigin).toHaveBeenCalledWith('CIVITAS')
   })
 
   it('should ensure only radar and cameras are selected by default', () => {

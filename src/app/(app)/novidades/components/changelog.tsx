@@ -19,6 +19,54 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '9 de Novembro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Mapas com agrupamento de pontos',
+        content: (
+          <>
+            <p>
+              Quando há muitos pontos próximos, os mapas passam a reuni-los em
+              círculos com a quantidade de pontos. As cores ajudam a distinguir
+              as camadas. Clique em um círculo ou aproxime o mapa para explorar
+              os pontos da região.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/mapa-origens.png"
+              alt="Mapa de veículos com pontos agrupados e filtro de origens de equipamentos LPR aberto"
+              width={933}
+              height={900}
+              className="h-auto w-full rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Equipamentos Gabriel e filtro por origem',
+        content: (
+          <p>
+            A camada de LPR inclui equipamentos da Gabriel. No menu de camadas,
+            use o filtro de origem para escolher quais empresas aparecem no
+            mapa, tanto para LPR quanto para câmeras.
+          </p>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Localização de endereços de pessoas e empresas',
+        content: (
+          <p>
+            Os mapas de endereços nas consultas de CPF e CNPJ foram ajustados.
+            Quando não for possível confirmar o número do imóvel, a tela pode
+            indicar uma localização aproximada.
+          </p>
+        ),
+      },
+    ],
+  },
+  {
     title: '20 de Outubro de 2026',
     subCards: [
       {

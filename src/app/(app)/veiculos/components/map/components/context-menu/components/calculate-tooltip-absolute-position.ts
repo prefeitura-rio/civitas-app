@@ -1,5 +1,7 @@
 import type { PickingInfo } from 'deck.gl'
 
+import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
+
 const TOOLTIP_HORIZONTAL_MARGIN = 10 // Margin from the cursor
 const TOOLTIP_VERTICAL_MARGIN = 10 // Margin from the cursor
 const TOOLTIP_HORIZONTAL_OFFSET = 20 // Offset from the cursor
@@ -17,7 +19,7 @@ export function calculateTooltipAbsolutePosition(
   const height = cardHeight || TOOLTIP_DEFAULT_HEIGHT
 
   // Se for um radar, posicionar no canto superior esquerdo (igual ao popup da câmera)
-  if (pickingInfo.layer?.id === 'radars') {
+  if (pickingInfo.layer?.id === POINT_LAYER_IDS.radars) {
     return {
       top: 8, // 8px do topo (igual ao left-2 top-2 da câmera)
       left: 8 + SIDEBAR_WIDTH, // 8px da esquerda + largura da sidebar

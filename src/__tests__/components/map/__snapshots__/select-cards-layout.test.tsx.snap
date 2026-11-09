@@ -34,9 +34,15 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
       class="flex flex-col space-y-1.5 p-6 border-b px-4 py-3"
     >
       <h3
-        class="text-left text-sm font-semibold tracking-tighter"
+        class="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter"
       >
         Câmera
+        <span
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground"
+          title="Sistema de origem"
+        >
+          DC3
+        </span>
       </h3>
     </div>
     <div
@@ -46,36 +52,18 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
         class="space-y-3 text-sm"
       >
         <div
-          class="grid grid-cols-2 gap-4"
+          class="flex flex-col space-y-1"
         >
-          <div
-            class="flex flex-col space-y-1"
+          <span
+            class="text-sm font-medium"
           >
-            <span
-              class="text-sm font-medium"
-            >
-              Código
-            </span>
-            <span
-              class="text-sm text-muted-foreground"
-            >
-              CAM001
-            </span>
-          </div>
-          <div
-            class="flex flex-col space-y-1"
+            Código
+          </span>
+          <span
+            class="text-sm text-muted-foreground"
           >
-            <span
-              class="text-sm font-medium"
-            >
-              Sistema
-            </span>
-            <span
-              class="text-sm text-muted-foreground"
-            >
-              DC3
-            </span>
-          </div>
+            CAM001
+          </span>
         </div>
         <div
           class="flex flex-col space-y-1"
@@ -265,9 +253,15 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
       class="flex flex-col space-y-1.5 p-6 border-b px-4 py-3"
     >
       <h3
-        class="text-left text-sm font-semibold tracking-tighter"
+        class="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter"
       >
         Câmera
+        <span
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground"
+          title="Sistema de origem"
+        >
+          DC3
+        </span>
       </h3>
     </div>
     <div
@@ -277,36 +271,18 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
         class="space-y-3 text-sm"
       >
         <div
-          class="grid grid-cols-2 gap-4"
+          class="flex flex-col space-y-1"
         >
-          <div
-            class="flex flex-col space-y-1"
+          <span
+            class="text-sm font-medium"
           >
-            <span
-              class="text-sm font-medium"
-            >
-              Código
-            </span>
-            <span
-              class="text-sm text-muted-foreground"
-            >
-              CAM001
-            </span>
-          </div>
-          <div
-            class="flex flex-col space-y-1"
+            Código
+          </span>
+          <span
+            class="text-sm text-muted-foreground"
           >
-            <span
-              class="text-sm font-medium"
-            >
-              Sistema
-            </span>
-            <span
-              class="text-sm text-muted-foreground"
-            >
-              DC3
-            </span>
-          </div>
+            CAM001
+          </span>
         </div>
         <div
           class="flex flex-col space-y-1"
@@ -497,7 +473,7 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
       class="flex flex-col space-y-1.5 p-6 border-b px-4 py-3"
     >
       <h3
-        class="text-left text-sm font-semibold tracking-tighter"
+        class="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter"
       >
         Câmera
       </h3>
@@ -509,32 +485,16 @@ exports[`Select Cards Layout Snapshots CameraSelectCard Layout deve manter o lay
         class="space-y-3 text-sm"
       >
         <div
-          class="grid grid-cols-2 gap-4"
+          class="flex flex-col space-y-1"
         >
-          <div
-            class="flex flex-col space-y-1"
+          <span
+            class="text-sm font-medium"
           >
-            <span
-              class="text-sm font-medium"
-            >
-              Código
-            </span>
-            <span
-              class="text-sm text-muted-foreground"
-            />
-          </div>
-          <div
-            class="flex flex-col space-y-1"
-          >
-            <span
-              class="text-sm font-medium"
-            >
-              Sistema
-            </span>
-            <span
-              class="text-sm text-muted-foreground"
-            />
-          </div>
+            Código
+          </span>
+          <span
+            class="text-sm text-muted-foreground"
+          />
         </div>
         <div
           class="flex flex-col space-y-1"
@@ -705,9 +665,15 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       class="flex flex-col space-y-1.5 p-6 border-b px-4 py-3"
     >
       <h3
-        class="text-left text-sm font-semibold tracking-tighter"
+        class="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter"
       >
         Informações do Equipamento
+        <span
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground"
+          title="Empresa"
+        >
+          TECHNO RADARES
+        </span>
       </h3>
     </div>
     <div
@@ -770,107 +736,6 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           </span>
         </div>
         <div
-          class="grid grid-cols-2 gap-4"
-        >
-          <div
-            class="flex flex-col space-y-1"
-          >
-            <span
-              class="text-sm font-medium"
-            >
-              Latitude
-            </span>
-            <span
-              class="break-all text-sm text-muted-foreground"
-            >
-              -22.9068
-            </span>
-          </div>
-          <div
-            class="flex flex-col space-y-1"
-          >
-            <span
-              class="text-sm font-medium"
-            >
-              Longitude
-            </span>
-            <span
-              class="break-all text-sm text-muted-foreground"
-            >
-              -43.1729
-            </span>
-          </div>
-        </div>
-        <div
-          class="flex flex-col space-y-1"
-        >
-          <div
-            class="flex items-center gap-1"
-          >
-            <svg
-              class="lucide lucide-building size-4 shrink-0"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                height="20"
-                rx="2"
-                ry="2"
-                width="16"
-                x="4"
-                y="2"
-              />
-              <path
-                d="M9 22v-4h6v4"
-              />
-              <path
-                d="M8 6h.01"
-              />
-              <path
-                d="M16 6h.01"
-              />
-              <path
-                d="M12 6h.01"
-              />
-              <path
-                d="M12 10h.01"
-              />
-              <path
-                d="M12 14h.01"
-              />
-              <path
-                d="M16 10h.01"
-              />
-              <path
-                d="M16 14h.01"
-              />
-              <path
-                d="M8 10h.01"
-              />
-              <path
-                d="M8 14h.01"
-              />
-            </svg>
-            <span
-              class="text-sm font-medium"
-            >
-              Empresa
-            </span>
-          </div>
-          <span
-            class="text-sm text-muted-foreground"
-          >
-            TECHNO RADARES
-          </span>
-        </div>
-        <div
           class="flex flex-col space-y-1"
         >
           <div
@@ -923,6 +788,38 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           >
             Sim
           </span>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4"
+        >
+          <div
+            class="flex flex-col space-y-1"
+          >
+            <span
+              class="text-sm font-medium"
+            >
+              Latitude
+            </span>
+            <span
+              class="break-all text-sm text-muted-foreground"
+            >
+              -22.9068
+            </span>
+          </div>
+          <div
+            class="flex flex-col space-y-1"
+          >
+            <span
+              class="text-sm font-medium"
+            >
+              Longitude
+            </span>
+            <span
+              class="break-all text-sm text-muted-foreground"
+            >
+              -43.1729
+            </span>
+          </div>
         </div>
         <div
           class="flex gap-2 pt-2"
@@ -1018,9 +915,15 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       class="flex flex-col space-y-1.5 p-6 border-b px-4 py-3"
     >
       <h3
-        class="text-left text-sm font-semibold tracking-tighter"
+        class="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter"
       >
         Informações do Equipamento
+        <span
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground"
+          title="Empresa"
+        >
+          TECHNO RADARES
+        </span>
       </h3>
     </div>
     <div
@@ -1080,107 +983,6 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
             class="text-sm text-muted-foreground"
           >
             Avenida Atlântica, SENTIDO Centro - Copacabana, SENTIDO Centro
-          </span>
-        </div>
-        <div
-          class="grid grid-cols-2 gap-4"
-        >
-          <div
-            class="flex flex-col space-y-1"
-          >
-            <span
-              class="text-sm font-medium"
-            >
-              Latitude
-            </span>
-            <span
-              class="break-all text-sm text-muted-foreground"
-            >
-              -22.9068
-            </span>
-          </div>
-          <div
-            class="flex flex-col space-y-1"
-          >
-            <span
-              class="text-sm font-medium"
-            >
-              Longitude
-            </span>
-            <span
-              class="break-all text-sm text-muted-foreground"
-            >
-              -43.1729
-            </span>
-          </div>
-        </div>
-        <div
-          class="flex flex-col space-y-1"
-        >
-          <div
-            class="flex items-center gap-1"
-          >
-            <svg
-              class="lucide lucide-building size-4 shrink-0"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                height="20"
-                rx="2"
-                ry="2"
-                width="16"
-                x="4"
-                y="2"
-              />
-              <path
-                d="M9 22v-4h6v4"
-              />
-              <path
-                d="M8 6h.01"
-              />
-              <path
-                d="M16 6h.01"
-              />
-              <path
-                d="M12 6h.01"
-              />
-              <path
-                d="M12 10h.01"
-              />
-              <path
-                d="M12 14h.01"
-              />
-              <path
-                d="M16 10h.01"
-              />
-              <path
-                d="M16 14h.01"
-              />
-              <path
-                d="M8 10h.01"
-              />
-              <path
-                d="M8 14h.01"
-              />
-            </svg>
-            <span
-              class="text-sm font-medium"
-            >
-              Empresa
-            </span>
-          </div>
-          <span
-            class="text-sm text-muted-foreground"
-          >
-            TECHNO RADARES
           </span>
         </div>
         <div
@@ -1279,6 +1081,38 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
           </div>
         </div>
         <div
+          class="grid grid-cols-2 gap-4"
+        >
+          <div
+            class="flex flex-col space-y-1"
+          >
+            <span
+              class="text-sm font-medium"
+            >
+              Latitude
+            </span>
+            <span
+              class="break-all text-sm text-muted-foreground"
+            >
+              -22.9068
+            </span>
+          </div>
+          <div
+            class="flex flex-col space-y-1"
+          >
+            <span
+              class="text-sm font-medium"
+            >
+              Longitude
+            </span>
+            <span
+              class="break-all text-sm text-muted-foreground"
+            >
+              -43.1729
+            </span>
+          </div>
+        </div>
+        <div
           class="flex gap-2 pt-2"
         >
           <button
@@ -1372,7 +1206,7 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
       class="flex flex-col space-y-1.5 p-6 border-b px-4 py-3"
     >
       <h3
-        class="text-left text-sm font-semibold tracking-tighter"
+        class="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter"
       >
         Informações do Equipamento
       </h3>
@@ -1461,73 +1295,6 @@ exports[`Select Cards Layout Snapshots RadarSelectCard Layout deve manter o layo
               class="break-all text-sm text-muted-foreground"
             />
           </div>
-        </div>
-        <div
-          class="flex flex-col space-y-1"
-        >
-          <div
-            class="flex items-center gap-1"
-          >
-            <svg
-              class="lucide lucide-building size-4 shrink-0"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                height="20"
-                rx="2"
-                ry="2"
-                width="16"
-                x="4"
-                y="2"
-              />
-              <path
-                d="M9 22v-4h6v4"
-              />
-              <path
-                d="M8 6h.01"
-              />
-              <path
-                d="M16 6h.01"
-              />
-              <path
-                d="M12 6h.01"
-              />
-              <path
-                d="M12 10h.01"
-              />
-              <path
-                d="M12 14h.01"
-              />
-              <path
-                d="M16 10h.01"
-              />
-              <path
-                d="M16 14h.01"
-              />
-              <path
-                d="M8 10h.01"
-              />
-              <path
-                d="M8 14h.01"
-              />
-            </svg>
-            <span
-              class="text-sm font-medium"
-            >
-              Empresa
-            </span>
-          </div>
-          <span
-            class="text-sm text-muted-foreground"
-          />
         </div>
         <div
           class="flex gap-2 pt-2"

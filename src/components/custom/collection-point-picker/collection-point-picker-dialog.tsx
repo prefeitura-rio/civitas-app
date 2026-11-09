@@ -308,6 +308,21 @@ export function CollectionPointPickerDialog({
                         }}
                       />
 
+                      {picker.hoveredPointCluster ? (
+                        <div className="absolute left-3 top-3 z-10 min-w-40 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
+                          <p className="font-semibold text-foreground">
+                            {`${picker.hoveredPointCluster.properties.point_count} pontos LPR`}
+                          </p>
+                          {Object.entries(
+                            picker.hoveredPointClusterOriginCounts,
+                          ).map(([origin, count]) => (
+                            <p key={origin} className="text-muted-foreground">
+                              {origin}: {count}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
+
                       {picker.popupState ? (
                         <div
                           className="absolute z-10 w-72 rounded-md border bg-background p-3 shadow-lg"
@@ -438,10 +453,14 @@ export function CollectionPointPickerDialog({
                   variant="outline"
                   size="sm"
                   className="h-8 text-xs"
-                  disabled={picker.isPending || picker.options.length === 0}
-                  onClick={picker.selectAllCollectionPointIds}
+                  disabled={
+                    picker.isPending ||
+                    picker.visibleCollectionPointIds.length === 0
+                  }
+                  onClick={picker.selectVisibleCollectionPointIds}
                 >
-                  Selecionar todos
+                  Selecionar visíveis ({picker.visibleCollectionPointIds.length}
+                  )
                 </Button>
                 <Button
                   type="button"
@@ -451,7 +470,7 @@ export function CollectionPointPickerDialog({
                   disabled={picker.draftValue.length === 0}
                   onClick={picker.clearDraftSelection}
                 >
-                  Limpar seleção
+                  Limpar toda a seleção
                 </Button>
               </div>
 
@@ -462,19 +481,10 @@ export function CollectionPointPickerDialog({
                 </Badge>
               ) : null}
 
-              {picker.hasMoreListResults ? (
-                <p className="text-xs text-muted-foreground">
-                  Mostrando{' '}
-                  {picker.showSelectedOnlyInList
-                    ? picker.displayedSelectedCount
-                    : picker.filteredOptions.length}{' '}
-                  de{' '}
-                  {picker.showSelectedOnlyInList
-                    ? picker.listBuckets.selectedCount
-                    : picker.filteredOptions.length}{' '}
-                  radares.
-                </p>
-              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Mostrando {picker.filteredOptions.length} de{' '}
+                {picker.totalListResults} radares.
+              </p>
 
               <div
                 ref={picker.listViewportRef}

@@ -5,6 +5,7 @@ import { type PickingInfo } from 'deck.gl'
 import { useState } from 'react'
 
 import { Popover, PopoverContent } from '@/components/ui/popover'
+import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
 import { AISPInfo } from './components/aisp-info'
 import { calculateTooltipAbsolutePosition } from './components/calculate-tooltip-absolute-position'
@@ -34,7 +35,7 @@ export function ContextMenu({
   )
 
   const Content = ({ pickingInfo }: { pickingInfo: PickingInfo }) => {
-    if (pickingInfo?.layer?.id === 'radars') {
+    if (pickingInfo?.layer?.id === POINT_LAYER_IDS.radars) {
       return <RadarInfo pickingInfo={pickingInfo} />
     }
 
@@ -46,11 +47,11 @@ export function ContextMenu({
       return <CISPInfo pickingInfo={pickingInfo} />
     }
 
-    if (pickingInfo?.layer?.id === 'fogocruzado-incidents') {
+    if (pickingInfo?.layer?.id === POINT_LAYER_IDS.incidents) {
       return <FogoCruzadoInfo pickingInfo={pickingInfo} />
     }
 
-    if (pickingInfo?.layer?.id === 'schools') {
+    if (pickingInfo?.layer?.id === POINT_LAYER_IDS.schools) {
       return <SchoolInfo pickingInfo={pickingInfo} />
     }
   }
@@ -58,9 +59,13 @@ export function ContextMenu({
   return (
     <Popover open={open} onOpenChange={onOpenChange} modal={false}>
       {pickingInfo.layer?.id &&
-        ['radars', 'AISP', 'CISP', 'fogocruzado-incidents', 'schools'].includes(
-          pickingInfo.layer.id,
-        ) && (
+        [
+          POINT_LAYER_IDS.radars,
+          'AISP',
+          'CISP',
+          POINT_LAYER_IDS.incidents,
+          POINT_LAYER_IDS.schools,
+        ].includes(pickingInfo.layer.id) && (
           <PopoverContent
             ref={(ref) => setCardRef(ref)}
             style={{

@@ -3,21 +3,16 @@
 import '@/utils/string-extensions'
 
 import { formatDate } from 'date-fns'
-import {
-  AlertTriangle,
-  Building,
-  History,
-  MapPin,
-  RotateCcw,
-  X,
-} from 'lucide-react'
+import { AlertTriangle, History, MapPin, RotateCcw, X } from 'lucide-react'
 import { useCallback } from 'react'
 
+import { badgeVariants } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
+import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
 
 interface RadarSelectCardProps {
   selectedObject: CollectionPoint | null
@@ -77,8 +72,16 @@ export function RadarSelectCard({
           <X className="h-4 w-4" />
         </Button>
         <CardHeader className="border-b px-4 py-3">
-          <CardTitle className="text-left text-sm font-semibold tracking-tighter">
+          <CardTitle className="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter">
             Informações do Equipamento
+            {radarData && (
+              <span
+                className={badgeVariants({ variant: 'outline' })}
+                title="Empresa"
+              >
+                {getCollectionPointOrigin(radarData.company)}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
@@ -97,31 +100,6 @@ export function RadarSelectCard({
               </div>
               <span className="text-sm text-muted-foreground">
                 {`${radarData?.location} - ${radarData?.district}${radarData?.direction ? `, SENTIDO ${radarData.direction}` : ''}`}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium">Latitude</span>
-                <span className="break-all text-sm text-muted-foreground">
-                  {radarData?.latitude}
-                </span>
-              </div>
-              <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium">Longitude</span>
-                <span className="break-all text-sm text-muted-foreground">
-                  {radarData?.longitude}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center gap-1">
-                <Building className="size-4 shrink-0" />
-                <span className="text-sm font-medium">Empresa</span>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {radarData?.company}
               </span>
             </div>
 
@@ -171,6 +149,21 @@ export function RadarSelectCard({
                   </div>
                 </div>
               )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Latitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {radarData?.latitude}
+                </span>
+              </div>
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Longitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {radarData?.longitude}
+                </span>
+              </div>
+            </div>
 
             <div className="flex gap-2 pt-2">
               <Button

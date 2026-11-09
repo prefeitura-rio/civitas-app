@@ -1,16 +1,14 @@
 import { useMemo } from 'react'
 
 import { useMapLayers } from '@/hooks/maps/use-map-layers'
-import { useMapSize } from '@/hooks/use-map-size'
 import { useMapStore } from '@/stores/use-map-store'
 
 import { CameraSelectCard } from '../select-cards/camera-select-card'
 import { FogoCruzadoSelectCard } from '../select-cards/fogo-cruzado-select-card'
 import { RadarSelectCard } from '../select-cards/radar-select-card'
 
-export function SelectionCards() {
-  const { width: mapWidth } = useMapSize()
-
+/** Positions the cards using the width reported by their own map, in CSS pixels. */
+export function SelectionCards({ mapWidth = 0 }: { mapWidth?: number }) {
   const mapLayers = useMapLayers()
 
   const radarInfoMode = useMapStore((state) => state.radarInfoMode)

@@ -6,9 +6,6 @@ import type { Option } from '@/components/custom/multiselect-with-search'
 import type { CollectionPoint } from '@/models/entities'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
-const PICKER_MAP_WIDTH = 720
-const PICKER_MAP_HEIGHT = 620
-
 export function sortCollectionPoints(points: CollectionPoint[] | undefined) {
   if (!points?.length) return []
 
@@ -96,10 +93,19 @@ export function isFullCollectionPointSelection(
   return options.every((option) => set.has(option.value))
 }
 
+/**
+ * Fits the picker camera to its points using the measured map surface.
+ *
+ * @param points - Collection points with longitude/latitude in degrees.
+ * @param mapWidth - Positive renderer-reported width in CSS pixels.
+ * @param mapHeight - Positive renderer-reported height in CSS pixels.
+ * @returns A north-up camera with the existing picker padding and zoom limits.
+ * Callers wait for measurement instead of fitting to assumed dimensions.
+ */
 export function getMapViewport(
   points: CollectionPoint[],
-  mapWidth = PICKER_MAP_WIDTH,
-  mapHeight = PICKER_MAP_HEIGHT,
+  mapWidth: number,
+  mapHeight: number,
 ): MapViewState {
   if (!points.length) return { ...INITIAL_VIEW_PORT, pitch: 0, bearing: 0 }
 
