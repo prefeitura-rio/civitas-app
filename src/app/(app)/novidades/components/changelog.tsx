@@ -54,20 +54,22 @@ export const changelog: Card[] = [
         ),
       },
       {
-        tag: 'Alterado',
-        title: 'Origem em destaque nos cartões de equipamentos',
+        tag: 'Adicionado',
+        title: 'Identificação dos equipamentos no sistema de origem',
         content: (
           <>
             <p>
-              Os cartões de câmeras e equipamentos LPR agora mostram a empresa
-              ou o sistema de origem em destaque ao lado do título, facilitando
-              a identificação do equipamento.
+              Os cartões de pontos LPR agora exibem os códigos dos equipamentos
+              agrupados no local, facilitando a localização de cada dispositivo
+              diretamente no sistema de origem. Além disso, a empresa ou o
+              sistema de origem passa a aparecer em destaque ao lado do título
+              nos cartões de câmeras e equipamentos LPR.
             </p>
             <Image
-              src="https://storage.googleapis.com/rj-civitas-public/assets/pill_detalhe_origem_equip.png"
-              alt="Cartão de equipamento com a origem em destaque ao lado do título"
+              src="https://storage.googleapis.com/rj-civitas-public/assets/detalhe-equipamentos.png"
+              alt="Cartão de equipamento com os códigos no sistema de origem e a origem em destaque ao lado do título"
               width={400}
-              height={400}
+              height={500}
               className="h-auto w-auto rounded-md"
             />
           </>
