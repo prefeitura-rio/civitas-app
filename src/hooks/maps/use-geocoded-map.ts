@@ -118,6 +118,10 @@ export function useGeocodedMap(
           style: 'mapbox://styles/mapbox/streets-v11',
           center: coordinates,
           zoom: 12,
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
+          maxPitch: 0,
         })
         map.on('load', () => {
           if (!isActive) return
@@ -133,7 +137,7 @@ export function useGeocodedMap(
             })
           }
         })
-        map.addControl(new mapboxgl.NavigationControl())
+        map.addControl(new mapboxgl.NavigationControl({ showCompass: false }))
         new mapboxgl.Marker().setLngLat(coordinates).addTo(map)
         setState({ error: null, approximation, isLoading: true })
       } catch {

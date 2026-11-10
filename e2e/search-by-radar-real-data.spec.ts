@@ -354,7 +354,7 @@ test.describe('Radar Search - Complete Test', () => {
             await page.waitForTimeout(200)
 
             const radarCodeInput = page.locator(
-              'input[placeholder*="Código CET-RIO" i]',
+              'input[placeholder*="Código do Equipamento" i]',
             )
             if (await radarCodeInput.isVisible()) {
               await radarCodeInput.fill(code)

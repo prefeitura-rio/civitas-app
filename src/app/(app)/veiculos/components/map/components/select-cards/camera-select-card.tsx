@@ -70,12 +70,15 @@ export function CameraSelectCard({
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardHeader className="border-b px-4 py-3">
-          <CardTitle className="flex items-center gap-2 text-left text-sm font-semibold tracking-tighter">
-            Câmera
+        <CardHeader className="border-b px-4 py-3 pr-9">
+          <CardTitle className="flex flex-wrap items-center gap-x-2 gap-y-1 text-left text-sm font-semibold tracking-tighter">
+            <span>Câmera</span>
             {selectedObject && (
               <span
-                className={badgeVariants({ variant: 'outline' })}
+                className={badgeVariants({
+                  variant: 'default',
+                  className: 'shrink-0 leading-none',
+                })}
                 title="Sistema de origem"
               >
                 {getCameraOrigin(selectedObject.sistemaOrigem)}

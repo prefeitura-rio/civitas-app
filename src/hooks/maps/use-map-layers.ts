@@ -166,7 +166,9 @@ export function useMapLayers() {
     () => [
       ...AISPLayer,
       ...CISPLayer,
+      cameraLayer.highlightLayer,
       cameraLayerObj,
+      radarLayer.highlightLayer,
       radarLayerObj,
       fogoCruzadoLayerObj,
       ...tripLayers,
@@ -177,7 +179,9 @@ export function useMapLayers() {
     [
       AISPLayer,
       CISPLayer,
+      cameraLayer.highlightLayer,
       cameraLayerObj,
+      radarLayer.highlightLayer,
       radarLayerObj,
       fogoCruzadoLayerObj,
       tripLayers,

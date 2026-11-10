@@ -28,8 +28,12 @@ jest.mock(
 jest.mock(
   '@/app/(app)/veiculos/components/map/components/select-cards/radar-select-card',
   () => ({
-    RadarSelectCard: ({ selectedObject, setSelectedObject }: any) => (
-      <div data-testid="radar-select-card">
+    RadarSelectCard: ({
+      selectedObject,
+      setSelectedObject,
+      className,
+    }: any) => (
+      <div data-testid="radar-select-card" className={className}>
         Radar: {selectedObject ? 'selected' : 'not selected'}
         <button onClick={() => setSelectedObject(null)}>Close Radar</button>
       </div>
@@ -52,11 +56,30 @@ jest.mock(
 )
 
 describe('SelectionCards', () => {
-  it('positions cards from the width supplied by their map', () => {
-    const { rerender } = render(<SelectionCards mapWidth={700} />)
+  it('always positions all selection cards below the search bar line (mt-12) across all map widths', () => {
+    const { rerender } = render(<SelectionCards mapWidth={0} />)
     expect(screen.getByTestId('camera-select-card')).toHaveClass('mt-12')
+    screen.getAllByTestId('radar-select-card').forEach((card) => {
+      expect(card).toHaveClass('mt-12')
+    })
+
+    rerender(<SelectionCards mapWidth={700} />)
+    expect(screen.getByTestId('camera-select-card')).toHaveClass('mt-12')
+    screen.getAllByTestId('radar-select-card').forEach((card) => {
+      expect(card).toHaveClass('mt-12')
+    })
+
     rerender(<SelectionCards mapWidth={1200} />)
-    expect(screen.getByTestId('camera-select-card')).not.toHaveClass('mt-12')
+    expect(screen.getByTestId('camera-select-card')).toHaveClass('mt-12')
+    screen.getAllByTestId('radar-select-card').forEach((card) => {
+      expect(card).toHaveClass('mt-12')
+    })
+
+    rerender(<SelectionCards mapWidth={1920} />)
+    expect(screen.getByTestId('camera-select-card')).toHaveClass('mt-12')
+    screen.getAllByTestId('radar-select-card').forEach((card) => {
+      expect(card).toHaveClass('mt-12')
+    })
   })
 
   beforeEach(() => {

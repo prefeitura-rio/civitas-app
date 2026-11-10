@@ -1,16 +1,21 @@
 'use client'
+import type { ScatterplotLayer } from '@deck.gl/layers'
 import { IconLayer, type PickingInfo } from 'deck.gl'
 import { useCallback, useMemo, useState } from 'react'
 
 import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
+import { getCoincidentPointOffsets } from '@/utils/coincident-point-offsets'
 import {
   COLLECTION_POINT_ICON_MAPPING,
   collectionPointIconAtlas,
   getCollectionPointIcon,
 } from '@/utils/collection-point-icons'
 import { getCollectionPointOrigin } from '@/utils/collection-point-origin'
-import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
+import {
+  createRightClickRingLayer,
+  POINT_LAYER_IDS,
+} from '@/utils/point-layer-config'
 
 import { useCollectionPoints } from '../useQueries/useCollectionPoints'
 import { type OriginFilter, useOriginFilter } from './use-origin-filter'
@@ -21,6 +26,7 @@ const getRadarOrigin = (point: CollectionPoint) =>
 export interface UseRadarLayer extends OriginFilter<CollectionPoint> {
   data: CollectionPoint[] | undefined
   layer: IconLayer<CollectionPoint>
+  highlightLayer: ScatterplotLayer<[number, number]> | null
   hoveredObject: PickingInfo<CollectionPoint> | null
   setHoveredObject: (value: PickingInfo<CollectionPoint> | null) => void
   isVisible: boolean
@@ -55,10 +61,19 @@ export function useRadarLayer(
 
   const { data } = useCollectionPoints()
   const originFilter = useOriginFilter(data, getRadarOrigin)
+  const offsets = useMemo(
+    () =>
+      getCoincidentPointOffsets(data ?? [], (point) => [
+        point.longitude,
+        point.latitude,
+      ]),
+    [data],
+  )
 
   const setMultipleSelectedRadars = useMapStore(
     (state) => state.setMultipleSelectedRadars,
   )
+  const radarInfoMode = useMapStore((state) => state.radarInfoMode)
 
   const selectedObjects = useMemo(() => {
     if (!data || !multipleSelectedRadars.length) return []
@@ -119,9 +134,10 @@ export function useRadarLayer(
     iconMapping: COLLECTION_POINT_ICON_MAPPING,
     getIcon: getRadarIcon,
     getPosition: (d: CollectionPoint) =>
-      [d.longitude, d.latitude] as [number, number],
+      offsets.get(d) ?? ([d.longitude, d.latitude] as [number, number]),
     visible: isVisible,
     updateTriggers: {
+      getPosition: offsets,
       getIcon: [
         selectedObject?.cetRioCode,
         selectedObjects,
@@ -152,6 +168,7 @@ export function useRadarLayer(
       }),
     [
       originFilter.visibleData,
+      offsets,
       selectedObject?.cetRioCode,
       selectedObjects,
       hoveredObject?.object?.cetRioCode,
@@ -160,10 +177,30 @@ export function useRadarLayer(
     ],
   )
 
+  const infoPosition = useMemo<[number, number] | null>(() => {
+    if (!radarInfoMode) return null
+    const matching = data?.find(
+      (item) => item.cetRioCode === radarInfoMode.cetRioCode,
+    )
+    const target = matching ?? radarInfoMode
+    return offsets.get(target) ?? [target.longitude, target.latitude]
+  }, [data, offsets, radarInfoMode])
+
+  const highlightLayer = useMemo(
+    () =>
+      createRightClickRingLayer(
+        `${POINT_LAYER_IDS.radars}-right-click-highlight`,
+        infoPosition,
+        isVisible,
+      ),
+    [infoPosition, isVisible],
+  )
+
   return {
     ...originFilter,
     data,
     layer,
+    highlightLayer,
     hoveredObject,
     setHoveredObject,
     isVisible,

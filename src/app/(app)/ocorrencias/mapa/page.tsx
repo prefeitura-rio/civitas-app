@@ -35,7 +35,7 @@ export default function Map() {
           overflow: 'hidden',
         }}
         onResize={() => mapRef?.current?.resize()}
-        controller
+        controller={{ dragRotate: false, touchRotate: false }}
         layers={[
           reports.layers.heatmap,
           ...reports.layers.clusteredIcons(bounds, zoom, setViewport),
@@ -54,6 +54,10 @@ export default function Map() {
           ref={mapRef}
           mapboxAccessToken={config.mapboxAccessToken}
           mapStyle={'mapbox://styles/mapbox/streets-v12'}
+          dragRotate={false}
+          pitchWithRotate={false}
+          touchPitch={false}
+          maxPitch={0}
         />
         <div className="absolute-x-centered top-2 z-50 w-64">
           <SearchBox

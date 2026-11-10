@@ -54,14 +54,45 @@ export const changelog: Card[] = [
         ),
       },
       {
-        tag: 'Corrigido',
-        title: 'Localização de endereços de pessoas e empresas',
+        tag: 'Adicionado',
+        title: 'Identificação dos equipamentos no sistema de origem',
         content: (
-          <p>
-            Os mapas de endereços nas consultas de CPF e CNPJ foram ajustados.
-            Quando não for possível confirmar o número do imóvel, a tela pode
-            indicar uma localização aproximada.
-          </p>
+          <>
+            <p>
+              Os cartões de pontos LPR agora exibem os códigos dos equipamentos
+              agrupados no local, facilitando a localização de cada dispositivo
+              diretamente no sistema de origem. Além disso, a empresa ou o
+              sistema de origem passa a aparecer em destaque ao lado do título
+              nos cartões de câmeras e equipamentos LPR.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/detalhe-equipamentos.png"
+              alt="Cartão de equipamento com os códigos no sistema de origem e a origem em destaque ao lado do título"
+              width={400}
+              height={500}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Câmeras próximas no mapa',
+        content: (
+          <>
+            <p>
+              Câmeras localizadas no mesmo ponto ou muito próximas agora
+              aparecem ligeiramente afastadas no mapa, facilitando a
+              visualização e a seleção de cada equipamento.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/cameras_offset.png"
+              alt="Cartão de equipamento com a origem em destaque ao lado do título"
+              width={400}
+              height={400}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
         ),
       },
     ],

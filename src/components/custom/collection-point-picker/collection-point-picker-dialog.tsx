@@ -166,6 +166,9 @@ export function CollectionPointPickerDialog({
                   ref={picker.mapContainerRef}
                   className="relative h-[360px] overflow-hidden rounded-md border sm:h-[420px] xl:h-[520px]"
                   onContextMenu={picker.handleMapContextMenu}
+                  onMouseDown={picker.handleMapMouseUp}
+                  onMouseUp={picker.handleMapMouseUp}
+                  onPointerUp={picker.handleMapMouseUp}
                 >
                   <div className="absolute inset-x-2 top-2 z-10 sm:left-auto sm:right-3 sm:top-3 sm:w-80">
                     <div className="rounded-md border bg-background/95 p-2 shadow-sm backdrop-blur">
@@ -284,7 +287,7 @@ export function CollectionPointPickerDialog({
                       key={picker.mapSurfaceGeneration}
                       ref={picker.deckRef}
                       style={{ width: '100%', height: '100%' }}
-                      controller
+                      controller={{ dragRotate: false, touchRotate: false }}
                       viewState={picker.viewState}
                       layers={picker.mapLayers}
                       onResize={picker.handleMapResize}
@@ -302,6 +305,10 @@ export function CollectionPointPickerDialog({
                         ref={picker.mapRef}
                         mapStyle="mapbox://styles/mapbox/light-v11"
                         mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+                        dragRotate={false}
+                        pitchWithRotate={false}
+                        touchPitch={false}
+                        maxPitch={0}
                         onLoad={picker.handleMapLoad}
                         onMove={(event: ViewStateChangeEvent) => {
                           picker.handleViewStateChange(event.viewState)

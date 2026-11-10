@@ -8,6 +8,7 @@ export type LprCollectionPoint = {
   latitude: number
   longitude: number
   status_ativo: string
+  codigos_equipamento?: string[]
   datahora_ultima_leitura: string
   total_leituras: number
   ativo_ultimas_24h: boolean
@@ -15,6 +16,8 @@ export type LprCollectionPoint = {
 
 export type CollectionPoint = {
   cetRioCode: string
+  codigoPontoColeta?: string | null
+  equipmentCodes?: string[]
   company: string | null
   latitude: number
   longitude: number

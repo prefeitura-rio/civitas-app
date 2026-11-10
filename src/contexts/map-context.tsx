@@ -36,7 +36,7 @@ import {
 } from '@/hooks/mapLayers/use-school-layer'
 import { type UseTrips, useTrips } from '@/hooks/mapLayers/use-trips'
 import type { SetViewportProps } from '@/models/utils'
-import { useMapStore } from '@/stores/use-map-store'
+import { type ClusterMode, useMapStore } from '@/stores/use-map-store'
 import { MapStyle } from '@/utils/get-map-style'
 
 interface MapContextProps {
@@ -55,6 +55,9 @@ interface MapContextProps {
   setViewport: (props: SetViewportProps) => void
   mapStyle: MapStyle
   setMapStyle: (style: MapStyle) => void
+  clusterMode: ClusterMode
+  setClusterMode: (mode: ClusterMode) => void
+  toggleClusterMode: () => void
   mapRef: MapRef | null
   setMapRef: (ref: MapRef | null) => void
   setDeckRef: (ref: DeckGLRef<any> | null) => void
@@ -93,6 +96,9 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
   const setViewport = useMapStore((state) => state.setViewport)
   const mapStyle = useMapStore((state) => state.mapStyle)
   const setMapStyle = useMapStore((state) => state.setMapStyle)
+  const clusterMode = useMapStore((state) => state.clusterMode)
+  const setClusterMode = useMapStore((state) => state.setClusterMode)
+  const toggleClusterMode = useMapStore((state) => state.toggleClusterMode)
   const mapRef = useMapStore((state) => state.mapRef)
   const setMapRef = useMapStore((state) => state.setMapRef)
   const deckRef = useMapStore((state) => state.deckRef)
@@ -151,6 +157,9 @@ export function MapContextProvider({ children }: MapContextProviderProps) {
         setViewport,
         mapStyle,
         setMapStyle,
+        clusterMode,
+        setClusterMode,
+        toggleClusterMode,
         mapRef,
         setMapRef,
         deckRef,

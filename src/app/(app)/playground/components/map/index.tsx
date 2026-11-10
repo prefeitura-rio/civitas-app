@@ -58,6 +58,10 @@ export function PlaygroundMap() {
       style: 'mapbox://styles/mapbox/streets-v11',
       center: [INITIAL_VIEW_PORT.longitude, INITIAL_VIEW_PORT.latitude],
       zoom: INITIAL_VIEW_PORT.zoom,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      maxPitch: 0,
     })
     let disposed = false
     const handleLoad = () => {

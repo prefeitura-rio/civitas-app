@@ -115,6 +115,25 @@ describe('point source stability through visual interactions', () => {
     mockCameras = [camera, { ...camera, code: 'CAM-2', sistemaOrigem: 'DC3' }]
   })
 
+  it('separates overlapping camera icons without changing their coordinates or selection', () => {
+    const { result } = renderHook(() => useCamera())
+    const position = result.current.layer.props.getPosition as unknown as (
+      point: Camera,
+    ) => number[]
+    expect(position(mockCameras[0])).toEqual([-43.2, -22.9])
+    expect(position(mockCameras[1])[0]).toBeCloseTo(-43.19999, 8)
+    expect(position(mockCameras[1])[1]).toBeCloseTo(-22.90001, 8)
+    expect(mockCameras[1].longitude).toBe(-43.2)
+    expect(mockCameras[1].latitude).toBe(-22.9)
+    act(() => result.current.handleSelectObject(mockCameras[1]))
+    expect(result.current.selectedObject).toBe(mockCameras[1])
+    act(() => result.current.toggleOrigin('TIXI'))
+    expect(result.current.visibleData).toEqual([mockCameras[1]])
+    const filteredPosition = result.current.layer.props
+      .getPosition as unknown as (point: Camera) => number[]
+    expect(filteredPosition(mockCameras[1])[0]).toBeCloseTo(-43.19999, 8)
+  })
+
   it('keeps LPR data and spatial indexes through hover, selection and visibility changes', () => {
     const { result } = renderHook(() => usePointLayers([]))
     const regularData = result.current.radars.layer.props.data
@@ -192,8 +211,16 @@ describe('point source stability through visual interactions', () => {
     assertStableSources()
   })
 
-  it('invalidates camera icons for hover and selection while retaining source data', () => {
+  it('invalidates camera icons for hover and keeps default icon fill with a red ring on right-click selection', () => {
     const { result } = renderHook(() => usePointLayers([]))
+    const getCameraIcon = (point: Camera) =>
+      (
+        result.current.cameras.layer.props.getIcon as unknown as (
+          point: Camera,
+        ) => string
+      )(point)
+
+    expect(result.current.cameras.highlightLayer).toBeNull()
 
     act(() =>
       result.current.cameras.setHoveredObject({
@@ -203,6 +230,7 @@ describe('point source stability through visual interactions', () => {
     expect(
       result.current.cameras.layer.props.updateTriggers?.getIcon,
     ).toContain(camera.code)
+    expect(getCameraIcon(camera)).toBe('highlighted')
 
     act(() => {
       result.current.cameras.setHoveredObject(null)
@@ -211,6 +239,8 @@ describe('point source stability through visual interactions', () => {
     expect(
       result.current.cameras.layer.props.updateTriggers?.getIcon,
     ).toContain('CAM-2')
+    expect(getCameraIcon(mockCameras[1])).toBe('default')
+    expect(result.current.cameras.highlightLayer).not.toBeNull()
   })
 
   it('rebuilds the affected indexes when query data changes', () => {

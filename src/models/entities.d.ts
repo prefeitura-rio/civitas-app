@@ -91,18 +91,20 @@ export type BackendRadar = {
 
 export type Radar = {
   cetRioCode: string
+  codigoPontoColeta?: string | null
+  equipmentCodes?: string[]
   latitude: number
   longitude: number
   location: string | null
   district: string | null
-  streetName: string | null
+  streetName?: string | null
   hasData: boolean
   activeInLast24Hours: boolean
   company: string | null
   lastDetectionTime: string | null
   direction: string | null
   lane: string | null
-  streetNumber: string
+  streetNumber?: string
 }
 
 export interface RadarDetection {

@@ -116,4 +116,43 @@ describe('SearchByRadarForm', () => {
     expect(screen.getByText('Busca por Equipamento')).toBeInTheDocument()
     expect(screen.getByText('Buscar')).toBeInTheDocument()
   })
+
+  it('should add equipment when pressing Enter in the equipment code input without submitting the form', () => {
+    mockUseMapLayers.mockReturnValue({
+      radars: {
+        selectedObjects: [],
+        setSelectedObjects: mockSetSelectedObjects,
+        data: [mockRadar, mockRadar2],
+      },
+    })
+
+    mockUseMapStore.mockReturnValue(mockSetViewport)
+
+    render(<SearchByRadarForm />)
+
+    fireEvent.click(screen.getByText('Equipamentos (0)'))
+
+    const input = screen.getByPlaceholderText(
+      'Código do Equipamento',
+    ) as HTMLInputElement
+    fireEvent.change(input, { target: { value: '0540461121' } })
+
+    const enterEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      code: 'Enter',
+      bubbles: true,
+      cancelable: true,
+    })
+    const notPrevented = input.dispatchEvent(enterEvent)
+
+    expect(notPrevented).toBe(false)
+    expect(mockSetSelectedObjects).toHaveBeenCalledTimes(1)
+    expect(mockSetViewport).toHaveBeenCalledWith({
+      longitude: mockRadar.longitude,
+      latitude: mockRadar.latitude,
+      zoom: 20,
+    })
+    expect(input.value).toBe('')
+    expect(mockPush).not.toHaveBeenCalled()
+  })
 })

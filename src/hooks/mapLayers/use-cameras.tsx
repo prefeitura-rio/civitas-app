@@ -1,5 +1,5 @@
 import type { PickingInfo } from '@deck.gl/core'
-import { IconLayer } from '@deck.gl/layers'
+import { IconLayer, type ScatterplotLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
 import {
   type Dispatch,
@@ -12,8 +12,12 @@ import {
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import { getCamera } from '@/http/cameras-cor/get-cameras-cor'
 import type { Camera } from '@/models/entities'
+import { getCoincidentPointOffsets } from '@/utils/coincident-point-offsets'
 import { getCameraOrigin } from '@/utils/collection-point-origin'
-import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
+import {
+  createRightClickRingLayer,
+  POINT_LAYER_IDS,
+} from '@/utils/point-layer-config'
 
 import { type OriginFilter, useOriginFilter } from './use-origin-filter'
 
@@ -25,6 +29,7 @@ export interface UseCamera extends OriginFilter<Camera> {
   data: Camera[]
   failed: boolean
   layer: IconLayer<Camera, object>
+  highlightLayer: ScatterplotLayer<[number, number]> | null
   isLoading: boolean
   isVisible: boolean
   setIsVisible: Dispatch<SetStateAction<boolean>>
@@ -53,10 +58,18 @@ export function useCamera(): UseCamera {
   })
 
   const originFilter = useOriginFilter(data, getCameraPointOrigin)
+  const offsets = useMemo(
+    () =>
+      getCoincidentPointOffsets(data ?? EMPTY_CAMERAS, (point) => [
+        point.longitude,
+        point.latitude,
+      ]),
+    [data],
+  )
 
   const handleSelectObject = useCallback(
     (camera: Camera | null, clearRadar?: () => void) => {
-      if (camera === null || selectedObject?.code === camera.code) {
+      if (camera === null) {
         setSelectedObject(null)
       } else {
         if (clearRadar) {
@@ -65,7 +78,7 @@ export function useCamera(): UseCamera {
         setSelectedObject(camera)
       }
     },
-    [selectedObject?.code, setSelectedObject],
+    [setSelectedObject],
   )
 
   const iconMapping = {
@@ -85,25 +98,44 @@ export function useCamera(): UseCamera {
         iconMapping,
         updateTriggers: {
           getIcon: [selectedObject?.code, hoveredObject?.object?.code],
+          getPosition: offsets,
         },
         getPosition: (d: Camera) =>
-          [d.longitude, d.latitude] as [number, number],
+          offsets.get(d) ?? ([d.longitude, d.latitude] as [number, number]),
         onHover: (info: PickingInfo<Camera>) => {
           setHoveredObject(info.object ? info : null)
         },
         getIcon: (d) => {
-          const isActive =
-            selectedObject?.code === d.code ||
-            hoveredObject?.object?.code === d.code
-          return isActive ? 'highlighted' : 'default'
+          const isHovered = hoveredObject?.object?.code === d.code
+          return isHovered ? 'highlighted' : 'default'
         },
       }),
     [
       originFilter.visibleData,
+      offsets,
       selectedObject?.code,
       hoveredObject?.object?.code,
       isVisible,
     ],
+  )
+
+  const selectedPosition = useMemo<[number, number] | null>(() => {
+    if (!selectedObject) return null
+    const matching = (data ?? EMPTY_CAMERAS).find(
+      (item) => item.code === selectedObject.code,
+    )
+    const target = matching ?? selectedObject
+    return offsets.get(target) ?? [target.longitude, target.latitude]
+  }, [data, offsets, selectedObject])
+
+  const highlightLayer = useMemo(
+    () =>
+      createRightClickRingLayer(
+        `${POINT_LAYER_IDS.cameras}-right-click-highlight`,
+        selectedPosition,
+        isVisible,
+      ),
+    [selectedPosition, isVisible],
   )
 
   return {
@@ -111,6 +143,7 @@ export function useCamera(): UseCamera {
     data: data ?? EMPTY_CAMERAS,
     failed: !data && !isLoading,
     layer,
+    highlightLayer,
     isLoading,
     isVisible,
     setIsVisible,

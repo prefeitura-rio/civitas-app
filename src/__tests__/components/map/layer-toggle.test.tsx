@@ -182,17 +182,18 @@ describe('MapLayerControl', () => {
     expect(fogoCruzadoButton).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('should show satellite layer as NOT selected by default', () => {
+  it('should not show satellite option inside the layers panel', () => {
     render(<MapLayerControl />, { wrapper: createWrapper })
 
     // Clica no botão para abrir o controle de camadas
     const button = screen.getByText('Camadas')
     fireEvent.click(button)
 
-    // Verifica se a camada de satélite NÃO está selecionada por padrão
-    const satelliteButton = screen.getByLabelText('Toggle Satélite layer')
-    expect(satelliteButton).toHaveAttribute('data-state', 'off')
-    expect(satelliteButton).toHaveAttribute('aria-pressed', 'false')
+    // O botão de estilo (Satélite) agora fica nos controles flutuantes do mapa
+    expect(
+      screen.queryByLabelText('Toggle Satélite layer'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Satélite')).not.toBeInTheDocument()
   })
 
   it('should show AISP layer as NOT selected by default', () => {
@@ -264,7 +265,6 @@ describe('MapLayerControl', () => {
     expect(
       screen.getByLabelText('Toggle Fogo Cruzado layer'),
     ).toBeInTheDocument()
-    expect(screen.getByLabelText('Toggle Satélite layer')).toBeInTheDocument()
     expect(screen.getByLabelText('Toggle AISP layer')).toBeInTheDocument()
     expect(screen.getByLabelText('Toggle CISP layer')).toBeInTheDocument()
     expect(
@@ -286,7 +286,6 @@ describe('MapLayerControl', () => {
     expect(screen.getByText('LPR')).toBeInTheDocument()
     expect(screen.getByText('Câmeras')).toBeInTheDocument()
     expect(screen.getByText('Fogo Cruzado')).toBeInTheDocument()
-    expect(screen.getByText('Satélite')).toBeInTheDocument()
     expect(screen.getByText('AISP')).toBeInTheDocument()
     expect(screen.getByText('CISP')).toBeInTheDocument()
     expect(screen.getByText('Escolas Municipais')).toBeInTheDocument()
