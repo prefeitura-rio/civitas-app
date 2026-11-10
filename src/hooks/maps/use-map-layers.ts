@@ -171,7 +171,6 @@ export function useMapLayers() {
       radarLayer.highlightLayer,
       radarLayerObj,
       fogoCruzadoLayerObj,
-      ...tripLayers,
       addressLayer,
       schools.layers,
       busStops.layers,
@@ -184,7 +183,6 @@ export function useMapLayers() {
       radarLayer.highlightLayer,
       radarLayerObj,
       fogoCruzadoLayerObj,
-      tripLayers,
       addressLayer,
       schools.layers,
       busStops.layers,
@@ -193,6 +191,7 @@ export function useMapLayers() {
 
   return {
     mapLayers,
+    topPriorityLayers: tripLayers,
     pointSources,
 
     radars,

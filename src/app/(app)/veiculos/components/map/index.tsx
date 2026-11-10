@@ -91,7 +91,10 @@ export function Map() {
         initialViewState={mapState.viewport}
         controller={{ dragRotate: false, touchRotate: false }}
         onResize={handleMapResize}
-        layers={clusteredMap.layers}
+        layers={[
+          ...clusteredMap.layers,
+          ...(mapLayers.topPriorityLayers ?? []),
+        ]}
         onViewStateChange={mapState.handleViewStateChange}
         getCursor={mapState.getCursor}
       >
