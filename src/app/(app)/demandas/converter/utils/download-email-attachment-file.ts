@@ -1,10 +1,13 @@
 import type { AttachmentOut } from '@/http/emails/get-email'
 import { api } from '@/lib/api'
+import { getEmailAttachmentBlockedReason } from '@/utils/email-attachment-selection'
 
 export async function downloadEmailAttachmentAsFile(
   emailId: string,
   attachment: AttachmentOut,
 ): Promise<File> {
+  const blockedReason = getEmailAttachmentBlockedReason(attachment)
+  if (blockedReason) throw new Error(blockedReason)
   if (
     attachment.file_path.startsWith('http://') ||
     attachment.file_path.startsWith('https://')

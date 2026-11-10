@@ -44,7 +44,6 @@ import {
 } from '../ticket-create/ticket-create-schema'
 
 const OPERATION_SEARCH_PAGE_SIZE = 20
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 
 const TICKET_TYPE_RESTRITA_LABEL = 'requisição restrita'
 const TEAM_COORDENADORES_LABEL = 'coordenadores'
@@ -63,7 +62,7 @@ function isConvencionalTicketType(ticketTypeName: string | null | undefined) {
   return (ticketTypeName ?? '').trim().toLowerCase() === 'convencional'
 }
 
-export function useTicketCreateController() {
+export function useTicketCreateController({ maxAttachmentSizeMb = 10 } = {}) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
@@ -443,7 +442,7 @@ export function useTicketCreateController() {
         invalidType.push(file.name)
         continue
       }
-      if (file.size > MAX_ATTACHMENT_BYTES) {
+      if (file.size > maxAttachmentSizeMb * 1024 * 1024) {
         invalidSize.push(file.name)
         continue
       }
@@ -461,7 +460,7 @@ export function useTicketCreateController() {
     }
 
     if (invalidSize.length > 0) {
-      toast.error('Arquivo acima do limite de 10MB.', {
+      toast.error(`Arquivo acima do limite de ${maxAttachmentSizeMb}MB.`, {
         description:
           invalidSize.length <= 3
             ? invalidSize.join(', ')
@@ -507,11 +506,19 @@ export function useTicketCreateController() {
     data: TicketCreateForm,
     emailId?: string | null,
     filesForTicket?: File[],
-    options?: { saveAndNew?: boolean },
+    options?: {
+      saveAndNew?: boolean
+      emailAttachmentIds?: number[]
+      emailAttachmentTokens?: Record<number, string>
+    },
   ) {
     const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
-      const payload = buildTicketAssociatePayload(data, { emailId })
+      const payload = {
+        ...buildTicketAssociatePayload(data, { emailId }),
+        email_attachment_ids: options?.emailAttachmentIds ?? [],
+        email_attachment_tokens: options?.emailAttachmentTokens ?? {},
+      }
       if (isConvencionalTicketType(selectedAssociatedTicketTypeName)) {
         await addConventionalPendingAttachmentsMutation.mutateAsync({
           ticketId: associarId,
@@ -531,7 +538,12 @@ export function useTicketCreateController() {
     }
     const basePayload = buildTicketCreatePayload(data)
     const payload = emailId
-      ? { ...basePayload, email_id: emailId }
+      ? {
+          ...basePayload,
+          email_id: emailId,
+          email_attachment_ids: options?.emailAttachmentIds ?? [],
+          email_attachment_tokens: options?.emailAttachmentTokens ?? {},
+        }
       : basePayload
     await createMutation.mutateAsync({
       payload,

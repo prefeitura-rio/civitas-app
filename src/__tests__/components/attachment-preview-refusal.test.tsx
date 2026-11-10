@@ -113,4 +113,48 @@ describe('foto.jpg que a API não confirma como foto', () => {
     expect(result.current.url).toBeNull()
     expect(URL.createObjectURL).not.toHaveBeenCalled()
   })
+
+  it('não baixa o anexo enquanto a compressão ainda não o disponibilizou', () => {
+    jest.mocked(api.get).mockClear()
+    const { result } = renderHook(() =>
+      useAttachmentPreviewUrl(
+        {
+          ...fakeJpg,
+          size: 20 * 1024 * 1024 + 1,
+          can_select: false,
+          file_path: '',
+        },
+        'email-1',
+      ),
+    )
+    expect(result.current.url).toBeNull()
+    expect(result.current.unavailable).toBe(true)
+    expect(api.get).not.toHaveBeenCalled()
+  })
+
+  it('visualiza a versão comprimida mesmo quando ela ainda supera 20 MB', async () => {
+    jest.mocked(api.get).mockClear()
+    jest.mocked(api.get).mockResolvedValue({ data: { type: 'image/jpeg' } })
+    const { result } = renderHook(() =>
+      useAttachmentPreviewUrl(
+        {
+          ...fakeJpg,
+          size: 20 * 1024 * 1024 + 1,
+          can_select: false,
+          is_prepared: true,
+          preparation_token: 'a'.repeat(64),
+          file_path: '',
+        },
+        'email-1',
+      ),
+    )
+    await waitFor(() => expect(result.current.url).toBe('blob:preview'))
+    expect(api.get).toHaveBeenCalledWith(
+      '/emails/email-1/attachments/1/prepared',
+      {
+        responseType: 'blob',
+        params: { token: 'a'.repeat(64) },
+      },
+    )
+  })
 })

@@ -24,6 +24,7 @@ import { Controller } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { canPreviewAttachment } from '@/app/(app)/demandas/utils/attachment-preview'
+import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -58,7 +59,10 @@ import {
   shouldMarkAsAguardandoOnConverterOpen,
 } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
-import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
+import {
+  filterSelectableEmailAttachments,
+  getEmailAttachmentBlockedReason,
+} from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
@@ -77,11 +81,18 @@ import {
   TICKET_CREATE_STRING_LIMITS as L,
 } from '../../criar/ticket-create/ticket-create.constant'
 import { useAttachmentPreviewUrl } from '../hooks/use-attachment-preview-url'
-import { downloadEmailAttachmentAsFile } from '../utils/download-email-attachment-file'
+import { usePreparedEmailAttachments } from '../hooks/use-prepared-email-attachments'
+import { EmailAttachmentCheckbox } from './email-attachment-checkbox'
 import styles from './email-to-ticket-view.module.css'
 
 function fileSelectionKey(file: File) {
   return `${file.name}|${file.size}|${file.lastModified}`
+}
+
+function formatAttachmentBytes(bytes: number) {
+  const unit = bytes >= 1024 * 1024 ? 'MB' : 'KB'
+  const amount = bytes / (unit === 'MB' ? 1024 * 1024 : 1024)
+  return `${amount.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${unit}`
 }
 
 function resolveEmailDate(email: EmailOut): Date | null {
@@ -273,7 +284,7 @@ export function EmailToTicketView() {
   const queryClient = useQueryClient()
   const emailId = searchParams.get('email_id')?.trim() || null
 
-  const vm = useTicketCreateController()
+  const vm = useTicketCreateController({ maxAttachmentSizeMb: 20 })
   const [activeSubmit, setActiveSubmit] = useState<
     'save' | 'save-and-new' | null
   >(null)
@@ -298,6 +309,13 @@ export function EmailToTicketView() {
   })
 
   const email = emailResponse?.data
+  const {
+    attachments,
+    isPreparing: isPreparingAttachments,
+    preparingAttachmentIds,
+    hasErrors: attachmentPreparationHasErrors,
+    retryFailed: retryAttachmentPreparation,
+  } = usePreparedEmailAttachments(emailId, email?.attachments ?? [])
 
   useEffect(() => {
     // Wait for GET detail; only lift Não Lido → Aguardando.
@@ -373,7 +391,6 @@ export function EmailToTicketView() {
     vm.setValue('initial_comment', subj ? `${subj}\n\n${body}` : body)
   }, [email, emailId, vm.setValue])
 
-  const attachments = email?.attachments ?? []
   const selectableAttachments = filterSelectableEmailAttachments(attachments)
 
   useEffect(() => {
@@ -394,6 +411,11 @@ export function EmailToTicketView() {
   }, [selectableAttachments.length])
 
   const currentAttachmentItem = selectableAttachments[currentAttachment]
+  const currentAttachmentBlockedReason = currentAttachmentItem
+    ? getEmailAttachmentBlockedReason(currentAttachmentItem)
+    : null
+  const currentAttachmentPreviewBlockedReason =
+    currentAttachmentItem?.is_prepared ? null : currentAttachmentBlockedReason
   const currentAttachmentHasNoPreview = !canPreviewAttachment(
     currentAttachmentItem?.filename ?? '',
   )
@@ -402,7 +424,9 @@ export function EmailToTicketView() {
     loading: attachmentPreviewLoading,
     unavailable: attachmentPreviewUnavailable,
   } = useAttachmentPreviewUrl(
-    currentAttachmentHasNoPreview ? undefined : currentAttachmentItem,
+    currentAttachmentHasNoPreview || currentAttachmentPreviewBlockedReason
+      ? undefined
+      : currentAttachmentItem,
     emailId,
   )
 
@@ -490,40 +514,40 @@ export function EmailToTicketView() {
     })
   }, [])
 
-  const toggleEmailAttachmentSelection = useCallback((attachmentId: number) => {
+  function toggleEmailAttachmentSelection(attachmentId: number) {
+    const attachment = attachments.find((att) => att.id === attachmentId)
+    if (!attachment || getEmailAttachmentBlockedReason(attachment)) return
     setEmailAttachmentSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(attachmentId)) next.delete(attachmentId)
       else next.add(attachmentId)
       return next
     })
-  }, [])
+  }
 
-  const buildFilesForTicketSubmit = useCallback(async (): Promise<File[]> => {
-    const manual = vm.files.filter((f) => isManualFileIncluded(f))
-    if (!emailId) return manual
-
-    const selectedEmail = selectableAttachments.filter((a) =>
-      emailAttachmentSelectedIds.has(a.id),
-    )
-    if (selectedEmail.length === 0) return manual
-
-    try {
-      const fromEmail = await Promise.all(
-        selectedEmail.map((a) => downloadEmailAttachmentAsFile(emailId, a)),
+  function selectedEmailAttachmentIds(): number[] {
+    if (!emailId) return []
+    return selectableAttachments
+      .filter(
+        (a) =>
+          emailAttachmentSelectedIds.has(a.id) &&
+          !getEmailAttachmentBlockedReason(a),
       )
-      return [...manual, ...fromEmail]
-    } catch {
-      toast.error('Não foi possível baixar um ou mais attachments do e-mail.')
-      throw new Error('Falha ao preparar attachments do e-mail')
-    }
-  }, [
-    emailAttachmentSelectedIds,
-    emailId,
-    isManualFileIncluded,
-    selectableAttachments,
-    vm.files,
-  ])
+      .map((attachment) => attachment.id)
+  }
+
+  function selectedEmailAttachmentTokens(): Record<number, string> {
+    return Object.fromEntries(
+      attachments
+        .filter(
+          (attachment) =>
+            emailAttachmentSelectedIds.has(attachment.id) &&
+            attachment.preparation_token &&
+            !getEmailAttachmentBlockedReason(attachment),
+        )
+        .map((attachment) => [attachment.id, attachment.preparation_token!]),
+    )
+  }
 
   return (
     <div className={styles.root}>
@@ -655,15 +679,27 @@ export function EmailToTicketView() {
           <div className={styles.pdfViewer}>
             {emailId &&
             currentAttachmentItem &&
-            (currentAttachmentHasNoPreview || attachmentPreviewUnavailable) ? (
+            preparingAttachmentIds.has(currentAttachmentItem.id) ? (
+              <div className={styles.pdfPlaceholder} role="status">
+                <Spinner className="size-10" />
+                <span>Comprimindo anexo. Aguarde...</span>
+              </div>
+            ) : emailId &&
+              currentAttachmentItem &&
+              (currentAttachmentPreviewBlockedReason ||
+                currentAttachmentHasNoPreview ||
+                attachmentPreviewUnavailable) ? (
               <div className={styles.pdfPlaceholder}>
                 <FileText className="h-16 w-16 opacity-30" />
                 <span>
-                  A visualização deste tipo de arquivo está indisponível.
+                  {currentAttachmentPreviewBlockedReason ||
+                    'A visualização deste tipo de arquivo está indisponível.'}
                 </span>
                 <Button
                   type="button"
                   variant="secondary"
+                  disabled={Boolean(currentAttachmentPreviewBlockedReason)}
+                  title={currentAttachmentPreviewBlockedReason || undefined}
                   onClick={async () => {
                     try {
                       await downloadEmailAttachmentFile(
@@ -692,8 +728,8 @@ export function EmailToTicketView() {
               emailDisplay &&
               selectableAttachments.length > 0 &&
               attachmentPreviewLoading ? (
-              <div className={styles.pdfPlaceholder}>
-                <FileText className="h-16 w-16 opacity-30" />
+              <div className={styles.pdfPlaceholder} role="status">
+                <Spinner className="size-10" />
                 <span>Carregando anexo...</span>
               </div>
             ) : (
@@ -709,6 +745,11 @@ export function EmailToTicketView() {
           <form
             className="flex min-h-0 flex-1 flex-col"
             onSubmit={(e) => {
+              if (isPreparingAttachments) {
+                e.preventDefault()
+                toast.error('Aguarde a compressão dos anexos antes de salvar.')
+                return
+              }
               const sub = (e.nativeEvent as SubmitEvent).submitter as
                 | HTMLButtonElement
                 | undefined
@@ -723,10 +764,12 @@ export function EmailToTicketView() {
                     const isConvert = Boolean(
                       nullIfEmpty(data.linked_ticket_id),
                     )
-                    const filesToSend = await buildFilesForTicketSubmit()
+                    const filesToSend = vm.files.filter(isManualFileIncluded)
                     const saveAndNew = intent === 'save-and-new' && !isConvert
                     await vm.onSubmitFromEmail(data, emailId, filesToSend, {
                       saveAndNew,
+                      emailAttachmentIds: selectedEmailAttachmentIds(),
+                      emailAttachmentTokens: selectedEmailAttachmentTokens(),
                     })
                     if (intent === 'save' || isConvert) {
                       router.push('/demandas/caixa-entrada')
@@ -1820,6 +1863,24 @@ export function EmailToTicketView() {
                   isOpen={vm.openSections.attachments}
                   onToggle={() => vm.toggleSection('attachments')}
                 >
+                  {isPreparingAttachments && (
+                    <p
+                      className="flex items-center gap-2 text-sm text-muted-foreground"
+                      role="status"
+                    >
+                      <Spinner className="shrink-0" />
+                      Comprimindo anexos e preparando as visualizações...
+                    </p>
+                  )}
+                  {attachmentPreparationHasErrors && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={retryAttachmentPreparation}
+                    >
+                      Tentar comprimir novamente
+                    </Button>
+                  )}
                   <div className={styles.attachmentsLayout}>
                     <div className={styles.attachmentsDocumentList}>
                       {selectableAttachments.length === 0 &&
@@ -1831,6 +1892,8 @@ export function EmailToTicketView() {
                         <div className={styles.fileList}>
                           {emailId
                             ? selectableAttachments.map((att) => {
+                                const blockedReason =
+                                  getEmailAttachmentBlockedReason(att)
                                 const selected = emailAttachmentSelectedIds.has(
                                   att.id,
                                 )
@@ -1838,47 +1901,46 @@ export function EmailToTicketView() {
                                   <div
                                     key={`email-att-${att.id}`}
                                     className={styles.fileRow}
+                                    title={blockedReason || undefined}
                                   >
-                                    <button
-                                      type="button"
-                                      className={styles.fileRowCheckBtn}
-                                      onClick={() =>
-                                        toggleEmailAttachmentSelection(att.id)
-                                      }
+                                    <EmailAttachmentCheckbox
+                                      attachment={att}
+                                      selected={selected}
                                       disabled={attachmentDisabled}
-                                      aria-pressed={selected}
-                                      aria-label={
-                                        selected
-                                          ? `Desmarcar anexo do e-mail ${att.filename}`
-                                          : `Incluir anexo do e-mail ${att.filename}`
-                                      }
-                                      title={
-                                        selected
-                                          ? 'Desmarcar para não enviar na demanda'
-                                          : 'Marcar para enviar na demanda'
-                                      }
+                                      onToggle={toggleEmailAttachmentSelection}
+                                    />
+                                    <div
+                                      className="min-w-0 flex-1"
+                                      title={blockedReason || att.filename}
                                     >
-                                      {selected ? (
-                                        <SquareCheck
-                                          className={`${styles.fileRowCheckIcon} ${styles.fileRowCheckIconOn} shrink-0`}
-                                          aria-hidden
-                                        />
+                                      <p className={styles.fileRowFileName}>
+                                        {att.filename}
+                                      </p>
+                                      {att.is_prepared ? (
+                                        <p
+                                          className={styles.fileRowOriginalSize}
+                                        >
+                                          Original:{' '}
+                                          {formatAttachmentBytes(
+                                            att.original_size ?? att.size,
+                                          )}
+                                          {' → Comprimido: '}
+                                          {formatAttachmentBytes(att.size)}
+                                        </p>
                                       ) : (
-                                        <Square
-                                          className={`${styles.fileRowCheckIcon} shrink-0`}
-                                          aria-hidden
-                                        />
+                                        <p
+                                          className={`${styles.fileRowOriginalSize} flex items-center gap-2`}
+                                        >
+                                          {preparingAttachmentIds.has(
+                                            att.id,
+                                          ) && <Spinner className="shrink-0" />}
+                                          {att.blocked_reason}
+                                        </p>
                                       )}
-                                    </button>
-                                    <p
-                                      className={styles.fileRowFileName}
-                                      title={att.filename}
-                                    >
-                                      {att.filename}
-                                    </p>
+                                    </div>
                                     <span
                                       className={styles.fileRowSourceBadge}
-                                      title="Anexo do e-mail"
+                                      title={blockedReason || 'Anexo do e-mail'}
                                     >
                                       E-mail
                                     </span>
@@ -1963,7 +2025,7 @@ export function EmailToTicketView() {
                           Clique para fazer upload ou arraste o arquivo
                         </span>
                         <span className={styles.uploadBoxHint}>
-                          PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 10MB)
+                          PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 20MB)
                         </span>
                       </label>
                     </div>
@@ -1977,7 +2039,7 @@ export function EmailToTicketView() {
                 type="submit"
                 data-intent="save"
                 className={styles.footerBtnPrimary}
-                disabled={vm.isLoading}
+                disabled={vm.isLoading || isPreparingAttachments}
               >
                 {vm.isLoading && activeSubmit === 'save'
                   ? vm.isConvertingToConventional
@@ -1992,7 +2054,7 @@ export function EmailToTicketView() {
                   type="submit"
                   data-intent="save-and-new"
                   className={styles.footerBtnSecondary}
-                  disabled={vm.isLoading}
+                  disabled={vm.isLoading || isPreparingAttachments}
                 >
                   {vm.isLoading && activeSubmit === 'save-and-new'
                     ? vm.isConvertingToConventional

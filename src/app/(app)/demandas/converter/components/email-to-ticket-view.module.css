@@ -912,6 +912,13 @@
   white-space: nowrap;
 }
 
+.fileRowOriginalSize {
+  margin: 0;
+  color: var(--tc-muted);
+  font-size: 10px;
+  line-height: 16px;
+}
+
 .fileRowDeleteBtn {
   display: inline-flex;
   align-items: center;

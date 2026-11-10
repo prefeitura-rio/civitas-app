@@ -36,6 +36,7 @@ import {
 import { type AttachmentOut, getEmailById } from '@/http/emails/get-email'
 import { markEmailAsSpam } from '@/http/emails/mark-email-spam'
 import { cn } from '@/lib/utils'
+import { getEmailAttachmentBlockedReason } from '@/utils/email-attachment-selection'
 
 import styles from './email-preview-sheet.module.css'
 
@@ -277,7 +278,13 @@ export function EmailPreviewSheet({
                 <div className={styles.attachmentsSection}>
                   <div className={styles.attachmentsList}>
                     {email.attachments.map((att: AttachmentOut) => (
-                      <div key={att.id} className={styles.attachmentCard}>
+                      <div
+                        key={att.id}
+                        className={styles.attachmentCard}
+                        title={
+                          getEmailAttachmentBlockedReason(att) || undefined
+                        }
+                      >
                         <div className={styles.attachmentLeft}>
                           <div className={styles.pdfIconWrap}>
                             <FileText size={20} aria-hidden />
@@ -300,7 +307,13 @@ export function EmailPreviewSheet({
                               type="button"
                               className={styles.downloadBtn}
                               aria-label={`Visualizar ${att.filename}`}
-                              title="Visualizar anexo"
+                              title={
+                                getEmailAttachmentBlockedReason(att) ||
+                                'Visualizar anexo'
+                              }
+                              disabled={Boolean(
+                                getEmailAttachmentBlockedReason(att),
+                              )}
                               onClick={() => handlePreview(att)}
                             >
                               <Eye size={16} />
@@ -310,7 +323,13 @@ export function EmailPreviewSheet({
                             type="button"
                             className={styles.downloadBtn}
                             aria-label={`Baixar ${att.filename}`}
-                            title="Baixar anexo"
+                            title={
+                              getEmailAttachmentBlockedReason(att) ||
+                              'Baixar anexo'
+                            }
+                            disabled={Boolean(
+                              getEmailAttachmentBlockedReason(att),
+                            )}
                             onClick={() => handleDownload(att)}
                           >
                             <Download size={16} />

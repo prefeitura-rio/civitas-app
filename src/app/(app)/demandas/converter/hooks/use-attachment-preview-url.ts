@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { isPreviewableContentType } from '@/app/(app)/demandas/utils/attachment-preview'
 import type { AttachmentOut } from '@/http/emails/get-email'
 import { api } from '@/lib/api'
+import { getEmailAttachmentBlockedReason } from '@/utils/email-attachment-selection'
 
 export function useAttachmentPreviewUrl(
   attachment: AttachmentOut | undefined,
@@ -15,8 +16,14 @@ export function useAttachmentPreviewUrl(
   const [unavailable, setUnavailable] = useState(false)
 
   useEffect(() => {
-    if (!attachment || !emailId) {
+    const blocked =
+      attachment &&
+      !attachment.is_prepared &&
+      getEmailAttachmentBlockedReason(attachment)
+    if (!attachment || !emailId || blocked) {
       setUrl(null)
+      setLoading(false)
+      setUnavailable(Boolean(blocked))
       return
     }
 
@@ -36,9 +43,15 @@ export function useAttachmentPreviewUrl(
     setUnavailable(false)
 
     api
-      .get<Blob>(`/emails/${emailId}/attachments/${attachment.id}/download`, {
-        responseType: 'blob',
-      })
+      .get<Blob>(
+        `/emails/${emailId}/attachments/${attachment.id}/${attachment.is_prepared ? 'prepared' : 'download'}`,
+        {
+          responseType: 'blob',
+          ...(attachment.is_prepared
+            ? { params: { token: attachment.preparation_token } }
+            : {}),
+        },
+      )
       .then((res) => {
         if (cancelled) return
         if (!isPreviewableContentType(res.data.type)) {
@@ -63,7 +76,15 @@ export function useAttachmentPreviewUrl(
       setUrl(null)
       setLoading(false)
     }
-  }, [attachment?.id, attachment?.file_path, emailId])
+  }, [
+    attachment?.id,
+    attachment?.file_path,
+    attachment?.size,
+    attachment?.can_select,
+    attachment?.is_prepared,
+    attachment?.preparation_token,
+    emailId,
+  ])
 
   return { url, loading, unavailable }
 }

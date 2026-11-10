@@ -38,6 +38,7 @@ import {
   listStandardizedResponses,
 } from '@/http/standardized-responses/standardized-responses'
 import { cn } from '@/lib/utils'
+import { getEmailAttachmentBlockedReason } from '@/utils/email-attachment-selection'
 
 import styles from './responder-email-view.module.css'
 
@@ -267,7 +268,11 @@ export function ResponderEmailView() {
             {email.attachments.length > 0 ? (
               <div className={styles.attachmentsRow}>
                 {email.attachments.map((att: AttachmentOut) => (
-                  <div key={att.id} className={styles.attachmentCard}>
+                  <div
+                    key={att.id}
+                    className={styles.attachmentCard}
+                    title={getEmailAttachmentBlockedReason(att) || undefined}
+                  >
                     <div className={styles.attachmentLeft}>
                       <div className={styles.pdfIconWrap}>
                         <FileText size={20} aria-hidden />
@@ -288,6 +293,10 @@ export function ResponderEmailView() {
                       type="button"
                       className={styles.downloadBtn}
                       aria-label={`Baixar ${att.filename}`}
+                      disabled={Boolean(getEmailAttachmentBlockedReason(att))}
+                      title={
+                        getEmailAttachmentBlockedReason(att) || 'Baixar anexo'
+                      }
                       onClick={() => handleDownload(att)}
                     >
                       <Download size={16} />

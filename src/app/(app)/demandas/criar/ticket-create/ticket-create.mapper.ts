@@ -36,6 +36,8 @@ export type TicketAssociatePayload = Omit<
   'ticket_type_id'
 > & {
   email_id?: string
+  email_attachment_ids?: number[]
+  email_attachment_tokens?: Record<number, string>
 }
 
 export function buildTicketAssociatePayload(

@@ -15,6 +15,11 @@ export interface AttachmentOut {
   mime_type: string
   size: number
   file_path: string
+  can_select?: boolean
+  blocked_reason?: string | null
+  original_size?: number | null
+  is_prepared?: boolean
+  preparation_token?: string | null
 }
 
 export interface EmailOut {
@@ -38,6 +43,12 @@ export interface EmailOut {
 
 export function getEmailById(id: string) {
   return api.get<EmailOut>(`/emails/${encodeURIComponent(id)}`)
+}
+
+export function prepareEmailAttachment(emailId: string, attachmentId: number) {
+  return api.post<AttachmentOut>(
+    `/emails/${encodeURIComponent(emailId)}/attachments/${attachmentId}/prepare`,
+  )
 }
 
 export function shouldMarkAsAguardandoOnConverterOpen(status: EmailStatus) {
