@@ -83,7 +83,7 @@ describe('RadarSelectCard', () => {
   it('should display company correctly', () => {
     render(<RadarSelectCard {...defaultProps} selectedObject={mockRadar} />)
 
-    expect(screen.getByText('CET-Rio')).toBeInTheDocument()
+    expect(screen.getByTitle('Empresa')).toHaveTextContent('CETRIO')
   })
 
   it('should display 24h active status as "Sim" when true', () => {
@@ -180,6 +180,71 @@ describe('RadarSelectCard', () => {
 
     expect(screen.getByText('Localização')).toBeInTheDocument()
     expect(screen.getByText('null - null, SENTIDO norte')).toBeInTheDocument()
-    expect(screen.getByText('Empresa')).toBeInTheDocument()
+    expect(screen.getByTitle('Empresa')).toBeInTheDocument()
+  })
+
+  it('should render inline grouped equipments with reconstructed point name and ID for CIVITAS', () => {
+    const civitasPoint = {
+      ...mockRadar,
+      cetRioCode: '0007759',
+      codigoPontoColeta: '0000003',
+      equipmentCodes: ['1', '2', '3'],
+      company: 'CIVITAS',
+      location: 'AV. PRES. CASTELO BRANCO',
+      district: 'PRACA DA BANDEIRA',
+      direction: 'DUQUE DE CAXIAS',
+    }
+
+    render(
+      <RadarSelectCard
+        {...defaultProps}
+        selectedObject={civitasPoint}
+        className="mt-12"
+      />,
+    )
+
+    const mainCard = screen
+      .getByText('Informações do Equipamento')
+      .closest('div')?.parentElement?.parentElement
+
+    expect(mainCard).toHaveClass('mt-12')
+    expect(
+      screen.getByText('Equipamentos no sistema de origem (3)'),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('radar-inline-equipments')).toBeInTheDocument()
+    expect(
+      screen.getByText('0000003 - SENTIDO DUQUE DE CAXIAS | 1'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('0000003 - SENTIDO DUQUE DE CAXIAS | 2'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('0000003 - SENTIDO DUQUE DE CAXIAS | 3'),
+    ).toBeInTheDocument()
+  })
+
+  it('should render only raw equipment codes for CETRIO and GABRIEL', () => {
+    const cetrioPoint = {
+      ...mockRadar,
+      cetRioCode: '0001550',
+      codigoPontoColeta: 'AVBRASILPX6532-SENTSTACRUZFXBRT',
+      equipmentCodes: ['0480001101', '0480001102'],
+      company: 'CETRIO',
+      location: 'AVENIDA BRASIL',
+      district: 'RAMOS',
+      direction: 'SANTA CRUZ',
+    }
+
+    render(<RadarSelectCard {...defaultProps} selectedObject={cetrioPoint} />)
+
+    expect(
+      screen.getByText('Equipamentos no sistema de origem (2)'),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('radar-inline-equipments')).toBeInTheDocument()
+    expect(screen.getByText('0480001101')).toBeInTheDocument()
+    expect(screen.getByText('0480001102')).toBeInTheDocument()
+    expect(
+      screen.queryByText(/AVBRASILPX6532-SENTSTACRUZFXBRT/),
+    ).not.toBeInTheDocument()
   })
 })

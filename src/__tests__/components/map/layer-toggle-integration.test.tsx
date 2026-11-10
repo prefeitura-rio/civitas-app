@@ -18,6 +18,7 @@ jest.mock('@/hooks/mapLayers/use-radar-layer', () => ({
     setIsVisible: mockSetIsRadarVisible,
     data: [],
     layer: {},
+    originCounts: [],
   }),
 }))
 
@@ -27,6 +28,7 @@ jest.mock('@/hooks/mapLayers/use-cameras', () => ({
     setIsVisible: mockSetIsCameraVisible,
     data: [],
     layer: {},
+    originCounts: [],
   }),
 }))
 

@@ -5,19 +5,24 @@ import '@/utils/string-extensions'
 import { formatDate } from 'date-fns'
 import {
   AlertTriangle,
-  Building,
+  Cctv,
   History,
   MapPin,
   RotateCcw,
   X,
 } from 'lucide-react'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
+import { badgeVariants } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { CollectionPoint } from '@/models/entities'
 import { useMapStore } from '@/stores/use-map-store'
+import {
+  formatCollectionPointOriginName,
+  getCollectionPointOrigin,
+} from '@/utils/collection-point-origin'
 
 interface RadarSelectCardProps {
   selectedObject: CollectionPoint | null
@@ -60,6 +65,21 @@ export function RadarSelectCard({
       setRadarData(null)
     }
   }, [setRadarData])
+
+  const equipmentList = useMemo(() => {
+    if (!radarData?.equipmentCodes || radarData.equipmentCodes.length === 0) {
+      return []
+    }
+    return radarData.equipmentCodes
+  }, [radarData])
+
+  const originLabel = radarData
+    ? getCollectionPointOrigin(radarData.company)
+    : ''
+  const originPointName = radarData
+    ? formatCollectionPointOriginName(radarData)
+    : null
+
   return (
     <Card
       className={cn(
@@ -76,9 +96,20 @@ export function RadarSelectCard({
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardHeader className="border-b px-4 py-3">
-          <CardTitle className="text-left text-sm font-semibold tracking-tighter">
-            Informações do Equipamento
+        <CardHeader className="border-b px-4 py-3 pr-9">
+          <CardTitle className="flex flex-wrap items-center gap-x-2 gap-y-1 text-left text-sm font-semibold tracking-tighter">
+            <span>Informações do Equipamento</span>
+            {radarData && (
+              <span
+                className={badgeVariants({
+                  variant: 'default',
+                  className: 'shrink-0 leading-none',
+                })}
+                title="Empresa"
+              >
+                {originLabel}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
@@ -90,6 +121,38 @@ export function RadarSelectCard({
               </span>
             </div>
 
+            {equipmentList.length > 0 && (
+              <div className="flex flex-col space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Cctv className="size-4 shrink-0" />
+                  <span className="text-sm font-medium">
+                    {`Equipamentos no sistema de origem (${equipmentList.length})`}
+                  </span>
+                </div>
+
+                <div
+                  data-testid="radar-inline-equipments"
+                  className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-md bg-secondary/40 p-2"
+                >
+                  {equipmentList.map((equipmentCode) => (
+                    <span
+                      key={equipmentCode}
+                      className={badgeVariants({
+                        variant: 'secondary',
+                        className:
+                          'max-w-full break-all font-mono text-xs font-normal leading-tight',
+                      })}
+                      title="Código do equipamento no sistema de origem"
+                    >
+                      {originPointName
+                        ? `${originPointName} | ${equipmentCode}`
+                        : equipmentCode}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-1">
                 <MapPin className="size-4 shrink-0" />
@@ -97,31 +160,6 @@ export function RadarSelectCard({
               </div>
               <span className="text-sm text-muted-foreground">
                 {`${radarData?.location} - ${radarData?.district}${radarData?.direction ? `, SENTIDO ${radarData.direction}` : ''}`}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium">Latitude</span>
-                <span className="break-all text-sm text-muted-foreground">
-                  {radarData?.latitude}
-                </span>
-              </div>
-              <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium">Longitude</span>
-                <span className="break-all text-sm text-muted-foreground">
-                  {radarData?.longitude}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center gap-1">
-                <Building className="size-4 shrink-0" />
-                <span className="text-sm font-medium">Empresa</span>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {radarData?.company}
               </span>
             </div>
 
@@ -171,6 +209,21 @@ export function RadarSelectCard({
                   </div>
                 </div>
               )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Latitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {radarData?.latitude}
+                </span>
+              </div>
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium">Longitude</span>
+                <span className="break-all text-sm text-muted-foreground">
+                  {radarData?.longitude}
+                </span>
+              </div>
+            </div>
 
             <div className="flex gap-2 pt-2">
               <Button

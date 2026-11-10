@@ -23,6 +23,8 @@ import type { SetViewportProps } from '@/models/utils'
 import { MapStyle } from '@/utils/get-map-style'
 import { INITIAL_VIEW_PORT } from '@/utils/rio-viewport'
 
+export type ClusterMode = 'auto' | 'off'
+
 interface MapStore {
   // Viewport
   viewport: MapViewState
@@ -32,6 +34,11 @@ interface MapStore {
   // Map Style
   mapStyle: MapStyle
   setMapStyle: (style: MapStyle) => void
+
+  // Point Clustering
+  clusterMode: ClusterMode
+  setClusterMode: (mode: ClusterMode) => void
+  toggleClusterMode: () => void
 
   // Map Refs
   mapRef: MapRef | null
@@ -88,6 +95,14 @@ export const useMapStore = create<MapStore>()(
     // Map Style
     mapStyle: MapStyle.Map,
     setMapStyle: (mapStyle) => set({ mapStyle }),
+
+    // Point Clustering
+    clusterMode: 'auto',
+    setClusterMode: (clusterMode) => set({ clusterMode }),
+    toggleClusterMode: () =>
+      set((state) => ({
+        clusterMode: state.clusterMode === 'auto' ? 'off' : 'auto',
+      })),
 
     // Map Refs
     mapRef: null,
@@ -202,6 +217,7 @@ export function useMapLayers() {
 // Hooks seletores específicos para melhor performance
 export const useViewport = () => useMapStore((state) => state.viewport)
 export const useMapStyle = () => useMapStore((state) => state.mapStyle)
+export const useClusterMode = () => useMapStore((state) => state.clusterMode)
 export const useMapRefs = () =>
   useMapStore((state) => ({
     mapRef: state.mapRef,

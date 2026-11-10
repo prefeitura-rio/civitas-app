@@ -19,6 +19,107 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '10 de Novembro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Mais opções para visualizar o mapa',
+        content: (
+          <>
+            <p>
+              Nos controles do mapa, alterne entre os estilos{' '}
+              <strong>Padrão</strong>, <strong>Satélite</strong> e{' '}
+              <strong>Escuro</strong>. Também é possível escolher entre o
+              agrupamento automático de pontos em clusters ou a exibição dos
+              pontos individualmente.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/controle_flutuante_estilo.png"
+              alt="Controles para alternar o estilo do mapa e escolher entre pontos ou clusters"
+              width={150}
+              height={150}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Mapas com agrupamento de pontos',
+        content: (
+          <>
+            <p>
+              Quando há muitos pontos próximos, os mapas passam a reuni-los em
+              círculos com a quantidade de pontos. As cores ajudam a distinguir
+              as camadas. Clique em um círculo ou aproxime o mapa para explorar
+              os pontos da região.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/mapa-origens.png"
+              alt="Mapa de veículos com pontos agrupados e filtro de origens de equipamentos LPR aberto"
+              width={933}
+              height={900}
+              className="h-auto w-full rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Equipamentos Gabriel e filtro por origem',
+        content: (
+          <p>
+            A camada de LPR inclui equipamentos da Gabriel. No menu de camadas,
+            use o filtro de origem para escolher quais empresas aparecem no
+            mapa, tanto para LPR quanto para câmeras.
+          </p>
+        ),
+      },
+      {
+        tag: 'Adicionado',
+        title: 'Identificação dos equipamentos no sistema de origem',
+        content: (
+          <>
+            <p>
+              Os cartões de pontos LPR agora exibem os códigos dos equipamentos
+              agrupados no local, facilitando a localização de cada dispositivo
+              diretamente no sistema de origem. Além disso, a empresa ou o
+              sistema de origem passa a aparecer em destaque ao lado do título
+              nos cartões de câmeras e equipamentos LPR.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/detalhe-equipamentos.png"
+              alt="Cartão de equipamento com os códigos no sistema de origem e a origem em destaque ao lado do título"
+              width={400}
+              height={500}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Câmeras próximas no mapa',
+        content: (
+          <>
+            <p>
+              Câmeras localizadas no mesmo ponto ou muito próximas agora
+              aparecem ligeiramente afastadas no mapa, facilitando a
+              visualização e a seleção de cada equipamento.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/cameras_offset.png"
+              alt="Cartão de equipamento com a origem em destaque ao lado do título"
+              width={400}
+              height={400}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '20 de Outubro de 2026',
     subCards: [
       {

@@ -1,5 +1,5 @@
 import type { PickingInfo } from '@deck.gl/core'
-import { IconLayer } from '@deck.gl/layers'
+import { IconLayer, type ScatterplotLayer } from '@deck.gl/layers'
 import { useQuery } from '@tanstack/react-query'
 import {
   type Dispatch,
@@ -11,13 +11,25 @@ import {
 
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import { getCamera } from '@/http/cameras-cor/get-cameras-cor'
-import { Camera } from '@/models/entities'
+import type { Camera } from '@/models/entities'
+import { getCoincidentPointOffsets } from '@/utils/coincident-point-offsets'
+import { getCameraOrigin } from '@/utils/collection-point-origin'
+import {
+  createRightClickRingLayer,
+  POINT_LAYER_IDS,
+} from '@/utils/point-layer-config'
 
-export interface UseCamera {
+import { type OriginFilter, useOriginFilter } from './use-origin-filter'
+
+const EMPTY_CAMERAS: Camera[] = []
+const getCameraPointOrigin = (point: Camera) =>
+  getCameraOrigin(point.sistemaOrigem)
+
+export interface UseCamera extends OriginFilter<Camera> {
   data: Camera[]
   failed: boolean
   layer: IconLayer<Camera, object>
-  dc3Layer: IconLayer<Camera, object>
+  highlightLayer: ScatterplotLayer<[number, number]> | null
   isLoading: boolean
   isVisible: boolean
   setIsVisible: Dispatch<SetStateAction<boolean>>
@@ -28,6 +40,10 @@ export interface UseCamera {
   handleSelectObject: (camera: Camera | null, clearRadar?: () => void) => void
 }
 
+/**
+ * Renders cameras in one color, filtered by camera system.
+ * Hover and selection invalidate icon attributes without rebuilding geographic data.
+ */
 export function useCamera(): UseCamera {
   const [hoveredObject, setHoveredObject] =
     useState<PickingInfo<Camera> | null>(null)
@@ -41,9 +57,19 @@ export function useCamera(): UseCamera {
     refetchOnWindowFocus: false,
   })
 
+  const originFilter = useOriginFilter(data, getCameraPointOrigin)
+  const offsets = useMemo(
+    () =>
+      getCoincidentPointOffsets(data ?? EMPTY_CAMERAS, (point) => [
+        point.longitude,
+        point.latitude,
+      ]),
+    [data],
+  )
+
   const handleSelectObject = useCallback(
     (camera: Camera | null, clearRadar?: () => void) => {
-      if (camera === null || selectedObject?.code === camera.code) {
+      if (camera === null) {
         setSelectedObject(null)
       } else {
         if (clearRadar) {
@@ -52,67 +78,72 @@ export function useCamera(): UseCamera {
         setSelectedObject(camera)
       }
     },
-    [selectedObject?.code, setSelectedObject],
+    [setSelectedObject],
   )
 
   const iconMapping = {
     default: { x: 0, y: 0, width: 48, height: 48, mask: false },
     highlighted: { x: 48, y: 0, width: 48, height: 48, mask: false },
-    'dc3-default': { x: 0, y: 48, width: 48, height: 48, mask: false },
-    'dc3-highlighted': { x: 48, y: 48, width: 48, height: 48, mask: false },
   }
 
-  const sharedProps = {
-    pickable: true,
-    getSize: 24,
-    visible: isVisible,
-    iconAtlas: cameraIconAtlas.src,
-    iconMapping,
-    getPosition: (d: Camera) => [d.longitude, d.latitude] as [number, number],
-    onHover: (info: PickingInfo<Camera>) => {
-      setHoveredObject(info.object ? info : null)
-    },
-  }
-
-  // Câmeras comuns (azul) — renderizadas primeiro (abaixo)
   const layer = useMemo(
     () =>
       new IconLayer<Camera>({
-        ...sharedProps,
-        id: 'cameras',
-        data: data?.filter((d) => d.sistemaOrigem?.toUpperCase() !== 'DC3'),
+        id: POINT_LAYER_IDS.cameras,
+        data: originFilter.visibleData,
+        pickable: true,
+        getSize: 24,
+        visible: isVisible,
+        iconAtlas: cameraIconAtlas.src,
+        iconMapping,
+        updateTriggers: {
+          getIcon: [selectedObject?.code, hoveredObject?.object?.code],
+          getPosition: offsets,
+        },
+        getPosition: (d: Camera) =>
+          offsets.get(d) ?? ([d.longitude, d.latitude] as [number, number]),
+        onHover: (info: PickingInfo<Camera>) => {
+          setHoveredObject(info.object ? info : null)
+        },
         getIcon: (d) => {
-          const isActive =
-            selectedObject?.code === d.code ||
-            hoveredObject?.object?.code === d.code
-          return isActive ? 'highlighted' : 'default'
+          const isHovered = hoveredObject?.object?.code === d.code
+          return isHovered ? 'highlighted' : 'default'
         },
       }),
-    [data, selectedObject?.code, hoveredObject?.object?.code, isVisible],
+    [
+      originFilter.visibleData,
+      offsets,
+      selectedObject?.code,
+      hoveredObject?.object?.code,
+      isVisible,
+    ],
   )
 
-  // Câmeras DC3 (verde) — renderizadas depois (por cima)
-  const dc3Layer = useMemo(
+  const selectedPosition = useMemo<[number, number] | null>(() => {
+    if (!selectedObject) return null
+    const matching = (data ?? EMPTY_CAMERAS).find(
+      (item) => item.code === selectedObject.code,
+    )
+    const target = matching ?? selectedObject
+    return offsets.get(target) ?? [target.longitude, target.latitude]
+  }, [data, offsets, selectedObject])
+
+  const highlightLayer = useMemo(
     () =>
-      new IconLayer<Camera>({
-        ...sharedProps,
-        id: 'cameras-dc3',
-        data: data?.filter((d) => d.sistemaOrigem?.toUpperCase() === 'DC3'),
-        getIcon: (d) => {
-          const isActive =
-            selectedObject?.code === d.code ||
-            hoveredObject?.object?.code === d.code
-          return isActive ? 'dc3-highlighted' : 'dc3-default'
-        },
-      }),
-    [data, selectedObject?.code, hoveredObject?.object?.code, isVisible],
+      createRightClickRingLayer(
+        `${POINT_LAYER_IDS.cameras}-right-click-highlight`,
+        selectedPosition,
+        isVisible,
+      ),
+    [selectedPosition, isVisible],
   )
 
   return {
-    data: data || [],
+    ...originFilter,
+    data: data ?? EMPTY_CAMERAS,
     failed: !data && !isLoading,
     layer,
-    dc3Layer,
+    highlightLayer,
     isLoading,
     isVisible,
     setIsVisible,

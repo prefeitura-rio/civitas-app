@@ -30,7 +30,6 @@ export function useTrips({ setViewport }: UseTripsProps): UseTrips {
   const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
-  // Assuming icon_atlas has an arrow icon at the specified coordinates
   const ICON_MAPPING = {
     arrow: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
   }

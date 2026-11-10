@@ -6,6 +6,9 @@ import { type Dispatch, type SetStateAction, useState } from 'react'
 import crosshair from '@/assets/crosshair.svg'
 import { getFogoCruzadoIncidents } from '@/http/layers/get-fogo-cruzado-incidents'
 import { FogoCruzadoIncident } from '@/models/entities'
+import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
+
+const EMPTY_INCIDENTS: FogoCruzadoIncident[] = []
 
 export interface UseFogoCruzadoIncidents {
   data: FogoCruzadoIncident[]
@@ -37,8 +40,8 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
   })
 
   const layer = new IconLayer<FogoCruzadoIncident>({
-    id: 'fogocruzado-incidents',
-    data: data || [],
+    id: POINT_LAYER_IDS.incidents,
+    data: data ?? EMPTY_INCIDENTS,
     pickable: true,
     getSize: 24,
     autoHighlight: true,
@@ -62,7 +65,7 @@ export function useFogoCruzadoIncidents(): UseFogoCruzadoIncidents {
   })
 
   return {
-    data: data || [],
+    data: data ?? EMPTY_INCIDENTS,
     failed: isVisible && !data && !isLoading,
     layer,
     isLoading,

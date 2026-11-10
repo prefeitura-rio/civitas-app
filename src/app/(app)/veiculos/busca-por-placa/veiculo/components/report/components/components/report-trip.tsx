@@ -6,6 +6,10 @@ import { haversineDistance } from '@/utils/haversine-distance'
 import { MapView } from './trip/map-view'
 import { TripTable } from './trip/trip-table'
 
+// Bound each map and table section for legibility in the generated PDF.
+const MAX_TRIP_SECTION_DISTANCE_METERS = 5_000
+const MAX_TRIP_SECTION_POINTS = 10
+
 interface ReportTripProps {
   trip: Trip
   plate: string
@@ -54,9 +58,13 @@ export function ReportTrip({
 
     // Verifica se deve finalizar o chunk atual
     // 1. Se houver mais de um ponto nas mesmas coordenadas no chunk atual
-    // 2. Se a distância entre o último ponto e o ponto atual for maior que 5000 metros
-    // 3. Se o chunk atual já tiver 10 pontos
-    if (hash.has(coordinates) || distance > 5000 || mapPoints.length >= 10) {
+    // 2. Se a distância entre o último ponto e o ponto atual superar o limite
+    // 3. Se o chunk atual atingir a quantidade máxima de pontos
+    if (
+      hash.has(coordinates) ||
+      distance > MAX_TRIP_SECTION_DISTANCE_METERS ||
+      mapPoints.length >= MAX_TRIP_SECTION_POINTS
+    ) {
       tripChuncks.push([...mapPoints]) // Salva o chunk atual de pontos
       hash.clear() // Limpa o conjunto de hash para o próximo chunk
       mapPoints = [] // Reseta mapPoints para o próximo chunk

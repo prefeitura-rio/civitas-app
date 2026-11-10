@@ -18,7 +18,9 @@ export default function Map() {
     layers: { reports, addressMarker },
   } = useReportsMap()
 
-  const bounds = mapRef.current?.getBounds()?.toArray()?.flat() ?? [0, 0, 0, 0]
+  const bounds = mapRef.current?.getBounds()?.toArray()?.flat() ?? [
+    -180, -85, 180, 85,
+  ]
   const zoom = viewport.zoom
 
   return (
@@ -33,10 +35,10 @@ export default function Map() {
           overflow: 'hidden',
         }}
         onResize={() => mapRef?.current?.resize()}
-        controller
+        controller={{ dragRotate: false, touchRotate: false }}
         layers={[
           reports.layers.heatmap,
-          ...reports.layers.clusteredIcons(bounds, zoom),
+          ...reports.layers.clusteredIcons(bounds, zoom, setViewport),
           addressMarker.layer,
         ]}
         onViewStateChange={(e) => setViewport({ ...e.viewState })}
@@ -52,6 +54,10 @@ export default function Map() {
           ref={mapRef}
           mapboxAccessToken={config.mapboxAccessToken}
           mapStyle={'mapbox://styles/mapbox/streets-v12'}
+          dragRotate={false}
+          pitchWithRotate={false}
+          touchPitch={false}
+          maxPitch={0}
         />
         <div className="absolute-x-centered top-2 z-50 w-64">
           <SearchBox

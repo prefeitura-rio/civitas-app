@@ -1,3 +1,5 @@
+import type { CortexAddress } from './address'
+
 export type Point = {
   index: number
   from: [longitude: number, latitude: number]
@@ -89,18 +91,20 @@ export type BackendRadar = {
 
 export type Radar = {
   cetRioCode: string
+  codigoPontoColeta?: string | null
+  equipmentCodes?: string[]
   latitude: number
   longitude: number
   location: string | null
   district: string | null
-  streetName: string | null
+  streetName?: string | null
   hasData: boolean
   activeInLast24Hours: boolean
   company: string | null
   lastDetectionTime: string | null
   direction: string | null
   lane: string | null
-  streetNumber: string
+  streetNumber?: string
 }
 
 export interface RadarDetection {
@@ -432,11 +436,9 @@ export type Vehicle = {
   valorIPVA: number
 }
 
-export type People = {
+export type People = CortexAddress & {
   anoExercicioOcupacao: string
   anoObito: string
-  bairro: string
-  cep: string
   complementoLogradouro: string
   dataAtualizacao: string
   dataNascimento: string
@@ -452,17 +454,14 @@ export type People = {
       qtd: number
     },
   ]
-  latitudeAproximadaLocal: number
-  logradouro: string
-  longitudeAproximadaLocal: number
-  municipio: string
+  latitudeAproximadaLocal: number | null
+  longitudeAproximadaLocal: number | null
   municipioNaturalidade: string
   naturezaOcupacao: string
   nomeCompleto: string
   nomeMae: string
   nomeSocial: string
   numeroCPF: string
-  numeroLogradouro: string
   ocupacaoPrincipal: string
   paisNascimento: string
   paisResidencia: string
@@ -470,16 +469,12 @@ export type People = {
   sexo: string
   situacaoCadastral: string
   telefone: string
-  tipoLogradouro: string
   tituloEleitor: string
-  uf: string
   ufNaturalidade: string
 }
 
-export type Company = {
-  bairro: string
+export type Company = CortexAddress & {
   capitalSocialEmpresa: string
-  cep: string
   cnaeFiscal: string
   cnaeSecundario: string
   cnpj: string
@@ -519,15 +514,12 @@ export type Company = {
   email: string
   fax: string
   indicadorMatrizFilial: string
-  logradouro: string
   motivoSituacaoCadastral: string
-  municipio: string
   naturezaJuridica: string
   nomeCidadeExterior: string
   nomeFantasia: string
   nomePais: string
   nomeResponsavel: string
-  numeroLogradouro: string
   opcaoSimples: string
   porteEmpresa: string
   qualificacaoPessoaJuridicaResponsavelEmpresa: string
@@ -543,8 +535,6 @@ export type Company = {
   }[]
   telefone1: string
   telefone2: string
-  tipoLogradouro: string
-  uf: string
 }
 
 export type DetectionGroup = {

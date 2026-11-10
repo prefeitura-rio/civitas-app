@@ -166,6 +166,9 @@ export function CollectionPointPickerDialog({
                   ref={picker.mapContainerRef}
                   className="relative h-[360px] overflow-hidden rounded-md border sm:h-[420px] xl:h-[520px]"
                   onContextMenu={picker.handleMapContextMenu}
+                  onMouseDown={picker.handleMapMouseUp}
+                  onMouseUp={picker.handleMapMouseUp}
+                  onPointerUp={picker.handleMapMouseUp}
                 >
                   <div className="absolute inset-x-2 top-2 z-10 sm:left-auto sm:right-3 sm:top-3 sm:w-80">
                     <div className="rounded-md border bg-background/95 p-2 shadow-sm backdrop-blur">
@@ -284,7 +287,7 @@ export function CollectionPointPickerDialog({
                       key={picker.mapSurfaceGeneration}
                       ref={picker.deckRef}
                       style={{ width: '100%', height: '100%' }}
-                      controller
+                      controller={{ dragRotate: false, touchRotate: false }}
                       viewState={picker.viewState}
                       layers={picker.mapLayers}
                       onResize={picker.handleMapResize}
@@ -302,11 +305,30 @@ export function CollectionPointPickerDialog({
                         ref={picker.mapRef}
                         mapStyle="mapbox://styles/mapbox/light-v11"
                         mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+                        dragRotate={false}
+                        pitchWithRotate={false}
+                        touchPitch={false}
+                        maxPitch={0}
                         onLoad={picker.handleMapLoad}
                         onMove={(event: ViewStateChangeEvent) => {
                           picker.handleViewStateChange(event.viewState)
                         }}
                       />
+
+                      {picker.hoveredPointCluster ? (
+                        <div className="absolute left-3 top-3 z-10 min-w-40 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
+                          <p className="font-semibold text-foreground">
+                            {`${picker.hoveredPointCluster.properties.point_count} pontos LPR`}
+                          </p>
+                          {Object.entries(
+                            picker.hoveredPointClusterOriginCounts,
+                          ).map(([origin, count]) => (
+                            <p key={origin} className="text-muted-foreground">
+                              {origin}: {count}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
 
                       {picker.popupState ? (
                         <div
@@ -438,10 +460,14 @@ export function CollectionPointPickerDialog({
                   variant="outline"
                   size="sm"
                   className="h-8 text-xs"
-                  disabled={picker.isPending || picker.options.length === 0}
-                  onClick={picker.selectAllCollectionPointIds}
+                  disabled={
+                    picker.isPending ||
+                    picker.visibleCollectionPointIds.length === 0
+                  }
+                  onClick={picker.selectVisibleCollectionPointIds}
                 >
-                  Selecionar todos
+                  Selecionar visíveis ({picker.visibleCollectionPointIds.length}
+                  )
                 </Button>
                 <Button
                   type="button"
@@ -451,7 +477,7 @@ export function CollectionPointPickerDialog({
                   disabled={picker.draftValue.length === 0}
                   onClick={picker.clearDraftSelection}
                 >
-                  Limpar seleção
+                  Limpar toda a seleção
                 </Button>
               </div>
 
@@ -462,19 +488,10 @@ export function CollectionPointPickerDialog({
                 </Badge>
               ) : null}
 
-              {picker.hasMoreListResults ? (
-                <p className="text-xs text-muted-foreground">
-                  Mostrando{' '}
-                  {picker.showSelectedOnlyInList
-                    ? picker.displayedSelectedCount
-                    : picker.filteredOptions.length}{' '}
-                  de{' '}
-                  {picker.showSelectedOnlyInList
-                    ? picker.listBuckets.selectedCount
-                    : picker.filteredOptions.length}{' '}
-                  radares.
-                </p>
-              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Mostrando {picker.filteredOptions.length} de{' '}
+                {picker.totalListResults} radares.
+              </p>
 
               <div
                 ref={picker.listViewportRef}

@@ -25,7 +25,7 @@ export function useMapState({ mapRef, deckRef }: UseMapStateProps) {
   const handleViewStateChange = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: { viewState: any }) => {
-      setViewport({ ...e.viewState })
+      setViewport({ ...e.viewState, pitch: 0, bearing: 0 })
     },
     [setViewport],
   )
