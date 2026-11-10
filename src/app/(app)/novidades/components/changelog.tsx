@@ -19,8 +19,30 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
-    title: '9 de Novembro de 2026',
+    title: '10 de Novembro de 2026',
     subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Mais opções para visualizar o mapa',
+        content: (
+          <>
+            <p>
+              Nos controles do mapa, alterne entre os estilos{' '}
+              <strong>Padrão</strong>, <strong>Satélite</strong> e{' '}
+              <strong>Escuro</strong>. Também é possível escolher entre o
+              agrupamento automático de pontos em clusters ou a exibição dos
+              pontos individualmente.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/controle_flutuante_estilo.png"
+              alt="Controles para alternar o estilo do mapa e escolher entre pontos ou clusters"
+              width={150}
+              height={150}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
+        ),
+      },
       {
         tag: 'Adicionado',
         title: 'Mapas com agrupamento de pontos',
