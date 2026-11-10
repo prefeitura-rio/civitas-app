@@ -19,6 +19,7 @@ import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { ContextMenu } from './components/context-menu'
 import { HoverCards } from './components/hover-cards'
 import { MapLayerControl } from './components/layer-toggle'
+import { MapFloatingControls } from './components/map-floating-controls'
 import { SearchBox } from './components/search-box'
 import { SelectionCards } from './components/select-cards'
 
@@ -27,6 +28,7 @@ export function Map() {
   const mapRef = useRef<MapRef | null>(null)
 
   const {
+    clusterMode,
     contextMenuPickingInfo,
     openContextMenu,
     setContextMenuPickingInfo,
@@ -50,6 +52,7 @@ export function Map() {
     mapState.viewport,
     mapSize,
     mapState.setViewport,
+    clusterMode === 'auto',
   )
   const mapSearch = useMapSearch({
     radars: mapLayers.radars,
@@ -96,12 +99,12 @@ export function Map() {
           ref={mapRef}
           mapStyle={mapState.mapStyleValue}
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+          dragRotate={false}
+          pitchWithRotate={false}
+          touchPitch={false}
+          maxPitch={0}
         />
       </DeckGL>
-      dragRotate={false}
-      pitchWithRotate={false}
-      touchPitch={false}
-      maxPitch={0}
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox
           isVisible={mapLayers.isAddressVisible}
@@ -114,6 +117,7 @@ export function Map() {
       <SelectionCards mapWidth={mapSize?.width} />
       <HoverCards />
       <MapLayerControl />
+      <MapFloatingControls />
       {clusteredMap.hoveredCluster ? (
         <div className="absolute right-3 top-14 z-40 min-w-48 rounded-md border bg-background px-3 py-2 text-xs shadow-md">
           <p className="font-semibold text-foreground">

@@ -399,4 +399,48 @@ describe('useClusteredMapLayers with explicit sources', () => {
     ).toEqual(records)
     expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
   })
+
+  it('renders all individual points without clusters when clusterEnabled is false and reuses the index when re-enabled', () => {
+    const prepared = source()
+    const sources = [prepared]
+    const baseLayers = [layer(prepared.layerId)]
+    const clusterId = `${getPointClusterLayerPrefix('lpr')}-circles`
+
+    const { result, rerender } = renderHook(
+      ({ clusterEnabled }) =>
+        useClusteredMapLayers(
+          baseLayers,
+          sources,
+          viewport,
+          size,
+          setViewport,
+          clusterEnabled,
+        ),
+      { initialProps: { clusterEnabled: true } },
+    )
+
+    expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
+    expect(findLayer(result.current.layers, clusterId)).toBeDefined()
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual([])
+
+    rerender({ clusterEnabled: false })
+
+    expect(
+      result.current.layers.some(
+        (item) => item && !Array.isArray(item) && item.id === clusterId,
+      ),
+    ).toBe(false)
+    expect(
+      findLayer(result.current.layers, prepared.layerId).props.data,
+    ).toEqual(records)
+    expect(result.current.hoveredCluster).toBeNull()
+    expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
+
+    rerender({ clusterEnabled: true })
+
+    expect(findLayer(result.current.layers, clusterId)).toBeDefined()
+    expect(createPointClusterIndex).toHaveBeenCalledTimes(1)
+  })
 })

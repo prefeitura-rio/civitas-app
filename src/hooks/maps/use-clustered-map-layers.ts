@@ -53,6 +53,7 @@ interface QueriedGroup {
  * @param size - Renderer-reported dimensions in CSS pixels, or null until measured.
  * Spatial queries wait for a positive size instead of assuming fallback dimensions.
  * @param setViewport - Updates the camera when a cluster is expanded.
+ * @param clusterEnabled - When false ("Sempre pontos"), bypasses clustering and renders all visible points while keeping cached indexes warm.
  * @returns Renderable layers and cluster hover state with aggregated origin counts.
  */
 export function useClusteredMapLayers(
@@ -61,6 +62,7 @@ export function useClusteredMapLayers(
   viewport: MapViewState,
   size: { width: number; height: number } | null,
   setViewport: (viewport: MapViewState) => void,
+  clusterEnabled = true,
 ) {
   const [hoveredCluster, setHoveredCluster] = useState<ClusterFeature | null>(
     null,
@@ -70,12 +72,14 @@ export function useClusteredMapLayers(
   const height = size?.height ?? 0
   const bounds = useMemo(
     () =>
-      width > 0 && height > 0 ? getMapBounds(viewport, width, height) : null,
-    [height, viewport, width],
+      clusterEnabled && width > 0 && height > 0
+        ? getMapBounds(viewport, width, height)
+        : null,
+    [clusterEnabled, height, viewport, width],
   )
   useEffect(() => {
     setHoveredCluster(null)
-  }, [bounds, sources])
+  }, [bounds, clusterEnabled, sources])
   const zoom = Math.max(0, Math.floor(viewport.zoom ?? 0))
   const sourceById = useMemo(
     () =>
@@ -85,7 +89,7 @@ export function useClusteredMapLayers(
     [sources],
   )
   const groups = useMemo<QueriedGroup[]>(() => {
-    if (!bounds) return []
+    if (!clusterEnabled || !bounds) return []
     return POINT_CLUSTER_GROUPS.map((config) => {
       const activeSources = config.layerIds
         .map((id) => sourceById.get(id))
@@ -112,7 +116,7 @@ export function useClusteredMapLayers(
       }
       return { ...config, index, features: index.getClusters(bounds, zoom) }
     })
-  }, [bounds, sourceById, zoom])
+  }, [bounds, clusterEnabled, sourceById, zoom])
   const flatLayers = useMemo(() => {
     const flatten = (layers: LayersList): Layer[] =>
       layers.flatMap((layer) => {
@@ -123,6 +127,14 @@ export function useClusteredMapLayers(
   }, [baseLayers])
 
   const pointDataByLayer = useMemo(() => {
+    if (!clusterEnabled) {
+      return new Map<string, unknown[]>(
+        sources.map((source) => [
+          source.layerId,
+          source.visible ? source.points.map((point) => point.point) : [],
+        ]),
+      )
+    }
     const leafIds = new Set(
       groups.flatMap((group) =>
         group.features
@@ -140,7 +152,7 @@ export function useClusteredMapLayers(
           : [],
       ]),
     )
-  }, [groups, sources])
+  }, [clusterEnabled, groups, sources])
   const individualLayers = useMemo(
     () =>
       flatLayers.map((layer) => {

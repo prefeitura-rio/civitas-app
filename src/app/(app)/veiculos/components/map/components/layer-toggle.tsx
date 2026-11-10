@@ -9,7 +9,6 @@ import {
   FlameKindling,
   Layers,
   LoaderCircle,
-  Satellite,
   School,
   Shield,
   TriangleAlert,
@@ -29,7 +28,6 @@ import { Toggle } from '@/components/ui/toggle'
 import type { OriginFilter } from '@/hooks/mapLayers/use-origin-filter'
 import { useMap } from '@/hooks/useContexts/use-map-context'
 import { cn } from '@/lib/utils'
-import { MapStyle } from '@/utils/get-map-style'
 import { POINT_CLUSTER_COLORS } from '@/utils/point-cluster-colors'
 
 type OriginFilterControls = Omit<OriginFilter<unknown>, 'visibleData'>
@@ -195,8 +193,6 @@ export function MapLayerControl() {
         isError: isBusStopsError,
       },
     },
-    mapStyle,
-    setMapStyle,
   } = useMap()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -225,14 +221,6 @@ export function MapLayerControl() {
       isVisible: isFogoCruzadoVisible,
       setIsVisible: setIsFogoCruzadoVisible,
       clusterColor: POINT_CLUSTER_COLORS.incidents,
-    },
-    {
-      name: 'Satélite',
-      icon: <Satellite />,
-      isVisible: mapStyle === MapStyle.Satellite,
-      setIsVisible: (satellite) => {
-        setMapStyle(satellite ? MapStyle.Satellite : MapStyle.Map)
-      },
     },
     {
       name: 'AISP',
