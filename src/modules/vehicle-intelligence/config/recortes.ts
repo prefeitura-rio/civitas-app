@@ -6,9 +6,8 @@
  * Trocar de recorte recarrega a página, para que filtros, sessões e estilos
  * de um recorte nunca vazem para outro.
  */
-import type { CrimeType } from '@/modules/vehicle-intelligence/types/domain'
-
 import { serviceUrl } from '@/modules/vehicle-intelligence/app/base-path'
+import type { CrimeType } from '@/modules/vehicle-intelligence/types/domain'
 
 export type RecorteId =
   | 'transeuntes'

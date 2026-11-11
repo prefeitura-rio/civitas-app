@@ -33,6 +33,7 @@ import {
 import {
   recorteAtual,
   type RecorteId,
+  rememberRecorte,
 } from '@/modules/vehicle-intelligence/config/recortes'
 import { setApplyToPlates } from '@/modules/vehicle-intelligence/stores/event-scope'
 import type {
@@ -81,17 +82,19 @@ const historyState = () => pickHistoryState(window.history.state)
 
 /**
  * Troca de recorte recarregando a página. A placa aberta continua aberta no outro recorte (nas correlações); as
- * telas que existem igual nos dois (`keepsOnRecorteSwitch`) também; as demais voltam à visão geral.
+ * telas que existem igual nos dois (`keepsOnRecorteSwitch`) também; as demais voltam à visão geral. O recorte fica
+ * lembrado nesta aba (`rememberRecorte`), porque os links do sidebar do CIVITAS não levam o `?recorte=`.
  */
 export function switchRecorte(target: RecorteId): void {
   if (target === recorteAtual) return
-  const route = parseRoute(window.location.pathname)
+  const route = parseRoute(toRoutePath(window.location.pathname))
   const path = route.plate
     ? platePath(route.plate.plate, 'correlations')
     : (MODULES.find(
         (module) => module.id === route.module && module.keepsOnRecorteSwitch,
       )?.path ?? '/')
-  window.location.assign(`${path}?recorte=${target}`)
+  rememberRecorte(target)
+  window.location.assign(`${toAppPath(path)}?recorte=${target}`)
 }
 
 /** A rota atual e as ações de navegação do app. */

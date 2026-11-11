@@ -326,9 +326,10 @@ export function App() {
   }, [locationKey])
   useScrollRestoration(currentPath())
 
-  const module = moduleById(active)
-  const layout = module.layout(route)
-  const page = module.page(route)
+  // `screen`, não `module`: o Next reserva o nome (@next/next/no-assign-module-variable).
+  const screen = moduleById(active)
+  const layout = screen.layout(route)
+  const page = screen.page(route)
   const classes = SHELL_CLASSES[layout]
   const context: ScreenContext = {
     navigation,

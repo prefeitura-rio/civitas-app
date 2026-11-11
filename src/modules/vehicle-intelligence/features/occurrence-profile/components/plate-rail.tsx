@@ -141,7 +141,7 @@ function VehicleField({
           defaultOpen={choosing && !value.length}
           options={types}
           selected={value}
-          onChange={(vehicle_types) => set({ vehicle_types })}
+          onChange={(next) => set({ vehicle_types: next })}
         />
       )}
     </Field>
@@ -405,7 +405,7 @@ export function PlateRail({
           <SelectChoice
             id="occurrence-plate-type"
             value={filters.plate_type}
-            onChange={(plate_type) => set({ plate_type })}
+            onChange={(next) => set({ plate_type: next })}
             choices={[
               ['todas', 'Qualquer situação'],
               ['clones', 'Suspeita de clone'],
@@ -444,7 +444,7 @@ export function PlateRail({
           <SegmentedChoice
             id="occurrence-min-readings"
             value={filters.min_readings}
-            onChange={(min_readings) => set({ min_readings })}
+            onChange={(next) => set({ min_readings: next })}
             choices={options.min_readings.map(
               (value) => [value, String(value)] as [number, string],
             )}
@@ -458,7 +458,7 @@ export function PlateRail({
           <SegmentedChoice
             id="occurrence-min-detections"
             value={filters.min_detections}
-            onChange={(min_detections) => set({ min_detections })}
+            onChange={(next) => set({ min_detections: next })}
             choices={(options.min_detections ?? [1, 3, 5, 10, 20]).map(
               (value) =>
                 [value, value === 1 ? 'Todas' : `${value}+`] as [
@@ -496,7 +496,7 @@ export function PlateRail({
           <SegmentedChoice
             id="occurrence-min-links"
             value={filters.min_links}
-            onChange={(min_links) => set({ min_links })}
+            onChange={(next) => set({ min_links: next })}
             choices={options.min_links.map(
               (value) =>
                 [value, value === 1 ? 'Qualquer' : String(value)] as [

@@ -1,16 +1,18 @@
 /**
- * O registro das telas do painel: de cada uma saem a rota (`routes.ts`), o item do menu (`sidebar.tsx`), o título e
+ * O registro das telas do painel: de cada uma saem a rota (`routes.ts`), o item do menu, o título e
  * o layout da casca (`app.tsx`) e o que acontece com ela na troca de recorte (`switchRecorte`). Os componentes de
- * cada tela ficam em `app.tsx`, num mapa com uma entrada por id daqui (o TypeScript cobra a que faltar).
+ * cada tela ficam em `app.tsx`, num mapa com uma entrada por id daqui (o TypeScript cobra a que faltar). No civitas-app
+ * o menu é o sidebar do CIVITAS (`src/app/(app)/components/sidebar/components/constants.ts`), que repete esta lista:
+ * uma tela nova entra nos dois. O ícone de cada uma é o mesmo de lá (o lucide do app não tem `IdCard`).
  */
 import {
   FileSearch,
-  IdCard,
   LayoutDashboard,
   type LucideIcon,
   MapPinned,
   Network,
   Route as RouteIcon,
+  SquareUser,
   UsersRound,
 } from 'lucide-react'
 
@@ -114,7 +116,7 @@ export const MODULES: ReadonlyArray<AppModule> = [
     id: 'profile',
     path: '/profile',
     label: 'Perfil de placa',
-    icon: IdCard,
+    icon: SquareUser,
     page: fixed('INVESTIGAÇÃO · CORRELAÇÕES E CIRCULAÇÃO', 'Perfil de placa'),
     layout: (route) =>
       route.plate?.view === 'timeline'
