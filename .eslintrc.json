@@ -1,5 +1,8 @@
 {
-  "extends": ["plugin:@next/next/recommended", "@rocketseat/eslint-config/next"],
+  "extends": [
+    "plugin:@next/next/recommended",
+    "@rocketseat/eslint-config/next"
+  ],
   "plugins": ["simple-import-sort", "react"],
   "rules": {
     "simple-import-sort/imports": "error",
@@ -8,12 +11,42 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "**/__tests__/**/*"],
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/__tests__/**/*"
+      ],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-unused-vars": "warn",
         "@typescript-eslint/ban-ts-comment": "off",
         "no-console": "off"
+      }
+    },
+    {
+      "files": ["src/modules/vehicle-intelligence/**/*"],
+      "rules": {
+        "no-void": [
+          "error",
+          {
+            "allowAsStatement": true
+          }
+        ],
+        "no-use-before-define": "off",
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react-leaflet",
+                "importNames": ["MapContainer"],
+                "message": "Use @/modules/vehicle-intelligence/components/map/map-container (corrige o religamento do mapa ao sair de um Suspense)."
+              }
+            ]
+          }
+        ]
       }
     }
   ]

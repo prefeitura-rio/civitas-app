@@ -1,0 +1,531 @@
+/*
+ * Perfil do RO. Carrega com a tela, depois de `components/groups/groups.css` (as tabelas `list` e os painéis vêm de
+ * lá): os seletores daqui levam `.occurrence-page` para vencer os de lá sem depender da ordem.
+ * Os sinais usam as etiquetas do painel (`components/plate/plate.css`); nenhuma linha leva cor por ter sinal: a
+ * etiqueta, em texto, já diz qual é. Vermelho só na etiqueta CERCO.
+ */
+
+/* Cabeçalho */
+.occurrence-page .occurrence-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.occurrence-page .occurrence-title h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.occurrence-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  color: #9fb4ba;
+  font-size: 13.5px;
+}
+.occurrence-subtitle > span + span::before {
+  content: "·";
+  margin: 0 9px;
+  color: #5f7479;
+}
+
+/* Placas com sinal: o aviso fica junto da lista, não no fim da página. */
+.occurrence-page .panel-head p.occurrence-warning {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 8px;
+  color: #c9d6d9;
+}
+.occurrence-warning svg {
+  flex: 0 0 auto;
+  position: relative;
+  top: 2px;
+  color: #9fb4ba;
+}
+.occurrence-list-signal {
+  --colunas: minmax(240px, 1.35fr) minmax(190px, 1.1fr) minmax(180px, 1fr) minmax(180px, 1fr);
+}
+.occurrence-list-signal.single {
+  --colunas: minmax(240px, 1.35fr) minmax(190px, 1.1fr) minmax(200px, 1.2fr);
+}
+.occurrence-more {
+  padding: 0;
+  color: #20d6ff;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.occurrence-more:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.occurrence-outside {
+  margin: 0;
+  padding: 12px 20px;
+  color: #9fb4ba;
+  border-top: 1px solid rgba(232, 246, 250, 0.08);
+  font-size: 13px;
+}
+
+/* O fato */
+.occurrence-facts-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 32px;
+  padding: 0 20px 20px;
+}
+.occurrence-facts-body.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.occurrence-details {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 10px 18px;
+  align-content: start;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.occurrence-details > div {
+  display: contents;
+}
+.occurrence-details dt {
+  color: #82979d;
+}
+.occurrence-details dd {
+  margin: 0;
+  color: #dbe5e7;
+  overflow-wrap: anywhere;
+}
+.occurrence-victims {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.occurrence-victims li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.occurrence-victim-plate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.occurrence-relato {
+  min-width: 0;
+}
+.occurrence-relato h3 {
+  margin: 0 0 8px;
+  color: #82979d;
+  font-size: 12px;
+  font-weight: 500;
+}
+.occurrence-relato p {
+  max-height: 300px;
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 8px;
+  color: #c9d6d9;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.occurrence-relato p:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid #20d6ff;
+  outline-offset: 4px;
+}
+.occurrence-relato mark,
+.occurrence-passage mark {
+  padding: 0 2px;
+  color: #f3f7f8;
+  border-radius: 3px;
+  background: color-mix(in srgb, #e58fa8 32%, transparent);
+}
+.occurrence-relato mark.victim {
+  background: color-mix(in srgb, #eda100 26%, transparent);
+}
+.occurrence-relato mark.flash {
+  animation: occurrence-flash 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes occurrence-flash {
+  from {
+    box-shadow: 0 0 0 3px color-mix(in srgb, #e58fa8 70%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+/* Placas citadas: o trecho da dinâmica e as compatíveis com um trecho de placa */
+.occurrence-passage {
+  margin-top: 4px;
+  padding: 6px 8px;
+  color: #9fb4ba;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(232, 246, 250, 0.035);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+.occurrence-passage:hover {
+  color: #c9d6d9;
+  background: rgba(232, 246, 250, 0.06);
+}
+.occurrence-passage:focus-visible {
+  outline: 2px solid #20d6ff;
+  outline-offset: 1px;
+}
+.occurrence-compatible-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.occurrence-compatible-plate {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Mapa */
+.occurrence-map {
+  position: relative;
+  border-top: 1px solid rgba(232, 246, 250, 0.08);
+}
+.occurrence-map-canvas {
+  height: 360px;
+  background: #0f1111;
+}
+.occurrence-map-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 20px;
+  color: #82979d;
+  font-size: 13px;
+}
+.occurrence-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 10px 20px;
+  color: #82979d;
+  border-top: 1px solid rgba(232, 246, 250, 0.08);
+  font-size: 12px;
+}
+.occurrence-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.occurrence-map-legend .occurrence-map-point {
+  width: 14px;
+  height: 14px;
+  font-size: 8.5px;
+  font-style: normal;
+}
+.occurrence-map-fact-key {
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 1.5px dashed #20d6ff;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f3f7f8 0 2.5px, transparent 3px);
+}
+.leaflet-marker-icon.occurrence-map-point-icon,
+.leaflet-marker-icon.occurrence-map-fact {
+  border: 0;
+  background: none;
+}
+.occurrence-map-point {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  color: #0f1111;
+  border: 2px solid #0f1111;
+  border-radius: 50%;
+  background: #8fa6ab;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.occurrence-map-point.victim {
+  background: #eda100;
+}
+/* Anel claro: o ponto leu uma placa citada, compatível com um trecho citado ou do Cerco. */
+.occurrence-map-point.marked {
+  background: #c9d6d9;
+  box-shadow:
+    0 0 0 2px #0f1111,
+    0 0 0 4px #f3f7f8;
+}
+/* Anel rosa: a leitura mais próxima de uma placa citada neste RO (vale sobre o claro). */
+.occurrence-map-point.cited {
+  box-shadow:
+    0 0 0 2px #0f1111,
+    0 0 0 4px #e58fa8;
+}
+.occurrence-map-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  font-size: 12.5px;
+}
+.occurrence-map-popup strong {
+  font-size: 13px;
+}
+.occurrence-map-plates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.occurrence-map-marked {
+  color: #f3f7f8;
+  font-weight: 600;
+}
+.occurrence-map-cited {
+  color: #e58fa8;
+  font-weight: 600;
+}
+.occurrence-map-victim {
+  color: #eda100;
+}
+
+/* Listas: abas, janelas, filtro e busca */
+.occurrence-tabs {
+  display: flex;
+  gap: 26px;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(232, 246, 250, 0.08);
+}
+.occurrence-tabs button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 15px 0 12px;
+  color: #82979d;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.occurrence-tabs button:hover {
+  color: #c9d6d9;
+}
+.occurrence-tabs button.active {
+  color: #f3f7f8;
+  border-bottom-color: #20d6ff;
+}
+.occurrence-tabs button:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid #20d6ff;
+  outline-offset: 2px;
+}
+.occurrence-tabs button > span {
+  color: #82979d;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.occurrence-page .panel-head p.occurrence-note {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+.occurrence-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+.occurrence-window {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #82979d;
+  font-size: 12px;
+}
+.occurrence-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 0 20px 14px;
+}
+.occurrence-signal-counts {
+  color: #c9d6d9;
+  font-size: 12.5px;
+}
+.occurrence-search-field {
+  width: 170px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 0 10px;
+  color: #82979d;
+  border: 1px solid rgba(232, 246, 250, 0.13);
+  border-radius: 9px;
+  background: #0f1111;
+}
+.occurrence-search-field:focus-within {
+  border-color: rgba(32, 214, 255, 0.45);
+}
+.occurrence-search-field input {
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  color: #f3f7f8;
+  border: 0;
+  outline: none;
+  background: none;
+  font-family: var(--iv-font-mono), ui-monospace, monospace;
+  font-size: 12.5px;
+  text-transform: uppercase;
+}
+.occurrence-search-field.large {
+  width: min(420px, 100%);
+  height: 40px;
+  margin-left: 0;
+}
+.occurrence-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 20px 18px;
+}
+.occurrence-plates.is-loading .list,
+.occurrence-signal.is-loading .list {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+/* Tabelas */
+.occurrence-page .occurrence-list {
+  max-height: 620px;
+}
+.occurrence-list-together {
+  --colunas: minmax(230px, 1.7fr) 70px 110px 118px 128px minmax(130px, 1.3fr) 170px;
+}
+.occurrence-list-nearby {
+  --colunas: minmax(230px, 1.7fr) 70px 96px 128px 128px 180px;
+}
+.occurrence-list-cited {
+  --colunas: minmax(230px, 1.2fr) minmax(220px, 1.5fr) 110px minmax(200px, 1.3fr) minmax(190px, 1.1fr);
+}
+.occurrence-list-results {
+  --colunas: 170px 140px minmax(0, 2fr) minmax(0, 1fr) 48px;
+}
+/* As marcas deste RO e as etiquetas do ranking numa só fileira, na largura da coluna da placa (no ranking, 200 px): a
+   linha não cresce à toa. */
+.occurrence-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+.occurrence-chips:empty {
+  display: none;
+}
+.occurrence-chips > .plate-signals {
+  display: contents;
+}
+.occurrence-page .occurrence-list-cited .plate-signals {
+  max-width: none;
+  margin-top: 3px;
+}
+.occurrence-page .occurrence-list .list-head > [role="columnheader"]:has(> .list-sort) {
+  padding: 0;
+}
+.occurrence-page .occurrence-list .list-head .list-sort {
+  width: 100%;
+  padding: 10px 12px;
+  text-align: inherit;
+}
+/* As marcas deste RO: as etiquetas do painel; "compatível" tracejada, porque não é a placa citada. */
+.signal-chip.occurrence-compatible {
+  border-style: dashed;
+  background: color-mix(in srgb, #e58fa8 7%, transparent);
+}
+.signal-chip.occurrence-victim-chip {
+  border-color: color-mix(in srgb, #eda100 40%, transparent);
+  background: color-mix(in srgb, #eda100 12%, transparent);
+  color: #eef3f4;
+}
+.signal-chip.occurrence-victim-chip > i {
+  background: #eda100;
+}
+.occurrence-places {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.occurrence-reading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.occurrence-cited-in {
+  color: #20d6ff;
+}
+.occurrence-open {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: #9fb4ba;
+  border: 1px solid rgba(232, 246, 250, 0.13);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+}
+.occurrence-open:hover {
+  color: #f3f7f8;
+  border-color: rgba(32, 214, 255, 0.45);
+}
+@media (max-width: 1100px) {
+  .occurrence-facts-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .occurrence-page .occurrence-list {
+    overflow-x: auto;
+  }
+  .occurrence-page .occurrence-list .list-head,
+  .occurrence-page .occurrence-list .list-row {
+    min-width: 900px;
+  }
+  .occurrence-page .occurrence-list-signal .list-head,
+  .occurrence-page .occurrence-list-signal .list-row {
+    min-width: 0;
+  }
+  .occurrence-search-field {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .occurrence-relato mark.flash {
+    animation: none;
+    outline: 2px solid #e58fa8;
+  }
+}

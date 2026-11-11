@@ -1,9 +1,13 @@
-import type { icons } from 'lucide-react'
-
 import { config } from '@/config'
+import {
+  VEHICLE_INTELLIGENCE_BASE_PATH,
+  VEHICLE_INTELLIGENCE_SCREEN_CODE,
+} from '@/lib/vehicle-intelligence/constants'
+
+import type { SidebarIconName } from './sidebar-icon'
 
 export interface Module {
-  icon: keyof typeof icons
+  icon: SidebarIconName
   title: string
   path: string
   ticketScreenCode?: string
@@ -12,7 +16,7 @@ export interface Module {
 }
 
 export interface ModuleWithChildren {
-  icon: keyof typeof icons
+  icon: SidebarIconName
   title: string
   path?: string
   children: Module[]
@@ -29,7 +33,7 @@ export function isModuleWithChildren(
 }
 
 export interface Category {
-  icon: keyof typeof icons
+  icon: SidebarIconName
   title: string
   modules: SidebarModule[]
 }
@@ -149,6 +153,50 @@ export const sidebarItems: SideBarItem[] = [
         icon: 'Waypoints',
         title: 'Placas Correlatas em CCs',
         path: '/veiculos/placas-correlatas-em-ccs/genarate-report',
+      },
+      {
+        icon: 'Owl',
+        title: 'Inteligência Veicular',
+        path: VEHICLE_INTELLIGENCE_BASE_PATH,
+        ticketScreenCode: VEHICLE_INTELLIGENCE_SCREEN_CODE,
+        // As telas do módulo; a permissão é a do item (as filhas aparecem com ele).
+        children: [
+          {
+            icon: 'LayoutDashboard',
+            title: 'Visão geral',
+            path: VEHICLE_INTELLIGENCE_BASE_PATH,
+          },
+          {
+            icon: 'Network',
+            title: 'Placas correlatas',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/correlation`,
+          },
+          {
+            icon: 'Route',
+            title: 'Trajetória pós-evento',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/post-event`,
+          },
+          {
+            icon: 'UsersRound',
+            title: 'Grupos',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/groups`,
+          },
+          {
+            icon: 'MapPinned',
+            title: 'Territórios',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/territories`,
+          },
+          {
+            icon: 'SquareUser',
+            title: 'Perfil de placa',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/profile`,
+          },
+          {
+            icon: 'FileSearch',
+            title: 'Perfil do RO',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/occurrence`,
+          },
+        ],
       },
     ],
   },

@@ -58,3 +58,5 @@ public/env-config.js
 
 # impeccable
 .impeccable/
+
+.vscode/
