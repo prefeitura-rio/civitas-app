@@ -19,11 +19,17 @@ export type ScreenPermissionsResult =
 
 const CACHE_TTL_MS = 60_000
 const CACHE_MAX_ENTRIES = 2_000
+// Sem resposta do civitas-api nesse prazo, a consulta falha (e a tela é negada) em vez de prender a página e o BFF.
+const REQUEST_TIMEOUT_MS = 10_000
 
 const cache = new Map<
   string,
   { expiresAt: number; permissions: TicketModulePermissionsMeOut }
 >()
+
+// Consultas em andamento por sessão: as chamadas paralelas da mesma tela (cache vazio) esperam a mesma resposta em
+// vez de cada uma consultar o civitas-api.
+const inFlight = new Map<string, Promise<ScreenPermissionsResult>>()
 
 function pruneCache(nowMs: number) {
   for (const [key, entry] of cache) {
@@ -40,12 +46,24 @@ function pruneCache(nowMs: number) {
 export async function fetchSessionScreenPermissions(
   session: BffSession,
 ): Promise<ScreenPermissionsResult> {
-  const nowMs = Date.now()
   const cached = cache.get(session.sessionId)
-  if (cached && cached.expiresAt > nowMs) {
+  if (cached && cached.expiresAt > Date.now()) {
     return { status: 'ok', permissions: cached.permissions }
   }
 
+  const pending = inFlight.get(session.sessionId)
+  if (pending) return pending
+
+  const request = requestScreenPermissions(session).finally(() => {
+    inFlight.delete(session.sessionId)
+  })
+  inFlight.set(session.sessionId, request)
+  return request
+}
+
+async function requestScreenPermissions(
+  session: BffSession,
+): Promise<ScreenPermissionsResult> {
   try {
     const response = await fetch(
       `${config.apiUrl}/${TICKET_MODULE_PERMISSIONS_PATH}`,
@@ -56,6 +74,7 @@ export async function fetchSessionScreenPermissions(
           Accept: 'application/json',
         },
         cache: 'no-store',
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       },
     )
     if (response.status === 401) return { status: 'unauthorized' }
@@ -66,6 +85,7 @@ export async function fetchSessionScreenPermissions(
       return { status: 'error' }
     }
     const permissions = (await response.json()) as TicketModulePermissionsMeOut
+    const nowMs = Date.now()
     pruneCache(nowMs)
     cache.set(session.sessionId, {
       expiresAt: nowMs + CACHE_TTL_MS,
@@ -78,19 +98,29 @@ export async function fetchSessionScreenPermissions(
   }
 }
 
-/** Só `true` quando o civitas-api confirmou a permissão; falha na consulta nega. */
-export async function sessionCanViewScreen(
+/**
+ * Resultado da checagem de uma tela:
+ * - `allowed`: o civitas-api confirmou a permissão;
+ * - `forbidden`: sem a permissão, ou a consulta falhou (falha nega);
+ * - `unauthorized`: o civitas-api recusou a sessão (ex.: outro login a substituiu). Como no BFF principal, a sessão
+ *   do CIVITAS acabou e o usuário volta ao login.
+ */
+export type ScreenAccess = 'allowed' | 'forbidden' | 'unauthorized'
+
+export async function checkSessionScreenAccess(
   session: BffSession,
   screenCode: string,
-): Promise<boolean> {
+): Promise<ScreenAccess> {
   const result = await fetchSessionScreenPermissions(session)
-  return (
-    result.status === 'ok' &&
+  if (result.status === 'unauthorized') return 'unauthorized'
+  return result.status === 'ok' &&
     canViewTicketScreen(result.permissions, screenCode)
-  )
+    ? 'allowed'
+    : 'forbidden'
 }
 
 /** Só para testes. */
 export function clearScreenPermissionsCache() {
   cache.clear()
+  inFlight.clear()
 }

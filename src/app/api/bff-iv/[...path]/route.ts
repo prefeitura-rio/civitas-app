@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { getVehicleIntelligenceApiUrl } from '@/config'
 import { createProxyHandler } from '@/lib/bff/create-proxy-handler'
-import { sessionCanViewScreen } from '@/lib/bff/screen-permissions'
+import { checkSessionScreenAccess } from '@/lib/bff/screen-permissions'
 import {
   VEHICLE_INTELLIGENCE_BFF_PREFIX,
   VEHICLE_INTELLIGENCE_SCREEN_CODE,
@@ -14,10 +14,16 @@ import {
 const handler = createProxyHandler({
   pathPrefix: VEHICLE_INTELLIGENCE_BFF_PREFIX,
   getUpstreamBaseUrl: getVehicleIntelligenceApiUrl,
-  authorize: async (session) =>
-    (await sessionCanViewScreen(session, VEHICLE_INTELLIGENCE_SCREEN_CODE))
-      ? null
-      : NextResponse.json({ message: 'Forbidden' }, { status: 403 }),
+  authorize: async (session) => {
+    const access = await checkSessionScreenAccess(
+      session,
+      VEHICLE_INTELLIGENCE_SCREEN_CODE,
+    )
+    if (access === 'allowed') return null
+    return access === 'unauthorized'
+      ? NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      : NextResponse.json({ message: 'Forbidden' }, { status: 403 })
+  },
   clearSessionOnUpstreamUnauthorized: false,
   logLabel: 'bff-iv',
 })

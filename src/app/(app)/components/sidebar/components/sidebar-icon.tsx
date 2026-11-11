@@ -9,7 +9,7 @@ export const labIcons = {
 export type SidebarIconName = keyof typeof icons | keyof typeof labIcons
 
 function isLabIcon(name: SidebarIconName): name is keyof typeof labIcons {
-  return name in labIcons
+  return Object.prototype.hasOwnProperty.call(labIcons, name)
 }
 
 export function SidebarIcon({

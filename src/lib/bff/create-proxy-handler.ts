@@ -37,7 +37,7 @@ export interface ProxyHandlerOptions {
   getUpstreamBaseUrl: () => string
   /**
    * Checagem extra depois de validar a sessão (ex.: permissão de tela). Devolve uma resposta para recusar a chamada,
-   * ou `null` para seguir.
+   * ou `null` para seguir. Uma recusa 401 encerra a sessão (limpa os cookies), como um 401 do civitas-api.
    */
   authorize?: (session: BffSession) => Promise<NextResponse | null>
   /**
@@ -117,6 +117,12 @@ export function createProxyHandler({
 
     if (authorize) {
       const denied = await authorize(result.session)
+      if (denied?.status === 401) {
+        for (const cookie of clearSessionCookies()) {
+          denied.cookies.set(cookie.name, cookie.value, cookie.options)
+        }
+        return denied
+      }
       if (denied) {
         // A sessão continua válida (e pode ter sido renovada): os cookies seguem atualizados.
         return withSessionCookies(denied, result.session)

@@ -145,6 +145,29 @@ describe('GET /api/bff-iv/[...path]', () => {
     ).toBe(true)
   })
 
+  it('ends the CIVITAS session when civitas-api rejects it during the permission check', async () => {
+    const mock = mockFetch({ permissionsStatus: 401 })
+    const response = await GET(makeRequest('/api/veiculos/v1/dashboard'))
+    expect(response.status).toBe(401)
+    expect(sessionWasCleared(response)).toBe(true)
+    expect(upstreamCalls(mock)).toHaveLength(0)
+  })
+
+  it('shares one permission lookup across parallel requests', async () => {
+    const mock = mockFetch()
+    const responses = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        GET(makeRequest('/api/veiculos/v1/dashboard')),
+      ),
+    )
+    expect(responses.map((r) => r.status)).toEqual([200, 200, 200, 200, 200])
+    const permissionCalls = mock.mock.calls.filter(([url]) =>
+      String(url).includes('module-screen-permissions'),
+    )
+    expect(permissionCalls).toHaveLength(1)
+    expect(upstreamCalls(mock)).toHaveLength(5)
+  })
+
   it('returns 503 when the service URL is not configured', async () => {
     delete process.env.VEHICLE_INTELLIGENCE_API_URL
     const mock = mockFetch()
