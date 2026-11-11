@@ -1,5 +1,5 @@
 import type { Breakdown } from '@/modules/vehicle-intelligence/features/post-event/types'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import { formatPercent } from '@/modules/vehicle-intelligence/lib/format'
 
 export function BreakdownBars({
   items,
@@ -20,7 +20,7 @@ export function BreakdownBars({
           <i>
             <em style={{ width: `${item.percentage}%` }} />
           </i>
-          <b>{formatNumber(item.percentage)}%</b>
+          <b>{formatPercent(item.percentage, 3)}</b>
         </div>
       ))}
     </div>

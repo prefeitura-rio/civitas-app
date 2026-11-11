@@ -1,13 +1,6 @@
-/** Horários da timeline do grupo: HH:MM, o instante em ms, a faixa de tempo do eixo e as horas marcadas nele. */
+/** Horários da timeline do grupo: a faixa de tempo do eixo e as horas marcadas nele. */
 import type { TimelineDay } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
-import {
-  brasiliaFormatter,
-  parseInstant,
-} from '@/modules/vehicle-intelligence/lib/dates'
-
-const HOUR_MINUTE = brasiliaFormatter({ hour: '2-digit', minute: '2-digit' })
-export const hourMinute = (time: number) => HOUR_MINUTE.format(new Date(time))
-export const toMs = (value: string) => parseInstant(value).getTime()
+import { formatTime, instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 
 /** O eixo mostra o período com leituras ou o dia inteiro. */
 export type TimeRangeMode = 'period' | 'day'
@@ -25,8 +18,8 @@ export function timeRange(
       civilDayStart + 86_400_000 + dayMarginMinutes * 60_000,
     ]
   const times = [
-    ...day.detections.map((detection) => toMs(detection.detected_at)),
-    ...day.facts.map((f) => toMs(f.event_time)),
+    ...day.detections.map((detection) => instantMs(detection.detected_at)),
+    ...day.facts.map((f) => instantMs(f.event_time)),
   ]
   const hour = 3_600_000
   return [
@@ -51,6 +44,6 @@ export function axisHours(
       })
   else
     for (let t = rangeStart; t <= rangeEnd; t += 3_600_000)
-      marks.push({ at: t, label: `${hourMinute(t).slice(0, 2)}h` })
+      marks.push({ at: t, label: `${formatTime(t).slice(0, 2)}h` })
   return marks
 }

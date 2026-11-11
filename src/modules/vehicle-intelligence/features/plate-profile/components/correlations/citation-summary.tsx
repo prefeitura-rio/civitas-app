@@ -5,11 +5,11 @@ import {
   citationExplanation,
   citationVerdicts,
 } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/citations'
+import { correlationEventAnchor } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-format'
 import {
-  civilDay,
-  clockTime,
-  correlationEventAnchor,
-} from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-format'
+  formatCivilDay,
+  formatTime,
+} from '@/modules/vehicle-intelligence/lib/dates'
 import {
   formatNumber,
   pluralize,
@@ -93,11 +93,11 @@ export function CitationSummary({
             <div className="profile-citation-line">
               <strong>{item.event_id}</strong>
               <span>
-                {civilDay(item.event_date)}
+                {formatCivilDay(item.event_date, 'data não informada')}
                 {item.event_time
-                  ? ` · ${clockTime(item.event_time)}`
+                  ? ` · ${formatTime(item.event_time)}`
                   : item.approximate_hour
-                    ? ` · hora informada ${clockTime(item.approximate_hour.start)}–${clockTime(item.approximate_hour.end)}`
+                    ? ` · hora informada ${formatTime(item.approximate_hour.start)}–${formatTime(item.approximate_hour.end)}`
                     : ' · sem horário'}
               </span>
               <span title={item.address || ''}>

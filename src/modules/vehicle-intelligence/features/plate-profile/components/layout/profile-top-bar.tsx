@@ -3,9 +3,9 @@ import type { ReactNode } from 'react'
 
 import { PlateOriginBadge } from '@/modules/vehicle-intelligence/components/plate/plate-origin-badge'
 import { PlateQuickSearch } from '@/modules/vehicle-intelligence/components/plate/plate-quick-search'
-import type { OpenSearchedPlate } from '@/modules/vehicle-intelligence/components/plate/plate-search'
 import { recorte } from '@/modules/vehicle-intelligence/config/recortes'
 import { formatDate } from '@/modules/vehicle-intelligence/lib/dates'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 /** "Zona Sul · Motos" (o selo do recorte sem o ano, que o período já mostra) ou o nome do recorte. */
 const RECORTE_LABEL = recorte.badge
@@ -37,7 +37,7 @@ export function ProfileTopBar({
   period?: { start: string | null; end: string | null }
   disabled?: boolean
   timelineLabel: string
-  onOpenPlate: OpenSearchedPlate
+  onOpenPlate: OpenPlate
   /** O menu dos relatórios em PDF da placa (correlações e tendências), antes da Timeline. */
   report?: ReactNode
   children: ReactNode

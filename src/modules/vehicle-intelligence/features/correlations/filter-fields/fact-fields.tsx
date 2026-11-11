@@ -4,6 +4,10 @@ import { ChipChoices } from '@/modules/vehicle-intelligence/features/correlation
 import { SegmentedChoice } from '@/modules/vehicle-intelligence/features/correlations/components/filter-rail/segmented-choice'
 import { SelectChoice } from '@/modules/vehicle-intelligence/features/correlations/components/filter-rail/select-choice'
 import type { FilterFieldDef } from '@/modules/vehicle-intelligence/features/correlations/filter-fields/field-types'
+import {
+  formatDistance,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import { periodChoices } from '@/modules/vehicle-intelligence/lib/period'
 import {
@@ -11,9 +15,11 @@ import {
   DEFAULT_EVENT_SCOPE,
   SCOPE_LIMITS,
 } from '@/modules/vehicle-intelligence/stores/event-scope'
-import type {
-  CrimeType,
-  MasterGraphOptions,
+import {
+  cispsOfZones,
+  type CrimeType,
+  type MasterGraphOptions,
+  zonesIn,
 } from '@/modules/vehicle-intelligence/types/domain'
 
 const minutes = (values: number[]) =>
@@ -76,7 +82,7 @@ export const cargoOnly: FilterFieldDef = {
   label: 'Natureza',
   hidden: ({ options }) => !options?.cargo?.available,
   help: ({ options }) =>
-    `${options?.cargo?.events.toLocaleString('pt-BR')} eventos ligados a ${options?.cargo?.occurrences.toLocaleString('pt-BR')} ROs de roubo de carga (ISP + GERENCIALWEB).`,
+    `${formatNumber(options?.cargo?.events)} eventos ligados a ${formatNumber(options?.cargo?.occurrences)} ROs de roubo de carga (ISP + GERENCIALWEB).`,
   render: ({ id, query, set }) => (
     <SegmentedChoice
       id={id}
@@ -136,6 +142,23 @@ export const offender: FilterFieldDef = {
   ),
 }
 
+export const zone: FilterFieldDef = {
+  key: 'cisps',
+  id: 'graph-zone',
+  label: 'Zona',
+  help: 'As CISPs de cada zona da cidade (pelas áreas de planejamento): escolher uma zona marca as CISPs dela. Sem zona, a cidade inteira.',
+  hidden: ({ options }) => !(options?.zones ?? []).length,
+  render: ({ id, query, set, options }) => (
+    <ChipChoices
+      id={id}
+      selected={zonesIn(options?.zones, query.cisps)}
+      onChange={(names) => set({ cisps: cispsOfZones(options?.zones, names) })}
+      labelFor={(name) => name}
+      options={(options?.zones ?? []).map((item) => item.name)}
+    />
+  ),
+}
+
 export const cisp: FilterFieldDef = {
   key: 'cisps',
   id: 'graph-cisp',
@@ -182,10 +205,7 @@ export const radius: FilterFieldDef = {
       choices={allowed(
         options?.available_radius_meters,
         SCOPE_LIMITS.radii,
-      ).map((value) => [
-        value,
-        value >= 1000 ? `${value / 1000} km` : `${value} m`,
-      ])}
+      ).map((value) => [value, formatDistance(value)])}
     />
   ),
 }

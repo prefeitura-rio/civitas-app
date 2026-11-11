@@ -25,9 +25,6 @@ export function OccurrenceSearch({
   const [query, setQuery] = useState('')
   const search = useApi<OccurrenceSearchData>(
     active && query.length >= 3 ? occurrenceSearchPath(query) : null,
-    {
-      fallbackError: 'Falha na busca de ROs',
-    },
   )
   const data =
     search.dataPath === occurrenceSearchPath(query) ? search.data : null

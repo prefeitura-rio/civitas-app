@@ -17,9 +17,12 @@ import {
 } from '@/modules/vehicle-intelligence/components/groups/plate-marks'
 import { useIsInCerco } from '@/modules/vehicle-intelligence/components/plate/cerco-badge'
 import {
+  civilDay,
+  dayStartMs,
   formatDayMonth,
   formatDayMonthYear,
   MONTH_ABBREVIATIONS,
+  weekStart,
 } from '@/modules/vehicle-intelligence/lib/dates'
 import {
   formatNumber,
@@ -31,13 +34,6 @@ import type {
 } from '@/modules/vehicle-intelligence/types/groups'
 
 const DAY_MS = 86_400_000
-const ms = (day: string) => Date.parse(`${day}T00:00:00Z`)
-const iso = (value: number) => new Date(value).toISOString().slice(0, 10)
-/** Segunda-feira da semana do dia (a `date_trunc('week')` do motor). */
-const mondayOf = (day: string) => {
-  const t = ms(day)
-  return iso(t - ((new Date(t).getUTCDay() + 6) % 7) * DAY_MS)
-}
 /** Dias com leitura na semana (1 a 7) no ciano da série; semana sem leitura dentro do período lido, quase apagada. */
 const weekColor = (days: number) =>
   days
@@ -120,11 +116,11 @@ export function ActivityChart({
   const weeks = useMemo(() => {
     const list: string[] = []
     for (
-      let t = ms(mondayOf(activity.first_day));
-      t <= ms(activity.last_day);
+      let t = dayStartMs(weekStart(activity.first_day));
+      t <= dayStartMs(activity.last_day);
       t += 7 * DAY_MS
     )
-      list.push(iso(t))
+      list.push(civilDay(t))
     return list
   }, [activity])
   const weekLabels = useMemo(() => weeks.map((s) => formatDayMonth(s)), [weeks])
@@ -179,8 +175,8 @@ export function ActivityChart({
   // O total é das placas do território ou do grupo: a de fora (troca) não conta.
   const ownPlates = plates.filter((p) => !rowsByPlate.get(p.plate)?.outside)
   const changed = ownPlates.filter((p) => tabOf(p) !== 'always').length
-  const historyStart = iso(
-    ms(activity.first_day) + activity.margin_days * DAY_MS,
+  const historyStart = civilDay(
+    dayStartMs(activity.first_day) + activity.margin_days * DAY_MS,
   )
   const trackStyle = {
     gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
@@ -282,8 +278,8 @@ export function ActivityChart({
           const { plate: p, pair } = entry
           const row = rowsByPlate.get(p.plate)
           if (!pair) stripe += 1
-          const i0 = weeks.indexOf(mondayOf(p.first))
-          const i1 = weeks.indexOf(mondayOf(p.last))
+          const i0 = weeks.indexOf(weekStart(p.first))
+          const i1 = weeks.indexOf(weekStart(p.last))
           return (
             <div
               key={pair ? `${pair.from}>${p.plate}` : p.plate}

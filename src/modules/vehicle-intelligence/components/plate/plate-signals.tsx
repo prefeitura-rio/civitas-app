@@ -47,13 +47,18 @@ export function PlateSignals({
   row,
   citationNote,
   origem = true,
+  vehicle: withVehicle = true,
 }: {
   row: SignalFields
   citationNote?: string
   origem?: boolean
+  /** A etiqueta do tipo de veículo; sai quando a tabela tem a coluna Tipo. */
+  vehicle?: boolean
 }) {
   const cited = citationNote ?? authorCitationNote(row.author_citations)
-  const vehicle = vehicleTypeLabel(row.vehicle_type, row.vehicle_type_share)
+  const vehicle = withVehicle
+    ? vehicleTypeLabel(row.vehicle_type, row.vehicle_type_share)
+    : null
   return (
     <div className="plate-signals">
       {origem && <PlateOriginBadge plate={row.plate} />}

@@ -1,4 +1,7 @@
-import { useCercoEntry } from '@/modules/vehicle-intelligence/components/plate/cerco-badge'
+import {
+  cercoWho,
+  useCercoEntry,
+} from '@/modules/vehicle-intelligence/components/plate/cerco-badge'
 import { citationStatusShort } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/citations'
 import {
   cloneTemperatureLabel,
@@ -34,15 +37,35 @@ export function useProfileIndicators(
       kind: 'cerco',
       chip: 'CERCO',
       title: 'Monitorada no Cerco Digital',
+      // Quando a placa foi inserida e quem a monitora (uma linha por autoridade); não vai para os relatórios em PDF.
       lines: [
-        {
-          text: `${
-            cerco.operations
-              .map((item) => item.operacao)
-              .filter(Boolean)
-              .join(' · ') || 'operação sem nome'
-          }${cerco.checkedAt ? ` · lista consultada em ${formatDate(cerco.checkedAt)}` : ''}`,
-        },
+        ...cerco.operations.flatMap((item) => {
+          const authorities = item.autoridades ?? []
+          const inserted = [
+            item.desde
+              ? `Inserida em ${formatDate(item.desde)}`
+              : 'Inserida em data não informada',
+            item.operacao && `operação ${item.operacao}`,
+          ]
+            .filter(Boolean)
+            .join(' · ')
+          const who = authorities.length
+            ? authorities.map((authority) => ({
+                text: [
+                  `Por ${cercoWho({ ...item, autoridades: [authority] })}`,
+                  authority.referencia && `ref. ${authority.referencia}`,
+                  authority.valida_ate &&
+                    `válida até ${formatDate(authority.valida_ate)}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · '),
+              }))
+            : [{ text: `Por ${cercoWho(item)}` }]
+          return [{ text: inserted }, ...who]
+        }),
+        ...(cerco.checkedAt
+          ? [{ text: `Lista consultada em ${formatDate(cerco.checkedAt)}` }]
+          : []),
       ],
     })
   }

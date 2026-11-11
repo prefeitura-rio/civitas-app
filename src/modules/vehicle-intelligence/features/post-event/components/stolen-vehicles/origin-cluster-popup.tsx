@@ -1,10 +1,10 @@
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
 import { BreakdownSection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/breakdown-section'
 import { ClusterConnections } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/cluster-connections'
 import {
   percentageBreakdown,
   topCispItems,
 } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/clusters'
-import { formatPostEventDate } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/event-time'
 import { PopupSection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/popup-section'
 import { TEXT } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/recorte-texts'
 import { TemporalProfileSection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/temporal-profile-section'
@@ -12,6 +12,7 @@ import type {
   ClusterConnection,
   OriginCluster,
 } from '@/modules/vehicle-intelligence/features/post-event/types'
+import { instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 
@@ -37,7 +38,7 @@ export function OriginClusterPopup({
         .filter((value): value is string => Boolean(value)),
     ),
   )
-    .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())
+    .sort((left, right) => instantMs(right) - instantMs(left))
     .slice(0, 4)
   return (
     <div
@@ -90,7 +91,7 @@ export function OriginClusterPopup({
       >
         <div>
           {recentEvents.map((eventTime) => (
-            <time key={eventTime}>{formatPostEventDate(eventTime)}</time>
+            <time key={eventTime}>{formatEventTime(eventTime)}</time>
           ))}
         </div>
       </PopupSection>

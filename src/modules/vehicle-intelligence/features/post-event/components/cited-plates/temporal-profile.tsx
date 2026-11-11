@@ -1,9 +1,6 @@
 import { BreakdownBars } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/breakdown-bars'
 import { DetailSection } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/detail-section'
-import {
-  HOUR,
-  parseTime,
-} from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/event-time'
+import { hourInBrasilia } from '@/modules/vehicle-intelligence/lib/dates'
 import {
   formatNumber,
   pluralize,
@@ -12,10 +9,8 @@ import {
 export function TemporalProfile({ values }: { values: Array<string | null> }) {
   const hourly = Array.from({ length: 24 }, () => 0)
   values.forEach((value) => {
-    const parsed = parseTime(value)
-    if (!parsed) return
-    const hour = Number(HOUR.format(parsed)) % 24
-    hourly[hour] += 1
+    const hour = hourInBrasilia(value)
+    if (hour !== null) hourly[hour] += 1
   })
   const total = hourly.reduce((sum, count) => sum + count, 0)
   if (!total) return null

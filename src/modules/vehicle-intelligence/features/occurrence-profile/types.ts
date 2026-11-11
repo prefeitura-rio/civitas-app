@@ -60,6 +60,17 @@ export interface PlateMarks extends CloneFields, RecentActivityFields {
 /** Uma placa numa das listas (junto ou perto); as colunas que só uma das listas tem são opcionais. */
 export interface OccurrencePlateRow extends PlateMarks {
   correlation_strength: number | null
+  /** Correlações: em quantos ROs do recorte a placa aparece no grafo, nas janelas da tela (conta este), quantos no dia
+   * do RO e em quantos dias. */
+  linked_ros: number
+  same_day_ros: number
+  correlation_days: number
+  /** Cobertura (Dias de circulação no grafo): as detecções nos dias com correlação ÷ todas as detecções, em %. */
+  coverage: number | null
+  coverage_detections: number
+  total_detections: number | null
+  /** Dias com leitura da placa no período das detecções. */
+  days_read: number | null
   first_seen: string | null
   last_seen: string | null
   /** Leituras antes e depois: do fato na lista de perto; da passagem da vítima no mesmo ponto na lista junto. */
@@ -85,7 +96,9 @@ export type OccurrencePlateList =
   | {
       available: true
       rows: OccurrencePlateRow[]
+      /** Placas que passam nos filtros; `unfiltered_total`, antes deles. */
       total: number
+      unfiltered_total: number
       shown: number
       with_signal: number
       cited: number
@@ -210,6 +223,9 @@ export interface OccurrenceDetails {
   original_offense: string | null
   time_date_divergent: string | null
   linked_cargo_ro: string | null
+  /** Banco experimental (ISP): ROs do mesmo lugar e horário viram um fato só; este RO foi agrupado num outro, ou
+   * reúne os agrupados nele. */
+  episode?: { grouped_into: string | null; grouped: string[] } | null
 }
 
 export interface OccurrenceWindowOptions {
@@ -221,6 +237,41 @@ export interface OccurrenceWindowOptions {
   default_passage_window?: number
   default_radius: number
   default_near_window: number
+  /** Filtros de placa: os tipos de veículo do cadastro (os do grafo), os táxis ativos e a atividade recente. */
+  vehicle_types: string[]
+  active_taxis: { available: boolean; count: number }
+  activity: {
+    available: boolean
+    reference_date: string | null
+    windows: number[]
+  }
+  min_readings: number[]
+  /** Detecções da placa em todo o período (a placa lida 1 vez tem cobertura de 100%). */
+  min_detections?: number[]
+  min_strengths: number[]
+  min_links: number[]
+  days: DaysBucket[]
+  sorts: string[]
+}
+
+/** Faixas de dias com leitura no período (quem quase não circula, quem circula sempre). */
+export type DaysBucket = 'todos' | 'ate_3' | '4_10' | '11_30' | 'mais_30'
+
+/** Os filtros de placa que a API aplicou (o eco da consulta). */
+export interface OccurrenceAppliedFilters {
+  vehicle_types: string[]
+  taxis: 'todos' | 'somente_taxis' | 'excluir_taxis'
+  denuncias: 'todos' | 'somente_citadas' | 'excluir_citadas'
+  plate_type: 'todas' | 'clones' | 'tambem_roubadas' | 'comuns'
+  when: 'qualquer' | 'antes' | 'antes_e_depois' | 'depois'
+  min_readings: number
+  min_detections: number
+  min_strength: number | null
+  activity_days: number | null
+  model: string
+  min_links: number
+  days: DaysBucket
+  active: boolean
 }
 
 export interface OccurrenceWindows {
@@ -235,6 +286,10 @@ interface OccurrenceProfileBase {
   strategy: 'copassagem' | 'entorno_fato'
   options: OccurrenceWindowOptions
   parameters: OccurrenceWindows
+  filters: OccurrenceAppliedFilters
+  /** A ordem das listas (feita na API, antes do limite de linhas) e se o sentido foi trocado. */
+  sort: string
+  sort_inverted: boolean
   detection_period: { start: string | null; end: string | null }
 }
 

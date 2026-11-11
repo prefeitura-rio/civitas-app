@@ -1,5 +1,4 @@
 import { EventScopeBar } from '@/modules/vehicle-intelligence/components/filters/event-scope-bar'
-import type { OpenSearchedPlate } from '@/modules/vehicle-intelligence/components/plate/plate-search'
 import { CorrelationOverview } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-overview'
 import { PlateCorrelationsView } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/plate-correlations-view'
 import { useProfileIndicators } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/use-profile-indicators'
@@ -29,7 +28,10 @@ import {
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { usePlateScopeQuery } from '@/modules/vehicle-intelligence/stores/event-scope'
-import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/domain'
+import type {
+  OpenPlate,
+  PlateProfileAnalysis,
+} from '@/modules/vehicle-intelligence/types/navigation'
 
 /** O perfil da placa: cabeçalho fixo e as duas análises, correlações e tendências de circulação. */
 export function CorrelationPlateProfile({
@@ -47,7 +49,7 @@ export function CorrelationPlateProfile({
   onBack: () => void
   onOpenTimeline: (day: string | null) => void
   /** Busca da barra do perfil: a placa e, se escolhida na busca, a aba a abrir. */
-  onOpenPlate: OpenSearchedPlate
+  onOpenPlate: OpenPlate
   /** O perfil do RO de uma ocorrência ligada à placa. */
   onOpenOccurrence: (ro: string) => void
 }) {
@@ -55,7 +57,6 @@ export function CorrelationPlateProfile({
   const {
     data,
     error,
-    busy,
     retry,
     correlationData,
     correlationError,
@@ -215,7 +216,6 @@ export function CorrelationPlateProfile({
             plate={plate}
             data={data}
             error={error}
-            busy={busy}
             onRetry={retry}
           />
         ))}

@@ -2,9 +2,10 @@ import { LineChart } from 'lucide-react'
 
 import { RecorteSelector } from '@/modules/vehicle-intelligence/app/layout/recorte-selector'
 import { PlateQuickSearch } from '@/modules/vehicle-intelligence/components/plate/plate-quick-search'
-import type { OpenSearchedPlate } from '@/modules/vehicle-intelligence/components/plate/plate-search'
 import { recorte } from '@/modules/vehicle-intelligence/config/recortes'
 import { GeneralReportButton } from '@/modules/vehicle-intelligence/features/reports'
+import { formatDayRange } from '@/modules/vehicle-intelligence/lib/dates'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 interface AppHeaderProps {
   eyebrow: string
@@ -14,14 +15,7 @@ interface AppHeaderProps {
     start: string
     end: string
   }
-  onOpenPlate: OpenSearchedPlate
-}
-
-/** "02/01 – 30/09/2026" (o ano do início só aparece quando difere do fim). */
-function formatPeriod(start: string, end: string): string {
-  const [y1, m1, d1] = start.split('-')
-  const [y2, m2, d2] = end.split('-')
-  return `${d1}/${m1}${y1 === y2 ? '' : `/${y1}`} – ${d2}/${m2}/${y2}`
+  onOpenPlate: OpenPlate
 }
 
 // A navegação entre as telas do módulo fica no sidebar do CIVITAS (Veículos → Inteligência Veicular).
@@ -55,13 +49,13 @@ export function AppHeader({
             className="topbar-scope"
             aria-label={[
               recorte.badge && `Base: ${recorte.badge}`,
-              period && `Período: ${formatPeriod(period.start, period.end)}`,
+              period && `Período: ${formatDayRange(period.start, period.end)}`,
             ]
               .filter(Boolean)
               .join('. ')}
           >
             {recorte.badge && <span>{recorte.badge}</span>}
-            {period && <span>{formatPeriod(period.start, period.end)}</span>}
+            {period && <span>{formatDayRange(period.start, period.end)}</span>}
           </span>
         )}
         {recorte.report && <GeneralReportButton />}

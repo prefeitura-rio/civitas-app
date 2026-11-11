@@ -13,6 +13,7 @@ import { tileUrl } from '@/modules/vehicle-intelligence/lib/api'
 import {
   escapeHtml,
   formatNumber,
+  formatStopDuration,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type {
@@ -31,13 +32,6 @@ type Endpoint = {
   label: string
   position: [number, number]
   count: number
-}
-
-function formatDuration(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds <= 0) return '—'
-  const minutes = Math.round(seconds / 60)
-  if (minutes < 60) return `${minutes} min`
-  return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} min`
 }
 
 function legHeight(leg: PlateProfileTripLeg, maxCount: number): number {
@@ -263,7 +257,7 @@ export default function ProfileTrips3DMap({
     if (layer?.id === 'profile-trip-arcs') {
       const leg = object as PlateProfileTripLeg
       return {
-        html: `<strong>${escapeHtml(leg.origin_location || leg.origin_point_id)} → ${escapeHtml(leg.dest_location || leg.dest_point_id)}</strong><br/>${formatNumber(leg.count)} viagens consecutivas<br/>Mediana: ${formatDuration(leg.median_gap_seconds)}`,
+        html: `<strong>${escapeHtml(leg.origin_location || leg.origin_point_id)} → ${escapeHtml(leg.dest_location || leg.dest_point_id)}</strong><br/>${formatNumber(leg.count)} viagens consecutivas<br/>Mediana: ${formatStopDuration(leg.median_gap_seconds)}`,
         className: 'profile-deck-tooltip',
       }
     }

@@ -23,7 +23,8 @@ export interface PlateFilters {
   taxiFilter: TaxiFilter
   /** Disque Denúncia: só as placas citadas numa denúncia, sem elas ou todas. */
   denunciaFilter: DenunciaFilter
-  minCorrelations: number
+  /** Detecções da placa em todo o período: com 1 ou 2, quase sempre erro de leitura ou coincidência. */
+  minPlateDetections: number
   /** Fatos distintos ligados à placa. */
   minEvents: number
   /** Copassagem: placas vítimas distintas ligadas à placa. */
@@ -42,7 +43,7 @@ export const DEFAULT_PLATE_FILTERS: PlateFilters = {
   plateType: 'todas',
   taxiFilter: 'todos',
   denunciaFilter: 'todos',
-  minCorrelations: 1,
+  minPlateDetections: 3,
   minEvents: copassagem ? 1 : 2,
   minVictims: 1,
   minTemperature: 0,

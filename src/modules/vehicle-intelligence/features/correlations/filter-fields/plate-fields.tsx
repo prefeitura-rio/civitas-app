@@ -85,19 +85,19 @@ export const plateSituation = (alsoVictim?: string): FilterFieldDef => ({
   ),
 })
 
-export const minCorrelations: FilterFieldDef = {
-  key: 'minCorrelations',
-  id: 'graph-min-correlations',
-  label: 'Leituras relacionadas (mín.)',
-  help: 'Quantidade mínima de passagens em que a placa foi relacionada às ocorrências.',
+export const minPlateDetections: FilterFieldDef = {
+  key: 'minPlateDetections',
+  id: 'graph-min-plate-detections',
+  label: 'Detecções da placa (mín.)',
+  help: 'Quantidade mínima de detecções da placa em todo o período. Uma placa lida 1 vez, justo perto de um fato, tem cobertura de 100% (1 de 1): quase sempre é erro de leitura ou coincidência.',
   render: ({ id, query, set }) => (
     <SegmentedChoice
       id={id}
-      value={query.minCorrelations}
-      onChange={(minCorrelations) => set({ minCorrelations })}
-      choices={[1, 2, 5, 10, 25, 50, 100].map((value) => [
+      value={query.minPlateDetections}
+      onChange={(minPlateDetections) => set({ minPlateDetections })}
+      choices={[1, 3, 5, 10, 20].map((value) => [
         value,
-        String(value),
+        value === 1 ? 'Todas' : `${value}+`,
       ])}
     />
   ),
@@ -106,8 +106,8 @@ export const minCorrelations: FilterFieldDef = {
 export const minEvents: FilterFieldDef = {
   key: 'minEvents',
   id: 'graph-min-events',
-  label: 'Fatos ligados (mín.)',
-  help: 'Quantidade mínima de fatos distintos ligados à placa. Num corredor movimentado, milhares de placas passam perto de um único fato.',
+  label: 'Ocorrências ligadas (mín.)',
+  help: 'Quantidade mínima de ocorrências distintas ligadas à placa. Num corredor movimentado, milhares de placas passam perto de uma única ocorrência.',
   render: ({ id, query, set }) => (
     <RangeSlider
       id={id}

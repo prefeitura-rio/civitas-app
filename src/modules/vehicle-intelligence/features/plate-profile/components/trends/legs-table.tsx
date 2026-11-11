@@ -1,7 +1,9 @@
 import { ArrowRight } from 'lucide-react'
 
-import { durationLabel } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatStopDuration,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type { PlateProfileTripLeg } from '@/modules/vehicle-intelligence/types/domain'
 
 const tripTableLimit = 6
@@ -36,7 +38,9 @@ export function LegsTable({ legs }: { legs: PlateProfileTripLeg[] }) {
               <small>{leg.dest_neighborhood || '—'}</small>
             </span>
             <span className="num strong">{formatNumber(leg.count)}</span>
-            <span className="num">{durationLabel(leg.median_gap_seconds)}</span>
+            <span className="num">
+              {formatStopDuration(leg.median_gap_seconds)}
+            </span>
           </div>
         ))}
       </div>

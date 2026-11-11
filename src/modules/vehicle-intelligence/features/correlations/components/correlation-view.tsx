@@ -60,6 +60,7 @@ import type {
   MasterGraphOptions,
   MasterPreData,
 } from '@/modules/vehicle-intelligence/types/domain'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 const NetworkGraph = lazy(() =>
   import(
@@ -73,7 +74,7 @@ export function CorrelationView({
   onOpenOccurrence,
 }: {
   active: boolean
-  onOpenPlate: (plate: string, analysis: 'correlations' | 'trends') => void
+  onOpenPlate: OpenPlate
   /** O perfil do RO (ou os ROs de uma placa vítima), do inspetor da âncora. */
   onOpenOccurrence: (key: string) => void
 }) {

@@ -1,10 +1,10 @@
 /** Os eventos da sequência do grupo: fatos, passagens juntas, partidas, desconexões e as demais leituras. */
-import { toMs } from '@/modules/vehicle-intelligence/components/timeline/group/time'
 import type {
   TimelineCase,
   TimelineDay,
   TimelineDetection,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 
 export type EventKind =
   | 'fact'
@@ -42,7 +42,7 @@ export function buildEvents(
   const events: GroupEvent[] = day.facts.map((fact) => ({
     kind: 'fact',
     key: `fato:${fact.event_id}`,
-    at: toMs(fact.event_time),
+    at: instantMs(fact.event_time),
     fact,
     label: factLabels.get(fact.event_id),
     detections: [],
@@ -50,7 +50,7 @@ export function buildEvents(
   const singleEvent = (detection: TimelineDetection): GroupEvent => ({
     kind: detectionKind(detection),
     key: detection.key,
-    at: toMs(detection.detected_at),
+    at: instantMs(detection.detected_at),
     detections: [detection],
   })
   const byTogetherId = new Map<string, TimelineDetection[]>()
@@ -84,10 +84,10 @@ export function buildEvents(
       kind: 'together',
       key: `junta:${id}`,
       at: Math.min(
-        ...detections.map((detection) => toMs(detection.detected_at)),
+        ...detections.map((detection) => instantMs(detection.detected_at)),
       ),
       detections: detections.sort(
-        (a, b) => toMs(a.detected_at) - toMs(b.detected_at),
+        (a, b) => instantMs(a.detected_at) - instantMs(b.detected_at),
       ),
       inFact: firstFact
         ? (factLabels.get(firstFact) ?? `RO ${firstFact}`)

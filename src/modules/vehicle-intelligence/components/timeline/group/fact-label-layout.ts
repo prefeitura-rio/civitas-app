@@ -1,6 +1,6 @@
 import type { GroupEvent } from '@/modules/vehicle-intelligence/components/timeline/group/events'
 import { measureText } from '@/modules/vehicle-intelligence/components/timeline/group/text-width'
-import { hourMinute } from '@/modules/vehicle-intelligence/components/timeline/group/time'
+import { formatTime } from '@/modules/vehicle-intelligence/lib/dates'
 
 export type FactLabel = {
   text: string
@@ -57,7 +57,7 @@ export function layoutFactLabels(
     r.to <= width + 8
   const placed: FactLabel[] = []
   factEvents.forEach((e, k) => {
-    const fullText = `${e.label} · ${hourMinute(e.at)}`
+    const fullText = `${e.label} · ${formatTime(e.at)}`
     const compactText = (e.label ?? '').replace(/^Fato\s*/, '') || '•'
     const x = (positionPercent(e.at) / 100) * width
     const base = { fullText, compactText, x }

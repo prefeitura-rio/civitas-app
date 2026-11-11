@@ -1,7 +1,9 @@
 import { modalityLabel } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/poles'
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
 import type { PoleConnection } from '@/modules/vehicle-intelligence/features/post-event/types'
-import { pluralize } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatElapsedHours,
+  pluralize,
+} from '@/modules/vehicle-intelligence/lib/format'
 
 export function ConnectionList({
   connections,

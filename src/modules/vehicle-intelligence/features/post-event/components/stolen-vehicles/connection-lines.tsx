@@ -1,12 +1,12 @@
 import { Polyline, Tooltip } from 'react-leaflet'
 
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
 import {
   clusterConnectionOpacity,
   clusterConnectionWeight,
 } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/clusters'
 import { PRIMARY } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/recorte-texts'
 import type { ClusterConnection } from '@/modules/vehicle-intelligence/features/post-event/types'
+import { formatElapsedHours } from '@/modules/vehicle-intelligence/lib/format'
 
 /** As conexões recorrentes do polo aberto, em linha reta (não são rota viária). */
 export function ConnectionLines({

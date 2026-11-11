@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 
+import { recorteStorageKey } from '@/modules/vehicle-intelligence/config/recortes'
 import {
   createLazyStore,
   createStore,
@@ -17,12 +18,15 @@ describe('createStore', () => {
     expect(result.current).toEqual({ months: 7 })
   })
 
-  it('guarda na sessão e completa o valor guardado com o inicial', () => {
+  it('guarda na sessão (por recorte) e completa o valor guardado com o inicial', () => {
     createStore(
       { months: 3, cisps: [] as string[] },
       { storageKey: 'teste' },
     ).set({ months: 6, cisps: ['014'] })
-    window.sessionStorage.setItem('teste', JSON.stringify({ months: 6 }))
+    window.sessionStorage.setItem(
+      recorteStorageKey('teste'),
+      JSON.stringify({ months: 6 }),
+    )
     const store = createStore(
       { months: 3, cisps: [] as string[], extra: true },
       { storageKey: 'teste' },
@@ -31,7 +35,7 @@ describe('createStore', () => {
   })
 
   it('ignora uma sessão ilegível', () => {
-    window.sessionStorage.setItem('teste', '{quebrado')
+    window.sessionStorage.setItem(recorteStorageKey('teste'), '{quebrado')
     expect(createStore({ months: 3 }, { storageKey: 'teste' }).get()).toEqual({
       months: 3,
     })

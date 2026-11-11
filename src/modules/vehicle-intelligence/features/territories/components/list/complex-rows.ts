@@ -1,5 +1,6 @@
 /** As linhas da tabela de complexos: as contas que dependem do Cerco de hoje, o filtro de região e a ordem. */
 import type { TerritoryComplex } from '@/modules/vehicle-intelligence/features/territories/types'
+import { formatPercent } from '@/modules/vehicle-intelligence/lib/format'
 
 /** Complexo com as contas que dependem do Cerco de hoje (feitas aqui, com a mesma lista da etiqueta). */
 export interface ComplexRow extends TerritoryComplex {
@@ -13,7 +14,7 @@ export type RegionFilter = 'all' | 'outside' | 'inside'
 export type SortKey = 'highlighted' | 'unmarked' | 'concentration' | 'plates'
 
 export const percentOf = (part: number, whole: number) =>
-  whole ? `${Math.round((100 * part) / whole)}%` : '—'
+  whole ? formatPercent((100 * part) / whole, 0) : '—'
 
 /** As placas em destaque de cada complexo separadas em sem citação nem Cerco (`unmarked`) e conhecidas (`known`). */
 export function buildComplexRows(

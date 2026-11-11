@@ -2,6 +2,10 @@ import type { ReactNode } from 'react'
 
 import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
 import {
+  formatMeters,
+  formatMinutes,
+} from '@/modules/vehicle-intelligence/lib/format'
+import {
   vehicleDetailsLabel,
   vehicleTypeLabel,
   vehicleTypeSourceLabel,
@@ -16,10 +20,8 @@ export type GraphEdge = MasterPreData['graph']['edges'][number]
 export type GraphNode = MasterPreData['graph']['nodes'][number]
 type Candidate = PreEventCandidate | CorrelationRankingRow
 
-const meters = (value: number | null | undefined) =>
-  value != null ? `${Math.round(value)} m` : '—'
-const minutes = (value: number | null | undefined) =>
-  value != null ? `${value} min` : '—'
+const meters = (value: number | null | undefined) => formatMeters(value)
+const minutes = (value: number | null | undefined) => formatMinutes(value)
 
 /** Linhas de situação comuns às dicas das correlatas. */
 function statusLines(
@@ -104,7 +106,7 @@ const entornoVariant: GraphVariant = {
       `${candidate.linked_events} ocorrências · ${candidate.distinct_days ?? '—'} dias distintos · ${candidate.cisp_count} CISPs`,
       `Tempo até o fato: mediana ${candidate.median_fact_delta_minutes ?? '—'} min · ${candidate.close_fact_events_3m ?? '—'} ocorr. ≤3 min · ${candidate.close_fact_events_5m ?? '—'} ≤5 min`,
       `Proximidade mediana: ${candidate.correlation_strength ?? 'não calculável'}`,
-      `Distância típica equipamento → fato: ${candidate.median_fact_distance_meters != null ? `${Math.round(candidate.median_fact_distance_meters)} m` : 'não calculada'}`,
+      `Distância típica equipamento → fato: ${formatMeters(candidate.median_fact_distance_meters, 'não calculada')}`,
       `Leituras antes / depois do fato: ${candidate.before} / ${candidate.after}`,
     ].join('\n'),
   edgeTitle: (edge) =>
@@ -112,7 +114,7 @@ const entornoVariant: GraphVariant = {
       `RO ${edge.source} ↔ ${edge.target}`,
       `${edge.weight} leituras no entorno do fato`,
       `Leitura mais próxima do horário: ${edge.min_fact_delta_minutes} min · média ${edge.avg_fact_delta_minutes} min`,
-      `Equipamento mais próximo do local: ${edge.min_fact_distance_meters != null ? `${Math.round(edge.min_fact_distance_meters)} m` : 'não calculado'}`,
+      `Equipamento mais próximo do local: ${formatMeters(edge.min_fact_distance_meters, 'não calculado')}`,
       `Antes / depois do fato: ${edge.before} / ${edge.after}`,
       `Proximidade mediana: ${edge.correlation_strength ?? 'não calculável'}`,
     ].join('\n'),
@@ -189,7 +191,7 @@ const copassagemVariant: GraphVariant = {
       `Intervalo entre passagens: ${candidate.median_passage_delta_minutes} min · ${candidate.close_passage_events_3m} ocorr. ≤3 min · ${candidate.close_passage_events_5m} ≤5 min`,
       `Força da correlação: ${candidate.correlation_strength ?? 'não calculável'}`,
       `Fato → correlata: ${candidate.avg_candidate_event_delta_minutes} min em média`,
-      `Distância típica radar → fato: ${candidate.median_fact_distance_meters != null ? `${Math.round(candidate.median_fact_distance_meters)} m` : 'não calculada'}`,
+      `Distância típica radar → fato: ${formatMeters(candidate.median_fact_distance_meters, 'não calculada')}`,
     ].join('\n'),
   edgeTitle: (edge) =>
     [
@@ -198,7 +200,7 @@ const copassagemVariant: GraphVariant = {
       `Intervalo entre passagens: ${edge.median_passage_delta_minutes} min · ${edge.close_passage_events_3m} ocorr. ≤3 min · ${edge.close_passage_events_5m} ≤5 min`,
       `Força da correlação: ${edge.correlation_strength ?? 'não calculável'}`,
       `Fato → correlata: ${edge.avg_candidate_event_delta_minutes} min em média`,
-      `Distância típica radar → fato: ${edge.median_fact_distance_meters != null ? `${Math.round(edge.median_fact_distance_meters)} m` : 'não calculada'}`,
+      `Distância típica radar → fato: ${formatMeters(edge.median_fact_distance_meters, 'não calculada')}`,
     ].join('\n'),
   strengthLabel: 'Força da correlação',
   candidateCards: (candidate) => [

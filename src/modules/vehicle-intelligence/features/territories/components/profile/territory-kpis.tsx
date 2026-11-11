@@ -3,7 +3,10 @@ import type {
   TerritoryProfileData,
 } from '@/modules/vehicle-intelligence/features/territories/types'
 import { ITEMS } from '@/modules/vehicle-intelligence/features/territories/vocabulary'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatPercent,
+} from '@/modules/vehicle-intelligence/lib/format'
 
 /** O resumo do território: placas de base, em destaque, sem marca, conhecidas e as que vêm de fora da região. */
 export function TerritoryKpis({
@@ -47,7 +50,7 @@ export function TerritoryKpis({
       <div>
         <strong>
           {withProfile.length
-            ? `${Math.round((100 * fromOutside.length) / withProfile.length)}%`
+            ? formatPercent((100 * fromOutside.length) / withProfile.length, 0)
             : '—'}
         </strong>
         <span>

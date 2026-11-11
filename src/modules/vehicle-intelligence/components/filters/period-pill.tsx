@@ -1,7 +1,6 @@
 import { CalendarDays, Check } from 'lucide-react'
 
 import {
-  dayLabel,
   type FactPeriod,
   type FactPeriodFilter,
   PERIOD_PRESETS,
@@ -9,6 +8,7 @@ import {
   periodRangeLabel,
 } from '@/modules/vehicle-intelligence/components/filters/fact-period'
 import { FilterPill } from '@/modules/vehicle-intelligence/components/filters/filter-pill'
+import { formatCivilDay } from '@/modules/vehicle-intelligence/lib/dates'
 
 /** Período dos fatos: atalhos a partir do fato mais recente e intervalo livre (De / Até). */
 export function PeriodPill({
@@ -25,7 +25,7 @@ export function PeriodPill({
   const display = preset
     ? preset[2]
     : custom.start || custom.end
-      ? `${custom.start ? dayLabel(custom.start) : '…'} – ${custom.end ? dayLabel(custom.end) : '…'}`
+      ? `${formatCivilDay(custom.start, '…')} – ${formatCivilDay(custom.end, '…')}`
       : 'Base inteira'
   const fallback = periodDates({ preset: '12m' }, factPeriod)
   return (

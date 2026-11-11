@@ -1,9 +1,9 @@
-import { eachDay } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
 import {
   CORRELATION_SECTION_DEFS,
   correlationSectionBadge,
   sectionBadge,
 } from '@/modules/vehicle-intelligence/features/plate-profile/profile-sections'
+import { eachDay } from '@/modules/vehicle-intelligence/lib/dates'
 import type {
   PlateCorrelationsData,
   PlateProfileData,

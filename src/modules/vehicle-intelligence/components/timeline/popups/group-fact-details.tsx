@@ -1,15 +1,12 @@
 import { plateTrackColor } from '@/modules/vehicle-intelligence/components/timeline/correlation'
-import {
-  dayMonthTime,
-  territoryLabel,
-} from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
+import { territoryLabel } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
 import type {
   TimelineCase,
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
 import {
-  parseInstant,
-  TIME_ZONE,
+  civilDay,
+  formatDayMonthTime,
 } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatHours } from '@/modules/vehicle-intelligence/lib/format'
 
@@ -32,10 +29,7 @@ export function GroupFactDetails({
     />
   )
   const outside = group.disconnections.filter(
-    (mark) =>
-      parseInstant(mark.at).toLocaleDateString('sv-SE', {
-        timeZone: TIME_ZONE,
-      }) !== day,
+    (mark) => civilDay(mark.at) !== day,
   )
   return (
     <div className="timeline-group-fact">
@@ -84,7 +78,7 @@ export function GroupFactDetails({
           {outside.map((mark) => (
             <small key={mark.plate}>
               {dot(mark.plate)}
-              {mark.plate} · {dayMonthTime.format(parseInstant(mark.at))}
+              {mark.plate} · {formatDayMonthTime(mark.at)}
               {mark.elapsed_hours != null
                 ? ` · ${formatHours(mark.elapsed_hours)} depois do fato`
                 : ''}

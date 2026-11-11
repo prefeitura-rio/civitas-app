@@ -1,23 +1,21 @@
 import {
   copassagem,
-  recorteAtual,
+  recorte,
 } from '@/modules/vehicle-intelligence/config/recortes'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatDistance,
+  formatMinutes,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type {
   PlateCorrelationsData,
   PlateProfileOccurrence,
 } from '@/modules/vehicle-intelligence/types/domain'
 
-export function distanceLabel(value: number | null | undefined): string {
-  if (value == null || !Number.isFinite(value)) return '—'
-  return value < 1000
-    ? `${Math.round(value)} m`
-    : `${(value / 1000).toFixed(1).replace('.', ',')} km`
-}
-
-const minutes = (value: number | null | undefined) =>
-  value == null ? '—' : `${value} min`
+/** O perfil escreve o km sempre com uma casa ("1,0 km"). */
+const distanceLabel = (meters: number | null | undefined) =>
+  formatDistance(meters, { fixedKm: true })
 
 /** Tipo de delito e deslocamento do autor, sem repetir "não informado". */
 function factLabel(
@@ -66,11 +64,6 @@ interface ProfileVariant {
   disclaimer: string
 }
 
-const VICTIM_TEXT =
-  recorteAtual === 'carga'
-    ? { known: 'também consta como vítima neste recorte de carga' }
-    : { known: 'já registrada como vítima de subtração' }
-
 const entorno: ProfileVariant = {
   classification: (data) =>
     data.is_active_taxi
@@ -90,7 +83,7 @@ const entorno: ProfileVariant = {
     ['Leituras', cooccurrences == null ? '—' : formatNumber(cooccurrences)],
     [
       'Δt',
-      minutes(item.fact_delta_minutes),
+      formatMinutes(item.fact_delta_minutes),
       'Tempo entre o fato e a leitura mais próxima',
     ],
     ['Distância', distanceLabel(item.fact_distance_meters)],
@@ -116,7 +109,7 @@ const copassagemVariant: ProfileVariant = {
       : {
           chip: 'TAMBÉM VÍTIMA',
           title: 'Também placa vítima',
-          text: VICTIM_TEXT.known,
+          text: recorte.victim?.alsoVictimText ?? '',
         },
   anchor: (item) => ({
     label: 'Placa vítima',
@@ -127,7 +120,7 @@ const copassagemVariant: ProfileVariant = {
   evidence: (item) => [
     [
       'Δt ao fato',
-      minutes(item.candidate_event_delta_minutes),
+      formatMinutes(item.candidate_event_delta_minutes),
       'Tempo entre o fato e a passagem da correlata',
     ],
     ['Distância', distanceLabel(item.fact_distance_meters)],

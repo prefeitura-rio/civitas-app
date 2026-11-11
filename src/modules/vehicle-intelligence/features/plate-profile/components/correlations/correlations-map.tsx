@@ -15,8 +15,8 @@ import {
   citedColor,
   victimColor,
 } from '@/modules/vehicle-intelligence/features/plate-profile/profile-colors'
-import { formatTimestamp } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
 import { PROFILE } from '@/modules/vehicle-intelligence/features/plate-profile/profile-variants'
+import { formatDateTime } from '@/modules/vehicle-intelligence/lib/dates'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type { PlateProfileOccurrence } from '@/modules/vehicle-intelligence/types/domain'
 
@@ -121,7 +121,7 @@ export function CorrelationsMap({
                 </span>
                 <strong>
                   {item.crime_type || categoryLabel(item.modality)} ·{' '}
-                  {formatTimestamp(item.event_time)}
+                  {formatDateTime(item.event_time)}
                 </strong>
                 <span className="profile-occurrence-place">
                   {item.event_address || 'Endereço não informado'}

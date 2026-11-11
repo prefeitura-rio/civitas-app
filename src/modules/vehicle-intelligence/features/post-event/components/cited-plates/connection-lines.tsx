@@ -1,9 +1,11 @@
 import { Polyline, Tooltip } from 'react-leaflet'
 
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
 import { markerScale } from '@/modules/vehicle-intelligence/features/post-event/components/shared/map-markers'
 import type { PoleConnection } from '@/modules/vehicle-intelligence/features/post-event/types'
-import { pluralize } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatElapsedHours,
+  pluralize,
+} from '@/modules/vehicle-intelligence/lib/format'
 
 /** As ligações do polo aberto; tracejadas quando só uma ocorrência liga os polos. */
 export function ConnectionLines({

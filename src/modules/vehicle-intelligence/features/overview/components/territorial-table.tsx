@@ -13,7 +13,10 @@ import {
   TableRow,
 } from '@/modules/vehicle-intelligence/components/ui/table'
 import { OVERVIEW } from '@/modules/vehicle-intelligence/features/overview/overview-variants'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatPercent,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { cispParts } from '@/modules/vehicle-intelligence/lib/labels'
 import type { DashboardData } from '@/modules/vehicle-intelligence/types/domain'
 
@@ -92,15 +95,11 @@ export function TerritorialTable({ data }: { data: DashboardData }) {
                   <b>{formatNumber(row.ocorrencias)}</b>
                 </TableCell>
                 <TableCell>
-                  {data.summary.total
-                    ? (
-                        (row.ocorrencias / data.summary.total) *
-                        100
-                      ).toLocaleString('pt-BR', {
-                        maximumFractionDigits: 1,
-                      })
-                    : 0}
-                  %
+                  {formatPercent(
+                    data.summary.total
+                      ? (row.ocorrencias / data.summary.total) * 100
+                      : 0,
+                  )}
                 </TableCell>
               </TableRow>
             ))

@@ -1,3 +1,4 @@
+import { formatPercent } from '@/modules/vehicle-intelligence/lib/format'
 /** Textos dos gráficos de tendências: dias, meses, plurais, a faixa de uma hora e a parte do total. */
 
 export const WEEKDAY_SHORT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -35,5 +36,5 @@ export function shareOfTotal(n: number, total: number): string {
   const percent = (100 * n) / Math.max(1, total)
   return n > 0 && percent < 0.5
     ? 'menos de 1% do total'
-    : `${Math.round(percent)}% do total`
+    : `${formatPercent(percent, 0)} do total`
 }

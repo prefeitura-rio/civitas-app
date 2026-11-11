@@ -10,14 +10,43 @@ import type {
   RioNeighborhoodGeometry,
 } from '@/modules/vehicle-intelligence/types/domain'
 
-/** O erro da API: a mensagem de `detail` (FastAPI) ou o código HTTP. */
-export async function responseError(response: Response): Promise<Error> {
-  const detail = await response.json().catch(() => null)
+/** Uma resposta de erro da API: a mensagem de `detail` (FastAPI) ou o código HTTP, o status e o corpo lido. */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly body: unknown,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+async function responseError(response: Response): Promise<ApiError> {
+  const body = await response.json().catch(() => null)
   const message =
-    typeof detail?.detail === 'string'
-      ? detail.detail
-      : detail?.detail?.[0]?.msg
-  return new Error(message || `Falha ao consultar a API (${response.status})`)
+    typeof body?.detail === 'string' ? body.detail : body?.detail?.[0]?.msg
+  return new ApiError(
+    message || `Falha ao consultar a API (${response.status})`,
+    response.status,
+    body,
+  )
+}
+
+/**
+ * Uma chamada sem memória e sem junção de pedidos iguais, com o método que for (estado e geração de relatórios,
+ * download): a resposta como veio, ou `ApiError`.
+ */
+export async function fetchApi(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const response = await fetch(recorteApiPath(path), {
+    cache: 'no-store',
+    ...init,
+  })
+  if (!response.ok) throw await responseError(response)
+  return response
 }
 
 /**

@@ -1,8 +1,8 @@
 /** O que as tendências derivam do perfil e das correlações: os dias do período, os fatos do recorte e os pontos do mapa. */
 import { useMemo } from 'react'
 
-import { eachDay } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
 import type { CirclePoint } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-map'
+import { eachDay } from '@/modules/vehicle-intelligence/lib/dates'
 import type {
   PlateCorrelationsData,
   PlateProfileData,

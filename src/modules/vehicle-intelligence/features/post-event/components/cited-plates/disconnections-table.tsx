@@ -1,7 +1,7 @@
 import { Button } from '@/modules/vehicle-intelligence/components/ui/button'
-import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/event-time'
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
 import type { PostEventData } from '@/modules/vehicle-intelligence/features/post-event/types'
+import { formatElapsedHours } from '@/modules/vehicle-intelligence/lib/format'
 
 /** Cada par placa–ocorrência: o último local lido antes do hiato e quando a placa voltou a ser lida. */
 export function DisconnectionsTable({

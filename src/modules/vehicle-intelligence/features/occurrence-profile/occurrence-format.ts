@@ -1,5 +1,6 @@
 /** Regras puras do perfil do RO: o que a chave da rota é, os sinais e a ordem das listas, os rótulos e os pontos do
  * mapa, e onde uma placa citada aparece no relato. */
+import type { ServerSort } from '@/modules/vehicle-intelligence/features/occurrence-profile/api'
 import type {
   OccurrencePlateRow,
   OccurrencePoint,
@@ -9,7 +10,12 @@ import {
   formatDate,
   parseInstant,
 } from '@/modules/vehicle-intelligence/lib/dates'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatDistance,
+  formatMinutes,
+  formatMinutesFromFact,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { titleCase } from '@/modules/vehicle-intelligence/lib/labels'
 
 const PLATE = /^[A-Z]{3}\d[A-Z0-9]\d{2}$/
@@ -120,20 +126,89 @@ export const SIGNAL_ORDER =
 // ---------------------------------------------------------------- ordem das listas
 
 export type PlateSort =
+  | 'fact_time'
+  | 'days'
+  | 'same_day'
+  | 'links'
   | 'signal'
   | 'strength'
   | 'together'
-  | 'fact_time'
   | 'distance'
   | 'plate'
 
-export const SORT_LABELS: Record<PlateSort, string> = {
-  signal: 'com sinal primeiro, na ordem do sinal; depois, a força',
-  strength: 'força da correlação',
-  together: 'passagens junto da vítima',
-  fact_time: 'menor tempo até o fato',
-  distance: 'menor distância do local',
+/** As abas de ordem da lista, na ordem da tela; a primeira é a padrão (cronológica, do mais perto ao mais longe).
+ * "Dias de circulação" é a cobertura do grafo; "no dia do RO", as placas com várias suspeitas no mesmo dia. */
+export const SORT_TABS: Array<[PlateSort, string]> = [
+  ['fact_time', 'Mais perto do horário'],
+  ['days', 'Dias de circulação'],
+  ['same_day', 'Correlações no dia do RO'],
+  ['links', 'Correlações'],
+  ['signal', 'Com sinal primeiro'],
+]
+export const DEFAULT_SORT: PlateSort = 'fact_time'
+
+/** O sentido de cada ordem, no padrão e trocado ("signal" não troca). */
+const SORT_DIRECTIONS: Record<PlateSort, [string, string]> = {
+  fact_time: [
+    'do mais perto do horário do fato ao mais longe',
+    'do mais longe do horário do fato ao mais perto',
+  ],
+  days: [
+    'maior cobertura primeiro (dias de circulação)',
+    'menor cobertura primeiro (dias de circulação)',
+  ],
+  same_day: [
+    'mais correlações no dia do RO primeiro',
+    'menos correlações no dia do RO primeiro',
+  ],
+  links: ['mais correlações primeiro', 'menos correlações primeiro'],
+  signal: ['com sinal primeiro, na ordem do sinal; depois, a força', ''],
+  strength: ['maior força primeiro', 'menor força primeiro'],
+  together: [
+    'mais passagens junto ou leituras primeiro',
+    'menos passagens junto ou leituras primeiro',
+  ],
+  distance: ['mais perto do local primeiro', 'mais longe do local primeiro'],
+  plate: ['placa, de A a Z', 'placa, de Z a A'],
+}
+
+/** O sentido no botão ao lado das abas: curto, porque a aba já diz a ordem. */
+const SHORT_DIRECTIONS: Partial<Record<PlateSort, [string, string]>> = {
+  fact_time: ['mais perto primeiro', 'mais longe primeiro'],
+  days: ['maior cobertura primeiro', 'menor cobertura primeiro'],
+  same_day: ['mais no dia primeiro', 'menos no dia primeiro'],
+  together: ['mais primeiro', 'menos primeiro'],
+}
+
+/** "do mais perto do horário do fato ao mais longe", "mais dias de circulação primeiro"... (`short`: o do botão). */
+export function sortLabel(
+  sort: PlateSort,
+  inverted: boolean,
+  short = false,
+): string {
+  const labels = (short && SHORT_DIRECTIONS[sort]) || SORT_DIRECTIONS[sort]
+  return labels[inverted && sort !== 'signal' ? 1 : 0]
+}
+
+/** A ordem da tela no nome da API: ela ordena antes do limite de linhas, então a lista traz as primeiras de todas. */
+export const SERVER_SORT: Record<PlateSort, ServerSort> = {
+  fact_time: 'tempo',
+  days: 'dias',
+  same_day: 'no_dia',
+  links: 'ligacoes',
+  signal: 'sinal',
+  strength: 'forca',
+  together: 'junto',
+  distance: 'distancia',
   plate: 'placa',
+}
+
+/** A ordem que a API aplicou (o eco `sort` do perfil), no nome da tela. */
+export function appliedSort(server: string): PlateSort {
+  const found = (
+    Object.entries(SERVER_SORT) as Array<[PlateSort, ServerSort]>
+  ).find(([, name]) => name === server)
+  return found ? found[0] : 'signal'
 }
 
 /** Maior primeiro (força, passagens) ou menor primeiro (tempo, distância); ausente sempre no fim. */
@@ -145,6 +220,9 @@ const SORT_VALUES: Record<
   together: [(row) => row.cooccurrences ?? row.readings, -1],
   fact_time: [(row) => row.min_fact_delta_minutes, 1],
   distance: [(row) => row.min_fact_distance_meters, 1],
+  links: [(row) => row.linked_ros, -1],
+  days: [(row) => row.coverage, -1],
+  same_day: [(row) => row.same_day_ros, -1],
 }
 
 /** As linhas na ordem pedida. "signal": pela ordem dos sinais; dentro de cada um (e sem sinal), a ordem da API, que é
@@ -176,24 +254,6 @@ export function sortRows(
 
 // ---------------------------------------------------------------- rótulos
 
-/** "7 min antes", "3 min depois", "no minuto do fato" (`minutes` negativo é antes). */
-export function minutesLabel(minutes: number | null | undefined): string {
-  if (minutes == null) return '—'
-  const rounded = Math.round(Math.abs(minutes))
-  if (rounded === 0) return 'no minuto do fato'
-  const amount =
-    rounded >= 120
-      ? `${(rounded / 60).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} h`
-      : `${rounded} min`
-  return `${amount} ${minutes < 0 ? 'antes' : 'depois'}`
-}
-
-/** "3,3 min" (sem sinal; a lista guarda o tempo absoluto). */
-export const minutesAmount = (minutes: number | null | undefined) =>
-  minutes == null
-    ? '—'
-    : `${minutes.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} min`
-
 /** As leituras de uma placa: a primeira e a última. */
 export type ReadingSpan = {
   first_seen: string | null
@@ -209,7 +269,7 @@ export function factDeltaLabel(
 ): string {
   if (minutes == null) return '—'
   if (Math.abs(minutes) < 0.5) return 'no minuto do fato'
-  const amount = minutesAmount(minutes)
+  const amount = formatMinutes(minutes)
   if (!eventTime || !span.first_seen || !span.last_seen) return amount
   const fact = parseInstant(eventTime).getTime()
   if (parseInstant(span.last_seen).getTime() < fact) return `${amount} antes`
@@ -228,13 +288,6 @@ export function aroundLabel(
   return `${formatNumber(before)} antes e ${formatNumber(after)} depois ${reference}`
 }
 
-/** "510 m", "2,4 km". */
-export function distanceLabel(meters: number | null | undefined): string {
-  if (meters == null) return '—'
-  if (meters < 1000) return `${formatNumber(Math.round(meters))} m`
-  return `${(meters / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`
-}
-
 /** "a 510 m · 7 min antes" (sem as partes ausentes). */
 export const readingLabel = (reading: {
   distance_meters: number | null
@@ -242,9 +295,9 @@ export const readingLabel = (reading: {
 }) =>
   [
     reading.distance_meters != null
-      ? `a ${distanceLabel(reading.distance_meters)}`
+      ? `a ${formatDistance(reading.distance_meters)}`
       : null,
-    minutesLabel(reading.minutes_from_fact),
+    formatMinutesFromFact(reading.minutes_from_fact),
   ]
     .filter(Boolean)
     .join(' · ')

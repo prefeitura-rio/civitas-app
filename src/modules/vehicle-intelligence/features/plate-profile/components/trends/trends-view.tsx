@@ -8,7 +8,6 @@ import {
   Users,
 } from 'lucide-react'
 
-import type { OpenSearchedPlate } from '@/modules/vehicle-intelligence/components/plate/plate-search'
 import { recorte } from '@/modules/vehicle-intelligence/config/recortes'
 import { RoutineNeighbors } from '@/modules/vehicle-intelligence/features/groups'
 import { ProfileHeading } from '@/modules/vehicle-intelligence/features/plate-profile/components/layout/profile-heading'
@@ -28,6 +27,7 @@ import type {
   PlateProfileData,
   RioNeighborhoodGeometry,
 } from '@/modules/vehicle-intelligence/types/domain'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 /** As tendências de circulação com o perfil pronto: destaques e as seções do índice "Nesta análise". */
 export function TrendsView({
@@ -47,7 +47,7 @@ export function TrendsView({
   neighborhoodGeometry: RioNeighborhoodGeometry | null
   neighborhoodGeometryError: string | null
   registerSection: RegisterSection
-  onOpenPlate: OpenSearchedPlate
+  onOpenPlate: OpenPlate
 }) {
   const { periodDays, scopedOccurrenceDays, occurrenceIndices } = trends
   return (

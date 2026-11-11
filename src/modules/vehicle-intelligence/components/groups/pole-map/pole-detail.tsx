@@ -9,7 +9,7 @@ import {
 import { factionAbbreviation } from '@/modules/vehicle-intelligence/components/map/territories-layer'
 import {
   formatDayMonthYear,
-  formatInBrasilia,
+  formatTime,
 } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 import { shortAddress } from '@/modules/vehicle-intelligence/lib/labels'
@@ -97,12 +97,7 @@ export function PoleDetail({
               <span className="light">
                 {formatDayMonthYear(groupEvent.occurred_at)}
               </span>{' '}
-              <span className="dim">
-                {formatInBrasilia(groupEvent.occurred_at, {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>{' '}
+              <span className="dim">{formatTime(groupEvent.occurred_at)}</span>{' '}
               <span>
                 ·{' '}
                 {pole.items

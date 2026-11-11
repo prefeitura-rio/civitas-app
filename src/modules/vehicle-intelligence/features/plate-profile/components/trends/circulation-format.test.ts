@@ -1,20 +1,10 @@
 import {
-  durationLabel,
   fillDaily,
   formatCoords,
   normalizeNeighborhood,
 } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
 
 describe('plate-profile/circulation-format', () => {
-  it('escreve a duração em segundos, minutos, horas ou dias', () => {
-    expect(durationLabel(45)).toBe('45 s')
-    expect(durationLabel(90)).toBe('2 min')
-    expect(durationLabel(2 * 3600 + 5 * 60)).toBe('2 h 05 min')
-    expect(durationLabel(36 * 3600)).toBe('1,5 dias')
-    expect(durationLabel(0)).toBe('—')
-    expect(durationLabel(Number.NaN)).toBe('—')
-  })
-
   it('mostra as coordenadas com seis casas, ou nada sem as duas', () => {
     expect(formatCoords(-22.9761544, -43.19)).toBe('-22.976154, -43.190000')
     expect(formatCoords(null, -43.19)).toBeNull()

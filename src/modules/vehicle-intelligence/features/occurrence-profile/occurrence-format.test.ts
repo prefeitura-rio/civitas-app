@@ -1,20 +1,25 @@
 import {
   aroundLabel,
-  distanceLabel,
   factDeltaLabel,
   keyKind,
   looseRanges,
   mergePoints,
-  minutesLabel,
   plateSignals,
   readingLabel,
+  SERVER_SORT,
   snippetAround,
+  SORT_TABS,
+  sortLabel,
   sortRows,
 } from '@/modules/vehicle-intelligence/features/occurrence-profile/occurrence-format'
 import type {
   OccurrencePlateRow,
   OccurrencePoint,
 } from '@/modules/vehicle-intelligence/features/occurrence-profile/types'
+import {
+  formatDistance,
+  formatMinutesFromFact,
+} from '@/modules/vehicle-intelligence/lib/format'
 
 const RO = '010-10545/2026'
 const row = (plate: string, fields: Partial<OccurrencePlateRow>) =>
@@ -162,11 +167,11 @@ describe('sortRows', () => {
 
 describe('rótulos', () => {
   it('minutos antes e depois do fato', () => {
-    expect(minutesLabel(-6.7)).toBe('7 min antes')
-    expect(minutesLabel(41)).toBe('41 min depois')
-    expect(minutesLabel(0.2)).toBe('no minuto do fato')
-    expect(minutesLabel(-982)).toBe('16,4 h antes')
-    expect(minutesLabel(null)).toBe('—')
+    expect(formatMinutesFromFact(-6.7)).toBe('7 min antes')
+    expect(formatMinutesFromFact(41)).toBe('41 min depois')
+    expect(formatMinutesFromFact(0.2)).toBe('no minuto do fato')
+    expect(formatMinutesFromFact(-982)).toBe('16,4 h antes')
+    expect(formatMinutesFromFact(null)).toBe('—')
   })
 
   it('o menor tempo ao fato com o sentido quando as leituras são todas de um lado', () => {
@@ -193,8 +198,8 @@ describe('rótulos', () => {
   })
 
   it('distância em metros ou quilômetros', () => {
-    expect(distanceLabel(510)).toBe('510 m')
-    expect(distanceLabel(2366)).toBe('2,4 km')
+    expect(formatDistance(510)).toBe('510 m')
+    expect(formatDistance(2366)).toBe('2,4 km')
     expect(readingLabel({ distance_meters: 187, minutes_from_fact: 0 })).toBe(
       'a 187 m · no minuto do fato',
     )
@@ -266,5 +271,30 @@ describe('a placa no relato', () => {
     expect(snippet.match).toBe('Era 5j37')
     expect(snippet.before.startsWith('…')).toBe(true)
     expect(snippet.after.endsWith('…')).toBe(true)
+  })
+})
+
+describe('ordem da lista', () => {
+  it('a aba padrão é a cronológica e cada aba tem o nome da API', () => {
+    expect(SORT_TABS[0][0]).toBe('fact_time')
+    expect(SORT_TABS.map(([sort]) => SERVER_SORT[sort])).toEqual([
+      'tempo',
+      'dias',
+      'no_dia',
+      'ligacoes',
+      'sinal',
+    ])
+  })
+  it('o sentido troca, menos na ordem do sinal; o botão usa o rótulo curto', () => {
+    expect(sortLabel('fact_time', false)).toBe(
+      'do mais perto do horário do fato ao mais longe',
+    )
+    expect(sortLabel('fact_time', true, true)).toBe('mais longe primeiro')
+    expect(sortLabel('days', false, true)).toBe('maior cobertura primeiro')
+    expect(sortLabel('same_day', true)).toBe(
+      'menos correlações no dia do RO primeiro',
+    )
+    expect(sortLabel('links', false, true)).toBe('mais correlações primeiro')
+    expect(sortLabel('signal', true)).toBe(sortLabel('signal', false))
   })
 })

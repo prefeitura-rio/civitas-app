@@ -10,6 +10,7 @@ import {
 import type { TrendsData } from '@/modules/vehicle-intelligence/components/groups/trends/trends-data'
 import { useTooltip } from '@/modules/vehicle-intelligence/components/groups/trends/use-tooltip'
 import { MONTH_ABBREVIATIONS } from '@/modules/vehicle-intelligence/lib/dates'
+import { formatDecimal } from '@/modules/vehicle-intelligence/lib/format'
 
 type SeriesKey = 'all' | 'together'
 
@@ -120,11 +121,8 @@ export function MonthlySeries({
         <span>
           <span className="group-figure-title">Fatos por mês</span>
           <span className="group-figure-summary">
-            Média de{' '}
-            {(events.length / n).toLocaleString('pt-BR', {
-              maximumFractionDigits: 1,
-            })}{' '}
-            por mês · pico em {MONTH_NAMES[monthOf(peak)]}, com {maximum} ROs
+            Média de {formatDecimal(events.length / n, 1)} por mês · pico em{' '}
+            {MONTH_NAMES[monthOf(peak)]}, com {maximum} ROs
           </span>
         </span>
         <span className="group-series-legend">

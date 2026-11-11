@@ -10,8 +10,6 @@ import { cachedResponse, request } from '@/modules/vehicle-intelligence/lib/api'
 export interface UseApiOptions {
   /** Espera antes de pedir (ms): filtros mudados em sequência viram um pedido só. */
   delayMs?: number
-  /** Mensagem quando a falha não é um `Error` com texto. */
-  fallbackError?: string
 }
 
 export interface ApiState<T> {
@@ -36,7 +34,7 @@ export function useApi<T>(
   path: string | null,
   options: UseApiOptions = {},
 ): ApiState<T> {
-  const { delayMs = 0, fallbackError = 'Falha na consulta da API' } = options
+  const { delayMs = 0 } = options
   const [state, setState] = useState<State<T>>(() => {
     const cached = path ? cachedResponse<T>(path) : null
     return {
@@ -65,7 +63,10 @@ export function useApi<T>(
         })
         .catch((reason: unknown) => {
           if (controller.signal.aborted) return
-          const error = reason instanceof Error ? reason.message : fallbackError
+          const error =
+            reason instanceof Error
+              ? reason.message
+              : 'Falha na consulta da API'
           setState((current) => ({ ...current, error, loading: false }))
         })
     }, delayMs)
@@ -73,7 +74,7 @@ export function useApi<T>(
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [path, revision, delayMs, fallbackError])
+  }, [path, revision, delayMs])
 
   const reload = useCallback(() => setRevision((current) => current + 1), [])
   return { ...state, reload }

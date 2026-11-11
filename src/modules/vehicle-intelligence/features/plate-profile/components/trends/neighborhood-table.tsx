@@ -1,5 +1,7 @@
-import { formatPercent } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatPercent,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type { PlateProfileNeighborhood } from '@/modules/vehicle-intelligence/types/domain'
 
 const circulationTableLimit = 8

@@ -12,7 +12,10 @@ import {
   recorteAtual,
   type RecorteId,
 } from '@/modules/vehicle-intelligence/config/recortes'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatPercent,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { DEFAULT_EVENT_SCOPE } from '@/modules/vehicle-intelligence/stores/event-scope'
 import type {
   CrimeType,
@@ -22,7 +25,7 @@ import type {
 } from '@/modules/vehicle-intelligence/types/domain'
 
 const share = (value: number | undefined, total: number) =>
-  `${(((value ?? 0) / Math.max(total, 1)) * 100).toFixed(1)}%`
+  formatPercent(((value ?? 0) / Math.max(total, 1)) * 100, 1, true)
 
 type Kpi = { label: string; value: string; meta: string; icon: LucideIcon }
 /** Modalidade com seus totais por CISP; `secondary` fica fora do gráfico de modalidade. */
@@ -92,6 +95,38 @@ const VARIANTS: Record<RecorteId, OverviewVariant> = {
         meta: `${share(summary.motorizadas, summary.total)} com moto ou carro`,
         icon: Bike,
       },
+    ],
+  },
+  transeuntes_cidade: {
+    title: (data) =>
+      data?.summary.area
+        ? `Panorama da cidade · ${data.summary.area}`
+        : 'Panorama da cidade',
+    text: 'Roubos e furtos a transeuntes e de celular em todo o município, dos microdados do ISP (experimental, sem relato).',
+    totalLabel: 'ocorrências',
+    focusArea: true,
+    columns: ROBBERY_THEFT_COLUMNS,
+    donutTitle: 'Roubo x furto',
+    kpis: (data) => [
+      {
+        label: 'Total de delitos',
+        value: formatNumber(data.summary.total),
+        meta: 'ocorrências a transeuntes',
+        icon: ShieldAlert,
+      },
+      {
+        label: 'Roubos',
+        value: formatNumber(data.summary.roubos ?? 0),
+        meta: `${share(data.summary.roubos, data.summary.total)} das ocorrências`,
+        icon: Siren,
+      },
+      {
+        label: 'Furtos',
+        value: formatNumber(data.summary.furtos ?? 0),
+        meta: `${share(data.summary.furtos, data.summary.total)} das ocorrências`,
+        icon: Hand,
+      },
+      concentration(data, 'ocorrências'),
     ],
   },
   veiculos: {

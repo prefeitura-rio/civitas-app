@@ -10,6 +10,7 @@ import {
 import { useApi } from '@/modules/vehicle-intelligence/hooks/use-api'
 import { MASTER_GRAPH_OPTIONS_PATH } from '@/modules/vehicle-intelligence/lib/api'
 import type { MasterGraphOptions } from '@/modules/vehicle-intelligence/types/domain'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 /** Entorno: para onde vão as placas citadas na dinâmica depois dos fatos (a tela do pós-evento de transeuntes). */
 export default function CitedPlatesView({
@@ -17,7 +18,7 @@ export default function CitedPlatesView({
   onOpenPlate,
 }: {
   active: boolean
-  onOpenPlate: (plate: string) => void
+  onOpenPlate: OpenPlate
 }) {
   const { data: options } = useApi<MasterGraphOptions>(
     MASTER_GRAPH_OPTIONS_PATH,
@@ -29,7 +30,7 @@ export default function CitedPlatesView({
     <CitedPlatesContent
       key={attempt}
       active={active}
-      onOpenPlate={onOpenPlate}
+      onOpenPlate={(plate) => onOpenPlate(plate, { analysis: 'trends' })}
       options={options}
       filters={filters}
       onFiltersChange={setFilters}

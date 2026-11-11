@@ -10,12 +10,13 @@ import { Panel } from '@/modules/vehicle-intelligence/components/panel'
 import { PanelHeader } from '@/modules/vehicle-intelligence/components/panel-header'
 import { OVERVIEW } from '@/modules/vehicle-intelligence/features/overview/overview-variants'
 import {
-  brasiliaFormatter,
-  parseInstant,
+  formatDateTime,
+  formatMonthYearRange,
 } from '@/modules/vehicle-intelligence/lib/dates'
 import {
   escapeHtml,
   formatNumber,
+  formatPercent,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type {
@@ -25,14 +26,6 @@ import type {
   DashboardPoint,
 } from '@/modules/vehicle-intelligence/types/domain'
 
-const dateTimeFormatter = brasiliaFormatter({
-  dateStyle: 'short',
-  timeStyle: 'short',
-})
-const monthYearFormatter = brasiliaFormatter({
-  month: 'short',
-  year: 'numeric',
-})
 const POINT_COLORS: Record<CrimeType, string> = {
   ROUBO: '#ff4d5e',
   FURTO: '#f2b233',
@@ -58,15 +51,6 @@ function FitArea({ data }: { data: DashboardData }) {
     // Dependências incompletas de propósito.
   }, [map, signature])
   return null
-}
-
-function mapPeriodLabel(start: string, end: string) {
-  const format = (value: string) =>
-    monthYearFormatter
-      .format(parseInstant(value))
-      .replace('.', '')
-      .toUpperCase()
-  return `${format(start)} — ${format(end)}`
 }
 
 function FactPoint({ point }: { point: DashboardPoint }) {
@@ -97,7 +81,7 @@ function FactPoint({ point }: { point: DashboardPoint }) {
             <span>Data e hora do fato</span>
             <strong>
               {point.data_hora
-                ? dateTimeFormatter.format(parseInstant(point.data_hora))
+                ? formatDateTime(point.data_hora)
                 : `${point.data_fato || ''} · horário não definido`}
             </strong>
           </div>
@@ -106,9 +90,8 @@ function FactPoint({ point }: { point: DashboardPoint }) {
           )}
           {point.intervalo_inicio && point.intervalo_fim && (
             <p>
-              Intervalo:{' '}
-              {dateTimeFormatter.format(parseInstant(point.intervalo_inicio))} —{' '}
-              {dateTimeFormatter.format(parseInstant(point.intervalo_fim))}
+              Intervalo: {formatDateTime(point.intervalo_inicio)} —{' '}
+              {formatDateTime(point.intervalo_fim)}
             </p>
           )}
           {point.placas_autores_citadas && (
@@ -167,7 +150,7 @@ function cispPopupHtml(properties: CispProperties): string {
     <div class="popup-split">
       ${OVERVIEW.columns.map((column, index) => `<div>${index < 2 ? `<i class="${index ? 'theft' : 'robbery'}"></i>` : ''}<span>${column.label}</span><strong>${formatNumber(properties[column.key] ?? 0)}</strong></div>`).join('')}
     </div>
-    <div class="popup-share"><span>Participação ${scopeLabel}</span><strong>${properties.participacao.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%</strong></div>
+    <div class="popup-share"><span>Participação ${scopeLabel}</span><strong>${formatPercent(properties.participacao, 2)}</strong></div>
   </div>`
 }
 
@@ -218,7 +201,7 @@ export function ChoroplethMap({ data }: { data: DashboardData }) {
           description="Distribuição dos fatos georreferenciados e das CISPs da área."
           action={
             <div className="map-period">
-              {mapPeriodLabel(
+              {formatMonthYearRange(
                 data.metadata.periodo_inicio,
                 data.metadata.periodo_fim,
               )}
@@ -232,7 +215,7 @@ export function ChoroplethMap({ data }: { data: DashboardData }) {
           description="Intensidade proporcional ao total de ocorrências na CISP; clique em uma área para ver os números."
           action={
             <div className="map-period">
-              {mapPeriodLabel(
+              {formatMonthYearRange(
                 data.metadata.periodo_inicio,
                 data.metadata.periodo_fim,
               )}

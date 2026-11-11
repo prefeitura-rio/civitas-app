@@ -5,12 +5,14 @@ import {
   Card,
   CardContent,
 } from '@/modules/vehicle-intelligence/components/ui/card'
-import { formatPercent } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
 import {
   shiftMeta,
   weekdayLong,
 } from '@/modules/vehicle-intelligence/features/plate-profile/shifts'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatPercent,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type { PlateProfileData } from '@/modules/vehicle-intelligence/types/domain'
 
 function weekdayNameLower(index: number | null): string {

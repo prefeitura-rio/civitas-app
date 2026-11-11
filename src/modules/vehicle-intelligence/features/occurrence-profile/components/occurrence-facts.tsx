@@ -11,11 +11,10 @@ import type {
   OccurrenceProfileData,
 } from '@/modules/vehicle-intelligence/features/occurrence-profile/types'
 import {
-  brasiliaFormatter,
   formatDate,
   formatDateTime,
   formatDayMonth,
-  parseInstant,
+  formatTime,
 } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 import {
@@ -27,11 +26,10 @@ import {
 type Found = Extract<OccurrenceProfileData, { found: true }>
 type Occurrence = Found['occurrence']
 
-const TIME = brasiliaFormatter({ hour: '2-digit', minute: '2-digit' })
-
 /** De onde veio o horário (revisão de transeuntes). */
 const TIME_ORIGINS: Record<string, string> = {
   relato_aproximado: 'aproximado, pelo relato',
+  registro_isp: 'registro no ISP, sem revisão',
   ponto_medio_intervalo: 'ponto médio do intervalo do relato',
   sem_minutos: 'sem os minutos: só a hora',
   conflito_hora_relato: 'a hora registrada diverge da do relato',
@@ -50,11 +48,27 @@ const TIME_PRECISIONS: Record<string, string> = {
   MINUTO_GERENCIALWEB: 'minuto do registro',
   HORA_NARRATIVA: 'só a hora, pela dinâmica',
   HORA_ISP: 'só a hora, pelo ISP',
+  'hora cheia': 'hora cheia no registro (pode ser aproximada)',
+  'meia hora': 'meia hora no registro (pode ser aproximada)',
+  minuto: 'minuto do registro',
+}
+
+/** O episódio (banco experimental): ROs do mesmo lugar e horário contam como um fato só. */
+function episodeDetail(occurrence: Occurrence): string | null {
+  const episode = occurrence.episode
+  if (!episode) return null
+  if (episode.grouped_into)
+    return `Agrupado no RO ${episode.grouped_into}, do mesmo lugar e horário: as placas estão lá.`
+  const count = episode.grouped.length
+  return count
+    ? `Reúne ${count === 1 ? 'mais 1 RO' : `mais ${count} ROs`} do mesmo lugar e horário: ${episode.grouped.join(', ')}.`
+    : null
 }
 
 /** Como o local foi achado no mapa (o código vem em minúsculas ou maiúsculas, conforme a fonte). */
 const GEOCODES: Record<string, string> = {
   fonte: 'o ponto da base revisada',
+  isp: 'o ponto do ISP',
   fora_area_cisps: 'o ponto da base, fora da área das CISPs dela',
   logradouro_bairro_numero: 'pelo número da rua',
   logradouro_numero: 'pelo número da rua',
@@ -109,7 +123,7 @@ function timeDetail(occurrence: Occurrence): string | null {
   const interval =
     start && end
       ? sameDay
-        ? `intervalo do relato: ${formatDayMonth(start)}, das ${TIME.format(parseInstant(start))} às ${TIME.format(parseInstant(end))}`
+        ? `intervalo do relato: ${formatDayMonth(start)}, das ${formatTime(start)} às ${formatTime(end)}`
         : `intervalo do relato: ${formatDateTime(start)} a ${formatDateTime(end)}`
       : null
   const original = occurrence.original_time?.trim()
@@ -258,6 +272,7 @@ export function OccurrenceFacts({
   const category = occurrence.category && categoryLabel(occurrence.category)
   const details: Array<[string, string | null]> = [
     ['Horário', timeDetail(occurrence)],
+    ['Episódio', episodeDetail(occurrence)],
     ['Local', placeDetail(occurrence)],
     // O tipo do fato está no cabeçalho; o alvo entra quando diz mais que ele.
     [

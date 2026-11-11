@@ -10,7 +10,7 @@ import {
   SECTION_DEFS,
   type SectionId,
 } from '@/modules/vehicle-intelligence/features/plate-profile/profile-sections'
-import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/domain'
+import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/navigation'
 
 const preferredScrollBehavior = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches

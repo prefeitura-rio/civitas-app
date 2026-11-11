@@ -1,5 +1,5 @@
 import type { BreakdownItem } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/clusters'
-import { brasiliaFormatter } from '@/modules/vehicle-intelligence/lib/dates'
+import { hourInBrasilia } from '@/modules/vehicle-intelligence/lib/dates'
 
 /** Horário dos fatos em Brasília: o total com horário, a hora típica e os quatro turnos. */
 type TemporalProfile = {
@@ -9,24 +9,10 @@ type TemporalProfile = {
   shifts: BreakdownItem[]
 }
 
-const HOUR = brasiliaFormatter({ hour: '2-digit', hour12: false })
-
-const DATE_TIME = brasiliaFormatter({ dateStyle: 'short', timeStyle: 'short' })
-
-/** A hora (0–23) do fato em Brasília; nulo sem horário. */
-function eventHour(value: string | null): number | null {
-  if (!value) return null
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return null
-  const hour = HOUR.format(parsed)
-  const normalized = Number(hour)
-  return Number.isFinite(normalized) ? normalized % 24 : null
-}
-
 export function temporalProfile(values: Array<string | null>): TemporalProfile {
   const hourly = Array.from({ length: 24 }, () => 0)
   values.forEach((value) => {
-    const hour = eventHour(value)
+    const hour = hourInBrasilia(value)
     if (hour !== null) hourly[hour] += 1
   })
   const total = hourly.reduce((sum, count) => sum + count, 0)
@@ -63,12 +49,4 @@ export function typicalHourLabel(profile: TemporalProfile): string {
   if (profile.typicalHour === null) return 'Horário não informado'
   const nextHour = (profile.typicalHour + 1) % 24
   return `${String(profile.typicalHour).padStart(2, '0')}h–${String(nextHour).padStart(2, '0')}h`
-}
-
-/** "19/06/2026, 20:00"; sem valor, "Horário não informado"; o texto da API quando não é data. */
-export function formatPostEventDate(value: string | null): string {
-  if (!value) return 'Horário não informado'
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return value
-  return DATE_TIME.format(parsed)
 }

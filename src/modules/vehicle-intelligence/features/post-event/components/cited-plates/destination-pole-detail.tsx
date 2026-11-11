@@ -1,16 +1,16 @@
 import { BreakdownBars } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/breakdown-bars'
 import { ConnectionList } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/connection-list'
 import { DetailSection } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/detail-section'
-import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/event-time'
 import { LazyDynamics } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/lazy-dynamics'
 import { PlateChips } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/plate-chips'
 import { cispBreakdownLabel } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/poles'
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
 import type {
   DestinationPole,
   PoleConnection,
 } from '@/modules/vehicle-intelligence/features/post-event/types'
 import {
+  formatElapsedHours,
   formatNumber,
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'

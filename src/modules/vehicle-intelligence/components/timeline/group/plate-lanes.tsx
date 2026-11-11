@@ -14,12 +14,11 @@ import {
 } from '@/modules/vehicle-intelligence/components/timeline/group/style'
 import {
   axisHours,
-  hourMinute,
   type TimeRangeMode,
-  toMs,
 } from '@/modules/vehicle-intelligence/components/timeline/group/time'
 import { lighten } from '@/modules/vehicle-intelligence/components/timeline/palette'
 import type { TimelineTrack } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { formatTime, instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 import { pluralize } from '@/modules/vehicle-intelligence/lib/format'
 
 /**
@@ -135,7 +134,7 @@ export function PlateLanes({
         aria-valuemin={rangeStart}
         aria-valuemax={rangeEnd}
         aria-valuenow={moment}
-        aria-valuetext={hourMinute(moment)}
+        aria-valuetext={formatTime(moment)}
       >
         {hourMarks.map((h) => (
           <span
@@ -248,13 +247,13 @@ export function PlateLanes({
                           : lighten(t.color),
                         border: '2px solid #121717',
                       }
-            const at = toMs(detection.detected_at)
+            const at = instantMs(detection.detected_at)
             return (
               <button
                 key={detection.key}
                 type="button"
                 className="gt-point-band"
-                title={`${hourMinute(at)} · ${t.plate} · ${detection.location || detection.point_id}`}
+                title={`${formatTime(at)} · ${t.plate} · ${detection.location || detection.point_id}`}
                 style={{
                   left: leftPercent(at),
                   top: laneY.get(t.plate),
@@ -272,7 +271,7 @@ export function PlateLanes({
                   x.stopPropagation()
                   if (e) goTo(e)
                 }}
-                aria-label={`${t.plate} às ${hourMinute(at)}`}
+                aria-label={`${t.plate} às ${formatTime(at)}`}
               />
             )
           }),

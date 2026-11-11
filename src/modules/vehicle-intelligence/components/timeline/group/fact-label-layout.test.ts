@@ -1,8 +1,8 @@
 import type { GroupEvent } from '@/modules/vehicle-intelligence/components/timeline/group/events'
 import { layoutFactLabels } from '@/modules/vehicle-intelligence/components/timeline/group/fact-label-layout'
-import { toMs } from '@/modules/vehicle-intelligence/components/timeline/group/time'
+import { instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 
-const dayStart = toMs('2026-03-02T00:00:00-03:00')
+const dayStart = instantMs('2026-03-02T00:00:00-03:00')
 const hour = 3_600_000
 const fact = (label: string, at: number) =>
   ({ kind: 'fact', key: label, at, label, detections: [] }) as GroupEvent

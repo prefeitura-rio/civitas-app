@@ -5,7 +5,7 @@ import {
   type Dynamics,
   fetchOccurrenceDynamics,
 } from '@/modules/vehicle-intelligence/components/occurrence/occurrence-dynamics-api'
-import { TIME_ZONE } from '@/modules/vehicle-intelligence/lib/dates'
+import { formatDateTimeSeconds } from '@/modules/vehicle-intelligence/lib/dates'
 
 /** Consulta o relato apenas quando é montado; serve fora do mapa (tabelas). */
 export function OccurrenceDynamicsPanel({
@@ -64,13 +64,7 @@ export function OccurrenceDynamicsPanel({
                 <header>
                   RO {row.event_id}
                   {row.event_time && (
-                    <time>
-                      {' '}
-                      ·{' '}
-                      {new Date(row.event_time).toLocaleString('pt-BR', {
-                        timeZone: TIME_ZONE,
-                      })}
-                    </time>
+                    <time> · {formatDateTimeSeconds(row.event_time)}</time>
                   )}
                 </header>
               )}

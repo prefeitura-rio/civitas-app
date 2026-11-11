@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 
 import { modalityLabel } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/poles'
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
 import type { PostEventData } from '@/modules/vehicle-intelligence/features/post-event/types'
 import {
+  formatElapsedHours,
   formatNumber,
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'

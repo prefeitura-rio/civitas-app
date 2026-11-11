@@ -1,6 +1,6 @@
 /** O que vai para os rótulos fixos do mapa: um rótulo por fato, junta, partida e desconexão revelados, e os obstáculos. */
 import type { GroupEvent } from '@/modules/vehicle-intelligence/components/timeline/group/events'
-import { hourMinute } from '@/modules/vehicle-intelligence/components/timeline/group/time'
+import { formatTime } from '@/modules/vehicle-intelligence/lib/dates'
 import { escapeHtml } from '@/modules/vehicle-intelligence/lib/format'
 
 export type MapLabel = {
@@ -35,7 +35,7 @@ export function mapLabelItems(
         lng: f.event_longitude!,
         box: [-13, -33, 13, 0],
       })
-      const text = `${e.label} · ${hourMinute(e.at)}`
+      const text = `${e.label} · ${formatTime(e.at)}`
       labels.push({
         lat: f.event_latitude!,
         lng: f.event_longitude!,
@@ -53,7 +53,7 @@ export function mapLabelItems(
         lng: detection.longitude,
         box: [-15, -15, 15, 15],
       })
-      const text = `Juntas ${hourMinute(e.at)}${e.inFact ? ` · no ${e.inFact}` : ''}`
+      const text = `Juntas ${formatTime(e.at)}${e.inFact ? ` · no ${e.inFact}` : ''}`
       labels.push({
         lat: detection.latitude,
         lng: detection.longitude,
@@ -61,7 +61,7 @@ export function mapLabelItems(
         priority: e.inFact ? 1 : 1.5,
         text,
         colors: [...new Set(e.detections.map((x) => colors.get(x.plate)!))],
-        html: `<b style="color:#0f7a6d">Juntas</b> ${hourMinute(e.at)}${e.inFact ? ` · <b style="color:#0f7a6d">no ${escapeHtml(e.inFact)}</b>` : ''}`,
+        html: `<b style="color:#0f7a6d">Juntas</b> ${formatTime(e.at)}${e.inFact ? ` · <b style="color:#0f7a6d">no ${escapeHtml(e.inFact)}</b>` : ''}`,
       })
     } else if (e.kind === 'departure' || e.kind === 'disconnection') {
       const detection = e.detections[0]
@@ -78,8 +78,8 @@ export function mapLabelItems(
         r: 10,
         priority: isDeparture ? 3 : 2,
         color: colors.get(detection.plate),
-        text: `${markName} ${hourMinute(e.at)}`,
-        html: `<b style="color:${isDeparture ? '#1f63b5' : '#7d45a8'}">${markName}</b> ${hourMinute(e.at)}`,
+        text: `${markName} ${formatTime(e.at)}`,
+        html: `<b style="color:${isDeparture ? '#1f63b5' : '#7d45a8'}">${markName}</b> ${formatTime(e.at)}`,
       })
     } else if (e.kind === 'reading') {
       const detection = e.detections[0]

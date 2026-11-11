@@ -14,16 +14,14 @@
  *   /territories, /territories/<complexo codificado>    territórios e o perfil de um complexo
  *   /occurrence, /occurrence/<RO ou placa vítima codificado>   busca e perfil do RO (a placa lista os ROs dela)
  */
-import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/domain'
+import {
+  moduleById,
+  type ModuleId,
+  moduleOfPath,
+} from '@/modules/vehicle-intelligence/app/modules'
+import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/navigation'
 
-export type ModuleId =
-  | 'overview'
-  | 'correlation'
-  | 'profile'
-  | 'post-event'
-  | 'groups'
-  | 'territories'
-  | 'occurrence'
+export type { ModuleId }
 
 export type PlateRoute = {
   plate: string
@@ -55,19 +53,6 @@ export interface Route {
 export function normalizePath(path: string): string {
   const withLeadingSlash = path.startsWith('/') ? path : `/${path}`
   return withLeadingSlash.replace(/\/+$/, '') || '/'
-}
-
-function moduleOf(path: string): ModuleId {
-  if (path === '/correlation' || path.startsWith('/correlation/'))
-    return 'correlation'
-  if (path === '/post-event') return 'post-event'
-  if (path === '/profile' || path.startsWith('/profile/')) return 'profile'
-  if (path === '/groups' || path.startsWith('/groups/')) return 'groups'
-  if (path === '/territories' || path.startsWith('/territories/'))
-    return 'territories'
-  if (path === '/occurrence' || path.startsWith('/occurrence/'))
-    return 'occurrence'
-  return 'overview'
 }
 
 function plateOf(path: string): PlateRoute | null {
@@ -129,7 +114,7 @@ function decodedAfter(path: string, prefix: string): string | null {
 export function parseRoute(pathname: string): Route {
   const path = normalizePath(pathname)
   return {
-    module: moduleOf(path),
+    module: moduleOfPath(path),
     plate: plateOf(path),
     group: groupOf(path),
     territory: decodedAfter(path, '/territories/'),
@@ -138,8 +123,7 @@ export function parseRoute(pathname: string): Route {
   }
 }
 
-export const modulePath = (module: ModuleId) =>
-  module === 'overview' ? '/' : `/${module}`
+export const modulePath = (module: ModuleId) => moduleById(module).path
 export const platePath = (plate: string, analysis: PlateProfileAnalysis) =>
   `/profile/${plate}/${analysis}`
 export const plateTimelinePath = (
@@ -147,9 +131,10 @@ export const plateTimelinePath = (
   analysis: PlateProfileAnalysis,
   day: string | null,
 ) => `/profile/${plate}/${analysis}/${day ? `dia/${day}` : 'timeline'}`
+export const groupProfilePath = (id: string) => `/groups/${id}`
 /** O grupo pelas placas, em ordem: a mesma rota venha de onde vier. */
 export const groupPath = (plates: string[]) =>
-  `/groups/${[...plates].sort().join('-')}`
+  groupProfilePath([...plates].sort().join('-'))
 export const groupTimelinePath = (id: string, day: string | null) =>
   `/groups/${id}/timeline${day ? `/dia/${day}` : ''}`
 export const territoryPath = (complex: string) =>

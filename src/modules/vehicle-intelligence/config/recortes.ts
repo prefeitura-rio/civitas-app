@@ -1,19 +1,20 @@
 /**
- * Recorte ativo do painel unificado.
+ * Recorte ativo do painel unificado, e o que muda entre os recortes (dados, não lógica).
  *
  * O recorte vem do parâmetro `?recorte=` e define qual motor responde às
  * chamadas `/api/v1/...` do módulo carregado: elas viram `/api/<recorte>/v1/...`.
  * Trocar de recorte recarrega a página, para que filtros, sessões e estilos
  * de um recorte nunca vazem para outro.
  */
+import type { CrimeType } from '@/modules/vehicle-intelligence/types/domain'
 
-import {
-  serviceUrl,
-  toAppPath,
-  toRoutePath,
-} from '@/modules/vehicle-intelligence/app/base-path'
+import { serviceUrl } from '@/modules/vehicle-intelligence/app/base-path'
 
-export type RecorteId = 'transeuntes' | 'veiculos' | 'carga'
+export type RecorteId =
+  | 'transeuntes'
+  | 'veiculos'
+  | 'carga'
+  | 'transeuntes_cidade'
 /** Como o motor liga placas a fatos: leituras no entorno do fato ou passagens junto à placa vítima. */
 export type Strategy = 'entorno_fato' | 'copassagem'
 
@@ -26,6 +27,23 @@ export interface Recorte {
   strategy: Strategy
   /** Selo do cabeçalho com a base do recorte ("Zona Sul · Motos · 2026"). */
   badge?: string
+  /** Recorte em teste: o menu e o cabeçalho o marcam como experimental. */
+  experimental?: boolean
+  /**
+   * As duas modalidades dos fatos, na ordem do padrão dos filtros. A primeira é a principal: vermelho nos mapas do
+   * pós-evento; a segunda, âmbar.
+   */
+  modalities: readonly [CrimeType, CrimeType]
+  /** O filtro do tipo do fato no trilho do grafo: rótulo e, quando precisa, a ajuda. */
+  modalityField: { label: string; help?: string }
+  /** O alvo do fato (o que foi levado): o filtro do trilho, a palavra na contagem ("2 alvos") e as escolhas fixas. */
+  target: { label: string; help: string; noun: string; fixedChoices?: string[] }
+  /** Copassagem: como as telas falam da placa vítima (no roubo de carga, a vítima é a carga e o veículo). */
+  victim?: VictimTexts
+  /** O título da tela de pós-evento e, na copassagem, os textos das trajetórias do veículo vítima. */
+  postEvent: { eyebrow: string; title: string; trajectories?: TrajectoryTexts }
+  /** Ajuda da janela de tempo no trilho do grafo, quando a da estratégia não serve (o horário vem de outra fonte). */
+  windowHelp?: string
   /** O motor publica o relato (dinâmica) das ocorrências. */
   hasDynamics: boolean
   /** O motor confere os ROs que citam a placa no relato (`/pre-event/citations`). */
@@ -36,6 +54,30 @@ export interface Recorte {
   groups: GroupsConfig
   /** Relatório geral do motor (`/reports/general`): nome do arquivo e textos do botão. */
   report?: ReportConfig
+}
+
+export interface VictimTexts {
+  /** Filtro de situação da placa: a correlata que também é vítima. */
+  alsoVictimLabel: string
+  /** Indicador do perfil: a placa "já registrada como vítima de subtração". */
+  alsoVictimText: string
+  /** Ajuda da data em que a correlata foi subtraída, no ranking. */
+  stolenHelp: string
+  /** Ajuda do mínimo de vítimas e da distância do radar ao fato, no trilho do grafo. */
+  minimumVictimsHelp: string
+  factDistanceHelp: string
+}
+
+export interface TrajectoryTexts {
+  hero: string
+  /** "veículos vítimas", "veículos subtraídos". */
+  vehicles: string
+  /** A unidade contada: "fatos" ou "vínculos RO–placa". */
+  unit: string
+  /** As duas modalidades de origem juntas: "roubo e furto", "carga e carga + veículo". */
+  modalities: string
+  destination: string
+  destinationNote: string
 }
 
 export interface ReportConfig {
@@ -91,7 +133,42 @@ const COPASSAGEM_GROUPS: Omit<
   ] as Array<[string, string]>,
 }
 
-export const RECORTES: ReadonlyArray<Recorte> = [
+const TRANSEUNTES_GROUPS: GroupsConfig = {
+  item: 'moto',
+  items: 'motos',
+  swapItem: 'moto',
+  motorcyclesOnly: true,
+  hasRoutine: true,
+  seeds: 200,
+  minimumSeedEvents: 10,
+  minimumOptions: [5, 10, 15, 20],
+  highlights: [
+    [500, 5],
+    [300, 5],
+    [300, 10],
+    [200, 10],
+  ],
+  intro:
+    'Placas que passam juntas perto da hora do fato e desconectam juntas depois, quase sem andar juntas em outros dias. Os grupos partem das primeiras placas do ranking Dias de circulação.',
+  orderNote:
+    'Ordenados pela força: passagens juntas no fato somadas às desconexões juntas.',
+  linkRules: [
+    ['padrao', 'Padrão'],
+    ['estrito', 'Estrita (com desconexão)'],
+  ],
+}
+
+const VEHICLE_TARGET = { noun: 'categoria' }
+
+/**
+ * Modo experimental (o recorte "Transeuntes · cidade", do banco experimental): desligado em 11/11/2026, a pedido
+ * ("tirar por enquanto toda a parte experimental"). A definição do recorte e as telas dele ficam no código; desligado,
+ * ele sai do seletor de recorte, da busca de placas e do `?recorte=`. Para religar: `true` aqui (e `npm run build`) e
+ * `CIVITAS_EXPERIMENTAL=1` ao subir o painel (`servidor/banco.py`).
+ */
+export const MODO_EXPERIMENTAL = false
+
+const TODOS_OS_RECORTES: ReadonlyArray<Recorte> = [
   {
     id: 'transeuntes',
     label: 'Transeuntes',
@@ -99,32 +176,21 @@ export const RECORTES: ReadonlyArray<Recorte> = [
     brand: 'Roubos a transeuntes',
     strategy: 'entorno_fato',
     badge: 'Zona Sul · Motos · 2026',
+    modalities: ['ROUBO', 'FURTO'],
+    modalityField: { label: 'Tipo do fato' },
+    target: {
+      label: 'Alvo',
+      help: 'Aparelho celular ou pertences do transeunte.',
+      noun: 'alvo',
+      fixedChoices: ['CELULAR', 'TRANSEUNTE', 'OUTROS'],
+    },
+    postEvent: {
+      eyebrow: 'CIRCULAÇÃO · PLACAS CITADAS',
+      title: 'Trajetória pós-evento',
+    },
     hasDynamics: true,
     hasCitations: true,
-    groups: {
-      item: 'moto',
-      items: 'motos',
-      swapItem: 'moto',
-      motorcyclesOnly: true,
-      hasRoutine: true,
-      seeds: 200,
-      minimumSeedEvents: 10,
-      minimumOptions: [5, 10, 15, 20],
-      highlights: [
-        [500, 5],
-        [300, 5],
-        [300, 10],
-        [200, 10],
-      ],
-      intro:
-        'Placas que passam juntas perto da hora do fato e desconectam juntas depois, quase sem andar juntas em outros dias. Os grupos partem das primeiras placas do ranking Dias de circulação.',
-      orderNote:
-        'Ordenados pela força: passagens juntas no fato somadas às desconexões juntas.',
-      linkRules: [
-        ['padrao', 'Padrão'],
-        ['estrito', 'Estrita (com desconexão)'],
-      ],
-    },
+    groups: TRANSEUNTES_GROUPS,
     report: {
       fileName: 'relatorio_transeuntes_motos',
       buttonLabel: 'Gerar relatório de transeuntes',
@@ -139,6 +205,35 @@ export const RECORTES: ReadonlyArray<Recorte> = [
     title: 'Roubos e furtos de veículos',
     brand: 'Inteligência veicular',
     strategy: 'copassagem',
+    modalities: ['ROUBO', 'FURTO'],
+    modalityField: { label: 'Tipo do fato' },
+    target: {
+      ...VEHICLE_TARGET,
+      label: 'Veículo subtraído',
+      help: 'Categoria do veículo roubado ou furtado.',
+    },
+    victim: {
+      alsoVictimLabel: 'Também subtraída',
+      alsoVictimText: 'já registrada como vítima de subtração',
+      stolenHelp:
+        'Data e hora em que a própria placa correlata foi registrada como roubada ou furtada.',
+      minimumVictimsHelp:
+        'Quantidade mínima de veículos roubados ou furtados relacionados à placa encontrada.',
+      factDistanceHelp:
+        'Distância entre o radar que leu a placa vítima e o local do roubo ou furto.',
+    },
+    postEvent: {
+      eyebrow: 'INVESTIGAÇÃO · PÓS-EVENTO',
+      title: 'Trajetórias após subtração',
+      trajectories: {
+        hero: 'Roubo, furto e desconexão são apresentados como polos. A cor indica o papel; a área do círculo é proporcional ao número de ocorrências.',
+        vehicles: 'veículos subtraídos',
+        unit: 'fatos',
+        modalities: 'roubo e furto',
+        destination: 'Polo de desconexão · vários radares',
+        destinationNote: '',
+      },
+    },
     hasDynamics: false,
     hasCitations: false,
     groups: {
@@ -166,6 +261,39 @@ export const RECORTES: ReadonlyArray<Recorte> = [
     title: 'Roubo de carga',
     brand: 'Roubo de carga',
     strategy: 'copassagem',
+    modalities: ['CARGA_VEICULO', 'CARGA'],
+    modalityField: {
+      label: 'Categoria da carga',
+      help: 'A categoria “Carga subtraída” inclui classificação automática pendente de revisão.',
+    },
+    target: {
+      ...VEHICLE_TARGET,
+      label: 'Veículo da carga',
+      help: 'Categoria do veículo associado à carga.',
+    },
+    victim: {
+      alsoVictimLabel: 'Também vítima de carga',
+      alsoVictimText: 'também consta como vítima neste recorte de carga',
+      stolenHelp:
+        'Data e hora em que o veículo da placa correlata foi registrado como subtraído junto com a carga.',
+      minimumVictimsHelp:
+        'Quantidade mínima de veículos vítimas de carga relacionados à placa encontrada.',
+      factDistanceHelp:
+        'Distância entre o radar que leu a placa vítima e o local do roubo de carga.',
+    },
+    postEvent: {
+      eyebrow: 'INVESTIGAÇÃO · PÓS-EVENTO',
+      title: 'Trajetórias após roubo de carga',
+      trajectories: {
+        hero: 'Os polos de origem são separados por categoria. Os polos de desconexão reúnem as duas categorias e mostram as contagens de cada uma no popup. Na carga subtraída, o deslocamento pode ser a vítima seguindo viagem; a última leitura não confirma abandono ou descarga.',
+        vehicles: 'veículos vítimas',
+        unit: 'vínculos RO–placa',
+        modalities: 'carga e carga + veículo',
+        destination: 'Polo de desconexão · ambas as categorias',
+        destinationNote:
+          ' O popup mostra quantas desconexões vêm de cada categoria.',
+      },
+    },
     hasDynamics: true,
     hasCitations: false,
     groups: {
@@ -189,7 +317,41 @@ export const RECORTES: ReadonlyArray<Recorte> = [
         'Dois recortes de placas Top 20: sem táxis ativos e suspeitas de moto. Cada um traz rankings por proximidade e cobertura. A geração continua mesmo se você fechar este menu.',
     },
   },
+  {
+    // Experimental (09/11/2026): a cidade com os ROs do ISP, sem relato (Zona Sul em 10/11; a cidade toda desde 11/11). Sem
+    // dinâmica, placas citadas e deslocamento do autor; o horário é o do registro (`pipeline/ocorrencias/transeuntes_cidade.py`).
+    id: 'transeuntes_cidade',
+    label: 'Transeuntes · cidade',
+    title: 'Roubos e furtos a transeuntes na cidade',
+    brand: 'Transeuntes na cidade',
+    strategy: 'entorno_fato',
+    badge: 'Cidade · ISP · Experimental',
+    experimental: true,
+    modalities: ['ROUBO', 'FURTO'],
+    modalityField: { label: 'Tipo do fato' },
+    target: {
+      label: 'Alvo',
+      help: 'Aparelho celular ou pertences do transeunte.',
+      noun: 'alvo',
+      fixedChoices: ['CELULAR', 'TRANSEUNTE'],
+    },
+    postEvent: {
+      eyebrow: 'CIRCULAÇÃO · PLACAS CITADAS',
+      title: 'Trajetória pós-evento',
+    },
+    windowHelp:
+      'Intervalo antes e depois do horário do registro no ISP (sem revisão pelo relato). Grafo e ranking usam esta janela; o ranking considera todas as associações elegíveis, mesmo fora da visualização.',
+    hasDynamics: false,
+    // Sem relato no ISP, mas a etiqueta é da placa: os ROs revisados de outros recortes que a citam (`analise.autoria`).
+    hasCitations: true,
+    groups: TRANSEUNTES_GROUPS,
+  },
 ]
+
+/** Os recortes que o painel oferece: os experimentais só com o modo experimental ligado. */
+export const RECORTES: ReadonlyArray<Recorte> = TODOS_OS_RECORTES.filter(
+  (item) => MODO_EXPERIMENTAL || !item.experimental,
+)
 
 /** O último recorte escolhido nesta aba: os links do sidebar do CIVITAS não levam o `?recorte=`. */
 const RECORTE_SESSION_KEY = 'civitas:vehicle-intelligence:recorte'
@@ -206,7 +368,8 @@ function storedRecorte(): string | null {
   }
 }
 
-function rememberRecorte(id: RecorteId): void {
+/** Guarda o recorte desta aba (a troca de recorte em `app/navigation.ts` também chama). */
+export function rememberRecorte(id: RecorteId): void {
   try {
     window.sessionStorage.setItem(RECORTE_SESSION_KEY, id)
   } catch {
@@ -242,19 +405,4 @@ export function recorteApiPath(path: string): string {
 /** Chave de armazenamento do navegador isolada por recorte. */
 export function recorteStorageKey(key: string): string {
   return `civitas:${recorteAtual}:${key}`
-}
-
-export function switchRecorte(target: RecorteId): void {
-  if (target === recorteAtual) return
-  // A placa aberta continua aberta no outro recorte; as demais telas voltam
-  // ao início do módulo equivalente.
-  const pathname = toRoutePath(window.location.pathname)
-  const plateMatch = pathname.match(/^\/profile\/([A-Za-z0-9]{3,8})/)
-  const route = plateMatch
-    ? `/profile/${plateMatch[1].toUpperCase()}/correlations`
-    : (['/correlation', '/post-event', '/profile'].find((item) =>
-        pathname.startsWith(item),
-      ) ?? '/')
-  rememberRecorte(target)
-  window.location.assign(`${toAppPath(route)}?recorte=${target}`)
 }

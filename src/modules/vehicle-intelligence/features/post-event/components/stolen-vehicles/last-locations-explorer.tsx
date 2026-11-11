@@ -37,7 +37,7 @@ import { TerminalHubMarkers } from '@/modules/vehicle-intelligence/features/post
 import { useCispGeometry } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/use-cisp-geometry'
 import { usePoleSelection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/use-pole-selection'
 import type { MasterPostData } from '@/modules/vehicle-intelligence/features/post-event/types'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import { formatPercent } from '@/modules/vehicle-intelligence/lib/format'
 import type { DashboardFilters } from '@/modules/vehicle-intelligence/types/domain'
 
 export function LastLocationsExplorer({
@@ -201,8 +201,8 @@ export function LastLocationsExplorer({
             `A CISP selecionada é a âncora territorial: ficam os polos internos e, fora do limite, só os ligados a eles por ${RECURRENT_CONNECTION_MINIMUM_OCCURRENCES}+ ocorrências.`
           ) : (
             <>
-              {formatNumber(destinationPoleCoveragePercentage)}% das ocorrências
-              acompanhadas terminam num polo de desconexão
+              {formatPercent(destinationPoleCoveragePercentage, 3)} das
+              ocorrências acompanhadas terminam num polo de desconexão
               <br />O mapa mostra só conexões com{' '}
               {RECURRENT_CONNECTION_MINIMUM_OCCURRENCES}+ ocorrências
             </>

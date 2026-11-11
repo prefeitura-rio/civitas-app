@@ -2,7 +2,10 @@ import { SlidersHorizontal } from 'lucide-react'
 
 import { ScopePill } from '@/modules/vehicle-intelligence/components/filters/scope-pill'
 import { Button } from '@/modules/vehicle-intelligence/components/ui/button'
-import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
+import {
+  copassagem,
+  recorte,
+} from '@/modules/vehicle-intelligence/config/recortes'
 import { useApi } from '@/modules/vehicle-intelligence/hooks/use-api'
 import { MASTER_GRAPH_OPTIONS_PATH } from '@/modules/vehicle-intelligence/lib/api'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
@@ -17,9 +20,11 @@ import {
   SCOPE_LIMITS,
   useEventScope,
 } from '@/modules/vehicle-intelligence/stores/event-scope'
-import type {
-  CrimeType,
-  MasterGraphOptions,
+import {
+  cispsOfZones,
+  type CrimeType,
+  type MasterGraphOptions,
+  zonesIn,
 } from '@/modules/vehicle-intelligence/types/domain'
 
 const ALL = '__todos__'
@@ -45,7 +50,7 @@ export function EventScopeBar() {
   const extra = [
     scope.somenteCarga ? 'roubo de carga' : null,
     scope.alvos.length
-      ? `${scope.alvos.length} ${copassagem ? 'categoria' : 'alvo'}${scope.alvos.length > 1 ? 's' : ''}`
+      ? `${scope.alvos.length} ${recorte.target.noun}${scope.alvos.length > 1 ? 's' : ''}`
       : null,
     scope.cisps.length
       ? `${scope.cisps.length} CISP${scope.cisps.length > 1 ? 's' : ''}`
@@ -59,6 +64,15 @@ export function EventScopeBar() {
   const minutes = (values: number[]) =>
     values.map((value) => ({ value: String(value), label: `±${value} min` }))
   const fact = scope.modalidades.length === 1 ? scope.modalidades[0] : ALL
+  // Zona: a cidade inteira (sem CISP), uma zona exata ou outra seleção de CISPs.
+  const zonesSelected = zonesIn(options?.zones, scope.cisps)
+  const zoneValue = !scope.cisps.length
+    ? ALL
+    : zonesSelected.length === 1 &&
+        cispsOfZones(options?.zones, zonesSelected).length ===
+          scope.cisps.length
+      ? zonesSelected[0]
+      : MIXED
   return (
     <div
       className={`event-scope-bar${off ? ' off' : ''}`}
@@ -125,6 +139,37 @@ export function EventScopeBar() {
               value: String(value),
               label: `${formatNumber(value)} m`,
             }))}
+          />
+        )}
+        {(options?.zones ?? []).length > 0 && (
+          <ScopePill
+            label="Zona"
+            value={zoneValue}
+            disabled={off}
+            display={
+              zoneValue === ALL
+                ? 'Toda a cidade'
+                : zoneValue === MIXED
+                  ? `${scope.cisps.length} CISPs`
+                  : zoneValue
+            }
+            onChange={(value) => {
+              if (value !== MIXED)
+                setScope({
+                  cisps:
+                    value === ALL ? [] : cispsOfZones(options?.zones, [value]),
+                })
+            }}
+            items={[
+              { value: ALL, label: 'Toda a cidade' },
+              ...(options?.zones ?? []).map((item) => ({
+                value: item.name,
+                label: item.name,
+              })),
+              ...(zoneValue === MIXED
+                ? [{ value: MIXED, label: `${scope.cisps.length} CISPs` }]
+                : []),
+            ]}
           />
         )}
         <ScopePill

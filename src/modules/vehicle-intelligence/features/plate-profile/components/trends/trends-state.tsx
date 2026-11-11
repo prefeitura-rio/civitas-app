@@ -3,32 +3,18 @@ import { LoaderCircle, Radar, TriangleAlert } from 'lucide-react'
 import { Button } from '@/modules/vehicle-intelligence/components/ui/button'
 import type { PlateProfileData } from '@/modules/vehicle-intelligence/types/domain'
 
-/** As tendências sem perfil pronto: outra placa em processamento (429), erro, carregando ou base indisponível. */
+/** As tendências sem perfil pronto: erro, carregando ou base indisponível. */
 export function TrendsState({
   plate,
   data,
   error,
-  busy,
   onRetry,
 }: {
   plate: string
   data: PlateProfileData | null
   error: string | null
-  busy: boolean
   onRetry: () => void
 }) {
-  if (error && busy) {
-    return (
-      <div className="profile-state" role="status">
-        <LoaderCircle className="animate-spin" size={28} />
-        <strong>Outra placa está sendo processada</strong>
-        <span>
-          A varredura do histórico de detecções roda uma placa por vez. Tentando
-          novamente em instantes — não é preciso recarregar a página.
-        </span>
-      </div>
-    )
-  }
   if (error) {
     return (
       <div className="profile-state error" role="alert">

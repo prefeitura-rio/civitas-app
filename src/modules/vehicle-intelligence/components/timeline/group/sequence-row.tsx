@@ -3,12 +3,9 @@ import type {
   GroupEvent,
 } from '@/modules/vehicle-intelligence/components/timeline/group/events'
 import { conic } from '@/modules/vehicle-intelligence/components/timeline/group/style'
-import {
-  hourMinute,
-  toMs,
-} from '@/modules/vehicle-intelligence/components/timeline/group/time'
 import { PIN_PATH } from '@/modules/vehicle-intelligence/components/timeline/palette'
 import type { TimelineDetection } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { formatTime, instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatHours } from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type { GroupDetectionMark } from '@/modules/vehicle-intelligence/types/domain'
@@ -50,7 +47,7 @@ export function SequenceRow({
   onClick: () => void
 }) {
   const rowClass = `gt-row ${ROW_CLASS[item.kind]}${active ? ' active' : ''}${future ? ' future' : ''}`
-  const clock = <span className="gt-row-hour">{hourMinute(item.at)}</span>
+  const clock = <span className="gt-row-hour">{formatTime(item.at)}</span>
   if (item.kind === 'fact') {
     const f = item.fact!
     return (
@@ -95,8 +92,8 @@ export function SequenceRow({
     const detections = item.detections
     const plates = [...new Set(detections.map((detection) => detection.plate))]
     const seconds = Math.round(
-      (toMs(detections[detections.length - 1].detected_at) -
-        toMs(detections[0].detected_at)) /
+      (instantMs(detections[detections.length - 1].detected_at) -
+        instantMs(detections[0].detected_at)) /
         1000,
     )
     const spread =

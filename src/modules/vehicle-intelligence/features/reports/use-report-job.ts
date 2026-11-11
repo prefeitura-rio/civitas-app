@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   downloadReport,
   getReportStatus,
+  type ReportFormat,
   type ReportPaths,
   type ReportStatus,
   startReport,
@@ -14,17 +15,19 @@ export interface ReportJobState<T extends ReportStatus> {
   status: T | null
   running: boolean
   error: string | null
-  /** Baixa o PDF pronto destes parâmetros; sem ele, gera e baixa quando terminar. */
+  /** Baixa o arquivo pronto destes parâmetros; sem ele, gera e baixa quando terminar. */
   request: () => void
 }
 
 /**
- * Um relatório em PDF de uma placa (correlações ou tendências) nos parâmetros do caminho (`paths.status`). O banco não
+ * Um relatório de uma placa (o PDF de correlações ou de tendências, o MP4 do vídeo da timeline) nos parâmetros do
+ * caminho (`paths.status`), entregue no formato `format`. O banco não
  * muda com o painel no ar, então um relatório pronto para os mesmos parâmetros é só baixado; trocar um parâmetro pede
  * outro. A geração segue em segundo plano com o menu fechado e baixa sozinha quando termina.
  */
 export function useReportJob<T extends ReportStatus = ReportStatus>(
   paths: ReportPaths,
+  format: ReportFormat = 'pdf',
 ): ReportJobState<T> {
   const [status, setStatus] = useState<T | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -37,13 +40,13 @@ export function useReportJob<T extends ReportStatus = ReportStatus>(
 
   const download = useCallback(async () => {
     try {
-      await downloadReport(pathsRef.current, 'pdf')
+      await downloadReport(pathsRef.current, format)
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : 'Falha ao baixar o relatório',
+        cause instanceof Error ? cause.message : 'Falha ao baixar o arquivo',
       )
     }
-  }, [])
+  }, [format])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -95,7 +98,7 @@ export function useReportJob<T extends ReportStatus = ReportStatus>(
 
   const request = useCallback(() => {
     setError(null)
-    if (status?.estado === 'concluido' && status.formatos?.includes('pdf')) {
+    if (status?.estado === 'concluido' && status.formatos?.includes(format)) {
       void download()
       return
     }
@@ -110,7 +113,7 @@ export function useReportJob<T extends ReportStatus = ReportStatus>(
             : 'Falha ao iniciar o relatório',
         )
       })
-  }, [download, status])
+  }, [download, format, status])
 
   return { status, running, error, request }
 }

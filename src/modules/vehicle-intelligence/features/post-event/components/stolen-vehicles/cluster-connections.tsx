@@ -1,6 +1,6 @@
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
 import { modalityName } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/recorte-texts'
 import type { ClusterConnection } from '@/modules/vehicle-intelligence/features/post-event/types'
+import { formatElapsedHours } from '@/modules/vehicle-intelligence/lib/format'
 
 export function ClusterConnections({
   connections,

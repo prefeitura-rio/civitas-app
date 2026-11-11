@@ -14,6 +14,7 @@ import { Badge } from '@/modules/vehicle-intelligence/components/ui/badge'
 import { TOOLTIP_STYLE } from '@/modules/vehicle-intelligence/features/overview/components/chart-style'
 import {
   brasiliaFormatter,
+  formatCivilDay,
   parseInstant,
 } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
@@ -29,10 +30,7 @@ export function TrendChart({ data }: { data: DashboardData }) {
       .replace('.', '')
       .toUpperCase(),
   }))
-  const [startYear, startMonth, startDay] =
-    data.metadata.periodo_inicio.split('-')
-  const [endYear, endMonth, endDay] = data.metadata.periodo_fim.split('-')
-  const description = `Fatos de ${startDay}/${startMonth}/${startYear} a ${endDay}/${endMonth}/${endYear}; o primeiro e o último mês podem estar incompletos.`
+  const description = `Fatos de ${formatCivilDay(data.metadata.periodo_inicio)} a ${formatCivilDay(data.metadata.periodo_fim)}; o primeiro e o último mês podem estar incompletos.`
   return (
     <Panel className="trend-panel">
       <PanelHeader

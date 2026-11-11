@@ -24,6 +24,7 @@ import type {
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
 import { TimelineView } from '@/modules/vehicle-intelligence/components/timeline/timeline-view'
 import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
+import { TimelineVideoMenu } from '@/modules/vehicle-intelligence/features/reports'
 import { getCorrelatedPlateTimeline } from '@/modules/vehicle-intelligence/lib/api'
 import { parseInstant } from '@/modules/vehicle-intelligence/lib/dates'
 import { usePlateScopeQuery } from '@/modules/vehicle-intelligence/stores/event-scope'
@@ -299,6 +300,19 @@ export function CorrelationPlateTimeline({
         </>
       )}
       headerAside={<AuthorCitations citations={data?.author_citations} />}
+      // O vídeo existe no entorno do fato (transeuntes); a copassagem ainda não tem a trilha da vítima no vídeo.
+      actions={
+        copassagem
+          ? undefined
+          : (day) => (
+              <TimelineVideoMenu
+                plate={plate}
+                day={day}
+                days={days}
+                scope={scopeQuery}
+              />
+            )
+      }
       backLabel="Voltar para o perfil da placa"
       onBack={onBack}
       error={error}

@@ -28,16 +28,11 @@ import {
   formatNumber,
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'
-import { useEventScope } from '@/modules/vehicle-intelligence/stores/event-scope'
+import type { PlateSearchData } from '@/modules/vehicle-intelligence/types/domain'
 import type {
+  OpenPlate,
   PlateProfileAnalysis,
-  PlateSearchData,
-} from '@/modules/vehicle-intelligence/types/domain'
-
-export type OpenSearchedPlate = (
-  plate: string,
-  analysis?: PlateProfileAnalysis,
-) => void
+} from '@/modules/vehicle-intelligence/types/navigation'
 
 export const PLATE_PATTERN_HINT =
   'Placa completa ou com - no lugar de cada caractere que pode variar (ex.: RJQ9F9-).'
@@ -89,17 +84,15 @@ export type PlateSearchField = ReturnType<typeof usePlateSearchField>
  * resposta abre no recorte ativo, como antes da busca nos três recortes.
  */
 export function usePlateSearchField(
-  onOpenPlate: OpenSearchedPlate,
+  onOpenPlate: OpenPlate,
   onDone?: () => void,
 ) {
   const [value, setValue] = useState('')
-  const { setApplyToPlates } = useEventScope()
   const parsed = parsePlatePattern(value)
   const search = usePlateSearch(parsed.ready ? parsed.pattern : null)
   const open = (plate: string, analysis?: PlateProfileAnalysis) => {
     // A busca olha o grafo inteiro: o perfil abre com "Ver todos os fatos", sem o recorte global da tela.
-    setApplyToPlates(false)
-    onOpenPlate(plate, analysis)
+    onOpenPlate(plate, { analysis, allFacts: true })
     setValue('')
     onDone?.()
   }

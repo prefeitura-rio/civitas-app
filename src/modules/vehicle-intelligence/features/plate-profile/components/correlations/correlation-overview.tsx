@@ -11,8 +11,10 @@ import {
   PRF_COLORS,
   vehicleTypeLabel,
 } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/vehicle'
-import { distanceLabel } from '@/modules/vehicle-intelligence/features/plate-profile/profile-variants'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatDistance,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { titleCase } from '@/modules/vehicle-intelligence/lib/labels'
 import {
   plateOrigin,
@@ -91,7 +93,9 @@ export function CorrelationOverview({
             </span>
             <span>
               <strong>
-                {distanceLabel(summary.median_fact_distance_meters)}
+                {formatDistance(summary.median_fact_distance_meters, {
+                  fixedKm: true,
+                })}
               </strong>
               <small>dist. mediana</small>
             </span>

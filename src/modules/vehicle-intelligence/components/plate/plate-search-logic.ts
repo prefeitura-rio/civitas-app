@@ -6,12 +6,13 @@ import {
   RECORTES,
 } from '@/modules/vehicle-intelligence/config/recortes'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import { setApplyToPlates } from '@/modules/vehicle-intelligence/stores/event-scope'
 import type {
-  PlateProfileAnalysis,
   PlateSearchCounts,
   PlateSearchItem,
   PlateSearchWindow,
 } from '@/modules/vehicle-intelligence/types/domain'
+import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/navigation'
 
 const PLATE_LENGTH = 7
 // Com menos caracteres fixos o padrão traz milhares de placas; o motor recusa.
@@ -103,12 +104,32 @@ export function preferredDestination(
   return others.length ? destinationIn(item, others[0].id) : null
 }
 
-/** O perfil chega com "Ver todos os fatos" (`fatos=todos`, ver `stores/event-scope`): a busca olha o grafo inteiro. */
+/** A busca abre o perfil com "Ver todos os fatos": ela olha o grafo inteiro, não o recorte global da tela. */
+const ALL_FACTS = { name: 'fatos', value: 'todos' }
+
+/** O perfil noutro recorte (a página recarrega nele), com "Ver todos os fatos" na URL. */
 export function profileHref(
   plate: string,
   { recorte, analysis }: Destination,
 ): string {
-  return `${toAppPath(`/profile/${plate}/${analysis}`)}?recorte=${recorte}&fatos=todos`
+  return `${toAppPath(`/profile/${plate}/${analysis}`)}?recorte=${recorte}&${ALL_FACTS.name}=${ALL_FACTS.value}`
+}
+
+/**
+ * O perfil aberto pela busca em outro recorte (`profileHref`) chega com "Ver todos os fatos". O parâmetro sai da URL
+ * para não seguir nas navegações. Chamado uma vez, na entrada do app.
+ */
+export function openedFromSearch(): void {
+  const params = new URLSearchParams(window.location.search)
+  if (params.get(ALL_FACTS.name) !== ALL_FACTS.value) return
+  setApplyToPlates(false)
+  params.delete(ALL_FACTS.name)
+  const query = params.toString()
+  window.history.replaceState(
+    window.history.state,
+    '',
+    `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`,
+  )
 }
 
 export function windowLabel(window: PlateSearchWindow): string {

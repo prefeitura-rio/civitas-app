@@ -1,10 +1,12 @@
 import { type CSSProperties, useMemo } from 'react'
-import { Circle, Marker, Popup } from 'react-leaflet'
+import { Circle, Marker, Popup, ZoomControl } from 'react-leaflet'
 
 import { BaseTiles } from '@/modules/vehicle-intelligence/components/map/base-tiles'
 import { MapContainer } from '@/modules/vehicle-intelligence/components/map/map-container'
 import {
+  correlationAnchorTracks,
   correlationGradient,
+  correlationTrackLabel,
   factKey,
   pairColor,
   revealedCorrelationMatches,
@@ -18,7 +20,7 @@ import {
 import { MapLegend } from '@/modules/vehicle-intelligence/components/timeline/day/map-legend'
 import { MapViewport } from '@/modules/vehicle-intelligence/components/timeline/day/map-viewport'
 import { PopupReset } from '@/modules/vehicle-intelligence/components/timeline/day/popup-reset'
-import { TrailCard } from '@/modules/vehicle-intelligence/components/timeline/day/trail-card'
+import { TrailCards } from '@/modules/vehicle-intelligence/components/timeline/day/trail-card'
 import { TransitionSegment } from '@/modules/vehicle-intelligence/components/timeline/day/transition-segment'
 import { detectionPoint } from '@/modules/vehicle-intelligence/components/timeline/geo'
 import { CrimeSitePopup } from '@/modules/vehicle-intelligence/components/timeline/popups/crime-site-popup'
@@ -31,8 +33,9 @@ import type {
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
 import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
 
-/** O mapa do dia: o raio e o pino de cada fato revelado, as trilhas até o momento, os cartões das trilhas e a legenda.
- * Entre um passo e outro (`motionMs`), o trecho novo se desenha, o balão desliza, o marcador pousa e o fato pulsa. */
+/** O mapa do dia: o raio e o pino de cada fato revelado, as trilhas até o momento e, numa coluna à esquerda, os cartões
+ * das trilhas e a legenda (como no Painel de Clonagem, sobre o mapa-base neutro). Entre um passo e outro (`motionMs`), o
+ * trecho novo se desenha, o balão desliza, o marcador pousa e o fato pulsa. */
 export function CaseMap({
   crimeSites,
   tracks,
@@ -112,9 +115,10 @@ export function CaseMap({
         center={[-22.91, -43.37]}
         zoom={11}
         className="analysis-map"
-        zoomControl
+        zoomControl={false}
       >
-        <BaseTiles />
+        <BaseTiles style="light_all" />
+        <ZoomControl position="bottomright" />
         <MapViewport
           positions={viewportPositions}
           focus={focus}
@@ -238,23 +242,21 @@ export function CaseMap({
           />
         )}
       </MapContainer>
-      <div className="timeline-trail-cards" aria-label="Trilhas em foco">
-        {tracks.map((track) => (
-          <TrailCard
-            key={track.key}
-            track={track}
-            selectedTracks={selectedTracks}
-            onToggleTracks={onToggleTracks}
-            windowMinutes={windowMinutes}
-            radiusMeters={radiusMeters}
-          />
-        ))}
+      <div className="timeline-map-overlay">
+        <TrailCards
+          tracks={tracks}
+          facts={facts}
+          selectedTracks={selectedTracks}
+          onToggleTracks={onToggleTracks}
+          windowMinutes={windowMinutes}
+          radiusMeters={radiusMeters}
+        />
+        <MapLegend
+          tracks={tracks}
+          windowMinutes={windowMinutes}
+          radiusMeters={radiusMeters}
+        />
       </div>
-      <MapLegend
-        tracks={tracks}
-        windowMinutes={windowMinutes}
-        radiusMeters={radiusMeters}
-      />
       <span className="timeline-map-note">
         Linhas retas ligam observações sucessivas e não representam rota
         percorrida
@@ -277,18 +279,16 @@ function ActiveCallout({
   moment: number
   motionMs: number
 }) {
+  // O selo do balão: a trilha da leitura ou, ligada a um fato, o fato (na cor clara dele, legível no balão escuro).
   const correlationMatches = revealedCorrelationMatches(detection, moment)
-  const icon = mapCallout(
-    detection,
-    sequence,
-    correlationMatches.length > 0,
-    correlationGradient(
-      correlationMatches,
-      tracks,
-      sequence.color,
-      pairColor(sequence),
-    ),
-  )
+  const anchor = correlationAnchorTracks(correlationMatches, tracks)[0]
+  const chip = anchor
+    ? {
+        label: correlationTrackLabel(correlationMatches, tracks),
+        color: anchor.softColor,
+      }
+    : { label: sequence.label, color: sequence.softColor }
+  const icon = mapCallout(detection, chip)
   return (
     <GlidingCallout
       position={detectionPoint(detection)}

@@ -1,7 +1,7 @@
 /**
  * As consultas do perfil da placa. As correlações e as citações seguem a placa e o recorte (useApi). O perfil de
- * circulação e os limites dos bairros só são lidos na aba Tendências e ficam guardados enquanto o perfil está aberto:
- * o perfil, uma vez por placa, com nova tentativa a cada 4 s quando o servidor está ocupado com outra placa (429).
+ * circulação e os limites dos bairros só são lidos na aba Tendências e ficam guardados enquanto o perfil está aberto
+ * (o perfil, uma vez por placa).
  */
 import { useEffect, useState } from 'react'
 
@@ -20,10 +20,10 @@ import type {
   PlateCitationsData,
   PlateCorrelationsData,
   PlateDenunciasData,
-  PlateProfileAnalysis,
   PlateProfileData,
   RioNeighborhoodGeometry,
 } from '@/modules/vehicle-intelligence/types/domain'
+import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/navigation'
 
 export function usePlateProfileData(
   plate: string,
@@ -34,12 +34,9 @@ export function usePlateProfileData(
     cachedResponse(plateProfilePath(plate)),
   )
   const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
   // A resposta de outra placa (ou de outro recorte) não fica na tela enquanto a nova carrega.
   const correlationsPath = plateCorrelationsPath(plate, scopeQuery)
-  const correlations = useApi<PlateCorrelationsData>(correlationsPath, {
-    fallbackError: 'Falha ao carregar as correlações',
-  })
+  const correlations = useApi<PlateCorrelationsData>(correlationsPath)
   const correlationData =
     correlations.dataPath === correlationsPath ? correlations.data : null
   const correlationError = correlations.error
@@ -66,7 +63,6 @@ export function usePlateProfileData(
   useEffect(() => {
     setData(cachedResponse(plateProfilePath(plate)))
     setError(null)
-    setBusy(false)
   }, [plate])
 
   useEffect(() => {
@@ -74,17 +70,15 @@ export function usePlateProfileData(
     const controller = new AbortController()
     setData(cachedResponse(plateProfilePath(plate)))
     setError(null)
-    setBusy(false)
     getPlateProfile(plate, controller.signal)
       .then((result) => {
         if (!controller.signal.aborted) setData(result)
       })
       .catch((reason) => {
         if (reason.name === 'AbortError') return
-        const message =
-          reason instanceof Error ? reason.message : 'Falha ao montar o perfil'
-        if (message.includes('429')) setBusy(true)
-        setError(message)
+        setError(
+          reason instanceof Error ? reason.message : 'Falha ao montar o perfil',
+        )
       })
     return () => controller.abort()
     // `data?.plate` só evita buscar de novo o perfil que já está na tela; não deve disparar a busca.
@@ -107,22 +101,12 @@ export function usePlateProfileData(
     return () => controller.abort()
   }, [analysis, neighborhoodGeometry])
 
-  useEffect(() => {
-    if (!busy) return
-    const timer = window.setTimeout(
-      () => setRetryToken((value) => value + 1),
-      4000,
-    )
-    return () => window.clearTimeout(timer)
-  }, [busy])
-
   /** Pede o perfil de novo (o botão "Tentar novamente"). */
   const retry = () => setRetryToken((value) => value + 1)
 
   return {
     data,
     error,
-    busy,
     retry,
     correlationData,
     correlationError,

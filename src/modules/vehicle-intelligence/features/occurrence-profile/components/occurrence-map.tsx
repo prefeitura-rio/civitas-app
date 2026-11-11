@@ -7,22 +7,35 @@ import { BaseTiles } from '@/modules/vehicle-intelligence/components/map/base-ti
 import { FitBounds } from '@/modules/vehicle-intelligence/components/map/fit-bounds'
 import { MapContainer } from '@/modules/vehicle-intelligence/components/map/map-container'
 import {
-  distanceLabel,
   type MergedPoint,
   mergePoints,
 } from '@/modules/vehicle-intelligence/features/occurrence-profile/occurrence-format'
 import type { OccurrenceProfileData } from '@/modules/vehicle-intelligence/features/occurrence-profile/types'
 import {
   escapeHtml,
+  formatDistance,
   formatNumber,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { titleCaseText } from '@/modules/vehicle-intelligence/lib/labels'
 
 type Found = Extract<OccurrenceProfileData, { found: true }>
 
-/** O enquadramento: o fato e os pontos até 2× o raio (ou 2 km); a leitura de uma citada do outro lado da cidade fica
- * no mapa, mas não afasta o zoom. */
+/** O enquadramento: o raio inteiro e os pontos até 2× o raio (ou 2 km); a leitura de uma citada do outro lado da
+ * cidade fica no mapa, mas não afasta o zoom. */
 const FIT_DISTANCE_M = 2000
+
+/** Os quatro cantos do círculo do raio, para o enquadramento mostrar o raio inteiro. */
+function radiusCorners(
+  [lat, lon]: [number, number],
+  meters: number,
+): Array<[number, number]> {
+  const dLat = meters / 110540
+  const dLon = meters / (111320 * Math.cos((lat * Math.PI) / 180))
+  return [
+    [lat - dLat, lon - dLon],
+    [lat + dLat, lon + dLon],
+  ]
+}
 
 const FACT_ICON = divIcon({
   className: 'occurrence-map-fact',
@@ -75,9 +88,12 @@ function PlateList({
 
 export function OccurrenceMap({
   data,
+  expanded = false,
   onOpenPlate,
 }: {
   data: Found
+  /** Ampliado, o mapa ocupa quase a altura da janela; o enquadramento é refeito no tamanho novo. */
+  expanded?: boolean
   onOpenPlate: (plate: string) => void
 }) {
   const { occurrence, parameters } = data
@@ -97,7 +113,7 @@ export function OccurrenceMap({
         point.distance_meters == null || point.distance_meters <= limit,
     )
     return [
-      ...(fact ? [fact] : []),
+      ...(fact ? [fact, ...radiusCorners(fact, parameters.radius_meters)] : []),
       ...near.map(
         (point) => [point.latitude, point.longitude] as [number, number],
       ),
@@ -115,7 +131,7 @@ export function OccurrenceMap({
       </div>
     )
   return (
-    <div className="occurrence-map">
+    <div className={`occurrence-map${expanded ? ' expanded' : ''}`}>
       <MapContainer
         center={fitPoints[0]}
         zoom={15}
@@ -125,10 +141,10 @@ export function OccurrenceMap({
         <BaseTiles />
         <FitBounds
           points={fitPoints}
-          fitKey={`${data.ro}:${parameters.radius_meters}`}
-          padding={36}
-          maxZoom={16}
-          retryMs={[120]}
+          fitKey={`${data.ro}:${parameters.radius_meters}:${expanded ? 'ampliado' : 'normal'}`}
+          padding={28}
+          maxZoom={17}
+          retryMs={[120, 360]}
         />
         {fact && (
           <>
@@ -174,7 +190,7 @@ export function OccurrenceMap({
                   {[
                     point.neighborhood && titleCaseText(point.neighborhood),
                     point.distance_meters != null &&
-                      `a ${distanceLabel(point.distance_meters)} do fato`,
+                      `a ${formatDistance(point.distance_meters)} do fato`,
                   ]
                     .filter(Boolean)
                     .join(' · ')}

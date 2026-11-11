@@ -1,6 +1,6 @@
 import { DetailSection } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/detail-section'
-import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/event-time'
 import { PlateChips } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/plate-chips'
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
 import type { DisconnectionRadar } from '@/modules/vehicle-intelligence/features/post-event/types'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 

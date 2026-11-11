@@ -12,7 +12,7 @@ import {
   candidateColor,
   victimColor,
 } from '@/modules/vehicle-intelligence/features/plate-profile/profile-colors'
-import { formatTimestamp } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
+import { formatDateTime } from '@/modules/vehicle-intelligence/lib/dates'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type { PlateProfileOccurrence } from '@/modules/vehicle-intelligence/types/domain'
 
@@ -107,7 +107,7 @@ export function OccurrenceMarkers({
                   </small>
                 )}
                 <span className="profile-occurrence-when">
-                  {formatTimestamp(item.event_time)}
+                  {formatDateTime(item.event_time)}
                 </span>
                 <span className="profile-occurrence-place">
                   {item.event_address || 'Endereço não informado'}

@@ -5,6 +5,8 @@ import { useMap } from 'react-leaflet'
 import { prefersReducedMotion } from '@/modules/vehicle-intelligence/components/timeline/day/map-motion'
 
 const PADDING = 48
+/** A coluna de cartões e legenda, à esquerda do mapa: a câmera enquadra as leituras fora dela. */
+const OVERLAY_ROOM = 230
 /** Espaço acima da leitura para o balão (altura dele + a distância ao marcador). */
 const CALLOUT_ROOM = 130
 const MAX_ZOOM = 14
@@ -39,7 +41,7 @@ export function MapViewport({
       focus ?? positions[positions.length - 1],
     )
     const inside =
-      target.x >= PADDING &&
+      target.x >= OVERLAY_ROOM &&
       target.x <= size.x - PADDING &&
       target.y >= PADDING + CALLOUT_ROOM &&
       target.y <= size.y - PADDING
@@ -51,7 +53,7 @@ export function MapViewport({
         map.getBoundsZoom(
           bounds,
           false,
-          point(2 * PADDING, 2 * PADDING + CALLOUT_ROOM),
+          point(OVERLAY_ROOM + PADDING, 2 * PADDING + CALLOUT_ROOM),
         ),
       ) -
         map.getZoom() >=
@@ -61,7 +63,7 @@ export function MapViewport({
     if (positions.length === 1) map.setView(positions[0], 15, { animate })
     else
       map.fitBounds(bounds, {
-        paddingTopLeft: point(PADDING, PADDING + CALLOUT_ROOM),
+        paddingTopLeft: point(OVERLAY_ROOM, PADDING + CALLOUT_ROOM),
         paddingBottomRight: point(PADDING, PADDING),
         maxZoom: MAX_ZOOM,
         animate,

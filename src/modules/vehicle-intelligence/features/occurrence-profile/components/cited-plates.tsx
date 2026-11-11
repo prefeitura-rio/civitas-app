@@ -8,7 +8,6 @@ import {
   relatoMarks,
 } from '@/modules/vehicle-intelligence/features/occurrence-profile/components/occurrence-facts'
 import {
-  distanceLabel,
   factDeltaLabel,
   readingLabel,
   snippetAround,
@@ -19,7 +18,10 @@ import type {
   OccurrenceProfileData,
   OccurrenceReading,
 } from '@/modules/vehicle-intelligence/features/occurrence-profile/types'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatDistance,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { titleCaseText } from '@/modules/vehicle-intelligence/lib/labels'
 
 type Found = Extract<OccurrenceProfileData, { found: true }>
@@ -109,7 +111,7 @@ function Compatible({
                 )
                 .join(' e '),
               match.min_fact_distance_meters != null &&
-                distanceLabel(match.min_fact_distance_meters),
+                formatDistance(match.min_fact_distance_meters),
               factDeltaLabel(match.min_fact_delta_minutes, match, eventTime),
             ]
               .filter(Boolean)

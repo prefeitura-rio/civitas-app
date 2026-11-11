@@ -1,8 +1,5 @@
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson'
 
-/** As duas análises do perfil de placa (abas e rotas `/profile/<placa>/<análise>`). */
-export type PlateProfileAnalysis = 'correlations' | 'trends'
-
 /** Transeuntes e veículos: roubo e furto. Carga: só a carga, a carga com o veículo ou só o veículo. */
 export type CrimeType =
   | 'ROUBO'
@@ -106,6 +103,35 @@ export interface DashboardData {
 }
 
 /** Opções do grafo; janelas e raios são as políticas materializadas no banco. */
+export interface CityZone {
+  name: string
+  cisps: string[]
+}
+
+/** As zonas inteiras contidas na seleção de CISPs. */
+export function zonesIn(
+  zones: CityZone[] | undefined,
+  cisps: string[],
+): string[] {
+  return (zones ?? [])
+    .filter((zone) => zone.cisps.every((code) => cisps.includes(code)))
+    .map((zone) => zone.name)
+}
+
+/** As CISPs das zonas escolhidas (sem zona, nenhuma: a cidade inteira). */
+export function cispsOfZones(
+  zones: CityZone[] | undefined,
+  names: string[],
+): string[] {
+  return [
+    ...new Set(
+      (zones ?? [])
+        .filter((zone) => names.includes(zone.name))
+        .flatMap((zone) => zone.cisps),
+    ),
+  ].sort()
+}
+
 export interface MasterGraphOptions {
   modalidades: CrimeType[]
   alvos: string[]
@@ -113,6 +139,8 @@ export interface MasterGraphOptions {
   veiculos?: string[]
   cisps: string[]
   cisp_names: Record<string, string>
+  /** Zonas da cidade com as CISPs de cada uma (atalho do filtro de CISP); vazio quando o recorte tem uma zona só. */
+  zones?: CityZone[]
   area_name?: string | null
   active_taxis: { available: boolean; count: number }
   available_event_window_minutes: number[]

@@ -75,9 +75,7 @@ export function GroupProfile({
   const filters = useGroupFilters()
   const plates = useMemo(() => platesFromGroupId(id), [id])
   const profilePath = groupProfilePath(plates, filters)
-  const profile = useApi<GroupProfileData>(profilePath, {
-    fallbackError: 'Falha na consulta do grupo',
-  })
+  const profile = useApi<GroupProfileData>(profilePath)
   // Outro grupo ou outros filtros: o perfil anterior sai da tela enquanto o novo carrega.
   const data = profile.dataPath === profilePath ? profile.data : null
   const { error } = profile

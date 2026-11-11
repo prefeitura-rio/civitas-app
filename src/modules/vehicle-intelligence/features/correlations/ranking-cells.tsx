@@ -13,9 +13,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/modules/vehicle-intelligence/components/ui/tooltip'
-import { formatInBrasilia } from '@/modules/vehicle-intelligence/lib/dates'
+import { formatDayMonthTime } from '@/modules/vehicle-intelligence/lib/dates'
 import {
   formatNumber,
+  formatPercent,
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { cispParts } from '@/modules/vehicle-intelligence/lib/labels'
@@ -109,13 +110,6 @@ export function cispCell(
   )
 }
 
-export function formatDistance(value?: number | null): string {
-  if (value == null) return 'distância indisponível'
-  return value >= 1000
-    ? `${(value / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`
-    : `${formatNumber(Math.round(value))} m`
-}
-
 /** Coluna "Modelo e origem": o modelo do cadastro PRF e a UF que emitiu a placa (fora do RJ em destaque). */
 export function vehicleOriginCell(row: SignalFields): ReactNode {
   const plateOriginInfo = plateOrigin(row.plate)
@@ -159,7 +153,7 @@ export function mainCispCell(
       </span>
     )
   const parts = cispParts(row.main_cisp, row.main_cisp_name)
-  const share = `${(row.main_cisp_share ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`
+  const share = formatPercent(row.main_cisp_share ?? 0, 0)
   const total = row.main_cisp_detections ?? 0
   return (
     <span
@@ -191,16 +185,6 @@ export function VehicleTypeText({
   )
 }
 
-/** "14/10 16:12": listas e inspetor do grafo. */
-export function compactDateTime(value: string): string {
-  return formatInBrasilia(value, {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
 export function recentActivityCell(row: CorrelationRankingRow): ReactNode {
   const window = recentActivityWindow(row)
   if (!window)
@@ -211,7 +195,7 @@ export function recentActivityCell(row: CorrelationRankingRow): ReactNode {
   const detectionLabel = count === 1 ? 'detecção' : 'detecções'
   const details = `Cerco Eletrônico. 7 dias: ${formatNumber(row.detections_7d)}; 15 dias: ${formatNumber(row.detections_15d)}; 30 dias: ${formatNumber(row.detections_30d)}; 45 dias: ${formatNumber(row.detections_45d)}.`
   const lastSeen = row.recent_activity_last_seen
-    ? `Última ${compactDateTime(row.recent_activity_last_seen)}`
+    ? `Última ${formatDayMonthTime(row.recent_activity_last_seen)}`
     : 'Sem horário recente'
   return (
     <Tooltip>

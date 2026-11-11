@@ -1,9 +1,10 @@
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
 import type { OriginClusterPoint } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/clusters'
-import { formatPostEventDate } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/event-time'
 import { PopupSection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/popup-section'
 import { TEXT } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/recorte-texts'
 import { TemporalProfileSection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/temporal-profile-section'
 import type { OriginCluster } from '@/modules/vehicle-intelligence/features/post-event/types'
+import { instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 
@@ -18,8 +19,8 @@ export function OriginPointPopup({
     .filter((event) => event.event_time)
     .sort(
       (left, right) =>
-        new Date(right.event_time || 0).getTime() -
-        new Date(left.event_time || 0).getTime(),
+        (right.event_time ? instantMs(right.event_time) : 0) -
+        (left.event_time ? instantMs(left.event_time) : 0),
     )
     .slice(0, 5)
   return (
@@ -68,7 +69,7 @@ export function OriginPointPopup({
         <div>
           {recentEvents.map((event) => (
             <time key={event.event_id}>
-              {formatPostEventDate(event.event_time)} ·{' '}
+              {formatEventTime(event.event_time)} ·{' '}
               {event.cisp ? `CISP ${event.cisp}` : 'CISP não informada'}
             </time>
           ))}

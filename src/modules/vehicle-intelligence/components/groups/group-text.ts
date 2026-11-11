@@ -1,5 +1,9 @@
 /** Textos e medidas das ligações e dos membros de um grupo, comuns ao cartão, ao perfil do grupo e aos territórios. */
 import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
+import {
+  formatDecimal,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type {
   GroupEdge,
   GroupMember,
@@ -43,12 +47,12 @@ function oneIn(chance: number): string {
   const x = Math.round(1 / chance)
   const scaled = (value: number, singular: string, plural: string) => {
     const rounded = Math.round(value)
-    return `${rounded.toLocaleString('pt-BR')} ${rounded === 1 ? singular : plural}`
+    return `${formatNumber(rounded)} ${rounded === 1 ? singular : plural}`
   }
   if (x >= 1e9) return scaled(x / 1e9, 'bilhão', 'bilhões')
   if (x >= 1e6) return scaled(x / 1e6, 'milhão', 'milhões')
-  if (x >= 1e4) return `${Math.round(x / 1e3).toLocaleString('pt-BR')} mil`
-  return x.toLocaleString('pt-BR')
+  if (x >= 1e4) return `${formatNumber(Math.round(x / 1e3))} mil`
+  return formatNumber(x)
 }
 
 /** "Semente · 4ª no ranking" ou "Parceira" (Começos e fins e o balão das ligações). */
@@ -60,8 +64,4 @@ export const withoutTerm = (text: string | undefined) =>
   (text ?? '').replace(/^[^:]+:\s*/, '')
 
 /** Semelhança de rotina (0 a 1) com duas casas: "0,87". */
-export const formatSimilarity = (value: number) =>
-  value.toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
+export const formatSimilarity = (value: number) => formatDecimal(value, 2, 2)

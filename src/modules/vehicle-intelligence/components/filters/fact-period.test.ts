@@ -1,8 +1,8 @@
 import {
-  dayLabel,
   periodDates,
   periodRangeLabel,
 } from '@/modules/vehicle-intelligence/components/filters/fact-period'
+import { formatCivilDay } from '@/modules/vehicle-intelligence/lib/dates'
 
 const BASE = {
   start: '2026-01-02T08:00:00-03:00',
@@ -46,6 +46,6 @@ describe('período dos fatos', () => {
     expect(periodRangeLabel('all', BASE)).toBe('jan/26 – out/26')
     expect(periodRangeLabel('12m', BASE)).toBe('out/25 – out/26')
     expect(periodRangeLabel('3m', null)).toBe('')
-    expect(dayLabel('2026-03-01')).toBe('01/03/2026')
+    expect(formatCivilDay('2026-03-01')).toBe('01/03/2026')
   })
 })

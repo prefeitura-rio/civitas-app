@@ -3,7 +3,7 @@ import {
   type GraphEdge,
 } from '@/modules/vehicle-intelligence/features/correlations/graph-variants'
 import { strengthColor } from '@/modules/vehicle-intelligence/features/correlations/network-layout'
-import { compactDateTime } from '@/modules/vehicle-intelligence/features/correlations/ranking-cells'
+import { formatDayMonthTime } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 import { recentActivityWindow } from '@/modules/vehicle-intelligence/lib/recent-activity'
 import type {
@@ -93,7 +93,7 @@ export function CandidateInspector({
             Cerco Eletrônico{' '}
             <small>
               {selectedCandidate.recent_activity_last_seen
-                ? `· Última ${compactDateTime(selectedCandidate.recent_activity_last_seen)}`
+                ? `· Última ${formatDayMonthTime(selectedCandidate.recent_activity_last_seen)}`
                 : ''}
             </small>
           </strong>

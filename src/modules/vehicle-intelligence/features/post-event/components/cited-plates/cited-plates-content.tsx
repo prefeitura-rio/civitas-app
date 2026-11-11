@@ -44,7 +44,6 @@ export function CitedPlatesContent({
     active ? postEventPath(query) : null,
     {
       delayMs: 180,
-      fallbackError: 'Falha na leitura local',
     },
   )
   const recurrent = data?.ready

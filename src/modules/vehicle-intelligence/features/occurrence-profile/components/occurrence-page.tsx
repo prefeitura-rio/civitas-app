@@ -29,9 +29,7 @@ function VictimPlateOccurrences({
   onOpenPlate,
 }: Props) {
   const path = occurrenceSearchPath(plate)
-  const search = useApi<OccurrenceSearchData>(path, {
-    fallbackError: 'Falha na busca dos ROs da placa',
-  })
+  const search = useApi<OccurrenceSearchData>(path)
   const data = search.dataPath === path ? search.data : null
   const results =
     data?.results.filter((item) => item.matched_by === 'victim_plate') ?? []

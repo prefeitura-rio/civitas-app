@@ -28,6 +28,7 @@ import { PlayerControls } from '@/modules/vehicle-intelligence/components/timeli
 import { GroupSequencePanel } from '@/modules/vehicle-intelligence/components/timeline/group/sequence-panel'
 import { timeRange } from '@/modules/vehicle-intelligence/components/timeline/group/time'
 import type { TimelineDay } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { dayStartMs } from '@/modules/vehicle-intelligence/lib/dates'
 import { pluralize } from '@/modules/vehicle-intelligence/lib/format'
 
 export type GroupDayInfo = {
@@ -149,9 +150,7 @@ export function GroupTimelineView({
     [events],
   )
   // Faixa de tempo: o período com leituras (20 min de folga, horas cheias) ou o dia inteiro com a margem.
-  const civilDayStart = selectedDay
-    ? new Date(`${selectedDay}T00:00:00-03:00`).getTime()
-    : 0
+  const civilDayStart = selectedDay ? dayStartMs(selectedDay) : 0
   const [rangeStart, rangeEnd] = useMemo(
     () => timeRange(day, range, civilDayStart, dayMarginMinutes),
     [range, day, civilDayStart, dayMarginMinutes],

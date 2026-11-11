@@ -17,8 +17,8 @@ import {
   cispUnitLabel,
   correlationEventAnchor,
 } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-format'
-import { formatTimestamp } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
 import { PROFILE } from '@/modules/vehicle-intelligence/features/plate-profile/profile-variants'
+import { formatDateTime } from '@/modules/vehicle-intelligence/lib/dates'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type {
   PlateCorrelationsData,
@@ -78,12 +78,12 @@ export function CorrelationEventItem({
                 },
               }
             : {
-                'aria-label': `Abrir timeline de ${formatTimestamp(item.event_time)}`,
+                'aria-label': `Abrir timeline de ${formatDateTime(item.event_time)}`,
                 onClick: () => onOpenTimeline(item.day),
               })}
         >
           <span className="profile-corr-event-when">
-            <strong>{formatTimestamp(item.event_time)}</strong>
+            <strong>{formatDateTime(item.event_time)}</strong>
             <small>{cispUnitLabel(item.cisp, cispNames)}</small>
           </span>
           <span className="profile-corr-event-context">

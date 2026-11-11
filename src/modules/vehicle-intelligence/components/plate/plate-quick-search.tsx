@@ -2,7 +2,6 @@ import { ArrowRight, Search } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 
 import {
-  type OpenSearchedPlate,
   PLATE_PATTERN_HINT,
   type PlateSearchField,
   PlateSearchResults,
@@ -16,9 +15,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/modules/vehicle-intelligence/components/ui/popover'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 interface PlateQuickSearchProps {
-  onOpenPlate: OpenSearchedPlate
+  onOpenPlate: OpenPlate
   /** Classe do invólucro (o perfil de placa dá a largura e o estilo do campo). */
   className?: string
   /** Texto do campo no cabeçalho; o padrão é "Buscar placa". */

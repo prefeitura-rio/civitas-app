@@ -8,11 +8,11 @@ import {
 } from '@/modules/vehicle-intelligence/components/timeline/day/map-motion'
 import { TransitionPopup } from '@/modules/vehicle-intelligence/components/timeline/day/transition-popup'
 import { detectionPoint } from '@/modules/vehicle-intelligence/components/timeline/geo'
-import { formatTime } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
 import type {
   TimelineDetection,
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { formatTimeSeconds } from '@/modules/vehicle-intelligence/lib/dates'
 
 /** A linha reta entre duas leituras da trilha, com uma faixa larga invisível para o clique e o teclado. Com `growMs`
  * (o trecho que chega à leitura ativa), a linha se desenha da leitura anterior até ela, com um ponto na frente. */
@@ -75,7 +75,7 @@ export function TransitionSegment({
     element.setAttribute('aria-haspopup', 'dialog')
     element.setAttribute(
       'aria-label',
-      `${track.label} ${track.plate}, trecho ${order} para ${order + 1}, de ${from.location || 'local não informado'} às ${formatTime(from.detected_at)} para ${to.location || 'local não informado'} às ${formatTime(to.detected_at)}`,
+      `${track.label} ${track.plate}, trecho ${order} para ${order + 1}, de ${from.location || 'local não informado'} às ${formatTimeSeconds(from.detected_at)} para ${to.location || 'local não informado'} às ${formatTimeSeconds(to.detected_at)}`,
     )
     const openWithKeyboard = (event: Event) => {
       const keyboardEvent = event as KeyboardEvent
@@ -94,8 +94,8 @@ export function TransitionSegment({
         interactive={false}
         pathOptions={{
           color: track.color,
-          weight: 5,
-          opacity: 0.82,
+          weight: 3.5,
+          opacity: 0.85,
           lineCap: 'round',
           lineJoin: 'round',
         }}

@@ -21,13 +21,7 @@ import {
   postEventParams,
 } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/filters'
 import { LastLocationsExplorer } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/last-locations-explorer'
-import {
-  isCargoRecorte,
-  modalityName,
-  PRIMARY,
-  SECONDARY,
-  TEXT,
-} from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/recorte-texts'
+import { TEXT } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/recorte-texts'
 import type { MasterPostData } from '@/modules/vehicle-intelligence/features/post-event/types'
 import { useApi } from '@/modules/vehicle-intelligence/hooks/use-api'
 import { MASTER_GRAPH_OPTIONS_PATH } from '@/modules/vehicle-intelligence/lib/api'
@@ -45,7 +39,7 @@ export default function StolenVehiclesView() {
   const [filters, setFilters] = useState<PostEventFilters>(DEFAULT_FILTERS)
   const { data, loading, error } = useApi<MasterPostData>(
     postEventPath(postEventParams(filters, options?.fact_period).toString()),
-    { delayMs: 180, fallbackError: 'Falha na leitura local' },
+    { delayMs: 180 },
   )
 
   const cispOptions = useMemo(
@@ -180,11 +174,7 @@ export default function StolenVehiclesView() {
                 Polos de subtração
               </span>
               <strong>{formatNumber(data.origin_clusters.length)}</strong>
-              <small>
-                {isCargoRecorte
-                  ? 'carga e carga + veículo'
-                  : `${modalityName(PRIMARY)} e ${modalityName(SECONDARY)}`}
-              </small>
+              <small>{TEXT.modalities}</small>
             </article>
             <article>
               <span>

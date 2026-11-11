@@ -52,7 +52,10 @@ import {
   SWAP_ITEM,
 } from '@/modules/vehicle-intelligence/features/territories/vocabulary'
 import { useApi } from '@/modules/vehicle-intelligence/hooks/use-api'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatDecimal,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 
 const SECTIONS = [
   ['plates', 'Placas'],
@@ -89,9 +92,7 @@ export function TerritoryProfile({
 }) {
   const filters = useTerritoryFilters()
   const profilePath = territoryProfilePath(complex, filters)
-  const profile = useApi<TerritoryProfileData>(profilePath, {
-    fallbackError: 'Falha na consulta do território',
-  })
+  const profile = useApi<TerritoryProfileData>(profilePath)
   // Outro complexo ou outros filtros: o perfil anterior sai da tela enquanto o novo carrega.
   const data = profile.dataPath === profilePath ? profile.data : null
   const { error } = profile
@@ -323,7 +324,7 @@ export function TerritoryProfile({
                   primeiras 8 de quem começou (onde e quando são lidas, onde
                   começam e terminam o dia), descontando as rotinas genéricas.
                   {routineCut != null
-                    ? ` Parecida a partir de ${routineCut.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}: o corte que deixa passar 1% das erradas numa troca simulada.`
+                    ? ` Parecida a partir de ${formatDecimal(routineCut, 3, 3)}: o corte que deixa passar 1% das erradas numa troca simulada.`
                     : recorte.groups.hasRoutine
                       ? ' Sem a camada de rotinas, nenhuma conta como parecida.'
                       : ' A assinatura de rotina existe só para motos: aqui as trocas aparecem sem a semelhança, só pelas datas e pela mesma base.'}

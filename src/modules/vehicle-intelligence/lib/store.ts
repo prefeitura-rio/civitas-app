@@ -1,8 +1,46 @@
 /**
  * Estado compartilhado fora do React, lido com `useSyncExternalStore`: filtros que valem em mais de uma tela e
- * listas que a página carrega uma vez (Cerco, camada de territórios).
+ * listas que a página carrega uma vez (Cerco, camada de territórios). E o único lugar que lê e grava o armazenamento
+ * do navegador.
  */
 import { useSyncExternalStore } from 'react'
+
+import { recorteStorageKey } from '@/modules/vehicle-intelligence/config/recortes'
+
+/** A sessão (sobrevive a recarregar a página, não a fechar a aba) ou o armazenamento local (fica). */
+type StorageArea = 'session' | 'local'
+
+const area = (where: StorageArea) =>
+  where === 'local' ? window.localStorage : window.sessionStorage
+
+/**
+ * O armazenamento do navegador, separado por recorte (`civitas:<recorte>:<chave>`). Sem armazenamento (modo privado
+ * cheio, acesso bloqueado) ou com um valor ilegível, nada é lido nem guardado: a tela segue sem lembrar.
+ */
+export const browserStorage = {
+  read<T>(key: string, where: StorageArea = 'session'): T | null {
+    try {
+      const saved = area(where).getItem(recorteStorageKey(key))
+      return saved ? (JSON.parse(saved) as T) : null
+    } catch {
+      return null
+    }
+  },
+  write(key: string, value: unknown, where: StorageArea = 'session'): void {
+    try {
+      area(where).setItem(recorteStorageKey(key), JSON.stringify(value))
+    } catch {
+      /* Só perde a lembrança entre páginas. */
+    }
+  },
+  remove(key: string, where: StorageArea = 'session'): void {
+    try {
+      area(where).removeItem(recorteStorageKey(key))
+    } catch {
+      /* Idem. */
+    }
+  },
+}
 
 export interface Store<T> {
   get: () => T
@@ -12,25 +50,32 @@ export interface Store<T> {
   use: () => T
 }
 
-/**
- * Um valor compartilhado. Com `storageKey`, ele fica guardado na sessão do navegador (sobrevive a recarregar a página,
- * não a fechar a aba); um valor guardado é completado com `initial`, para filtros novos não quebrarem os antigos.
- */
+export interface StoreOptions<T> {
+  /** Guarda o valor no navegador com esta chave (por recorte). */
+  storageKey?: string
+  storage?: StorageArea
+  /**
+   * O valor a partir do guardado. Sem ela, um objeto guardado é completado com `initial` (filtros novos não quebram
+   * os antigos) e qualquer outro valor vale como veio.
+   */
+  restore?: (saved: unknown, initial: T) => T
+}
+
+/** Um valor compartilhado, guardado no navegador quando tem `storageKey`. */
 export function createStore<T>(
   initial: T,
-  options: { storageKey?: string } = {},
+  options: StoreOptions<T> = {},
 ): Store<T> {
-  const { storageKey } = options
+  const { storageKey, storage = 'session', restore = completeWith } = options
   let state = initial
   if (storageKey) {
-    try {
-      const saved = window.sessionStorage.getItem(storageKey)
-      if (saved)
-        state = isPlainObject(initial)
-          ? { ...initial, ...JSON.parse(saved) }
-          : JSON.parse(saved)
-    } catch {
-      /* Sem a sessão, começa do valor inicial. */
+    const saved = browserStorage.read<unknown>(storageKey, storage)
+    if (saved != null) {
+      try {
+        state = restore(saved, initial)
+      } catch {
+        /* Um valor guardado que não serve mais: começa do inicial. */
+      }
     }
   }
   const listeners = new Set<() => void>()
@@ -44,13 +89,7 @@ export function createStore<T>(
   const set = (next: T | ((current: T) => T)) => {
     state =
       typeof next === 'function' ? (next as (current: T) => T)(state) : next
-    if (storageKey) {
-      try {
-        window.sessionStorage.setItem(storageKey, JSON.stringify(state))
-      } catch {
-        /* Só perde a lembrança entre páginas. */
-      }
-    }
+    if (storageKey) browserStorage.write(storageKey, state, storage)
     listeners.forEach((listener) => listener())
   }
   return {
@@ -85,6 +124,12 @@ export function createLazyStore<T>(
     subscribe,
     use: () => useSyncExternalStore(subscribe, store.get),
   }
+}
+
+function completeWith<T>(saved: unknown, initial: T): T {
+  return isPlainObject(initial) && isPlainObject(saved)
+    ? ({ ...initial, ...saved } as T)
+    : (saved as T)
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

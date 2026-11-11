@@ -1,6 +1,9 @@
 import { PlateMarks } from '@/modules/vehicle-intelligence/components/groups/plate-marks'
 import { useIsInCerco } from '@/modules/vehicle-intelligence/components/plate/cerco-badge'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatPercent,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { titleCaseText } from '@/modules/vehicle-intelligence/lib/labels'
 import type { GroupMember } from '@/modules/vehicle-intelligence/types/groups'
 
@@ -88,9 +91,7 @@ export function MembersTable({
               {formatNumber(m.linked_events)}
             </span>
             <span role="cell" className="num">
-              {m.coverage != null
-                ? `${m.coverage.toLocaleString('pt-BR')}%`
-                : '—'}
+              {m.coverage != null ? formatPercent(m.coverage, 3) : '—'}
             </span>
             <span role="cell" className="num">
               {formatNumber(m.circulation_days)}

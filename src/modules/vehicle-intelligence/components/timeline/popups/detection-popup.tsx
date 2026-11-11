@@ -8,11 +8,7 @@ import {
   pairColor,
 } from '@/modules/vehicle-intelligence/components/timeline/correlation'
 import { GroupDetectionDetails } from '@/modules/vehicle-intelligence/components/timeline/popups/group-detection-details'
-import {
-  distanceLabel,
-  formatTime,
-  relativeTimeLabel,
-} from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
+import { relativeTimeLabel } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
 import type {
   CorrelationMatch,
   TimelineCase,
@@ -20,6 +16,8 @@ import type {
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
 import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
+import { formatTimeSeconds } from '@/modules/vehicle-intelligence/lib/dates'
+import { formatDistance } from '@/modules/vehicle-intelligence/lib/format'
 import type { GroupTogetherPassage } from '@/modules/vehicle-intelligence/types/domain'
 
 export function DetectionPopup({
@@ -109,7 +107,9 @@ export function DetectionPopup({
           {track.label} · #{order}
         </span>
       </div>
-      <b className="analysis-popup-time">{formatTime(detection.detected_at)}</b>
+      <b className="analysis-popup-time">
+        {formatTimeSeconds(detection.detected_at)}
+      </b>
       <span className="analysis-popup-place">
         {detection.location || 'Local não informado'}
       </span>
@@ -193,15 +193,15 @@ export function DetectionPopup({
                   <dd>
                     {match.distanceMeters == null
                       ? '—'
-                      : `${distanceLabel(match.distanceMeters / 1000)} do local`}
+                      : `${formatDistance(match.distanceMeters, { fixedKm: true })} do local`}
                   </dd>
                 </dl>
                 <small>
-                  Correlata {formatTime(match.candidateDetectedAt)}
+                  Correlata {formatTimeSeconds(match.candidateDetectedAt)}
                   {match.victimDetectedAt
-                    ? ` · vítima ${formatTime(match.victimDetectedAt)}`
+                    ? ` · vítima ${formatTimeSeconds(match.victimDetectedAt)}`
                     : ''}{' '}
-                  · fato {formatTime(match.eventTime)}
+                  · fato {formatTimeSeconds(match.eventTime)}
                 </small>
               </section>
             )

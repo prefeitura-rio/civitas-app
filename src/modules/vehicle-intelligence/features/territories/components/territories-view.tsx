@@ -64,7 +64,6 @@ export function TerritoriesView({
     active ? territoriesPath(filters) : null,
     {
       delayMs: 180,
-      fallbackError: 'Falha na consulta dos territórios',
     },
   )
   const [region, setRegion] = useState<RegionFilter>('all')

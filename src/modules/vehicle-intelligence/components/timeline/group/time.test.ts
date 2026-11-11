@@ -1,16 +1,15 @@
 import {
   axisHours,
-  hourMinute,
   timeRange,
-  toMs,
 } from '@/modules/vehicle-intelligence/components/timeline/group/time'
 import type {
   TimelineCase,
   TimelineDay,
   TimelineDetection,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { formatTime, instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 
-const dayStart = toMs('2026-03-02T00:00:00-03:00')
+const dayStart = instantMs('2026-03-02T00:00:00-03:00')
 const hour = 3_600_000
 
 describe('faixa de tempo', () => {
@@ -62,6 +61,6 @@ describe('faixa de tempo', () => {
       { at: dayStart + 11 * hour, label: '11h' },
       { at: dayStart + 12 * hour, label: '12h' },
     ])
-    expect(hourMinute(dayStart + 9.5 * hour)).toBe('09:30')
+    expect(formatTime(dayStart + 9.5 * hour)).toBe('09:30')
   })
 })

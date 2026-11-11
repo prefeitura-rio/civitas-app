@@ -13,7 +13,8 @@ import type {
 function queryParams(query: GraphQuery): URLSearchParams {
   const params = scopeParams(query)
   query.veiculos.forEach((item) => params.append('veiculo', item))
-  params.set('min_correlacoes', String(query.minCorrelations))
+  if (query.minPlateDetections > 1)
+    params.set('min_deteccoes_placa', String(query.minPlateDetections))
   params.set('min_eventos', String(query.minEvents))
   if (copassagem) params.set('min_placas_vitimas', String(query.minVictims))
   if (query.minTemperature > 0)

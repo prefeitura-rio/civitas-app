@@ -75,7 +75,6 @@ export function GroupsView({
     active ? groupsPath(filters) : null,
     {
       delayMs: 180,
-      fallbackError: 'Falha na consulta dos grupos',
     },
   )
   const [onlyKnown, setOnlyKnown] = useState(false)

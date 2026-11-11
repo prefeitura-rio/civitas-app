@@ -1,3 +1,4 @@
+import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 import type { TypicalHour } from '@/modules/vehicle-intelligence/types/domain'
 
 const shiftShort: Record<string, string> = {
@@ -29,7 +30,7 @@ export function TypicalHourLabel({
     return (
       <span
         className="profile-hour-chip muted"
-        title={`Concentração ${value.concentration.toLocaleString('pt-BR')} — horários dispersos ao longo do dia`}
+        title={`Concentração ${formatNumber(value.concentration)} — horários dispersos ao longo do dia`}
       >
         {verb} em horário disperso
       </span>
@@ -38,7 +39,7 @@ export function TypicalHourLabel({
   return (
     <span
       className={`profile-hour-chip ${value.shift}`}
-      title={`Concentração ${value.concentration.toLocaleString('pt-BR')} (1 = sempre no mesmo horário)`}
+      title={`Concentração ${formatNumber(value.concentration)} (1 = sempre no mesmo horário)`}
     >
       {verb} ~{value.label}
       {value.shift && <em>{shiftShort[value.shift]}</em>}

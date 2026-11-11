@@ -6,8 +6,6 @@ import { AuthorCitations } from '@/modules/vehicle-intelligence/components/plate
 import { CercoBadge } from '@/modules/vehicle-intelligence/components/plate/cerco-badge'
 import { GroupFactDetails } from '@/modules/vehicle-intelligence/components/timeline/popups/group-fact-details'
 import {
-  distanceLabel,
-  formatTime,
   geocodeQualityLabel,
   vehicleLabel,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
@@ -19,6 +17,8 @@ import {
   copassagem,
   recorte,
 } from '@/modules/vehicle-intelligence/config/recortes'
+import { formatTime } from '@/modules/vehicle-intelligence/lib/dates'
+import { formatDistance } from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 
 export function CrimeSitePopup({
@@ -84,9 +84,7 @@ export function CrimeSitePopup({
           </span>
         </div>
       )}
-      <b className="analysis-popup-time">
-        {formatTime(item.event_time).slice(0, 5)}
-      </b>
+      <b className="analysis-popup-time">{formatTime(item.event_time)}</b>
       <span className="analysis-popup-place">
         {item.event_address || 'Endereço não informado'}
         {item.event_neighborhood ? ` · ${item.event_neighborhood}` : ''}
@@ -115,9 +113,7 @@ export function CrimeSitePopup({
             </dd>
             <dt>Equipamento mais próximo</dt>
             <dd>
-              {item.min_fact_distance_meters == null
-                ? '—'
-                : distanceLabel(item.min_fact_distance_meters / 1000)}
+              {formatDistance(item.min_fact_distance_meters, { fixedKm: true })}
             </dd>
             <dt>Equipamentos no raio</dt>
             <dd>{item.cameras.length}</dd>

@@ -1,9 +1,6 @@
 /** Ranking da copassagem (veículos e carga): passagens no mesmo radar junto à placa vítima. */
-import { recorteAtual } from '@/modules/vehicle-intelligence/config/recortes'
-import {
-  type Column,
-  formatDistance,
-} from '@/modules/vehicle-intelligence/features/correlations/ranking-cells'
+import { recorte } from '@/modules/vehicle-intelligence/config/recortes'
+import { type Column } from '@/modules/vehicle-intelligence/features/correlations/ranking-cells'
 import {
   circulation,
   COMMON_SORT_LABELS,
@@ -18,15 +15,13 @@ import {
   formatDateTime,
 } from '@/modules/vehicle-intelligence/lib/dates'
 import {
+  formatDistance,
   formatNumber,
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { plateOrigin } from '@/modules/vehicle-intelligence/lib/plate-origin'
 
-const STOLEN_HELP =
-  recorteAtual === 'carga'
-    ? 'Data e hora em que o veículo da placa correlata foi registrado como subtraído junto com a carga.'
-    : 'Data e hora em que a própria placa correlata foi registrada como roubada ou furtada.'
+const STOLEN_HELP = recorte.victim?.stolenHelp ?? ''
 
 export const copassagemVariant: RankingVariant = {
   intro:
@@ -117,7 +112,10 @@ export const copassagemVariant: RankingVariant = {
                   'Ordenar pela distância temporal do fato',
                   `${row.avg_fact_candidate_minutes ?? 0} min do fato`,
                 )}{' '}
-                · {formatDistance(row.median_fact_distance_meters)}
+                ·{' '}
+                {formatDistance(row.median_fact_distance_meters, {
+                  empty: 'distância indisponível',
+                })}
               </>
             )}
           </small>
@@ -129,7 +127,11 @@ export const copassagemVariant: RankingVariant = {
       help: 'Dias diferentes em que a placa foi detectada no Cerco Eletrônico e, abaixo, quantos deles tiveram fato correlacionado.',
       render: (row) => (
         <span className="ranking-proximity">
-          <b>{row.circulation_days?.toLocaleString('pt-BR') ?? '—'}</b>
+          <b>
+            {row.circulation_days != null
+              ? formatNumber(row.circulation_days)
+              : '—'}
+          </b>
           <small>
             {sortButton(
               'distinct_days',

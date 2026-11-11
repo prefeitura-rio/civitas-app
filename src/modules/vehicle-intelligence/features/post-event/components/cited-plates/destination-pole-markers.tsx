@@ -1,13 +1,15 @@
 import { CircleMarker, Tooltip } from 'react-leaflet'
 
 import type { PoleMarkerProps } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/pole-marker-props'
-import { formatElapsedHours } from '@/modules/vehicle-intelligence/features/post-event/components/shared/elapsed-hours'
 import {
   accessibleMarker,
   markerScale,
 } from '@/modules/vehicle-intelligence/features/post-event/components/shared/map-markers'
 import type { DestinationPole } from '@/modules/vehicle-intelligence/features/post-event/types'
-import { pluralize } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatElapsedHours,
+  pluralize,
+} from '@/modules/vehicle-intelligence/lib/format'
 
 export function DestinationPoleMarkers({
   poles,

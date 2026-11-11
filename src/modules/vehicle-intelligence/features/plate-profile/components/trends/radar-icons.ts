@@ -7,6 +7,7 @@ import {
 } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/radar-scale'
 import {
   escapeHtml,
+  formatDecimal,
   formatNumber,
 } from '@/modules/vehicle-intelligence/lib/format'
 
@@ -52,7 +53,7 @@ export function makeRadarClusterIcon(totalDetections: number) {
     // balão e mantém o valor exato no tooltip.
     const label =
       detections >= 1000
-        ? `${(detections / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`
+        ? `${formatDecimal(detections / 1000, 1)} mil`
         : formatNumber(detections)
     return divIcon({
       className: `marker-cluster marker-cluster-${tier}`,

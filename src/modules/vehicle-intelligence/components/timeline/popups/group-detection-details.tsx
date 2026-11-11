@@ -4,8 +4,6 @@ import type { CSSProperties } from 'react'
 import { plateTrackColor } from '@/modules/vehicle-intelligence/components/timeline/correlation'
 import {
   disconnectionText,
-  durationLabel,
-  formatTime,
   territoryLabel,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
 import type {
@@ -13,6 +11,8 @@ import type {
   TimelineDetection,
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { formatTimeSeconds } from '@/modules/vehicle-intelligence/lib/dates'
+import { formatDuration } from '@/modules/vehicle-intelligence/lib/format'
 import type { GroupTogetherPassage } from '@/modules/vehicle-intelligence/types/domain'
 
 /** Grupo: passagens juntas e marcas (partida, desconexão) da leitura, no popup. */
@@ -65,10 +65,10 @@ export function GroupDetectionDetails({
               <dl>
                 <dt>{item.plate}</dt>
                 <dd>
-                  {formatTime(item.detected_at)} ·{' '}
+                  {formatTimeSeconds(item.detected_at)} ·{' '}
                   {item.seconds === 0
                     ? 'no mesmo instante'
-                    : `${durationLabel(Math.abs(item.seconds))} ${item.seconds < 0 ? 'antes' : 'depois'}`}
+                    : `${formatDuration(Math.abs(item.seconds))} ${item.seconds < 0 ? 'antes' : 'depois'}`}
                 </dd>
                 <dt>No fato</dt>
                 <dd>

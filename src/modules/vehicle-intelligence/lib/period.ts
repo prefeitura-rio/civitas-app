@@ -1,4 +1,6 @@
 /** Recorte temporal dos fatos: últimos meses até o fato mais recente da base. */
+import { formatDayRange } from '@/modules/vehicle-intelligence/lib/dates'
+
 const PERIOD_MONTHS = [6, 3, 1] as const
 
 type FactPeriod =
@@ -9,14 +11,6 @@ type FactPeriod =
 function parseDay(value: string): Date {
   const [year, month, day] = value.slice(0, 10).split('-').map(Number)
   return new Date(Date.UTC(year, month - 1, day))
-}
-
-function formatDay(date: Date, withYear: boolean): string {
-  const day = String(date.getUTCDate()).padStart(2, '0')
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-  return withYear
-    ? `${day}/${month}/${date.getUTCFullYear()}`
-    : `${day}/${month}`
 }
 
 /** Mesma regra do backend: o dia seguinte ao último fato, recuado N meses. */
@@ -35,15 +29,10 @@ export function periodStart(end: string, months: number): Date {
 
 function periodRange(months: number | null, period: FactPeriod): string | null {
   if (!period?.end) return null
-  const end = parseDay(period.end)
   const start = months
-    ? periodStart(period.end, months)
+    ? periodStart(period.end, months).toISOString().slice(0, 10)
     : period.start
-      ? parseDay(period.start)
-      : null
-  if (!start) return null
-  const sameYear = start.getUTCFullYear() === end.getUTCFullYear()
-  return `${formatDay(start, !sameYear)}–${formatDay(end, true)}`
+  return start ? formatDayRange(start, period.end, '–') : null
 }
 
 function periodName(months: number | null, period: FactPeriod): string {

@@ -4,9 +4,6 @@
 import {
   dayLabel,
   disconnectionText,
-  distanceLabel,
-  durationLabel,
-  formatTime,
   geocodeQualityLabel,
   listDayLabel,
   relativeTimeLabel,
@@ -32,12 +29,6 @@ const mark = (fields: Partial<GroupDetectionMark>): GroupDetectionMark => ({
 })
 
 describe('horários e dias', () => {
-  it('formatTime mostra HH:MM:SS em Brasília, venha o instante com fuso ou em UTC', () => {
-    expect(formatTime('2026-03-02T14:03:07-03:00')).toBe('14:03:07')
-    expect(formatTime('2026-03-02T17:03:07Z')).toBe('14:03:07')
-    expect(formatTime('2026-03-02 14:03:07')).toBe('14:03:07')
-  })
-
   it('escreve o dia por extenso, no seletor e na lista', () => {
     expect(dayLabel('2026-03-02')).toBe('segunda-feira, 02 de março de 2026')
     expect(shortDayLabel('2026-03-02')).toBe('Seg, 02 mar 2026')
@@ -45,19 +36,7 @@ describe('horários e dias', () => {
   })
 })
 
-describe('durações e distâncias', () => {
-  it('durationLabel: segundos, minutos ou horas e minutos', () => {
-    expect(durationLabel(30)).toBe('30 s')
-    expect(durationLabel(-5)).toBe('0 s')
-    expect(durationLabel(90)).toBe('1 min')
-    expect(durationLabel(3725)).toBe('1 h 02 min')
-  })
-
-  it('distanceLabel: metros abaixo de 1 km, km com uma casa', () => {
-    expect(distanceLabel(0.3204)).toBe('320 m')
-    expect(distanceLabel(12.34)).toBe('12,3 km')
-  })
-
+describe('tempos relativos', () => {
   it('relativeTimeLabel diz antes, depois ou no mesmo instante', () => {
     const fact = '2026-03-02T10:00:00-03:00'
     expect(

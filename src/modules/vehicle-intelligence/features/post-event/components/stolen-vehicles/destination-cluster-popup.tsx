@@ -1,3 +1,4 @@
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
 import { BreakdownSection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/breakdown-section'
 import { ClusterConnections } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/cluster-connections'
 import {
@@ -5,12 +6,12 @@ import {
   topCispItems,
 } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/clusters'
 import { DisconnectionCategoryBreakdown } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/disconnection-category-breakdown'
-import { formatPostEventDate } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/event-time'
 import { PopupSection } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/popup-section'
 import type {
   ClusterConnection,
   DestinationCluster,
 } from '@/modules/vehicle-intelligence/features/post-event/types'
+import { instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 
 export function DestinationClusterPopup({
@@ -46,7 +47,7 @@ export function DestinationClusterPopup({
         .filter(Boolean),
     ),
   )
-    .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())
+    .sort((left, right) => instantMs(right) - instantMs(left))
     .slice(0, 4)
   return (
     <div className="cluster-popup destination-cluster-popup">
@@ -112,7 +113,7 @@ export function DestinationClusterPopup({
       >
         <div>
           {recentDetections.map((detectedAt) => (
-            <time key={detectedAt}>{formatPostEventDate(detectedAt)}</time>
+            <time key={detectedAt}>{formatEventTime(detectedAt)}</time>
           ))}
         </div>
       </PopupSection>

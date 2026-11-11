@@ -20,7 +20,6 @@ import {
 import { mapLabelItems } from '@/modules/vehicle-intelligence/components/timeline/group/map-label-items'
 import { MapLabels } from '@/modules/vehicle-intelligence/components/timeline/group/map-labels'
 import { COLORS } from '@/modules/vehicle-intelligence/components/timeline/group/style'
-import { toMs } from '@/modules/vehicle-intelligence/components/timeline/group/time'
 import { TogetherPopup } from '@/modules/vehicle-intelligence/components/timeline/group/together-popup'
 import { lighten } from '@/modules/vehicle-intelligence/components/timeline/palette'
 import { CrimeSitePopup } from '@/modules/vehicle-intelligence/components/timeline/popups/crime-site-popup'
@@ -30,6 +29,7 @@ import type {
   TimelineDetection,
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 
 /**
  * O mapa do dia do grupo: a passagem junta como um marcador só, partida e desconexão com símbolo próprio, os fatos com
@@ -101,7 +101,9 @@ export function GroupDayMap({
         .map((t) => ({
           track: t,
           points: t.detections
-            .filter((detection) => toMs(detection.detected_at) <= moment + 1e-6)
+            .filter(
+              (detection) => instantMs(detection.detected_at) <= moment + 1e-6,
+            )
             .map(
               (detection) =>
                 [detection.latitude, detection.longitude] as [number, number],
@@ -112,11 +114,14 @@ export function GroupDayMap({
   const detectionPopup = (detection: TimelineDetection) => {
     const track = trackByPlate.get(detection.plate) as TimelineTrack
     const matches = detection.correlationMatches.filter(
-      (m) => Math.max(toMs(m.eventTime), toMs(m.candidateDetectedAt)) <= moment,
+      (m) =>
+        Math.max(instantMs(m.eventTime), instantMs(m.candidateDetectedAt)) <=
+        moment,
     )
     const passages = (detection.together ?? []).filter(
       (j) =>
-        Math.max(toMs(j.detected_at), toMs(detection.detected_at)) <= moment,
+        Math.max(instantMs(j.detected_at), instantMs(detection.detected_at)) <=
+        moment,
     )
     return (
       <Popup className="civitas-popup" maxWidth={390} autoPanPadding={[18, 18]}>

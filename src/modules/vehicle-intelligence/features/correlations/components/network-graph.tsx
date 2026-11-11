@@ -19,6 +19,7 @@ import { GRAPH } from '@/modules/vehicle-intelligence/features/correlations/grap
 import { graphFingerprint as fingerprintOf } from '@/modules/vehicle-intelligence/features/correlations/network-layout'
 import type { SelectMode } from '@/modules/vehicle-intelligence/features/correlations/selection'
 import type { CorrelationRankingRow } from '@/modules/vehicle-intelligence/types/domain'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 export function NetworkGraph({
   active,
@@ -46,7 +47,7 @@ export function NetworkGraph({
   focusError: string | null
   loadingData: boolean
   onSelect: (plate: string | null, mode?: SelectMode) => void
-  onOpenPlate: (plate: string, analysis: 'correlations' | 'trends') => void
+  onOpenPlate: OpenPlate
   onOpenOccurrence: (key: string) => void
 }) {
   const [roLimit, setRoLimit] = useState(DEFAULT_VISIBLE_ROS)

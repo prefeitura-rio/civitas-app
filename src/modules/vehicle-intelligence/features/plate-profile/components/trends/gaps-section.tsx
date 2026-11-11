@@ -1,9 +1,11 @@
 import { ArrowRightLeft, LogIn, LogOut, Radar } from 'lucide-react'
 
-import { durationLabel } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
 import { GapsMap } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/gaps-map'
 import { TypicalHourLabel } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/typical-hour-label'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatStopDuration,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type { PlateProfileData } from '@/modules/vehicle-intelligence/types/domain'
 
 export function GapsSection({ gaps }: { gaps: PlateProfileData['hiatos'] }) {
@@ -27,7 +29,8 @@ export function GapsSection({ gaps }: { gaps: PlateProfileData['hiatos'] }) {
         />
         {gaps.overall.median_gap_seconds !== null && (
           <span className="profile-gap-overall-value">
-            Parada mediana de {durationLabel(gaps.overall.median_gap_seconds)}
+            Parada mediana de{' '}
+            {formatStopDuration(gaps.overall.median_gap_seconds)}
           </span>
         )}
       </div>
@@ -45,7 +48,7 @@ export function GapsSection({ gaps }: { gaps: PlateProfileData['hiatos'] }) {
               </span>
               <span className="num strong">{formatNumber(item.hiatos)}</span>
               <span className="num">
-                {durationLabel(item.median_gap_seconds)}
+                {formatStopDuration(item.median_gap_seconds)}
               </span>
             </div>
           ))}
@@ -63,7 +66,7 @@ export function GapsSection({ gaps }: { gaps: PlateProfileData['hiatos'] }) {
               </span>
               <span className="num strong">{formatNumber(item.hiatos)}</span>
               <span className="num">
-                {durationLabel(item.median_gap_seconds)}
+                {formatStopDuration(item.median_gap_seconds)}
               </span>
             </div>
           ))}
@@ -79,7 +82,7 @@ export function GapsSection({ gaps }: { gaps: PlateProfileData['hiatos'] }) {
                 <strong>{item.origin_location || '—'}</strong>
                 <small>
                   → {item.dest_location || '—'} ·{' '}
-                  {durationLabel(item.median_gap_seconds)}
+                  {formatStopDuration(item.median_gap_seconds)}
                 </small>
                 <span className="profile-gap-pair-hours">
                   <TypicalHourLabel value={item.stop_hour} verb="Antes" />

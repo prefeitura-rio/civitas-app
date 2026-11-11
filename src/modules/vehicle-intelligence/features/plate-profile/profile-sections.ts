@@ -1,8 +1,8 @@
 /** As seções de cada análise no índice "Nesta análise" (os ids são as âncoras da página) e o número ao lado de cada uma. */
 import { recorte } from '@/modules/vehicle-intelligence/config/recortes'
 import type { ProfileIndicator } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/use-profile-indicators'
-import { eachDay } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
 import { shiftOrder } from '@/modules/vehicle-intelligence/features/plate-profile/shifts'
+import { eachDay } from '@/modules/vehicle-intelligence/lib/dates'
 import {
   formatNumber,
   pluralize,

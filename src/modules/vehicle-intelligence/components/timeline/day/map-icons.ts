@@ -2,14 +2,19 @@
 import { type DivIcon, divIcon, type DivIconOptions } from 'leaflet'
 
 import {
+  lighten,
   PIN_PATH,
   suspectDark,
 } from '@/modules/vehicle-intelligence/components/timeline/palette'
-import { formatTime } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
+import { placeName } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
 import type {
   TimelineDetection,
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import {
+  formatTime,
+  formatTimeSeconds,
+} from '@/modules/vehicle-intelligence/lib/dates'
 import { escapeHtml } from '@/modules/vehicle-intelligence/lib/format'
 
 const ICONS = new Map<string, DivIcon>()
@@ -42,10 +47,12 @@ export function crimeMarker(
         <path d="${PIN_PATH}" fill="var(--crime-color)" stroke="var(--panel)" stroke-width="2.5"/>
         <circle cx="16" cy="14" r="6.5" fill="var(--panel)" stroke="var(--text)" stroke-width="1.7"/>
         <circle cx="16" cy="14" r="2.5" fill="var(--crime-color)"/>
-      </svg>${active ? `<em>FATO · ${escapeHtml(formatTime(occurredAt).slice(0, 5))}</em>` : ''}</div>`,
+      </svg>${active ? `<em>FATO · ${escapeHtml(formatTime(occurredAt))}</em>` : ''}</div>`,
   })
 }
 
+/** A leitura numerada, sólida e com borda branca (destaca no mapa claro): na cor da trilha quando está na janela de um
+ * fato, num tom mais claro quando não; a correlacionada, metade na cor do fato; a da vez, com o anel ciano. */
 export function mapMarker(
   track: TimelineTrack,
   order: number,
@@ -54,30 +61,31 @@ export function mapMarker(
   correlated: boolean,
   correlationFill?: string,
 ) {
-  const color = withinFactWindow ? track.color : track.softColor
-  const size = active ? 34 : 30
+  const color =
+    withinFactWindow || correlated ? track.color : lighten(track.color, 0.3)
+  const size = active ? 36 : 28
   return cachedIcon({
     className: 'analysis-map-marker-icon',
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
-    html: `<div class="analysis-map-marker ${track.role}${withinFactWindow ? ' strong' : ' soft'}${correlated ? ' correlated' : ''}${active ? ' selected' : ''}" style="--marker:${color};--fill:${color};--marker-text:#fff;--role:${color};--correlation-fill:${correlationFill || `linear-gradient(90deg,${color} 0 50%,${suspectDark} 50% 100%)`}"><span>${order}</span></div>`,
+    html: `<div class="analysis-map-marker ${track.role}${withinFactWindow ? ' strong' : ' soft'}${correlated ? ' correlated' : ''}${active ? ' selected' : ''}" style="--fill:${color};--correlation-fill:${correlationFill || `linear-gradient(90deg,${color} 0 50%,${suspectDark} 50% 100%)`}"><span>${order}</span></div>`,
   })
 }
 
+/** O balão de posição da leitura da vez (como no Painel de Clonagem): a hora, a trilha ou o fato a que a leitura se liga,
+ * o local e o equipamento com o bairro. */
 export function mapCallout(
   detection: TimelineDetection,
-  track: TimelineTrack,
-  correlationRevealed: boolean,
-  correlationFill?: string,
+  chip: { label: string; color: string },
 ) {
-  const color = detection.within_fact_window ? track.color : track.softColor
+  const neighborhood = placeName(detection.neighborhood)
   return cachedIcon({
     className: 'analysis-map-callout-icon',
     iconSize: [0, 0],
-    html: `<div class="analysis-map-callout active${correlationRevealed ? ' correlated' : ''}" style="--callout:${color};--correlation-fill:${correlationFill || `linear-gradient(90deg,${color} 0 50%,${suspectDark} 50% 100%)`}">
-      <div><b><i></i>Detecção selecionada</b><strong>${escapeHtml(formatTime(detection.detected_at))}</strong></div>
-      <span>${escapeHtml(detection.location || 'Local não informado')}</span>
-      <small>${escapeHtml(track.label)} · ${escapeHtml(track.plate)} · equipamento ${escapeHtml(detection.camera || detection.point_id || '-')}</small>
+    html: `<div class="analysis-map-callout">
+      <div class="callout-head"><strong>${escapeHtml(formatTimeSeconds(detection.detected_at))}</strong><span><i style="background:${chip.color}"></i>${escapeHtml(chip.label)}</span></div>
+      <span class="callout-place">${escapeHtml(placeName(detection.location) || 'Local não informado')}</span>
+      <small><b>${escapeHtml(detection.camera || detection.point_id || '-')}</b>${neighborhood ? ` · ${escapeHtml(neighborhood)}` : ''}</small>
     </div>`,
   })
 }

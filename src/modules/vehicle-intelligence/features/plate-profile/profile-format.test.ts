@@ -3,23 +3,9 @@ import {
   hexToRgba,
   victimRgba,
 } from '@/modules/vehicle-intelligence/features/plate-profile/profile-colors'
-import {
-  formatPercent,
-  formatTimestamp,
-  monthTicks,
-} from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
+import { monthTicks } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
 
 describe('plate-profile/profile-format', () => {
-  it('escreve a porcentagem com até uma casa', () => {
-    expect(formatPercent(12.345)).toBe('12,3%')
-    expect(formatPercent(50)).toBe('50%')
-  })
-
-  it('mostra o instante no horário de Brasília, com traço quando falta', () => {
-    expect(formatTimestamp('2026-01-16T17:05:00Z')).toBe('16/01/2026, 14:05')
-    expect(formatTimestamp(null)).toBe('—')
-  })
-
   it('marca um tick por virada de mês, ou as pontas quando há menos de duas', () => {
     const series = [
       '2026-01-30',

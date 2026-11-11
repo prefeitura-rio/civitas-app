@@ -2,7 +2,6 @@ import { Clock, Radar, ScanSearch, SquareUser } from 'lucide-react'
 import { useRef } from 'react'
 
 import {
-  type OpenSearchedPlate,
   PLATE_PATTERN_HINT,
   PlateSearchResults,
   usePlateSearchField,
@@ -11,6 +10,7 @@ import { Button } from '@/modules/vehicle-intelligence/components/ui/button'
 import { Input } from '@/modules/vehicle-intelligence/components/ui/input'
 import { Label } from '@/modules/vehicle-intelligence/components/ui/label'
 import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 const SEARCH_SUBJECT = copassagem
   ? 'ocorrências e vítimas'
@@ -19,7 +19,7 @@ const SEARCH_SUBJECT = copassagem
 export function PlateProfileSearch({
   onOpenPlate,
 }: {
-  onOpenPlate: OpenSearchedPlate
+  onOpenPlate: OpenPlate
 }) {
   const field = usePlateSearchField(onOpenPlate)
   const results = useRef<HTMLDivElement>(null)

@@ -32,6 +32,7 @@ import {
 } from '@/modules/vehicle-intelligence/lib/dates'
 import {
   formatNumber,
+  formatPercent,
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { titleCaseText } from '@/modules/vehicle-intelligence/lib/labels'
@@ -122,7 +123,7 @@ function NeighborRow({
         {neighbor.shared.map((shared) => (
           <span key={`${shared.kind}-${shared.place}-${shared.when}`}>
             <span>{sharedText(shared)}</span>
-            <b>{Math.round(shared.share * 100)}%</b>
+            <b>{formatPercent(shared.share * 100, 0)}</b>
           </span>
         ))}
       </span>
@@ -161,9 +162,7 @@ export function RoutineNeighbors({
     ? routineGroupPath(plates)
     : routineSimilarPath(plates[0])
   const groupLabels = useGroupLabels()
-  const routine = useApi<RoutineData>(path, {
-    fallbackError: 'Falha ao comparar as rotinas',
-  })
+  const routine = useApi<RoutineData>(path)
   // Outra placa ou outro grupo: a comparação anterior sai da tela enquanto a nova não chega.
   const data = routine.dataPath === path ? routine.data : null
   const { error } = routine

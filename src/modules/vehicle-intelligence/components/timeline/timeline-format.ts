@@ -6,9 +6,14 @@ import { factionAbbreviation } from '@/modules/vehicle-intelligence/components/m
 import type { TimelineCase } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
 import {
   brasiliaFormatter,
+  formatDayMonthTime,
   parseInstant,
 } from '@/modules/vehicle-intelligence/lib/dates'
-import { formatHours } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatDistance,
+  formatDuration,
+  formatHours,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type { GroupDetectionMark } from '@/modules/vehicle-intelligence/types/domain'
 
 const dateFormatter = brasiliaFormatter({
@@ -17,23 +22,8 @@ const dateFormatter = brasiliaFormatter({
   month: 'long',
   year: 'numeric',
 })
-const timeFormatter = brasiliaFormatter({
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-})
-
-export function formatTime(value: string) {
-  return timeFormatter.format(parseInstant(value))
-}
-export const dayMonthTime = brasiliaFormatter({
-  day: '2-digit',
-  month: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-})
 export function dayLabel(value: string) {
-  return dateFormatter.format(new Date(`${value}T12:00:00-03:00`))
+  return dateFormatter.format(parseInstant(value))
 }
 const shortDateFormatter = brasiliaFormatter({
   weekday: 'short',
@@ -52,7 +42,7 @@ const capitalized = (value: string) =>
 export function shortDayLabel(value: string) {
   const parts = Object.fromEntries(
     shortDateFormatter
-      .formatToParts(new Date(`${value}T12:00:00-03:00`))
+      .formatToParts(parseInstant(value))
       .map((part) => [part.type, part.value.replace('.', '')]),
   )
   return `${capitalized(parts.weekday)}, ${parts.day} ${parts.month} ${parts.year}`
@@ -61,23 +51,10 @@ export function shortDayLabel(value: string) {
 export function listDayLabel(value: string) {
   const parts = Object.fromEntries(
     listDateFormatter
-      .formatToParts(new Date(`${value}T12:00:00-03:00`))
+      .formatToParts(parseInstant(value))
       .map((part) => [part.type, part.value.replace('.', '')]),
   )
   return `${capitalized(parts.weekday)} ${parts.day}/${parts.month}`
-}
-export function durationLabel(seconds: number) {
-  if (seconds < 60) return `${Math.max(0, Math.round(seconds))} s`
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  return hours
-    ? `${hours} h ${minutes.toString().padStart(2, '0')} min`
-    : `${minutes} min`
-}
-export function distanceLabel(kilometers: number) {
-  return kilometers < 1
-    ? `${Math.round(kilometers * 1000)} m`
-    : `${kilometers.toFixed(1).replace('.', ',')} km`
 }
 /** `reference` já vem com o artigo: "do fato", "da vítima". */
 export function relativeTimeLabel(
@@ -88,13 +65,13 @@ export function relativeTimeLabel(
   const seconds =
     (parseInstant(value).getTime() - parseInstant(reference).getTime()) / 1000
   if (Math.abs(seconds) < 1) return `no mesmo instante ${referenceLabel}`
-  return `${durationLabel(Math.abs(seconds))} ${seconds < 0 ? 'antes' : 'depois'} ${referenceLabel}`
+  return `${formatDuration(Math.abs(seconds))} ${seconds < 0 ? 'antes' : 'depois'} ${referenceLabel}`
 }
 /** "18,5 h sem leitura (próxima em 13/02 10:46); lida aqui 0,7 h depois do fato." */
 export function disconnectionText(mark: GroupDetectionMark) {
   const gapText =
     mark.gap_hours != null && mark.next_at
-      ? `Último local antes de ${formatHours(mark.gap_hours)} sem leitura (próxima leitura em ${dayMonthTime.format(parseInstant(mark.next_at))}).`
+      ? `Último local antes de ${formatHours(mark.gap_hours)} sem leitura (próxima leitura em ${formatDayMonthTime(mark.next_at)}).`
       : 'Último local antes do fim das passagens: a placa não foi mais lida.'
   return mark.elapsed_hours != null
     ? `${gapText} A placa passou aqui ${formatHours(mark.elapsed_hours)} depois do fato.`
@@ -126,6 +103,7 @@ const GEOCODE_LABELS: Record<string, string> = {
     'Grafia aproximada, bairro e número aproximado',
   esquina: 'Esquina dos dois logradouros',
   nominatim_cache: 'Logradouro no cache do Nominatim',
+  isp: 'Ponto informado pelo ISP',
   bairro: 'Só o bairro (ponto central)',
   cisp: 'Só a área da delegacia (ponto central)',
 }
@@ -156,9 +134,56 @@ export function territoryLabel(
     mark.complex,
     factionAbbreviation(mark.faction) || null,
     mark.distance_meters != null
-      ? distanceLabel(mark.distance_meters / 1000)
+      ? formatDistance(mark.distance_meters, { fixedKm: true })
       : null,
   ]
     .filter(Boolean)
     .join(' · ')
+}
+
+const LOWERCASE_WORDS = new Set([
+  'a',
+  'as',
+  'o',
+  'os',
+  'e',
+  'de',
+  'da',
+  'das',
+  'do',
+  'dos',
+  'em',
+  'na',
+  'nas',
+  'no',
+  'nos',
+])
+const UPPERCASE_WORDS = new Set(['br', 'rj', 'sp', 'mg', 'es', 'cep', 'cet'])
+/** Algarismos romanos curtos (Praça XV, Pedro II): só x, v e i, para não pegar palavras como "mil". */
+const ROMAN_NUMERAL = /^x{0,3}(ix|iv|v?i{0,3})$/
+
+/**
+ * Local em caixa de título, como na timeline do Painel de Clonagem: a fonte publica tudo em maiúsculas, o que alonga e
+ * pesa as listas. Texto que já vem com caixa mista fica igual; siglas, códigos com número e conectivos ficam como são.
+ */
+export function placeName(value: string | null | undefined) {
+  const text = String(value || '').trim()
+  if (!text || text !== text.toUpperCase()) return text
+  return text
+    .toLowerCase()
+    .split(/(\s+|-|\/|\(|,)/)
+    .map((part, index, parts) => {
+      if (
+        !/\p{L}/u.test(part) ||
+        /\d/.test(part) ||
+        UPPERCASE_WORDS.has(part) ||
+        ROMAN_NUMERAL.test(part)
+      )
+        return part.toUpperCase()
+      // Conectivo no meio fica minúsculo; no fim é nome (Rua E, Rua A).
+      if (index > 0 && index < parts.length - 1 && LOWERCASE_WORDS.has(part))
+        return part
+      return part.charAt(0).toUpperCase() + part.slice(1)
+    })
+    .join('')
 }

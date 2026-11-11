@@ -4,17 +4,17 @@ import { Marker, Popup, ZoomControl } from 'react-leaflet'
 
 import { BaseTiles } from '@/modules/vehicle-intelligence/components/map/base-tiles'
 import { MapContainer } from '@/modules/vehicle-intelligence/components/map/map-container'
-import {
-  durationLabel,
-  formatCoords,
-} from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
+import { formatCoords } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/circulation-format'
 import { FitBounds } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/fit-bounds'
 import { pinSvg } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/occurrence-markers'
 import {
   typicalHourBadge,
   TypicalHourLabel,
 } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/typical-hour-label'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatStopDuration,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type {
   PlateProfileData,
   TypicalHour,
@@ -106,7 +106,7 @@ export function GapsMap({ gaps }: { gaps: PlateProfileData['hiatos'] }) {
                   />
                   <b>
                     {formatNumber(entry.item.hiatos)} hiatos · mediana{' '}
-                    {durationLabel(entry.item.median_gap_seconds)}
+                    {formatStopDuration(entry.item.median_gap_seconds)}
                   </b>
                 </div>
               </Popup>

@@ -22,7 +22,10 @@ import {
 import { stepMotionMs } from '@/modules/vehicle-intelligence/components/timeline/day/map-motion'
 import { SequencePanel } from '@/modules/vehicle-intelligence/components/timeline/day/sequence-panel'
 import { TimelineHeader } from '@/modules/vehicle-intelligence/components/timeline/day/timeline-header'
-import { TimelinePlayer } from '@/modules/vehicle-intelligence/components/timeline/day/timeline-player'
+import {
+  SPEEDS,
+  TimelinePlayer,
+} from '@/modules/vehicle-intelligence/components/timeline/day/timeline-player'
 import { detectionPoint } from '@/modules/vehicle-intelligence/components/timeline/geo'
 import {
   anchorPalettes,
@@ -34,7 +37,10 @@ import type {
   TimelineDay,
   TimelineDayInfo,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
-import { parseInstant } from '@/modules/vehicle-intelligence/lib/dates'
+import {
+  dayStartMs,
+  parseInstant,
+} from '@/modules/vehicle-intelligence/lib/dates'
 
 const timelineColorVariables = {
   '--timeline-victim-primary': anchorPalettes[0].color,
@@ -50,6 +56,8 @@ export interface TimelineViewProps {
   summary?: (day: TimelineDay, dayMarginMinutes: number) => ReactNode
   /** Abaixo do cabeçalho (os ROs que citam a placa). */
   headerAside?: ReactNode
+  /** Ao lado da escolha do dia, para o dia em foco (o vídeo da timeline da placa). */
+  actions?: (day: string) => ReactNode
   backLabel: string
   onBack: () => void
   error: string | null
@@ -74,6 +82,7 @@ export function TimelineView({
   title,
   summary,
   headerAside,
+  actions,
   backLabel,
   onBack,
   error,
@@ -95,9 +104,7 @@ export function TimelineView({
   const [cursorEventKey, setCursorEventKey] = useState<string | null>(null)
   const [scrubbing, setScrubbing] = useState(false)
   const [playing, setPlaying] = useState(false)
-  const [speed, setSpeed] = useState(850)
-  const activeRowRef = useRef<HTMLButtonElement>(null)
-  const sequenceListRef = useRef<HTMLDivElement>(null)
+  const [speed, setSpeed] = useState(SPEEDS[1].delay)
   const initializedDayRef = useRef('')
   // Dados novos: o dia pedido na rota, se existir; senão o primeiro.
   useEffect(() => {
@@ -156,9 +163,7 @@ export function TimelineView({
   // A janela do fato (e, em copassagem, a da passagem) atravessa a meia-noite,
   // então o dia em foco começa antes de 00h e termina depois de 24h.
   const dayMarginMs = dayMarginMinutes * 60 * 1000
-  const civilDayStart = selectedDay
-    ? new Date(`${selectedDay}T00:00:00-03:00`).getTime()
-    : 0
+  const civilDayStart = selectedDay ? dayStartMs(selectedDay) : 0
   const dayStart = civilDayStart - dayMarginMs
   const dayEnd = civilDayStart + 24 * 60 * 60 * 1000 + dayMarginMs
   const currentMoment = Math.max(
@@ -201,10 +206,6 @@ export function TimelineView({
       revealedEvents.filter((item): item is FactEvent => item.kind === 'fact'),
     [revealedEvents],
   )
-  const visibleFactKeys = useMemo(
-    () => new Set(revealedFactEvents.map((item) => item.key)),
-    [revealedFactEvents],
-  )
   const crimeSites = useMemo<CrimeSite[]>(
     () =>
       revealedFactEvents.flatMap((event) => {
@@ -244,6 +245,7 @@ export function TimelineView({
   )
   const activeEvent =
     revealedEventIndex >= 0 ? orderedEvents[revealedEventIndex] : null
+  const motionMs = stepMotionMs({ playing, speed, scrubbing })
   const activeDetection =
     activeEvent?.kind === 'detection' ? activeEvent.detection : null
   const activeFactKey = activeEvent?.kind === 'fact' ? activeEvent.key : null
@@ -315,25 +317,6 @@ export function TimelineView({
     window.addEventListener('keydown', handleKeyboard)
     return () => window.removeEventListener('keydown', handleKeyboard)
   })
-  useEffect(() => {
-    const row = activeRowRef.current
-    const list = sequenceListRef.current
-    if (!row || !list) return
-    const rowTop = row.offsetTop
-    const rowBottom = rowTop + row.offsetHeight
-    const visibleTop = list.scrollTop
-    const visibleBottom = visibleTop + list.clientHeight
-    if (rowTop < visibleTop)
-      list.scrollTo({
-        top: Math.max(0, rowTop - 8),
-        behavior: playing ? 'smooth' : 'auto',
-      })
-    else if (rowBottom > visibleBottom)
-      list.scrollTo({
-        top: rowBottom - list.clientHeight + 8,
-        behavior: playing ? 'smooth' : 'auto',
-      })
-  }, [revealedEventIndex, playing])
   const move = (next: number) => {
     setPlaying(false)
     if (next < 0) {
@@ -371,6 +354,9 @@ export function TimelineView({
         title={title}
         summary={summary}
         headerAside={headerAside}
+        actions={
+          actions && selectedDay && !loading ? actions(selectedDay) : null
+        }
         backLabel={backLabel}
         onBack={onBack}
         loading={loading}
@@ -414,24 +400,18 @@ export function TimelineView({
                   moment={currentMoment}
                   windowMinutes={windowMinutes}
                   radiusMeters={radiusMeters}
-                  motionMs={stepMotionMs({ playing, speed, scrubbing })}
+                  motionMs={motionMs}
                   dayKey={selectedDay}
                 />
                 <TimelinePlayer
                   orderedEvents={orderedEvents}
-                  orderedDetections={orderedDetections}
-                  factEvents={factEvents}
                   tracks={tracks}
                   trackByKey={trackByKey}
-                  visibleKeys={visibleKeys}
-                  visibleFactKeys={visibleFactKeys}
                   activeFactKey={activeFactKey}
                   revealedEventIndex={revealedEventIndex}
                   currentMoment={currentMoment}
-                  dayStart={dayStart}
-                  dayEnd={dayEnd}
-                  dayMarginMinutes={dayMarginMinutes}
                   playing={playing}
+                  scrubbing={scrubbing}
                   speed={speed}
                   setSpeed={setSpeed}
                   setPlaying={setPlaying}
@@ -448,11 +428,8 @@ export function TimelineView({
                 tracks={tracks}
                 trackByKey={trackByKey}
                 currentMoment={currentMoment}
-                windowMinutes={windowMinutes}
-                dayMarginMinutes={dayMarginMinutes}
+                motionMs={motionMs}
                 move={move}
-                activeRowRef={activeRowRef}
-                sequenceListRef={sequenceListRef}
               />
             </div>
           )

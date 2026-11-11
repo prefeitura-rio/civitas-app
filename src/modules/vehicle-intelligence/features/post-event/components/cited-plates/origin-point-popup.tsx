@@ -1,10 +1,8 @@
 import { DetailSection } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/detail-section'
-import {
-  formatEventTime,
-  parseTime,
-} from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/event-time'
 import { PlateChips } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/plate-chips'
 import type { OriginPoint } from '@/modules/vehicle-intelligence/features/post-event/components/cited-plates/poles'
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
+import { toInstant } from '@/modules/vehicle-intelligence/lib/dates'
 import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
 
 export function OriginPointPopup({
@@ -19,8 +17,8 @@ export function OriginPointPopup({
   const recent = [...point.events]
     .sort(
       (left, right) =>
-        (parseTime(right.event_time)?.getTime() ?? 0) -
-        (parseTime(left.event_time)?.getTime() ?? 0),
+        (toInstant(right.event_time)?.getTime() ?? 0) -
+        (toInstant(left.event_time)?.getTime() ?? 0),
     )
     .slice(0, 5)
   return (

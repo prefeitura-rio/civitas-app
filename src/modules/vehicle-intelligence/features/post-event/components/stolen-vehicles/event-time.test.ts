@@ -1,5 +1,5 @@
+import { formatEventTime } from '@/modules/vehicle-intelligence/features/post-event/components/shared/event-time'
 import {
-  formatPostEventDate,
   temporalProfile,
   typicalHourLabel,
 } from '@/modules/vehicle-intelligence/features/post-event/components/stolen-vehicles/event-time'
@@ -47,15 +47,13 @@ describe('typicalHourLabel', () => {
   })
 })
 
-describe('formatPostEventDate', () => {
+describe('formatEventTime', () => {
   it('data e hora em Brasília', () => {
-    expect(formatPostEventDate('2026-06-19 20:00:00-03')).toBe(
-      '19/06/2026, 20:00',
-    )
+    expect(formatEventTime('2026-06-19 20:00:00-03')).toBe('19/06/2026, 20:00')
   })
 
   it('sem valor avisa; texto que não é data volta como veio', () => {
-    expect(formatPostEventDate(null)).toBe('Horário não informado')
-    expect(formatPostEventDate('26/06/2026 12:35')).toBe('26/06/2026 12:35')
+    expect(formatEventTime(null)).toBe('Horário não informado')
+    expect(formatEventTime('26/06/2026 12:35')).toBe('26/06/2026 12:35')
   })
 })

@@ -68,7 +68,8 @@ export const circulation: Column = {
   label: 'Dias de atividade',
   sortKey: 'circulation_days',
   help: 'Dias diferentes em que a placa foi detectada no Cerco Eletrônico, não apenas nas correlações.',
-  render: (row) => row.circulation_days?.toLocaleString('pt-BR') ?? '—',
+  render: (row) =>
+    row.circulation_days != null ? formatNumber(row.circulation_days) : '—',
 }
 export const eventDate: Column = {
   key: 'event_date',

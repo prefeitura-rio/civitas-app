@@ -1,13 +1,15 @@
 import type { LucideIcon } from 'lucide-react'
 import { Moon, Sun, Sunrise, Sunset } from 'lucide-react'
 
-import { formatPercent } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
 import {
   type ShiftKey,
   shiftMeta,
   shiftOrder,
 } from '@/modules/vehicle-intelligence/features/plate-profile/shifts'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatNumber,
+  formatPercent,
+} from '@/modules/vehicle-intelligence/lib/format'
 import type { PlateProfileData } from '@/modules/vehicle-intelligence/types/domain'
 
 const shiftVisual: Record<ShiftKey, { icon: LucideIcon; color: string }> = {

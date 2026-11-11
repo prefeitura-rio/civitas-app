@@ -1,5 +1,5 @@
 import { rosText } from '@/modules/vehicle-intelligence/components/groups/trends/trend-text'
-import { formatInBrasilia } from '@/modules/vehicle-intelligence/lib/dates'
+import { formatDayMonthTime } from '@/modules/vehicle-intelligence/lib/dates'
 import { cispLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import type { GroupEvent } from '@/modules/vehicle-intelligence/types/groups'
 
@@ -16,14 +16,7 @@ export function EventList({ events }: { events: GroupEvent[] }) {
     <ul className="group-tip-ros">
       {sorted.slice(0, MAX_LISTED_EVENTS).map((groupEvent) => (
         <li key={groupEvent.event_id}>
-          <b>
-            {formatInBrasilia(groupEvent.occurred_at, {
-              day: '2-digit',
-              month: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </b>
+          <b>{formatDayMonthTime(groupEvent.occurred_at)}</b>
           <span>
             {cispLabel(groupEvent.cisp, groupEvent.cisp_name)} ·{' '}
             {groupEvent.plates.length}{' '}

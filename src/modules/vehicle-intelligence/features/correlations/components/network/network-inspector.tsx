@@ -18,6 +18,7 @@ import type {
   CorrelationRankingRow,
   PreEventCandidate,
 } from '@/modules/vehicle-intelligence/types/domain'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 /** O painel ao lado do grafo com o resumo da placa ou da âncora selecionada (a última da seleção). */
 export function NetworkInspector({
@@ -47,7 +48,7 @@ export function NetworkInspector({
   focusLoading: boolean
   focusError: string | null
   onSelect: (plate: string | null, mode?: SelectMode) => void
-  onOpenPlate: (plate: string, analysis: 'correlations' | 'trends') => void
+  onOpenPlate: OpenPlate
   /** O perfil do RO (entorno) ou a lista dos ROs da placa vítima (copassagem). */
   onOpenOccurrence: (key: string) => void
   networkRef: RefObject<Network>
@@ -128,7 +129,9 @@ export function NetworkInspector({
               variant="outline"
               size="sm"
               className="inspector-detail-button"
-              onClick={() => onOpenPlate(selectedId, 'correlations')}
+              onClick={() =>
+                onOpenPlate(selectedId, { analysis: 'correlations' })
+              }
             >
               <Waypoints size={15} />
               Abrir perfil
@@ -139,7 +142,7 @@ export function NetworkInspector({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => onOpenPlate(selectedId, 'trends')}
+              onClick={() => onOpenPlate(selectedId, { analysis: 'trends' })}
             >
               Tendências
             </Button>

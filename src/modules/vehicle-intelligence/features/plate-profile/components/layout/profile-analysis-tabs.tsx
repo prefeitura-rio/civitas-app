@@ -3,7 +3,7 @@ import { MapPin, Network } from 'lucide-react'
 
 import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
 import { pluralize } from '@/modules/vehicle-intelligence/lib/format'
-import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/domain'
+import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/navigation'
 
 const CORRELATION_SUBJECT = copassagem
   ? 'junto à vítima'

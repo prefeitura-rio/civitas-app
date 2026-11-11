@@ -1,15 +1,19 @@
 import {
-  civilDay,
-  clockTime,
-  minutesLabel,
-} from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-format'
-import { distanceLabel } from '@/modules/vehicle-intelligence/features/plate-profile/profile-variants'
+  formatCivilDay,
+  formatTime,
+} from '@/modules/vehicle-intelligence/lib/dates'
 import {
+  formatDistance,
+  formatMinutesApart,
   formatNumber,
   pluralize,
 } from '@/modules/vehicle-intelligence/lib/format'
 import { titleCase } from '@/modules/vehicle-intelligence/lib/labels'
 import type { PlateCitation } from '@/modules/vehicle-intelligence/types/domain'
+
+/** O perfil escreve o km sempre com uma casa ("1,0 km"). */
+const distanceLabel = (meters: number | null | undefined) =>
+  formatDistance(meters, { fixedKm: true })
 
 function relativeReading(
   reading: NonNullable<PlateCitation['nearest_in_time']>,
@@ -23,13 +27,13 @@ function relativeReading(
         ? approximate
           ? 'dentro da hora informada'
           : 'no horário do fato'
-        : `${minutesLabel(delta)} ${delta < 0 ? 'antes' : 'depois'}${approximate ? ' da hora informada' : ' do fato'}`
+        : `${formatMinutesApart(delta)} ${delta < 0 ? 'antes' : 'depois'}${approximate ? ' da hora informada' : ' do fato'}`
   const where =
     reading.distance_meters == null
       ? ''
       : `a ${distanceLabel(reading.distance_meters)} do local`
   return [
-    `às ${clockTime(reading.detected_at)}`,
+    `às ${formatTime(reading.detected_at)}`,
     when,
     where,
     reading.location ? `(${titleCase(reading.location)})` : '',
@@ -63,19 +67,19 @@ export function citationExplanation(
   const nearest = item.nearest_in_time
   const approximate = item.approximate_hour
   const hourLabel = approximate
-    ? `${clockTime(approximate.start)}–${clockTime(approximate.end)} (${approximate.origin})`
+    ? `${formatTime(approximate.start)}–${formatTime(approximate.end)} (${approximate.origin})`
     : null
   const sameDay = `${pluralize(item.same_day_readings, 'leitura', 'leituras')} no dia`
   const closest = item.nearest_in_space
-    ? `; a mais perto do local, a ${distanceLabel(item.nearest_in_space.distance_meters)}, às ${clockTime(item.nearest_in_space.detected_at)}`
+    ? `; a mais perto do local, a ${distanceLabel(item.nearest_in_space.distance_meters)}, às ${formatTime(item.nearest_in_space.detected_at)}`
     : ''
   switch (item.status) {
     case 'correlated':
-      return `${formatNumber(item.correlation?.cooccurrences ?? 0)} leituras no raio de ${formatNumber(radius)} m e na janela de ±${windowMinutes} min; a mais próxima a ${minutesLabel(item.correlation?.min_delta_minutes ?? 0)} do horário e a ${distanceLabel(item.correlation?.min_distance_meters ?? null)} do local.`
+      return `${formatNumber(item.correlation?.cooccurrences ?? 0)} leituras no raio de ${formatNumber(radius)} m e na janela de ±${windowMinutes} min; a mais próxima a ${formatMinutesApart(item.correlation?.min_delta_minutes ?? 0)} do horário e a ${distanceLabel(item.correlation?.min_distance_meters ?? null)} do local.`
     case 'correlated_wider': {
       const wider = item.wider_correlation
       return wider
-        ? `Aparece com janela de ±${wider.event_window_minutes} min e raio de ${formatNumber(wider.radius_meters)} m: leitura a ${minutesLabel(wider.min_delta_minutes ?? 0)} do horário e a ${distanceLabel(wider.min_distance_meters)} do local. No recorte atual (±${windowMinutes} min, ${formatNumber(radius)} m) fica de fora.`
+        ? `Aparece com janela de ±${wider.event_window_minutes} min e raio de ${formatNumber(wider.radius_meters)} m: leitura a ${formatMinutesApart(wider.min_delta_minutes ?? 0)} do horário e a ${distanceLabel(wider.min_distance_meters)} do local. No recorte atual (±${windowMinutes} min, ${formatNumber(radius)} m) fica de fora.`
         : ''
     }
     case 'approximate_match':
@@ -87,7 +91,7 @@ export function citationExplanation(
     case 'read_outside':
       return `${nearest ? `Leitura mais próxima do horário ${relativeReading(nearest, false)}` : 'Sem leitura perto do horário'}. ${sameDay}${closest}.`
     case 'not_read_that_day':
-      return `A placa tem ${formatNumber(item.total_readings)} leituras no período do cerco, nenhuma em ${civilDay(item.event_date)}.`
+      return `A placa tem ${formatNumber(item.total_readings)} leituras no período do cerco, nenhuma em ${formatCivilDay(item.event_date, 'data não informada')}.`
     case 'never_read':
       return 'Nenhuma leitura desta placa no período do cache: placa possivelmente transcrita errada, adulterada ou fora da cobertura dos equipamentos.'
   }

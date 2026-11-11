@@ -21,6 +21,7 @@ import type {
   TimelineDetection,
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
+import { instantMs } from '@/modules/vehicle-intelligence/lib/dates'
 
 const track = (
   key: string,
@@ -44,7 +45,7 @@ const match = (fields: Partial<CorrelationMatch>): CorrelationMatch => ({
   distanceMeters: null,
   ...fields,
 })
-const at = (value: string) => new Date(value).getTime()
+const at = instantMs
 
 describe('chaves', () => {
   it('identificam a ligação, a leitura, a trilha e o fato', () => {

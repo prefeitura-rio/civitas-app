@@ -2,10 +2,8 @@ import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
 
 import type { GroupEvent } from '@/modules/vehicle-intelligence/components/timeline/group/events'
-import {
-  hourMinute,
-  type TimeRangeMode,
-} from '@/modules/vehicle-intelligence/components/timeline/group/time'
+import { type TimeRangeMode } from '@/modules/vehicle-intelligence/components/timeline/group/time'
+import { formatTime } from '@/modules/vehicle-intelligence/lib/dates'
 
 /** Os controles do player do grupo: anterior, reproduzir e próximo, o relógio, a faixa de tempo e a velocidade. */
 export function PlayerControls({
@@ -72,7 +70,7 @@ export function PlayerControls({
         </button>
       </div>
       <div className="gt-clock">
-        <strong>{hourMinute(Math.max(moment, rangeStart))}</strong>
+        <strong>{formatTime(Math.max(moment, rangeStart))}</strong>
         <span>
           Evento {Math.max(0, activeIndex + 1)} de {events.length}
         </span>

@@ -1,25 +1,36 @@
 import { RefreshCw } from 'lucide-react'
-import { type ComponentType, lazy, Suspense, useEffect, useRef } from 'react'
+import {
+  type ComponentType,
+  Fragment,
+  lazy,
+  type ReactNode,
+  Suspense,
+  useEffect,
+  useRef,
+} from 'react'
 
 import { AppHeader } from '@/modules/vehicle-intelligence/app/layout/app-header'
 import {
+  moduleById,
+  type ModuleId,
+  type ShellLayout,
+} from '@/modules/vehicle-intelligence/app/modules'
+import {
+  type AppNavigation,
   currentPath,
   groupLabelFromHistory,
   useAppNavigation,
   useScrollRestoration,
 } from '@/modules/vehicle-intelligence/app/navigation'
-import type { ModuleId } from '@/modules/vehicle-intelligence/app/routes'
-import {
-  copassagem,
-  recorte,
-} from '@/modules/vehicle-intelligence/config/recortes'
+import { copassagem } from '@/modules/vehicle-intelligence/config/recortes'
 import { OverviewView } from '@/modules/vehicle-intelligence/features/overview/components/overview-view'
 import { useDashboard } from '@/modules/vehicle-intelligence/features/overview/use-dashboard'
+import type { OpenPlate } from '@/modules/vehicle-intelligence/types/navigation'
 
 // Cada tela num pedaço próprio do build, carregado na primeira visita.
 /** Pós-evento: trajetória do veículo vítima (copassagem) ou das placas citadas na dinâmica (entorno). */
 const PostEventView = lazy<
-  ComponentType<{ active: boolean; onOpenPlate: (plate: string) => void }>
+  ComponentType<{ active: boolean; onOpenPlate: OpenPlate }>
 >(() =>
   copassagem
     ? import(
@@ -95,42 +106,188 @@ const OccurrencePage = lazy(() =>
   })),
 )
 
-const PAGE_TITLES: Record<ModuleId, { eyebrow: string; title: string }> = {
-  overview: {
-    eyebrow: 'SEGURANÇA PÚBLICA · INTELIGÊNCIA VEICULAR',
-    title: recorte.title,
+/** As classes da casca em cada layout (`app.css`, `timeline.css`, `groups.css`). */
+const SHELL_CLASSES: Record<
+  ShellLayout,
+  { shell: string; main: string; content: string }
+> = {
+  default: {
+    shell: 'app-shell',
+    main: 'main-content',
+    content: 'dashboard-content',
   },
-  correlation: {
-    eyebrow: copassagem
-      ? 'INVESTIGAÇÃO · PRÉ-EVENTO'
-      : 'INVESTIGAÇÃO · ENTORNO DO FATO',
-    title: 'Placas correlatas',
+  'plate-profile': {
+    shell: 'app-shell',
+    main: 'main-content correlation-profile-main',
+    content: 'dashboard-content correlation-profile-content',
   },
-  'post-event': copassagem
-    ? {
-        eyebrow: 'INVESTIGAÇÃO · PÓS-EVENTO',
-        title:
-          recorte.id === 'carga'
-            ? 'Trajetórias após roubo de carga'
-            : 'Trajetórias após subtração',
-      }
-    : {
-        eyebrow: 'CIRCULAÇÃO · PLACAS CITADAS',
-        title: 'Trajetória pós-evento',
-      },
-  profile: {
-    eyebrow: 'INVESTIGAÇÃO · CORRELAÇÕES E CIRCULAÇÃO',
-    title: 'Perfil de placa',
+  timeline: {
+    shell: 'app-shell timeline-open',
+    main: 'main-content correlation-timeline-main',
+    content: 'dashboard-content correlation-timeline-content',
   },
-  groups: { eyebrow: 'INVESTIGAÇÃO', title: 'Grupos de suspeitas' },
-  territories: { eyebrow: 'INVESTIGAÇÃO', title: 'Territórios' },
-  occurrence: {
-    eyebrow: copassagem
-      ? 'INVESTIGAÇÃO · RO E PLACA VÍTIMA'
-      : 'INVESTIGAÇÃO · RO',
-    title: 'Perfil do RO',
+  lists: {
+    shell: 'app-shell',
+    main: 'main-content',
+    content: 'dashboard-content groups-content',
   },
 }
+
+type ScreenContext = {
+  navigation: AppNavigation
+  active: ModuleId
+  visited: Set<ModuleId>
+}
+
+/**
+ * O que cada tela desenha na casca. A lista de uma tela visitada fica montada (escondida) ao trocar de tela, para
+ * voltar a ela com os filtros e a rolagem como estavam; perfis e timelines são montados só enquanto abertos.
+ */
+const SCREENS: Record<ModuleId, (context: ScreenContext) => ReactNode> = {
+  overview: () => null,
+  correlation: ({ navigation, active, visited }) =>
+    visited.has('correlation') && (
+      <div hidden={active !== 'correlation'}>
+        <CorrelationView
+          active={active === 'correlation'}
+          onOpenPlate={navigation.openPlate}
+          onOpenOccurrence={navigation.openOccurrence}
+        />
+      </div>
+    ),
+  'post-event': ({ navigation, active, visited }) =>
+    visited.has('post-event') && (
+      <div hidden={active !== 'post-event'}>
+        <PostEventView
+          active={active === 'post-event'}
+          onOpenPlate={navigation.openPlate}
+        />
+      </div>
+    ),
+  groups: ({ navigation, active, visited }) => {
+    const { route } = navigation
+    const group = active === 'groups' ? route.group : null
+    return (
+      <>
+        {visited.has('groups') && (
+          <div hidden={active !== 'groups' || Boolean(route.group)}>
+            <GroupsView
+              active={active === 'groups' && !route.group}
+              onOpenGroup={navigation.openGroup}
+              onOpenPlate={navigation.openPlate}
+            />
+          </div>
+        )}
+        {group?.view === 'profile' && (
+          <GroupProfile
+            id={group.id}
+            label={groupLabelFromHistory()}
+            onBack={navigation.openGroups}
+            onOpenPlate={navigation.openPlate}
+            onOpenTimeline={(day) =>
+              navigation.openGroupTimeline(group.id, day)
+            }
+          />
+        )}
+        {group?.view === 'timeline' && (
+          <GroupTimeline
+            id={group.id}
+            initialDay={group.day}
+            label={groupLabelFromHistory()}
+            onBack={() => navigation.backFromGroupTimeline(group.id)}
+          />
+        )}
+      </>
+    )
+  },
+  territories: ({ navigation, active, visited }) => {
+    const territory = navigation.route.territory
+    return (
+      <>
+        {visited.has('territories') && (
+          <div hidden={active !== 'territories' || Boolean(territory)}>
+            <TerritoriesView
+              active={active === 'territories' && !territory}
+              onOpenTerritory={navigation.openTerritory}
+            />
+          </div>
+        )}
+        {active === 'territories' && territory && (
+          <TerritoryProfile
+            key={territory}
+            complex={territory}
+            onBack={navigation.openTerritories}
+            onOpenPlate={navigation.openPlate}
+            onOpenGroup={navigation.openGroup}
+          />
+        )}
+      </>
+    )
+  },
+  profile: ({ navigation, active }) => {
+    if (active !== 'profile') return null
+    const plate = navigation.route.plate
+    if (!plate) return <PlateProfileSearch onOpenPlate={navigation.openPlate} />
+    return plate.view === 'timeline' ? (
+      <CorrelationPlateTimeline
+        plate={plate.plate}
+        initialDay={plate.day}
+        onBack={() =>
+          navigation.backFromPlateTimeline(plate.plate, plate.analysis)
+        }
+      />
+    ) : (
+      <CorrelationPlateProfile
+        plate={plate.plate}
+        analysis={plate.analysis}
+        onAnalysisChange={(analysis) =>
+          navigation.changePlateAnalysis(plate.plate, analysis)
+        }
+        onBack={navigation.backFromProfile}
+        onOpenTimeline={(day) =>
+          navigation.openPlateTimeline(plate.plate, plate.analysis, day)
+        }
+        onOpenPlate={navigation.openPlate}
+        onOpenOccurrence={navigation.openOccurrence}
+      />
+    )
+  },
+  occurrence: ({ navigation, active, visited }) => {
+    const occurrence =
+      active === 'occurrence' ? navigation.route.occurrence : null
+    return (
+      <>
+        {visited.has('occurrence') && (
+          <div hidden={active !== 'occurrence' || Boolean(occurrence)}>
+            <OccurrenceSearch
+              active={active === 'occurrence' && !occurrence}
+              onOpen={navigation.openOccurrence}
+            />
+          </div>
+        )}
+        {occurrence && (
+          <OccurrencePage
+            key={occurrence}
+            occurrenceKey={occurrence}
+            onBack={navigation.backFromOccurrence}
+            onOpenOccurrence={navigation.openOccurrence}
+            onOpenPlate={navigation.openPlate}
+          />
+        )}
+      </>
+    )
+  },
+}
+
+/** A ordem das telas na casca; a visão geral vem antes, fora do `Suspense` (está no pacote principal). */
+const SCREEN_ORDER: ModuleId[] = [
+  'correlation',
+  'post-event',
+  'groups',
+  'territories',
+  'occurrence',
+  'profile',
+]
 
 function RouteLoading() {
   return (
@@ -147,25 +304,15 @@ function RouteLoading() {
   )
 }
 
-/**
- * A casca do painel: menu, cabeçalho e a tela da rota. Uma tela visitada fica montada (escondida) ao trocar de tela,
- * para voltar a ela com os filtros e a rolagem como estavam; perfis e timelines são montados só enquanto abertos.
- */
+/** A casca do painel: menu, cabeçalho e a tela da rota (`SCREENS`). */
 export function App() {
   const navigation = useAppNavigation()
   const { route } = navigation
   const active = route.module
   const visited = useRef(new Set<ModuleId>([active]))
   visited.current.add(active)
-  const groupId = route.group?.id ?? null
-  const territory = route.territory
-  const occurrence = active === 'occurrence' ? route.occurrence : null
   const { data, error, loading } = useDashboard()
   const plate = active === 'profile' ? route.plate : null
-  const isGroupTimeline =
-    active === 'groups' && route.group?.view === 'timeline'
-  const isTimeline = plate?.view === 'timeline' || isGroupTimeline
-  const isProfilePage = plate?.view === 'profile'
   const mainRef = useRef<HTMLElement>(null)
 
   // A cada troca de tela, de placa ou de dia, o foco vai para o conteúdo (leitor de tela e teclado).
@@ -179,33 +326,18 @@ export function App() {
   }, [locationKey])
   useScrollRestoration(currentPath())
 
-  const page =
-    active === 'groups' && groupId
-      ? { eyebrow: 'INVESTIGAÇÃO', title: 'Perfil do grupo' }
-      : active === 'territories' && territory
-        ? {
-            eyebrow: 'INVESTIGAÇÃO · TERRITÓRIOS',
-            title: 'Perfil do território',
-          }
-        : PAGE_TITLES[active]
-  const shellClass = isTimeline ? 'app-shell timeline-open' : 'app-shell'
-  const mainClass = isTimeline
-    ? 'main-content correlation-timeline-main'
-    : isProfilePage
-      ? 'main-content correlation-profile-main'
-      : 'main-content'
-  const contentClass = isTimeline
-    ? 'dashboard-content correlation-timeline-content'
-    : isProfilePage
-      ? 'dashboard-content correlation-profile-content'
-      : active === 'groups' ||
-          active === 'territories' ||
-          active === 'occurrence'
-        ? 'dashboard-content groups-content'
-        : 'dashboard-content'
+  const module = moduleById(active)
+  const layout = module.layout(route)
+  const page = module.page(route)
+  const classes = SHELL_CLASSES[layout]
+  const context: ScreenContext = {
+    navigation,
+    active,
+    visited: visited.current,
+  }
 
   return (
-    <div className={shellClass}>
+    <div className={classes.shell}>
       <a
         className="skip-link"
         href="#main-content"
@@ -217,8 +349,13 @@ export function App() {
       >
         Pular para o conteúdo principal
       </a>
-      <main id="main-content" ref={mainRef} tabIndex={-1} className={mainClass}>
-        {!isTimeline && !isProfilePage && (
+      <main
+        id="main-content"
+        ref={mainRef}
+        tabIndex={-1}
+        className={classes.main}
+      >
+        {layout !== 'timeline' && layout !== 'plate-profile' && (
           <AppHeader
             eyebrow={page.eyebrow}
             title={page.title}
@@ -231,134 +368,19 @@ export function App() {
                   }
                 : undefined
             }
-            onOpenPlate={navigation.openPlateHere}
+            onOpenPlate={navigation.openPlate}
           />
         )}
-        <div className={contentClass}>
+        <div className={classes.content}>
           {visited.current.has('overview') && (
             <div hidden={active !== 'overview'}>
               <OverviewView data={data} error={error} loading={loading} />
             </div>
           )}
           <Suspense fallback={<RouteLoading />}>
-            {visited.current.has('correlation') && (
-              <div hidden={active !== 'correlation'}>
-                <CorrelationView
-                  active={active === 'correlation'}
-                  onOpenPlate={navigation.openCorrelationPlate}
-                  onOpenOccurrence={navigation.openOccurrence}
-                />
-              </div>
-            )}
-            {visited.current.has('post-event') && (
-              <div hidden={active !== 'post-event'}>
-                <PostEventView
-                  active={active === 'post-event'}
-                  onOpenPlate={navigation.openPostEventPlate}
-                />
-              </div>
-            )}
-            {visited.current.has('groups') && (
-              <div hidden={active !== 'groups' || Boolean(groupId)}>
-                <GroupsView
-                  active={active === 'groups' && !groupId}
-                  onOpenGroup={navigation.openGroup}
-                  onOpenPlate={navigation.openListedPlate}
-                />
-              </div>
-            )}
-            {active === 'groups' && route.group?.view === 'profile' && (
-              <GroupProfile
-                id={route.group.id}
-                label={groupLabelFromHistory()}
-                onBack={navigation.openGroups}
-                onOpenPlate={navigation.openListedPlate}
-                onOpenTimeline={(day) =>
-                  navigation.openGroupTimeline(route.group!.id, day)
-                }
-              />
-            )}
-            {visited.current.has('territories') && (
-              <div hidden={active !== 'territories' || Boolean(territory)}>
-                <TerritoriesView
-                  active={active === 'territories' && !territory}
-                  onOpenTerritory={navigation.openTerritory}
-                />
-              </div>
-            )}
-            {active === 'territories' && territory && (
-              <TerritoryProfile
-                key={territory}
-                complex={territory}
-                onBack={navigation.openTerritories}
-                onOpenPlate={navigation.openListedPlate}
-                onOpenGroup={navigation.openGroup}
-              />
-            )}
-            {visited.current.has('occurrence') && (
-              <div hidden={active !== 'occurrence' || Boolean(occurrence)}>
-                <OccurrenceSearch
-                  active={active === 'occurrence' && !occurrence}
-                  onOpen={navigation.openOccurrence}
-                />
-              </div>
-            )}
-            {occurrence && (
-              <OccurrencePage
-                key={occurrence}
-                occurrenceKey={occurrence}
-                onBack={navigation.backFromOccurrence}
-                onOpenOccurrence={navigation.openOccurrence}
-                onOpenPlate={navigation.openListedPlate}
-              />
-            )}
-            {isGroupTimeline && route.group && (
-              <GroupTimeline
-                id={route.group.id}
-                initialDay={route.group.day}
-                label={groupLabelFromHistory()}
-                onBack={() => navigation.backFromGroupTimeline(route.group!.id)}
-              />
-            )}
-            {active === 'profile' &&
-              (plate ? (
-                plate.view === 'timeline' ? (
-                  <CorrelationPlateTimeline
-                    plate={plate.plate}
-                    initialDay={plate.day}
-                    onBack={() =>
-                      navigation.backFromPlateTimeline(
-                        plate.plate,
-                        plate.analysis,
-                      )
-                    }
-                  />
-                ) : (
-                  <CorrelationPlateProfile
-                    plate={plate.plate}
-                    analysis={plate.analysis}
-                    onAnalysisChange={(analysis) =>
-                      navigation.changePlateAnalysis(plate.plate, analysis)
-                    }
-                    onBack={navigation.backFromProfile}
-                    onOpenTimeline={(day) =>
-                      navigation.openPlateTimeline(
-                        plate.plate,
-                        plate.analysis,
-                        day,
-                      )
-                    }
-                    onOpenPlate={navigation.openPlateHere}
-                    onOpenOccurrence={navigation.openOccurrence}
-                  />
-                )
-              ) : (
-                <PlateProfileSearch
-                  onOpenPlate={(searched, analysis = 'correlations') =>
-                    navigation.openPlate(searched, analysis, '/profile')
-                  }
-                />
-              ))}
+            {SCREEN_ORDER.map((id) => (
+              <Fragment key={id}>{SCREENS[id](context)}</Fragment>
+            ))}
           </Suspense>
         </div>
       </main>

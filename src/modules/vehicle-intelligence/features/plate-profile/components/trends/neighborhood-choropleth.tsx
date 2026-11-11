@@ -11,10 +11,10 @@ import {
   occurrenceLegend,
   OccurrenceMarkers,
 } from '@/modules/vehicle-intelligence/features/plate-profile/components/trends/occurrence-markers'
-import { formatPercent } from '@/modules/vehicle-intelligence/features/plate-profile/profile-format'
 import {
   escapeHtml,
   formatNumber,
+  formatPercent,
 } from '@/modules/vehicle-intelligence/lib/format'
 import type {
   PlateProfileNeighborhood,

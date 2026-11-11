@@ -1,5 +1,6 @@
 import { COLORS } from '@/modules/vehicle-intelligence/components/timeline/group/style'
 import { PIN_PATH } from '@/modules/vehicle-intelligence/components/timeline/palette'
+import { formatDistance } from '@/modules/vehicle-intelligence/lib/format'
 
 /** A legenda do mapa do grupo: leitura, junta, junta no fato, partida, desconexão e o fato (com o raio, se houver). */
 export function GroupMapLegend({
@@ -38,7 +39,7 @@ export function GroupMapLegend({
         </svg>
         {radiusMeters == null
           ? 'Fato'
-          : `Fato e raio de ${radiusMeters >= 1000 ? `${radiusMeters / 1000} km` : `${radiusMeters} m`}`}
+          : `Fato e raio de ${formatDistance(radiusMeters)}`}
       </span>
     </div>
   )

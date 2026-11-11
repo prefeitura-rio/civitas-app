@@ -1,16 +1,18 @@
 import type { CSSProperties } from 'react'
 
 import { straightDistanceKm } from '@/modules/vehicle-intelligence/components/timeline/geo'
-import {
-  distanceLabel,
-  durationLabel,
-  formatTime,
-} from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
 import type {
   Detection,
   TimelineTrack,
 } from '@/modules/vehicle-intelligence/components/timeline/timeline-types'
-import { parseInstant } from '@/modules/vehicle-intelligence/lib/dates'
+import {
+  formatTimeSeconds,
+  parseInstant,
+} from '@/modules/vehicle-intelligence/lib/dates'
+import {
+  formatDistance,
+  formatDuration,
+} from '@/modules/vehicle-intelligence/lib/format'
 
 /** O trecho entre duas leituras seguidas: origem, destino, intervalo, distância e velocidade implícita. */
 export function TransitionPopup({
@@ -46,7 +48,8 @@ export function TransitionPopup({
       </div>
       <strong className="analysis-popup-plate">{track.plate}</strong>
       <b className="analysis-popup-time">
-        {formatTime(from.detected_at)} → {formatTime(to.detected_at)}
+        {formatTimeSeconds(from.detected_at)} →{' '}
+        {formatTimeSeconds(to.detected_at)}
       </b>
       <div className="analysis-transition-locations">
         <span>
@@ -60,9 +63,9 @@ export function TransitionPopup({
       </div>
       <dl className="analysis-popup-grid">
         <dt>Intervalo</dt>
-        <dd>{durationLabel(seconds)}</dd>
+        <dd>{formatDuration(seconds)}</dd>
         <dt>Distância reta</dt>
-        <dd>{distanceLabel(distance)}</dd>
+        <dd>{formatDistance(distance * 1000, { fixedKm: true })}</dd>
         <dt>Velocidade implícita</dt>
         <dd>{speed === null ? '—' : `${Math.round(speed)} km/h`}</dd>
       </dl>

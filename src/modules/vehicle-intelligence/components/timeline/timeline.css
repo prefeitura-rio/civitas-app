@@ -2210,3 +2210,973 @@
 .correlation-profile-content {
   padding: 22px 28px 60px;
 }
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   Timeline da placa no padrão da timeline do Painel de Clonagem (10/11): cabeçalho baixo com controles sem borda, mapa-
+   base neutro (Positron) com os cartões e a legenda numa coluna à esquerda, marcadores contornados com o anel ciano na
+   posição atual, balão de posição escuro, player em grupos segmentados com o trilho do primeiro ao último evento e a
+   sequência do dia com um realce que desliza. Tudo sob `.correlation-timeline-shell`, por cima das regras anteriores.
+   ------------------------------------------------------------------------------------------------------------------ */
+.correlation-timeline-shell {
+  --tl-nav: #0f1314;
+  --tl-panel: #14181a;
+  --tl-line: rgba(255, 255, 255, 0.055);
+  --tl-line-strong: rgba(255, 255, 255, 0.105);
+  --tl-soft: #c8d4d9;
+  --tl-label: #9aa8ae;
+  --tl-muted: #7d8d94;
+  --tl-faint: #64737a;
+  --tl-cyan: #39c2eb;
+  --tl-cyan-2: #7ddbf5;
+  --tl-map: #f2f2f0;
+  background: #0b0f10;
+}
+
+/* Cabeçalho: uma faixa de 56 px; fundo só no hover ou na ação principal. */
+.correlation-timeline-shell .timeline-analysis-header {
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 0 16px 0 10px;
+  background: var(--tl-nav);
+  border-bottom: 1px solid var(--tl-line-strong);
+  box-shadow: none;
+}
+.correlation-timeline-shell .timeline-header-main {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.correlation-timeline-shell .timeline-back-button,
+.correlation-timeline-shell .timeline-day-step {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--tl-muted);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.correlation-timeline-shell .timeline-back-button:hover,
+.correlation-timeline-shell .timeline-day-step:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+.correlation-timeline-shell .timeline-day-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.correlation-timeline-shell .timeline-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+.correlation-timeline-shell .timeline-title > strong {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+}
+.correlation-timeline-shell .timeline-title > small {
+  overflow: hidden;
+  max-width: 420px;
+  color: var(--tl-muted);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.correlation-timeline-shell .timeline-title > small b {
+  color: var(--tl-soft);
+  font-weight: 600;
+}
+.correlation-timeline-shell .timeline-header-divider {
+  flex: 0 0 1px;
+  height: 24px;
+  background: var(--tl-line-strong);
+}
+.correlation-timeline-shell .timeline-day-picker {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: none;
+  margin-left: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--tl-muted);
+}
+.correlation-timeline-shell .timeline-day-picker [data-slot="select-trigger"] {
+  width: auto;
+  min-width: 0;
+  height: 32px;
+  gap: 8px;
+  padding: 0 8px 0 10px;
+  color: var(--text);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.correlation-timeline-shell .timeline-day-picker [data-slot="select-trigger"]:hover,
+.correlation-timeline-shell .timeline-day-picker [data-slot="select-trigger"][data-state="open"] {
+  background: rgba(255, 255, 255, 0.06);
+}
+.correlation-timeline-shell .timeline-day-picker [data-slot="select-trigger"] > svg {
+  color: var(--tl-muted);
+}
+.correlation-timeline-shell .timeline-day-trigger-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.correlation-timeline-shell .timeline-day-trigger-text b {
+  font-weight: 600;
+}
+.correlation-timeline-shell .timeline-day-trigger-text em {
+  color: var(--tl-muted);
+  font-style: normal;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.correlation-timeline-shell .timeline-day-count {
+  margin-left: 6px;
+  color: var(--tl-faint);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.correlation-timeline-shell .timeline-header-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+/* A ação principal (o vídeo do dia): fundo ciano leve, sem borda, como o "Gerar relatório" do Clonagem. */
+.correlation-timeline-shell .timeline-header-actions .timeline-video-trigger {
+  height: 32px;
+  gap: 7px;
+  padding: 0 10px;
+  color: var(--tl-cyan-2);
+  border: 0;
+  border-radius: 6px;
+  background: rgba(57, 194, 235, 0.14);
+  font-size: 12.5px;
+}
+.correlation-timeline-shell .timeline-header-actions .timeline-video-trigger:not(:disabled):hover {
+  color: var(--tl-cyan-2);
+  background: rgba(57, 194, 235, 0.2);
+}
+.correlation-timeline-shell .timeline-header-actions .timeline-video-trigger > svg:last-child {
+  color: currentColor;
+  opacity: 0.7;
+}
+
+/* Superfície: mapa e player à esquerda, a sequência numa coluna de 360 px. */
+.correlation-timeline-shell .timeline-analysis-grid {
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 0;
+}
+.correlation-timeline-shell .timeline-map-stage-wrap {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--tl-map);
+}
+.correlation-timeline-shell .timeline-map-stage,
+.correlation-timeline-shell .analysis-map {
+  background: var(--tl-map);
+}
+.correlation-timeline-shell .analysis-map .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 9px;
+}
+.correlation-timeline-shell .analysis-map .leaflet-control-zoom {
+  margin-right: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 28, 34, 0.2);
+  border-radius: 6px;
+}
+.correlation-timeline-shell .analysis-map .leaflet-control-zoom a {
+  color: #eef4fb;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 25, 31, 0.92);
+}
+.correlation-timeline-shell .analysis-map .leaflet-control-zoom a:hover {
+  color: #fff;
+  background: #263943;
+}
+.correlation-timeline-shell .timeline-map-note {
+  left: auto;
+  right: 60px;
+  bottom: 14px;
+  padding: 3px 8px;
+  color: #3c4a52;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 10.5px;
+}
+
+/* Coluna à esquerda: os cartões e, logo abaixo, a legenda; o alto e a direita ficam para os balões. */
+.correlation-timeline-shell .timeline-map-overlay {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 500;
+  width: 196px;
+  max-height: calc(100% - 28px);
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  overflow-y: auto;
+  pointer-events: none;
+  scrollbar-width: none;
+}
+.correlation-timeline-shell .timeline-map-overlay > * {
+  pointer-events: auto;
+}
+.correlation-timeline-shell .timeline-trail-cards {
+  position: static;
+  inset: auto;
+  width: auto;
+  max-height: none;
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  overflow: visible;
+  font-size: inherit;
+}
+.correlation-timeline-shell .analysis-trail-card {
+  --trail-color: #c4cfdf;
+  --trail-light: #c4cfdf;
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  display: block;
+  margin: 0;
+  padding: 9px 11px;
+  overflow: hidden;
+  color: #bcc8cf;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  background: rgba(15, 20, 21, 0.94);
+  box-shadow: none;
+  opacity: 0.55;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+.correlation-timeline-shell .analysis-trail-card:hover {
+  border-color: var(--trail-light);
+}
+.correlation-timeline-shell .analysis-trail-card.active {
+  border-color: var(--trail-light);
+  opacity: 1;
+}
+.correlation-timeline-shell .analysis-trail-card > header {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.correlation-timeline-shell .trail-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--trail-color);
+  box-shadow: none;
+}
+.correlation-timeline-shell .analysis-trail-card > header strong {
+  color: #eef3fb;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.correlation-timeline-shell .trail-card-plate {
+  display: none;
+}
+.correlation-timeline-shell .analysis-trail-card.victim .trail-card-plate {
+  display: block;
+  margin: -3px 0 6px 18px;
+  color: var(--tl-label);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.correlation-timeline-shell .trail-card-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.correlation-timeline-shell .trail-card-kpis span {
+  display: grid;
+  gap: 1px;
+}
+.correlation-timeline-shell .trail-card-kpis b {
+  color: #eef3fb;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.correlation-timeline-shell .trail-card-kpis small {
+  color: var(--tl-muted);
+  font-size: 10.5px;
+}
+/* O cartão dos fatos: uma linha por fato, que liga e desliga a trilha dele. */
+.correlation-timeline-shell .facts-card {
+  cursor: default;
+}
+.correlation-timeline-shell .facts-card > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.correlation-timeline-shell .facts-card > header strong {
+  white-space: nowrap;
+}
+.correlation-timeline-shell .facts-card > header small {
+  color: var(--tl-muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.correlation-timeline-shell .facts-card-rows {
+  display: grid;
+  gap: 2px;
+  margin: 0 -6px;
+}
+.correlation-timeline-shell .facts-card-rows > button {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  column-gap: 7px;
+  row-gap: 1px;
+  padding: 4px 6px;
+  color: #bcc8cf;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  opacity: 0.45;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    opacity 0.15s ease;
+}
+.correlation-timeline-shell .facts-card-rows > button.active {
+  opacity: 1;
+}
+.correlation-timeline-shell .facts-card-rows > button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.correlation-timeline-shell .facts-card-rows i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--trail-color);
+  box-shadow: inset 0 0 0 1.5px var(--trail-light);
+  transform: rotate(-45deg);
+}
+.correlation-timeline-shell .facts-card-rows b {
+  color: #eef3fb;
+  font-size: 12px;
+  font-weight: 650;
+}
+.correlation-timeline-shell .facts-card-rows span {
+  color: var(--tl-soft);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.correlation-timeline-shell .facts-card-rows small {
+  grid-column: 2 / -1;
+  overflow: hidden;
+  color: var(--tl-muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Legenda: sempre aberta, nas cores do mapa. */
+.correlation-timeline-shell .analysis-map-legend {
+  position: static;
+  inset: auto;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  color: #dce6f4;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  background: rgba(15, 20, 21, 0.94);
+  box-shadow: none;
+  font-size: 10.5px;
+}
+.correlation-timeline-shell .analysis-map-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.3;
+  white-space: normal;
+}
+.correlation-timeline-shell .analysis-map-legend hr {
+  width: 100%;
+  height: 1px;
+  margin: 2px 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+.correlation-timeline-shell .analysis-map-legend i {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: var(--timeline-candidate);
+}
+.correlation-timeline-shell .analysis-map-legend i.legend-soft {
+  background: #d96d7f;
+}
+.correlation-timeline-shell .analysis-map-legend i.legend-correlated {
+  border-color: #fff;
+  background: linear-gradient(90deg, var(--correlation-victim) 0 50%, var(--correlation-candidate) 50% 100%);
+}
+.correlation-timeline-shell .analysis-map-legend i.legend-crime {
+  border: 0;
+  border-radius: 50% 50% 50% 0;
+  background: var(--timeline-victim-primary);
+  box-shadow: inset 0 0 0 2px #fff;
+  transform: rotate(-45deg);
+}
+.correlation-timeline-shell .analysis-map-legend i.legend-selected {
+  box-shadow: 0 0 0 2px var(--tl-cyan);
+}
+
+/* Marcadores: sólidos, com borda branca e sombra para destacar no mapa claro; o anel ciano marca a posição atual. */
+.correlation-timeline-shell .analysis-map-marker {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--fill);
+  box-shadow:
+    0 0 0 1px rgba(15, 30, 55, 0.35),
+    0 2px 6px rgba(15, 30, 55, 0.45);
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  opacity: 1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  transition:
+    width 0.2s ease,
+    height 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.correlation-timeline-shell .analysis-map-marker.correlated {
+  background: var(--correlation-fill);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.correlation-timeline-shell .analysis-map-marker.selected {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+  box-shadow:
+    0 0 0 3px var(--tl-cyan),
+    0 3px 10px rgba(15, 30, 55, 0.5);
+}
+.correlation-timeline-shell .analysis-crime-marker > em {
+  top: 3px;
+  padding: 3px 7px;
+  color: var(--text);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: 6px;
+  background: rgba(15, 19, 20, 0.96);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Balão de posição: um só, que desliza com o passo; a hora, o selo da trilha ou do fato, o local e o equipamento. */
+.correlation-timeline-shell .analysis-map-callout {
+  min-width: 220px;
+  max-width: 280px;
+  padding: 9px 11px 10px;
+  color: var(--text);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: 8px;
+  background: rgba(15, 19, 20, 0.96);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+.correlation-timeline-shell .analysis-map-callout::after {
+  border-right-color: var(--tl-line-strong);
+  border-bottom-color: var(--tl-line-strong);
+  background: rgb(15, 19, 20);
+}
+.correlation-timeline-shell .analysis-map-callout .callout-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+.correlation-timeline-shell .analysis-map-callout .callout-head strong {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.correlation-timeline-shell .analysis-map-callout .callout-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--tl-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.correlation-timeline-shell .analysis-map-callout .callout-head i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.correlation-timeline-shell .analysis-map-callout .callout-place {
+  display: block;
+  color: #dce6f4;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.correlation-timeline-shell .analysis-map-callout small {
+  display: block;
+  margin-top: 3px;
+  color: var(--tl-muted);
+  font-size: 11px;
+}
+.correlation-timeline-shell .analysis-map-callout small b {
+  display: inline;
+  color: var(--tl-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* Player: transporte, relógio, trilho e velocidade numa faixa só. */
+.correlation-timeline-shell .analysis-player {
+  position: relative;
+  z-index: 510;
+  height: auto;
+  min-height: 0;
+  display: grid;
+  grid-template-areas: "transport clock rail speed";
+  grid-template-columns: auto 92px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--tl-line-strong);
+  background: var(--tl-nav);
+}
+.correlation-timeline-shell .player-transport,
+.correlation-timeline-shell .player-speed {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--tl-line-strong);
+  border-radius: 6px;
+  background: var(--tl-panel);
+}
+.correlation-timeline-shell .player-transport {
+  grid-area: transport;
+}
+.correlation-timeline-shell .player-speed {
+  grid-area: speed;
+}
+.correlation-timeline-shell .player-transport button,
+.correlation-timeline-shell .player-speed button {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tl-soft);
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.correlation-timeline-shell .player-transport button {
+  width: 32px;
+}
+.correlation-timeline-shell .player-transport button:hover:not(:disabled),
+.correlation-timeline-shell .player-speed button:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+.correlation-timeline-shell .player-transport button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.correlation-timeline-shell .player-transport .play-button {
+  width: 40px;
+  color: #06121a;
+  background: var(--tl-cyan);
+}
+.correlation-timeline-shell .player-transport .play-button:hover:not(:disabled) {
+  color: #06121a;
+  background: var(--tl-cyan-2);
+}
+.correlation-timeline-shell .player-speed button {
+  min-width: 38px;
+  color: var(--tl-label);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.correlation-timeline-shell .player-speed button.active {
+  color: var(--text);
+  background: rgba(57, 194, 235, 0.14);
+}
+.correlation-timeline-shell .player-clock {
+  grid-area: clock;
+  display: grid;
+  gap: 1px;
+  white-space: nowrap;
+}
+.correlation-timeline-shell .player-clock strong {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.correlation-timeline-shell .player-clock span {
+  color: var(--tl-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.correlation-timeline-shell .player-rail-wrap {
+  grid-area: rail;
+  min-width: 0;
+  padding: 6px 0 0;
+}
+.correlation-timeline-shell .player-rail {
+  position: relative;
+  height: 20px;
+  margin: 0;
+  border: 0;
+  background: none;
+  outline: 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.correlation-timeline-shell .player-rail::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-50%);
+}
+.correlation-timeline-shell .player-rail:focus-visible {
+  outline: 2px solid var(--tl-cyan);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.correlation-timeline-shell .player-rail-fill {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(57, 194, 235, 0.55);
+  transform: translateY(-50%);
+}
+/* O cursor desliza até o evento: rápido no passo manual, contínuo e no ritmo da velocidade ao reproduzir. */
+.correlation-timeline-shell .player-rail-fill,
+.correlation-timeline-shell .player-thumb {
+  transition-duration: 220ms;
+  transition-property: width, left;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.correlation-timeline-shell .analysis-player.is-playing .player-rail-fill,
+.correlation-timeline-shell .analysis-player.is-playing .player-thumb {
+  transition-duration: var(--player-step, 750ms);
+  transition-timing-function: linear;
+}
+.correlation-timeline-shell .analysis-player.is-scrubbing .player-rail-fill,
+.correlation-timeline-shell .analysis-player.is-scrubbing .player-thumb {
+  transition: none;
+}
+.correlation-timeline-shell .player-ticks {
+  position: absolute;
+  inset: 50% 0 auto;
+  z-index: 2;
+  transform: translateY(-50%);
+}
+.correlation-timeline-shell .player-ticks i {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 8px;
+  background: var(--tick, rgba(196, 207, 223, 0.42));
+  opacity: 0.55;
+  transform: translateX(-50%);
+}
+.correlation-timeline-shell .player-ticks i.strong {
+  opacity: 0.85;
+}
+/* Fatos e leituras ligadas a um fato: mais altos e cheios, para achá-los na barra. */
+.correlation-timeline-shell .player-ticks i.anchor {
+  top: -6px;
+  height: 12px;
+  opacity: 1;
+}
+.correlation-timeline-shell .player-ticks i.fact {
+  width: 3px;
+}
+.correlation-timeline-shell .player-ticks i.fact.active {
+  top: -8px;
+  height: 16px;
+}
+.correlation-timeline-shell .player-thumb {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--tl-cyan);
+  border-radius: 50%;
+  background: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  transform: translate(-50%, -50%);
+}
+.correlation-timeline-shell .player-rail-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1px;
+  color: var(--tl-faint);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sequência do dia: uma linha por evento, texto inteiro; um realce desliza até a linha da vez. */
+.correlation-timeline-shell .timeline-sequence-panel {
+  width: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid var(--tl-line-strong);
+  background: var(--tl-nav);
+}
+.correlation-timeline-shell .timeline-sequence-panel > header {
+  flex: 0 0 auto;
+  display: block;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--tl-line);
+}
+.correlation-timeline-shell .timeline-sequence-panel > header div {
+  display: grid;
+  gap: 2px;
+}
+.correlation-timeline-shell .timeline-sequence-panel > header strong {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+.correlation-timeline-shell .timeline-sequence-panel > header span {
+  color: var(--tl-muted);
+  font-size: 11.5px;
+}
+.correlation-timeline-shell .timeline-sequence-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 0 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: #2a3438 transparent;
+  scrollbar-width: thin;
+}
+.correlation-timeline-shell .timeline-sequence-track {
+  position: relative;
+  display: block;
+  padding: 0;
+}
+.correlation-timeline-shell .timeline-sequence-track::before {
+  display: none;
+}
+.correlation-timeline-shell .sequence-cursor {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 0;
+  background: rgba(57, 194, 235, 0.09);
+  pointer-events: none;
+  transition-property: transform, height;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.correlation-timeline-shell .timeline-sequence-track .sequence-row {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  margin: 0;
+  padding: 9px 16px;
+  color: var(--tl-soft);
+  border: 0;
+  border-bottom: 1px solid var(--tl-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.correlation-timeline-shell .timeline-sequence-track .sequence-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.correlation-timeline-shell .sequence-when {
+  display: grid;
+  gap: 1px;
+}
+.correlation-timeline-shell .sequence-when strong {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s ease;
+}
+.correlation-timeline-shell .sequence-when small {
+  color: var(--tl-faint);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.correlation-timeline-shell .sequence-body {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.correlation-timeline-shell .sequence-place {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  transition: color 0.2s ease;
+}
+/* Os textos da linha seguem o fluxo (a regra antiga `.timeline-sequence-track span` os fazia grades). */
+.correlation-timeline-shell .sequence-meta span,
+.correlation-timeline-shell .sequence-meta small {
+  display: inline;
+}
+.correlation-timeline-shell .sequence-place {
+  display: block;
+}
+.correlation-timeline-shell .sequence-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--tl-muted);
+  font-size: 11px;
+}
+.correlation-timeline-shell .sequence-source {
+  color: var(--tl-soft);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.correlation-timeline-shell .sequence-source::before,
+.correlation-timeline-shell .sequence-meta small::before {
+  content: "·";
+  margin-right: 6px;
+  color: var(--tl-faint);
+}
+.correlation-timeline-shell .sequence-meta small {
+  font-size: 11px;
+  font-weight: 600;
+}
+.correlation-timeline-shell .sequence-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dot);
+}
+.correlation-timeline-shell .sequence-dot.hollow {
+  opacity: 0.6;
+}
+.correlation-timeline-shell .sequence-row.fact .sequence-when small,
+.correlation-timeline-shell .sequence-row.fact .sequence-pin {
+  color: var(--row-color);
+}
+.correlation-timeline-shell .sequence-row.fact .sequence-when small {
+  font-weight: 700;
+}
+.correlation-timeline-shell .sequence-row.active .sequence-when strong {
+  color: var(--tl-cyan-2);
+}
+/* O que o player ainda não alcançou: legível, um tom abaixo. */
+.correlation-timeline-shell .sequence-row.future .sequence-when strong,
+.correlation-timeline-shell .sequence-row.future .sequence-place {
+  color: var(--tl-muted);
+}
+.correlation-timeline-shell .sequence-row.future .sequence-meta,
+.correlation-timeline-shell .sequence-row.future .sequence-source {
+  color: var(--tl-faint);
+}
+@media (prefers-reduced-motion: reduce) {
+  .correlation-timeline-shell .player-rail-fill,
+  .correlation-timeline-shell .player-thumb,
+  .correlation-timeline-shell .sequence-cursor {
+    transition: none;
+  }
+}

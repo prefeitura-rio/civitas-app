@@ -11,8 +11,19 @@ import { request } from '@/modules/vehicle-intelligence/lib/api'
 import { formatDate } from '@/modules/vehicle-intelligence/lib/dates'
 import { createLazyStore } from '@/modules/vehicle-intelligence/lib/store'
 
-/** Uma operação da placa, como `/api/cerco` a entrega. */
-type CercoOperation = { operacao: string | null; desde: string | null }
+/** Uma autoridade que monitora o cadastro: quem pediu, de que instituição, a referência e a validade. */
+type CercoAuthority = {
+  autoridade: string | null
+  instituicao: string | null
+  referencia: string | null
+  valida_ate: string | null
+}
+/** Um cadastro da placa no Cerco, como `/api/cerco` o entrega: a operação, quando foi inserido e as autoridades. */
+export type CercoOperation = {
+  operacao: string | null
+  desde: string | null
+  autoridades?: CercoAuthority[]
+}
 type CercoResponse = {
   consultado_em: string | null
   placas: Record<string, { operacoes: CercoOperation[] }>
@@ -47,17 +58,34 @@ function dateOrNull(iso: string | null): string | null {
   return iso ? formatDate(iso) : null
 }
 
+/** Quem monitora o cadastro: as autoridades (com a instituição) ou, nos cadastros antigos, a operação. */
+export function cercoWho(item: CercoOperation): string {
+  const authorities = (item.autoridades ?? [])
+    .map((authority) =>
+      [
+        authority.autoridade,
+        authority.instituicao && `(${authority.instituicao})`,
+      ]
+        .filter(Boolean)
+        .join(' '),
+    )
+    .filter(Boolean)
+  return authorities.length
+    ? authorities.join('; ')
+    : (item.operacao ?? 'monitoramento sem autoridade informada')
+}
+
 function cercoTooltip(
   operations: CercoOperation[],
   checkedAt: string | null,
 ): string {
   const list = operations.map((item) =>
     [
-      item.operacao ?? 'Operação sem nome',
-      dateOrNull(item.desde) && `desde ${dateOrNull(item.desde)}`,
+      cercoWho(item),
+      dateOrNull(item.desde) && `inserida em ${dateOrNull(item.desde)}`,
     ]
       .filter(Boolean)
-      .join(' '),
+      .join(', '),
   )
   return `Monitorada hoje no Cerco Digital · ${list.join('; ')}${checkedAt ? ` · lista de ${dateOrNull(checkedAt)}` : ''}`
 }

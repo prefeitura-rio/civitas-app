@@ -1,8 +1,5 @@
 /** Ranking no entorno do fato (transeuntes): leituras perto do local e do horário de cada ocorrência. */
-import {
-  type Column,
-  formatDistance,
-} from '@/modules/vehicle-intelligence/features/correlations/ranking-cells'
+import { type Column } from '@/modules/vehicle-intelligence/features/correlations/ranking-cells'
 import {
   circulation,
   COMMON_SORT_LABELS,
@@ -12,7 +9,10 @@ import {
   span,
 } from '@/modules/vehicle-intelligence/features/correlations/ranking-variants/common-columns'
 import type { RankingVariant } from '@/modules/vehicle-intelligence/features/correlations/ranking-variants/types'
-import { formatNumber } from '@/modules/vehicle-intelligence/lib/format'
+import {
+  formatDistance,
+  formatNumber,
+} from '@/modules/vehicle-intelligence/lib/format'
 import { categoryLabel } from '@/modules/vehicle-intelligence/lib/labels'
 import { plateOrigin } from '@/modules/vehicle-intelligence/lib/plate-origin'
 
@@ -104,7 +104,10 @@ export const entornoVariant: RankingVariant = {
                   'Ordenar por proximidade média',
                   row.average_correlation_strength ?? '—',
                 )}{' '}
-                · {formatDistance(row.median_fact_distance_meters)}
+                ·{' '}
+                {formatDistance(row.median_fact_distance_meters, {
+                  empty: 'distância indisponível',
+                })}
               </>
             )}
           </small>
@@ -138,7 +141,7 @@ export const entornoVariant: RankingVariant = {
           key: 'linked_events',
           label: 'Ocorrências no dia',
           sortKey: 'linked_events',
-          help: 'Fatos distintos da mesma data em cujo entorno a placa foi lida. Embaixo, o total da placa no período: é sobre ele que vale o mínimo de fatos ligados dos filtros.',
+          help: 'Fatos distintos da mesma data em cujo entorno a placa foi lida. Embaixo, o total da placa no período: é sobre ele que vale o mínimo de ocorrências ligadas dos filtros.',
           render: (row) => (
             <span className="ranking-proximity">
               <b>{row.linked_events}</b>

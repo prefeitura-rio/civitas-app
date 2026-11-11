@@ -1,19 +1,12 @@
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { useMemo } from 'react'
 
 import {
   copassagem,
+  recorte,
   recorteAtual,
   type RecorteId,
-  recorteStorageKey,
 } from '@/modules/vehicle-intelligence/config/recortes'
+import { createStore } from '@/modules/vehicle-intelligence/lib/store'
 import type { CrimeType } from '@/modules/vehicle-intelligence/types/domain'
 
 /**
@@ -50,27 +43,22 @@ const COMMON_DEFAULTS: Omit<
   somenteCarga: false,
 }
 /** Transeuntes começa pelos fatos com autor de moto: só eles deixam placa a procurar no Cerco. */
-const DEFAULT_SCOPES: Record<RecorteId, EventScope> = {
-  transeuntes: {
-    ...COMMON_DEFAULTS,
-    modalidades: ['ROUBO', 'FURTO'],
-    deslocamentos: ['MOTO'],
-    eventWindow: 10,
-  },
-  veiculos: {
-    ...COMMON_DEFAULTS,
-    modalidades: ['ROUBO', 'FURTO'],
-    deslocamentos: [],
-    eventWindow: 30,
-  },
-  carga: {
-    ...COMMON_DEFAULTS,
-    modalidades: ['CARGA_VEICULO', 'CARGA'],
-    deslocamentos: [],
-    eventWindow: 30,
-  },
+const DEFAULT_SCOPES: Record<
+  RecorteId,
+  Pick<EventScope, 'deslocamentos' | 'eventWindow'>
+> = {
+  transeuntes: { deslocamentos: ['MOTO'], eventWindow: 10 },
+  veiculos: { deslocamentos: [], eventWindow: 30 },
+  carga: { deslocamentos: [], eventWindow: 30 },
+  // Sem relato não há autor anotado: começa sem o filtro de moto.
+  transeuntes_cidade: { deslocamentos: [], eventWindow: 10 },
 }
-export const DEFAULT_EVENT_SCOPE = DEFAULT_SCOPES[recorteAtual]
+/** O padrão: as duas modalidades do recorte e as janelas e o autor de cada um. */
+export const DEFAULT_EVENT_SCOPE: EventScope = {
+  ...COMMON_DEFAULTS,
+  modalidades: [...recorte.modalities],
+  ...DEFAULT_SCOPES[recorteAtual],
+}
 
 /** Janelas e raios que a interface oferece; a base publica um subconjunto em `/options`. */
 export const SCOPE_LIMITS = copassagem
@@ -156,95 +144,44 @@ export function windowParams(scope: EventScope): URLSearchParams {
   return params
 }
 
-/**
- * Perfil aberto pela busca de placas em outro recorte (`?fatos=todos`): a busca
- * olha o grafo inteiro, então o perfil chega com "Ver todos os fatos". O
- * parâmetro sai da URL logo na carga, para não seguir nas navegações.
- */
-const OPENED_WITH_ALL_FACTS = (() => {
-  const params = new URLSearchParams(window.location.search)
-  if (params.get('fatos') !== 'todos') return false
-  params.delete('fatos')
-  const query = params.toString()
-  window.history.replaceState(
-    window.history.state,
-    '',
-    `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`,
-  )
-  return true
-})()
-
 const STORAGE_KEY = 'event-scope:v2'
 type StoredScope = { scope: EventScope; applyToPlates: boolean }
 
-function initialScope(): StoredScope {
-  try {
-    const stored = JSON.parse(
-      window.sessionStorage.getItem(recorteStorageKey(STORAGE_KEY)) ?? 'null',
-    ) as StoredScope | null
-    if (stored?.scope) {
+const scopeStore = createStore<StoredScope>(
+  { scope: DEFAULT_EVENT_SCOPE, applyToPlates: true },
+  {
+    storageKey: STORAGE_KEY,
+    restore: (saved, initial) => {
+      const stored = saved as Partial<StoredScope>
+      if (!stored.scope) return initial
       return {
-        applyToPlates: stored.applyToPlates && !OPENED_WITH_ALL_FACTS,
+        applyToPlates: Boolean(stored.applyToPlates),
         scope: boundedScope({ ...DEFAULT_EVENT_SCOPE, ...stored.scope }),
       }
-    }
-  } catch {
-    /* O armazenamento da sessão é opcional. */
-  }
-  return { scope: DEFAULT_EVENT_SCOPE, applyToPlates: !OPENED_WITH_ALL_FACTS }
+    },
+  },
+)
+
+export function setScope(update: Partial<EventScope>): void {
+  scopeStore.set((current) => ({
+    ...current,
+    scope: boundedScope({ ...current.scope, ...update }),
+  }))
 }
 
-type EventScopeContextValue = StoredScope & {
-  setScope: (update: Partial<EventScope>) => void
-  /** Perfil e timeline: aplicar o recorte ou mostrar todos os fatos da placa. */
-  setApplyToPlates: (value: boolean) => void
+/** Perfil e timeline: aplicar o recorte ou mostrar todos os fatos da placa ("Ver todos os fatos"). */
+export function setApplyToPlates(applyToPlates: boolean): void {
+  scopeStore.set((current) => ({ ...current, applyToPlates }))
 }
 
-const EventScopeContext = createContext<EventScopeContextValue | null>(null)
-
-export function EventScopeProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<StoredScope>(initialScope)
-  useEffect(() => {
-    try {
-      window.sessionStorage.setItem(
-        recorteStorageKey(STORAGE_KEY),
-        JSON.stringify(state),
-      )
-    } catch {
-      /* Opcional. */
-    }
-  }, [state])
-  const setScope = useCallback((update: Partial<EventScope>) => {
-    setState((current) => ({
-      ...current,
-      scope: boundedScope({ ...current.scope, ...update }),
-    }))
-  }, [])
-  const setApplyToPlates = useCallback(
-    (applyToPlates: boolean) =>
-      setState((current) => ({ ...current, applyToPlates })),
-    [],
-  )
-  const value = useMemo(
-    () => ({ ...state, setScope, setApplyToPlates }),
-    [setApplyToPlates, setScope, state],
-  )
-  return (
-    <EventScopeContext.Provider value={value}>
-      {children}
-    </EventScopeContext.Provider>
-  )
-}
-
-export function useEventScope(): EventScopeContextValue {
-  const context = useContext(EventScopeContext)
-  if (!context) throw new Error('useEventScope precisa de EventScopeProvider')
-  return context
+/** O recorte dos fatos e se ele vale para as placas, com as duas ações. */
+export function useEventScope() {
+  return { ...scopeStore.use(), setScope, setApplyToPlates }
 }
 
 /** Recorte que o perfil, a timeline e o relatório da placa pedem: o da barra ou, em "Ver todos os fatos", só a janela. */
 export function usePlateScopeQuery(): string {
-  const { scope, applyToPlates } = useEventScope()
+  const { scope, applyToPlates } = scopeStore.use()
   return useMemo(
     () => (applyToPlates ? scopeParams(scope) : windowParams(scope)).toString(),
     [applyToPlates, scope],

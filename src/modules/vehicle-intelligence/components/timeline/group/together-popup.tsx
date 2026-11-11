@@ -2,8 +2,10 @@ import { type CSSProperties, Fragment } from 'react'
 
 import type { GroupEvent } from '@/modules/vehicle-intelligence/components/timeline/group/events'
 import { COLORS } from '@/modules/vehicle-intelligence/components/timeline/group/style'
-import { hourMinute } from '@/modules/vehicle-intelligence/components/timeline/group/time'
-import { formatTime } from '@/modules/vehicle-intelligence/components/timeline/timeline-format'
+import {
+  formatTime,
+  formatTimeSeconds,
+} from '@/modules/vehicle-intelligence/lib/dates'
 
 /** O popup da passagem junta: as placas, o equipamento e o horário de cada leitura. */
 export function TogetherPopup({
@@ -35,7 +37,7 @@ export function TogetherPopup({
             .join(' + ')}
         </strong>
       </div>
-      <b className="analysis-popup-time">{hourMinute(item.at)}</b>
+      <b className="analysis-popup-time">{formatTime(item.at)}</b>
       <span className="analysis-popup-place">
         {first.location || 'Local não informado'}
       </span>
@@ -51,7 +53,7 @@ export function TogetherPopup({
               />
               {detection.plate}
             </dt>
-            <dd>{formatTime(detection.detected_at)}</dd>
+            <dd>{formatTimeSeconds(detection.detected_at)}</dd>
           </Fragment>
         ))}
       </dl>

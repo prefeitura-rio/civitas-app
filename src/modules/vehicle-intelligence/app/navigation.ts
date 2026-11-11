@@ -15,9 +15,13 @@ import {
   toRoutePath,
 } from '@/modules/vehicle-intelligence/app/base-path'
 import {
-  groupPath,
-  groupTimelinePath,
   type ModuleId,
+  MODULES,
+} from '@/modules/vehicle-intelligence/app/modules'
+import {
+  groupPath,
+  groupProfilePath,
+  groupTimelinePath,
   modulePath,
   normalizePath,
   occurrencePath,
@@ -26,7 +30,15 @@ import {
   plateTimelinePath,
   territoryPath,
 } from '@/modules/vehicle-intelligence/app/routes'
-import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/domain'
+import {
+  recorteAtual,
+  type RecorteId,
+} from '@/modules/vehicle-intelligence/config/recortes'
+import { setApplyToPlates } from '@/modules/vehicle-intelligence/stores/event-scope'
+import type {
+  OpenPlateOptions,
+  PlateProfileAnalysis,
+} from '@/modules/vehicle-intelligence/types/navigation'
 
 type HistoryState = {
   profileOrigin?: string
@@ -67,6 +79,21 @@ export function pickHistoryState(state: unknown): HistoryState {
 
 const historyState = () => pickHistoryState(window.history.state)
 
+/**
+ * Troca de recorte recarregando a página. A placa aberta continua aberta no outro recorte (nas correlações); as
+ * telas que existem igual nos dois (`keepsOnRecorteSwitch`) também; as demais voltam à visão geral.
+ */
+export function switchRecorte(target: RecorteId): void {
+  if (target === recorteAtual) return
+  const route = parseRoute(window.location.pathname)
+  const path = route.plate
+    ? platePath(route.plate.plate, 'correlations')
+    : (MODULES.find(
+        (module) => module.id === route.module && module.keepsOnRecorteSwitch,
+      )?.path ?? '/')
+  window.location.assign(`${path}?recorte=${target}`)
+}
+
 /** A rota atual e as ações de navegação do app. */
 export function useAppNavigation() {
   const pathname = usePathname()
@@ -83,32 +110,23 @@ export function useAppNavigation() {
       )
   }, [])
 
-  const actions = useMemo(() => {
-    const openPlate = (
-      plate: string,
-      analysis: PlateProfileAnalysis,
-      origin: string,
-    ) =>
-      open(platePath(plate, analysis), {
-        profileOrigin: origin,
-        profileDepth: 1,
-      })
-    return {
+  const actions = useMemo(
+    () => ({
       navigate: (module: ModuleId) => open(modulePath(module)),
-      openPlate,
-      /** Placa aberta pela busca ou por uma lista: volta para onde estava. */
-      openPlateHere: (
+      /**
+       * O perfil da placa, aberto de qualquer tela: "Voltar" volta para onde estava. `allFacts` abre com "Ver todos os
+       * fatos" (a busca de placas).
+       */
+      openPlate: (
         plate: string,
-        analysis: PlateProfileAnalysis = 'correlations',
-      ) => openPlate(plate, analysis, currentPath()),
-      /** Placa aberta de uma lista de grupos ou territórios (sempre nas correlações). */
-      openListedPlate: (plate: string) =>
-        openPlate(plate, 'correlations', currentPath()),
-      openCorrelationPlate: (plate: string, analysis: PlateProfileAnalysis) =>
-        openPlate(plate, analysis, '/correlation'),
-      /** Do pós-evento, a placa abre nas tendências de circulação. */
-      openPostEventPlate: (plate: string) =>
-        openPlate(plate, 'trends', '/post-event'),
+        { analysis = 'correlations', allFacts = false }: OpenPlateOptions = {},
+      ) => {
+        if (allFacts) setApplyToPlates(false)
+        open(platePath(plate, analysis), {
+          profileOrigin: currentPath(),
+          profileDepth: 1,
+        })
+      },
       /** Trocar de análise no perfil empilha uma entrada; "Voltar" desfaz todas de uma vez. */
       changePlateAnalysis: (plate: string, analysis: PlateProfileAnalysis) => {
         const state = historyState()
@@ -139,7 +157,7 @@ export function useAppNavigation() {
         if (historyState().timelineReturn) window.history.back()
         else open(platePath(plate, analysis))
       },
-      openGroups: () => open('/groups'),
+      openGroups: () => open(modulePath('groups')),
       openGroup: (plates: string[], label: string) =>
         open(groupPath(plates), { groupLabel: label }),
       openGroupTimeline: (id: string, day: string | null) =>
@@ -150,22 +168,25 @@ export function useAppNavigation() {
       backFromGroupTimeline: (id: string) => {
         const state = historyState()
         if (state.timelineReturn) window.history.back()
-        else open(`/groups/${id}`, { groupLabel: state.groupLabel })
+        else open(groupProfilePath(id), { groupLabel: state.groupLabel })
       },
-      openTerritories: () => open('/territories'),
+      openTerritories: () => open(modulePath('territories')),
       openTerritory: (complex: string) => open(territoryPath(complex)),
       /** O perfil do RO (ou a lista dos ROs de uma placa vítima), aberto de qualquer tela. */
       openOccurrence: (key: string) =>
         open(occurrencePath(key), { occurrenceOrigin: currentPath() }),
       backFromOccurrence: () => {
         if (historyState().occurrenceOrigin) window.history.back()
-        else open('/occurrence')
+        else open(modulePath('occurrence'))
       },
-    }
-  }, [open])
+    }),
+    [open],
+  )
 
   return { route, ...actions }
 }
+
+export type AppNavigation = ReturnType<typeof useAppNavigation>
 
 /** O rótulo do grupo guardado na entrada do histórico (G3), quando o grupo veio da página de grupos. */
 export const groupLabelFromHistory = () => historyState().groupLabel ?? null

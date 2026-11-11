@@ -1,6 +1,5 @@
 import type { MouseEvent } from 'react'
 
-import type { OpenSearchedPlate } from '@/modules/vehicle-intelligence/components/plate/plate-search'
 import {
   appearsIn,
   blockedReason,
@@ -20,6 +19,7 @@ import type {
   PlateSearchData,
   PlateSearchItem,
 } from '@/modules/vehicle-intelligence/types/domain'
+import type { PlateProfileAnalysis } from '@/modules/vehicle-intelligence/types/navigation'
 
 /** Os números de uma placa achada num recorte e o link para o perfil nele. */
 export function RecorteCell({
@@ -31,7 +31,7 @@ export function RecorteCell({
   item: PlateSearchItem
   recorte: Recorte
   criteria: PlateSearchData['criterios'][string] | undefined
-  onOpenPlate: OpenSearchedPlate
+  onOpenPlate: (plate: string, analysis: PlateProfileAnalysis) => void
 }) {
   const counts = item.recortes[recorte.id]
   const destination = destinationIn(item, recorte.id)

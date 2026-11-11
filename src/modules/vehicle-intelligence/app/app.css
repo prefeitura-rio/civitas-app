@@ -241,6 +241,28 @@
     color 0.15s ease,
     background-color 0.15s ease;
 }
+.recorte-divisor {
+  margin: 0 4px 0 6px;
+  padding-left: 8px;
+  color: var(--amber);
+  border-left: 1px solid var(--line-strong);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.recorte-experimental {
+  margin-left: 5px;
+  padding: 1px 4px;
+  color: var(--amber);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
 .recorte-segments button:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.045);

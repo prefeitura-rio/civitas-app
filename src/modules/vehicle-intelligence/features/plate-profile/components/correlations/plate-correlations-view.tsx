@@ -9,16 +9,17 @@ import {
 import { recorte } from '@/modules/vehicle-intelligence/config/recortes'
 import { CitationSummary } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/citation-summary'
 import { citationNote } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/citations'
-import {
-  calendarDaySpan,
-  intervalLabel,
-} from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-format'
 import { CorrelationTimeline } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-timeline'
 import { ProfileCorrelationTimelineSummary } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlation-timeline-summary'
 import { CorrelationsMap } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/correlations-map'
 import { DenunciaSummary } from '@/modules/vehicle-intelligence/features/plate-profile/components/correlations/denuncia-summary'
 import { ProfileHeading } from '@/modules/vehicle-intelligence/features/plate-profile/components/layout/profile-heading'
 import { PROFILE } from '@/modules/vehicle-intelligence/features/plate-profile/profile-variants'
+import {
+  calendarDaySpan,
+  instantMs,
+} from '@/modules/vehicle-intelligence/lib/dates'
+import { formatInterval } from '@/modules/vehicle-intelligence/lib/format'
 import type {
   PlateCitationsData,
   PlateCorrelationsData,
@@ -104,16 +105,12 @@ export function PlateCorrelationsView({
   const cispNames = data.cisp_names ?? {}
   const occurrences = data.occurrences
     .filter((item) => item.role === 'candidate')
-    .sort(
-      (a, b) =>
-        new Date(a.event_time).getTime() - new Date(b.event_time).getTime(),
-    )
+    .sort((a, b) => instantMs(a.event_time) - instantMs(b.event_time))
   const gaps = occurrences
     .slice(1)
     .map(
       (item, index) =>
-        new Date(item.event_time).getTime() -
-        new Date(occurrences[index].event_time).getTime(),
+        instantMs(item.event_time) - instantMs(occurrences[index].event_time),
     )
     .filter((value) => value > 0)
     .sort((a, b) => a - b)
@@ -146,7 +143,7 @@ export function PlateCorrelationsView({
           <ProfileCorrelationTimelineSummary
             count={summary.linked_events}
             days={activityDays}
-            medianInterval={intervalLabel(medianGap)}
+            medianInterval={formatInterval(medianGap)}
           />
           <CorrelationTimeline
             occurrences={occurrences}
