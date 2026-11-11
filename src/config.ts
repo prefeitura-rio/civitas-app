@@ -44,6 +44,13 @@ const getConfig = () => {
 
 export const config = getConfig()
 
+/**
+ * URL interna do serviço civitas-inteligencia-veicular (só no servidor, nunca no navegador).
+ */
+export function getVehicleIntelligenceApiUrl() {
+  return (process.env.VEHICLE_INTELLIGENCE_API_URL ?? '').replace(/\/+$/, '')
+}
+
 export function getServerConfig() {
   const isTestEnv = process.env.NODE_ENV === 'test'
   const authSessionSecret =

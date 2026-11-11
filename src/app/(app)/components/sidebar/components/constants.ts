@@ -1,9 +1,13 @@
-import type { icons } from 'lucide-react'
-
 import { config } from '@/config'
+import {
+  VEHICLE_INTELLIGENCE_BASE_PATH,
+  VEHICLE_INTELLIGENCE_SCREEN_CODE,
+} from '@/lib/vehicle-intelligence/constants'
+
+import type { SidebarIconName } from './sidebar-icon'
 
 export interface Module {
-  icon: keyof typeof icons
+  icon: SidebarIconName
   title: string
   path: string
   ticketScreenCode?: string
@@ -12,7 +16,7 @@ export interface Module {
 }
 
 export interface ModuleWithChildren {
-  icon: keyof typeof icons
+  icon: SidebarIconName
   title: string
   path?: string
   children: Module[]
@@ -29,7 +33,7 @@ export function isModuleWithChildren(
 }
 
 export interface Category {
-  icon: keyof typeof icons
+  icon: SidebarIconName
   title: string
   modules: SidebarModule[]
 }
@@ -149,6 +153,12 @@ export const sidebarItems: SideBarItem[] = [
         icon: 'Waypoints',
         title: 'Placas Correlatas em CCs',
         path: '/veiculos/placas-correlatas-em-ccs/genarate-report',
+      },
+      {
+        icon: 'Owl',
+        title: 'Inteligência Veicular',
+        path: VEHICLE_INTELLIGENCE_BASE_PATH,
+        ticketScreenCode: VEHICLE_INTELLIGENCE_SCREEN_CODE,
       },
     ],
   },

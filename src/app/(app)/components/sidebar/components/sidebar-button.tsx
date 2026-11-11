@@ -1,9 +1,9 @@
-import { icons } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 
 import type { Module } from './constants'
+import { SidebarIcon } from './sidebar-icon'
 
 interface SidebarButtonProps extends Module {
   primary?: boolean
@@ -14,7 +14,6 @@ export function SidebarButton({
   title,
   primary,
 }: SidebarButtonProps) {
-  const LucideIcon = icons[icon]
   return (
     <div className="AccordionTrigger flex w-full justify-start">
       <Button
@@ -24,7 +23,8 @@ export function SidebarButton({
       >
         <Link href={path}>
           <div className="flex items-center justify-start gap-2">
-            <LucideIcon
+            <SidebarIcon
+              name={icon}
               data-primary={primary}
               className="shrink-0 text-muted-foreground data-[primary=true]:text-primary"
             />

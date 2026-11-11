@@ -1,4 +1,4 @@
-import { ChevronDown, icons } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 
 import {
@@ -19,11 +19,11 @@ import { useEmailNaoLidosCount } from '@/hooks/useQueries/useEmailNaoLidosCount'
 import type { Category, ModuleWithChildren } from './constants'
 import { isModuleWithChildren } from './constants'
 import { SidebarButton } from './sidebar-button'
+import { SidebarIcon } from './sidebar-icon'
 
 function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
   const showUnreadBadge = module.ticketScreenCode === 'inbox'
   const { data: unreadCount } = useEmailNaoLidosCount(showUnreadBadge)
-  const LucideIcon = icons[module.icon]
   return (
     <Collapsible className="w-full">
       <div className="flex w-full min-w-0 items-center justify-start">
@@ -38,7 +38,10 @@ function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
                 href={module.path}
                 className="flex min-w-0 flex-1 items-center gap-2"
               >
-                <LucideIcon className="shrink-0 text-muted-foreground" />
+                <SidebarIcon
+                  name={module.icon}
+                  className="shrink-0 text-muted-foreground"
+                />
                 <span className="min-w-0 truncate opacity-0 transition-all duration-300 group-hover:opacity-100">
                   {module.title}
                 </span>
@@ -73,7 +76,10 @@ function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
               className="w-full justify-between px-2 group-hover:w-full [&[data-state=open]>svg]:rotate-180"
             >
               <div className="flex items-center gap-2">
-                <LucideIcon className="shrink-0 text-muted-foreground" />
+                <SidebarIcon
+                  name={module.icon}
+                  className="shrink-0 text-muted-foreground"
+                />
                 <span className="opacity-0 transition-all duration-300 group-hover:opacity-100">
                   {module.title}
                 </span>
@@ -100,14 +106,13 @@ function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
 }
 
 export function SidebarAccordion({ icon, title, modules }: Category) {
-  const LucideIcon = icons[icon]
   return (
     <>
       <Separator className="my-4" />
       <AccordionItem value={title} className="border-b-0">
         <AccordionTrigger className="AccordionTrigger p-0 no-underline">
           <div className="flex items-center justify-start gap-2 p-2">
-            <LucideIcon className="shrink-0 text-primary" />
+            <SidebarIcon name={icon} className="shrink-0 text-primary" />
             <span className="whitespace-nowrap opacity-0 transition-all duration-300 group-hover:opacity-100">
               {title}
             </span>
