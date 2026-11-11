@@ -159,6 +159,44 @@ export const sidebarItems: SideBarItem[] = [
         title: 'Inteligência Veicular',
         path: VEHICLE_INTELLIGENCE_BASE_PATH,
         ticketScreenCode: VEHICLE_INTELLIGENCE_SCREEN_CODE,
+        // As telas do módulo; a permissão é a do item (as filhas aparecem com ele).
+        children: [
+          {
+            icon: 'LayoutDashboard',
+            title: 'Visão geral',
+            path: VEHICLE_INTELLIGENCE_BASE_PATH,
+          },
+          {
+            icon: 'Network',
+            title: 'Placas correlatas',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/correlation`,
+          },
+          {
+            icon: 'Route',
+            title: 'Trajetória pós-evento',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/post-event`,
+          },
+          {
+            icon: 'UsersRound',
+            title: 'Grupos',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/groups`,
+          },
+          {
+            icon: 'MapPinned',
+            title: 'Territórios',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/territories`,
+          },
+          {
+            icon: 'SquareUser',
+            title: 'Perfil de placa',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/profile`,
+          },
+          {
+            icon: 'FileSearch',
+            title: 'Perfil do RO',
+            path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/occurrence`,
+          },
+        ],
       },
     ],
   },

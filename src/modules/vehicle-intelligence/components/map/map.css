@@ -1,0 +1,21 @@
+/* A legenda e a etiqueta da camada de territórios. */
+
+/* Territórios dominados (camada comum aos três recortes): a placa do nome vem inline no divIcon (handoff 11/10); aqui só o contêiner. */
+.territory-plate {
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  background: none;
+  border: 0;
+  pointer-events: none;
+}
+.territory-legend-colors {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 3px;
+}
+.territory-legend-colors em {
+  font-style: normal;
+  font-weight: 700;
+}

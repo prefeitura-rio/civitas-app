@@ -1,0 +1,133 @@
+/* Relatório geral: o botão e o menu. */
+.general-report-trigger {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #9fb4ba;
+  border-color: var(--line-strong);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.general-report-trigger:hover {
+  color: var(--cyan-bright);
+}
+.general-report-popover {
+  width: min(320px, calc(100vw - 24px));
+  padding: 14px;
+  border-color: var(--line-strong);
+  background: hsl(var(--popover));
+}
+
+/* Relatórios da placa: o menu do cabeçalho do perfil, um bloco por relatório com os seus parâmetros. */
+.profile-export-cta > svg:last-child {
+  margin-left: -2px;
+  color: var(--text-3);
+}
+.plate-reports-popover {
+  width: min(360px, calc(100vw - 24px));
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border-color: var(--line-strong);
+  background: hsl(var(--popover));
+}
+.plate-reports-section {
+  display: grid;
+  gap: 10px;
+}
+.plate-reports-field {
+  display: grid;
+  gap: 6px;
+}
+.plate-reports-label {
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.plate-reports-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  color: var(--text-3);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.plate-reports-choices {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #0f1111;
+}
+.plate-reports-choices > button {
+  height: 28px;
+  color: var(--text-2);
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.plate-reports-choices > button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.plate-reports-choices > button.selected {
+  color: #e8fbff;
+  background: rgba(0, 180, 232, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(32, 214, 255, 0.45);
+}
+.plate-reports-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.plate-reports-dates label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+.plate-reports-dates input {
+  height: 34px;
+  padding: 0 8px;
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: #0f1111;
+  color-scheme: dark;
+  font-size: 12.5px;
+}
+.plate-reports-dates input:disabled {
+  opacity: 0.5;
+}
+.plate-reports-reset {
+  padding: 0;
+  color: var(--cyan-bright);
+  border: 0;
+  background: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.plate-reports-reset:hover {
+  text-decoration: underline;
+}
+.plate-reports-status {
+  min-height: 0;
+  font-size: 12px;
+}
+.plate-reports-status:empty {
+  display: none;
+}

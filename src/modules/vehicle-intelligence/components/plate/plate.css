@@ -1,0 +1,410 @@
+/* A placa nas telas: busca, etiquetas (Cerco, origem, sinais) e citações. */
+.plate-quick-search {
+  flex: none;
+}
+.plate-quick-search-inline {
+  display: block;
+}
+.plate-quick-search-form {
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+.plate-quick-search-form.inline [data-slot="input"]::placeholder {
+  color: var(--text-3);
+  font-family: var(--iv-font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.plate-quick-search-form > label {
+  color: var(--text-3);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.plate-quick-search-control {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 3px 0 10px;
+  color: var(--text-3);
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--bg);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.plate-quick-search-control:focus-within {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 180, 232, 0.1);
+}
+.plate-quick-search-control > svg {
+  flex: none;
+}
+.plate-quick-search-control [data-slot="input"] {
+  height: 34px;
+  min-width: 0;
+  padding: 0;
+  color: var(--text);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--iv-font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+.plate-quick-search-control [data-slot="input"]:focus-visible {
+  border: 0;
+  box-shadow: none;
+}
+.plate-quick-search-control [data-slot="button"] {
+  flex: none;
+  color: var(--text-2);
+}
+.plate-quick-search-control [data-slot="button"]:not(:disabled):hover {
+  color: var(--cyan-bright);
+}
+.plate-quick-search-trigger {
+  display: none;
+  color: var(--text-2);
+}
+.plate-quick-search-popover {
+  width: min(310px, calc(100vw - 24px));
+  padding: 14px;
+  border-color: var(--line-strong);
+  background: hsl(var(--popover));
+}
+.plate-quick-search-popover .plate-quick-search-form {
+  width: 100%;
+  gap: 7px;
+}
+.plate-quick-search-popover .plate-quick-search-form > label {
+  color: var(--text-2);
+  font-size: 10px;
+}
+.plate-quick-search-popover .plate-quick-search-control {
+  height: 44px;
+}
+.plate-quick-search-popover .plate-quick-search-control [data-slot="input"] {
+  height: 42px;
+  font-size: 14px;
+}
+.plate-quick-search-popover small {
+  color: var(--text-3);
+  font-size: 11px;
+}
+/* Busca de placas nos três recortes: a lista de resultados do cabeçalho, da barra do perfil e da página Perfil de placa. */
+.plate-search-popover {
+  width: min(600px, calc(100vw - 24px));
+  padding: 12px;
+  border-color: var(--line-strong);
+  background: hsl(var(--popover));
+}
+.plate-quick-search-popover.with-results {
+  width: min(600px, calc(100vw - 24px));
+}
+.plate-quick-search-popover .plate-search-results {
+  margin-top: 12px;
+}
+.plate-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.plate-search-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11.5px;
+}
+.plate-search-head strong {
+  color: var(--text);
+  font-size: 12px;
+}
+.plate-search-note {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.plate-search-note.is-error {
+  color: var(--red);
+}
+.plate-search-hint {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  color: var(--text-3);
+  font-size: 10.5px;
+}
+.plate-search-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plate-search-item {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bg-2);
+}
+.plate-search-plate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.plate-search-plate > strong {
+  margin-right: 2px;
+  color: var(--text);
+  font-family: var(--iv-font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.plate-search-plate .plate-signals {
+  max-width: none;
+}
+.plate-search-recortes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
+}
+.plate-search-recorte {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 9px;
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--panel);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+a.plate-search-recorte:hover,
+a.plate-search-recorte:focus-visible {
+  border-color: var(--cyan);
+  background: var(--cyan-soft);
+  outline: none;
+}
+.plate-search-recorte.is-current {
+  border-color: color-mix(in srgb, var(--cyan) 45%, transparent);
+}
+.plate-search-recorte.is-empty {
+  color: var(--text-3);
+  border-style: dashed;
+  background: transparent;
+  cursor: default;
+}
+.plate-search-recorte-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.plate-search-recorte-name em {
+  padding: 0 5px;
+  color: var(--cyan-bright);
+  border-radius: 3px;
+  background: var(--cyan-soft);
+  font-size: 9px;
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+.plate-search-recorte strong {
+  font-size: 12.5px;
+  font-weight: 650;
+}
+.plate-search-recorte.is-empty strong {
+  font-weight: 500;
+}
+.plate-search-recorte small {
+  color: var(--text-2);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+@media (max-width: 1180px) {
+  .plate-quick-search-inline {
+    display: none;
+  }
+  .plate-quick-search-trigger {
+    display: inline-flex;
+  }
+}
+
+/* ROs que citam a placa como veículo dos autores e relato do fato. */
+.author-citations {
+  margin: 0.5rem 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.author-citations summary {
+  padding: 4px 7px;
+  border: 1px solid #b88b69;
+  border-radius: 5px;
+  background: #754b32;
+  color: #fff4e6;
+  font-weight: 600;
+  cursor: pointer;
+}
+.author-citations ul {
+  padding-left: 1rem;
+}
+.plate-signals {
+  max-width: 200px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.signal-chip {
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 1px solid rgba(232, 246, 250, 0.14);
+  border-radius: 4px;
+  background: rgba(232, 246, 250, 0.04);
+  color: #c3d0d3;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.signal-chip > i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.signal-cited {
+  border-color: color-mix(in srgb, #e58fa8 45%, transparent);
+  background: color-mix(in srgb, #e58fa8 14%, transparent);
+  color: #eef3f4;
+}
+.signal-cited > i {
+  background: #e58fa8;
+}
+.signal-clone-confirmed {
+  border-color: color-mix(in srgb, #a78bfa 45%, transparent);
+  background: color-mix(in srgb, #a78bfa 14%, transparent);
+  color: #eef3f4;
+}
+.signal-clone-confirmed > i {
+  background: #a78bfa;
+}
+.signal-clone-suspect {
+  border-color: color-mix(in srgb, #9b7fc1 30%, transparent);
+  background: color-mix(in srgb, #9b7fc1 9%, transparent);
+}
+.signal-clone-suspect > i {
+  background: #9b7fc1;
+}
+.signal-taxi {
+  border-color: color-mix(in srgb, #6fc9bb 30%, transparent);
+  background: color-mix(in srgb, #6fc9bb 9%, transparent);
+}
+.signal-taxi > i {
+  background: #6fc9bb;
+}
+.signal-bus {
+  border-color: color-mix(in srgb, #e0a458 32%, transparent);
+  background: color-mix(in srgb, #e0a458 9%, transparent);
+}
+.signal-bus > i {
+  background: #e0a458;
+}
+/* Erro de leitura apontado (placas_invalidas.csv): fora de todas as telas, só a busca mostra. */
+.signal-invalid {
+  border-color: color-mix(in srgb, #db5b5b 45%, transparent);
+  background: color-mix(in srgb, #db5b5b 14%, transparent);
+  color: #eef3f4;
+}
+.signal-invalid > i {
+  background: #db5b5b;
+}
+/* Placa monitorada hoje no Cerco Digital (API CIVITAS). */
+.signal-cerco {
+  border-color: color-mix(in srgb, #f04438 60%, transparent);
+  background: color-mix(in srgb, #f04438 24%, transparent);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.signal-cerco > i {
+  background: #f04438;
+}
+/* Placa citada no Disque Denúncia (pipeline.denuncias): denúncia anônima, não verificada. */
+.signal-dd {
+  border-color: color-mix(in srgb, #c6d86a 40%, transparent);
+  background: color-mix(in srgb, #c6d86a 11%, transparent);
+  color: #eef3f4;
+}
+.signal-dd > i {
+  background: #c6d86a;
+}
+.signal-moto {
+  border-color: color-mix(in srgb, #d9a75a 30%, transparent);
+  background: color-mix(in srgb, #d9a75a 9%, transparent);
+}
+.signal-moto > i {
+  background: #d9a75a;
+}
+.signal-vehicle {
+  border-color: rgba(232, 246, 250, 0.14);
+  background: rgba(232, 246, 250, 0.04);
+}
+/* UF de origem da placa (lib/plate-origin): RJ neutra; outra UF em azul; fontes divergentes tracejada; série sem UF em vermelho. */
+.signal-uf {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.signal-uf.other,
+.signal-uf.divergent {
+  border-color: color-mix(in srgb, #5aa9e6 50%, transparent);
+  background: color-mix(in srgb, #5aa9e6 16%, transparent);
+  color: #e6f3ff;
+}
+.signal-uf.divergent {
+  border-style: dashed;
+}
+.signal-uf.alert {
+  border-color: color-mix(in srgb, #db5b5b 50%, transparent);
+  background: color-mix(in srgb, #db5b5b 16%, transparent);
+  color: #fde8e8;
+}
+
+/* Placa correlata também vítima (copassagem) e etiqueta CERCO da placa vítima. */
+.signal-known {
+  border-color: color-mix(in srgb, #d9a75a 30%, transparent);
+  background: color-mix(in srgb, #d9a75a 9%, transparent);
+  color: #f4c36a;
+}

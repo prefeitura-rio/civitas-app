@@ -62,7 +62,7 @@ function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="shrink-0 [&[data-state=open]>svg]:rotate-180"
+                className="hidden shrink-0 group-hover:inline-flex [&[data-state=open]>svg]:rotate-180"
                 aria-label={`Expandir ${module.title}`}
               >
                 <ChevronDown className="AccordionChevron size-4 shrink-0" />
@@ -90,7 +90,8 @@ function SidebarNestedModule({ module }: { module: ModuleWithChildren }) {
         )}
       </div>
       <CollapsibleContent>
-        <div className="ml-2 mt-1 space-y-0 border-l border-border pl-2">
+        {/* Recolhido, o sidebar só tem a largura de um ícone: o recuo dos subitens entra só quando ele expande. */}
+        <div className="mt-1 space-y-0 border-border transition-all duration-300 group-hover:ml-2 group-hover:border-l group-hover:pl-2">
           {module.children.map((child, index) => (
             <SidebarButton
               key={index}

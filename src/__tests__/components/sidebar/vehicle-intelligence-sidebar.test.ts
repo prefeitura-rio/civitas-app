@@ -1,6 +1,7 @@
 import {
   type Category,
   type Module,
+  type ModuleWithChildren,
   sidebarItems,
 } from '@/app/(app)/components/sidebar/components/constants'
 import { filterChamadosSidebarModules } from '@/app/(app)/components/sidebar/components/filter-chamados-sidebar-modules'
@@ -48,6 +49,26 @@ describe('Veículos → Inteligência Veicular no sidebar', () => {
       'Busca por Radar',
       'Busca por Placa',
       'Placas Correlatas em CCs',
+    ])
+  })
+
+  it('lists the seven module screens under the entry', () => {
+    const visible = filterChamadosSidebarModules(
+      vehicles.modules,
+      permissions(true),
+      true,
+    )
+    const entry = visible.find(
+      (m) => (m as Module).title === 'Inteligência Veicular',
+    ) as ModuleWithChildren
+    expect(entry.children.map((child) => child.path)).toEqual([
+      '/inteligencia-veicular',
+      '/inteligencia-veicular/correlation',
+      '/inteligencia-veicular/post-event',
+      '/inteligencia-veicular/groups',
+      '/inteligencia-veicular/territories',
+      '/inteligencia-veicular/profile',
+      '/inteligencia-veicular/occurrence',
     ])
   })
 
