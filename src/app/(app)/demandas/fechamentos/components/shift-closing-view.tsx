@@ -72,6 +72,8 @@ const SHIFT_CLOSING_TEAM_ROLES = [
   'Coordenador',
   'Administrativo',
   'Analista',
+  // Enxerga como Coordenador no civitas-api, que exige a equipe no fechamento.
+  'Desenvolvedor',
 ] as const satisfies readonly UserRoleEnum[]
 
 function requiresShiftClosingTeamSelection(

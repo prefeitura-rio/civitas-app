@@ -9,6 +9,7 @@ export type UserRoleEnum =
   | 'Assessor'
   | 'Líder de Ilha'
   | 'Agente'
+  | 'Desenvolvedor'
 
 export interface UserRoleListItem {
   id: string

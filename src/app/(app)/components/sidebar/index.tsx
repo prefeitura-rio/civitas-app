@@ -13,10 +13,7 @@ import type { TicketModulePermissionsMeOut } from '@/http/tickets/ticket-module-
 import { queryClient } from '@/lib/react-query'
 import { logout } from '@/utils/logout'
 
-import {
-  DEMANDAS_SIDEBAR_CATEGORY_TITLE,
-  sidebarItems,
-} from './components/constants'
+import { sidebarItems } from './components/constants'
 import { filterChamadosSidebarModules } from './components/filter-chamados-sidebar-modules'
 import { SidebarAccordion } from './components/sidebar-accordion'
 import { SidebarButton } from './components/sidebar-button'
@@ -32,13 +29,12 @@ export function Sidebar({
     resolved: ticketPermissionsResolved,
   } = useResolvedTicketModulePermissions(initialTicketModulePermissions)
 
+  // Em qualquer categoria, os módulos com código de tela (ticketScreenCode) só aparecem para quem tem a permissão;
+  // os sem código não mudam.
   const visibleSidebarItems = useMemo(
     () =>
       sidebarItems.map((item) => {
-        if (
-          !('modules' in item) ||
-          item.title !== DEMANDAS_SIDEBAR_CATEGORY_TITLE
-        ) {
+        if (!('modules' in item)) {
           return item
         }
         return {

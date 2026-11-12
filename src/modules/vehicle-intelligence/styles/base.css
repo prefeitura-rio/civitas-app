@@ -1,0 +1,29 @@
+/* Base: reset e barras de rolagem do módulo. Tudo vale só dentro de `.iv-root` (o contêiner do módulo no civitas-app). */
+
+* {
+  box-sizing: border-box;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #293538;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background-clip: padding-box;
+}
+
+/* O que antes era do body: fundo, fonte e tamanho do módulo.
+   `isolation` prende os z-index do módulo (topbar sticky, painéis do Leaflet a partir de 400) dentro dele, para o
+   sidebar do civitas-app (z-50) passar por cima ao expandir. */
+.iv-root {
+  isolation: isolate;
+  min-width: 320px;
+  background: var(--bg);
+  font-family: var(--iv-font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+}

@@ -87,6 +87,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
   Assessor: 'Assessor',
   'Líder de Ilha': 'Líder de Ilha',
   Agente: 'Agente',
+  Desenvolvedor: 'Desenvolvedor',
 }
 
 interface TeamMemberFormDialogProps {

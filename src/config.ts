@@ -39,10 +39,19 @@ const getConfig = () => {
     mapboxAccessToken: mapboxAccessToken ?? '',
     enableChamados: isTruthy(getPublicEnv('ENABLE_CHAMADOS')),
     enableImpersonation: isTruthy(getPublicEnv('ENABLE_IMPERSONATION')),
+    /** Perfil Desenvolvedor (só staging): acesso a todas as telas, definido no civitas-api. */
+    enableDeveloperRole: isTruthy(getPublicEnv('ENABLE_DEVELOPER_ROLE')),
   }
 }
 
 export const config = getConfig()
+
+/**
+ * URL interna do serviço civitas-inteligencia-veicular (só no servidor, nunca no navegador).
+ */
+export function getVehicleIntelligenceApiUrl() {
+  return (process.env.VEHICLE_INTELLIGENCE_API_URL ?? '').replace(/\/+$/, '')
+}
 
 export function getServerConfig() {
   const isTestEnv = process.env.NODE_ENV === 'test'

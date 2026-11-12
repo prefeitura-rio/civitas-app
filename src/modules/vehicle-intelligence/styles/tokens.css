@@ -1,0 +1,69 @@
+/* Tokens: as variáveis de cor, raio e fonte do módulo. As do shadcn (--primary, --border...) em canais HSL, o
+ * formato do Tailwind do civitas-app (`hsl(var(--primary))`); o CSS do módulo as lê com `hsl(var(...))`. */
+.iv-root {
+  font-family:
+    var(--iv-font-sans),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: #eef3f4;
+  background: #0f1111;
+  font-synthesis: none;
+  /* shadcn semantic tokens are the source of truth; legacy names remain aliases
+     while feature CSS is migrated to Tailwind utilities. */
+  --background: 180 6.2% 6.3%;
+  --foreground: 192 26.3% 96.3%;
+  --card: 180 10.6% 9.2%;
+  --card-foreground: 192 26.3% 96.3%;
+  --popover: 180 11.5% 10.2%;
+  --popover-foreground: 192 26.3% 96.3%;
+  --primary: 191 100% 56.3%;
+  --primary-foreground: 193.8 48.1% 5.3%;
+  --secondary: 180 10.3% 11.4%;
+  --secondary-foreground: 192 26.3% 96.3%;
+  --muted: 180 10.3% 11.4%;
+  --muted-foreground: 193.3 12.1% 56.3%;
+  --accent: 193.4 100% 45.5% / 0.12;
+  --accent-foreground: 191 100% 56.3%;
+  --destructive: 0 64% 60.8%;
+  --border: 193.3 64.3% 94.5% / 0.13;
+  --input: 193.3 64.3% 94.5% / 0.13;
+  --ring: 191 100% 56.3%;
+  --bg: hsl(var(--background));
+  --bg-2: #111515;
+  --panel: hsl(var(--card));
+  --panel-2: hsl(var(--secondary));
+  --panel-3: #222a2a;
+  --line: rgba(232, 246, 250, 0.08);
+  --line-strong: hsl(var(--border));
+  --cyan: #00b4e8;
+  --cyan-bright: hsl(var(--primary));
+  --cyan-soft: hsl(var(--accent));
+  --interactive-hover: rgba(255, 255, 255, 0.035);
+  --timeline-control: #192022;
+  --timeline-control-hover: #222d30;
+  --timeline-accent: #5c9bd6;
+  --timeline-accent-soft: rgba(92, 155, 214, 0.18);
+  --text: hsl(var(--foreground));
+  --text-2: #9fb4ba;
+  --text-3: hsl(var(--muted-foreground));
+  --good: #15a368;
+  --red: #db5b5b;
+  --amber: #d99a2b;
+  --space-xs: 2px;
+  --space-sm: 4px;
+  --space-md: 8px;
+  --space-lg: 12px;
+  --space-xl: 16px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --radius: 12px;
+  --radius-pill: 999px;
+  --timeline-map-shadow: rgba(15, 30, 55, 0.48);
+  --shadow: none;
+}

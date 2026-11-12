@@ -17,6 +17,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { config } from '@/config'
+import { useOwnUserRole } from '@/hooks/useQueries/useOwnUserRole'
 import type {
   UserRoleEnum,
   UserRoleListItem,
@@ -36,7 +38,10 @@ const roleOptions = [
   { value: 'Assessor', label: 'Assessor' },
   { value: 'Líder de Ilha', label: 'Líder de Ilha' },
   { value: 'Agente', label: 'Agente' },
+  { value: 'Desenvolvedor', label: 'Desenvolvedor' },
 ] as const satisfies { value: UserRoleEnum; label: string }[]
+
+const DEVELOPER_ROLE: UserRoleEnum = 'Desenvolvedor'
 
 const profileAccessFormSchema = z.object({
   role: z
@@ -49,6 +54,7 @@ const profileAccessFormSchema = z.object({
       'Assessor',
       'Líder de Ilha',
       'Agente',
+      'Desenvolvedor',
     ])
     .optional(),
 })
@@ -84,6 +90,20 @@ export function ProfileAccessFormDialog({
   })
 
   const selectedRole = watch('role')
+
+  // Desenvolvedor só existe onde o civitas-api liga o perfil (staging), e só um Desenvolvedor o concede ou retira
+  // (a API confere o mesmo com o usuário real, não o personificado).
+  const { data: ownRole } = useOwnUserRole()
+  const canManageDeveloper =
+    config.enableDeveloperRole && ownRole === DEVELOPER_ROLE
+  const targetIsDeveloper = dialogInitialData?.role === DEVELOPER_ROLE
+  const lockedByDeveloperRole = targetIsDeveloper && !canManageDeveloper
+  const availableRoleOptions = roleOptions.filter(
+    (option) =>
+      option.value !== DEVELOPER_ROLE ||
+      canManageDeveloper ||
+      targetIsDeveloper,
+  )
 
   const { mutateAsync: updateUserRolesMutation, isPending } = useMutation({
     mutationFn: updateUserRoles,
@@ -186,7 +206,7 @@ export function ProfileAccessFormDialog({
             <div
               className={`${styles.perfisModalSection} grid grid-cols-1 gap-3 sm:grid-cols-2`}
             >
-              {roleOptions.map((role) => {
+              {availableRoleOptions.map((role) => {
                 const checked = selectedRole === role.value
 
                 return (
@@ -202,7 +222,7 @@ export function ProfileAccessFormDialog({
                       onCheckedChange={(value) =>
                         handleToggleRole(role.value, Boolean(value))
                       }
-                      disabled={isLoading}
+                      disabled={isLoading || lockedByDeveloperRole}
                     />
                     <span
                       className="text-sm"
@@ -214,12 +234,21 @@ export function ProfileAccessFormDialog({
                 )
               })}
             </div>
+            {lockedByDeveloperRole ? (
+              <p
+                className="text-sm"
+                style={{ color: 'var(--perfis-text-default)' }}
+              >
+                Só um Desenvolvedor pode alterar o perfil de quem é
+                Desenvolvedor.
+              </p>
+            ) : null}
           </div>
 
           <div className="mt-2 flex justify-end">
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || lockedByDeveloperRole}
               className={`${styles.perfisModalBtnPrimary} flex min-w-[7rem] items-center justify-center gap-2 px-4 py-2`}
             >
               {isLoading ? <Spinner /> : <span>Salvar</span>}

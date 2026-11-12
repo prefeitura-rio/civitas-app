@@ -259,6 +259,11 @@
   color: #06b2bb;
 }
 
+.perfisBadgeDesenvolvedor {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+}
+
 /* ---------- Botão Editar ---------- */
 .perfisBtnEditar {
   display: inline-flex;

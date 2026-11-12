@@ -17,6 +17,7 @@ export type PublicEnvKey =
   | 'MAPBOX_ACCESS_TOKEN'
   | 'ENABLE_CHAMADOS'
   | 'ENABLE_IMPERSONATION'
+  | 'ENABLE_DEVELOPER_ROLE'
   | 'APP_URL'
 
 declare global {

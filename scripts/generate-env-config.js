@@ -49,6 +49,7 @@ const env = {
   MAPBOX_ACCESS_TOKEN:  merged.MAPBOX_ACCESS_TOKEN  ?? '',
   ENABLE_CHAMADOS:      merged.ENABLE_CHAMADOS      ?? 'false',
   ENABLE_IMPERSONATION: merged.ENABLE_IMPERSONATION ?? 'false',
+  ENABLE_DEVELOPER_ROLE: merged.ENABLE_DEVELOPER_ROLE ?? 'false',
   APP_URL:              merged.APP_URL               ?? '',
 }
 

@@ -1,0 +1,21 @@
+/*
+ * Todo o CSS que vale em qualquer tela, numa ordem fixa: os globais (styles/) e o de cada componente e tela, que
+ * mora na pasta dele. Os CSS que carregam só com a tela (grupos, territórios, timeline do grupo, placas citadas) são
+ * importados pelos próprios componentes.
+ */
+@import "./tokens.css";
+@import "./map.css";
+@import "../features/overview/overview.css";
+@import "../components/filters/filters.css";
+@import "./controls.css";
+@import "../app/app.css";
+@import "./base.css";
+@import "./blocks.css";
+@import "../features/post-event/post-event.css";
+@import "../features/correlations/correlations.css";
+@import "../components/plate/plate.css";
+@import "../components/timeline/timeline.css";
+@import "../features/plate-profile/plate-profile.css";
+@import "../features/reports/reports.css";
+@import "../components/map/map.css";
+@import "../components/occurrence/occurrence-dynamics.css";

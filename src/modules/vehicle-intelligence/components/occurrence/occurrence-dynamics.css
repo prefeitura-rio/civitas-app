@@ -1,0 +1,44 @@
+.occurrence-dynamics {
+  min-width: 0;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-strong);
+}
+.occurrence-dynamics h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.occurrence-dynamics-text {
+  max-height: 240px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+}
+.occurrence-dynamics-text article + article {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.occurrence-dynamics-text header {
+  font-size: 11px;
+  font-weight: 650;
+}
+.occurrence-dynamics-text time {
+  font-weight: 400;
+}
+.occurrence-dynamics p {
+  margin: 6px 0 !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.occurrence-dynamics button {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.occurrence-dynamics-text:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}

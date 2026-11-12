@@ -24,6 +24,7 @@ const roleLabelMap: Record<UserRoleEnum, string> = {
   Assessor: 'Assessor',
   'Líder de Ilha': 'Líder de Ilha',
   Agente: 'Agente',
+  Desenvolvedor: 'Desenvolvedor',
 }
 
 const roleBadgeStyleMap: Record<UserRoleEnum, string> = {
@@ -35,6 +36,7 @@ const roleBadgeStyleMap: Record<UserRoleEnum, string> = {
   Assessor: styles.perfisBadgeAssessor,
   'Líder de Ilha': styles.perfisBadgeLiderIlha,
   Agente: styles.perfisBadgeAgente,
+  Desenvolvedor: styles.perfisBadgeDesenvolvedor,
 }
 
 function RoleBadge({ role }: { role: UserRoleEnum }) {

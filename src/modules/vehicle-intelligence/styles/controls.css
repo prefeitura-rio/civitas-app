@@ -1,0 +1,21 @@
+/* Controles nativos: botões, campos e select. */
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:not([data-slot]):focus-visible,
+input:not([data-slot]):focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+input,
+select {
+  color-scheme: dark;
+}
+select {
+  font: inherit;
+}

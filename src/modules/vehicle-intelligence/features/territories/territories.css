@@ -1,0 +1,361 @@
+/*
+ * Territórios e perfil do território: o vocabulário visual dos grupos (groups.css), com o mapa de complexos, a tabela
+ * de complexos e a de motos de base. Tabelas em grade sem rolagem lateral: colunas com minmax(0, …) e texto que quebra.
+ */
+
+.groups-panel-actions.territory-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px 20px;
+}
+
+/* Mapa de complexos */
+.territories-map {
+  position: relative;
+  height: 720px;
+  border-top: 1px solid rgba(232, 246, 250, 0.08);
+  background: #e8e6df;
+}
+.territory-icon {
+  border: 0;
+  background: none;
+}
+.territory-marker {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  font-family: var(--iv-font-sans), system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.territory-legend {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+.territory-legend.origin {
+  background: #0f8fa3;
+}
+.territory-legend.home {
+  background: #82979d;
+}
+
+.territory-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 20px;
+  border-top: 1px solid rgba(232, 246, 250, 0.08);
+  font-size: 12.5px;
+}
+
+/* Tabela de complexos */
+.group-table.territory-table {
+  --colunas: minmax(190px, 1.6fr) 86px 112px minmax(150px, 1.7fr) 104px 84px 112px;
+}
+/* Títulos de duas ou três linhas: a célula ocupa a altura toda (bordas alinhadas) e o texto encosta embaixo. */
+.group-table.territory-table .group-table-head > span {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.group-table.territory-table .group-table-row > span {
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+.territory-plates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.territory-also {
+  margin-left: 2px;
+  color: #20d6ff;
+  font-family: var(--iv-font-sans), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+}
+/* Todos os complexos numa lista com rolagem própria (`.grupo-tabela.rolagem`; pedido de 14/10, antes 20 e "Mostrar os N"). */
+.group-table.territory-table.scroll {
+  --altura-lista: 640px;
+}
+/* Perfil: o mapa de partidas e desconexões é a peça principal, mais alto que o do grupo. */
+.groups-panel.territory-section-map {
+  --mapa-altura: 780px;
+  --mapa-altura-estreita: 600px;
+}
+
+/* Perfil (redesign de 14/10, design_handoff_perfil_territorio): tabelas com rolagem própria (.lista, em groups.css),
+   cartões de grupo com mini-grafo e etiquetas do ranking. Nenhuma tabela rola de lado a 1180 px. */
+.group-profile-head.territory-head {
+  gap: 12px;
+  line-height: normal;
+}
+.group-profile-head.territory-head h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: normal;
+}
+.territory-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  color: #9fb4ba;
+  font-size: 13.5px;
+}
+.territory-subtitle > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.territory-subtitle i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+.groups-kpis.territory-kpis {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.groups-kpis.territory-kpis span {
+  line-height: 1.4;
+}
+
+.territory-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.territory-search {
+  width: 170px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  color: #82979d;
+  border: 1px solid rgba(232, 246, 250, 0.13);
+  border-radius: 9px;
+  background: #0f1111;
+}
+.territory-search:focus-within {
+  border-color: rgba(32, 214, 255, 0.45);
+}
+.territory-search input {
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  color: #f3f7f8;
+  border: 0;
+  outline: none;
+  background: none;
+  font-family: var(--iv-font-mono), ui-monospace, monospace;
+  font-size: 12.5px;
+  text-transform: uppercase;
+}
+
+.territory-list-plates {
+  --colunas: minmax(0, 1.4fr) 88px minmax(0, 1.4fr) minmax(0, 1.2fr) 156px 60px;
+  max-height: 560px;
+}
+.territory-group {
+  align-self: flex-start;
+  padding: 0;
+  color: #20d6ff;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+button.territory-group {
+  cursor: pointer;
+}
+button.territory-group:hover {
+  color: #7fe3ef;
+}
+.territory-list-switches {
+  --colunas: minmax(0, 1.3fr) minmax(0, 1.3fr) 96px 110px;
+  max-height: 360px;
+}
+
+/* Grupos do território: cartões com mini-grafo (nó ciano = base aqui; anéis = Cerco e citada, como no grafo do grupo). */
+.territory-legend-graph {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 0 20px 12px;
+  color: #9fb4ba;
+  font-size: 12px;
+}
+.territory-legend-graph > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.territory-legend-graph i {
+  box-sizing: border-box;
+  flex: none;
+}
+.territory-legend-graph i.no {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid #5f7479;
+  border-radius: 50%;
+}
+.territory-legend-graph i.no.base {
+  border: 0;
+  background: #18c7dd;
+}
+.territory-legend-graph i.row {
+  width: 18px;
+}
+.territory-legend-graph i.row.strong {
+  border-top: 2.5px solid rgba(24, 199, 221, 0.8);
+}
+.territory-legend-graph i.row.weak {
+  border-top: 1.5px dashed #5f7479;
+}
+.territory-legend-graph i.halo {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.territory-legend-graph i.halo.cerco {
+  border: 2px solid #f04438;
+}
+.territory-legend-graph i.halo.cited {
+  border: 1.5px dashed #e58fa8;
+}
+.territory-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+.territory-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  color: #c9d6d9;
+  border: 1px solid rgba(232, 246, 250, 0.08);
+  border-radius: 10px;
+  background: #121717;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.territory-card:hover {
+  border-color: rgba(32, 214, 255, 0.4);
+}
+.territory-card:focus-visible {
+  outline: 2px solid #20d6ff;
+  outline-offset: 2px;
+}
+.territory-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 14px 16px 0;
+}
+.territory-card-top > span:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.territory-card-top b {
+  color: #20d6ff;
+  font-size: 15px;
+  font-weight: 600;
+}
+.territory-card-top small {
+  color: #82979d;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.territory-card-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #c9d6d9;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.territory-card-cell.here {
+  color: #f3f7f8;
+}
+.territory-card-cell.none {
+  color: #82979d;
+}
+.territory-card-cell i {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 2px;
+}
+.territory-card-graph {
+  display: block;
+  height: 176px;
+  padding: 4px 8px 0;
+}
+.territory-graph {
+  display: block;
+  overflow: visible;
+}
+.territory-graph-label {
+  font:
+    600 11.5px var(--iv-font-mono),
+    ui-monospace,
+    monospace;
+  letter-spacing: 0.02em;
+}
+.territory-card-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border-top: 1px solid rgba(232, 246, 250, 0.06);
+  background: rgba(232, 246, 250, 0.06);
+}
+.territory-card-numbers > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  background: #121717;
+}
+.territory-card-numbers b {
+  color: #f3f7f8;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.territory-card-numbers small {
+  color: #82979d;
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .territories-map {
+    height: 560px;
+  }
+  .group-table.territory-table {
+    --colunas: minmax(160px, 1.6fr) 70px 96px minmax(120px, 1.4fr) 90px 72px 96px;
+  }
+}
