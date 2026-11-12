@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 
-import { usePreparedManualAttachments } from '@/app/(app)/demandas/converter/hooks/use-prepared-manual-attachments'
+import { usePreparedManualAttachments } from '@/hooks/use-prepared-manual-attachments'
 import { prepareManualTicketAttachment } from '@/http/tickets/prepare-manual-ticket-attachment'
 
 jest.mock('@/http/tickets/prepare-manual-ticket-attachment', () => ({

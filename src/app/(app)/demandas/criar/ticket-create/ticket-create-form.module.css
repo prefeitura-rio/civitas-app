@@ -10,7 +10,7 @@
   --tc-soft-2: #1f3f5b;
   --tc-text: #f9fafa;
   --tc-muted: #97a2ab;
-  --tc-text-subtle: #97a2ab; 
+  --tc-text-subtle: #97a2ab;
   --tc-icon-subtle: #97a2ab;
   --tc-green: #067a57;
   --tc-green-hover: #0a8a64;
@@ -471,6 +471,27 @@
   white-space: nowrap;
 }
 
+.fileRowStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--tc-muted);
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.fileRowBadge {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--tc-badge-bg);
+  color: var(--tc-muted);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
 .fileList {
   display: flex;
   flex-direction: column;
@@ -710,7 +731,10 @@
   color: var(--tc-text);
   font-size: 14px;
   font-weight: 400;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .priorityButton:hover:not(:disabled) {
@@ -739,7 +763,9 @@
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .addPointFocalButton:hover:not(:disabled) {
@@ -850,7 +876,10 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .serviceModal > button:last-of-type svg {
@@ -1025,4 +1054,3 @@
   min-height: 0;
   overflow: hidden;
 }
-

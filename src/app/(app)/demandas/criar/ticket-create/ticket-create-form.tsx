@@ -12,6 +12,7 @@ import {
 import { Controller } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import { Spinner } from '@/components/custom/spinner'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -37,6 +38,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { usePreparedManualAttachments } from '@/hooks/use-prepared-manual-attachments'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
   maskDigitsOnly,
@@ -84,6 +86,8 @@ function nullIfEmpty(value?: string | null) {
 
 export function TicketCreateForm() {
   const vm = useTicketCreateController()
+  const preparedAttachments = usePreparedManualAttachments(vm.files)
+  const hasInvalidAttachments = preparedAttachments.hasInvalidFor(vm.files)
   const associarChamadoId = vm.watch('linked_ticket_id')
   const isAssociarConvertMode = Boolean(nullIfEmpty(associarChamadoId))
   const fieldDisabled = vm.isLoading
@@ -162,12 +166,34 @@ export function TicketCreateForm() {
 
       <form
         className="w-full space-y-8"
-        onSubmit={vm.handleSubmit(vm.onSubmit, (errors) => {
-          toast.error(
-            getFirstFormErrorMessage(errors) ??
-              'Existem campos com pendências. Verifique os avisos abaixo de cada campo.',
-          )
-        })}
+        onSubmit={(event) => {
+          if (preparedAttachments.isPreparing) {
+            event.preventDefault()
+            toast.error('Aguarde a compactação dos anexos antes de salvar.')
+            return
+          }
+          if (hasInvalidAttachments) {
+            event.preventDefault()
+            toast.error('Remova os arquivos inválidos antes de salvar.')
+            return
+          }
+          vm.handleSubmit(
+            async (data) => {
+              const prepared = preparedAttachments.filesForUpload(vm.files)
+              await vm.onSubmit(
+                data,
+                prepared.files,
+                prepared.preparedFileHashes,
+              )
+            },
+            (errors) => {
+              toast.error(
+                getFirstFormErrorMessage(errors) ??
+                  'Existem campos com pendências. Verifique os avisos abaixo de cada campo.',
+              )
+            },
+          )(event)
+        }}
       >
         <div className={`${styles.sectionCard} ${styles.sectionCardFirst}`}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -1173,27 +1199,69 @@ export function TicketCreateForm() {
                 <p className={styles.uploadBoxHint}>Nenhum arquivo anexado.</p>
               ) : (
                 <div className={styles.fileList}>
-                  {vm.files.map((f, idx) => (
-                    <div key={`${f.name}-${idx}`} className={styles.fileRow}>
-                      <SquareCheck
-                        className={`${styles.fileRowCheckIcon} shrink-0`}
-                        aria-hidden
-                      />
-                      <p className={styles.fileRowFileName} title={f.name}>
-                        {f.name}
-                      </p>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
-                        onClick={() => vm.removeFile(idx)}
-                        disabled={attachmentDisabled}
-                        title="Excluir anexo"
-                      >
-                        <Trash className="h-4 w-4" aria-hidden />
-                      </Button>
-                    </div>
-                  ))}
+                  {vm.files.map((f, idx) => {
+                    const preparation = preparedAttachments.preparations.get(f)
+                    return (
+                      <div key={`${f.name}-${idx}`} className={styles.fileRow}>
+                        <SquareCheck
+                          className={`${styles.fileRowCheckIcon} shrink-0`}
+                          aria-hidden
+                        />
+                        <div className="min-w-0 flex-1" title={f.name}>
+                          <p className={styles.fileRowFileName}>{f.name}</p>
+                          {f.size > 5 * 1024 * 1024 &&
+                            preparation?.status !== 'ready' && (
+                              <p
+                                className={styles.fileRowStatus}
+                                title={
+                                  preparation?.status === 'error' ||
+                                  preparation?.status === 'invalid'
+                                    ? preparation.message
+                                    : undefined
+                                }
+                              >
+                                {preparation?.status === 'invalid' ? (
+                                  'Arquivo inválido. Remova-o para salvar.'
+                                ) : preparation?.status === 'error' ? (
+                                  'Não foi possível compactar agora. Você pode salvar assim mesmo.'
+                                ) : (
+                                  <>
+                                    <Spinner className="shrink-0" />
+                                    Compactando...
+                                  </>
+                                )}
+                              </p>
+                            )}
+                        </div>
+                        {preparation?.status === 'ready' &&
+                          preparation.file.size < f.size && (
+                            <span className={styles.fileRowBadge}>
+                              Compactado
+                            </span>
+                          )}
+                        {preparation?.status === 'error' && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="h-8 px-2 text-xs"
+                            onClick={() => preparedAttachments.retry(f)}
+                          >
+                            Tentar novamente
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className={`${styles.fileRowDeleteBtn} h-8 w-8 shrink-0 p-0`}
+                          onClick={() => vm.removeFile(idx)}
+                          disabled={attachmentDisabled}
+                          title="Excluir anexo"
+                        >
+                          <Trash className="h-4 w-4" aria-hidden />
+                        </Button>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -1216,7 +1284,7 @@ export function TicketCreateForm() {
                   Clique para fazer upload ou arraste o arquivo
                 </span>
                 <span className={styles.uploadBoxHint}>
-                  PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 10MB)
+                  PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 20MB)
                 </span>
               </label>
             </div>
@@ -1237,7 +1305,11 @@ export function TicketCreateForm() {
 
             <Button
               type="submit"
-              disabled={vm.isLoading}
+              disabled={
+                vm.isLoading ||
+                preparedAttachments.isPreparing ||
+                hasInvalidAttachments
+              }
               className={styles.saveButton}
             >
               {vm.isLoading

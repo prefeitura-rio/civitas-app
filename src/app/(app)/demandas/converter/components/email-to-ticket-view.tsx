@@ -50,6 +50,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { usePreparedManualAttachments } from '@/hooks/use-prepared-manual-attachments'
 import { EMAIL_NAO_LIDOS_COUNT_QUERY_KEY } from '@/hooks/useQueries/useEmailNaoLidosCount'
 import { downloadEmailAttachmentFile } from '@/http/emails/download-email-attachment'
 import {
@@ -83,7 +84,6 @@ import {
 } from '../../criar/ticket-create/ticket-create.constant'
 import { useAttachmentPreviewUrl } from '../hooks/use-attachment-preview-url'
 import { usePreparedEmailAttachments } from '../hooks/use-prepared-email-attachments'
-import { usePreparedManualAttachments } from '../hooks/use-prepared-manual-attachments'
 import { EmailAttachmentCheckbox } from './email-attachment-checkbox'
 import styles from './email-to-ticket-view.module.css'
 

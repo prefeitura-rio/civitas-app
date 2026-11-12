@@ -62,7 +62,7 @@ function isConvencionalTicketType(ticketTypeName: string | null | undefined) {
   return (ticketTypeName ?? '').trim().toLowerCase() === 'convencional'
 }
 
-export function useTicketCreateController({ maxAttachmentSizeMb = 10 } = {}) {
+export function useTicketCreateController({ maxAttachmentSizeMb = 20 } = {}) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
@@ -477,29 +477,39 @@ export function useTicketCreateController({ maxAttachmentSizeMb = 10 } = {}) {
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
-  async function onSubmit(data: TicketCreateForm) {
+  async function onSubmit(
+    data: TicketCreateForm,
+    filesForTicket: File[] = files,
+    preparedFileHashes: Record<number, string> = {},
+  ) {
     const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
     if (associarId) {
-      const payload = buildTicketAssociatePayload(data)
+      const payload = {
+        ...buildTicketAssociatePayload(data),
+        prepared_file_hashes: preparedFileHashes,
+      }
       if (isConvencionalTicketType(selectedAssociatedTicketTypeName)) {
         await addConventionalPendingAttachmentsMutation.mutateAsync({
           ticketId: associarId,
           payload,
-          files,
+          files: filesForTicket,
           saveAndNew: false,
         })
       } else {
         await convertToConventionalMutation.mutateAsync({
           ticketId: associarId,
           payload,
-          files,
+          files: filesForTicket,
           saveAndNew: false,
         })
       }
       return
     }
-    const payload = buildTicketCreatePayload(data)
-    await createMutation.mutateAsync({ payload, files })
+    const payload = {
+      ...buildTicketCreatePayload(data),
+      prepared_file_hashes: preparedFileHashes,
+    }
+    await createMutation.mutateAsync({ payload, files: filesForTicket })
   }
 
   async function onSubmitFromEmail(
