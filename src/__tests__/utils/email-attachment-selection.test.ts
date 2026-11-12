@@ -2,6 +2,7 @@ import {
   filterSelectableEmailAttachments,
   getEmailAttachmentBlockedReason,
   isBlockedEmailAttachment,
+  isEmailAttachmentSelected,
   MAX_EMAIL_ATTACHMENT_BYTES,
 } from '@/utils/email-attachment-selection'
 
@@ -45,6 +46,28 @@ describe('anexos selecionáveis na conversão de e-mail', () => {
         blocked_reason: 'Anexo indisponível.',
       }),
     ).toBe('Anexo indisponível.')
+  })
+
+  it('marca por padrão o anexo preparado e respeita a desmarcação manual', () => {
+    const attachment = {
+      id: 38,
+      filename: 'mapa.pdf',
+      size: 1024,
+      is_prepared: true,
+      can_select: true,
+    }
+    expect(isEmailAttachmentSelected(attachment, {})).toBe(true)
+    expect(isEmailAttachmentSelected(attachment, { 38: false })).toBe(false)
+    expect(isEmailAttachmentSelected(attachment, { 38: true })).toBe(true)
+    expect(
+      isEmailAttachmentSelected({ ...attachment, can_select: false }, {}),
+    ).toBe(false)
+    expect(
+      isEmailAttachmentSelected({ ...attachment, is_prepared: false }, {}),
+    ).toBe(false)
+    expect(
+      isEmailAttachmentSelected({ ...attachment, filename: 'video.mp4' }, {}),
+    ).toBe(false)
   })
   it.each(['video.mp4', 'VIDEO.MP4', 'video.mov', 'VIDEO.MOV'])(
     'bloqueia %s',

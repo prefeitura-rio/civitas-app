@@ -62,6 +62,7 @@ import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardan
 import {
   filterSelectableEmailAttachments,
   getEmailAttachmentBlockedReason,
+  isEmailAttachmentSelected,
 } from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
@@ -82,17 +83,12 @@ import {
 } from '../../criar/ticket-create/ticket-create.constant'
 import { useAttachmentPreviewUrl } from '../hooks/use-attachment-preview-url'
 import { usePreparedEmailAttachments } from '../hooks/use-prepared-email-attachments'
+import { usePreparedManualAttachments } from '../hooks/use-prepared-manual-attachments'
 import { EmailAttachmentCheckbox } from './email-attachment-checkbox'
 import styles from './email-to-ticket-view.module.css'
 
 function fileSelectionKey(file: File) {
   return `${file.name}|${file.size}|${file.lastModified}`
-}
-
-function formatAttachmentBytes(bytes: number) {
-  const unit = bytes >= 1024 * 1024 ? 'MB' : 'KB'
-  const amount = bytes / (unit === 'MB' ? 1024 * 1024 : 1024)
-  return `${amount.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${unit}`
 }
 
 function resolveEmailDate(email: EmailOut): Date | null {
@@ -290,9 +286,10 @@ export function EmailToTicketView() {
   >(null)
   const [currentAttachment, setCurrentAttachment] = useState(0)
   const [emailInfoCollapsed, setEmailInfoCollapsed] = useState(false)
-  const [emailAttachmentSelectedIds, setEmailAttachmentSelectedIds] = useState<
-    Set<number>
-  >(() => new Set())
+  const [
+    emailAttachmentSelectionOverrides,
+    setEmailAttachmentSelectionOverrides,
+  ] = useState<Record<number, boolean>>({})
   const [manualFileSelected, setManualFileSelected] = useState<
     Record<string, boolean>
   >({})
@@ -316,6 +313,7 @@ export function EmailToTicketView() {
     hasErrors: attachmentPreparationHasErrors,
     retryFailed: retryAttachmentPreparation,
   } = usePreparedEmailAttachments(emailId, email?.attachments ?? [])
+  const manualAttachments = usePreparedManualAttachments(vm.files)
 
   useEffect(() => {
     // Wait for GET detail; only lift Não Lido → Aguardando.
@@ -395,7 +393,7 @@ export function EmailToTicketView() {
 
   useEffect(() => {
     setCurrentAttachment(0)
-    setEmailAttachmentSelectedIds(new Set())
+    setEmailAttachmentSelectionOverrides({})
   }, [emailId])
 
   useEffect(() => {
@@ -502,6 +500,11 @@ export function EmailToTicketView() {
     (file: File) => manualFileSelected[fileSelectionKey(file)] !== false,
     [manualFileSelected],
   )
+  const selectedManualFiles = vm.files.filter(isManualFileIncluded)
+  const isPreparingSelectedManualFiles =
+    manualAttachments.isPreparingFor(selectedManualFiles)
+  const hasInvalidSelectedManualFiles =
+    manualAttachments.hasInvalidFor(selectedManualFiles)
 
   const toggleManualFileSelection = useCallback((file: File) => {
     const key = fileSelectionKey(file)
@@ -517,33 +520,30 @@ export function EmailToTicketView() {
   function toggleEmailAttachmentSelection(attachmentId: number) {
     const attachment = attachments.find((att) => att.id === attachmentId)
     if (!attachment || getEmailAttachmentBlockedReason(attachment)) return
-    setEmailAttachmentSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(attachmentId)) next.delete(attachmentId)
-      else next.add(attachmentId)
-      return next
-    })
+    setEmailAttachmentSelectionOverrides((prev) => ({
+      ...prev,
+      [attachmentId]: prev[attachmentId] === false,
+    }))
   }
 
   function selectedEmailAttachmentIds(): number[] {
     if (!emailId) return []
     return selectableAttachments
-      .filter(
-        (a) =>
-          emailAttachmentSelectedIds.has(a.id) &&
-          !getEmailAttachmentBlockedReason(a),
+      .filter((a) =>
+        isEmailAttachmentSelected(a, emailAttachmentSelectionOverrides),
       )
       .map((attachment) => attachment.id)
   }
 
   function selectedEmailAttachmentTokens(): Record<number, string> {
     return Object.fromEntries(
-      attachments
+      selectableAttachments
         .filter(
           (attachment) =>
-            emailAttachmentSelectedIds.has(attachment.id) &&
-            attachment.preparation_token &&
-            !getEmailAttachmentBlockedReason(attachment),
+            isEmailAttachmentSelected(
+              attachment,
+              emailAttachmentSelectionOverrides,
+            ) && attachment.preparation_token,
         )
         .map((attachment) => [attachment.id, attachment.preparation_token!]),
     )
@@ -745,9 +745,14 @@ export function EmailToTicketView() {
           <form
             className="flex min-h-0 flex-1 flex-col"
             onSubmit={(e) => {
-              if (isPreparingAttachments) {
+              if (isPreparingAttachments || isPreparingSelectedManualFiles) {
                 e.preventDefault()
                 toast.error('Aguarde a compressão dos anexos antes de salvar.')
+                return
+              }
+              if (hasInvalidSelectedManualFiles) {
+                e.preventDefault()
+                toast.error('Remova os arquivos inválidos antes de salvar.')
                 return
               }
               const sub = (e.nativeEvent as SubmitEvent).submitter as
@@ -764,17 +769,31 @@ export function EmailToTicketView() {
                     const isConvert = Boolean(
                       nullIfEmpty(data.linked_ticket_id),
                     )
-                    const filesToSend = vm.files.filter(isManualFileIncluded)
+                    const filesToSend =
+                      manualAttachments.filesForUpload(selectedManualFiles)
                     const saveAndNew = intent === 'save-and-new' && !isConvert
-                    await vm.onSubmitFromEmail(data, emailId, filesToSend, {
-                      saveAndNew,
-                      emailAttachmentIds: selectedEmailAttachmentIds(),
-                      emailAttachmentTokens: selectedEmailAttachmentTokens(),
-                    })
+                    await vm.onSubmitFromEmail(
+                      data,
+                      emailId,
+                      filesToSend.files,
+                      {
+                        saveAndNew,
+                        emailAttachmentIds: selectedEmailAttachmentIds(),
+                        emailAttachmentTokens: selectedEmailAttachmentTokens(),
+                        preparedFileHashes: filesToSend.preparedFileHashes,
+                      },
+                    )
                     if (intent === 'save' || isConvert) {
                       router.push('/demandas/caixa-entrada')
                     } else {
-                      setEmailAttachmentSelectedIds(new Set())
+                      setEmailAttachmentSelectionOverrides(
+                        Object.fromEntries(
+                          selectableAttachments.map((attachment) => [
+                            attachment.id,
+                            false,
+                          ]),
+                        ),
+                      )
                       setManualFileSelected({})
                     }
                   } finally {
@@ -1863,13 +1882,16 @@ export function EmailToTicketView() {
                   isOpen={vm.openSections.attachments}
                   onToggle={() => vm.toggleSection('attachments')}
                 >
-                  {isPreparingAttachments && (
+                  {(isPreparingAttachments ||
+                    manualAttachments.isPreparing) && (
                     <p
                       className="flex items-center gap-2 text-sm text-muted-foreground"
                       role="status"
                     >
                       <Spinner className="shrink-0" />
-                      Comprimindo anexos e preparando as visualizações...
+                      {isPreparingAttachments
+                        ? 'Comprimindo anexos do e-mail e preparando as visualizações...'
+                        : 'Compactando arquivos adicionados...'}
                     </p>
                   )}
                   {attachmentPreparationHasErrors && (
@@ -1894,8 +1916,9 @@ export function EmailToTicketView() {
                             ? selectableAttachments.map((att) => {
                                 const blockedReason =
                                   getEmailAttachmentBlockedReason(att)
-                                const selected = emailAttachmentSelectedIds.has(
-                                  att.id,
+                                const selected = isEmailAttachmentSelected(
+                                  att,
+                                  emailAttachmentSelectionOverrides,
                                 )
                                 return (
                                   <div
@@ -1916,18 +1939,7 @@ export function EmailToTicketView() {
                                       <p className={styles.fileRowFileName}>
                                         {att.filename}
                                       </p>
-                                      {att.is_prepared ? (
-                                        <p
-                                          className={styles.fileRowOriginalSize}
-                                        >
-                                          Original:{' '}
-                                          {formatAttachmentBytes(
-                                            att.original_size ?? att.size,
-                                          )}
-                                          {' → Comprimido: '}
-                                          {formatAttachmentBytes(att.size)}
-                                        </p>
-                                      ) : (
+                                      {!att.is_prepared && (
                                         <p
                                           className={`${styles.fileRowOriginalSize} flex items-center gap-2`}
                                         >
@@ -1938,6 +1950,15 @@ export function EmailToTicketView() {
                                         </p>
                                       )}
                                     </div>
+                                    {att.is_prepared &&
+                                      att.original_size != null &&
+                                      att.size < att.original_size && (
+                                        <span
+                                          className={styles.fileRowSourceBadge}
+                                        >
+                                          Compactado
+                                        </span>
+                                      )}
                                     <span
                                       className={styles.fileRowSourceBadge}
                                       title={blockedReason || 'Anexo do e-mail'}
@@ -1950,6 +1971,8 @@ export function EmailToTicketView() {
                             : null}
                           {vm.files.map((f, idx) => {
                             const included = isManualFileIncluded(f)
+                            const preparation =
+                              manualAttachments.preparations.get(f)
                             return (
                               <div
                                 key={`${fileSelectionKey(f)}-${idx}`}
@@ -1984,12 +2007,50 @@ export function EmailToTicketView() {
                                     />
                                   )}
                                 </button>
-                                <p
-                                  className={styles.fileRowFileName}
-                                  title={f.name}
-                                >
-                                  {f.name}
-                                </p>
+                                <div className="min-w-0 flex-1" title={f.name}>
+                                  <p className={styles.fileRowFileName}>
+                                    {f.name}
+                                  </p>
+                                  {f.size > 5 * 1024 * 1024 &&
+                                    preparation?.status !== 'ready' && (
+                                      <p
+                                        className={`${styles.fileRowOriginalSize} flex items-center gap-2`}
+                                        title={
+                                          preparation?.status === 'error' ||
+                                          preparation?.status === 'invalid'
+                                            ? preparation.message
+                                            : undefined
+                                        }
+                                      >
+                                        {preparation?.status === 'invalid' ? (
+                                          'Arquivo inválido. Remova-o para salvar.'
+                                        ) : preparation?.status === 'error' ? (
+                                          'Não foi possível compactar agora. Você pode salvar assim mesmo.'
+                                        ) : (
+                                          <>
+                                            <Spinner className="shrink-0" />
+                                            Compactando...
+                                          </>
+                                        )}
+                                      </p>
+                                    )}
+                                </div>
+                                {preparation?.status === 'ready' &&
+                                  preparation.file.size < f.size && (
+                                    <span className={styles.fileRowSourceBadge}>
+                                      Compactado
+                                    </span>
+                                  )}
+                                {preparation?.status === 'error' && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="h-8 px-2 text-xs"
+                                    onClick={() => manualAttachments.retry(f)}
+                                  >
+                                    Tentar novamente
+                                  </Button>
+                                )}
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -2039,7 +2100,12 @@ export function EmailToTicketView() {
                 type="submit"
                 data-intent="save"
                 className={styles.footerBtnPrimary}
-                disabled={vm.isLoading || isPreparingAttachments}
+                disabled={
+                  vm.isLoading ||
+                  isPreparingAttachments ||
+                  isPreparingSelectedManualFiles ||
+                  hasInvalidSelectedManualFiles
+                }
               >
                 {vm.isLoading && activeSubmit === 'save'
                   ? vm.isConvertingToConventional
@@ -2054,7 +2120,12 @@ export function EmailToTicketView() {
                   type="submit"
                   data-intent="save-and-new"
                   className={styles.footerBtnSecondary}
-                  disabled={vm.isLoading || isPreparingAttachments}
+                  disabled={
+                    vm.isLoading ||
+                    isPreparingAttachments ||
+                    isPreparingSelectedManualFiles ||
+                    hasInvalidSelectedManualFiles
+                  }
                 >
                   {vm.isLoading && activeSubmit === 'save-and-new'
                     ? vm.isConvertingToConventional

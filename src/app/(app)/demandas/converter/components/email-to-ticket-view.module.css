@@ -892,7 +892,6 @@
   border-radius: 4px;
   background: var(--tc-badge-bg);
   color: var(--tc-muted);
-  max-width: 64px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

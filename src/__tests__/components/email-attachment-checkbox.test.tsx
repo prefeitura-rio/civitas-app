@@ -29,7 +29,7 @@ it('mostra o anexo recebido, bloqueia a seleção e explica o limite no hover', 
   expect(checkbox).toBeDisabled()
   expect(checkbox.parentElement).toHaveAttribute(
     'title',
-    expect.stringContaining('passou por compressão'),
+    expect.stringContaining('maior que o permitido'),
   )
   await userEvent.setup().hover(checkbox.parentElement!)
   await userEvent.setup().click(checkbox)

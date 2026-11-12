@@ -13,7 +13,7 @@ export function usePreparedEmailAttachments(
 ) {
   const queries = useQueries({
     queries: originals.map((attachment) => ({
-      queryKey: ['email-attachment-prepared', 'v3', emailId, attachment.id],
+      queryKey: ['email-attachment-prepared', 'v5', emailId, attachment.id],
       queryFn: () => prepareEmailAttachment(emailId!, attachment.id),
       enabled: Boolean(emailId),
       staleTime: 30 * 60 * 1000,

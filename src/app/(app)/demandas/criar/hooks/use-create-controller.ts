@@ -510,6 +510,7 @@ export function useTicketCreateController({ maxAttachmentSizeMb = 10 } = {}) {
       saveAndNew?: boolean
       emailAttachmentIds?: number[]
       emailAttachmentTokens?: Record<number, string>
+      preparedFileHashes?: Record<number, string>
     },
   ) {
     const associarId = associarChamadoIdOrNull(data.linked_ticket_id)
@@ -518,6 +519,7 @@ export function useTicketCreateController({ maxAttachmentSizeMb = 10 } = {}) {
         ...buildTicketAssociatePayload(data, { emailId }),
         email_attachment_ids: options?.emailAttachmentIds ?? [],
         email_attachment_tokens: options?.emailAttachmentTokens ?? {},
+        prepared_file_hashes: options?.preparedFileHashes ?? {},
       }
       if (isConvencionalTicketType(selectedAssociatedTicketTypeName)) {
         await addConventionalPendingAttachmentsMutation.mutateAsync({
@@ -537,14 +539,17 @@ export function useTicketCreateController({ maxAttachmentSizeMb = 10 } = {}) {
       return
     }
     const basePayload = buildTicketCreatePayload(data)
-    const payload = emailId
-      ? {
-          ...basePayload,
-          email_id: emailId,
-          email_attachment_ids: options?.emailAttachmentIds ?? [],
-          email_attachment_tokens: options?.emailAttachmentTokens ?? {},
-        }
-      : basePayload
+    const payload = {
+      ...basePayload,
+      prepared_file_hashes: options?.preparedFileHashes ?? {},
+      ...(emailId
+        ? {
+            email_id: emailId,
+            email_attachment_ids: options?.emailAttachmentIds ?? [],
+            email_attachment_tokens: options?.emailAttachmentTokens ?? {},
+          }
+        : {}),
+    }
     await createMutation.mutateAsync({
       payload,
       files: filesForTicket ?? files,

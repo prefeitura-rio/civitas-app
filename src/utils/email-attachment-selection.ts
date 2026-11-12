@@ -1,7 +1,7 @@
 const ATTACHMENT_EXTENSIONS_BLOCKED = new Set(['.mp4', '.mov'])
 export const MAX_EMAIL_ATTACHMENT_BYTES = 20 * 1024 * 1024
 export const EMAIL_ATTACHMENT_TOO_LARGE_REASON =
-  'Arquivo passou por compressão e ainda é maior que o permitido (20 MB).'
+  'Arquivo maior que o permitido (20 MB).'
 
 export function getEmailAttachmentBlockedReason(attachment: {
   size?: number
@@ -36,5 +36,24 @@ export function filterSelectableEmailAttachments<
 >(attachments: T[]): T[] {
   return attachments.filter(
     (attachment) => !isBlockedEmailAttachment(attachment.filename),
+  )
+}
+
+export function isEmailAttachmentSelected(
+  attachment: {
+    id: number
+    filename?: string
+    size?: number
+    can_select?: boolean
+    blocked_reason?: string | null
+    is_prepared?: boolean
+  },
+  overrides: Record<number, boolean>,
+): boolean {
+  return (
+    attachment.is_prepared === true &&
+    overrides[attachment.id] !== false &&
+    !isBlockedEmailAttachment(attachment.filename) &&
+    !getEmailAttachmentBlockedReason(attachment)
   )
 }
