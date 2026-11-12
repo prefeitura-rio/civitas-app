@@ -19,6 +19,7 @@ const env = {
   MAPBOX_ACCESS_TOKEN:  process.env.MAPBOX_ACCESS_TOKEN  ?? '',
   ENABLE_CHAMADOS:      process.env.ENABLE_CHAMADOS      ?? 'false',
   ENABLE_IMPERSONATION: process.env.ENABLE_IMPERSONATION ?? 'false',
+  ENABLE_DEVELOPER_ROLE: process.env.ENABLE_DEVELOPER_ROLE ?? 'false',
   APP_URL:              process.env.APP_URL               ?? '',
 }
 

@@ -39,6 +39,8 @@ const getConfig = () => {
     mapboxAccessToken: mapboxAccessToken ?? '',
     enableChamados: isTruthy(getPublicEnv('ENABLE_CHAMADOS')),
     enableImpersonation: isTruthy(getPublicEnv('ENABLE_IMPERSONATION')),
+    /** Perfil Desenvolvedor (só staging): acesso a todas as telas, definido no civitas-api. */
+    enableDeveloperRole: isTruthy(getPublicEnv('ENABLE_DEVELOPER_ROLE')),
   }
 }
 

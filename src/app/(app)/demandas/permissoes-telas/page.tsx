@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { config } from '@/config'
+import { useOwnUserRole } from '@/hooks/useQueries/useOwnUserRole'
 import { useTicketScreenPermissionGate } from '@/hooks/useTicketScreenPermissionGate'
 import {
   getTicketModulePermissionsByRole,
@@ -44,6 +45,9 @@ const ROLE_OPTIONS: UserRoleEnum[] = [
   'Assessor',
 ]
 
+/** O civitas-api libera todas as telas para o Desenvolvedor no código; não há linhas para configurar. */
+const ALL_SCREENS_ROLE: UserRoleEnum = 'Desenvolvedor'
+
 interface ScreenPermissionRow extends TicketModuleRolePermissionItem {
   available_actions: GetTicketModulePermissionsByRoleResponse['screens_catalog'][number]['actions']
 }
@@ -52,6 +56,13 @@ function TicketModulePermissionsByRolePageContent() {
   const queryClient = useQueryClient()
   const [role, setRole] = useState<UserRoleEnum>('Coordenador')
   const [permissions, setPermissions] = useState<ScreenPermissionRow[]>([])
+  const hasAllScreens = role === ALL_SCREENS_ROLE
+  // Desenvolvedor só existe onde o civitas-api liga o perfil (staging) e só aparece para quem é Desenvolvedor.
+  const { data: ownRole } = useOwnUserRole()
+  const roleOptions =
+    config.enableDeveloperRole && ownRole === ALL_SCREENS_ROLE
+      ? [...ROLE_OPTIONS, ALL_SCREENS_ROLE]
+      : ROLE_OPTIONS
 
   const {
     data,
@@ -63,6 +74,7 @@ function TicketModulePermissionsByRolePageContent() {
   } = useQuery({
     queryKey: ['ticket-module-permissions-role', role],
     queryFn: () => getTicketModulePermissionsByRole(role),
+    enabled: !hasAllScreens,
   })
 
   useEffect(() => {
@@ -124,11 +136,18 @@ function TicketModulePermissionsByRolePageContent() {
 
   const canSave = useMemo(
     () =>
+      !hasAllScreens &&
       permissions.length > 0 &&
       !isLoading &&
       !isFetching &&
       !saveMutation.isPending,
-    [isFetching, isLoading, permissions.length, saveMutation.isPending],
+    [
+      hasAllScreens,
+      isFetching,
+      isLoading,
+      permissions.length,
+      saveMutation.isPending,
+    ],
   )
 
   function updatePermission(index: number, next: ScreenPermissionRow) {
@@ -166,7 +185,7 @@ function TicketModulePermissionsByRolePageContent() {
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent className={tcFormStyles.selectContentForm}>
-                  {ROLE_OPTIONS.map((roleOption) => (
+                  {roleOptions.map((roleOption) => (
                     <SelectItem
                       key={roleOption}
                       value={roleOption}
@@ -184,7 +203,7 @@ function TicketModulePermissionsByRolePageContent() {
                 type="button"
                 className={`${styles.button} ${styles.buttonSecondary} flex items-center gap-2`}
                 onClick={handleReload}
-                disabled={isFetching || saveMutation.isPending}
+                disabled={hasAllScreens || isFetching || saveMutation.isPending}
               >
                 <RefreshCw className="size-4" />
                 Recarregar
@@ -204,7 +223,13 @@ function TicketModulePermissionsByRolePageContent() {
         <section className={styles.card}>
           <h2 className={styles.sectionTitle}>Permissões por tela</h2>
 
-          {isLoading ? (
+          {hasAllScreens ? (
+            <p className={styles.subtitle}>
+              O perfil Desenvolvedor tem acesso a todas as telas e ações,
+              inclusive às que forem criadas depois. Essa regra fica no
+              civitas-api e não é configurada aqui.
+            </p>
+          ) : isLoading ? (
             <div className="flex h-24 items-center justify-center">
               <Spinner />
             </div>

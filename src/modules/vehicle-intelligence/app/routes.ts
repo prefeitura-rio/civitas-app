@@ -157,3 +157,16 @@ export const territoryPath = (complex: string) =>
 /** O RO ("019-06778/2026", com a barra codificada) ou a placa vítima. */
 export const occurrencePath = (key: string) =>
   `/occurrence/${encodeURIComponent(key.trim().toUpperCase())}`
+
+/** A tela aberta para quem tem só a permissão básica do módulo (sem a tela completa). */
+export const LIMITED_HOME_PATH = '/correlation'
+
+/**
+ * Sem a tela completa (`vehicle_intelligence_full`), só Placas correlatas e Perfil de placa, com o que se abre de
+ * dentro delas: timeline, outras placas e o perfil de um RO (`/occurrence/<RO>`; a busca de RO fica de fora).
+ */
+export function isRouteAllowed(route: Route, fullAccess: boolean): boolean {
+  if (fullAccess) return true
+  if (route.module === 'correlation' || route.module === 'profile') return true
+  return route.module === 'occurrence' && route.occurrence !== null
+}

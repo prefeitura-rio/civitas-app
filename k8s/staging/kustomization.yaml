@@ -48,6 +48,8 @@ helmCharts:
       env:
         - name: VEHICLE_INTELLIGENCE_API_URL
           value: "http://civitas-inteligencia-veicular.civitas.svc.cluster.local"
+        - name: ENABLE_DEVELOPER_ROLE
+          value: "true"
 
       service:
         port: 80

@@ -1,6 +1,7 @@
 import { config } from '@/config'
 import {
   VEHICLE_INTELLIGENCE_BASE_PATH,
+  VEHICLE_INTELLIGENCE_FULL_SCREEN_CODE,
   VEHICLE_INTELLIGENCE_SCREEN_CODE,
 } from '@/lib/vehicle-intelligence/constants'
 
@@ -157,14 +158,16 @@ export const sidebarItems: SideBarItem[] = [
       {
         icon: 'Owl',
         title: 'Inteligência Veicular',
-        path: VEHICLE_INTELLIGENCE_BASE_PATH,
+        // Abre em Placas correlatas, a tela que todo perfil com acesso ao módulo vê.
+        path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/correlation`,
         ticketScreenCode: VEHICLE_INTELLIGENCE_SCREEN_CODE,
-        // As telas do módulo; a permissão é a do item (as filhas aparecem com ele).
+        // Placas correlatas e Perfil de placa vêm com o item; as demais pedem a tela completa.
         children: [
           {
             icon: 'LayoutDashboard',
             title: 'Visão geral',
             path: VEHICLE_INTELLIGENCE_BASE_PATH,
+            ticketScreenCode: VEHICLE_INTELLIGENCE_FULL_SCREEN_CODE,
           },
           {
             icon: 'Network',
@@ -175,16 +178,19 @@ export const sidebarItems: SideBarItem[] = [
             icon: 'Route',
             title: 'Trajetória pós-evento',
             path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/post-event`,
+            ticketScreenCode: VEHICLE_INTELLIGENCE_FULL_SCREEN_CODE,
           },
           {
             icon: 'UsersRound',
             title: 'Grupos',
             path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/groups`,
+            ticketScreenCode: VEHICLE_INTELLIGENCE_FULL_SCREEN_CODE,
           },
           {
             icon: 'MapPinned',
             title: 'Territórios',
             path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/territories`,
+            ticketScreenCode: VEHICLE_INTELLIGENCE_FULL_SCREEN_CODE,
           },
           {
             icon: 'SquareUser',
@@ -195,6 +201,7 @@ export const sidebarItems: SideBarItem[] = [
             icon: 'FileSearch',
             title: 'Perfil do RO',
             path: `${VEHICLE_INTELLIGENCE_BASE_PATH}/occurrence`,
+            ticketScreenCode: VEHICLE_INTELLIGENCE_FULL_SCREEN_CODE,
           },
         ],
       },

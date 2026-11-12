@@ -14,7 +14,7 @@ function titles(modules: Category['modules']) {
   return modules.map((m) => (m as Module).title)
 }
 
-function permissions(canView: boolean) {
+function permissions(canView: boolean, fullAccess = false) {
   return {
     role: null,
     screens: [
@@ -24,8 +24,24 @@ function permissions(canView: boolean) {
         can_view: canView,
         allowed_actions: [],
       },
+      {
+        screen_code: 'vehicle_intelligence_full',
+        screen_label: 'Inteligência Veicular (todas as telas)',
+        can_view: fullAccess,
+        allowed_actions: [],
+      },
     ],
   }
+}
+
+function moduleEntry(canView: boolean, fullAccess: boolean) {
+  return filterChamadosSidebarModules(
+    vehicles.modules,
+    permissions(canView, fullAccess),
+    true,
+  ).find(
+    (m) => (m as Module).title === 'Inteligência Veicular',
+  ) as ModuleWithChildren
 }
 
 describe('Veículos → Inteligência Veicular no sidebar', () => {
@@ -52,15 +68,17 @@ describe('Veículos → Inteligência Veicular no sidebar', () => {
     ])
   })
 
-  it('lists the seven module screens under the entry', () => {
-    const visible = filterChamadosSidebarModules(
-      vehicles.modules,
-      permissions(true),
-      true,
-    )
-    const entry = visible.find(
-      (m) => (m as Module).title === 'Inteligência Veicular',
-    ) as ModuleWithChildren
+  it('lists only Placas correlatas and Perfil de placa without the full screen', () => {
+    const entry = moduleEntry(true, false)
+    expect(entry.path).toBe('/inteligencia-veicular/correlation')
+    expect(entry.children.map((child) => child.path)).toEqual([
+      '/inteligencia-veicular/correlation',
+      '/inteligencia-veicular/profile',
+    ])
+  })
+
+  it('lists the seven module screens with the full screen', () => {
+    const entry = moduleEntry(true, true)
     expect(entry.children.map((child) => child.path)).toEqual([
       '/inteligencia-veicular',
       '/inteligencia-veicular/correlation',
