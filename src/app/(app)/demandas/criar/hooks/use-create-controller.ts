@@ -27,7 +27,10 @@ import { createTicket } from '@/http/tickets/create-ticket'
 import { getTicketById } from '@/http/tickets/get-ticket-by-id'
 import { getTicketsSelect } from '@/http/tickets/get-tickets-list'
 import { getApiErrorMessage } from '@/utils/error-handlers'
-import { isAllowedTicketAttachment } from '@/utils/ticket-attachment-validation'
+import {
+  isAllowedTicketAttachment,
+  MAX_TICKET_ATTACHMENT_BYTES,
+} from '@/utils/ticket-attachment-validation'
 
 import type {
   OpenServiceKey,
@@ -44,7 +47,6 @@ import {
 } from '../ticket-create/ticket-create-schema'
 
 const OPERATION_SEARCH_PAGE_SIZE = 20
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 
 const TICKET_TYPE_RESTRITA_LABEL = 'requisição restrita'
 const TEAM_COORDENADORES_LABEL = 'coordenadores'
@@ -443,7 +445,7 @@ export function useTicketCreateController() {
         invalidType.push(file.name)
         continue
       }
-      if (file.size > MAX_ATTACHMENT_BYTES) {
+      if (file.size > MAX_TICKET_ATTACHMENT_BYTES) {
         invalidSize.push(file.name)
         continue
       }
@@ -461,7 +463,7 @@ export function useTicketCreateController() {
     }
 
     if (invalidSize.length > 0) {
-      toast.error('Arquivo acima do limite de 10MB.', {
+      toast.error('Arquivo acima do limite de 20MB.', {
         description:
           invalidSize.length <= 3
             ? invalidSize.join(', ')

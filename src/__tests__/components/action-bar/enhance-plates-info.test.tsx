@@ -67,6 +67,8 @@ const mockDetection: DetectionDTO = {
   timestamp: '2024-01-15T10:00:00Z',
   location: 'Local Teste',
   equipmentCode: 'RDR001',
+  latitude: -22.9068,
+  longitude: -43.1729,
   speed: 60,
   lane: 'FX 01',
 }

@@ -1216,7 +1216,7 @@ export function TicketCreateForm() {
                   Clique para fazer upload ou arraste o arquivo
                 </span>
                 <span className={styles.uploadBoxHint}>
-                  PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 10MB)
+                  PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 20MB)
                 </span>
               </label>
             </div>

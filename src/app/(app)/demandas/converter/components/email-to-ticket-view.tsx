@@ -58,6 +58,7 @@ import {
   shouldMarkAsAguardandoOnConverterOpen,
 } from '@/http/emails/get-email'
 import { markEmailAsAguardandoResposta } from '@/http/emails/mark-email-aguardando-resposta'
+import { isApiError } from '@/lib/api'
 import { filterSelectableEmailAttachments } from '@/utils/email-attachment-selection'
 import { getFirstFormErrorMessage } from '@/utils/form-errors'
 import {
@@ -499,7 +500,9 @@ export function EmailToTicketView() {
     })
   }, [])
 
-  const buildFilesForTicketSubmit = useCallback(async (): Promise<File[]> => {
+  const buildFilesForTicketSubmit = useCallback(async (): Promise<
+    File[] | null
+  > => {
     const manual = vm.files.filter((f) => isManualFileIncluded(f))
     if (!emailId) return manual
 
@@ -514,8 +517,10 @@ export function EmailToTicketView() {
       )
       return [...manual, ...fromEmail]
     } catch {
-      toast.error('Não foi possível baixar um ou mais attachments do e-mail.')
-      throw new Error('Falha ao preparar attachments do e-mail')
+      toast.error(
+        'Não foi possível baixar um ou mais anexos do e-mail. Tente novamente.',
+      )
+      return null
     }
   }, [
     emailAttachmentSelectedIds,
@@ -724,6 +729,7 @@ export function EmailToTicketView() {
                       nullIfEmpty(data.linked_ticket_id),
                     )
                     const filesToSend = await buildFilesForTicketSubmit()
+                    if (filesToSend === null) return
                     const saveAndNew = intent === 'save-and-new' && !isConvert
                     await vm.onSubmitFromEmail(data, emailId, filesToSend, {
                       saveAndNew,
@@ -733,6 +739,13 @@ export function EmailToTicketView() {
                     } else {
                       setEmailAttachmentSelectedIds(new Set())
                       setManualFileSelected({})
+                    }
+                  } catch (error) {
+                    // Erros da API já são apresentados pelas mutações do formulário.
+                    if (!isApiError(error)) {
+                      toast.error(
+                        'Não foi possível salvar a demanda. Tente novamente.',
+                      )
                     }
                   } finally {
                     setActiveSubmit(null)
@@ -1963,7 +1976,7 @@ export function EmailToTicketView() {
                           Clique para fazer upload ou arraste o arquivo
                         </span>
                         <span className={styles.uploadBoxHint}>
-                          PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 10MB)
+                          PDF, DOC, DOCX, XLS, XLSX, JPEG, JPG, PNG (máx. 20MB)
                         </span>
                       </label>
                     </div>

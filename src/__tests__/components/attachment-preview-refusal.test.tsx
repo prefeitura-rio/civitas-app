@@ -113,4 +113,15 @@ describe('foto.jpg que a API não confirma como foto', () => {
     expect(result.current.url).toBeNull()
     expect(URL.createObjectURL).not.toHaveBeenCalled()
   })
+
+  it('mostra a prévia como indisponível quando o download falha', async () => {
+    jest.mocked(api.get).mockRejectedValue(new Error('Download failed'))
+    const { result } = renderHook(() =>
+      useAttachmentPreviewUrl(fakeJpg, 'email-1'),
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.unavailable).toBe(true)
+    expect(result.current.url).toBeNull()
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
+  })
 })

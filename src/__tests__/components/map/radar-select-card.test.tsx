@@ -9,6 +9,8 @@ jest.mock('@/utils/string-extensions', () => ({
 }))
 
 const mockRadar: Radar = {
+  streetName: null,
+  streetNumber: '',
   cetRioCode: 'RDR123',
   location: 'avenida brasil',
   district: 'centro',

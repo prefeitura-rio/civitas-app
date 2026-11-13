@@ -51,7 +51,10 @@ export function useAttachmentPreviewUrl(
         setUrl(u)
       })
       .catch(() => {
-        if (!cancelled) setUrl(null)
+        if (!cancelled) {
+          setUrl(null)
+          setUnavailable(true)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)

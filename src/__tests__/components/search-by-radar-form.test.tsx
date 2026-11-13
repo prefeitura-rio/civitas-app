@@ -31,6 +31,8 @@ jest.mock('@/hooks/useParams/useCarRadarSearchParams', () => ({
 }))
 
 const mockRadar: Radar = {
+  streetName: null,
+  streetNumber: '',
   cetRioCode: '0540461121',
   location: 'ESTRADA DOS BANDEIRANTES PROXIMO A ESTACAO BRT MERCK',
   district: 'centro',

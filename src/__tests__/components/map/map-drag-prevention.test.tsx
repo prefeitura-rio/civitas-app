@@ -53,6 +53,8 @@ jest.mock(
 const mockUseMap = jest.mocked(useMap)
 
 const mockRadar: Radar = {
+  streetName: null,
+  streetNumber: '',
   cetRioCode: '123456',
   latitude: -22.9068,
   longitude: -43.1729,

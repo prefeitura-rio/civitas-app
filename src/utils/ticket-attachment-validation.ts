@@ -1,3 +1,5 @@
+export const MAX_TICKET_ATTACHMENT_BYTES = 20 * 1024 * 1024
+
 const ALLOWED_TICKET_ATTACHMENT_EXTENSIONS = new Set([
   '.pdf',
   '.doc',
