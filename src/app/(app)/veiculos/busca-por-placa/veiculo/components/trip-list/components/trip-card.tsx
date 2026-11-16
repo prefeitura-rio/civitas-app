@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { ChevronRight, TriangleAlert } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
+import { PossibleStayBadge } from '@/components/custom/possible-stay-badge'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMap } from '@/hooks/useContexts/use-map-context'
@@ -47,6 +48,10 @@ export function TripCard({
 
   const points = selectedTrip?.points || []
   const isSelected = selectedTrip?.index === index
+  const tripPoints = trips?.at(index)?.points ?? []
+  const onlyPermanence =
+    tripPoints.length > 1 &&
+    tripPoints.slice(0, -1).every((point) => point.possibleStayToNext)
 
   function handleTripClick() {
     setSelectedTrip(index)
@@ -76,21 +81,22 @@ export function TripCard({
       }}
     >
       {/* First row: Date and Time */}
-      <div className={'flex font-bold'}>
-        <div className="inline-flex">
-          <div className="w-20">
+      <div className="flex flex-wrap items-center gap-3 font-bold">
+        <div className="inline-flex shrink-0">
+          <div className="w-20 shrink-0">
             <span className="">{format(startTime, 'dd/MMM')}</span>
           </div>
-          <div className="relative">
+          <div className="inline-flex items-center gap-4">
             <span className="relative whitespace-nowrap text-justify">{`${format(startTime, 'HH:mm')} - ${format(endTime, 'HH:mm')}`}</span>
             {dayInterval > 0 && (
-              <span className="absolute -right-5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-sm bg-card-foreground text-xs text-card">
+              <span className="flex h-4 w-4 items-center justify-center rounded-sm bg-card-foreground text-xs text-card">
                 +{dayInterval}
               </span>
             )}
           </div>
         </div>
-        <div className="flex w-full justify-end">
+        <div className="ml-auto flex shrink-0 items-center justify-end gap-3">
+          {onlyPermanence && <PossibleStayBadge point={tripPoints[0]} />}
           <span className="whitespace-nowrap text-end">{timeInterval}</span>
         </div>
       </div>

@@ -29,7 +29,7 @@ const methodologySteps = [
   },
   {
     highlight: 'Agrupamento dos pontos de detecção em viagens',
-    text: ', conforme os critérios descritos na Seção 2.b.',
+    text: ', conforme os critérios descritos a seguir.',
   },
   {
     highlight: 'Cálculo dos indicadores analíticos (KPIs)',
@@ -85,7 +85,7 @@ const limitations = [
     text: 'A ausência de detecções não significa, necessariamente, que o veículo de interesse tenha circulado por determinada região, uma vez que fatores como cobertura da rede de equipamentos, falhas de leitura ou ausência de captura podem impedir o registro.',
   },
   {
-    text: 'O conceito de viagem adotado neste relatório possui finalidade operacional e pode não representar exatamente um deslocamento real do veículo, uma vez que as viagens são definidas exclusivamente pelo intervalo de tempo entre detecções consecutivas.',
+    text: 'O conceito de viagem adotado neste relatório possui finalidade operacional e pode não representar exatamente um deslocamento real do veículo. Os registros são agrupados por critérios temporais. A indicação de possível permanência é apresentada na detecção correspondente e não altera o agrupamento das viagens.',
   },
   {
     text: 'Os pontos de detecção representam apenas os locais onde o veículo de interesse foi registrado pelos equipamentos LPR. Não é possível determinar o trajeto efetivamente percorrido entre dois pontos de detecção.',
@@ -392,10 +392,10 @@ export function ReportCover({
           de interesse que formam um deslocamento contínuo.{' '}
           <Text style={styles.strong}>
             Os registros são agrupados em uma mesma viagem quando o intervalo
-            entre um ponto de detecção e o seguinte é inferior a uma hora.
+            entre um ponto de detecção e o seguinte é de até uma hora.
           </Text>{' '}
-          Caso esse intervalo seja igual ou superior a uma hora, entende-se que
-          houve uma interrupção do deslocamento, iniciando uma nova viagem. As
+          Caso esse intervalo seja superior a uma hora, inicia-se uma nova
+          viagem. Esse critério não confirma uma interrupção do deslocamento. As
           viagens são apresentadas da mais recente para a mais antiga. Quando
           necessário para melhorar a visualização dos resultados, uma viagem
           poderá ser dividida em segmentos quando:
@@ -417,8 +417,21 @@ export function ReportCover({
           </View>
         </View>
 
+        <Text style={styles.subsectionTitle}>3. Possível permanência</Text>
+        <Text style={styles.paragraph}>
+          Detecções sucessivas no mesmo ponto ou em pontos próximos podem
+          indicar possível permanência na região. Essa indicação é exibida nas
+          detecções inicial e final da sequência, com a quantidade de leituras,
+          incluindo as intermediárias que não aparecem como posições
+          individuais. Ela não cria uma viagem separada. Quando a detecção final
+          inicia uma nova viagem, a detecção inicial da sequência é repetida
+          nessa viagem para mostrar o intervalo de possível permanência,
+          mantendo-se também no fim da viagem anterior. Os registros não
+          confirmam que o veículo ficou parado.
+        </Text>
+
         <Text style={styles.subsectionTitle}>
-          3. Alerta de suspeita de clonagem
+          4. Alerta de suspeita de clonagem
         </Text>
         <Text style={styles.paragraph}>
           O relatório apresenta um alerta automático quando o intervalo de tempo

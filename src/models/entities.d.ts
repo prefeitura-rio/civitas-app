@@ -14,6 +14,10 @@ export type Point = {
   speed: number
   secondsToNextPoint: number | null
   cloneAlert: boolean
+  possibleStay?: boolean
+  possibleStayToNext?: boolean
+  stayDurationMinutes?: number
+  stayDetectionCount?: number
   latitude?: number
   longitude?: number
 }
