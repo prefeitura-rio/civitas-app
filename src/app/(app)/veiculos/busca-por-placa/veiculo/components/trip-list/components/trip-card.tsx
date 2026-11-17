@@ -63,7 +63,9 @@ export function TripCard({
     })
   }
 
-  const startTime = new Date(startLocation.startTime)
+  const startTime = new Date(
+    trips?.at(index)?.startTime ?? startLocation.startTime,
+  )
   const endTime = new Date(endLocation.startTime)
   const dayInterval = endTime.getDate() - startTime.getDate()
   const timeInterval = getTimeDiff(startTime, endTime)
@@ -164,9 +166,9 @@ export function TripCard({
       {isSelected && (
         <div className="flex flex-col pl-20 text-sm">
           {points.length > 0 ? (
-            points.map((point, index) => (
-              <PointCard key={index} point={point} />
-            ))
+            [...points]
+              .reverse()
+              .map((point) => <PointCard key={point.index} point={point} />)
           ) : (
             <span>Nenhum resultado encontrado</span>
           )}

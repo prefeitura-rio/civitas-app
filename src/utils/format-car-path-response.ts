@@ -69,6 +69,7 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
           secondsToNextPoint: point.seconds_to_next_point,
           cloneAlert: false,
           possibleStay: !!stay,
+          isRepeatedStayStart: index === 0 && point !== firstPoint,
           possibleStayToNext:
             !!points[index + 1]?.parado &&
             !!points[index + 1]?.inicio_permanencia &&
@@ -114,13 +115,11 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
 
     return {
       index: i,
+      startTime: firstPoint?.datahora,
       points: formattedPoints,
       cloneAlert: tripCloneAlert,
     }
   })
 
-  return trips.reverse().map((trip, index) => ({
-    ...trip,
-    index,
-  }))
+  return trips.reverse().map((trip, index) => ({ ...trip, index }))
 }

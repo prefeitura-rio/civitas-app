@@ -480,7 +480,9 @@ export function ReportCover({
           {limitations.map(renderLimitationItem)}
         </View>
 
-        <Text style={styles.resultsTitle}>Resultados</Text>
+        <Text break style={styles.resultsTitle}>
+          Resultados
+        </Text>
 
         {!hasDetections && (
           <Text style={styles.emptyResultText}>

@@ -16,6 +16,7 @@ export type Point = {
   cloneAlert: boolean
   possibleStay?: boolean
   possibleStayToNext?: boolean
+  isRepeatedStayStart?: boolean
   stayDurationMinutes?: number
   stayDetectionCount?: number
   latitude?: number
@@ -24,6 +25,7 @@ export type Point = {
 
 export type Trip = {
   index: number
+  startTime?: string
   cloneAlert: boolean
   points: Point[]
 }

@@ -285,6 +285,25 @@ export function DownloadReportDialog() {
                           getValue: ({ point }: TripsCsvColumnContext) =>
                             point.cloneAlert ? 'Sim' : 'Não',
                         },
+                        {
+                          header: 'Possível permanência',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.possibleStayToNext ? 'Sim' : 'Não',
+                        },
+                        {
+                          header: 'Detecções na possível permanência',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.possibleStayToNext
+                              ? (point.stayDetectionCount ?? null)
+                              : null,
+                        },
+                        {
+                          header: 'Duração da possível permanência (min)',
+                          getValue: ({ point }: TripsCsvColumnContext) =>
+                            point.possibleStayToNext
+                              ? (point.stayDurationMinutes ?? null)
+                              : null,
+                        },
                       ] as const
                       const tripsCsvHeaders = tripsCsvColumns.map(
                         (column) => column.header,

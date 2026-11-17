@@ -225,9 +225,52 @@ it('repeats the stay start in the next trip while preserving the preceding trip'
     false,
   ])
   expect(previous.points[1].possibleStayToNext).toBe(false)
+  expect(next.points.map((point) => point.isRepeatedStayStart)).toEqual([
+    true,
+    false,
+    false,
+  ])
+  expect(previous.points[1].isRepeatedStayStart).toBe(false)
   // Formatting again must not add a second copy or mutate the API response.
   expect(formatCarPathResponse(response)).toEqual(trips)
   expect(response[1].locations[0]).toHaveLength(2)
+  expect(previous.startTime).toBe('2026-11-16T08:45:00-03:00')
+  expect(next.startTime).toBe('2026-11-16T10:47:00-03:00')
+  ;(useMap as jest.Mock).mockReturnValue({
+    setViewport: jest.fn(),
+    layers: {
+      trips: { trips, selectedTrip: next, setSelectedTrip: jest.fn() },
+    },
+  })
+  render(
+    <TripCard
+      index={next.index}
+      startLocation={next.points[0]}
+      endLocation={next.points[next.points.length - 1]}
+      cloneAlert={false}
+    />,
+  )
+  expect(screen.getByText('10:47 - 11:00')).toBeInTheDocument()
+  expect(screen.getByText('13 min')).toBeInTheDocument()
+  expect(screen.getByText('09:09')).toBeInTheDocument()
+  expect(
+    screen
+      .getByText('11:00')
+      .compareDocumentPosition(screen.getByText('10:47')) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy()
+  expect(
+    screen
+      .getByText('10:47')
+      .compareDocumentPosition(screen.getByText('09:09')) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy()
+  expect(
+    screen.getByText('10:47').parentElement?.querySelector('.border-dashed'),
+  ).not.toBeNull()
+  expect(
+    screen.getByText('11:00').parentElement?.querySelector('.border-dashed'),
+  ).toBeNull()
 })
 
 it('does not invent an initial reading when the sequence starts outside the search', () => {
