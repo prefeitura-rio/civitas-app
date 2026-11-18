@@ -3,6 +3,7 @@ import { formatDate } from 'date-fns'
 import { ArrowUpRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
+import { PossibleStayBadge } from '@/components/custom/possible-stay-badge'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
@@ -50,6 +51,30 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
       cell: ({ row }) => <span>{row.getValue('speed')}</span>,
     },
     {
+      accessorKey: 'parado',
+      header: () => (
+        <span className="block text-center text-xs leading-tight">
+          Possível
+          <br />
+          permanência
+        </span>
+      ),
+      cell: ({ row }) =>
+        row.original.parado ? (
+          <PossibleStayBadge
+            stacked
+            point={{
+              possibleStay: true,
+              stayDurationMinutes: row.original.minutos_parado ?? 0,
+              stayDetectionCount:
+                (row.original.total_deteccoes_parado ?? 0) + 1,
+            }}
+          />
+        ) : (
+          <span className="block text-center text-muted-foreground">—</span>
+        ),
+    },
+    {
       id: 'actions',
       header: () => <Label></Label>,
       cell: ({ row }) => (
@@ -71,6 +96,12 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
   ]
 
   return (
-    <DataTable columns={columns} data={data} isLoading={isLoading} pagination />
+    <DataTable
+      columns={columns}
+      data={data}
+      isLoading={isLoading}
+      pagination
+      tableClassName="[&_th:nth-last-child(2)]:w-px [&_th:nth-last-child(2)]:px-2 [&_td:nth-last-child(2)]:px-2"
+    />
   )
 }

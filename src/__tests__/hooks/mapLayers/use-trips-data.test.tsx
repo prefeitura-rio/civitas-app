@@ -74,9 +74,42 @@ describe('useTripsData selected trip', () => {
     expect(result.current.selectedTrip).toBe(trips[1])
 
     act(() => result.current.setSelectedTrip(1))
-    expect(result.current.selectedTrip).toBeNull()
+    expect(result.current.selectedTrip).toBe(trips[0])
+    expect(result.current.selectedTrips).toEqual([trips[0]])
 
     act(() => result.current.setSelectedTrip(5))
+    expect(result.current.selectedTrip).toBeNull()
+  })
+  it('keeps two trips open, closes the oldest on a third, and resets on search', async () => {
+    const trips: Trip[] = [0, 1, 2].map((index) => ({
+      index,
+      cloneAlert: false,
+      points: [],
+    }))
+    ;(getCarPath as jest.Mock).mockResolvedValue(trips)
+    const { result } = renderHook(
+      () => useTripsData({ setViewport: jest.fn() }),
+      { wrapper: createWrapper() },
+    )
+    await act(async () => {
+      await result.current.getTrips(searchParams)
+    })
+
+    act(() => result.current.setSelectedTrip(1))
+    expect(result.current.selectedTrips).toEqual([trips[0], trips[1]])
+    act(() => result.current.setSelectedTrip(2))
+    expect(result.current.selectedTrips).toEqual([trips[1], trips[2]])
+    act(() => result.current.setSelectedTrip(1))
+    expect(result.current.selectedTrips).toEqual([trips[2]])
+    act(() => result.current.setSelectedTrip(0))
+    expect(result.current.selectedTrips).toEqual([trips[2], trips[0]])
+
+    await act(async () => {
+      await result.current.getTrips(searchParams)
+    })
+    expect(result.current.selectedTrips).toEqual([trips[0]])
+    act(() => result.current.clearSearch())
+    expect(result.current.selectedTrips).toEqual([])
     expect(result.current.selectedTrip).toBeNull()
   })
 })

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { DownloadReport } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/action-bar/components/download-report'
+import { DownloadReport as EnhancedDownloadReport } from '@/app/(app)/veiculos/busca-por-radar/resultado-enriquecido/components/action-bar/components/download-report'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
@@ -294,6 +295,9 @@ describe('DownloadReport', () => {
           'Endereço',
           'Latitude',
           'Longitude',
+          'Possível permanência',
+          'Detecções na possível permanência',
+          'Duração da possível permanência (min)',
         ],
         dataRows: expect.any(Array),
       }),
@@ -312,6 +316,50 @@ describe('DownloadReport', () => {
       'Local Teste',
       '-22,9068',
       '-43,1729',
+      'Não',
+      null,
+      null,
     ])
   })
+  it.each([DownloadReport, EnhancedDownloadReport])(
+    'exports permanence details for ordinary and enriched searches (%p)',
+    async (Download) => {
+      const data = [
+        {
+          ...mockDetection,
+          brandModel: '',
+          color: '',
+          modelYear: '',
+          parado: true,
+          minutos_parado: 15,
+          total_deteccoes_parado: 4,
+        },
+      ]
+      const filters = {
+        ...mockFilters,
+        filteredData: data,
+        colorOptions: [],
+        brandModelOptions: [],
+        selectedBrandModel: [],
+        selectedColors: [],
+        setSelectedBrandModel: jest.fn(),
+        setSelectedColors: jest.fn(),
+      }
+      render(<Download data={data} isLoading={false} filters={filters} />, {
+        wrapper: createWrapper(),
+      })
+      fireEvent.click(screen.getByRole('button'))
+      fireEvent.click(screen.getByLabelText('CSV'))
+      fireEvent.click(screen.getByRole('button', { name: /obter relatório/i }))
+      await waitFor(() => expect(exportToCSV).toHaveBeenCalledTimes(1))
+      const { headers, dataRows } = (exportToCSV as jest.Mock).mock.calls[0][1]
+      expect(dataRows[0][headers.indexOf('Possível permanência')]).toBe('Sim')
+      expect(
+        dataRows[0][headers.indexOf('Detecções na possível permanência')],
+      ).toBe(5)
+      expect(
+        dataRows[0][headers.indexOf('Duração da possível permanência (min)')],
+      ).toBe(15)
+    },
+  )
 })

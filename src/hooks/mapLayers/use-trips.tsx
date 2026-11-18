@@ -36,7 +36,7 @@ export function useTrips({ setViewport }: UseTripsProps): UseTrips {
 
   const trips = useTripsData({ setViewport })
 
-  const points = trips.selectedTrip?.points
+  const points = trips.selectedTrips.flatMap((trip) => trip.points)
 
   const iconLayer = new IconLayer<Point>({
     id: 'black-icon-layer',

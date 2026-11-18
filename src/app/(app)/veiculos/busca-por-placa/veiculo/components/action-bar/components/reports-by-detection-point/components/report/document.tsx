@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 import { RadarReportEmptyResult } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/report/components/radar-report-empty-result'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
-import type { DetectionGroup, RadarDetection } from '@/models/entities'
+import type { DetectionGroup } from '@/models/entities'
 
 import { ReportEmptyResult } from '../../../../../report/components/components/report-empty-result'
 import { CoverDisclaimer } from './cover'
@@ -316,7 +316,7 @@ export function ReportDocument({ data, params, ranking }: ReportDocumentProps) {
                               >
                                 {column.key === 'timestamp'
                                   ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                                  : row[column.key as keyof RadarDetection]}
+                                  : row[column.key as keyof typeof row]}
                               </Text>
                             ))}
                           </View>

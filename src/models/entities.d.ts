@@ -117,6 +117,9 @@ export interface RadarDetection {
   plate: string
   timestamp: string
   speed: number
+  parado?: boolean
+  minutos_parado?: number
+  total_deteccoes_parado?: number
 }
 
 export type Report = {

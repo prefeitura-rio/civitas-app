@@ -5,7 +5,7 @@ import React from 'react'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
-import type { CollectionPoint, RadarDetection } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
 
 import { RadarReportCover } from './components/cover'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result'
@@ -70,7 +70,8 @@ const columns = [
   { title: 'Placa', width: '15%', key: 'plate' },
   { title: 'Equipamento', width: '15%', key: 'equipmentCode' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
-]
+  { title: 'Possível permanência', width: '25%', key: 'parado' },
+] as const
 
 export type GroupedDetection = {
   location: string
@@ -160,18 +161,26 @@ export function RadarReportDocument({
                               width: column.width,
                             }}
                           >
-                            {column.key === 'timestamp'
-                              ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                              : column.key === 'plate' &&
-                                  row[column.key as keyof RadarDetection] === ''
-                                ? '-------'
-                                : row[column.key as keyof RadarDetection]}
+                            {column.key === 'parado'
+                              ? row.parado
+                                ? `${(row.total_deteccoes_parado ?? 0) + 1} detecções\n${row.minutos_parado ?? 0} min`
+                                : '—'
+                              : column.key === 'timestamp'
+                                ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
+                                : column.key === 'plate' && row.plate === ''
+                                  ? '-------'
+                                  : row[column.key]}
                           </Text>
                         ))}
                       </View>
                     )
                   })}
                 </View>
+                <Text style={{ fontSize: 9, marginTop: 6 }}>
+                  Possível permanência indica leituras sucessivas no mesmo ponto
+                  ou em pontos próximos. A contagem inclui a primeira leitura da
+                  sequência e não confirma que o veículo ficou parado.
+                </Text>
                 {filteredData.length > 1 ? (
                   <Text
                     style={styles.tableCaption}

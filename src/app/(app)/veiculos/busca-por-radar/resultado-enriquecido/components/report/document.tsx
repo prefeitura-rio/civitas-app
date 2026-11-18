@@ -66,13 +66,14 @@ const styles = StyleSheet.create({
 
 const columns = [
   { title: 'Data e Hora', width: '13%', key: 'timestamp' },
-  { title: 'Placa', width: '12%', key: 'plate' },
-  { title: 'Marca/Modelo', width: '20%', key: 'brandModel' },
-  { title: 'Cor', width: '13%', key: 'color' },
-  { title: 'Ano Modelo', width: '10%', key: 'modelYear' },
-  { title: 'Equipamento', width: '13%', key: 'equipmentCode' },
-  { title: 'Velocidade [Km/h]', width: '12%', key: 'speed' },
-]
+  { title: 'Placa', width: '10%', key: 'plate' },
+  { title: 'Marca/Modelo', width: '19%', key: 'brandModel' },
+  { title: 'Cor', width: '10%', key: 'color' },
+  { title: 'Ano Modelo', width: '8%', key: 'modelYear' },
+  { title: 'Equipamento', width: '12%', key: 'equipmentCode' },
+  { title: 'Velocidade [Km/h]', width: '10%', key: 'speed' },
+  { title: 'Possível permanência', width: '18%', key: 'parado' },
+] as const
 
 export type GroupedEnhancedDetection = {
   location: string
@@ -166,20 +167,26 @@ export function RadarReportDocument({
                               width: column.width,
                             }}
                           >
-                            {column.key === 'timestamp'
-                              ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                              : column.key === 'plate' &&
-                                  row[
-                                    column.key as keyof EnhancedDetectionDTO
-                                  ] === ''
-                                ? '-------'
-                                : row[column.key as keyof EnhancedDetectionDTO]}
+                            {column.key === 'parado'
+                              ? row.parado
+                                ? `${(row.total_deteccoes_parado ?? 0) + 1} detecções\n${row.minutos_parado ?? 0} min`
+                                : '—'
+                              : column.key === 'timestamp'
+                                ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
+                                : column.key === 'plate' && row.plate === ''
+                                  ? '-------'
+                                  : row[column.key]}
                           </Text>
                         ))}
                       </View>
                     )
                   })}
                 </View>
+                <Text style={{ fontSize: 9, marginTop: 6 }}>
+                  Possível permanência indica leituras sucessivas no mesmo ponto
+                  ou em pontos próximos. A contagem inclui a primeira leitura da
+                  sequência e não confirma que o veículo ficou parado.
+                </Text>
                 {filteredData.length > 1 ? (
                   <Text
                     style={styles.tableCaption}

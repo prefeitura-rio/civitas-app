@@ -42,12 +42,14 @@ export function TripCard({
   const {
     setViewport,
     layers: {
-      trips: { trips, selectedTrip, setSelectedTrip },
+      trips: { trips, selectedTrip, selectedTrips, setSelectedTrip },
     },
   } = useMap()
 
-  const points = selectedTrip?.points || []
-  const isSelected = selectedTrip?.index === index
+  const points = trips?.at(index)?.points ?? []
+  const isSelected = (
+    selectedTrips ?? (selectedTrip ? [selectedTrip] : [])
+  ).some((trip) => trip.index === index)
   const tripPoints = trips?.at(index)?.points ?? []
   const onlyPermanence =
     tripPoints.length > 1 &&
@@ -55,6 +57,7 @@ export function TripCard({
 
   function handleTripClick() {
     setSelectedTrip(index)
+    if (isSelected) return
     const longitude = trips?.at(index)?.points?.at(0)?.from[0]
     const latitude = trips?.at(index)?.points?.at(0)?.from[1]
     setViewport({
@@ -168,7 +171,9 @@ export function TripCard({
           {points.length > 0 ? (
             [...points]
               .reverse()
-              .map((point) => <PointCard key={point.index} point={point} />)
+              .map((point) => (
+                <PointCard key={point.index} point={point} points={points} />
+              ))
           ) : (
             <span>Nenhum resultado encontrado</span>
           )}

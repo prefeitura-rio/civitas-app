@@ -273,6 +273,21 @@ export function DownloadReport({
           getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
             row.longitude.toString().replace('.', ','),
         },
+        {
+          header: 'Possível permanência',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.parado ? 'Sim' : 'Não',
+        },
+        {
+          header: 'Detecções na possível permanência',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.parado ? (row.total_deteccoes_parado ?? 0) + 1 : null,
+        },
+        {
+          header: 'Duração da possível permanência (min)',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.parado ? (row.minutos_parado ?? null) : null,
+        },
       ] as const
       const enrichedRadarCsvHeaders = enrichedRadarCsvColumns.map(
         (column) => column.header,
