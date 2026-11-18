@@ -6,6 +6,7 @@ import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
 import type { CollectionPoint } from '@/models/entities'
+import { consolidateRadarReportDetections } from '@/utils/consolidate-radar-report-detections'
 
 import { RadarReportCover } from './components/cover'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result'
@@ -72,7 +73,7 @@ const columns = [
   { title: 'Ano Modelo', width: '8%', key: 'modelYear' },
   { title: 'Equipamento', width: '12%', key: 'equipmentCode' },
   { title: 'Velocidade [Km/h]', width: '10%', key: 'speed' },
-  { title: 'Possível permanência', width: '18%', key: 'parado' },
+  { title: 'Possível permanência até', width: '18%', key: 'parado' },
 ] as const
 
 export type GroupedEnhancedDetection = {
@@ -114,7 +115,9 @@ export function RadarReportDocument({
   // Remove duplicates from each group's detections
   const filteredData = data.map((group) => ({
     ...group,
-    detections: removeDuplicates(group.detections),
+    detections: consolidateRadarReportDetections(
+      removeDuplicates(group.detections),
+    ),
   }))
 
   return (
@@ -169,7 +172,7 @@ export function RadarReportDocument({
                           >
                             {column.key === 'parado'
                               ? row.parado
-                                ? `${(row.total_deteccoes_parado ?? 0) + 1} detecções\n${row.minutos_parado ?? 0} min`
+                                ? `${format(row.possibleStayUntil ?? row.timestamp, 'dd/MM/yyyy HH:mm:ss')}\n${(row.total_deteccoes_parado ?? 0) + 1} detecções`
                                 : '—'
                               : column.key === 'timestamp'
                                 ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
@@ -184,8 +187,9 @@ export function RadarReportDocument({
                 </View>
                 <Text style={{ fontSize: 9, marginTop: 6 }}>
                   Possível permanência indica leituras sucessivas no mesmo ponto
-                  ou em pontos próximos. A contagem inclui a primeira leitura da
-                  sequência e não confirma que o veículo ficou parado.
+                  ou em pontos próximos. O horário indicado corresponde à última
+                  leitura da sequência e não confirma que o veículo ficou
+                  parado.
                 </Text>
                 {filteredData.length > 1 ? (
                   <Text

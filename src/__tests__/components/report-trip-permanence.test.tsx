@@ -22,7 +22,7 @@ const point: Point = {
   index: 0,
   from: [-43.244579, -22.930684],
   startTime: '2026-11-16T11:19:00-03:00',
-  cetRioCode: '0002573',
+  cetRioCode: '0000001',
   district: 'Tijuca',
   location: 'Rua General Espirito Santo Cardoso',
   direction: null,

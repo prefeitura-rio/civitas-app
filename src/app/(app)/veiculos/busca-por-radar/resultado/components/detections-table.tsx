@@ -2,13 +2,14 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { ArrowUpRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
 
-import { PossibleStayBadge } from '@/components/custom/possible-stay-badge'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
+import { consolidateRadarReportDetections } from '@/utils/consolidate-radar-report-detections'
 
 interface DetectionsTableProps {
   data: DetectionDTO[]
@@ -17,8 +18,12 @@ interface DetectionsTableProps {
 
 export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
   const router = useRouter()
+  const tableData = useMemo(
+    () => consolidateRadarReportDetections(data),
+    [data],
+  )
 
-  const columns: ColumnDef<DetectionDTO>[] = [
+  const columns: ColumnDef<(typeof tableData)[number]>[] = [
     {
       accessorKey: 'timestamp',
       header: () => <Label>Data e Hora</Label>,
@@ -52,26 +57,22 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
     },
     {
       accessorKey: 'parado',
-      header: () => (
-        <span className="block text-center text-xs leading-tight">
-          Possível
-          <br />
-          permanência
-        </span>
-      ),
+      header: () => <Label>Possível permanência até</Label>,
       cell: ({ row }) =>
         row.original.parado ? (
-          <PossibleStayBadge
-            stacked
-            point={{
-              possibleStay: true,
-              stayDurationMinutes: row.original.minutos_parado ?? 0,
-              stayDetectionCount:
-                (row.original.total_deteccoes_parado ?? 0) + 1,
-            }}
-          />
+          <span className="flex flex-col whitespace-nowrap">
+            <span>
+              {formatDate(
+                row.original.possibleStayUntil ?? row.original.timestamp,
+                'dd/MM/yyyy HH:mm:ss',
+              )}
+            </span>
+            <span>
+              {(row.original.total_deteccoes_parado ?? 0) + 1} detecções
+            </span>
+          </span>
         ) : (
-          <span className="block text-center text-muted-foreground">—</span>
+          <span>—</span>
         ),
     },
     {
@@ -98,7 +99,7 @@ export function DetectionsTable({ data, isLoading }: DetectionsTableProps) {
   return (
     <DataTable
       columns={columns}
-      data={data}
+      data={tableData}
       isLoading={isLoading}
       pagination
       tableClassName="[&_th:nth-last-child(2)]:w-px [&_th:nth-last-child(2)]:px-2 [&_td:nth-last-child(2)]:px-2"

@@ -28,7 +28,7 @@ jest.mock(
 )
 
 it.each([RadarReportDocument, EnhancedRadarReportDocument])(
-  'includes permanence counts and duration in PDF tables (%p)',
+  'consolidates a stay on its first reading with the end date and count (%p)',
   (Report) => {
     const radar = {
       cetRioCode: '123',
@@ -65,19 +65,36 @@ it.each([RadarReportDocument, EnhancedRadarReportDocument])(
             detections: [
               {
                 ...detection,
+                timestamp: '2026-11-18T00:10:00',
                 parado: true,
                 minutos_parado: 15,
                 total_deteccoes_parado: 4,
               },
-              { ...detection, plate: 'DEF4G56' },
+              {
+                ...detection,
+                timestamp: '2026-11-17T23:55:00',
+              },
+              {
+                ...detection,
+                plate: 'EFG4H56',
+                timestamp: '2026-11-17T23:56:00',
+              },
             ],
           },
         ]}
       />,
     )
 
-    expect(screen.getByText('Possível permanência')).toBeInTheDocument()
-    expect(screen.getByText(/5 detecções\s+15 min/)).toBeInTheDocument()
+    expect(screen.getByText('Possível permanência até')).toBeInTheDocument()
+    expect(screen.queryByText('18/11/2026 00:10:00')).not.toBeInTheDocument()
+    expect(screen.getAllByText('ABC1D23')).toHaveLength(1)
+    expect(
+      screen.getByText('18/11/2026 00:10:00\n5 detecções', {
+        normalizer: (text) => text,
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('17/11/2026 23:55:00')).toBeInTheDocument()
+    expect(screen.getByText('17/11/2026 23:56:00')).toBeInTheDocument()
     expect(screen.getByText('—')).toBeInTheDocument()
     expect(
       screen.getByText(/não confirma que o veículo ficou parado/),

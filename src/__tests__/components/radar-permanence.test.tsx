@@ -20,7 +20,7 @@ const detection = {
 }
 
 it.each([DetectionsTable, EnhancedDetectionsTable])(
-  'shows possible permanence only for flagged rows, including the initial reading in the count (%p)',
+  'shows the end date and count on the first reading, hiding the final row (%p)',
   (Table) => {
     render(
       <Table
@@ -28,24 +28,32 @@ it.each([DetectionsTable, EnhancedDetectionsTable])(
         data={[
           {
             ...detection,
+            timestamp: '2026-11-18T09:08:04',
+          },
+          {
+            ...detection,
+            timestamp: '2026-11-18T10:49:59',
             parado: true,
-            minutos_parado: 15,
+            minutos_parado: 101,
             total_deteccoes_parado: 4,
           },
-          { ...detection, plate: 'DEF4G56' },
+          { ...detection, plate: 'EFG4H56' },
         ]}
       />,
     )
 
-    const flaggedRow = screen.getByText('ABC1D23').closest('tr')!
-    const normalRow = screen.getByText('DEF4G56').closest('tr')!
-    expect(within(flaggedRow).getByText('5')).toBeInTheDocument()
-    expect(within(flaggedRow).getByText('det.')).toBeInTheDocument()
+    const flaggedRow = screen.getByText('18/11/2026 09:08:04').closest('tr')!
+    const normalRow = screen.getByText('EFG4H56').closest('tr')!
+    expect(screen.getByText('Possível permanência até')).toBeInTheDocument()
+    expect(screen.getAllByRole('row')).toHaveLength(3)
     expect(
-      within(flaggedRow).getByRole('button', {
-        name: 'Possível permanência: 5 detecções',
-      }),
+      within(flaggedRow).getByText('18/11/2026 09:08:04'),
     ).toBeInTheDocument()
-    expect(within(normalRow).queryByText(/Possível permanência/)).toBeNull()
+    expect(
+      within(flaggedRow).getByText('18/11/2026 10:49:59'),
+    ).toBeInTheDocument()
+    expect(within(flaggedRow).getByText('5 detecções')).toBeInTheDocument()
+    expect(screen.getAllByText('18/11/2026 10:49:59')).toHaveLength(1)
+    expect(within(normalRow).getByText('—')).toBeInTheDocument()
   },
 )
