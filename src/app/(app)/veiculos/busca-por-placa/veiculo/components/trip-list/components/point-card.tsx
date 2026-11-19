@@ -10,11 +10,17 @@ import { haversineDistance } from '@/utils/haversine-distance'
 
 interface PointCardProps {
   point: Point
-  points: Point[]
 }
 
-export function PointCard({ point, points }: PointCardProps) {
-  const { setViewport } = useMap()
+export function PointCard({ point }: PointCardProps) {
+  const {
+    setViewport,
+    layers: {
+      trips: { selectedTrip },
+    },
+  } = useMap()
+
+  const points = selectedTrip?.points || []
   const isStayEndpoint =
     point.possibleStay ||
     point.possibleStayToNext ||

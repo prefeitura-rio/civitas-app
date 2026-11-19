@@ -24,14 +24,12 @@ export interface UseTripsData {
   trips: Trip[] | undefined
   lastSearchParams: GetCarPathRequest | null
   selectedTrip: Trip | null
-  selectedTrips: Trip[]
   setSelectedTrip: (trip: number | Trip | null) => void
   possiblePlates: string[] | undefined
 }
 
 export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
-  const [selectedTrips, setSelectedTrips] = useState<Trip[]>([])
-  const selectedTrip = selectedTrips.at(-1) ?? null
+  const [selectedTrip, setSelectedTripState] = useState<Trip | null>(null)
   const [lastSearchParams, setLastSearchParams] =
     useState<GetCarPathRequest | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -39,40 +37,32 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
   function clearSearch() {
     clearPossiblePlates()
     clearTrips()
-    setSelectedTrips([])
+    setSelectedTripState(null)
     setLastSearchParams(null)
   }
 
-  /** Keep at most two open trips, closing the oldest when another is opened. */
+  /**
+   * Selects a trip by index or object; passing null or the selected index clears it.
+   * Invalid or unavailable indexes also clear selection instead of storing undefined.
+   */
   function setSelectedTrip(trip: number | Trip | null) {
     if (trip === null) {
-      setSelectedTrips([])
+      setSelectedTripState(null)
       return
     }
 
-    const target =
-      typeof trip === 'number'
-        ? Number.isInteger(trip) && trip >= 0
-          ? trips?.[trip]
-          : undefined
-        : trip
-    if (!target) {
-      setSelectedTrips([])
-      return
-    }
-
-    setSelectedTrips((current) => {
-      if (
-        typeof trip === 'number' &&
-        current.some((item) => item.index === target.index)
-      ) {
-        return current.filter((item) => item.index !== target.index)
+    if (typeof trip === 'number') {
+      const indexedTrip =
+        Number.isInteger(trip) && trip >= 0 ? trips?.[trip] : undefined
+      if (!indexedTrip || selectedTrip?.index === trip) {
+        setSelectedTripState(null)
+        return
       }
-      return [
-        ...current.filter((item) => item.index !== target.index),
-        target,
-      ].slice(-2)
-    })
+      setSelectedTripState(indexedTrip)
+      return
+    }
+
+    setSelectedTripState(trip)
   }
 
   const {
@@ -84,7 +74,6 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
     mutationFn: getCarPath,
     onMutate(variables) {
       clearPossiblePlates()
-      setSelectedTrips([])
       setLastSearchParams({
         plate: variables.plate,
         startTime: variables.startTime,
@@ -100,7 +89,7 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
       }
     },
     onSettled(data) {
-      setSelectedTrips(data?.length ? [data[0]] : [])
+      setSelectedTripState(data?.at(0) || null)
     },
   })
 
@@ -112,7 +101,7 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
   } = useMutation({
     mutationFn: getCarHint,
     onMutate(variables) {
-      setSelectedTrips([])
+      setSelectedTripState(null)
       setLastSearchParams({
         plate: variables.plate,
         startTime: variables.startTime,
@@ -134,7 +123,6 @@ export function useTripsData({ setViewport }: UseTripsProps): UseTripsData {
     clearSearch,
     lastSearchParams,
     selectedTrip,
-    selectedTrips,
     setSelectedTrip,
   }
 }

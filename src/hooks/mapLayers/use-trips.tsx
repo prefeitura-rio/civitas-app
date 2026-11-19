@@ -13,7 +13,6 @@ import {
 
 export interface UseTrips extends UseTripsData {
   layers: [
-    borderLayer: IconLayer<Point, object>,
     iconLayer: IconLayer<Point, object>,
     textLayer: TextLayer<Point, object>,
   ]
@@ -37,30 +36,13 @@ export function useTrips({ setViewport }: UseTripsProps): UseTrips {
 
   const trips = useTripsData({ setViewport })
 
-  const points = trips.selectedTrips.flatMap((trip) => trip.points)
-  const bluePoints =
-    trips.selectedTrips.length === 2 ? trips.selectedTrips[1].points : []
-  const bluePointSet = new Set(bluePoints)
-
-  const borderLayer = new IconLayer<Point>({
-    id: 'trip-icon-border-layer',
-    data: bluePoints,
-    getPosition: (info) => info.from,
-    getColor: [0, 0, 0],
-    getSize: 34,
-    getPixelOffset: [0, 2],
-    getIcon: () => 'arrow',
-    iconAtlas: iconAtlas.src,
-    iconMapping: ICON_MAPPING,
-    pickable: false,
-    visible: !isVisible,
-  })
+  const points = trips.selectedTrip?.points
 
   const iconLayer = new IconLayer<Point>({
     id: 'black-icon-layer',
     data: points,
     getPosition: (info) => info.from,
-    getColor: (info) => (bluePointSet.has(info) ? [135, 206, 250] : [0, 0, 0]),
+    getColor: [0, 0, 0],
     getSize: 30,
     getIcon: () => 'arrow',
     iconAtlas: iconAtlas.src,
@@ -78,7 +60,7 @@ export function useTrips({ setViewport }: UseTripsProps): UseTrips {
     id: 'text-layer',
     data: points,
     getPosition: (info) => info.from,
-    getColor: (info) => (bluePointSet.has(info) ? [0, 0, 0] : [255, 255, 255]),
+    getColor: [255, 255, 255],
     getSize: 15,
     getTextAnchor: 'middle',
     getText: (info) => String(info.index + 1),
@@ -90,7 +72,7 @@ export function useTrips({ setViewport }: UseTripsProps): UseTrips {
 
   return {
     ...trips,
-    layers: [borderLayer, iconLayer, textLayer],
+    layers: [iconLayer, textLayer],
     hoveredObject,
     setIsHoveringInfoCard,
     setHoveredObject,
