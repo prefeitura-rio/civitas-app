@@ -50,12 +50,6 @@ export interface ProxyHandlerOptions {
    * civitas-api: um 401 deles (ex.: configuração de OIDC errada) não pode derrubar o login do usuário.
    */
   clearSessionOnUpstreamUnauthorized?: boolean
-  /** Chamado com a resposta do upstream, antes de repassá-la (ex.: invalidar um cache depois de uma escrita). */
-  onUpstreamResponse?: (event: {
-    method: string
-    path: string
-    status: number
-  }) => void
   /** Rótulo dos logs (ex.: `bff`). */
   logLabel?: string
 }
@@ -106,7 +100,6 @@ export function createProxyHandler({
   getUpstreamBaseUrl,
   authorize,
   clearSessionOnUpstreamUnauthorized = true,
-  onUpstreamResponse,
   logLabel = 'bff',
 }: ProxyHandlerOptions) {
   const prefixPattern = new RegExp(`^${escapeRegExp(pathPrefix)}`)
@@ -249,12 +242,6 @@ export function createProxyHandler({
 
       upstreamResponse = await fetchUpstream(currentUpstreamUrl)
     }
-
-    onUpstreamResponse?.({
-      method: request.method,
-      path: upstreamPath,
-      status: upstreamResponse.status,
-    })
 
     const hasNoBody =
       request.method === 'HEAD' ||

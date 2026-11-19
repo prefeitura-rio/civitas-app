@@ -7,7 +7,6 @@ import { NextRequest } from 'next/server'
 
 import { GET } from '@/app/api/bff-iv/[...path]/route'
 import { buildSessionFromTokenResponse, serializeSession } from '@/auth/session'
-import { invalidateScreenPermissionsCache } from '@/lib/bff/screen-permissions'
 
 const UPSTREAM = 'http://iv.internal'
 
@@ -89,7 +88,6 @@ describe('GET /api/bff-iv/[...path]', () => {
   beforeEach(() => {
     process.env.APP_URL = 'http://localhost:3000'
     process.env.VEHICLE_INTELLIGENCE_API_URL = UPSTREAM
-    invalidateScreenPermissionsCache()
   })
 
   afterEach(() => {
@@ -176,14 +174,28 @@ describe('GET /api/bff-iv/[...path]', () => {
     expect(upstreamCalls(mock)).toHaveLength(0)
   })
 
-  it('caches the permission per session', async () => {
-    const mock = mockFetch()
-    await GET(makeRequest('/api/veiculos/v1/dashboard'))
-    await GET(makeRequest('/api/veiculos/v1/dashboard'))
-    const permissionCalls = mock.mock.calls.filter(([url]) =>
-      String(url).includes('module-screen-permissions'),
+  it('checks the permission again on every call, so a deactivation applies at once', async () => {
+    // Sem cache entre chamadas: vale em qualquer instância do Next, não só na que recebeu a desativação.
+    let deactivated = false
+    global.fetch = jest.fn(async (url: string | URL) => {
+      if (!String(url).includes('module-screen-permissions'))
+        return json({ ok: true })
+      return deactivated
+        ? json({ code: 'user_deactivated' }, 403)
+        : json(permissions(true))
+    }) as unknown as typeof fetch
+
+    expect((await GET(makeRequest('/api/veiculos/v1/dashboard'))).status).toBe(
+      200,
     )
-    expect(permissionCalls).toHaveLength(1)
+    deactivated = true
+    const response = await GET(makeRequest('/api/veiculos/v1/dashboard'))
+
+    expect(response.status).toBe(401)
+    expect(await response.json()).toEqual({
+      message: 'Unauthorized',
+      code: 'user_deactivated',
+    })
   })
 
   it('ends the session with user_deactivated when the user was deactivated', async () => {
@@ -226,11 +238,9 @@ describe('GET /api/bff-iv/[...path]', () => {
         ? json({ code: 'user_deactivated' }, 403)
         : json({ ok: true }),
     ) as unknown as typeof fetch
-    invalidateScreenPermissionsCache()
     expect(ended(await GET(makeRequest('/api/veiculos/v1/x')))).toBe(true)
 
     // 401 do serviço veicular: a sessão da CIVITAS continua, sem a marca
-    invalidateScreenPermissionsCache()
     mockFetch({ upstream: () => json({ detail: 'service' }, 401) })
     const fromService = await GET(makeRequest('/api/veiculos/v1/x'))
     expect(fromService.status).toBe(401)
