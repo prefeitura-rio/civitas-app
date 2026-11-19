@@ -183,6 +183,9 @@ export function UserActivationDialog({
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error))
+      // A recusa pode vir de uma prévia velha (ex.: o usuário ganhou um chamado e agora a transferência é
+      // obrigatória): recarrega para o diálogo mostrar o que a API espera.
+      if (isDeactivating) refetchPreview()
     },
   })
 

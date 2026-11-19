@@ -356,6 +356,51 @@ describe('UserActivationDialog', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('reloads the preview after a refusal, so a ticket gained meanwhile can be transferred', async () => {
+    // A prévia dizia zero chamados; antes de confirmar, o usuário ganhou um e a API exige a transferência.
+    mockedPreview
+      .mockResolvedValueOnce({
+        sole_open_tickets: 0,
+        shared_open_tickets: 0,
+        teams: [],
+        transfer_candidates: [],
+      })
+      .mockResolvedValue({
+        sole_open_tickets: 1,
+        shared_open_tickets: 0,
+        teams: [],
+        transfer_candidates: [
+          {
+            user_id: 'u2',
+            user_name: 'Bruno',
+            role: 'Adjunto',
+            team_name: 'Equipe A',
+            in_ticket_team: true,
+          },
+        ],
+      })
+    mockedDeactivate.mockRejectedValueOnce({
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: {
+          detail:
+            'O usuário é o único responsável por 1 chamado aberto. Informe para quem transferir.',
+        },
+      },
+    })
+    const { onClose } = renderDialog()
+    await waitForPreview()
+    fireEvent.click(screen.getByLabelText('Desligamento'))
+    fireEvent.click(screen.getByRole('button', { name: 'Desativar' }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalled())
+    expect(
+      await screen.findByLabelText('Transferir 1 chamado aberto para'),
+    ).toBeInTheDocument()
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
   it('reactivates and says which teams to add the user back to', async () => {
     mockedReactivate.mockResolvedValue({
       ...result,
