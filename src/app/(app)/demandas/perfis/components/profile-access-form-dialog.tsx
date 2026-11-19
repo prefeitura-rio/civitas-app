@@ -13,12 +13,14 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { config } from '@/config'
 import { useOwnUserRole } from '@/hooks/useQueries/useOwnUserRole'
+import { useProfile } from '@/hooks/useQueries/useProfile'
 import type {
   UserRoleEnum,
   UserRoleListItem,
@@ -42,6 +44,9 @@ const roleOptions = [
 ] as const satisfies { value: UserRoleEnum; label: string }[]
 
 const DEVELOPER_ROLE: UserRoleEnum = 'Desenvolvedor'
+
+/** Quem pode desativar/reativar: Coordenador (Desenvolvedor vale como Coordenador, como no backend). */
+const ACTIVATION_MANAGER_ROLES: UserRoleEnum[] = ['Coordenador', DEVELOPER_ROLE]
 
 const profileAccessFormSchema = z.object({
   role: z
@@ -67,6 +72,8 @@ interface ProfileAccessFormDialogProps {
   onOpen: () => void
   dialogInitialData: UserRoleListItem | null
   setDialogInitialData: (value: UserRoleListItem | null) => void
+  /** Abre o fluxo de desativar/reativar para o usuário em edição. */
+  onRequestActivationChange: (user: UserRoleListItem) => void
 }
 
 export function ProfileAccessFormDialog({
@@ -75,6 +82,7 @@ export function ProfileAccessFormDialog({
   onOpen,
   dialogInitialData,
   setDialogInitialData,
+  onRequestActivationChange,
 }: ProfileAccessFormDialogProps) {
   const {
     handleSubmit,
@@ -98,6 +106,14 @@ export function ProfileAccessFormDialog({
     config.enableDeveloperRole && ownRole === DEVELOPER_ROLE
   const targetIsDeveloper = dialogInitialData?.role === DEVELOPER_ROLE
   const lockedByDeveloperRole = targetIsDeveloper && !canManageDeveloper
+
+  const { data: profile } = useProfile()
+  const targetIsInactive = dialogInitialData?.is_active === false
+  const canManageActivation =
+    Boolean(ownRole && ACTIVATION_MANAGER_ROLES.includes(ownRole)) &&
+    Boolean(dialogInitialData) &&
+    dialogInitialData?.id !== profile?.id
+  const roleLocked = lockedByDeveloperRole || targetIsInactive
   const availableRoleOptions = roleOptions.filter(
     (option) =>
       option.value !== DEVELOPER_ROLE ||
@@ -168,6 +184,9 @@ export function ProfileAccessFormDialog({
           <DialogTitle className={styles.perfisModalTitle}>
             Editar Perfil de Acesso
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Altere o perfil de acesso ou a situação do usuário.
+          </DialogDescription>
         </DialogHeader>
 
         <form className="flex flex-col gap-5" onSubmit={handleSubmit(onSubmit)}>
@@ -197,14 +216,22 @@ export function ProfileAccessFormDialog({
 
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <Label className={styles.perfisModalLabel}>
+              <Label
+                id="profile-access-roles-label"
+                className={styles.perfisModalLabel}
+              >
                 Perfil de acesso
               </Label>
               <InputError message={errors.role?.message} />
             </div>
 
             <div
-              className={`${styles.perfisModalSection} grid grid-cols-1 gap-3 sm:grid-cols-2`}
+              role="group"
+              aria-labelledby="profile-access-roles-label"
+              aria-disabled={roleLocked || undefined}
+              className={`${styles.perfisModalSection} grid grid-cols-1 gap-3 sm:grid-cols-2 ${
+                roleLocked ? styles.perfisModalSectionDisabled : ''
+              }`}
             >
               {availableRoleOptions.map((role) => {
                 const checked = selectedRole === role.value
@@ -222,7 +249,7 @@ export function ProfileAccessFormDialog({
                       onCheckedChange={(value) =>
                         handleToggleRole(role.value, Boolean(value))
                       }
-                      disabled={isLoading || lockedByDeveloperRole}
+                      disabled={isLoading || roleLocked}
                     />
                     <span
                       className="text-sm"
@@ -234,6 +261,11 @@ export function ProfileAccessFormDialog({
                 )
               })}
             </div>
+            {targetIsInactive ? (
+              <p className={styles.perfisModalNotice}>
+                Usuário inativo. Reative para alterar o perfil.
+              </p>
+            ) : null}
             {lockedByDeveloperRole ? (
               <p
                 className="text-sm"
@@ -245,10 +277,26 @@ export function ProfileAccessFormDialog({
             ) : null}
           </div>
 
-          <div className="mt-2 flex justify-end">
+          <div className="mt-2 flex items-center justify-between gap-3">
+            {canManageActivation && dialogInitialData ? (
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => onRequestActivationChange(dialogInitialData)}
+                className={
+                  targetIsInactive
+                    ? styles.perfisModalBtnPrimary
+                    : styles.perfisModalBtnDanger
+                }
+              >
+                {targetIsInactive ? 'Reativar usuário' : 'Desativar usuário'}
+              </button>
+            ) : (
+              <span />
+            )}
             <button
               type="submit"
-              disabled={isLoading || lockedByDeveloperRole}
+              disabled={isLoading || roleLocked}
               className={`${styles.perfisModalBtnPrimary} flex min-w-[7rem] items-center justify-center gap-2 px-4 py-2`}
             >
               {isLoading ? <Spinner /> : <span>Salvar</span>}

@@ -11,6 +11,7 @@ import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
 
 import { ProfileAccessDialogs } from './components/profile-access-dialogs'
 import { ProfileAccessTable } from './components/profile-access-table'
+import { UserActivationDialog } from './components/user-activation-dialog'
 import styles from './perfis.module.css'
 
 const PROFILE_SCREEN_CODE = 'profile'
@@ -18,6 +19,8 @@ const PROFILE_SCREEN_CODE = 'profile'
 function CadastroPerfilPageContent() {
   const formDialogDisclosure = useDisclosure()
   const [dialogInitialData, setDialogInitialData] =
+    useState<UserRoleListItem | null>(null)
+  const [activationTarget, setActivationTarget] =
     useState<UserRoleListItem | null>(null)
 
   function handleEditUser(user: UserRoleListItem) {
@@ -30,12 +33,22 @@ function CadastroPerfilPageContent() {
       <div className="content">
         <ProfileAccessTable onEditUser={handleEditUser} />
 
+        <UserActivationDialog
+          user={activationTarget}
+          onClose={() => setActivationTarget(null)}
+        />
+
         <ProfileAccessDialogs
           isOpen={formDialogDisclosure.isOpen}
           onOpen={formDialogDisclosure.onOpen}
           onClose={formDialogDisclosure.onClose}
           dialogInitialData={dialogInitialData}
           setDialogInitialData={setDialogInitialData}
+          onRequestActivationChange={(user) => {
+            formDialogDisclosure.onClose()
+            setDialogInitialData(null)
+            setActivationTarget(user)
+          }}
         />
       </div>
     </div>

@@ -425,3 +425,80 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.perfisStatusTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.perfisStatusTab {
+  padding: 4px 12px;
+  border-radius: var(--perfis-radius-sm);
+  border: 1px solid var(--perfis-border);
+  background-color: transparent;
+  color: var(--perfis-text-subtle);
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.perfisStatusTab:hover {
+  opacity: 0.9;
+}
+
+.perfisStatusTabActive {
+  background-color: var(--perfis-bg-button);
+  color: var(--perfis-text-default);
+}
+
+.perfisTableRowInactive .perfisTableCellText {
+  opacity: 0.6;
+}
+
+.perfisBadgeInativo {
+  margin-left: 8px;
+  background: rgba(151, 162, 171, 0.15);
+  color: var(--perfis-text-subtle);
+}
+
+/* Ação secundária (Cancelar): mesmo tamanho do primário, só contorno */
+.perfisModalBtnSecondary {
+  composes: perfisModalBtnPrimary;
+  background-color: transparent;
+  border: 1px solid var(--perfis-border);
+  color: var(--perfis-text-subtle);
+}
+
+/* Ação destrutiva no rodapé do diálogo de edição */
+.perfisModalBtnDanger {
+  composes: perfisModalBtnPrimary;
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+}
+
+.perfisModalNotice {
+  font-size: 0.875rem;
+  color: var(--perfis-text-subtle);
+}
+
+.perfisModalSelect {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--perfis-radius-sm);
+  border: 1px solid var(--perfis-border);
+  background-color: var(--perfis-bg-page);
+  color: var(--perfis-text-default);
+  font-size: 0.875rem;
+}
+
+/* Seção inteira bloqueada (ex.: perfil de usuário inativo): não parece clicável */
+.perfisModalSectionDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+}

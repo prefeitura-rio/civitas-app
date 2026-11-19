@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Pagination } from '@/components/ui/pagination'
 import { useProfileAccessSearchParams } from '@/hooks/useParams/useProfileAccessSearchParams'
+import type { UserStatusFilter } from '@/http/user-roles/deactivation-reasons'
 import {
   getUsersWithRoles,
   type UserRoleEnum,
@@ -47,6 +48,12 @@ function RoleBadge({ role }: { role: UserRoleEnum }) {
   )
 }
 
+const STATUS_TABS: { value: UserStatusFilter; label: string }[] = [
+  { value: 'active', label: 'Ativos' },
+  { value: 'inactive', label: 'Inativos' },
+  { value: 'all', label: 'Todos' },
+]
+
 interface ProfileAccessTableProps {
   onEditUser: (user: UserRoleListItem) => void
 }
@@ -54,10 +61,12 @@ interface ProfileAccessTableProps {
 export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
   const {
     search,
+    status,
     formattedSearchParams,
     queryKey,
     handlePaginate,
     handleSearch,
+    handleStatusChange,
   } = useProfileAccessSearchParams()
 
   const [searchInput, setSearchInput] = useState(search)
@@ -116,6 +125,27 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
           />
         </div>
 
+        <div
+          className={styles.perfisStatusTabs}
+          role="tablist"
+          aria-label="Situação do usuário"
+        >
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              role="tab"
+              aria-selected={status === tab.value}
+              className={`${styles.perfisStatusTab} ${
+                status === tab.value ? styles.perfisStatusTabActive : ''
+              }`}
+              onClick={() => handleStatusChange(tab.value)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <div className={styles.perfisTableCard}>
           <div className={styles.perfisTableContainer}>
             <div className={styles.perfisTableHeaderRow}>
@@ -143,39 +173,56 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
             )}
 
             {!isLoading &&
-              data.map((user: UserRoleListItem) => (
-                <div key={user.id} className={styles.perfisTableRow}>
-                  <div className={styles.perfisTableRowContent}>
-                    <div className={styles.perfisTableCellNome}>
-                      <span className={styles.perfisTableCellText}>
-                        {user.full_name || user.username}
-                      </span>
-                    </div>
-                    <div className={styles.perfisTableCellPerfil}>
-                      {user.role ? (
-                        <RoleBadge
-                          key={`${user.id}-${user.role}`}
-                          role={user.role}
-                        />
-                      ) : (
-                        <span className={styles.perfisTableCellText}>
-                          Sem perfil
-                        </span>
-                      )}
-                    </div>
-                  </div>
+              data.map((user: UserRoleListItem) => {
+                const displayName = user.full_name || user.username
+                const isInactive = user.is_active === false
 
-                  <div className={styles.perfisTableHeaderCellAcoes}>
-                    <button
-                      type="button"
-                      className={styles.perfisBtnEditar}
-                      onClick={() => onEditUser(user)}
-                    >
-                      Editar
-                    </button>
+                return (
+                  <div
+                    key={user.id}
+                    className={`${styles.perfisTableRow} ${
+                      isInactive ? styles.perfisTableRowInactive : ''
+                    }`}
+                  >
+                    <div className={styles.perfisTableRowContent}>
+                      <div className={styles.perfisTableCellNome}>
+                        <span className={styles.perfisTableCellText}>
+                          {displayName}
+                        </span>
+                        {isInactive && (
+                          <span
+                            className={`${styles.perfisBadge} ${styles.perfisBadgeInativo}`}
+                          >
+                            Inativo
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.perfisTableCellPerfil}>
+                        {user.role ? (
+                          <RoleBadge
+                            key={`${user.id}-${user.role}`}
+                            role={user.role}
+                          />
+                        ) : (
+                          <span className={styles.perfisTableCellText}>
+                            Sem perfil
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={styles.perfisTableHeaderCellAcoes}>
+                      <button
+                        type="button"
+                        className={styles.perfisBtnEditar}
+                        onClick={() => onEditUser(user)}
+                      >
+                        Editar
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
           </div>
         </div>
       </div>
