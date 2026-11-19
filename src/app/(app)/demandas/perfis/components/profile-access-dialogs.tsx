@@ -10,6 +10,7 @@ interface ProfileAccessDialogsProps {
   onClose: () => void
   dialogInitialData: UserRoleListItem | null
   setDialogInitialData: (value: UserRoleListItem | null) => void
+  onRequestActivationChange: (user: UserRoleListItem) => void
 }
 
 export function ProfileAccessDialogs({
@@ -18,6 +19,7 @@ export function ProfileAccessDialogs({
   onClose,
   dialogInitialData,
   setDialogInitialData,
+  onRequestActivationChange,
 }: ProfileAccessDialogsProps) {
   return (
     <ProfileAccessFormDialog
@@ -26,6 +28,7 @@ export function ProfileAccessDialogs({
       onClose={onClose}
       dialogInitialData={dialogInitialData}
       setDialogInitialData={setDialogInitialData}
+      onRequestActivationChange={onRequestActivationChange}
     />
   )
 }

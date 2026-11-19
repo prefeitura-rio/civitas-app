@@ -428,3 +428,9 @@ textarea.equipes-modal-input-wrap {
   color: var(--equipes-text-default);
   opacity: 1;
 }
+
+.equipes-table-empty {
+  padding: 16px 24px;
+  font-size: 0.875rem;
+  color: #97a2ab;
+}

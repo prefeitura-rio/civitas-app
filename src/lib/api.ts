@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { deleteCookie, getCookie } from 'cookies-next'
+import { getCookie } from 'cookies-next'
 import { CookiesFn } from 'cookies-next/lib/types'
 
 import {
@@ -7,43 +7,26 @@ import {
   getSessionIdFromValidSession,
 } from '@/auth/session'
 import { config as appConfig } from '@/config'
-import { TICKET_MODULE_PERMISSIONS_COOKIE } from '@/http/tickets/ticket-module-permissions-me'
+import { readErrorCode, shouldEndSession } from '@/lib/auth-session-end'
 import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
 
-import { queryClient } from './react-query'
+import { redirectToSignIn } from './session-redirect'
 
 export const isApiError = axios.isAxiosError
 
-const isServer = typeof window === 'undefined'
-let isAuthRedirecting = false
-
-function redirectToSignIn(errorCode?: string) {
-  if (isAuthRedirecting || window.location.pathname === '/auth/sign-in') {
-    return
+/** O `code` do corpo do erro. Num download (`responseType: 'blob'`) o corpo JSON chega como Blob. */
+async function readAxiosErrorCode(data: unknown): Promise<string | undefined> {
+  if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    try {
+      return readErrorCode(JSON.parse(await data.text()))
+    } catch {
+      return undefined
+    }
   }
-
-  isAuthRedirecting = true
-
-  deleteCookie('token')
-  deleteCookie(TICKET_MODULE_PERMISSIONS_COOKIE)
-  queryClient.clear()
-
-  if (errorCode === 'session_invalidated') {
-    sessionStorage.setItem('session-invalidated-toast', '1')
-  }
-
-  fetch('/api/auth/logout', {
-    method: 'POST',
-    credentials: 'include',
-  })
-    .catch(() => {
-      // The redirect must continue even if the logout endpoint is unavailable.
-    })
-    .finally(() => {
-      window.location.replace('/auth/sign-in')
-    })
+  return readErrorCode(data)
 }
 
+const isServer = typeof window === 'undefined'
 export const api = axios.create({
   baseURL: isServer ? appConfig.apiUrl : '/api/bff',
 })
@@ -92,9 +75,10 @@ api.interceptors.response.use(
   async (error) => {
     const status = error?.response?.status
 
-    if (typeof window !== 'undefined' && status === 401) {
-      const errorCode = error?.response?.data?.code
+    const errorCode = await readAxiosErrorCode(error?.response?.data)
 
+    // 401 ou 403 `user_deactivated`: encerra o login (não é só falta de permissão).
+    if (typeof window !== 'undefined' && shouldEndSession(status, errorCode)) {
       if (window.location.pathname !== '/auth/sign-in') {
         redirectToSignIn(errorCode)
 
@@ -105,7 +89,11 @@ api.interceptors.response.use(
       }
     }
 
-    if (typeof window !== 'undefined' && status === 403) {
+    if (
+      typeof window !== 'undefined' &&
+      status === 403 &&
+      !shouldEndSession(status, errorCode)
+    ) {
       if (window.location.pathname !== '/forbidden') {
         window.location.href = '/forbidden'
       }

@@ -113,7 +113,9 @@ describe('TicketDetailView - reenviar links', () => {
       base_date: null,
       team: 'Coordenadores',
       created_at: new Date().toISOString(),
-      assignee: 'Ricardo',
+      assignees: [
+        { user_id: 'u-ricardo', user_name: 'Ricardo', is_active: true },
+      ],
       open_duration: '0 dias',
     })
     mockedGetTicketAllowedActions.mockResolvedValue({
@@ -164,7 +166,9 @@ describe('TicketDetailView - reenviar links', () => {
       base_date: null,
       team: 'Coordenadores',
       created_at: '2020-01-01T12:00:00Z',
-      assignee: 'Ricardo',
+      assignees: [
+        { user_id: 'u-ricardo', user_name: 'Ricardo', is_active: true },
+      ],
       open_duration: '0 dias',
     })
     renderView()

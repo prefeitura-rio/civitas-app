@@ -135,6 +135,12 @@ export function TeamsList({ controller }: TeamsListProps) {
                     <div className="ml-auto w-[80px] shrink-0" />
                   </div>
 
+                  {team.members.length === 0 && (
+                    <div className="equipes-table-empty">
+                      Nenhum colaborador nesta equipe.
+                    </div>
+                  )}
+
                   {team.members.map((member) => {
                     return (
                       <div

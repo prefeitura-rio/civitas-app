@@ -8,6 +8,11 @@ import {
   serializeSession,
   validateAndRefreshSession,
 } from '@/auth/session'
+import {
+  isUserDeactivated,
+  readErrorCode,
+  SESSION_ENDED_HEADER,
+} from '@/lib/auth-session-end'
 import { setForwardedClientIpHeaders } from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
@@ -47,6 +52,24 @@ export interface ProxyHandlerOptions {
   clearSessionOnUpstreamUnauthorized?: boolean
   /** Rótulo dos logs (ex.: `bff`). */
   logLabel?: string
+}
+
+function parseJsonBody(body: ArrayBuffer | null): unknown {
+  if (!body) return null
+  try {
+    return JSON.parse(new TextDecoder().decode(body))
+  } catch {
+    return null
+  }
+}
+
+/** Sessão encerrada pelo BFF: limpa os cookies e marca a resposta (ver SESSION_ENDED_HEADER). */
+function endSession(response: NextResponse) {
+  for (const cookie of clearSessionCookies()) {
+    response.cookies.set(cookie.name, cookie.value, cookie.options)
+  }
+  response.headers.set(SESSION_ENDED_HEADER, '1')
+  return response
 }
 
 function escapeRegExp(value: string) {
@@ -104,24 +127,21 @@ export function createProxyHandler({
     const result = await validateAndRefreshSession(sessionValue, true, true)
 
     if (!result.session) {
+      // O `code` (ex.: `user_deactivated` vindo da renovação) vira o aviso na tela de login.
       const response = NextResponse.json(
-        { message: 'Unauthorized' },
+        {
+          message: 'Unauthorized',
+          code: result.errorCode,
+        },
         { status: 401 },
       )
-      for (const cookie of clearSessionCookies()) {
-        response.cookies.set(cookie.name, cookie.value, cookie.options)
-      }
-
-      return response
+      return endSession(response)
     }
 
     if (authorize) {
       const denied = await authorize(result.session)
       if (denied?.status === 401) {
-        for (const cookie of clearSessionCookies()) {
-          denied.cookies.set(cookie.name, cookie.value, cookie.options)
-        }
-        return denied
+        return endSession(denied)
       }
       if (denied) {
         // A sessão continua válida (e pode ter sido renovada): os cookies seguem atualizados.
@@ -268,6 +288,8 @@ export function createProxyHandler({
           'content-encoding',
           'transfer-encoding',
           'connection',
+          // Só o BFF diz que a sessão acabou: um serviço externo não pode forjar a marca.
+          SESSION_ENDED_HEADER,
         ].includes(lowerKey)
       ) {
         continue
@@ -275,12 +297,13 @@ export function createProxyHandler({
       response.headers.set(key, value)
     }
 
-    if (upstreamResponse.status === 401 && clearSessionOnUpstreamUnauthorized) {
-      for (const cookie of clearSessionCookies()) {
-        response.cookies.set(cookie.name, cookie.value, cookie.options)
-      }
+    const endsSession =
+      upstreamResponse.status === 401 ||
+      (upstreamResponse.status === 403 &&
+        isUserDeactivated(403, readErrorCode(parseJsonBody(responseBody))))
 
-      return response
+    if (endsSession && clearSessionOnUpstreamUnauthorized) {
+      return endSession(response)
     }
 
     return withSessionCookies(response, result.session)

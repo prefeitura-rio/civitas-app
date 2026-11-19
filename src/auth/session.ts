@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 
 import { config, getServerConfig } from '@/config'
+import { readResponseErrorCode } from '@/lib/auth-session-end'
 
 import { getSessionPolicy } from './session-config'
 
@@ -194,7 +195,14 @@ export function buildSessionFromTokenResponse(
   }
 }
 
-export async function refreshAccessToken(session: SessionPayload) {
+export type RefreshAccessTokenResult =
+  | { session: SessionPayload; errorCode?: undefined }
+  | { session: null; errorCode?: string }
+
+/** Renova o token; numa recusa devolve o `code` do civitas-api (ex.: `user_deactivated`). */
+export async function refreshAccessToken(
+  session: SessionPayload,
+): Promise<RefreshAccessTokenResult> {
   const serverConfig = getServerConfig()
   const response = await fetch(
     `${config.apiUrl}${serverConfig.authTokenPath}`,
@@ -213,20 +221,22 @@ export async function refreshAccessToken(session: SessionPayload) {
   )
 
   if (!response.ok) {
-    return null
+    return { session: null, errorCode: await readResponseErrorCode(response) }
   }
 
   const data = (await response.json()) as OAuthTokenResponse
 
   if (!data.access_token || !data.expires_in) {
-    return null
+    return { session: null }
   }
 
   return {
-    ...session,
-    accessToken: data.access_token,
-    sessionId: data.session_id,
-    accessTokenExpiresAt: Date.now() + data.expires_in * 1000,
+    session: {
+      ...session,
+      accessToken: data.access_token,
+      sessionId: data.session_id,
+      accessTokenExpiresAt: Date.now() + data.expires_in * 1000,
+    },
   }
 }
 
@@ -274,12 +284,17 @@ export async function validateAndRefreshSession(
   let refreshed = false
 
   if (refreshIfNeeded && isAccessTokenExpiringSoon(session, nowMs)) {
-    const refreshedSession = await refreshAccessToken(session)
-    if (!refreshedSession) {
-      return { session: null, shouldClear: true, refreshed: false }
+    const refreshResult = await refreshAccessToken(session)
+    if (!refreshResult.session) {
+      return {
+        session: null,
+        shouldClear: true,
+        refreshed: false,
+        errorCode: refreshResult.errorCode,
+      }
     }
 
-    updatedSession = refreshedSession
+    updatedSession = refreshResult.session
     refreshed = true
   }
 

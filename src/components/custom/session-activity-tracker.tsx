@@ -2,22 +2,10 @@
 
 import { useEffect } from 'react'
 
+import { readResponseErrorCode } from '@/lib/auth-session-end'
+import { redirectToSignIn } from '@/lib/session-redirect'
+
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000
-let isSessionRedirecting = false
-
-function redirectToSignIn(errorCode?: string) {
-  if (isSessionRedirecting || window.location.pathname === '/auth/sign-in') {
-    return
-  }
-
-  isSessionRedirecting = true
-
-  if (errorCode === 'session_invalidated') {
-    sessionStorage.setItem('session-invalidated-toast', '1')
-  }
-
-  window.location.replace('/auth/sign-in')
-}
 
 export function SessionActivityTracker() {
   useEffect(() => {
@@ -41,15 +29,7 @@ export function SessionActivityTracker() {
         })
 
         if (response.status === 401) {
-          let errorCode: string | undefined
-          try {
-            const body = (await response.json()) as { code?: string }
-            errorCode = body.code
-          } catch {
-            // Keep the generic login redirect if the response body is not JSON.
-          }
-
-          redirectToSignIn(errorCode)
+          redirectToSignIn(await readResponseErrorCode(response))
         }
       } catch {
         // no-op: next user activity will retry

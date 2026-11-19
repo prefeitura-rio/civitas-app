@@ -1,8 +1,11 @@
+import { redirectToSignIn } from '@/lib/session-redirect'
 import {
   cachedResponse,
   dashboardPath,
   request,
 } from '@/modules/vehicle-intelligence/lib/api'
+
+jest.mock('@/lib/session-redirect', () => ({ redirectToSignIn: jest.fn() }))
 
 /** Resposta mínima para o fetch falso: o ambiente jsdom do Jest não tem `Response`. */
 const fakeResponse = (
@@ -77,5 +80,48 @@ describe('caminho do panorama', () => {
         cisps: [],
       }),
     ).toBe('/api/v1/dashboard?')
+  })
+})
+
+describe('sessão encerrada', () => {
+  afterEach(() => {
+    global.fetch = originalFetch
+    jest.clearAllMocks()
+  })
+
+  it('volta ao login com o motivo quando o BFF encerra a sessão', async () => {
+    global.fetch = jest.fn(async () =>
+      fakeResponse({ message: 'Unauthorized', code: 'user_deactivated' }, 401, {
+        'x-civitas-session-ended': '1',
+      }),
+    ) as unknown as typeof fetch
+
+    // Como em lib/api.ts: a promise não termina (a tela não mostra erro enquanto o navegador sai).
+    const settled = jest.fn()
+    request('/sessao/encerrada').then(settled, settled)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(redirectToSignIn).toHaveBeenCalledWith('user_deactivated')
+    expect(settled).not.toHaveBeenCalled()
+  })
+
+  it('não desloga quando o 401 é do serviço veicular (repassado pelo BFF)', async () => {
+    global.fetch = jest.fn(async () =>
+      fakeResponse({ detail: 'token do serviço inválido' }, 401),
+    ) as unknown as typeof fetch
+
+    await expect(request('/servico/401')).rejects.toThrow(
+      'token do serviço inválido',
+    )
+    expect(redirectToSignIn).not.toHaveBeenCalled()
+  })
+
+  it('não mexe na sessão em outros erros', async () => {
+    global.fetch = jest.fn(async () =>
+      fakeResponse({ detail: 'Sem permissão' }, 403),
+    ) as unknown as typeof fetch
+
+    await expect(request('/sessao/forbidden')).rejects.toThrow('Sem permissão')
+    expect(redirectToSignIn).not.toHaveBeenCalled()
   })
 })

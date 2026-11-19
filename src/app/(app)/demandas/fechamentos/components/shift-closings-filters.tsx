@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { getTeamsList } from '@/http/teams/get-teams'
 import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-roles'
+import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
 import { dateConfig } from '@/lib/date-config'
 
 import styles from './shift-closings-list.module.css'
@@ -61,6 +62,15 @@ type ShiftClosingsFiltersProps = {
   onChange: (filters: ShiftClosingsFilterState) => void
 }
 
+/** Fechamentos são histórico: inclui adjuntos desativados, sinalizados no rótulo. */
+export function adjunctOptionFromUser(user: UserRoleListItem) {
+  const name = user.full_name?.trim() || user.username
+  return {
+    value: user.id,
+    label: user.is_active === false ? `${name} (inativo)` : name,
+  }
+}
+
 export function ShiftClosingsFilters({
   filters,
   onChange,
@@ -70,11 +80,11 @@ export function ShiftClosingsFilters({
   const { data: adjunctOptions = [], isLoading: isAdjunctsLoading } = useQuery({
     queryKey: ['shift-closings-adjuncts'],
     queryFn: async () => {
-      const { data } = await getUsersOnlyWithRoles({ role: 'Adjunto' })
-      return data.map((user) => ({
-        value: user.id,
-        label: user.full_name?.trim() || user.username,
-      }))
+      const { data } = await getUsersOnlyWithRoles({
+        role: 'Adjunto',
+        status: 'all',
+      })
+      return data.map(adjunctOptionFromUser)
     },
     staleTime: 1000 * 60 * 5,
   })
