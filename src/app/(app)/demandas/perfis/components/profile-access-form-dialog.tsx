@@ -109,10 +109,12 @@ export function ProfileAccessFormDialog({
 
   const { data: profile } = useProfile()
   const targetIsInactive = dialogInitialData?.is_active === false
+  // Como no civitas-api: só um Desenvolvedor desativa outro (reativar não tem essa regra).
   const canManageActivation =
     Boolean(ownRole && ACTIVATION_MANAGER_ROLES.includes(ownRole)) &&
     Boolean(dialogInitialData) &&
-    dialogInitialData?.id !== profile?.id
+    dialogInitialData?.id !== profile?.id &&
+    (targetIsInactive || !lockedByDeveloperRole)
   const roleLocked = lockedByDeveloperRole || targetIsInactive
   const availableRoleOptions = roleOptions.filter(
     (option) =>

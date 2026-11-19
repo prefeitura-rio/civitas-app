@@ -167,8 +167,9 @@ export function UserActivationDialog({
           })
         : reactivateUser(user.id)
     },
-    onSuccess: async (result) => {
-      await invalidateUserActivationQueries(queryClient)
+    onSuccess: (result) => {
+      // A operação já terminou: avisa e fecha sem esperar as listas recarregarem.
+      invalidateUserActivationQueries(queryClient)
       if (isDeactivating) {
         toast.success(`${displayName} foi desativado(a).`, {
           description: describeDeactivationResult(result, transferToName),
@@ -382,19 +383,13 @@ export function UserActivationDialog({
               ) : null}
 
               {preview && preview.shared_open_tickets > 0 ? (
-                <ul
-                  className={`${styles.perfisModalNotice} list-disc space-y-1 pl-5`}
-                >
-                  {preview.shared_open_tickets > 0 ? (
-                    <li>
-                      {`Sai de ${plural(
-                        preview.shared_open_tickets,
-                        'chamado compartilhado',
-                        'chamados compartilhados',
-                      )}; os outros responsáveis continuam.`}
-                    </li>
-                  ) : null}
-                </ul>
+                <p className={styles.perfisModalNotice}>
+                  {`Sai de ${plural(
+                    preview.shared_open_tickets,
+                    'chamado compartilhado',
+                    'chamados compartilhados',
+                  )}; os outros responsáveis continuam.`}
+                </p>
               ) : null}
             </>
           ) : (

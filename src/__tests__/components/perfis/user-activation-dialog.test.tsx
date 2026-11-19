@@ -132,6 +132,24 @@ describe('UserActivationDialog', () => {
     })
   })
 
+  it('closes right after the API answers, without waiting for the lists to refetch', async () => {
+    mockedDeactivate.mockResolvedValue(result)
+    const { onClose, invalidate } = renderDialog()
+    // Uma lista lenta para recarregar não pode prender o diálogo em "enviando".
+    invalidate.mockReturnValue(new Promise(() => {}))
+
+    await waitForPreview()
+    fireEvent.click(screen.getByLabelText('Desligamento'))
+    fireEvent.click(screen.getByRole('button', { name: 'Desativar' }))
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(toast.success).toHaveBeenCalledWith(
+      'Ana foi desativado(a).',
+      expect.anything(),
+    )
+    expect(invalidate).toHaveBeenCalled()
+  })
+
   it('requires choosing who takes the tickets, ticket team first', async () => {
     mockedPreview.mockResolvedValue({
       sole_open_tickets: 2,

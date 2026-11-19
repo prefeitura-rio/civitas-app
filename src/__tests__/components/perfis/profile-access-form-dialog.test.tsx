@@ -6,6 +6,11 @@ import { useOwnUserRole } from '@/hooks/useQueries/useOwnUserRole'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
 
+// Staging: o perfil Desenvolvedor existe.
+jest.mock('@/config', () => {
+  const actual = jest.requireActual('@/config')
+  return { ...actual, config: { ...actual.config, enableDeveloperRole: true } }
+})
 jest.mock('@/hooks/useQueries/useOwnUserRole', () => ({
   useOwnUserRole: jest.fn(),
 }))
@@ -108,5 +113,27 @@ describe('ProfileAccessFormDialog activation', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reativar usuário' }))
     expect(onRequestActivationChange).toHaveBeenCalledWith(inactive)
+  })
+
+  it('hides the deactivation of a Desenvolvedor from a coordinator', () => {
+    renderDialog({ ...active, role: 'Desenvolvedor' })
+    expect(
+      screen.queryByRole('button', { name: 'Desativar usuário' }),
+    ).toBeNull()
+  })
+
+  it('lets a Desenvolvedor deactivate another Desenvolvedor', () => {
+    mockedOwnRole.mockReturnValue({ data: 'Desenvolvedor' })
+    renderDialog({ ...active, role: 'Desenvolvedor' })
+    expect(
+      screen.getByRole('button', { name: 'Desativar usuário' }),
+    ).toBeInTheDocument()
+  })
+
+  it('still lets a coordinator reactivate a Desenvolvedor', () => {
+    renderDialog({ ...inactive, role: 'Desenvolvedor' })
+    expect(
+      screen.getByRole('button', { name: 'Reativar usuário' }),
+    ).toBeInTheDocument()
   })
 })
