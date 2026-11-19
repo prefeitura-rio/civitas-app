@@ -15,7 +15,8 @@ export type TicketHeaderOut = {
 
   created_at: string
 
-  assignee?: string | null
+  /** Responsáveis atuais, na ordem de atribuição. */
+  assignees?: { user_id: string; user_name: string; is_active?: boolean }[]
 
   open_duration: string
 }
