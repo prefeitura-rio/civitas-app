@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react'
 
+import { markSessionEndNotice } from '@/lib/auth-session-end'
+
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000
 let isSessionRedirecting = false
 
@@ -12,9 +14,7 @@ function redirectToSignIn(errorCode?: string) {
 
   isSessionRedirecting = true
 
-  if (errorCode === 'session_invalidated') {
-    sessionStorage.setItem('session-invalidated-toast', '1')
-  }
+  markSessionEndNotice(errorCode)
 
   window.location.replace('/auth/sign-in')
 }

@@ -24,7 +24,12 @@ export async function POST(request: NextRequest) {
 
   if (!result.session) {
     const response = NextResponse.json(
-      { authenticated: false },
+      {
+        authenticated: false,
+        ...('errorCode' in result && result.errorCode
+          ? { code: result.errorCode }
+          : {}),
+      },
       { status: 401 },
     )
     for (const cookie of clearSessionCookies()) {

@@ -116,4 +116,54 @@ describe('POST /api/auth/session-touch', () => {
     const setCookie = response.headers.getSetCookie?.() ?? []
     expect(setCookie.some((c) => c.includes('Max-Age=0'))).toBe(true)
   })
+
+  it('forwards user_deactivated from /users/me and clears cookies', async () => {
+    const session = buildSessionFromTokenResponse(
+      {
+        access_token: 'valid-token',
+        expires_in: 3600,
+        session_id: 'session-1',
+      },
+      { username: 'user', password: 'pass' },
+      true,
+    )
+    const cookie = serializeSession(session).value
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ code: 'user_deactivated' }),
+    }) as unknown as typeof fetch
+
+    const response = await POST(makeRequest(cookie))
+    const body = (await response.json()) as { code?: string }
+
+    expect(response.status).toBe(401)
+    expect(body.code).toBe('user_deactivated')
+    const setCookie = response.headers.getSetCookie?.() ?? []
+    expect(setCookie.some((c) => c.includes('Max-Age=0'))).toBe(true)
+  })
+
+  it('forwards user_deactivated when the token refresh is refused', async () => {
+    const session = buildSessionFromTokenResponse(
+      { access_token: 'old-token', expires_in: 10, session_id: 'session-1' },
+      { username: 'user', password: 'pass' },
+      true,
+    )
+    const cookie = serializeSession(session).value
+    jest.setSystemTime(Date.now() + 20_000)
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ code: 'user_deactivated' }),
+    }) as unknown as typeof fetch
+
+    const response = await POST(makeRequest(cookie))
+    const body = (await response.json()) as { code?: string }
+
+    expect(response.status).toBe(401)
+    expect(body.code).toBe('user_deactivated')
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+  })
 })

@@ -4,6 +4,7 @@ import {
   TICKET_MODULE_PERMISSIONS_PATH,
   type TicketModulePermissionsMeOut,
 } from '@/http/tickets/ticket-module-permissions-me'
+import { USER_DEACTIVATED_CODE } from '@/lib/auth-session-end'
 
 import type { BffSession } from './create-proxy-handler'
 
@@ -14,7 +15,7 @@ import type { BffSession } from './create-proxy-handler'
  */
 export type ScreenPermissionsResult =
   | { status: 'ok'; permissions: TicketModulePermissionsMeOut }
-  | { status: 'unauthorized' }
+  | { status: 'unauthorized'; code?: string }
   | { status: 'error' }
 
 const CACHE_TTL_MS = 60_000
@@ -78,6 +79,15 @@ async function requestScreenPermissions(
       },
     )
     if (response.status === 401) return { status: 'unauthorized' }
+    if (response.status === 403) {
+      // Usuário desativado na CIVITAS: a sessão acabou (não é falta de permissão da tela).
+      const body = (await response.json().catch(() => null)) as {
+        code?: unknown
+      } | null
+      if (body?.code === USER_DEACTIVATED_CODE) {
+        return { status: 'unauthorized', code: USER_DEACTIVATED_CODE }
+      }
+    }
     if (!response.ok) {
       console.error('[screen-permissions] civitas-api responded', {
         status: response.status,
@@ -105,18 +115,25 @@ async function requestScreenPermissions(
  * - `unauthorized`: o civitas-api recusou a sessão (ex.: outro login a substituiu). Como no BFF principal, a sessão
  *   do CIVITAS acabou e o usuário volta ao login.
  */
-export type ScreenAccess = 'allowed' | 'forbidden' | 'unauthorized'
+export type ScreenAccess =
+  | { access: 'allowed' | 'forbidden' }
+  | { access: 'unauthorized'; code?: string }
 
 export async function checkSessionScreenAccess(
   session: BffSession,
   screenCode: string,
 ): Promise<ScreenAccess> {
   const result = await fetchSessionScreenPermissions(session)
-  if (result.status === 'unauthorized') return 'unauthorized'
-  return result.status === 'ok' &&
-    canViewTicketScreen(result.permissions, screenCode)
-    ? 'allowed'
-    : 'forbidden'
+  if (result.status === 'unauthorized') {
+    return { access: 'unauthorized', code: result.code }
+  }
+  return {
+    access:
+      result.status === 'ok' &&
+      canViewTicketScreen(result.permissions, screenCode)
+        ? 'allowed'
+        : 'forbidden',
+  }
 }
 
 /** Só para testes. */

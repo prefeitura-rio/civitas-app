@@ -15,13 +15,20 @@ const handler = createProxyHandler({
   pathPrefix: VEHICLE_INTELLIGENCE_BFF_PREFIX,
   getUpstreamBaseUrl: getVehicleIntelligenceApiUrl,
   authorize: async (session) => {
-    const access = await checkSessionScreenAccess(
+    const result = await checkSessionScreenAccess(
       session,
       VEHICLE_INTELLIGENCE_SCREEN_CODE,
     )
-    if (access === 'allowed') return null
-    return access === 'unauthorized'
-      ? NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    if (result.access === 'allowed') return null
+    // 401 encerra a sessão (o proxy limpa os cookies); o `code` vira o aviso na tela de login.
+    return result.access === 'unauthorized'
+      ? NextResponse.json(
+          {
+            message: 'Unauthorized',
+            ...(result.code ? { code: result.code } : {}),
+          },
+          { status: 401 },
+        )
       : NextResponse.json({ message: 'Forbidden' }, { status: 403 })
   },
   clearSessionOnUpstreamUnauthorized: false,

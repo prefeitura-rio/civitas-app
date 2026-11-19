@@ -1,3 +1,5 @@
+import { SESSION_ENDED_HEADER } from '@/lib/auth-session-end'
+import { redirectToSignIn } from '@/lib/session-redirect'
 import { serviceUrl } from '@/modules/vehicle-intelligence/app/base-path'
 import { recorteApiPath } from '@/modules/vehicle-intelligence/config/recortes'
 import type {
@@ -13,6 +15,14 @@ import type {
 /** O erro da API: a mensagem de `detail` (FastAPI) ou o código HTTP. */
 export async function responseError(response: Response): Promise<Error> {
   const detail = await response.json().catch(() => null)
+  // Só desloga quando o BFF marca que a sessão da CIVITAS acabou (ex.: usuário desativado). Um 401 do serviço
+  // veicular, repassado pelo BFF-IV, vem sem a marca e não derruba o login.
+  if (
+    response.status === 401 &&
+    response.headers.get(SESSION_ENDED_HEADER) === '1'
+  ) {
+    redirectToSignIn(typeof detail?.code === 'string' ? detail.code : undefined)
+  }
   const message =
     typeof detail?.detail === 'string'
       ? detail.detail
