@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 
 import { config, getServerConfig } from '@/config'
+import { readResponseErrorCode } from '@/lib/auth-session-end'
 
 import { getSessionPolicy } from './session-config'
 
@@ -198,15 +199,6 @@ export type RefreshAccessTokenResult =
   | { session: SessionPayload; errorCode?: undefined }
   | { session: null; errorCode?: string }
 
-async function readErrorCode(response: Response): Promise<string | undefined> {
-  try {
-    const body = (await response.json()) as { code?: unknown }
-    return typeof body?.code === 'string' ? body.code : undefined
-  } catch {
-    return undefined
-  }
-}
-
 /** Renova o token; numa recusa devolve o `code` do civitas-api (ex.: `user_deactivated`). */
 export async function refreshAccessToken(
   session: SessionPayload,
@@ -229,7 +221,7 @@ export async function refreshAccessToken(
   )
 
   if (!response.ok) {
-    return { session: null, errorCode: await readErrorCode(response) }
+    return { session: null, errorCode: await readResponseErrorCode(response) }
   }
 
   const data = (await response.json()) as OAuthTokenResponse

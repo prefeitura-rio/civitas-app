@@ -15,6 +15,7 @@ import {
 } from '@/http/tickets/ticket-module-permissions-me'
 import {
   isUserDeactivated,
+  readResponseErrorCode,
   USER_DEACTIVATED_MESSAGE,
 } from '@/lib/auth-session-end'
 import { genericErrorMessage } from '@/utils/error-handlers'
@@ -56,12 +57,8 @@ export async function signInAction(data: FormData) {
     )
 
     if (!response.ok) {
-      let errorCode: string | undefined
-      try {
-        errorCode = ((await response.json()) as { code?: string })?.code
-      } catch {
-        // Corpo não-JSON: mantém a mensagem genérica.
-      }
+      // Corpo não-JSON: sem `code`, fica a mensagem genérica.
+      const errorCode = await readResponseErrorCode(response)
 
       return {
         success: false,

@@ -96,8 +96,13 @@ describe('sessão encerrada', () => {
       }),
     ) as unknown as typeof fetch
 
-    await expect(request('/sessao/encerrada')).rejects.toThrow()
+    // Como em lib/api.ts: a promise não termina (a tela não mostra erro enquanto o navegador sai).
+    const settled = jest.fn()
+    request('/sessao/encerrada').then(settled, settled)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
     expect(redirectToSignIn).toHaveBeenCalledWith('user_deactivated')
+    expect(settled).not.toHaveBeenCalled()
   })
 
   it('não desloga quando o 401 é do serviço veicular (repassado pelo BFF)', async () => {

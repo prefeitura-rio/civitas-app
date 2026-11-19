@@ -2,7 +2,7 @@ import {
   recorte,
   recorteApiPath,
 } from '@/modules/vehicle-intelligence/config/recortes'
-import { responseError } from '@/modules/vehicle-intelligence/lib/api'
+import { rejectResponse } from '@/modules/vehicle-intelligence/lib/api'
 
 export type ReportFormat = 'pdf' | 'html'
 
@@ -32,14 +32,14 @@ async function fetchReportStatus(
   })
   // 409 no POST devolve o estado corrente: outra geração já está em andamento.
   if (!response.ok && !(init.method === 'POST' && response.status === 409))
-    throw await responseError(response)
+    await rejectResponse(response)
   return response.json() as Promise<ReportStatus>
 }
 
 /** Baixa por fetch, e não por um `<a href>`, para mostrar o erro da API na tela em vez de abrir uma página de erro. */
 async function downloadFile(path: string, fileName: string): Promise<void> {
   const response = await fetch(recorteApiPath(path), { cache: 'no-store' })
-  if (!response.ok) throw await responseError(response)
+  if (!response.ok) await rejectResponse(response)
   const objectUrl = URL.createObjectURL(await response.blob())
   try {
     const anchor = document.createElement('a')

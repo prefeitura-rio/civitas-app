@@ -7,12 +7,24 @@ import {
   getSessionIdFromValidSession,
 } from '@/auth/session'
 import { config as appConfig } from '@/config'
-import { shouldEndSession } from '@/lib/auth-session-end'
+import { readErrorCode, shouldEndSession } from '@/lib/auth-session-end'
 import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
 
 import { redirectToSignIn } from './session-redirect'
 
 export const isApiError = axios.isAxiosError
+
+/** O `code` do corpo do erro. Num download (`responseType: 'blob'`) o corpo JSON chega como Blob. */
+async function readAxiosErrorCode(data: unknown): Promise<string | undefined> {
+  if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    try {
+      return readErrorCode(JSON.parse(await data.text()))
+    } catch {
+      return undefined
+    }
+  }
+  return readErrorCode(data)
+}
 
 const isServer = typeof window === 'undefined'
 export const api = axios.create({
@@ -63,7 +75,7 @@ api.interceptors.response.use(
   async (error) => {
     const status = error?.response?.status
 
-    const errorCode = error?.response?.data?.code
+    const errorCode = await readAxiosErrorCode(error?.response?.data)
 
     // 401 ou 403 `user_deactivated`: encerra o login (não é só falta de permissão).
     if (typeof window !== 'undefined' && shouldEndSession(status, errorCode)) {

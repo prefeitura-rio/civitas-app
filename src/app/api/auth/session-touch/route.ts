@@ -9,6 +9,7 @@ import {
   validateAndRefreshSession,
 } from '@/auth/session'
 import { config } from '@/config'
+import { readResponseErrorCode } from '@/lib/auth-session-end'
 
 export async function POST(request: NextRequest) {
   if (!isTrustedOrigin(request)) {
@@ -26,9 +27,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json(
       {
         authenticated: false,
-        ...('errorCode' in result && result.errorCode
-          ? { code: result.errorCode }
-          : {}),
+        code: result.errorCode,
       },
       { status: 401 },
     )
@@ -48,13 +47,7 @@ export async function POST(request: NextRequest) {
   })
 
   if (!validationResponse.ok) {
-    let errorCode: string | undefined
-    try {
-      const body = (await validationResponse.json()) as { code?: string }
-      errorCode = body.code
-    } catch {
-      // Keep the generic unauthorized response if upstream did not return JSON.
-    }
+    const errorCode = await readResponseErrorCode(validationResponse)
 
     const response = NextResponse.json(
       { authenticated: false, code: errorCode },

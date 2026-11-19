@@ -5,6 +5,7 @@ import { markSessionEndNotice } from '@/lib/auth-session-end'
 
 import { queryClient } from './react-query'
 
+// Nunca volta a false: o redirect recarrega a página (window.location.replace), e o módulo começa de novo.
 let isAuthRedirecting = false
 
 /**

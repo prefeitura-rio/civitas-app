@@ -23,6 +23,25 @@ const NOTICE_KEYS: Record<SessionEndNotice, string> = {
 export const USER_DEACTIVATED_MESSAGE =
   'Seu acesso foi desativado. Procure a coordenação.'
 
+/** O `code` de um corpo de erro do civitas-api/BFF (ex.: `{ code: 'user_deactivated' }`), se for uma string. */
+export function readErrorCode(body: unknown): string | undefined {
+  if (typeof body !== 'object' || body === null || !('code' in body)) {
+    return undefined
+  }
+  return typeof body.code === 'string' ? body.code : undefined
+}
+
+/** O `code` do corpo de uma resposta de erro; corpo vazio ou que não é JSON dá `undefined`. */
+export async function readResponseErrorCode(
+  response: Response,
+): Promise<string | undefined> {
+  try {
+    return readErrorCode(await response.json())
+  } catch {
+    return undefined
+  }
+}
+
 export function isUserDeactivated(status: number | undefined, code?: string) {
   return status === 403 && code === USER_DEACTIVATED_CODE
 }

@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server'
 
 import { GET } from '@/app/api/bff-iv/[...path]/route'
 import { buildSessionFromTokenResponse, serializeSession } from '@/auth/session'
-import { clearScreenPermissionsCache } from '@/lib/bff/screen-permissions'
+import { invalidateScreenPermissionsCache } from '@/lib/bff/screen-permissions'
 
 const UPSTREAM = 'http://iv.internal'
 
@@ -89,7 +89,7 @@ describe('GET /api/bff-iv/[...path]', () => {
   beforeEach(() => {
     process.env.APP_URL = 'http://localhost:3000'
     process.env.VEHICLE_INTELLIGENCE_API_URL = UPSTREAM
-    clearScreenPermissionsCache()
+    invalidateScreenPermissionsCache()
   })
 
   afterEach(() => {
@@ -226,11 +226,11 @@ describe('GET /api/bff-iv/[...path]', () => {
         ? json({ code: 'user_deactivated' }, 403)
         : json({ ok: true }),
     ) as unknown as typeof fetch
-    clearScreenPermissionsCache()
+    invalidateScreenPermissionsCache()
     expect(ended(await GET(makeRequest('/api/veiculos/v1/x')))).toBe(true)
 
     // 401 do serviço veicular: a sessão da CIVITAS continua, sem a marca
-    clearScreenPermissionsCache()
+    invalidateScreenPermissionsCache()
     mockFetch({ upstream: () => json({ detail: 'service' }, 401) })
     const fromService = await GET(makeRequest('/api/veiculos/v1/x'))
     expect(fromService.status).toBe(401)

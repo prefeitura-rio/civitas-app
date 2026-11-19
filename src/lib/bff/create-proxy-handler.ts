@@ -8,7 +8,11 @@ import {
   serializeSession,
   validateAndRefreshSession,
 } from '@/auth/session'
-import { isUserDeactivated, SESSION_ENDED_HEADER } from '@/lib/auth-session-end'
+import {
+  isUserDeactivated,
+  readErrorCode,
+  SESSION_ENDED_HEADER,
+} from '@/lib/auth-session-end'
 import { setForwardedClientIpHeaders } from '@/lib/request-client-ip'
 
 const ALLOWED_METHODS = new Set([
@@ -46,19 +50,22 @@ export interface ProxyHandlerOptions {
    * civitas-api: um 401 deles (ex.: configuração de OIDC errada) não pode derrubar o login do usuário.
    */
   clearSessionOnUpstreamUnauthorized?: boolean
+  /** Chamado com a resposta do upstream, antes de repassá-la (ex.: invalidar um cache depois de uma escrita). */
+  onUpstreamResponse?: (event: {
+    method: string
+    path: string
+    status: number
+  }) => void
   /** Rótulo dos logs (ex.: `bff`). */
   logLabel?: string
 }
 
-function readErrorCode(body: ArrayBuffer | null): string | undefined {
-  if (!body) return undefined
+function parseJsonBody(body: ArrayBuffer | null): unknown {
+  if (!body) return null
   try {
-    const parsed = JSON.parse(new TextDecoder().decode(body)) as {
-      code?: unknown
-    }
-    return typeof parsed?.code === 'string' ? parsed.code : undefined
+    return JSON.parse(new TextDecoder().decode(body))
   } catch {
-    return undefined
+    return null
   }
 }
 
@@ -99,6 +106,7 @@ export function createProxyHandler({
   getUpstreamBaseUrl,
   authorize,
   clearSessionOnUpstreamUnauthorized = true,
+  onUpstreamResponse,
   logLabel = 'bff',
 }: ProxyHandlerOptions) {
   const prefixPattern = new RegExp(`^${escapeRegExp(pathPrefix)}`)
@@ -130,9 +138,7 @@ export function createProxyHandler({
       const response = NextResponse.json(
         {
           message: 'Unauthorized',
-          ...('errorCode' in result && result.errorCode
-            ? { code: result.errorCode }
-            : {}),
+          code: result.errorCode,
         },
         { status: 401 },
       )
@@ -244,6 +250,12 @@ export function createProxyHandler({
       upstreamResponse = await fetchUpstream(currentUpstreamUrl)
     }
 
+    onUpstreamResponse?.({
+      method: request.method,
+      path: upstreamPath,
+      status: upstreamResponse.status,
+    })
+
     const hasNoBody =
       request.method === 'HEAD' ||
       NO_BODY_RESPONSE_STATUSES.has(upstreamResponse.status)
@@ -301,7 +313,7 @@ export function createProxyHandler({
     const endsSession =
       upstreamResponse.status === 401 ||
       (upstreamResponse.status === 403 &&
-        isUserDeactivated(403, readErrorCode(responseBody)))
+        isUserDeactivated(403, readErrorCode(parseJsonBody(responseBody))))
 
     if (endsSession && clearSessionOnUpstreamUnauthorized) {
       return endSession(response)

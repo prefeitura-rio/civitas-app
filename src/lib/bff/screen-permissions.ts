@@ -4,7 +4,10 @@ import {
   TICKET_MODULE_PERMISSIONS_PATH,
   type TicketModulePermissionsMeOut,
 } from '@/http/tickets/ticket-module-permissions-me'
-import { USER_DEACTIVATED_CODE } from '@/lib/auth-session-end'
+import {
+  readResponseErrorCode,
+  USER_DEACTIVATED_CODE,
+} from '@/lib/auth-session-end'
 
 import type { BffSession } from './create-proxy-handler'
 
@@ -31,6 +34,9 @@ const cache = new Map<
 // Consultas em andamento por sessão: as chamadas paralelas da mesma tela (cache vazio) esperam a mesma resposta em
 // vez de cada uma consultar o civitas-api.
 const inFlight = new Map<string, Promise<ScreenPermissionsResult>>()
+
+// Muda a cada invalidação: uma consulta que começou antes dela não grava o resultado (já velho) no cache.
+let cacheGeneration = 0
 
 function pruneCache(nowMs: number) {
   for (const [key, entry] of cache) {
@@ -65,6 +71,7 @@ export async function fetchSessionScreenPermissions(
 async function requestScreenPermissions(
   session: BffSession,
 ): Promise<ScreenPermissionsResult> {
+  const generation = cacheGeneration
   try {
     const response = await fetch(
       `${config.apiUrl}/${TICKET_MODULE_PERMISSIONS_PATH}`,
@@ -81,10 +88,7 @@ async function requestScreenPermissions(
     if (response.status === 401) return { status: 'unauthorized' }
     if (response.status === 403) {
       // Usuário desativado na CIVITAS: a sessão acabou (não é falta de permissão da tela).
-      const body = (await response.json().catch(() => null)) as {
-        code?: unknown
-      } | null
-      if (body?.code === USER_DEACTIVATED_CODE) {
+      if ((await readResponseErrorCode(response)) === USER_DEACTIVATED_CODE) {
         return { status: 'unauthorized', code: USER_DEACTIVATED_CODE }
       }
     }
@@ -95,12 +99,14 @@ async function requestScreenPermissions(
       return { status: 'error' }
     }
     const permissions = (await response.json()) as TicketModulePermissionsMeOut
-    const nowMs = Date.now()
-    pruneCache(nowMs)
-    cache.set(session.sessionId, {
-      expiresAt: nowMs + CACHE_TTL_MS,
-      permissions,
-    })
+    if (generation === cacheGeneration) {
+      const nowMs = Date.now()
+      pruneCache(nowMs)
+      cache.set(session.sessionId, {
+        expiresAt: nowMs + CACHE_TTL_MS,
+        permissions,
+      })
+    }
     return { status: 'ok', permissions }
   } catch (error) {
     console.error('[screen-permissions] request failed', error)
@@ -136,8 +142,13 @@ export async function checkSessionScreenAccess(
   }
 }
 
-/** Só para testes. */
-export function clearScreenPermissionsCache() {
+/**
+ * Esquece as permissões guardadas de todas as sessões. Chamado quando um usuário é desativado: o cache é por sessão e
+ * não se sabe a sessão dele, então a próxima chamada de cada sessão volta a consultar o civitas-api (que recusa o
+ * desativado). Vale para este processo do Next.
+ */
+export function invalidateScreenPermissionsCache() {
+  cacheGeneration += 1
   cache.clear()
   inFlight.clear()
 }

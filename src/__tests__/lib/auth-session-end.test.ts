@@ -1,6 +1,8 @@
 import {
   consumeSessionEndNotice,
   markSessionEndNotice,
+  readErrorCode,
+  readResponseErrorCode,
   shouldEndSession,
   USER_DEACTIVATED_CODE,
 } from '@/lib/auth-session-end'
@@ -35,5 +37,34 @@ describe('auth-session-end', () => {
     markSessionEndNotice('whatever')
     markSessionEndNotice(undefined)
     expect(consumeSessionEndNotice()).toBeNull()
+  })
+
+  it.each([
+    [{ code: 'user_deactivated', detail: 'x' }, 'user_deactivated'],
+    [{ code: 42 }, undefined],
+    [{ detail: 'sem code' }, undefined],
+    [null, undefined],
+    ['texto', undefined],
+    [undefined, undefined],
+  ])('readErrorCode(%p) → %p', (body, expected) => {
+    expect(readErrorCode(body)).toBe(expected)
+  })
+
+  it('readResponseErrorCode lê o code do corpo JSON', async () => {
+    const response = { json: async () => ({ code: 'user_deactivated' }) }
+    expect(await readResponseErrorCode(response as unknown as Response)).toBe(
+      'user_deactivated',
+    )
+  })
+
+  it('readResponseErrorCode ignora corpo que não é JSON', async () => {
+    const response = {
+      json: async () => {
+        throw new SyntaxError('Unexpected token')
+      },
+    }
+    expect(
+      await readResponseErrorCode(response as unknown as Response),
+    ).toBeUndefined()
   })
 })
