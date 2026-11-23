@@ -26,17 +26,16 @@ export function useMapSearch({
   const handleSearchSubmit = useCallback(
     (props: SearchSubmitProps) => {
       const { address } = props
-      const trimmedAddress = address.replace(/^0+/, '')
+      const normalize = (code: string) =>
+        code
+          .trim()
+          .replace(/^0+(?=.)/, '')
+          .toUpperCase()
+      const trimmedAddress = normalize(address)
+      if (!trimmedAddress) return
 
       const radar = radars?.find((r) => {
-        const trimmedCetRioCode = r.cetRioCode?.replace(/^0+/, '')
-        if (trimmedCetRioCode === trimmedAddress) return true
-
-        return (
-          r.equipmentCodes?.some(
-            (eqCode) => eqCode.replace(/^0+/, '') === trimmedAddress,
-          ) ?? false
-        )
+        return normalize(r.cetRioCode) === trimmedAddress
       })
 
       if (radar) {
@@ -49,7 +48,7 @@ export function useMapSearch({
       }
 
       const camera = cameras?.find((c) => {
-        const trimmedCode = c.code.replace(/^0+/, '')
+        const trimmedCode = normalize(c.code)
         return trimmedCode === trimmedAddress
       })
 

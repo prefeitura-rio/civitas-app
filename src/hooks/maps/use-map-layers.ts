@@ -3,7 +3,13 @@
 import { useMemo, useRef } from 'react'
 
 import { useMap } from '@/hooks/useContexts/use-map-context'
-import type { BusStop, FogoCruzadoIncident, School } from '@/models/entities'
+import type {
+  BusStop,
+  Camera,
+  CollectionPoint,
+  FogoCruzadoIncident,
+  School,
+} from '@/models/entities'
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 import {
   busStopAdapter,
@@ -16,6 +22,8 @@ import {
 } from '@/utils/point-layer-sources'
 
 const EMPTY_SOURCES: PreparedPointSource[] = []
+const EMPTY_RADARS: CollectionPoint[] = []
+const EMPTY_CAMERAS: Camera[] = []
 const prepareIncidents = (data: readonly FogoCruzadoIncident[] | undefined) => [
   preparePointSource(POINT_LAYER_IDS.incidents, data, incidentAdapter),
 ]
@@ -195,11 +203,13 @@ export function useMapLayers() {
     pointSources,
 
     radars,
+    searchRadars: radarLayer.isVisible ? visibleRadars : EMPTY_RADARS,
     selectedRadar,
     setSelectedRadar,
     multiSelectRadar,
 
     cameras,
+    searchCameras: cameraLayer.isVisible ? visibleCameras : EMPTY_CAMERAS,
     selectedCamera,
     setSelectedCamera,
     selectCamera,

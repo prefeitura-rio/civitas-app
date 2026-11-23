@@ -2,6 +2,7 @@ import type { DeckProps } from '@deck.gl/core'
 import { act, render, screen } from '@testing-library/react'
 
 import { Map } from '@/app/(app)/veiculos/components/map'
+import { SearchBox } from '@/app/(app)/veiculos/components/map/components/search-box'
 import { useClusteredMapLayers } from '@/hooks/maps/use-clustered-map-layers'
 
 let mockDeckProps: DeckProps
@@ -71,11 +72,29 @@ jest.mock(
   () => ({ MapLayerControl: () => null }),
 )
 jest.mock('@/app/(app)/veiculos/components/map/components/search-box', () => ({
-  SearchBox: () => null,
+  SearchBox: jest.fn(() => null),
 }))
 
 describe('vehicle map renderer resize wiring', () => {
   beforeEach(() => jest.clearAllMocks())
+
+  it('renders and clears the red circle selected by the equipment search', () => {
+    render(<Map />)
+    act(() =>
+      jest.mocked(SearchBox).mock.lastCall?.[0].setEquipmentHighlight?.({
+        longitude: -43.2,
+        latitude: -22.9,
+      }),
+    )
+    expect((mockDeckProps.layers as { id: string }[]).at(-1)?.id).toBe(
+      'search-equipment-highlight',
+    )
+    expect(jest.mocked(SearchBox).mock.lastCall?.[0].isVisible).toBe(true)
+    act(() =>
+      jest.mocked(SearchBox).mock.lastCall?.[0].setEquipmentHighlight?.(null),
+    )
+    expect((mockDeckProps.layers as unknown[]).at(-1)).toBeNull()
+  })
 
   it('shares the renderer size with clustering and cards while synchronizing Mapbox', () => {
     render(<Map />)

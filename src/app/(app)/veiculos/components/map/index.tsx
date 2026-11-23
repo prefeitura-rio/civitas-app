@@ -3,7 +3,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { type Deck, DeckGL } from 'deck.gl'
-import { useCallback, useRef } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import MapGl, { type MapRef } from 'react-map-gl'
 
 import { useClusteredMapLayers } from '@/hooks/maps/use-clustered-map-layers'
@@ -14,6 +14,8 @@ import { useMouseInteractions } from '@/hooks/maps/use-mouse-interactions'
 import { useSelectionManagement } from '@/hooks/maps/use-selection-management'
 import { type MapSize, useMapSize } from '@/hooks/use-map-size'
 import { useMap } from '@/hooks/useContexts/use-map-context'
+import type { AddressMarker } from '@/models/utils'
+import { createRightClickRingLayer } from '@/utils/point-layer-config'
 
 import { MAPBOX_ACCESS_TOKEN } from './components/constants'
 import { ContextMenu } from './components/context-menu'
@@ -26,6 +28,18 @@ import { SelectionCards } from './components/select-cards'
 export function Map() {
   const deckRef = useRef<Deck | null>(null)
   const mapRef = useRef<MapRef | null>(null)
+  const [equipmentHighlight, setEquipmentHighlight] =
+    useState<AddressMarker | null>(null)
+  const equipmentHighlightLayer = useMemo(
+    () =>
+      createRightClickRingLayer(
+        'search-equipment-highlight',
+        equipmentHighlight
+          ? [equipmentHighlight.longitude, equipmentHighlight.latitude]
+          : null,
+      ),
+    [equipmentHighlight],
+  )
 
   const {
     clusterMode,
@@ -55,8 +69,8 @@ export function Map() {
     clusterMode === 'auto',
   )
   const mapSearch = useMapSearch({
-    radars: mapLayers.radars,
-    cameras: mapLayers.cameras,
+    radars: mapLayers.searchRadars,
+    cameras: mapLayers.searchCameras,
     setViewport: mapState.setViewport,
   })
 
@@ -94,6 +108,7 @@ export function Map() {
         layers={[
           ...clusteredMap.layers,
           ...(mapLayers.topPriorityLayers ?? []),
+          equipmentHighlightLayer,
         ]}
         onViewStateChange={mapState.handleViewStateChange}
         getCursor={mapState.getCursor}
@@ -110,11 +125,16 @@ export function Map() {
       </DeckGL>
       <div className="absolute-x-centered top-2 z-50 w-64">
         <SearchBox
-          isVisible={mapLayers.isAddressVisible}
+          isVisible={mapLayers.isAddressVisible || equipmentHighlight !== null}
           setIsVisible={mapLayers.setIsAddressVisible}
           setAddressMarker={mapLayers.setAddressMarker}
           setViewport={mapState.setViewport}
           onSubmit={mapSearch.handleSearchSubmit}
+          radars={mapLayers.radars}
+          cameras={mapLayers.cameras}
+          visibleRadars={mapLayers.searchRadars}
+          visibleCameras={mapLayers.searchCameras}
+          setEquipmentHighlight={setEquipmentHighlight}
         />
       </div>
       <SelectionCards mapWidth={mapSize?.width} />

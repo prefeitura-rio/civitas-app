@@ -19,6 +19,35 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '24 de Novembro de 2026',
+    subCards: [
+      {
+        tag: 'Alterado',
+        title: 'Campo de busca no Mapa',
+        content: (
+          <>
+            <p>
+              O campo de busca do mapa permite localizar equipamentos LPR e
+              câmeras pelo número exibido, respeitando os filtros ativos de
+              camadas e origem. Equipamentos ocultos pelos filtros não aparecem
+              nos resultados. A busca considera o número completo e ignora zeros
+              à esquerda: pesquisar por <strong>23</strong> encontra{' '}
+              <strong>0000023</strong>. Quando vários equipamentos têm o mesmo
+              número, todos aparecem na lista, identificados pelo tipo e pela
+              origem.
+            </p>
+            <p>
+              Ao selecionar um resultado, o mapa aproxima o equipamento e o
+              destaca com um círculo vermelho. As buscas por endereço ou
+              coordenadas são limitadas ao município do Rio de Janeiro e exibem
+              um pin no local selecionado.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  {
     title: '10 de Novembro de 2026',
     subCards: [
       {
