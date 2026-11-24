@@ -18,7 +18,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { config } from '@/config'
 import { useOwnUserRole } from '@/hooks/useQueries/useOwnUserRole'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import type {
@@ -99,28 +98,26 @@ export function ProfileAccessFormDialog({
 
   const selectedRole = watch('role')
 
-  // Desenvolvedor só existe onde o civitas-api liga o perfil (staging), e só um Desenvolvedor o concede ou retira
-  // (a API confere o mesmo com o usuário real, não o personificado).
+  // Como no civitas-api: só um Desenvolvedor concede o perfil Desenvolvedor ou altera um Desenvolvedor ou uma
+  // conta de serviço.
   const { data: ownRole } = useOwnUserRole()
-  const canManageDeveloper =
-    config.enableDeveloperRole && ownRole === DEVELOPER_ROLE
+  const ownIsDeveloper = ownRole === DEVELOPER_ROLE
   const targetIsDeveloper = dialogInitialData?.role === DEVELOPER_ROLE
-  const lockedByDeveloperRole = targetIsDeveloper && !canManageDeveloper
+  const targetIsServiceAccount = dialogInitialData?.is_service_account === true
+  const lockedForNonDeveloper =
+    (targetIsDeveloper || targetIsServiceAccount) && !ownIsDeveloper
 
   const { data: profile } = useProfile()
   const targetIsInactive = dialogInitialData?.is_active === false
-  // Como no civitas-api: só um Desenvolvedor desativa outro (reativar não tem essa regra).
   const canManageActivation =
     Boolean(ownRole && ACTIVATION_MANAGER_ROLES.includes(ownRole)) &&
     Boolean(dialogInitialData) &&
     dialogInitialData?.id !== profile?.id &&
-    (targetIsInactive || !lockedByDeveloperRole)
-  const roleLocked = lockedByDeveloperRole || targetIsInactive
+    !lockedForNonDeveloper
+  const roleLocked = lockedForNonDeveloper || targetIsInactive
   const availableRoleOptions = roleOptions.filter(
     (option) =>
-      option.value !== DEVELOPER_ROLE ||
-      canManageDeveloper ||
-      targetIsDeveloper,
+      option.value !== DEVELOPER_ROLE || ownIsDeveloper || targetIsDeveloper,
   )
 
   const { mutateAsync: updateUserRolesMutation, isPending } = useMutation({
@@ -268,13 +265,14 @@ export function ProfileAccessFormDialog({
                 Usuário inativo. Reative para alterar o perfil.
               </p>
             ) : null}
-            {lockedByDeveloperRole ? (
+            {lockedForNonDeveloper ? (
               <p
                 className="text-sm"
                 style={{ color: 'var(--perfis-text-default)' }}
               >
-                Só um Desenvolvedor pode alterar o perfil de quem é
-                Desenvolvedor.
+                {targetIsDeveloper
+                  ? 'Só um Desenvolvedor pode alterar o perfil de quem é Desenvolvedor.'
+                  : 'Só um Desenvolvedor pode alterar uma conta de serviço.'}
               </p>
             ) : null}
           </div>

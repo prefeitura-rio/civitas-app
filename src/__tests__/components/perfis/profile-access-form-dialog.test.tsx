@@ -6,11 +6,6 @@ import { useOwnUserRole } from '@/hooks/useQueries/useOwnUserRole'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
 
-// Staging: o perfil Desenvolvedor existe.
-jest.mock('@/config', () => {
-  const actual = jest.requireActual('@/config')
-  return { ...actual, config: { ...actual.config, enableDeveloperRole: true } }
-})
 jest.mock('@/hooks/useQueries/useOwnUserRole', () => ({
   useOwnUserRole: jest.fn(),
 }))
@@ -130,10 +125,10 @@ describe('ProfileAccessFormDialog activation', () => {
     ).toBeInTheDocument()
   })
 
-  it('still lets a coordinator reactivate a Desenvolvedor', () => {
+  it('does not let a coordinator reactivate a Desenvolvedor', () => {
     renderDialog({ ...inactive, role: 'Desenvolvedor' })
     expect(
-      screen.getByRole('button', { name: 'Reativar usuário' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('button', { name: 'Reativar usuário' }),
+    ).toBeNull()
   })
 })

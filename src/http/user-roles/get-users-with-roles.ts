@@ -21,6 +21,8 @@ export interface UserRoleListItem {
   role: UserRoleEnum | null
   /** `false` quando o usuário foi desativado na CIVITAS. */
   is_active: boolean
+  /** Conta de integração: só um Desenvolvedor a altera. */
+  is_service_account?: boolean
   /** Presente em `/users-roles/assigned`: indica se o usuário já está em alguma equipe. */
   belongs_to_team?: boolean
 }
