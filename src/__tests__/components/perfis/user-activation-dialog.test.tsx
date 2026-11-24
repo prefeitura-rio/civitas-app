@@ -235,7 +235,15 @@ describe('UserActivationDialog', () => {
       sole_open_tickets: count,
       shared_open_tickets: 0,
       teams: [],
-      transfer_candidates: [],
+      transfer_candidates: [
+        {
+          user_id: 'c1',
+          user_name: 'Carla',
+          role: 'Coordenador',
+          team_name: null,
+          in_ticket_team: false,
+        },
+      ],
     })
     renderDialog()
     expect(

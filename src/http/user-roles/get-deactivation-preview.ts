@@ -21,6 +21,8 @@ export interface UserDeactivationPreview {
   teams: string[]
   /** Quem pode receber os chamados; equipe dos chamados primeiro. */
   transfer_candidates: TransferCandidate[]
+  /** Equipes em que o usuário é o único adjunto ativo: novos chamados para elas passam a ser recusados. */
+  teams_left_without_adjunto?: string[]
 }
 
 export async function getDeactivationPreview(userId: string) {

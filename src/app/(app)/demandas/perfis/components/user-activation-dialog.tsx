@@ -123,14 +123,18 @@ export function UserActivationDialog({
     enabled: Boolean(user) && isDeactivating,
     staleTime: 0,
   })
-  // Sem a prévia não dá para saber se há chamados a transferir: o envio espera por ela.
-  const previewBlocksSubmit =
-    isDeactivating && (isPreviewLoading || isPreviewError || !preview)
   const soleOpenTickets = preview?.sole_open_tickets ?? 0
   const needsTransfer = soleOpenTickets > 0
 
   // O backend já devolve os candidatos ordenados: equipe dos chamados primeiro.
   const transferCandidates = preview?.transfer_candidates ?? []
+  // Com o workflow padrão o Coordenador sempre pode assumir; vazio só com a configuração alterada.
+  const noTransferCandidates = needsTransfer && transferCandidates.length === 0
+  const teamsLeftWithoutAdjunto = preview?.teams_left_without_adjunto ?? []
+  // Sem a prévia não dá para saber se há chamados a transferir: o envio espera por ela.
+  const previewBlocksSubmit =
+    isDeactivating &&
+    (isPreviewLoading || isPreviewError || !preview || noTransferCandidates)
   const ticketTeamCandidates = transferCandidates.filter(
     (c) => c.in_ticket_team,
   )
@@ -324,6 +328,11 @@ export function UserActivationDialog({
                     Tentar de novo
                   </button>
                 </div>
+              ) : noTransferCandidates ? (
+                <p className={styles.perfisModalNotice} role="alert">
+                  Nenhum usuário pode assumir estes chamados. Verifique a
+                  configuração do workflow.
+                </p>
               ) : needsTransfer ? (
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
@@ -384,6 +393,12 @@ export function UserActivationDialog({
                   </p>
                 </div>
               ) : null}
+
+              {teamsLeftWithoutAdjunto.map((team) => (
+                <p key={team} className={styles.perfisModalNotice}>
+                  {`A equipe ${team} ficará sem adjunto ativo: novos chamados para ela serão recusados até outro adjunto ser cadastrado.`}
+                </p>
+              ))}
 
               {preview && preview.shared_open_tickets > 0 ? (
                 <p className={styles.perfisModalNotice}>
