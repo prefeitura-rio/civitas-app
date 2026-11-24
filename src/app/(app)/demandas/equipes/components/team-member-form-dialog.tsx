@@ -97,6 +97,11 @@ interface TeamMemberFormDialogProps {
   controller: TeamsController
 }
 
+/** Conta de serviço nunca fica numa equipe (a API também recusa). */
+export function selectableTeamMembers(users: UserRoleListItem[]) {
+  return users.filter((user) => !user.is_service_account)
+}
+
 export function TeamMemberFormDialog({
   isOpen,
   onClose,
@@ -146,7 +151,7 @@ export function TeamMemberFormDialog({
     enabled: isOpen && Boolean(teamIdForIslands),
   })
 
-  const users = usersResponse?.data || []
+  const users = selectableTeamMembers(usersResponse?.data || [])
   const islands = islandsResponse?.data?.items ?? []
 
   const shouldShowIslandSelect =
