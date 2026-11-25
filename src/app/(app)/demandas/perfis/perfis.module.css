@@ -480,6 +480,15 @@
   color: #f87171;
 }
 
+.perfisInactiveReason {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--perfis-text-subtle);
+}
+
 .perfisModalNotice {
   font-size: 0.875rem;
   color: var(--perfis-text-subtle);

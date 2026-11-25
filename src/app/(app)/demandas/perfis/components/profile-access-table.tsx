@@ -1,13 +1,17 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { format, parseISO } from 'date-fns'
 import { Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Pagination } from '@/components/ui/pagination'
 import { useProfileAccessSearchParams } from '@/hooks/useParams/useProfileAccessSearchParams'
-import type { UserStatusFilter } from '@/http/user-roles/deactivation-reasons'
+import {
+  DEACTIVATION_REASON_LABELS,
+  type UserStatusFilter,
+} from '@/http/user-roles/deactivation-reasons'
 import {
   getUsersWithRoles,
   type UserRoleEnum,
@@ -186,16 +190,32 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
                   >
                     <div className={styles.perfisTableRowContent}>
                       <div className={styles.perfisTableCellNome}>
-                        <span className={styles.perfisTableCellText}>
-                          {displayName}
-                        </span>
-                        {isInactive && (
-                          <span
-                            className={`${styles.perfisBadge} ${styles.perfisBadgeInativo}`}
-                          >
-                            Inativo
-                          </span>
-                        )}
+                        <div className="flex min-w-0 flex-col">
+                          <div className="flex items-center">
+                            <span className={styles.perfisTableCellText}>
+                              {displayName}
+                            </span>
+                            {isInactive && (
+                              <span
+                                className={`${styles.perfisBadge} ${styles.perfisBadgeInativo}`}
+                              >
+                                Inativo
+                              </span>
+                            )}
+                          </div>
+                          {isInactive && user.deactivation_reason && (
+                            <span className={styles.perfisInactiveReason}>
+                              {
+                                DEACTIVATION_REASON_LABELS[
+                                  user.deactivation_reason
+                                ]
+                              }
+                              {user.deactivated_at
+                                ? ` · ${format(parseISO(user.deactivated_at), 'dd/MM/yyyy')}`
+                                : ''}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className={styles.perfisTableCellPerfil}>
                         {user.role ? (

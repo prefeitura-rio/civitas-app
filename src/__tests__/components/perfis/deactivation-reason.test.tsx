@@ -89,7 +89,7 @@ beforeEach(() => {
 })
 
 describe('deactivation reason', () => {
-  it.failing('shows the reason and the date in the inactive list', async () => {
+  it('shows the reason and the date in the inactive list', async () => {
     withClient(<ProfileAccessTable onEditUser={jest.fn()} />)
     await screen.findByText('Bia Inativa')
     expect(
@@ -98,19 +98,16 @@ describe('deactivation reason', () => {
     expect(screen.getByText(/20\/11\/2026/)).toBeInTheDocument()
   })
 
-  it.failing(
-    'shows the note and who deactivated to a coordinator',
-    async () => {
-      renderDialog()
-      expect(
-        await screen.findByText('Licença médica até janeiro'),
-      ).toBeInTheDocument()
-      expect(screen.getByText(/Carla Coordenadora/)).toBeInTheDocument()
-      expect(mockedGetActivation).toHaveBeenCalledWith('u1')
-    },
-  )
+  it('shows the note and who deactivated to a coordinator', async () => {
+    renderDialog()
+    expect(
+      await screen.findByText('Licença médica até janeiro'),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Carla Coordenadora/)).toBeInTheDocument()
+    expect(mockedGetActivation).toHaveBeenCalledWith('u1')
+  })
 
-  it.failing('says the system deactivated an automatic block', async () => {
+  it('says the system deactivated an automatic block', async () => {
     mockedGetActivation.mockResolvedValue({
       ...activation,
       deactivated_by_id: null,
