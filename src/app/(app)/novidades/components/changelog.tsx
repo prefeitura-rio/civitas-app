@@ -19,7 +19,7 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
-    title: '18 de Novembro de 2026',
+    title: '25 de Novembro de 2026',
     subCards: [
       {
         tag: 'Adicionado',
@@ -82,30 +82,68 @@ export const changelog: Card[] = [
                 com o nome dele.
               </li>
               <li>
+                Se ninguém puder assumir esses chamados, o diálogo avisa e a
+                desativação fica bloqueada até a configuração do workflow ser
+                revista.
+              </li>
+              <li>
+                Se o usuário for o único adjunto ativo de uma equipe, o diálogo
+                avisa que novos chamados para essa equipe serão recusados até
+                outro adjunto ser cadastrado. O aviso não impede a desativação.
+              </li>
+              <li>
+                O usuário sai das equipes e dos chamados abertos que dividia com
+                outras pessoas. O histórico e os chamados arquivados continuam
+                com o nome dele.
+              </li>
+              <li>
                 Para reativar, use <strong>Reativar usuário</strong> no mesmo
-                lugar. O acesso volta no próximo login, mas o usuário precisa
-                ser adicionado de novo às equipes.
+                lugar. Ali, coordenadores também veem quem desativou, quando, o
+                motivo e a observação. O acesso volta no próximo login, mas o
+                usuário precisa ser adicionado de novo às equipes.
               </li>
             </ul>
           </>
         ),
       },
       {
-        tag: 'Adicionado',
-        title: 'Filtro de usuários ativos e inativos',
+        tag: 'Alterado',
+        title: 'Novos filtros no Cadastro de Perfil',
         content: (
           <>
             <p>
-              O <strong>Cadastro de Perfil</strong> passou a ter as abas{' '}
-              <strong>Ativos</strong>, <strong>Inativos</strong> e{' '}
-              <strong>Todos</strong>. Por padrão aparecem só os usuários ativos,
-              e os desativados levam o selo <strong>Inativo</strong>.
+              O <strong>Cadastro de Perfil</strong> ganhou uma linha de filtros:
+            </p>
+            <ul>
+              <li>
+                <strong>Buscar</strong>: por nome, usuário, e-mail ou CPF.
+              </li>
+              <li>
+                <strong>Situação</strong>: <strong>Ativos</strong> (o padrão),{' '}
+                <strong>Inativos</strong> ou <strong>Todos</strong>. Em{' '}
+                <strong>Todos</strong>, os desativados aparecem esmaecidos e com
+                o selo <strong>Inativo</strong>.
+              </li>
+              <li>
+                <strong>Perfil de acesso</strong>: um perfil específico ou{' '}
+                <strong>Sem perfil</strong>, para achar quem ainda não recebeu
+                acesso.
+              </li>
+              <li>
+                <strong>Motivo da desativação</strong>: disponível com a
+                situação <strong>Inativos</strong> ou <strong>Todos</strong>.
+              </li>
+            </ul>
+            <p>
+              Com a situação <strong>Inativos</strong> ou <strong>Todos</strong>
+              , a tabela mostra as colunas <strong>Motivo</strong> e{' '}
+              <strong>Desativado em</strong>.
             </p>
             <Image
-              src="https://storage.googleapis.com/rj-civitas-public/assets/cadastro_perfil_inativos_v2.png"
-              alt="Cadastro de Perfil na aba Inativos, com um usuário marcado com o selo Inativo"
-              width={520}
-              height={192}
+              src="https://storage.googleapis.com/rj-civitas-public/assets/cadastro_perfil_filtros.png"
+              alt="Cadastro de Perfil com os filtros Buscar, Situação, Perfil de acesso e Motivo da desativação, e as colunas Motivo e Desativado em"
+              width={1568}
+              height={611}
               className="h-auto w-auto rounded-md"
             />
           </>
