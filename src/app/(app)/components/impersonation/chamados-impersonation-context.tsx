@@ -21,7 +21,8 @@ type ChamadosImpersonationContextValue = {
   subjectUserId: string | null
   subjectLabel: string | null
   setImpersonation: (id: string, label: string) => void
-  clearImpersonation: () => void
+  /** Sem `nextPath`, recarrega a página atual. */
+  clearImpersonation: (nextPath?: string) => void
 }
 
 const ChamadosImpersonationContext =
@@ -50,13 +51,14 @@ export function ChamadosImpersonationProvider({
     }
   }, [])
 
-  const clearImpersonation = useCallback(() => {
+  const clearImpersonation = useCallback((nextPath?: string) => {
     clearChamadosImpersonationStorage()
     setSubjectUserId(null)
     setSubjectLabel(null)
-    if (typeof window !== 'undefined') {
-      window.location.reload()
-    }
+    if (typeof window === 'undefined') return
+    // Recarga completa: o cache das consultas foi montado com o usuário personificado.
+    if (nextPath) window.location.assign(nextPath)
+    else window.location.reload()
   }, [])
 
   const value = useMemo(

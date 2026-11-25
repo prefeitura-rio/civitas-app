@@ -15,7 +15,7 @@ export default function MapLayout({
 }>) {
   return (
     <MapContextProvider>
-      <div className="h-screen w-full">
+      <div className="h-[calc(100dvh_-_var(--impersonation-bar-height,0px))] w-full">
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel minSize={10} defaultSize={50}>
             <Map />

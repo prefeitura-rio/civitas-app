@@ -7,7 +7,7 @@ export default async function Page() {
   return (
     <iframe
       src={`https://app.dados.rio/vision-ai?token=${token}`}
-      className="h-screen w-full"
+      className="h-[calc(100dvh_-_var(--impersonation-bar-height,0px))] w-full"
       title="Vision AI"
     />
   )

@@ -8,7 +8,10 @@ import {
 } from '@/auth/session'
 import { config as appConfig } from '@/config'
 import { readErrorCode, shouldEndSession } from '@/lib/auth-session-end'
-import { getChamadosImpersonateUserId } from '@/lib/chamados-impersonation-storage'
+import {
+  getChamadosImpersonateUserId,
+  isImpersonationScopePath,
+} from '@/lib/chamados-impersonation-storage'
 
 import { redirectToSignIn } from './session-redirect'
 
@@ -53,7 +56,7 @@ api.interceptors.request.use(async (requestConfig) => {
 
   const shouldAttachImpersonation =
     typeof window !== 'undefined' &&
-    window.location.pathname.startsWith('/demandas') &&
+    isImpersonationScopePath(window.location.pathname) &&
     requestConfig.url !== '/auth/login' &&
     requestConfig.url !== '/auth/refresh'
 

@@ -2,8 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 
-import { ChamadosImpersonationBar } from '@/app/(app)/demandas/chamados-impersonation-bar'
-import { useChamadosImpersonation } from '@/app/(app)/demandas/chamados-impersonation-context'
+import { ChamadosImpersonationBar } from '@/app/(app)/components/impersonation/chamados-impersonation-bar'
+import { useChamadosImpersonation } from '@/app/(app)/components/impersonation/chamados-impersonation-context'
 import ForbiddenPage from '@/app/(app)/forbidden/page'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-roles'
@@ -19,9 +19,12 @@ jest.mock('@/hooks/useQueries/useProfile', () => ({ useProfile: jest.fn() }))
 jest.mock('@/http/user-roles/get-users-only-with-roles', () => ({
   getUsersOnlyWithRoles: jest.fn(),
 }))
-jest.mock('@/app/(app)/demandas/chamados-impersonation-context', () => ({
-  useChamadosImpersonation: jest.fn(),
-}))
+jest.mock(
+  '@/app/(app)/components/impersonation/chamados-impersonation-context',
+  () => ({
+    useChamadosImpersonation: jest.fn(),
+  }),
+)
 
 const mockedImpersonation = useChamadosImpersonation as jest.Mock
 const clearImpersonation = jest.fn()
@@ -59,18 +62,13 @@ beforeEach(() => {
 })
 
 describe('impersonation bar', () => {
-  it.failing(
-    'warns outside Demandas that impersonation only applies there',
-    async () => {
-      pathname = '/placas-monitoradas'
-      impersonating('Ana')
-      withClient(<ChamadosImpersonationBar />)
-      expect(
-        await screen.findByText('Só no módulo Demandas'),
-      ).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /Limpar/ })).toBeInTheDocument()
-    },
-  )
+  it('warns outside Demandas that impersonation only applies there', async () => {
+    pathname = '/placas-monitoradas'
+    impersonating('Ana')
+    withClient(<ChamadosImpersonationBar />)
+    expect(await screen.findByText('Só no módulo Demandas')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Limpar/ })).toBeInTheDocument()
+  })
 
   it('has no warning inside Demandas', async () => {
     impersonating('Ana')
@@ -89,18 +87,15 @@ describe('impersonation bar', () => {
 })
 
 describe('forbidden page while impersonating', () => {
-  it.failing(
-    'names the impersonated user and offers to go back to your own',
-    () => {
-      impersonating('Ana')
-      render(<ForbiddenPage />)
-      expect(screen.getByText(/Você está vendo como Ana/)).toBeInTheDocument()
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Voltar ao meu usuário' }),
-      )
-      expect(clearImpersonation).toHaveBeenCalledWith('/demandas')
-    },
-  )
+  it('names the impersonated user and offers to go back to your own', () => {
+    impersonating('Ana')
+    render(<ForbiddenPage />)
+    expect(screen.getByText(/Você está vendo como Ana/)).toBeInTheDocument()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Voltar ao meu usuário' }),
+    )
+    expect(clearImpersonation).toHaveBeenCalledWith('/demandas')
+  })
 
   it('keeps the plain message without impersonation', () => {
     impersonating(null)

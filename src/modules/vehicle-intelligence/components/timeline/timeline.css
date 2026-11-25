@@ -1089,7 +1089,7 @@
 @media (max-width: 900px) {
   .correlation-timeline-shell {
     height: auto;
-    min-height: 100dvh;
+    min-height: calc(100dvh - var(--impersonation-bar-height, 0px));
     overflow: visible;
   }
   .timeline-analysis-grid {
@@ -2180,10 +2180,10 @@
 }
 
 .correlation-timeline-main {
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--impersonation-bar-height, 0px));
 }
 .correlation-timeline-content {
-  height: 100dvh;
+  height: calc(100dvh - var(--impersonation-bar-height, 0px));
   min-height: 0;
   margin: 0;
   max-width: none;
@@ -2205,7 +2205,7 @@
   white-space: nowrap;
 } /* ============================ Perfil da placa ============================ */
 .correlation-profile-main {
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--impersonation-bar-height, 0px));
 }
 .correlation-profile-content {
   padding: 22px 28px 60px;

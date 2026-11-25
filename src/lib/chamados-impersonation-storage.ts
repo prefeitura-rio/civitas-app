@@ -22,3 +22,8 @@ export function clearChamadosImpersonationStorage() {
   sessionStorage.removeItem(ID_KEY)
   sessionStorage.removeItem(LABEL_KEY)
 }
+
+/** A personificação só vale no módulo Demandas: só lá o `api` envia o `impersonate_user_id`. */
+export function isImpersonationScopePath(pathname: string | null | undefined) {
+  return Boolean(pathname?.startsWith('/demandas'))
+}
