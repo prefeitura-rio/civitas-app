@@ -3,6 +3,8 @@ import '@/utils/string-extensions'
 import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
 
+import { ReportPossibleStayDescription } from '@/app/(app)/veiculos/busca-por-radar/components/report-possible-stay-description'
+
 interface RadarReportCoverProps {
   radarIds: string[]
   location: string
@@ -172,6 +174,7 @@ const styles = StyleSheet.create({
   bulletRow: {
     display: 'flex',
     flexDirection: 'row',
+    marginTop: 8,
   },
   bulletSubRow: {
     display: 'flex',
@@ -199,6 +202,9 @@ const styles = StyleSheet.create({
   normalBulletTitle: {
     fontFamily: 'Open Sans',
     fontSize: 11,
+  },
+  reportStructureDescription: {
+    marginTop: 8,
   },
   bulletContent: {
     fontFamily: 'Open Sans',
@@ -267,7 +273,9 @@ export function RadarReportCover({
     <View style={styles.container}>
       <Text style={styles.h1}>Informações gerais sobre o relatório</Text>
       <Text style={styles.bulletTitle}>Estrutura do relatório:</Text>
-      <Text style={styles.normalBulletTitle}>
+      <Text
+        style={[styles.normalBulletTitle, styles.reportStructureDescription]}
+      >
         Este relatório apresenta os dados de passagens de veículos com base em
         uma busca realizada por equipamento de LPR ou por um conjunto desses
         equipamentos em uma determinada localidade. As placas registradas são
@@ -314,6 +322,11 @@ export function RadarReportCover({
                     </Text>
                   </View>
 
+                  {subTopic.value === 'Ausência de detecção:' &&
+                    subSubTopic.value.startsWith(
+                      'O relatório não é exaustivo e a falta de registro',
+                    ) && <View break />}
+
                   {subSubTopic.children?.map((subSubSubTopic, index) => (
                     <View key={index} style={styles.bulletSubSubSubRow}>
                       <Text style={styles.bulletTitle}>{'\u2022' + ' '}</Text>
@@ -328,6 +341,7 @@ export function RadarReportCover({
           ))}
         </View>
       ))}
+      <ReportPossibleStayDescription />
       <View style={styles.infos}>
         {commons.map(
           (item, index) =>

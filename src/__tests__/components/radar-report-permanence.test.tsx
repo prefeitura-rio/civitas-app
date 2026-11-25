@@ -97,7 +97,7 @@ it.each([RadarReportDocument, EnhancedRadarReportDocument])(
     expect(screen.getByText('17/11/2026 23:56:00')).toBeInTheDocument()
     expect(screen.getByText('—')).toBeInTheDocument()
     expect(
-      screen.getByText(/não confirma que o veículo ficou parado/),
-    ).toBeInTheDocument()
+      screen.queryByText(/não confirma que o veículo ficou parado/),
+    ).not.toBeInTheDocument()
   },
 )

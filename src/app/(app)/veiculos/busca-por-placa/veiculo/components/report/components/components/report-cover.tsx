@@ -419,15 +419,33 @@ export function ReportCover({
 
         <Text style={styles.subsectionTitle}>3. Possível permanência</Text>
         <Text style={styles.paragraph}>
-          Detecções sucessivas no mesmo ponto ou em pontos próximos podem
-          indicar possível permanência na região. Essa indicação é exibida nas
-          detecções inicial e final da sequência, com a quantidade de leituras,
-          incluindo as intermediárias que não aparecem como posições
-          individuais. Ela não cria uma viagem separada. Quando a detecção final
-          inicia uma nova viagem, a detecção inicial da sequência é repetida
-          nessa viagem para mostrar o intervalo de possível permanência,
-          mantendo-se também no fim da viagem anterior. Os registros não
-          confirmam que o veículo ficou parado.
+          Identifica detecções consecutivas da mesma placa realizadas no mesmo
+          ponto ou em pontos próximos (até 30 metros de distância), em um
+          intervalo inferior a 10 minutos. Essa recorrência pode indicar que o
+          veículo permaneceu em determinado local, possivelmente parado ou
+          estacionado.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          A indicação no relatório é apresentada nas detecções inicial e final
+          da sequência, com a quantidade total de leituras realizadas no
+          intervalo, incluindo as intermediárias, que não são exibidas como
+          posições individuais. A possível permanência não gera uma viagem
+          independente.
+        </Text>
+        <Text style={styles.paragraph}>
+          Quando a detecção final da sequência marca o início de uma nova
+          viagem, a detecção inicial é replicada nessa viagem para representar o
+          intervalo de possível permanência, mantendo-se também no encerramento
+          da viagem anterior.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          <Text style={styles.strong}>Importante:</Text> a indicação não
+          confirma que o veículo esteve parado ou estacionado no local. Ela
+          identifica, objetivamente, uma sequência de leituras da mesma placa em
+          um mesmo ponto ou em pontos próximos, com intervalos muito curtos
+          entre as detecções.
         </Text>
 
         <Text style={styles.subsectionTitle}>

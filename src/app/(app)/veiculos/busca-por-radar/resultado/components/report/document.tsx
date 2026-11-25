@@ -179,12 +179,6 @@ export function RadarReportDocument({
                     )
                   })}
                 </View>
-                <Text style={{ fontSize: 9, marginTop: 6 }}>
-                  Possível permanência indica leituras sucessivas no mesmo ponto
-                  ou em pontos próximos. O horário indicado corresponde à última
-                  leitura da sequência e não confirma que o veículo ficou
-                  parado.
-                </Text>
                 {filteredData.length > 1 ? (
                   <Text
                     style={styles.tableCaption}
