@@ -13,6 +13,11 @@ import {
   TICKET_MODULE_PERMISSIONS_COOKIE,
   TICKET_MODULE_PERMISSIONS_PATH,
 } from '@/http/tickets/ticket-module-permissions-me'
+import {
+  isUserDeactivated,
+  readResponseErrorCode,
+  USER_DEACTIVATED_MESSAGE,
+} from '@/lib/auth-session-end'
 import { genericErrorMessage } from '@/utils/error-handlers'
 
 const signInSchema = z.object({
@@ -52,9 +57,14 @@ export async function signInAction(data: FormData) {
     )
 
     if (!response.ok) {
+      // Corpo não-JSON: sem `code`, fica a mensagem genérica.
+      const errorCode = await readResponseErrorCode(response)
+
       return {
         success: false,
-        message: 'Credenciais inválidas',
+        message: isUserDeactivated(response.status, errorCode)
+          ? USER_DEACTIVATED_MESSAGE
+          : 'Credenciais inválidas',
         errors: null,
       }
     }

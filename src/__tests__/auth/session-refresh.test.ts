@@ -84,4 +84,39 @@ describe('validateAndRefreshSession', () => {
     expect(result.shouldClear).toBe(true)
     expect(result.refreshed).toBe(false)
   })
+
+  it('keeps the error code when the refresh is refused', async () => {
+    const cookie = sealedRememberMeSession(10)
+    jest.setSystemTime(Date.now() + 20_000)
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ code: 'user_deactivated' }),
+    }) as unknown as typeof fetch
+
+    const result = await validateAndRefreshSession(cookie, true, true)
+
+    expect(result.session).toBeNull()
+    expect(result.shouldClear).toBe(true)
+    expect(result.errorCode).toBe('user_deactivated')
+  })
+
+  it('has no error code when the refused refresh body is not JSON', async () => {
+    const cookie = sealedRememberMeSession(10)
+    jest.setSystemTime(Date.now() + 20_000)
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => {
+        throw new Error('not json')
+      },
+    }) as unknown as typeof fetch
+
+    const result = await validateAndRefreshSession(cookie, true, true)
+
+    expect(result.session).toBeNull()
+    expect(result.errorCode).toBeUndefined()
+  })
 })

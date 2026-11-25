@@ -64,25 +64,47 @@
   margin: 0;
 }
 
-.perfisSearchRow {
+/* ---------- Filtros (mesmo padrão da tela de Fechamentos) ---------- */
+.perfisFiltersRow {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(160px, 1fr));
+  gap: 16px;
+  align-items: end;
+  width: 100%;
+}
+
+.perfisFilterField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.perfisFilterLabel {
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--perfis-text-default);
+  text-transform: uppercase;
+}
+
+.perfisSearchBox {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 400px;
 }
 
 .perfisSearchIcon {
-  flex-shrink: 0;
+  position: absolute;
+  left: 12px;
   color: var(--perfis-text-subtle);
   pointer-events: none;
 }
 
 .perfisSearchInput {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   height: 40px;
-  padding: 8px 12px;
+  padding: 8px 12px 8px 36px;
   border-radius: var(--perfis-radius-sm);
   border: 1px solid var(--perfis-border);
   background-color: var(--perfis-bg-page);
@@ -96,10 +118,56 @@
   color: var(--perfis-text-subtle);
 }
 
-.perfisSearchInput:focus-visible {
-  outline: none;
-  border-color: var(--perfis-border);
-  box-shadow: 0 0 0 2px rgba(74, 93, 109, 0.35);
+.perfisSearchInput:focus-visible,
+.perfisFilterTrigger:focus-visible {
+  outline: 2px solid var(--perfis-text-subtle);
+  outline-offset: 1px;
+}
+
+.perfisFilterTrigger {
+  height: 40px;
+  border: 1px solid var(--perfis-border);
+  border-radius: var(--perfis-radius-sm);
+  background-color: var(--perfis-bg-page);
+  color: var(--perfis-text-default);
+  font-size: 14px;
+}
+
+.perfisFilterTrigger:focus {
+  box-shadow: none;
+}
+
+.perfisFilterTrigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* O menu abre num portal, fora de .perfisPage: os tokens --perfis-* não chegam lá. */
+.perfisFilterContent {
+  border: 1px solid #4a5d6d;
+  background-color: #152534;
+  color: #f9fafa;
+}
+
+.perfisFilterItem {
+  color: #f9fafa;
+}
+
+.perfisFilterItem:focus {
+  background-color: #1d3449;
+  color: #f9fafa;
+}
+
+@media (max-width: 900px) {
+  .perfisFiltersRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .perfisFiltersRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ---------- Card da tabela ---------- */
@@ -115,6 +183,15 @@
   flex-direction: column;
   gap: 8px;
   padding: 16px 16px 32px;
+}
+
+/* Página anterior na tela enquanto a próxima carrega */
+.perfisTableContainer {
+  transition: opacity 150ms ease-out;
+}
+
+.perfisTableContainerStale {
+  opacity: 0.6;
 }
 
 /* ---------- Cabeçalho da tabela ---------- */
@@ -159,6 +236,34 @@
   color: var(--perfis-text-subtle);
   text-transform: uppercase;
   margin: 0;
+}
+
+/* ---------- Colunas da desativação ---------- */
+.perfisTableCellMotivo {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.perfisTableCellMotivo .perfisTableCellText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.perfisTableCellData {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  width: 144px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.perfisTabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Linhas da tabela ---------- */
@@ -424,4 +529,52 @@
 .perfisModalBtnPrimary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.perfisTableRowInactive .perfisTableCellText {
+  opacity: 0.6;
+}
+
+.perfisBadgeInativo {
+  margin-left: 8px;
+  background: rgba(151, 162, 171, 0.15);
+  color: var(--perfis-text-subtle);
+}
+
+/* Ação secundária (Cancelar): mesmo tamanho do primário, só contorno */
+.perfisModalBtnSecondary {
+  composes: perfisModalBtnPrimary;
+  background-color: transparent;
+  border: 1px solid var(--perfis-border);
+  color: var(--perfis-text-subtle);
+}
+
+/* Ação destrutiva no rodapé do diálogo de edição */
+.perfisModalBtnDanger {
+  composes: perfisModalBtnPrimary;
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+}
+
+.perfisModalNotice {
+  font-size: 0.875rem;
+  color: var(--perfis-text-subtle);
+}
+
+.perfisModalSelect {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--perfis-radius-sm);
+  border: 1px solid var(--perfis-border);
+  background-color: var(--perfis-bg-page);
+  color: var(--perfis-text-default);
+  font-size: 0.875rem;
+}
+
+/* Seção inteira bloqueada (ex.: perfil de usuário inativo): não parece clicável */
+.perfisModalSectionDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
 }

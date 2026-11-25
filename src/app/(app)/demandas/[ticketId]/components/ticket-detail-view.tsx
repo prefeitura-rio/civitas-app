@@ -75,6 +75,7 @@ import {
   type TicketDetailTabId,
 } from '../ticket-detail.constants'
 import styles from '../ticket-detail.module.css'
+import { TicketAssigneesLabel } from './ticket-assignees-label'
 import { TicketDetailTabChamado } from './ticket-detail-tab-chamado'
 import { TicketDetailTabDocumentos } from './ticket-detail-tab-documentos'
 import type {
@@ -758,7 +759,7 @@ export function TicketDetailView({ ticketId }: Props) {
               <div className={styles.metaCell}>
                 <span className={styles.metaLabel}>Responsável:</span>
                 <span className={styles.metaValue}>
-                  {displayText(cab.assignee).toLocaleUpperCase('pt-BR')}
+                  <TicketAssigneesLabel assignees={cab.assignees} />
                 </span>
               </div>
             </div>

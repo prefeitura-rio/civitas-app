@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useFormState } from '@/hooks/use-form-state'
+import { consumeSessionEndNotice } from '@/lib/auth-session-end'
 
 import { signInAction } from './actions'
 
@@ -29,16 +30,23 @@ export default function SignInForm() {
   const LucideIcon = icons[passwordFieldType === 'password' ? 'EyeOff' : 'Eye']
 
   useEffect(() => {
-    if (sessionStorage.getItem('session-invalidated-toast') !== '1') {
+    const notice = consumeSessionEndNotice()
+
+    if (notice === 'user_deactivated') {
+      toast.error('Seu acesso foi desativado', {
+        id: 'user-deactivated',
+        description: 'Procure a coordenação para mais informações.',
+      })
       return
     }
 
-    sessionStorage.removeItem('session-invalidated-toast')
-    toast.warning('Sua sessão foi encerrada', {
-      id: 'session-invalidated',
-      description:
-        'Este usuário entrou em outro dispositivo ou navegador. Faça login novamente para continuar.',
-    })
+    if (notice === 'session_invalidated') {
+      toast.warning('Sua sessão foi encerrada', {
+        id: 'session-invalidated',
+        description:
+          'Este usuário entrou em outro dispositivo ou navegador. Faça login novamente para continuar.',
+      })
+    }
   }, [])
 
   return (

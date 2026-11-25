@@ -57,10 +57,9 @@ function TicketModulePermissionsByRolePageContent() {
   const [role, setRole] = useState<UserRoleEnum>('Coordenador')
   const [permissions, setPermissions] = useState<ScreenPermissionRow[]>([])
   const hasAllScreens = role === ALL_SCREENS_ROLE
-  // Desenvolvedor só existe onde o civitas-api liga o perfil (staging) e só aparece para quem é Desenvolvedor.
   const { data: ownRole } = useOwnUserRole()
   const roleOptions =
-    config.enableDeveloperRole && ownRole === ALL_SCREENS_ROLE
+    ownRole === ALL_SCREENS_ROLE
       ? [...ROLE_OPTIONS, ALL_SCREENS_ROLE]
       : ROLE_OPTIONS
 

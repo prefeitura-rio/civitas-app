@@ -3369,3 +3369,19 @@
   line-height: 16px;
   color: var(--td-muted);
 }
+
+/* Responsável desativado na CIVITAS (continua atribuído até ser redistribuído) */
+.assigneeInactiveBadge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: rgba(151, 162, 171, 0.15);
+  color: #97a2ab;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: none;
+  vertical-align: middle;
+}

@@ -7,7 +7,6 @@ import { NextRequest } from 'next/server'
 
 import { GET } from '@/app/api/bff-iv/[...path]/route'
 import { buildSessionFromTokenResponse, serializeSession } from '@/auth/session'
-import { clearScreenPermissionsCache } from '@/lib/bff/screen-permissions'
 
 const UPSTREAM = 'http://iv.internal'
 
@@ -89,7 +88,6 @@ describe('GET /api/bff-iv/[...path]', () => {
   beforeEach(() => {
     process.env.APP_URL = 'http://localhost:3000'
     process.env.VEHICLE_INTELLIGENCE_API_URL = UPSTREAM
-    clearScreenPermissionsCache()
   })
 
   afterEach(() => {
@@ -176,13 +174,92 @@ describe('GET /api/bff-iv/[...path]', () => {
     expect(upstreamCalls(mock)).toHaveLength(0)
   })
 
-  it('caches the permission per session', async () => {
-    const mock = mockFetch()
-    await GET(makeRequest('/api/veiculos/v1/dashboard'))
-    await GET(makeRequest('/api/veiculos/v1/dashboard'))
-    const permissionCalls = mock.mock.calls.filter(([url]) =>
-      String(url).includes('module-screen-permissions'),
+  it('checks the permission again on every call, so a deactivation applies at once', async () => {
+    // Sem cache entre chamadas: vale em qualquer instância do Next, não só na que recebeu a desativação.
+    let deactivated = false
+    global.fetch = jest.fn(async (url: string | URL) => {
+      if (!String(url).includes('module-screen-permissions'))
+        return json({ ok: true })
+      return deactivated
+        ? json({ code: 'user_deactivated' }, 403)
+        : json(permissions(true))
+    }) as unknown as typeof fetch
+
+    expect((await GET(makeRequest('/api/veiculos/v1/dashboard'))).status).toBe(
+      200,
     )
-    expect(permissionCalls).toHaveLength(1)
+    deactivated = true
+    const response = await GET(makeRequest('/api/veiculos/v1/dashboard'))
+
+    expect(response.status).toBe(401)
+    expect(await response.json()).toEqual({
+      message: 'Unauthorized',
+      code: 'user_deactivated',
+    })
+  })
+
+  it('ends the session with user_deactivated when the user was deactivated', async () => {
+    const upstream = jest.fn(() => json({ ok: true }))
+    global.fetch = jest.fn(async (url: string | URL) =>
+      String(url).includes('module-screen-permissions')
+        ? json({ code: 'user_deactivated' }, 403)
+        : upstream(),
+    ) as unknown as typeof fetch
+
+    const response = await GET(makeRequest('/api/veiculos/v1/dashboard'))
+
+    expect(response.status).toBe(401)
+    expect(await response.json()).toEqual({
+      message: 'Unauthorized',
+      code: 'user_deactivated',
+    })
+    expect(sessionWasCleared(response)).toBe(true)
+    expect(upstream).not.toHaveBeenCalled()
+  })
+
+  it('keeps denying other permission failures as 403', async () => {
+    mockFetch({ permissionsStatus: 403 })
+    const response = await GET(makeRequest('/api/veiculos/v1/dashboard'))
+    expect(response.status).toBe(403)
+    expect(sessionWasCleared(response)).toBe(false)
+  })
+
+  it('marks only the 401s that end the CIVITAS session', async () => {
+    const ended = (response: Response) =>
+      response.headers.get('x-civitas-session-ended') === '1'
+
+    // sem sessão: o próprio BFF encerra
+    mockFetch()
+    expect(ended(await GET(makeRequest('/api/veiculos/v1/x', null)))).toBe(true)
+
+    // usuário desativado: o BFF encerra
+    global.fetch = jest.fn(async (url: string | URL) =>
+      String(url).includes('module-screen-permissions')
+        ? json({ code: 'user_deactivated' }, 403)
+        : json({ ok: true }),
+    ) as unknown as typeof fetch
+    expect(ended(await GET(makeRequest('/api/veiculos/v1/x')))).toBe(true)
+
+    // 401 do serviço veicular: a sessão da CIVITAS continua, sem a marca
+    mockFetch({ upstream: () => json({ detail: 'service' }, 401) })
+    const fromService = await GET(makeRequest('/api/veiculos/v1/x'))
+    expect(fromService.status).toBe(401)
+    expect(ended(fromService)).toBe(false)
+  })
+
+  it('never forwards a session-ended mark sent by the service', async () => {
+    mockFetch({
+      upstream: () =>
+        new Response('{}', {
+          status: 401,
+          headers: {
+            'content-type': 'application/json',
+            'x-civitas-session-ended': '1',
+          },
+        }),
+    })
+    const response = await GET(makeRequest('/api/veiculos/v1/x'))
+    expect(response.headers.get('x-civitas-session-ended')).toBeNull()
+    expect(sessionWasCleared(response)).toBe(false)
   })
 })

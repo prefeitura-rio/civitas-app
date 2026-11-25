@@ -3,6 +3,8 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 
+import { ForbiddenImpersonationNotice } from './forbidden-impersonation-notice'
+
 // Destino de quem abre uma tela sem permissão (useTicketScreenPermissionGate, interceptor 403 do `api` e os guards
 // de layout no servidor).
 export default function ForbiddenPage() {
@@ -14,6 +16,7 @@ export default function ForbiddenPage() {
         Seu perfil não tem permissão para abrir esta tela. Se precisar do
         acesso, fale com a coordenação.
       </p>
+      <ForbiddenImpersonationNotice />
       <Button asChild variant="outline">
         <Link href="/">Voltar ao início</Link>
       </Button>

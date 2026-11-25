@@ -19,6 +19,186 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '25 de Novembro de 2026',
+    subCards: [
+      {
+        tag: 'Adicionado',
+        title: 'Desativar e reativar usuários',
+        content: (
+          <>
+            <p>
+              Em <strong>Demandas &gt; Cadastro de Perfil</strong>,
+              coordenadores podem desativar o acesso de um usuário à CIVITAS sem
+              perder o histórico dele. Basta abrir <strong>Editar</strong> e
+              usar <strong>Desativar usuário</strong>.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/desativar_usuario_transferencia_v2.png"
+              alt="Diálogo Desativar usuário com a lista de motivos, o campo de observação e a escolha de quem assume o chamado aberto"
+              width={300}
+              height={503}
+              className="h-auto w-auto rounded-md"
+            />
+            <p>
+              É preciso escolher o motivo, que fica registrado no histórico do
+              usuário:
+            </p>
+            <ul>
+              <li>
+                <strong>Desligamento</strong>: a pessoa saiu de vez, por
+                exoneração, fim de contrato, fim do projeto ou aposentadoria.
+              </li>
+              <li>
+                <strong>Transferência de órgão/setor</strong>: a pessoa continua
+                na Prefeitura, mas foi para um órgão ou setor que não usa a
+                CIVITAS ou que não deve ter esse acesso.
+              </li>
+              <li>
+                <strong>Afastamento temporário (férias, licença)</strong>:
+                ausência com data para voltar, como férias, licença médica ou
+                licença-maternidade. É o caso típico de reativar depois.
+              </li>
+              <li>
+                <strong>Bloqueio administrativo</strong>: corte de acesso
+                decidido pela coordenação por conduta ou segurança, como uso
+                indevido, apuração em andamento ou suspeita de credencial
+                comprometida.
+              </li>
+              <li>
+                <strong>Outro</strong>: quando nenhum dos anteriores se aplica,
+                como uma conta duplicada. Nesse caso a observação é obrigatória.
+              </li>
+            </ul>
+            <p>Ao confirmar a desativação:</p>
+            <ul>
+              <li>
+                Se o usuário for o único responsável por chamados abertos, é
+                preciso escolher quem vai assumi-los. A lista mostra apenas quem
+                pode atuar nesses chamados, começando pela equipe do chamado.
+              </li>
+              <li>
+                O usuário sai das equipes e dos chamados abertos que dividia com
+                outras pessoas. O histórico e os chamados arquivados continuam
+                com o nome dele.
+              </li>
+              <li>
+                Se ninguém puder assumir esses chamados, o diálogo avisa e a
+                desativação fica bloqueada até a configuração do workflow ser
+                revista.
+              </li>
+              <li>
+                Se o usuário for o único adjunto ativo de uma equipe, o diálogo
+                avisa que novos chamados para essa equipe serão recusados até
+                outro adjunto ser cadastrado. O aviso não impede a desativação.
+              </li>
+              <li>
+                O usuário sai das equipes e dos chamados abertos que dividia com
+                outras pessoas. O histórico e os chamados arquivados continuam
+                com o nome dele.
+              </li>
+              <li>
+                Para reativar, use <strong>Reativar usuário</strong> no mesmo
+                lugar. Ali, coordenadores também veem quem desativou, quando, o
+                motivo e a observação. O acesso volta no próximo login, mas o
+                usuário precisa ser adicionado de novo às equipes.
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Novos filtros no Cadastro de Perfil',
+        content: (
+          <>
+            <p>
+              O <strong>Cadastro de Perfil</strong> ganhou uma linha de filtros:
+            </p>
+            <ul>
+              <li>
+                <strong>Buscar</strong>: por nome, usuário, e-mail ou CPF.
+              </li>
+              <li>
+                <strong>Situação</strong>: <strong>Ativos</strong> (o padrão),{' '}
+                <strong>Inativos</strong> ou <strong>Todos</strong>. Em{' '}
+                <strong>Todos</strong>, os desativados aparecem esmaecidos e com
+                o selo <strong>Inativo</strong>.
+              </li>
+              <li>
+                <strong>Perfil de acesso</strong>: um perfil específico ou{' '}
+                <strong>Sem perfil</strong>, para achar quem ainda não recebeu
+                acesso.
+              </li>
+              <li>
+                <strong>Motivo da desativação</strong>: disponível com a
+                situação <strong>Inativos</strong> ou <strong>Todos</strong>.
+              </li>
+            </ul>
+            <p>
+              Com a situação <strong>Inativos</strong> ou <strong>Todos</strong>
+              , a tabela mostra as colunas <strong>Motivo</strong> e{' '}
+              <strong>Desativado em</strong>.
+            </p>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/cadastro_perfil_filtros.png"
+              alt="Cadastro de Perfil com os filtros Buscar, Situação, Perfil de acesso e Motivo da desativação, e as colunas Motivo e Desativado em"
+              width={1568}
+              height={611}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Usuários desativados nas Demandas',
+        content: (
+          <>
+            <ul>
+              <li>
+                Usuários desativados não aparecem mais nas listas para atribuir
+                responsáveis ou montar equipes.
+              </li>
+              <li>
+                No cabeçalho do chamado, responsáveis desativados aparecem com o
+                selo <strong>Inativo</strong>. Isso acontece nos chamados
+                arquivados, que mantêm o histórico de quem atuou neles.
+              </li>
+              <li>
+                No filtro de adjunto dos <strong>Fechamentos</strong>, os
+                adjuntos desativados continuam disponíveis, marcados como
+                &quot;(inativo)&quot;, para consulta do histórico.
+              </li>
+              <li>
+                Equipes sem colaboradores passam a mostrar a mensagem{' '}
+                <strong>Nenhum colaborador nesta equipe.</strong>
+              </li>
+            </ul>
+            <Image
+              src="https://storage.googleapis.com/rj-civitas-public/assets/responsavel_inativo_chamado_v2.png"
+              alt="Cabeçalho de chamado arquivado com o responsável marcado com o selo Inativo"
+              width={560}
+              height={114}
+              className="h-auto w-auto rounded-md"
+            />
+          </>
+        ),
+      },
+      {
+        tag: 'Alterado',
+        title: 'Aviso ao usuário desativado',
+        content: (
+          <p>
+            Quando um usuário é desativado, a sessão dele é encerrada e a tela
+            de login mostra o aviso <strong>Seu acesso foi desativado</strong>.
+            Ao tentar entrar de novo, ele recebe a orientação de procurar a
+            coordenação.
+          </p>
+        ),
+      },
+    ],
+  },
+  {
     title: '10 de Novembro de 2026',
     subCards: [
       {

@@ -17,6 +17,7 @@ import {
   TICKET_MODULE_PERMISSIONS_COOKIE,
 } from '@/http/tickets/ticket-module-permissions-me'
 
+import { ImpersonationShell } from './components/impersonation/impersonation-shell'
 import { Sidebar } from './components/sidebar'
 
 export default async function AppLayout({
@@ -50,7 +51,7 @@ export default async function AppLayout({
                 <Sidebar
                   initialTicketModulePermissions={ticketPermissionsFromCookie}
                 />
-                {children}
+                <ImpersonationShell>{children}</ImpersonationShell>
               </div>
             </MonitoredPlatesContextProvider>
           </OperationsContextProvider>

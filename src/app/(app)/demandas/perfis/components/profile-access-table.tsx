@@ -1,17 +1,34 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { format, parseISO } from 'date-fns'
 import { Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useDebounce } from '@/components/custom/multiselect-with-search'
 import { Pagination } from '@/components/ui/pagination'
-import { useProfileAccessSearchParams } from '@/hooks/useParams/useProfileAccessSearchParams'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  type ProfileAccessFilterKey,
+  useProfileAccessSearchParams,
+  WITHOUT_ROLE,
+} from '@/hooks/useParams/useProfileAccessSearchParams'
+import {
+  DEACTIVATION_REASON_LABELS,
+  type UserDeactivationReason,
+  type UserStatusFilter,
+} from '@/http/user-roles/deactivation-reasons'
 import {
   getUsersWithRoles,
-  type UserRoleEnum,
   type UserRoleListItem,
 } from '@/http/user-roles/get-users-with-roles'
+import { USER_ROLES, type UserRoleEnum } from '@/http/user-roles/user-roles'
 
 import styles from '../perfis.module.css'
 
@@ -47,6 +64,88 @@ function RoleBadge({ role }: { role: UserRoleEnum }) {
   )
 }
 
+const STATUS_OPTIONS: { value: UserStatusFilter; label: string }[] = [
+  { value: 'active', label: 'Ativos' },
+  { value: 'inactive', label: 'Inativos' },
+  { value: 'all', label: 'Todos' },
+]
+
+/** Radix Select não aceita valor vazio: "Todos" usa este marcador. */
+const ANY = '__any__'
+
+const ROLE_OPTIONS = [
+  ...USER_ROLES.map((role) => ({ value: role, label: roleLabelMap[role] })),
+  { value: WITHOUT_ROLE, label: 'Sem perfil' },
+]
+
+const REASON_OPTIONS = (
+  Object.keys(DEACTIVATION_REASON_LABELS) as UserDeactivationReason[]
+).map((reason) => ({
+  value: reason,
+  label: DEACTIVATION_REASON_LABELS[reason],
+}))
+
+interface FilterSelectProps {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: { value: string; label: string }[]
+  anyLabel?: string
+  disabled?: boolean
+  hint?: string
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  anyLabel,
+  disabled,
+  hint,
+}: FilterSelectProps) {
+  return (
+    <div className={styles.perfisFilterField}>
+      <span className={styles.perfisFilterLabel} aria-hidden>
+        {label}
+      </span>
+      <Select
+        value={value || ANY}
+        onValueChange={(next) => onChange(next === ANY ? '' : next)}
+        disabled={disabled}
+      >
+        <SelectTrigger
+          aria-label={label}
+          title={disabled ? hint : undefined}
+          className={styles.perfisFilterTrigger}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className={styles.perfisFilterContent}>
+          {anyLabel ? (
+            <SelectItem value={ANY} className={styles.perfisFilterItem}>
+              {anyLabel}
+            </SelectItem>
+          ) : null}
+          {options.map((option) => (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className={styles.perfisFilterItem}
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+function formatDate(value: string | null | undefined) {
+  return value ? format(parseISO(value), 'dd/MM/yyyy') : '—'
+}
+
 interface ProfileAccessTableProps {
   onEditUser: (user: UserRoleListItem) => void
 }
@@ -54,11 +153,19 @@ interface ProfileAccessTableProps {
 export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
   const {
     search,
+    status,
+    role,
+    reason,
     formattedSearchParams,
     queryKey,
     handlePaginate,
     handleSearch,
+    handleStatusChange,
+    handleFilterChange,
   } = useProfileAccessSearchParams()
+  const showDeactivation = status !== 'active'
+  const setFilter = (key: ProfileAccessFilterKey) => (value: string) =>
+    handleFilterChange(key, value || null)
 
   const [searchInput, setSearchInput] = useState(search)
   const debouncedSearch = useDebounce(searchInput, 350)
@@ -79,12 +186,18 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
     handleSearch(debouncedSearch)
   }, [debouncedSearch, search, handleSearch])
 
-  const { data: response, isLoading } = useQuery({
+  // Mantém a página atual na tela até a próxima chegar, em vez de piscar "Carregando...".
+  const {
+    data: response,
+    isLoading,
+    isPlaceholderData,
+  } = useQuery({
     queryKey,
     queryFn: () =>
       getUsersWithRoles({
         ...formattedSearchParams,
       }),
+    placeholderData: keepPreviousData,
   })
 
   const data = response?.data?.items || []
@@ -98,26 +211,62 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
           <p className={styles.perfisSubtitle}></p>
         </header>
 
-        <div className={styles.perfisSearchRow}>
-          <Search
-            className={styles.perfisSearchIcon}
-            size={18}
-            strokeWidth={2}
-            aria-hidden
+        <div className={styles.perfisFiltersRow}>
+          <label
+            className={`${styles.perfisFilterField} ${styles.perfisFilterFieldSearch}`}
+          >
+            <span className={styles.perfisFilterLabel}>Buscar</span>
+            <span className={styles.perfisSearchBox}>
+              <Search
+                className={styles.perfisSearchIcon}
+                size={16}
+                strokeWidth={2}
+                aria-hidden
+              />
+              <input
+                type="search"
+                className={styles.perfisSearchInput}
+                placeholder="Nome, usuário, e-mail ou CPF"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                autoComplete="off"
+                enterKeyHint="search"
+              />
+            </span>
+          </label>
+          <FilterSelect
+            label="Situação"
+            value={status}
+            onChange={(value) =>
+              handleStatusChange((value || 'active') as UserStatusFilter)
+            }
+            options={STATUS_OPTIONS}
           />
-          <input
-            type="search"
-            className={styles.perfisSearchInput}
-            placeholder="Pesquisar por nome ou usuário..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            autoComplete="off"
-            enterKeyHint="search"
+          <FilterSelect
+            label="Perfil de acesso"
+            value={role}
+            onChange={setFilter('role')}
+            options={ROLE_OPTIONS}
+            anyLabel="Todos"
+          />
+          <FilterSelect
+            label="Motivo da desativação"
+            value={reason}
+            onChange={setFilter('reason')}
+            options={REASON_OPTIONS}
+            anyLabel="Todos"
+            disabled={!showDeactivation}
+            hint="Escolha a situação Inativos ou Todos para filtrar pelo motivo."
           />
         </div>
 
         <div className={styles.perfisTableCard}>
-          <div className={styles.perfisTableContainer}>
+          <div
+            className={`${styles.perfisTableContainer} ${
+              isPlaceholderData ? styles.perfisTableContainerStale : ''
+            }`}
+            aria-busy={isPlaceholderData || undefined}
+          >
             <div className={styles.perfisTableHeaderRow}>
               <div className={styles.perfisTableHeaderCellNome}>
                 <span className={styles.perfisTableHeaderText}>NOME</span>
@@ -127,6 +276,18 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
                   PERFIL DE ACESSO
                 </span>
               </div>
+              {showDeactivation ? (
+                <>
+                  <div className={styles.perfisTableCellMotivo}>
+                    <span className={styles.perfisTableHeaderText}>MOTIVO</span>
+                  </div>
+                  <div className={styles.perfisTableCellData}>
+                    <span className={styles.perfisTableHeaderText}>
+                      DESATIVADO EM
+                    </span>
+                  </div>
+                </>
+              ) : null}
               <div className={styles.perfisTableHeaderCellAcoes} />
             </div>
 
@@ -143,39 +304,89 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
             )}
 
             {!isLoading &&
-              data.map((user: UserRoleListItem) => (
-                <div key={user.id} className={styles.perfisTableRow}>
-                  <div className={styles.perfisTableRowContent}>
-                    <div className={styles.perfisTableCellNome}>
-                      <span className={styles.perfisTableCellText}>
-                        {user.full_name || user.username}
-                      </span>
-                    </div>
-                    <div className={styles.perfisTableCellPerfil}>
-                      {user.role ? (
-                        <RoleBadge
-                          key={`${user.id}-${user.role}`}
-                          role={user.role}
-                        />
-                      ) : (
-                        <span className={styles.perfisTableCellText}>
-                          Sem perfil
-                        </span>
-                      )}
-                    </div>
-                  </div>
+              data.map((user: UserRoleListItem) => {
+                const displayName = user.full_name || user.username
+                const isInactive = user.is_active === false
+                // Em "Todos" o esmaecido distingue os inativos; em "Inativos" só atrapalharia a leitura.
+                const fadeRow = isInactive && status === 'all'
 
-                  <div className={styles.perfisTableHeaderCellAcoes}>
-                    <button
-                      type="button"
-                      className={styles.perfisBtnEditar}
-                      onClick={() => onEditUser(user)}
-                    >
-                      Editar
-                    </button>
+                return (
+                  <div
+                    key={user.id}
+                    className={`${styles.perfisTableRow} ${
+                      fadeRow ? styles.perfisTableRowInactive : ''
+                    }`}
+                  >
+                    <div className={styles.perfisTableRowContent}>
+                      <div className={styles.perfisTableCellNome}>
+                        <span className={styles.perfisTableCellText}>
+                          {displayName}
+                        </span>
+                        {isInactive && status === 'all' && (
+                          <span
+                            className={`${styles.perfisBadge} ${styles.perfisBadgeInativo}`}
+                          >
+                            Inativo
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.perfisTableCellPerfil}>
+                        {user.role ? (
+                          <RoleBadge
+                            key={`${user.id}-${user.role}`}
+                            role={user.role}
+                          />
+                        ) : (
+                          <span className={styles.perfisTableCellText}>
+                            Sem perfil
+                          </span>
+                        )}
+                      </div>
+                      {showDeactivation ? (
+                        <>
+                          <div className={styles.perfisTableCellMotivo}>
+                            <span
+                              className={styles.perfisTableCellText}
+                              title={
+                                user.deactivation_reason
+                                  ? DEACTIVATION_REASON_LABELS[
+                                      user.deactivation_reason
+                                    ]
+                                  : undefined
+                              }
+                            >
+                              {user.deactivation_reason
+                                ? DEACTIVATION_REASON_LABELS[
+                                    user.deactivation_reason
+                                  ]
+                                : '—'}
+                            </span>
+                          </div>
+                          <div className={styles.perfisTableCellData}>
+                            <span
+                              className={`${styles.perfisTableCellText} ${styles.perfisTabular}`}
+                            >
+                              {isInactive
+                                ? formatDate(user.deactivated_at)
+                                : '—'}
+                            </span>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.perfisTableHeaderCellAcoes}>
+                      <button
+                        type="button"
+                        className={styles.perfisBtnEditar}
+                        onClick={() => onEditUser(user)}
+                      >
+                        Editar
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
           </div>
         </div>
       </div>
