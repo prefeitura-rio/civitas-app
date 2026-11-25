@@ -1,7 +1,8 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { format, parseISO } from 'date-fns'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -20,6 +21,8 @@ import {
 import { Label } from '@/components/ui/label'
 import { useOwnUserRole } from '@/hooks/useQueries/useOwnUserRole'
 import { useProfile } from '@/hooks/useQueries/useProfile'
+import { DEACTIVATION_REASON_LABELS } from '@/http/user-roles/deactivation-reasons'
+import { getUserActivation } from '@/http/user-roles/get-user-activation'
 import type {
   UserRoleEnum,
   UserRoleListItem,
@@ -115,6 +118,13 @@ export function ProfileAccessFormDialog({
     dialogInitialData?.id !== profile?.id &&
     !lockedForNonDeveloper
   const roleLocked = lockedForNonDeveloper || targetIsInactive
+
+  // Observação e autor só para quem pode reativar; a API aplica a mesma regra.
+  const { data: activation } = useQuery({
+    queryKey: ['user-activation', dialogInitialData?.id],
+    queryFn: () => getUserActivation(dialogInitialData?.id ?? ''),
+    enabled: isOpen && targetIsInactive && canManageActivation,
+  })
   const availableRoleOptions = roleOptions.filter(
     (option) =>
       option.value !== DEVELOPER_ROLE || ownIsDeveloper || targetIsDeveloper,
@@ -264,6 +274,34 @@ export function ProfileAccessFormDialog({
               <p className={styles.perfisModalNotice}>
                 Usuário inativo. Reative para alterar o perfil.
               </p>
+            ) : null}
+            {targetIsInactive && activation?.deactivation_reason ? (
+              <div className={`${styles.perfisModalSection} space-y-1`}>
+                <p className={styles.perfisModalNotice}>
+                  Desativado
+                  {activation.deactivated_at
+                    ? ` em ${format(parseISO(activation.deactivated_at), 'dd/MM/yyyy')}`
+                    : ''}{' '}
+                  {activation.deactivated_by_name
+                    ? `por ${activation.deactivated_by_name}`
+                    : 'pelo sistema'}
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: 'var(--perfis-text-default)' }}
+                >
+                  <span className="font-medium">Motivo:</span>{' '}
+                  {DEACTIVATION_REASON_LABELS[activation.deactivation_reason]}
+                </p>
+                {activation.deactivation_note ? (
+                  <p
+                    className="whitespace-pre-line text-sm"
+                    style={{ color: 'var(--perfis-text-default)' }}
+                  >
+                    {activation.deactivation_note}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
             {lockedForNonDeveloper ? (
               <p

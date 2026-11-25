@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { ReactNode } from 'react'
 
 import { ProfileAccessTable } from '@/app/(app)/demandas/perfis/components/profile-access-table'
 import { getUsersWithRoles } from '@/http/user-roles/get-users-with-roles'
@@ -41,12 +42,13 @@ function renderTable(onEditUser = jest.fn()) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
-  render(
-    <QueryClientProvider client={client}>
-      <ProfileAccessTable onEditUser={onEditUser} />
-    </QueryClientProvider>,
+  const wrap = (ui: ReactNode) => (
+    <QueryClientProvider client={client}>{ui}</QueryClientProvider>
   )
-  return { onEditUser }
+  const view = render(wrap(<ProfileAccessTable onEditUser={onEditUser} />))
+  const rerender = () =>
+    view.rerender(wrap(<ProfileAccessTable onEditUser={onEditUser} />))
+  return { onEditUser, rerender }
 }
 
 describe('ProfileAccessTable', () => {
@@ -56,34 +58,31 @@ describe('ProfileAccessTable', () => {
     mockedGetUsers.mockResolvedValue({ data: { items: users, total: 2 } })
   })
 
-  it('requests active users by default and switches status via the URL', async () => {
+  it('requests active users by default', async () => {
     renderTable()
     await screen.findByText('Ana Ativa')
     expect(mockedGetUsers).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'active', page: 1 }),
     )
-
-    fireEvent.click(screen.getByRole('tab', { name: 'Inativos' }))
-    expect(push).toHaveBeenCalledWith(
-      expect.stringContaining('status=inactive'),
-    )
-    expect(push).toHaveBeenCalledWith(expect.stringContaining('page=1'))
+    expect(
+      screen.getByRole('combobox', { name: 'Situação' }),
+    ).toHaveTextContent('Ativos')
   })
 
-  it('reads the status tab from the URL', async () => {
+  it('reads the status from the URL', async () => {
     currentSearch = 'status=all'
     renderTable()
     await screen.findByText('Ana Ativa')
-    expect(screen.getByRole('tab', { name: 'Todos' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    )
+    expect(
+      screen.getByRole('combobox', { name: 'Situação' }),
+    ).toHaveTextContent('Todos')
     expect(mockedGetUsers).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'all' }),
     )
   })
 
   it('flags inactive users and keeps a single Editar action per row', async () => {
+    currentSearch = 'status=all'
     const { onEditUser } = renderTable()
     await screen.findByText('Bia Inativa')
 
@@ -96,5 +95,20 @@ describe('ProfileAccessTable', () => {
     expect(
       screen.queryByRole('button', { name: /^(Desativar|Reativar)/ }),
     ).toBeNull()
+  })
+
+  it('keeps the current rows while the next page loads', async () => {
+    const { rerender } = renderTable()
+    await screen.findByText('Ana Ativa')
+
+    mockedGetUsers.mockReturnValue(new Promise(() => {}))
+    currentSearch = 'page=2&size=10'
+    rerender()
+
+    expect(screen.queryByText('Carregando...')).toBeNull()
+    expect(screen.getByText('Ana Ativa')).toBeInTheDocument()
+    expect(mockedGetUsers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 2 }),
+    )
   })
 })

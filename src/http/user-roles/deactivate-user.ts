@@ -10,6 +10,8 @@ export interface UserActivation {
   is_active: boolean
   deactivated_at: string | null
   deactivated_by_id: string | null
+  /** Quem desativou; `null` quando foi o sistema. */
+  deactivated_by_name?: string | null
   deactivation_reason: UserDeactivationReason | null
   deactivation_note: string | null
   /** Chamados abertos transferidos (o usuário era o único responsável). */
