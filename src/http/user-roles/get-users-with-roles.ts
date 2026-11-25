@@ -1,6 +1,9 @@
 import { api } from '@/lib/api'
 
-import type { UserStatusFilter } from './deactivation-reasons'
+import type {
+  UserDeactivationReason,
+  UserStatusFilter,
+} from './deactivation-reasons'
 
 export type UserRoleEnum =
   | 'Coordenador'
@@ -23,6 +26,9 @@ export interface UserRoleListItem {
   is_active: boolean
   /** Conta de integração: só um Desenvolvedor a altera. */
   is_service_account?: boolean
+  /** Só para inativos: data e motivo da desativação atual. */
+  deactivated_at?: string | null
+  deactivation_reason?: UserDeactivationReason | null
   /** Presente em `/users-roles/assigned`: indica se o usuário já está em alguma equipe. */
   belongs_to_team?: boolean
 }
