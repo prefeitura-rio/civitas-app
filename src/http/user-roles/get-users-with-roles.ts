@@ -4,17 +4,9 @@ import type {
   UserDeactivationReason,
   UserStatusFilter,
 } from './deactivation-reasons'
+import type { UserRoleEnum } from './user-roles'
 
-export type UserRoleEnum =
-  | 'Coordenador'
-  | 'Administrativo'
-  | 'Analista'
-  | 'Adjunto'
-  | 'Auxiliar de Adjunto'
-  | 'Assessor'
-  | 'Líder de Ilha'
-  | 'Agente'
-  | 'Desenvolvedor'
+export type { UserRoleEnum } from './user-roles'
 
 export interface UserRoleListItem {
   id: string
@@ -44,6 +36,11 @@ interface GetUsersWithRolesRequest {
   search?: string
   /** Padrão da API: `active`. */
   status?: UserStatusFilter
+  role?: UserRoleEnum
+  /** Só usuários sem perfil de acesso. */
+  withoutRole?: boolean
+  /** Motivo da desativação atual; a API devolve só inativos. */
+  reason?: UserDeactivationReason
 }
 
 export interface GetUsersWithRolesResponse {
@@ -56,6 +53,9 @@ export function getUsersWithRoles({
   size,
   search,
   status,
+  role,
+  withoutRole,
+  reason,
 }: GetUsersWithRolesRequest) {
   return api.get<GetUsersWithRolesResponse>('/users-roles', {
     params: {
@@ -63,6 +63,9 @@ export function getUsersWithRoles({
       page_size: size,
       ...(search ? { search } : {}),
       ...(status ? { status } : {}),
+      ...(role ? { role } : {}),
+      ...(withoutRole ? { without_role: true } : {}),
+      ...(reason ? { reason } : {}),
     },
   })
 }

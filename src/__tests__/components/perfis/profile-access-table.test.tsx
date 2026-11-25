@@ -56,34 +56,31 @@ describe('ProfileAccessTable', () => {
     mockedGetUsers.mockResolvedValue({ data: { items: users, total: 2 } })
   })
 
-  it('requests active users by default and switches status via the URL', async () => {
+  it('requests active users by default', async () => {
     renderTable()
     await screen.findByText('Ana Ativa')
     expect(mockedGetUsers).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'active', page: 1 }),
     )
-
-    fireEvent.click(screen.getByRole('tab', { name: 'Inativos' }))
-    expect(push).toHaveBeenCalledWith(
-      expect.stringContaining('status=inactive'),
-    )
-    expect(push).toHaveBeenCalledWith(expect.stringContaining('page=1'))
+    expect(
+      screen.getByRole('combobox', { name: 'Situação' }),
+    ).toHaveTextContent('Ativos')
   })
 
-  it('reads the status tab from the URL', async () => {
+  it('reads the status from the URL', async () => {
     currentSearch = 'status=all'
     renderTable()
     await screen.findByText('Ana Ativa')
-    expect(screen.getByRole('tab', { name: 'Todos' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    )
+    expect(
+      screen.getByRole('combobox', { name: 'Situação' }),
+    ).toHaveTextContent('Todos')
     expect(mockedGetUsers).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'all' }),
     )
   })
 
   it('flags inactive users and keeps a single Editar action per row', async () => {
+    currentSearch = 'status=all'
     const { onEditUser } = renderTable()
     await screen.findByText('Bia Inativa')
 

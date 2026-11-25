@@ -56,7 +56,7 @@ beforeEach(() => {
 })
 
 describe('profile list filters (URL)', () => {
-  it.failing('reads role and reason from the URL', () => {
+  it('reads role and reason from the URL', () => {
     currentSearch = 'status=inactive&role=Agente&reason=DESLIGAMENTO'
     const { result } = renderHook(() => useProfileAccessSearchParams())
     expect(result.current.formattedSearchParams).toEqual(
@@ -68,7 +68,7 @@ describe('profile list filters (URL)', () => {
     )
   })
 
-  it.failing('maps the "Sem perfil" option to withoutRole', () => {
+  it('maps the "Sem perfil" option to withoutRole', () => {
     currentSearch = 'role=none'
     const { result } = renderHook(() => useProfileAccessSearchParams())
     expect(result.current.formattedSearchParams).toEqual(
@@ -77,16 +77,15 @@ describe('profile list filters (URL)', () => {
     expect(result.current.formattedSearchParams).not.toHaveProperty('role')
   })
 
-  it.failing('changing a filter goes back to page 1', () => {
+  it('changing a filter goes back to page 1', () => {
     currentSearch = 'page=3'
     const { result } = renderHook(() => useProfileAccessSearchParams())
-    // @ts-expect-error handleFilterChange chega com os filtros novos
     act(() => result.current.handleFilterChange('role', 'Adjunto'))
     expect(pushedParams().get('role')).toBe('Adjunto')
     expect(pushedParams().get('page')).toBe('1')
   })
 
-  it.failing('going back to active users drops the reason filter', () => {
+  it('going back to active users drops the reason filter', () => {
     currentSearch = 'status=inactive&reason=DESLIGAMENTO'
     const { result } = renderHook(() => useProfileAccessSearchParams())
     act(() => result.current.handleStatusChange('active'))
@@ -96,7 +95,7 @@ describe('profile list filters (URL)', () => {
 })
 
 describe('profile list table', () => {
-  it.failing('uses dropdowns instead of status tabs', async () => {
+  it('uses dropdowns instead of status tabs', async () => {
     renderTable()
     await screen.findByText('Bia Inativa')
     expect(screen.queryByRole('tab')).toBeNull()
@@ -108,29 +107,23 @@ describe('profile list table', () => {
     ).toBeInTheDocument()
   })
 
-  it.failing(
-    'disables the reason filter while listing active users',
-    async () => {
-      renderTable()
-      await screen.findByText('Bia Inativa')
-      expect(
-        screen.getByRole('combobox', { name: 'Motivo da desativação' }),
-      ).toBeDisabled()
-    },
-  )
+  it('disables the reason filter while listing active users', async () => {
+    renderTable()
+    await screen.findByText('Bia Inativa')
+    expect(
+      screen.getByRole('combobox', { name: 'Motivo da desativação' }),
+    ).toBeDisabled()
+  })
 
-  it.failing(
-    'shows reason and date as columns for inactive users',
-    async () => {
-      currentSearch = 'status=inactive'
-      renderTable()
-      await screen.findByText('Bia Inativa')
-      expect(screen.getByText('MOTIVO')).toBeInTheDocument()
-      expect(screen.getByText('DESATIVADO EM')).toBeInTheDocument()
-      expect(screen.getByText('Desligamento')).toBeInTheDocument()
-      expect(screen.getByText('20/11/2026')).toBeInTheDocument()
-    },
-  )
+  it('shows reason and date as columns for inactive users', async () => {
+    currentSearch = 'status=inactive'
+    renderTable()
+    await screen.findByText('Bia Inativa')
+    expect(screen.getByText('MOTIVO')).toBeInTheDocument()
+    expect(screen.getByText('DESATIVADO EM')).toBeInTheDocument()
+    expect(screen.getByText('Desligamento')).toBeInTheDocument()
+    expect(screen.getByText('20/11/2026')).toBeInTheDocument()
+  })
 
   it('hides the deactivation columns for active users', async () => {
     mockedGetUsers.mockResolvedValue({
