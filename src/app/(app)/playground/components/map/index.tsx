@@ -113,7 +113,7 @@ export function PlaygroundMap() {
   }
 
   return (
-    <div className="relative h-screen w-full">
+    <div className="relative h-[calc(100dvh_-_var(--impersonation-bar-height,0px))] w-full">
       <div ref={mapContainer} className="h-full w-full" />
       <Card
         data-open={popoverOpen}

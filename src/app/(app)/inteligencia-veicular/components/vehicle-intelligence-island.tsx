@@ -14,7 +14,7 @@ const VehicleIntelligenceRoot = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-[calc(100dvh_-_var(--impersonation-bar-height,0px))] items-center justify-center">
         <Spinner />
       </div>
     ),

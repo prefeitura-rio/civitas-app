@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { Eye, X } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { useEffect, useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import { config } from '@/config'
 import { useProfile } from '@/hooks/useQueries/useProfile'
 import { getUsersOnlyWithRoles } from '@/http/user-roles/get-users-only-with-roles'
 import type { UserRoleListItem } from '@/http/user-roles/get-users-with-roles'
+import { isImpersonationScopePath } from '@/lib/chamados-impersonation-storage'
 
 import { useChamadosImpersonation } from './chamados-impersonation-context'
 
@@ -29,6 +31,9 @@ function formatRole(role: UserRoleListItem['role']) {
 export function ChamadosImpersonationBar() {
   const { subjectUserId, setImpersonation, clearImpersonation } =
     useChamadosImpersonation()
+  const pathname = usePathname()
+  const outOfScope =
+    Boolean(subjectUserId) && !isImpersonationScopePath(pathname)
 
   const {
     data: profile,
@@ -163,13 +168,18 @@ export function ChamadosImpersonationBar() {
           Ver como
         </span>
         {control}
+        {outOfScope ? (
+          <span className="shrink-0 text-xs text-muted-foreground">
+            Só no módulo Demandas
+          </span>
+        ) : null}
         {subjectUserId ? (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className="h-8 shrink-0 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-            onClick={clearImpersonation}
+            onClick={() => clearImpersonation()}
           >
             <X className="h-3.5 w-3.5" aria-hidden />
             Limpar
