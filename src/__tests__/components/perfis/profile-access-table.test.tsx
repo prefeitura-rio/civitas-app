@@ -97,7 +97,7 @@ describe('ProfileAccessTable', () => {
     ).toBeNull()
   })
 
-  it.failing('keeps the current rows while the next page loads', async () => {
+  it('keeps the current rows while the next page loads', async () => {
     const { rerender } = renderTable()
     await screen.findByText('Ana Ativa')
 

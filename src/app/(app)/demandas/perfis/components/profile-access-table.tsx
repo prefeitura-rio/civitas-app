@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
 import { Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -186,12 +186,18 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
     handleSearch(debouncedSearch)
   }, [debouncedSearch, search, handleSearch])
 
-  const { data: response, isLoading } = useQuery({
+  // Mantém a página atual na tela até a próxima chegar, em vez de piscar "Carregando...".
+  const {
+    data: response,
+    isLoading,
+    isPlaceholderData,
+  } = useQuery({
     queryKey,
     queryFn: () =>
       getUsersWithRoles({
         ...formattedSearchParams,
       }),
+    placeholderData: keepPreviousData,
   })
 
   const data = response?.data?.items || []
@@ -255,7 +261,12 @@ export function ProfileAccessTable({ onEditUser }: ProfileAccessTableProps) {
         </div>
 
         <div className={styles.perfisTableCard}>
-          <div className={styles.perfisTableContainer}>
+          <div
+            className={`${styles.perfisTableContainer} ${
+              isPlaceholderData ? styles.perfisTableContainerStale : ''
+            }`}
+            aria-busy={isPlaceholderData || undefined}
+          >
             <div className={styles.perfisTableHeaderRow}>
               <div className={styles.perfisTableHeaderCellNome}>
                 <span className={styles.perfisTableHeaderText}>NOME</span>

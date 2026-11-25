@@ -185,6 +185,15 @@
   padding: 16px 16px 32px;
 }
 
+/* Página anterior na tela enquanto a próxima carrega */
+.perfisTableContainer {
+  transition: opacity 150ms ease-out;
+}
+
+.perfisTableContainerStale {
+  opacity: 0.6;
+}
+
 /* ---------- Cabeçalho da tabela ---------- */
 .perfisTableHeaderRow {
   display: flex;
