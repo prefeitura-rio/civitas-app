@@ -95,3 +95,6 @@ helmCharts:
       argoImageUpdater:
         enabled: true
         updateStrategy: "digest"
+
+      serviceAccount:
+        create: true
