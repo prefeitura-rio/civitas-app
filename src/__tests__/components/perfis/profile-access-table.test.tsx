@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { ReactNode } from 'react'
 
 import { ProfileAccessTable } from '@/app/(app)/demandas/perfis/components/profile-access-table'
 import { getUsersWithRoles } from '@/http/user-roles/get-users-with-roles'
@@ -41,12 +42,13 @@ function renderTable(onEditUser = jest.fn()) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
-  render(
-    <QueryClientProvider client={client}>
-      <ProfileAccessTable onEditUser={onEditUser} />
-    </QueryClientProvider>,
+  const wrap = (ui: ReactNode) => (
+    <QueryClientProvider client={client}>{ui}</QueryClientProvider>
   )
-  return { onEditUser }
+  const view = render(wrap(<ProfileAccessTable onEditUser={onEditUser} />))
+  const rerender = () =>
+    view.rerender(wrap(<ProfileAccessTable onEditUser={onEditUser} />))
+  return { onEditUser, rerender }
 }
 
 describe('ProfileAccessTable', () => {
@@ -93,5 +95,20 @@ describe('ProfileAccessTable', () => {
     expect(
       screen.queryByRole('button', { name: /^(Desativar|Reativar)/ }),
     ).toBeNull()
+  })
+
+  it.failing('keeps the current rows while the next page loads', async () => {
+    const { rerender } = renderTable()
+    await screen.findByText('Ana Ativa')
+
+    mockedGetUsers.mockReturnValue(new Promise(() => {}))
+    currentSearch = 'page=2&size=10'
+    rerender()
+
+    expect(screen.queryByText('Carregando...')).toBeNull()
+    expect(screen.getByText('Ana Ativa')).toBeInTheDocument()
+    expect(mockedGetUsers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 2 }),
+    )
   })
 })
