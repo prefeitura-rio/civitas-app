@@ -19,7 +19,7 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
-    title: '20 de Outubro de 2026',
+    title: '26 de Novembro de 2026',
     subCards: [
       {
         tag: 'Corrigido',
@@ -39,17 +39,6 @@ export const changelog: Card[] = [
           <p>
             Os endereços cadastrados nos serviços voltam a aparecer nos campos
             correspondentes ao reabrir uma demanda para edição.
-          </p>
-        ),
-      },
-      {
-        tag: 'Corrigido',
-        title: 'Números dos equipamentos na busca por radar',
-        content: (
-          <p>
-            A busca por radar agora mostra os números dos equipamentos
-            cadastrados. Antes, essa informação era apresentada como placa de
-            veículo.
           </p>
         ),
       },
