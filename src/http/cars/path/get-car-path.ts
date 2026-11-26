@@ -16,6 +16,10 @@ export interface Point {
   localidade: string
   sentido?: string | null
   velocidade: number
+  parado?: boolean
+  minutos_parado?: number
+  total_deteccoes_parado?: number
+  inicio_permanencia?: string | null
   seconds_to_next_point: number | null
 }
 

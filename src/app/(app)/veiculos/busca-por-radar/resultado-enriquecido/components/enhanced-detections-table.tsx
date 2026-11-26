@@ -2,12 +2,14 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { formatDate } from 'date-fns'
 import { ArrowUpRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
 
 import { Tooltip } from '@/components/custom/tooltip'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Label } from '@/components/ui/label'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
+import { consolidateRadarReportDetections } from '@/utils/consolidate-radar-report-detections'
 
 interface DetectionsTableProps {
   data: EnhancedDetectionDTO[]
@@ -19,8 +21,12 @@ export function EnhancedDetectionsTable({
   isLoading,
 }: DetectionsTableProps) {
   const router = useRouter()
+  const tableData = useMemo(
+    () => consolidateRadarReportDetections(data),
+    [data],
+  )
 
-  const columns: ColumnDef<EnhancedDetectionDTO>[] = [
+  const columns: ColumnDef<(typeof tableData)[number]>[] = [
     {
       accessorKey: 'timestamp',
       header: () => <Label>Data e Hora</Label>,
@@ -69,6 +75,26 @@ export function EnhancedDetectionsTable({
       cell: ({ row }) => <span>{row.getValue('speed')}</span>,
     },
     {
+      accessorKey: 'parado',
+      header: () => <Label>Possível permanência até</Label>,
+      cell: ({ row }) =>
+        row.original.parado ? (
+          <span className="flex flex-col whitespace-nowrap">
+            <span>
+              {formatDate(
+                row.original.possibleStayUntil ?? row.original.timestamp,
+                'dd/MM/yyyy HH:mm:ss',
+              )}
+            </span>
+            <span>
+              {(row.original.total_deteccoes_parado ?? 0) + 1} detecções
+            </span>
+          </span>
+        ) : (
+          <span>—</span>
+        ),
+    },
+    {
       id: 'actions',
       header: () => <Label></Label>,
       cell: ({ row }) => (
@@ -90,6 +116,12 @@ export function EnhancedDetectionsTable({
   ]
 
   return (
-    <DataTable columns={columns} data={data} isLoading={isLoading} pagination />
+    <DataTable
+      columns={columns}
+      data={tableData}
+      isLoading={isLoading}
+      pagination
+      tableClassName="[&_th:nth-last-child(2)]:w-px [&_th:nth-last-child(2)]:px-2 [&_td:nth-last-child(2)]:px-2"
+    />
   )
 }

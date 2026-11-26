@@ -23,6 +23,7 @@ import { useCarRadarSearchParams } from '@/hooks/useParams/useCarRadarSearchPara
 import { useCollectionPoints } from '@/hooks/useQueries/useCollectionPoints'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
 import type { UseSearchByRadarEnhancedResultDynamicFilter } from '@/hooks/useSearchByRadarEnhancedResultDynamicFilter'
+import { consolidateRadarReportDetections } from '@/utils/consolidate-radar-report-detections'
 import { exportToCSV, formatCsvDateTime } from '@/utils/csv'
 import { downloadFile } from '@/utils/download-file'
 
@@ -178,7 +179,7 @@ export function DownloadReport({
       applyFilters === ApplyFilters.Sim ? filters.filteredData : data
 
     if (fileType === 'CSV') {
-      const csvData = selectedData || []
+      const csvData = consolidateRadarReportDetections(selectedData || [])
       const isUsingDynamicFilters = applyFilters === ApplyFilters.Sim
       const metadataLines = [
         'Nome do relatório: Relatório de Busca Enriquecida por Radar',
@@ -272,6 +273,23 @@ export function DownloadReport({
           header: 'Longitude',
           getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
             row.longitude.toString().replace('.', ','),
+        },
+        {
+          header: 'Possível permanência até',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.parado
+              ? formatCsvDateTime(row.possibleStayUntil ?? row.timestamp)
+              : null,
+        },
+        {
+          header: 'Detecções na possível permanência',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.parado ? (row.total_deteccoes_parado ?? 0) + 1 : null,
+        },
+        {
+          header: 'Duração da possível permanência (min)',
+          getValue: ({ row }: EnrichedRadarCsvColumnContext) =>
+            row.parado ? (row.minutos_parado ?? null) : null,
         },
       ] as const
       const enrichedRadarCsvHeaders = enrichedRadarCsvColumns.map(

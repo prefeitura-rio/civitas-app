@@ -5,7 +5,8 @@ import React from 'react'
 import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
-import type { CollectionPoint, RadarDetection } from '@/models/entities'
+import type { CollectionPoint } from '@/models/entities'
+import { consolidateRadarReportDetections } from '@/utils/consolidate-radar-report-detections'
 
 import { RadarReportCover } from './components/cover'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result'
@@ -70,7 +71,8 @@ const columns = [
   { title: 'Placa', width: '15%', key: 'plate' },
   { title: 'Equipamento', width: '15%', key: 'equipmentCode' },
   { title: 'Velocidade [Km/h]', width: '20%', key: 'speed' },
-]
+  { title: 'Possível permanência até', width: '25%', key: 'parado' },
+] as const
 
 export type GroupedDetection = {
   location: string
@@ -109,7 +111,9 @@ export function RadarReportDocument({
   // Remove duplicates from each group's detections
   const filteredData = data.map((group) => ({
     ...group,
-    detections: removeDuplicates(group.detections),
+    detections: consolidateRadarReportDetections(
+      removeDuplicates(group.detections),
+    ),
   }))
 
   return (
@@ -160,12 +164,15 @@ export function RadarReportDocument({
                               width: column.width,
                             }}
                           >
-                            {column.key === 'timestamp'
-                              ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                              : column.key === 'plate' &&
-                                  row[column.key as keyof RadarDetection] === ''
-                                ? '-------'
-                                : row[column.key as keyof RadarDetection]}
+                            {column.key === 'parado'
+                              ? row.parado
+                                ? `${format(row.possibleStayUntil ?? row.timestamp, 'dd/MM/yyyy HH:mm:ss')}\n${(row.total_deteccoes_parado ?? 0) + 1} detecções`
+                                : '—'
+                              : column.key === 'timestamp'
+                                ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
+                                : column.key === 'plate' && row.plate === ''
+                                  ? '-------'
+                                  : row[column.key]}
                           </Text>
                         ))}
                       </View>

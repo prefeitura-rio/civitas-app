@@ -1,6 +1,7 @@
 import { formatDate } from 'date-fns'
 import { TriangleAlert } from 'lucide-react'
 
+import { PossibleStayBadge } from '@/components/custom/possible-stay-badge'
 import { Tooltip } from '@/components/custom/tooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMap } from '@/hooks/useContexts/use-map-context'
@@ -20,6 +21,10 @@ export function PointCard({ point }: PointCardProps) {
   } = useMap()
 
   const points = selectedTrip?.points || []
+  const isStayEndpoint =
+    point.possibleStay ||
+    point.possibleStayToNext ||
+    points[point.index - 1]?.possibleStayToNext
 
   const distanceInKilometers = point.to
     ? haversineDistance({
@@ -139,17 +144,25 @@ export function PointCard({ point }: PointCardProps) {
       <span className="w-10 shrink-0">
         {formatDate(point.startTime, 'HH:mm')}
       </span>
-      {point.index < points.length - 1 && (
-        <div className="absolute left-[3.35rem] top-0 mt-2 h-full w-0.5 bg-primary" />
+      {point.index > 0 && (
+        <div
+          className={`absolute left-[3.35rem] top-0 mt-2 h-full w-0.5 ${
+            points[point.index - 1]?.possibleStayToNext
+              ? 'border-l-2 border-dashed border-gray-400'
+              : 'bg-primary'
+          }`}
+        />
       )}
-      <div className="z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card" />
-      <div className="ml-1.5 flex flex-col truncate">
-        <Tooltip text={point.location?.capitalizeFirstLetter()}>
-          <div className="truncate">
-            <span className="truncate">
-              {point.location?.capitalizeFirstLetter()}
-            </span>
-          </div>
+      <div
+        className={`z-10 mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 bg-card ${point.isRepeatedStayStart ? 'invisible' : ''} ${
+          isStayEndpoint ? 'border-gray-400' : 'border-primary'
+        }`}
+      />
+      <div className="ml-1.5 flex min-w-0 flex-1 flex-col items-start text-left">
+        <Tooltip text={point.location?.capitalizeFirstLetter()} asChild>
+          <button type="button" className="max-w-full truncate text-left">
+            {point.location?.capitalizeFirstLetter()}
+          </button>
         </Tooltip>
         <span className="block truncate text-xs text-muted-foreground">
           Posição {point.index + 1}
@@ -166,6 +179,11 @@ export function PointCard({ point }: PointCardProps) {
             : 'Sentido'}
         </span>
       </div>
+      {point.possibleStayToNext && (
+        <div className="ml-auto shrink-0 self-start">
+          <PossibleStayBadge point={point} />
+        </div>
+      )}
     </div>
   )
 }

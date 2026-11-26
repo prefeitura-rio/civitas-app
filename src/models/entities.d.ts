@@ -14,12 +14,18 @@ export type Point = {
   speed: number
   secondsToNextPoint: number | null
   cloneAlert: boolean
+  possibleStay?: boolean
+  possibleStayToNext?: boolean
+  isRepeatedStayStart?: boolean
+  stayDurationMinutes?: number
+  stayDetectionCount?: number
   latitude?: number
   longitude?: number
 }
 
 export type Trip = {
   index: number
+  startTime?: string
   cloneAlert: boolean
   points: Point[]
 }
@@ -111,6 +117,9 @@ export interface RadarDetection {
   plate: string
   timestamp: string
   speed: number
+  parado?: boolean
+  minutos_parado?: number
+  total_deteccoes_parado?: number
 }
 
 export type Report = {

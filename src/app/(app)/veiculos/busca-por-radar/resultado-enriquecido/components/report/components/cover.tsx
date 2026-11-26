@@ -3,6 +3,8 @@ import '@/utils/string-extensions'
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import { formatDate } from 'date-fns'
 
+import { ReportPossibleStayDescription } from '@/app/(app)/veiculos/busca-por-radar/components/report-possible-stay-description'
+
 interface RadarReportCoverProps {
   radarIds: string[]
   location: string
@@ -84,6 +86,7 @@ export function RadarReportCover({
 
   return (
     <View style={styles.container}>
+      <ReportPossibleStayDescription />
       {commons.map(
         (item, index) =>
           (item === undefined || item === null || item.value !== '') && (

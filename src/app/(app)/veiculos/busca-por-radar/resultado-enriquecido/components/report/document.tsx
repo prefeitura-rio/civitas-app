@@ -6,6 +6,7 @@ import { ReportFooter } from '@/components/custom/report-footer'
 import { ReportHeader } from '@/components/custom/report-header'
 import type { EnhancedDetectionDTO } from '@/hooks/useQueries/useEnhancedRadarsSearch'
 import type { CollectionPoint } from '@/models/entities'
+import { consolidateRadarReportDetections } from '@/utils/consolidate-radar-report-detections'
 
 import { RadarReportCover } from './components/cover'
 import { RadarReportEmptyResult } from './components/radar-report-empty-result'
@@ -66,13 +67,14 @@ const styles = StyleSheet.create({
 
 const columns = [
   { title: 'Data e Hora', width: '13%', key: 'timestamp' },
-  { title: 'Placa', width: '12%', key: 'plate' },
-  { title: 'Marca/Modelo', width: '20%', key: 'brandModel' },
-  { title: 'Cor', width: '13%', key: 'color' },
-  { title: 'Ano Modelo', width: '10%', key: 'modelYear' },
-  { title: 'Equipamento', width: '13%', key: 'equipmentCode' },
-  { title: 'Velocidade [Km/h]', width: '12%', key: 'speed' },
-]
+  { title: 'Placa', width: '10%', key: 'plate' },
+  { title: 'Marca/Modelo', width: '19%', key: 'brandModel' },
+  { title: 'Cor', width: '10%', key: 'color' },
+  { title: 'Ano Modelo', width: '8%', key: 'modelYear' },
+  { title: 'Equipamento', width: '12%', key: 'equipmentCode' },
+  { title: 'Velocidade [Km/h]', width: '10%', key: 'speed' },
+  { title: 'Possível permanência até', width: '18%', key: 'parado' },
+] as const
 
 export type GroupedEnhancedDetection = {
   location: string
@@ -113,7 +115,9 @@ export function RadarReportDocument({
   // Remove duplicates from each group's detections
   const filteredData = data.map((group) => ({
     ...group,
-    detections: removeDuplicates(group.detections),
+    detections: consolidateRadarReportDetections(
+      removeDuplicates(group.detections),
+    ),
   }))
 
   return (
@@ -166,14 +170,15 @@ export function RadarReportDocument({
                               width: column.width,
                             }}
                           >
-                            {column.key === 'timestamp'
-                              ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
-                              : column.key === 'plate' &&
-                                  row[
-                                    column.key as keyof EnhancedDetectionDTO
-                                  ] === ''
-                                ? '-------'
-                                : row[column.key as keyof EnhancedDetectionDTO]}
+                            {column.key === 'parado'
+                              ? row.parado
+                                ? `${format(row.possibleStayUntil ?? row.timestamp, 'dd/MM/yyyy HH:mm:ss')}\n${(row.total_deteccoes_parado ?? 0) + 1} detecções`
+                                : '—'
+                              : column.key === 'timestamp'
+                                ? format(row.timestamp, 'dd/MM/yyyy HH:mm:ss')
+                                : column.key === 'plate' && row.plate === ''
+                                  ? '-------'
+                                  : row[column.key]}
                           </Text>
                         ))}
                       </View>

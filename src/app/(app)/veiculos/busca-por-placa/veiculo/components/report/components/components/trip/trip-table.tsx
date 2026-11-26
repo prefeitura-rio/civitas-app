@@ -154,6 +154,11 @@ export function TripTable({ points, caption }: TripTableProps) {
               </View>
               <View style={styles.location}>
                 <Text>{`${location}, ${district}; Sentido: ${direction}`}</Text>
+                {item.possibleStay && (
+                  <Text style={{ color: '#087C9E', fontSize: 9, marginTop: 3 }}>
+                    {`Possível permanência · ${item.stayDetectionCount ?? 1} ${(item.stayDetectionCount ?? 1) === 1 ? 'detecção' : 'detecções'}`}
+                  </Text>
+                )}
               </View>
               <View style={styles.latitude}>
                 <Text>

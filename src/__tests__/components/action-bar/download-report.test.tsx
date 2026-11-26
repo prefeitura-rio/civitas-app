@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { DownloadReport } from '@/app/(app)/veiculos/busca-por-radar/resultado/components/action-bar/components/download-report'
+import { DownloadReport as EnhancedDownloadReport } from '@/app/(app)/veiculos/busca-por-radar/resultado-enriquecido/components/action-bar/components/download-report'
 import type { DetectionDTO } from '@/hooks/useQueries/useRadarsSearch'
 import type { UseSearchByRadarResultDynamicFilter } from '@/hooks/useSearchByRadarResultDynamicFilter'
 import { exportToCSV } from '@/utils/csv'
@@ -19,7 +20,7 @@ jest.mock('@/hooks/useParams/useCarRadarSearchParams', () => ({
         from: '2024-01-15T00:00:00Z',
         to: '2024-01-15T23:59:59Z',
       },
-      plate: 'ABC1234',
+      plate: 'ABC1D23',
       radarIds: ['RDR001'],
     },
   }),
@@ -76,7 +77,7 @@ jest.mock('@react-pdf/renderer', () => ({
 }))
 
 const mockDetection: DetectionDTO = {
-  plate: 'ABC1234',
+  plate: 'ABC1D23',
   timestamp: '2024-01-15T10:00:00Z',
   location: 'Local Teste',
   equipmentCode: 'RDR001',
@@ -89,7 +90,7 @@ const mockDetection: DetectionDTO = {
 const mockFilters: UseSearchByRadarResultDynamicFilter = {
   filteredData: [mockDetection],
   setFilteredData: jest.fn(),
-  selectedPlate: 'ABC1234',
+  selectedPlate: 'ABC1D23',
   setSelectedPlate: jest.fn(),
   selectedLocations: ['Local Teste'],
   setSelectedLocations: jest.fn(),
@@ -294,6 +295,9 @@ describe('DownloadReport', () => {
           'Endereço',
           'Latitude',
           'Longitude',
+          'Possível permanência até',
+          'Detecções na possível permanência',
+          'Duração da possível permanência (min)',
         ],
         dataRows: expect.any(Array),
       }),
@@ -305,13 +309,71 @@ describe('DownloadReport', () => {
     expect(headers).not.toContain('lane')
     expect(dataRows).toHaveLength(1)
     expect(dataRows[0]).toEqual([
-      'ABC1234',
+      'ABC1D23',
       expect.stringMatching(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/),
       60,
       'RDR001',
       'Local Teste',
       '-22,9068',
       '-43,1729',
+      null,
+      null,
+      null,
     ])
   })
+  it.each([DownloadReport, EnhancedDownloadReport])(
+    'exports permanence details for ordinary and enriched searches (%p)',
+    async (Download) => {
+      const data = [
+        {
+          ...mockDetection,
+          timestamp: '2026-11-17T23:55:00',
+          brandModel: '',
+          color: '',
+          modelYear: '',
+        },
+        {
+          ...mockDetection,
+          timestamp: '2026-11-18T00:10:00',
+          brandModel: '',
+          color: '',
+          modelYear: '',
+          parado: true,
+          minutos_parado: 15,
+          total_deteccoes_parado: 4,
+        },
+      ]
+      const filters = {
+        ...mockFilters,
+        filteredData: data,
+        colorOptions: [],
+        brandModelOptions: [],
+        selectedBrandModel: [],
+        selectedColors: [],
+        setSelectedBrandModel: jest.fn(),
+        setSelectedColors: jest.fn(),
+      }
+      render(<Download data={data} isLoading={false} filters={filters} />, {
+        wrapper: createWrapper(),
+      })
+      fireEvent.click(screen.getByRole('button'))
+      fireEvent.click(screen.getByLabelText('CSV'))
+      fireEvent.click(screen.getByRole('button', { name: /obter relatório/i }))
+      await waitFor(() => expect(exportToCSV).toHaveBeenCalledTimes(1))
+      const { headers, dataRows } = (exportToCSV as jest.Mock).mock.calls[0][1]
+      expect(dataRows).toHaveLength(1)
+      expect(dataRows[0][headers.indexOf('Data e Hora')]).toBe(
+        '17/11/2026 23:55:00',
+      )
+      expect(dataRows[0][headers.indexOf('Possível permanência até')]).toBe(
+        '18/11/2026 00:10:00',
+      )
+      expect(
+        dataRows[0][headers.indexOf('Detecções na possível permanência')],
+      ).toBe(5)
+      expect(
+        dataRows[0][headers.indexOf('Duração da possível permanência (min)')],
+      ).toBe(15)
+    },
+  )
 })
