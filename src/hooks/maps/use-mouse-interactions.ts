@@ -21,6 +21,11 @@ interface UseMouseInteractionsProps {
   zoomToLocation: (lat: number, lng: number, zoom: number) => void
 }
 
+function mapPoint(e: MouseEvent): { x: number; y: number } {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+}
+
 export function useMouseInteractions({
   deckRef,
   multiSelectRadar,
@@ -38,9 +43,7 @@ export function useMouseInteractions({
     (e: MouseEvent) => {
       e.preventDefault()
       e.stopPropagation()
-      const y = e.clientY
-      const x = e.clientX - 56
-      const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+      const info = deckRef.current?.pickObject({ ...mapPoint(e), radius: 0 })
       const ZOOM_SIZE = 18
 
       if (isPointClusterLayerId(info?.layer?.id ?? '')) {
@@ -117,9 +120,7 @@ export function useMouseInteractions({
         return
       }
 
-      const y = e.clientY
-      const x = e.clientX - 56
-      const info = deckRef.current?.pickObject({ x, y, radius: 0 })
+      const info = deckRef.current?.pickObject({ ...mapPoint(e), radius: 0 })
 
       if (isPointLayerInGroup(info?.layer?.id ?? '', 'lpr') && info?.object) {
         const radar = info.object as CollectionPoint
