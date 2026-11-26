@@ -30,7 +30,7 @@ describe('gcsResumableChunkedUpload', () => {
     global.fetch = fetchMock as unknown as typeof fetch
   })
 
-  it.failing('não consulta o offset de uma sessão recém-criada', async () => {
+  it('não consulta o offset de uma sessão recém-criada', async () => {
     // Sessão nova não tem bytes recebidos; a consulta (PUT vazio) só serve para retomar.
     fetchMock.mockResolvedValue(response(200))
 
