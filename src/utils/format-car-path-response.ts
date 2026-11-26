@@ -1,11 +1,15 @@
-import type { GetCarPathResponse } from '@/http/cars/path/get-car-path'
+import type {
+  GetCarPathResponse,
+  GetCarPathResponseItem,
+  Point as ApiPoint,
+} from '@/http/cars/path/get-car-path'
 import type { Point, Trip } from '@/models/entities'
 import type { Coordinates } from '@/models/utils'
 
 import { formatLocation } from './formatLocation'
 import { isCloned } from './is-cloned'
 
-export function formatCarPathResponse(response: GetCarPathResponse) {
+function buildStayIndexes(response: GetCarPathResponse) {
   const allPoints = response.flatMap((trip) => trip.locations.flat())
   const byTime = new Map(
     allPoints.map((point) => [new Date(point.datahora).getTime(), point]),
@@ -16,23 +20,39 @@ export function formatCarPathResponse(response: GetCarPathResponse) {
       .map((point) => [new Date(point.inicio_permanencia!).getTime(), point]),
   )
 
-  const trips: Trip[] = response.map((trips, i) => {
-    const pointSet = new Set<string>()
-    const points = trips.locations.flat()
-    const firstPoint = points[0]
-    // Repeat the sequence's initial reading in the next trip without removing
-    // it from the preceding trip. Use the query's start, not the previous row.
-    if (firstPoint?.parado && firstPoint.inicio_permanencia) {
-      const startTime = new Date(firstPoint.inicio_permanencia).getTime()
-      const initialPoint = byTime.get(startTime)
-      if (initialPoint && startTime < new Date(firstPoint.datahora).getTime()) {
-        points.unshift({
-          ...initialPoint,
-          seconds_to_next_point:
-            (new Date(firstPoint.datahora).getTime() - startTime) / 1000,
-        })
-      }
+  return { byTime, staysByStart }
+}
+
+function prepareTripPoints(
+  trip: GetCarPathResponseItem,
+  byTime: ReadonlyMap<number, ApiPoint>,
+) {
+  const points = trip.locations.flat()
+  const firstPoint = points[0]
+
+  // Repeat the sequence's initial reading in the next trip without removing
+  // it from the preceding trip. Use the query's start, not the previous row.
+  if (firstPoint?.parado && firstPoint.inicio_permanencia) {
+    const startTime = new Date(firstPoint.inicio_permanencia).getTime()
+    const initialPoint = byTime.get(startTime)
+    if (initialPoint && startTime < new Date(firstPoint.datahora).getTime()) {
+      points.unshift({
+        ...initialPoint,
+        seconds_to_next_point:
+          (new Date(firstPoint.datahora).getTime() - startTime) / 1000,
+      })
     }
+  }
+
+  return { points, firstPoint }
+}
+
+export function formatCarPathResponse(response: GetCarPathResponse) {
+  const { byTime, staysByStart } = buildStayIndexes(response)
+
+  const trips: Trip[] = response.map((trip, i) => {
+    const pointSet = new Set<string>()
+    const { points, firstPoint } = prepareTripPoints(trip, byTime)
     let tripCloneAlert = false
 
     const formattedPoints = points
