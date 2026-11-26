@@ -29,6 +29,37 @@ const MAX_UPSTREAM_REDIRECTS = 5
 const PRESERVE_METHOD_REDIRECT_STATUSES = new Set([307, 308])
 const NO_BODY_RESPONSE_STATUSES = new Set([204, 205, 304])
 
+/**
+ * Documentação das APIs (Swagger/ReDoc, padrão do FastAPI): é um mapa das rotas para quem quer extrair dados.
+ * O BFF não a repassa; os devs a consultam direto na API. Cobre também subcaminhos, como `/docs/oauth2-redirect`.
+ */
+const BLOCKED_UPSTREAM_PATHS = ['/openapi.json', '/docs', '/redoc']
+
+/** Caminho como o upstream o enxerga: decodificado, sem barras repetidas ou finais, em minúsculas. */
+function normalizeUpstreamPath(path: string) {
+  let decoded = path
+  try {
+    decoded = decodeURIComponent(path)
+  } catch {
+    // Codificação inválida: compara o caminho cru.
+  }
+  return decoded
+    .replace(/\/{2,}/g, '/')
+    .replace(/\/+$/, '')
+    .toLowerCase()
+}
+
+export function isBlockedUpstreamPath(path: string) {
+  const normalized = normalizeUpstreamPath(path)
+  return BLOCKED_UPSTREAM_PATHS.some(
+    (blocked) => normalized === blocked || normalized.startsWith(`${blocked}/`),
+  )
+}
+
+function notFound() {
+  return NextResponse.json({ message: 'Not found' }, { status: 404 })
+}
+
 /** Campos da sessão que o proxy repassa ao upstream. */
 export interface BffSession {
   accessToken: string
@@ -110,6 +141,13 @@ export function createProxyHandler({
         { message: 'Method not allowed' },
         { status: 405 },
       )
+    }
+
+    // Antes da sessão: a resposta é a mesma com ou sem login.
+    if (
+      isBlockedUpstreamPath(request.nextUrl.pathname.replace(prefixPattern, ''))
+    ) {
+      return notFound()
     }
 
     if (
@@ -238,6 +276,11 @@ export function createProxyHandler({
         currentUpstreamUrl = normalized.toString()
       } else {
         currentUpstreamUrl = nextUpstreamUrl.toString()
+      }
+
+      // Ex.: `/openapi.json/` → 307 do FastAPI para `/openapi.json`.
+      if (isBlockedUpstreamPath(new URL(currentUpstreamUrl).pathname)) {
+        return withSessionCookies(notFound(), result.session)
       }
 
       upstreamResponse = await fetchUpstream(currentUpstreamUrl)

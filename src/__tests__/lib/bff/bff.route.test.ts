@@ -5,7 +5,7 @@
  */
 import { NextRequest } from 'next/server'
 
-import { GET, POST } from '@/app/api/bff/[...path]/route'
+import { GET, HEAD, POST } from '@/app/api/bff/[...path]/route'
 import { buildSessionFromTokenResponse, serializeSession } from '@/auth/session'
 
 jest.mock('@/config', () => {
@@ -191,5 +191,61 @@ describe('/api/bff/[...path]', () => {
     )
     expect(response.status).toBe(403)
     expect(mock).not.toHaveBeenCalled()
+  })
+
+  describe('API docs (Swagger)', () => {
+    it.each([
+      '/openapi.json',
+      '/docs',
+      '/redoc',
+      '/docs/oauth2-redirect',
+      '/openapi.json/',
+      '//openapi.json',
+      '/%6Fpenapi.json',
+      '/OpenAPI.json',
+      '/docs%2Foauth2-redirect',
+    ])('returns 404 for %s without calling the upstream', async (path) => {
+      const mock = mockUpstream(() => new Response('{}'))
+      const response = await GET(makeRequest(path))
+      expect(response.status).toBe(404)
+      expect(mock).not.toHaveBeenCalled()
+    })
+
+    it('returns 404 for HEAD and without a session', async () => {
+      const mock = mockUpstream(() => new Response('{}'))
+      expect(
+        (await HEAD(makeRequest('/openapi.json', { method: 'HEAD' }))).status,
+      ).toBe(404)
+      expect((await GET(makeRequest('/docs', { cookie: null }))).status).toBe(
+        404,
+      )
+      expect(mock).not.toHaveBeenCalled()
+    })
+
+    it('does not follow an upstream redirect to the docs', async () => {
+      const mock = mockUpstream(
+        () =>
+          new Response(null, {
+            status: 307,
+            headers: { location: 'http://api.internal/openapi.json' },
+          }),
+      )
+      const response = await GET(makeRequest('/users/me/'))
+      expect(response.status).toBe(404)
+      expect(mock).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps forwarding routes with similar names', async () => {
+      const mock = mockUpstream(
+        () =>
+          new Response('{}', {
+            headers: { 'content-type': 'application/json' },
+          }),
+      )
+      for (const path of ['/documents', '/docs-history', '/reports/docs']) {
+        expect((await GET(makeRequest(path))).status).toBe(200)
+      }
+      expect(mock).toHaveBeenCalledTimes(3)
+    })
   })
 })
