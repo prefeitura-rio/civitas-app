@@ -49,7 +49,7 @@ function renderModal(service: (typeof SERVICES)[number]) {
   )
 }
 
-test.failing.each(SERVICES)(
+test.each(SERVICES)(
   'em %s, apagar o endereço com erro não passa o erro para o seguinte',
   async (service) => {
     renderModal(service)

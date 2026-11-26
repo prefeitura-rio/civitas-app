@@ -795,14 +795,17 @@ function BuscaPorImagemForm({
   const addresses = form.watch('addresses') ?? []
 
   const addAddress = () => {
-    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+    form.setValue('addresses', [...addresses, ''], {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
   }
 
   const removeAddress = (index: number) => {
     form.setValue(
       'addresses',
       addresses.filter((_, i) => i !== index),
-      { shouldValidate: true },
+      { shouldValidate: true, shouldDirty: true },
     )
   }
 
@@ -1218,14 +1221,17 @@ function ReservaImagemForm({
   const addresses = form.watch('addresses') ?? []
 
   const addAddress = () => {
-    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+    form.setValue('addresses', [...addresses, ''], {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
   }
 
   const removeAddress = (index: number) => {
     form.setValue(
       'addresses',
       addresses.filter((_, i) => i !== index),
-      { shouldValidate: true },
+      { shouldValidate: true, shouldDirty: true },
     )
   }
 
@@ -1436,14 +1442,17 @@ function AnaliseImagemForm({
   const addresses = form.watch('addresses') ?? []
 
   const addAddress = () => {
-    form.setValue('addresses', [...addresses, ''], { shouldValidate: true })
+    form.setValue('addresses', [...addresses, ''], {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
   }
 
   const removeAddress = (index: number) => {
     form.setValue(
       'addresses',
       addresses.filter((_, i) => i !== index),
-      { shouldValidate: true },
+      { shouldValidate: true, shouldDirty: true },
     )
   }
 
