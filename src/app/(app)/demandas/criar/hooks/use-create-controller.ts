@@ -57,6 +57,8 @@ function normalizeCatalogLabel(value: string) {
   return value.trim().toLowerCase()
 }
 
+const NO_ATTACHMENTS: TicketAttachmentOut[] = []
+
 function associarChamadoIdOrNull(value?: string | null): string | null {
   if (value == null) return null
   const trimmed = value.trim()
@@ -71,9 +73,10 @@ export function useTicketCreateController() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<File[]>([])
-  const [existingAttachments, setExistingAttachments] = useState<
-    TicketAttachmentOut[]
-  >([])
+  const [linkedAttachments, setLinkedAttachments] = useState<{
+    ticketId: string
+    attachments: TicketAttachmentOut[]
+  } | null>(null)
   const [serviceModalOpen, setServiceModalOpen] = useState<OpenServiceKey>(null)
   const [serviceModalEditIndex, setServiceModalEditIndex] = useState<
     number | null
@@ -216,11 +219,12 @@ export function useTicketCreateController() {
     mutationFn: async ({ ticketId }: { ticketId: string }) => {
       const [ticket, attachments] = await Promise.all([
         getTicketById(ticketId),
-        getTicketAttachments(ticketId),
+        getTicketAttachments(ticketId).catch(() => null),
       ])
       return { ticket, ticketId, attachments }
     },
     onSuccess: ({ ticket, ticketId, attachments }) => {
+      if (getValues('linked_ticket_id') !== ticketId) return
       const cached = queryClient.getQueryData<AxiosResponse<TicketType[]>>([
         'ticket-types',
         'select',
@@ -235,7 +239,7 @@ export function useTicketCreateController() {
         setSelectedTicketLabel('')
         setSelectedAssociatedTicketTypeName(null)
         setTicketSearch('')
-        setExistingAttachments([])
+        setLinkedAttachments(null)
         return
       }
       const values = mapTicketOutToCreateForm(ticket, {
@@ -247,16 +251,20 @@ export function useTicketCreateController() {
       setOperationSearch('')
       setOperationPopoverOpen(false)
       setFiles([])
-      setExistingAttachments(attachments)
+      setLinkedAttachments({ ticketId, attachments: attachments ?? [] })
+      if (attachments === null) {
+        toast.warning('Não foi possível carregar os anexos já registrados.')
+      }
       closeServiceModal()
     },
-    onError: (error) => {
+    onError: (error, { ticketId }) => {
+      if (getValues('linked_ticket_id') !== ticketId) return
       toast.error(getApiErrorMessage(error))
       setValue('linked_ticket_id', null)
       setSelectedTicketLabel('')
       setSelectedAssociatedTicketTypeName(null)
       setTicketSearch('')
-      setExistingAttachments([])
+      setLinkedAttachments(null)
     },
   })
 
@@ -417,6 +425,12 @@ export function useTicketCreateController() {
   const isTicketNaturesLoading = ticketNaturesQuery.isLoading
   const isTicketsLoading = ticketsQuery.isLoading
   const isTeamsLoading = teamsQuery.isLoading
+  const linkedTicketId = watch('linked_ticket_id')
+  const existingAttachments =
+    linkedAttachments && linkedAttachments.ticketId === linkedTicketId
+      ? linkedAttachments.attachments
+      : NO_ATTACHMENTS
+
   const isLoading =
     isSubmitting ||
     createMutation.isPending ||
@@ -571,7 +585,7 @@ export function useTicketCreateController() {
   function resetFormToDefaults() {
     reset(defaultValues)
     setFiles([])
-    setExistingAttachments([])
+    setLinkedAttachments(null)
     setSelectedTicketLabel('')
     setSelectedAssociatedTicketTypeName(null)
     setTicketSearch('')

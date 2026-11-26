@@ -103,29 +103,22 @@ beforeEach(() => {
   jest.mocked(getTeamsList).mockResolvedValue(axiosResponse([]))
 })
 
-it.failing(
-  'limpar o chamado vinculado tira os anexos dele da tela',
-  async () => {
-    jest.mocked(getTicketById).mockResolvedValue(ticket('ticket-a', 'A'))
-    jest.mocked(getTicketAttachments).mockResolvedValue([attachment('a-1')])
-    const { result } = await renderController()
+it('limpar o chamado vinculado tira os anexos dele da tela', async () => {
+  jest.mocked(getTicketById).mockResolvedValue(ticket('ticket-a', 'A'))
+  jest.mocked(getTicketAttachments).mockResolvedValue([attachment('a-1')])
+  const { result } = await renderController()
 
-    await act(async () => {
-      await result.current.applyAssociatedTicketFromSearch(
-        'ticket-a',
-        'A',
-        'LP',
-      )
-    })
-    act(() => {
-      result.current.setValue('linked_ticket_id', null)
-    })
+  await act(async () => {
+    await result.current.applyAssociatedTicketFromSearch('ticket-a', 'A', 'LP')
+  })
+  act(() => {
+    result.current.setValue('linked_ticket_id', null)
+  })
 
-    expect(result.current.existingAttachments).toEqual([])
-  },
-)
+  expect(result.current.existingAttachments).toEqual([])
+})
 
-it.failing('falha ao buscar os anexos não desfaz o vínculo', async () => {
+it('falha ao buscar os anexos não desfaz o vínculo', async () => {
   jest.mocked(getTicketById).mockResolvedValue(ticket('ticket-a', 'A'))
   jest.mocked(getTicketAttachments).mockRejectedValue(new Error('timeout'))
   const { result } = await renderController()
@@ -141,44 +134,35 @@ it.failing('falha ao buscar os anexos não desfaz o vínculo', async () => {
   expect(result.current.existingAttachments).toEqual([])
 })
 
-it.failing(
-  'resposta atrasada de outro chamado não sobrescreve o atual',
-  async () => {
-    const slowA = deferred<TicketOut>()
-    jest
-      .mocked(getTicketById)
-      .mockImplementation((id: string) =>
-        id === 'ticket-a' ? slowA.promise : Promise.resolve(ticket(id, 'B')),
-      )
-    jest
-      .mocked(getTicketAttachments)
-      .mockImplementation(async (id: string) => [attachment(`${id}-1`)])
-    const { result } = await renderController()
+it('resposta atrasada de outro chamado não sobrescreve o atual', async () => {
+  const slowA = deferred<TicketOut>()
+  jest
+    .mocked(getTicketById)
+    .mockImplementation((id: string) =>
+      id === 'ticket-a' ? slowA.promise : Promise.resolve(ticket(id, 'B')),
+    )
+  jest
+    .mocked(getTicketAttachments)
+    .mockImplementation(async (id: string) => [attachment(`${id}-1`)])
+  const { result } = await renderController()
 
-    let first: Promise<void> = Promise.resolve()
-    act(() => {
-      first = result.current.applyAssociatedTicketFromSearch(
-        'ticket-a',
-        'A',
-        'LP',
-      )
-    })
-    await act(async () => {
-      await result.current.applyAssociatedTicketFromSearch(
-        'ticket-b',
-        'B',
-        'LP',
-      )
-    })
-    await act(async () => {
-      slowA.resolve(ticket('ticket-a', 'A'))
-      await first
-    })
+  let first: Promise<void> = Promise.resolve()
+  act(() => {
+    first = result.current.applyAssociatedTicketFromSearch(
+      'ticket-a',
+      'A',
+      'LP',
+    )
+  })
+  await act(async () => {
+    await result.current.applyAssociatedTicketFromSearch('ticket-b', 'B', 'LP')
+  })
+  await act(async () => {
+    slowA.resolve(ticket('ticket-a', 'A'))
+    await first
+  })
 
-    expect(result.current.getValues('linked_ticket_id')).toBe('ticket-b')
-    expect(result.current.getValues('requester.name')).toBe('B')
-    expect(result.current.existingAttachments).toEqual([
-      attachment('ticket-b-1'),
-    ])
-  },
-)
+  expect(result.current.getValues('linked_ticket_id')).toBe('ticket-b')
+  expect(result.current.getValues('requester.name')).toBe('B')
+  expect(result.current.existingAttachments).toEqual([attachment('ticket-b-1')])
+})
