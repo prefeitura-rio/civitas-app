@@ -38,7 +38,7 @@ function renderInteractions() {
 }
 
 describe('useMouseInteractions', () => {
-  it.failing('clique esquerdo procura o ponto relativo ao mapa', () => {
+  it('clique esquerdo procura o ponto relativo ao mapa', () => {
     const { result, pickObject } = renderInteractions()
 
     result.current.handleLeftClick(clickAt(300, 200))
@@ -46,7 +46,7 @@ describe('useMouseInteractions', () => {
     expect(pickObject).toHaveBeenCalledWith({ x: 244, y: 156, radius: 0 })
   })
 
-  it.failing('clique direito procura o ponto relativo ao mapa', () => {
+  it('clique direito procura o ponto relativo ao mapa', () => {
     const { result, pickObject } = renderInteractions()
 
     result.current.handleRightClick(clickAt(300, 200))
