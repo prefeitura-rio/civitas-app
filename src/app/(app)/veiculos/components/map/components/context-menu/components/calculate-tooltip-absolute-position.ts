@@ -8,12 +8,12 @@ const TOOLTIP_HORIZONTAL_OFFSET = 20 // Offset from the cursor
 const TOOLTIP_VERTICAL_OFFSET = 20 // Offset from the cursor
 const TOOLTIP_DEFAULT_WIDTH = 400 // Assuming a fixed width for the tooltip
 const TOOLTIP_DEFAULT_HEIGHT = 575 // Approximate height of the tooltip, adjust as needed
-const SIDEBAR_WIDTH = 56 // Approximate height of the tooltip, adjust as needed
 
 export function calculateTooltipAbsolutePosition(
   pickingInfo: PickingInfo,
   cardWidth: number | undefined,
   cardHeight: number | undefined,
+  mapOffset: { left: number; top: number },
 ) {
   const width = cardWidth || TOOLTIP_DEFAULT_WIDTH
   const height = cardHeight || TOOLTIP_DEFAULT_HEIGHT
@@ -21,8 +21,8 @@ export function calculateTooltipAbsolutePosition(
   // Se for um radar, posicionar no canto superior esquerdo (igual ao popup da câmera)
   if (pickingInfo.layer?.id === POINT_LAYER_IDS.radars) {
     return {
-      top: 8, // 8px do topo (igual ao left-2 top-2 da câmera)
-      left: 8 + SIDEBAR_WIDTH, // 8px da esquerda + largura da sidebar
+      top: 8 + mapOffset.top, // 8px do topo (igual ao left-2 top-2 da câmera)
+      left: 8 + mapOffset.left,
     }
   }
 
@@ -37,10 +37,10 @@ export function calculateTooltipAbsolutePosition(
   // Determine horizontal position
   if (x < viewportWidth / 2) {
     // Cursor is on the left half of the screen
-    left = x + TOOLTIP_HORIZONTAL_OFFSET + SIDEBAR_WIDTH
+    left = x + TOOLTIP_HORIZONTAL_OFFSET
   } else {
     // Cursor is on the right half of the screen
-    left = x - width - TOOLTIP_HORIZONTAL_OFFSET + SIDEBAR_WIDTH
+    left = x - width - TOOLTIP_HORIZONTAL_OFFSET
   }
 
   // Determine vertical position
@@ -53,14 +53,11 @@ export function calculateTooltipAbsolutePosition(
   }
 
   // Adjust for edge cases
-  if (left < SIDEBAR_WIDTH + TOOLTIP_HORIZONTAL_MARGIN) {
-    left = SIDEBAR_WIDTH + TOOLTIP_HORIZONTAL_MARGIN
+  if (left < TOOLTIP_HORIZONTAL_MARGIN) {
+    left = TOOLTIP_HORIZONTAL_MARGIN
   }
-  if (
-    left + width + TOOLTIP_HORIZONTAL_MARGIN >
-    viewportWidth + SIDEBAR_WIDTH
-  ) {
-    left = viewportWidth + SIDEBAR_WIDTH - width - TOOLTIP_HORIZONTAL_MARGIN
+  if (left + width + TOOLTIP_HORIZONTAL_MARGIN > viewportWidth) {
+    left = viewportWidth - width - TOOLTIP_HORIZONTAL_MARGIN
   }
   if (top < 50) {
     top = TOOLTIP_VERTICAL_MARGIN + 50
@@ -70,7 +67,7 @@ export function calculateTooltipAbsolutePosition(
   }
 
   return {
-    top,
-    left,
+    top: top + mapOffset.top,
+    left: left + mapOffset.left,
   }
 }

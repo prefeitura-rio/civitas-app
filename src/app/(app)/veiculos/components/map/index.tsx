@@ -25,6 +25,7 @@ import { SelectionCards } from './components/select-cards'
 
 export function Map() {
   const deckRef = useRef<Deck | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<MapRef | null>(null)
 
   const {
@@ -79,6 +80,7 @@ export function Map() {
 
   return (
     <div
+      ref={containerRef}
       className="relative h-full w-full overflow-hidden"
       onContextMenu={mouseInteractions.handleRightClick}
       onMouseDown={mouseInteractions.handleMouseDown}
@@ -136,6 +138,7 @@ export function Map() {
         </div>
       ) : null}
       <ContextMenu
+        mapContainerRef={containerRef}
         open={openContextMenu}
         onOpenChange={setOpenContextMenu}
         pickingInfo={contextMenuPickingInfo}

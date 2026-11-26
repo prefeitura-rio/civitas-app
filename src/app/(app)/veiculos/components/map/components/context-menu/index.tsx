@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { type PickingInfo } from 'deck.gl'
-import { useState } from 'react'
+import { type RefObject, useState } from 'react'
 
 import { Popover, PopoverContent } from '@/components/ui/popover'
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
@@ -15,12 +15,14 @@ import { RadarInfo } from './components/radar-info'
 import { SchoolInfo } from './components/school-info'
 
 interface ContextMenuProps {
+  mapContainerRef: RefObject<HTMLDivElement | null>
   pickingInfo: PickingInfo | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
 export function ContextMenu({
+  mapContainerRef,
   pickingInfo,
   onOpenChange,
   open,
@@ -28,10 +30,12 @@ export function ContextMenu({
   const [cardRef, setCardRef] = useState<HTMLDivElement | null>(null)
   if (!pickingInfo || !pickingInfo.object) return null
 
+  const mapRect = mapContainerRef.current?.getBoundingClientRect()
   const { top, left } = calculateTooltipAbsolutePosition(
     pickingInfo,
     cardRef?.clientWidth,
     cardRef?.clientHeight,
+    { left: mapRect?.left ?? 0, top: mapRect?.top ?? 0 },
   )
 
   const Content = ({ pickingInfo }: { pickingInfo: PickingInfo }) => {

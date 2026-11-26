@@ -14,22 +14,19 @@ function pickAt(x: number, y: number) {
 }
 
 describe('calculateTooltipAbsolutePosition', () => {
-  it.failing(
-    'converte o ponto do mapa para a janela, com o mapa abaixo da barra de personificação',
-    () => {
-      const position = calculateTooltipAbsolutePosition(
-        pickAt(740, 323),
-        CARD.width,
-        CARD.height,
-        { left: 56, top: 44 },
-      )
+  it('converte o ponto do mapa para a janela, com o mapa abaixo da barra de personificação', () => {
+    const position = calculateTooltipAbsolutePosition(
+      pickAt(740, 323),
+      CARD.width,
+      CARD.height,
+      { left: 56, top: 44 },
+    )
 
-      expect(position).toEqual({
-        top: 323 - 20 + 44,
-        left: 740 - 400 - 20 + 56,
-      })
-    },
-  )
+    expect(position).toEqual({
+      top: 323 - 20 + 44,
+      left: 740 - 400 - 20 + 56,
+    })
+  })
 
   it('sem barra no topo, mantém a posição de hoje', () => {
     const position = calculateTooltipAbsolutePosition(
