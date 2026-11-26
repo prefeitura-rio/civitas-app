@@ -146,6 +146,7 @@ async function uploadPendingGcsAttachment(
     session = undefined
   }
 
+  const isNewSession = !session
   if (session) {
     storageKey = session.storageKey
   } else {
@@ -194,6 +195,7 @@ async function uploadPendingGcsAttachment(
 
   await gcsResumableChunkedUpload(session.sessionUri, file, contentType, {
     startByte: session.uploadedBytes,
+    isNewSession,
     signal: options?.signal,
     onProgress: ({ uploaded, total }) => {
       const pct =

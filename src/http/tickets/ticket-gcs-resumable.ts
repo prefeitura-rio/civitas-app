@@ -9,6 +9,7 @@ export type GcsResumableUploadProgress = {
 
 export type GcsResumableChunkedUploadOptions = {
   startByte?: number
+  isNewSession?: boolean
   chunkSize?: number
   onProgress?: (progress: GcsResumableUploadProgress) => void
   onChunkComplete?: (uploadedBytes: number) => Promise<void>
@@ -145,20 +146,22 @@ export async function gcsResumableChunkedUpload(
 
   if (offset >= total) return
 
-  try {
-    const confirmedOffset = await queryGcsSessionOffset(
-      sessionUri,
-      total,
-      options?.signal,
-    )
-    if (confirmedOffset >= total) {
-      options?.onProgress?.({ uploaded: total, total })
-      await options?.onChunkComplete?.(total)
-      return
+  if (!options?.isNewSession) {
+    try {
+      const confirmedOffset = await queryGcsSessionOffset(
+        sessionUri,
+        total,
+        options?.signal,
+      )
+      if (confirmedOffset >= total) {
+        options?.onProgress?.({ uploaded: total, total })
+        await options?.onChunkComplete?.(total)
+        return
+      }
+      offset = Math.max(offset, confirmedOffset)
+    } catch {
+      if (offset > 0) throw new Error('Não foi possível retomar o upload.')
     }
-    offset = Math.max(offset, confirmedOffset)
-  } catch {
-    if (offset > 0) throw new Error('Não foi possível retomar o upload.')
   }
 
   options?.onProgress?.({ uploaded: offset, total })
