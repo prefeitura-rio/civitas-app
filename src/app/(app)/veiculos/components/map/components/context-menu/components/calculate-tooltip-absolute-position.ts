@@ -1,7 +1,5 @@
 import type { PickingInfo } from 'deck.gl'
 
-import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
-
 const TOOLTIP_HORIZONTAL_MARGIN = 10
 const TOOLTIP_VERTICAL_MARGIN = 10
 const TOOLTIP_HORIZONTAL_OFFSET = 20
@@ -17,14 +15,6 @@ export function calculateTooltipAbsolutePosition(
 ) {
   const width = cardWidth || TOOLTIP_DEFAULT_WIDTH
   const height = cardHeight || TOOLTIP_DEFAULT_HEIGHT
-
-  // Se for um radar, posicionar no canto superior esquerdo (igual ao popup da câmera)
-  if (pickingInfo.layer?.id === POINT_LAYER_IDS.radars) {
-    return {
-      top: 8 + mapOffset.top,
-      left: 8 + mapOffset.left,
-    }
-  }
 
   const x = pickingInfo.x
   const y = pickingInfo.y

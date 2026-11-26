@@ -1,15 +1,14 @@
 import type { PickingInfo } from 'deck.gl'
 
 import { calculateTooltipAbsolutePosition } from '@/app/(app)/veiculos/components/map/components/context-menu/components/calculate-tooltip-absolute-position'
-import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
 const BELOW_IMPERSONATION_BAR = { left: 56, top: 44 }
 
-function pickAt(x: number, y: number, layerId = 'AISP') {
+function pickAt(x: number, y: number) {
   return {
     x,
     y,
-    layer: { id: layerId },
+    layer: { id: 'AISP' },
     viewport: { width: 931, height: 861 },
   } as unknown as PickingInfo
 }
@@ -50,16 +49,5 @@ describe('calculateTooltipAbsolutePosition', () => {
         top: 0,
       }),
     ).toEqual({ top: 303, left: 376 })
-  })
-
-  it('radar fica no canto superior esquerdo do mapa, qualquer que seja o clique', () => {
-    expect(
-      calculateTooltipAbsolutePosition(
-        pickAt(740, 323, POINT_LAYER_IDS.radars),
-        400,
-        350,
-        BELOW_IMPERSONATION_BAR,
-      ),
-    ).toEqual({ top: 52, left: 64 })
   })
 })

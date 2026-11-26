@@ -11,7 +11,6 @@ import { AISPInfo } from './components/aisp-info'
 import { calculateTooltipAbsolutePosition } from './components/calculate-tooltip-absolute-position'
 import { CISPInfo } from './components/cisp-info'
 import { FogoCruzadoInfo } from './components/fogo-cruzado-info'
-import { RadarInfo } from './components/radar-info'
 import { SchoolInfo } from './components/school-info'
 
 interface ContextMenuProps {
@@ -39,10 +38,6 @@ export function ContextMenu({
   )
 
   const Content = ({ pickingInfo }: { pickingInfo: PickingInfo }) => {
-    if (pickingInfo?.layer?.id === POINT_LAYER_IDS.radars) {
-      return <RadarInfo pickingInfo={pickingInfo} />
-    }
-
     if (pickingInfo?.layer?.id === 'AISP') {
       return <AISPInfo pickingInfo={pickingInfo} />
     }
@@ -64,7 +59,6 @@ export function ContextMenu({
     <Popover open={open} onOpenChange={onOpenChange} modal={false}>
       {pickingInfo.layer?.id &&
         [
-          POINT_LAYER_IDS.radars,
           'AISP',
           'CISP',
           POINT_LAYER_IDS.incidents,
