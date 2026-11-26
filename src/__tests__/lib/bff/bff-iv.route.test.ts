@@ -262,4 +262,14 @@ describe('GET /api/bff-iv/[...path]', () => {
     expect(response.headers.get('x-civitas-session-ended')).toBeNull()
     expect(sessionWasCleared(response)).toBe(false)
   })
+
+  it.each(['/openapi.json', '/docs', '/redoc'])(
+    'returns 404 for the service API docs (%s)',
+    async (path) => {
+      const mock = mockFetch()
+      const response = await GET(makeRequest(path))
+      expect(response.status).toBe(404)
+      expect(mock).not.toHaveBeenCalled()
+    },
+  )
 })
