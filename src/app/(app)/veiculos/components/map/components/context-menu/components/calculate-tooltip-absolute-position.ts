@@ -2,12 +2,12 @@ import type { PickingInfo } from 'deck.gl'
 
 import { POINT_LAYER_IDS } from '@/utils/point-layer-config'
 
-const TOOLTIP_HORIZONTAL_MARGIN = 10 // Margin from the cursor
-const TOOLTIP_VERTICAL_MARGIN = 10 // Margin from the cursor
-const TOOLTIP_HORIZONTAL_OFFSET = 20 // Offset from the cursor
-const TOOLTIP_VERTICAL_OFFSET = 20 // Offset from the cursor
-const TOOLTIP_DEFAULT_WIDTH = 400 // Assuming a fixed width for the tooltip
-const TOOLTIP_DEFAULT_HEIGHT = 575 // Approximate height of the tooltip, adjust as needed
+const TOOLTIP_HORIZONTAL_MARGIN = 10
+const TOOLTIP_VERTICAL_MARGIN = 10
+const TOOLTIP_HORIZONTAL_OFFSET = 20
+const TOOLTIP_VERTICAL_OFFSET = 20
+const TOOLTIP_DEFAULT_WIDTH = 400
+const TOOLTIP_DEFAULT_HEIGHT = 575
 
 export function calculateTooltipAbsolutePosition(
   pickingInfo: PickingInfo,
@@ -21,7 +21,7 @@ export function calculateTooltipAbsolutePosition(
   // Se for um radar, posicionar no canto superior esquerdo (igual ao popup da câmera)
   if (pickingInfo.layer?.id === POINT_LAYER_IDS.radars) {
     return {
-      top: 8 + mapOffset.top, // 8px do topo (igual ao left-2 top-2 da câmera)
+      top: 8 + mapOffset.top,
       left: 8 + mapOffset.left,
     }
   }
@@ -34,25 +34,18 @@ export function calculateTooltipAbsolutePosition(
   let left: number | undefined
   let top: number | undefined
 
-  // Determine horizontal position
   if (x < viewportWidth / 2) {
-    // Cursor is on the left half of the screen
     left = x + TOOLTIP_HORIZONTAL_OFFSET
   } else {
-    // Cursor is on the right half of the screen
     left = x - width - TOOLTIP_HORIZONTAL_OFFSET
   }
 
-  // Determine vertical position
   if (y < viewportHeight / 2) {
-    // Cursor is on the top half of the screen
     top = y - TOOLTIP_VERTICAL_OFFSET
   } else {
-    // Cursor is on the bottom half of the screen
     top = y - height - TOOLTIP_VERTICAL_OFFSET
   }
 
-  // Adjust for edge cases
   if (left < TOOLTIP_HORIZONTAL_MARGIN) {
     left = TOOLTIP_HORIZONTAL_MARGIN
   }
