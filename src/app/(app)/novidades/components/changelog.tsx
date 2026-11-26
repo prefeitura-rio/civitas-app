@@ -47,8 +47,9 @@ export const changelog: Card[] = [
         title: 'Indicação de erros nos serviços da demanda',
         content: (
           <p>
-            Serviços com campos pendentes agora são destacados na lista. Ao
-            abrir o serviço, o campo que precisa de correção também é indicado.
+            Serviços com campos pendentes agora são destacados na lista. Nas
+            buscas, reservas e análises de imagem, o endereço que precisa de
+            correção também é indicado ao abrir o serviço.
           </p>
         ),
       },
