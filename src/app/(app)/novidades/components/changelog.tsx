@@ -23,12 +23,13 @@ export const changelog: Card[] = [
     subCards: [
       {
         tag: 'Corrigido',
-        title: 'Anexos existentes nas demandas',
+        title: 'Anexos na conversão de levantamento prévio',
         content: (
           <p>
-            Os arquivos já anexados a uma demanda agora aparecem ao editar ou
-            converter o chamado. Isso inclui os anexos recebidos por e-mail, que
-            antes não eram exibidos nessas etapas.
+            Ao converter uma demanda de levantamento prévio para convencional,
+            os arquivos já anexados a ela, inclusive os recebidos por e-mail,
+            agora aparecem no formulário. Não é mais preciso anexar um arquivo
+            novo para concluir a conversão.
           </p>
         ),
       },
