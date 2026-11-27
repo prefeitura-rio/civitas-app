@@ -75,7 +75,7 @@ export type ServiceCameraOut = {
 export type ServiceAddressOut = {
   id: string
   created_at: string
-  address: string
+  address_text: string
 }
 
 export type ServiceImageSearchOut = {

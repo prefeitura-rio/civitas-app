@@ -19,6 +19,44 @@ export interface Card {
 
 export const changelog: Card[] = [
   {
+    title: '26 de Novembro de 2026',
+    subCards: [
+      {
+        tag: 'Corrigido',
+        title: 'Anexos na conversão de levantamento prévio',
+        content: (
+          <p>
+            Ao converter uma demanda de levantamento prévio para convencional,
+            os arquivos já anexados a ela, inclusive os recebidos por e-mail,
+            agora aparecem no formulário. Não é mais preciso anexar um arquivo
+            novo para concluir a conversão.
+          </p>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Endereços dos serviços ao reabrir uma demanda',
+        content: (
+          <p>
+            Os endereços cadastrados nos serviços voltam a aparecer nos campos
+            correspondentes ao reabrir uma demanda para edição.
+          </p>
+        ),
+      },
+      {
+        tag: 'Corrigido',
+        title: 'Indicação de erros nos serviços da demanda',
+        content: (
+          <p>
+            Serviços com campos pendentes agora são destacados na lista. Nas
+            buscas, reservas e análises de imagem, o endereço que precisa de
+            correção também é indicado ao abrir o serviço.
+          </p>
+        ),
+      },
+    ],
+  },
+  {
     title: '25 de Novembro de 2026',
     subCards: [
       {

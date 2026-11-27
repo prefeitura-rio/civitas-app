@@ -13,6 +13,7 @@ type Props<T extends { id: string }> = {
   disabled?: boolean
   /** Se definido, controla só o botão de abrir o modal (lista compacta). Remover usa `disabled`. */
   openModalDisabled?: boolean
+  errorAtIndex?: (index: number) => string | undefined
 }
 
 export function ServiceList<T extends { id: string }>({
@@ -23,6 +24,7 @@ export function ServiceList<T extends { id: string }>({
   renderRow,
   disabled = false,
   openModalDisabled,
+  errorAtIndex,
 }: Props<T>) {
   if (fields.length === 0) return null
 
@@ -39,63 +41,72 @@ export function ServiceList<T extends { id: string }>({
       </div>
 
       <div className={styles.serviceItemList}>
-        {fields.map((f, idx) => (
-          <div
-            key={f.id}
-            className={
-              isCompact
-                ? styles.serviceItemBadgeCard
-                : styles.serviceItemFormCard
-            }
-          >
-            {isCompact ? (
-              <>
-                <button
-                  type="button"
-                  className={styles.serviceItemBadgeButton}
-                  onClick={() => onEdit?.(idx)}
-                  disabled={compactOpenDisabled}
-                  title="Abrir para editar"
-                >
-                  <span className={styles.serviceItemBadge}>
-                    {label} · Item {idx + 1}
-                  </span>
-                  <Pencil className={styles.serviceItemBadgeIcon} />
-                </button>
+        {fields.map((f, idx) => {
+          const error = errorAtIndex?.(idx)
+          return (
+            <div
+              key={f.id}
+              data-invalid={Boolean(error)}
+              className={`${
+                isCompact
+                  ? styles.serviceItemBadgeCard
+                  : styles.serviceItemFormCard
+              } ${error ? styles.serviceItemError : ''}`}
+            >
+              {isCompact ? (
+                <>
+                  <button
+                    type="button"
+                    className={styles.serviceItemBadgeButton}
+                    onClick={() => onEdit?.(idx)}
+                    disabled={compactOpenDisabled}
+                    title="Abrir para editar"
+                  >
+                    <span className={styles.serviceItemBadge}>
+                      {label} · Item {idx + 1}
+                    </span>
+                    <Pencil className={styles.serviceItemBadgeIcon} />
+                  </button>
 
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className={styles.serviceItemDeleteBtn}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onRemove(idx)
-                  }}
-                  disabled={disabled}
-                  title="Remover"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="mb-3 flex justify-end">
                   <Button
                     type="button"
                     variant="ghost"
-                    className="h-8 w-8 p-0"
-                    onClick={() => onRemove(idx)}
+                    className={styles.serviceItemDeleteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onRemove(idx)
+                    }}
                     disabled={disabled}
                     title="Remover"
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
-                </div>
-                {renderRow(idx)}
-              </>
-            )}
-          </div>
-        ))}
+                </>
+              ) : (
+                <>
+                  <div className="mb-3 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onRemove(idx)}
+                      disabled={disabled}
+                      title="Remover"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {renderRow(idx)}
+                </>
+              )}
+              {error && (
+                <p className={styles.serviceItemErrorMessage} role="alert">
+                  {error}
+                </p>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
